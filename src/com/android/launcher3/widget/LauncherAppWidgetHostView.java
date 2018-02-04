@@ -42,6 +42,7 @@ import androidx.annotation.Nullable;
 
 import com.android.launcher3.CheckLongPressHelper;
 import com.android.launcher3.Flags;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.R;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.popup.Poppable;
@@ -121,6 +122,7 @@ public class LauncherAppWidgetHostView extends BaseLauncherAppWidgetHostView
 
     @Override
     public boolean onLongClick(View view) {
+        if (LauncherPrefs.WORKSPACE_LOCK.get((Context) mActivityContext)) return true;
         if (mIsScrollable) {
             mActivityContext.getDragLayer().requestDisallowInterceptTouchEvent(false);
         }
