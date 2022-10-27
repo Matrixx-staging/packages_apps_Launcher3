@@ -47,7 +47,7 @@ import com.android.launcher3.Flags;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.dagger.ApplicationContext;
-import com.android.launcher3.lineage.trust.db.TrustDatabaseHelper;
+import com.android.launcher3.lineage.trust.AppLockHelper;
 import com.android.launcher3.logger.LauncherAtom;
 import com.android.launcher3.logging.InstanceId;
 import com.android.launcher3.logging.InstanceIdSequence;
@@ -123,8 +123,8 @@ public class QuickstepModelDelegate extends ModelDelegate {
         mStatsManager = TextUtils.isEmpty(dbFileName)
                 ? null : context.getSystemService(StatsManager.class);
 
-        TrustDatabaseHelper trustData = TrustDatabaseHelper.getInstance(context);
-        mTotalPackageHidden = trustData != null ? trustData.getTotalPackageHidden() : 0;
+        AppLockHelper appLockHelper = AppLockHelper.getInstance(context);
+        mTotalPackageHidden = appLockHelper != null ? appLockHelper.getHiddenPackagesCount() : 0;
     }
 
     @Override
