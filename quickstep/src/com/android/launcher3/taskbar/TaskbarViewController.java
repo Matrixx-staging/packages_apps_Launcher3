@@ -461,6 +461,14 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     }
 
     @VisibleForTesting
+    void limitMaxTaskbarIconsNum(int maxIconNumLimit) {
+        mTaskbarView.limitMaxNumIconViewsForTest(maxIconNumLimit);
+        if (mTaskbarView.updateMaxNumIcons()) {
+            commitRunningAppsToUI();
+        }
+    }
+
+    @VisibleForTesting
     int getMaxNumIconViews() {
         return mTaskbarView.getMaxNumIconViews();
     }

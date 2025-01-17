@@ -188,6 +188,14 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
                                 .getTaskbarAllAppsScroll());
             }
 
+            case TestProtocol.REQUEST_LIMIT_MAX_TASKBAR_ICON_NUMBER: {
+                runOnTISBinder(tisBinder ->
+                        tisBinder.getTaskbarManager()
+                                .getCurrentActivityContext()
+                                .limitMaxTaskbarIconsNum(Integer.parseInt(arg)));
+                return response;
+            }
+
             case TestProtocol.REQUEST_ENABLE_BLOCK_TIMEOUT:
                 runOnTISBinder(tisBinder -> {
                     enableBlockingTimeout(tisBinder, true);
