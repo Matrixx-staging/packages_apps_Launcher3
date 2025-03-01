@@ -21,7 +21,7 @@ import static android.content.Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS;
 import static com.android.launcher3.Flags.enableSeparateExternalDisplayTasks;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 import static com.android.quickstep.util.SplitScreenUtils.convertShellSplitBoundsToLauncher;
-import static com.android.wm.shell.shared.GroupedTaskInfo.TYPE_FREEFORM;
+import static com.android.wm.shell.shared.GroupedTaskInfo.TYPE_DESK;
 import static com.android.wm.shell.shared.GroupedTaskInfo.TYPE_SPLIT;
 
 import android.app.ActivityManager.RunningTaskInfo;
@@ -32,10 +32,12 @@ import android.content.Context;
 import android.os.Process;
 import android.os.RemoteException;
 import android.util.SparseBooleanArray;
+import android.window.DesktopExperienceFlags;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
+import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.util.LooperExecutor;
 import com.android.launcher3.util.SplitConfigurationOptions;
 import com.android.quickstep.util.DesktopTask;
@@ -351,15 +353,23 @@ public class RecentTasksList {
 
         TaskLoadResult allTasks = new TaskLoadResult(requestId, loadKeysOnly, rawTasks.size());
 
-        int numVisibleTasks = 0;
+        boolean isFirstVisibleTaskFound = false;
         for (GroupedTaskInfo rawTask : rawTasks) {
-            if (rawTask.isBaseType(TYPE_FREEFORM)) {
-                // TYPE_FREEFORM tasks is only created when desktop mode can be entered,
-                // leftover TYPE_FREEFORM tasks created when flag was on should be ignored.
+            if (rawTask.isBaseType(TYPE_DESK)) {
+                // TYPE_DESK tasks is only created when desktop mode can be entered,
+                // leftover TYPE_DESK tasks created when flag was on should be ignored.
                 if (DesktopModeStatus.canEnterDesktopMode(mContext)) {
                     List<DesktopTask> desktopTasks = createDesktopTasks(
                             rawTask.getBaseGroupedTask());
                     allTasks.addAll(desktopTasks);
+
+                    // If any task in desktop group task is visible, set isFirstVisibleTaskFound to
+                    // true. This way if there is a transparent task in the list later on, it does
+                    // not get its own tile in Overview.
+                    if (rawTask.getBaseGroupedTask().getTaskInfoList().stream().anyMatch(
+                            taskInfo -> taskInfo.isVisible)) {
+                        isFirstVisibleTaskFound = true;
+                    }
                 }
                 continue;
             }
@@ -400,7 +410,7 @@ public class RecentTasksList {
                                     tmpLockedUsers.get(task2Key.userId) /* isLocked */);
                 } else {
                     // Is fullscreen task
-                    if (numVisibleTasks > 0) {
+                    if (isFirstVisibleTaskFound) {
                         boolean isExcluded = (taskInfo1.baseIntent.getFlags()
                                 & FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS) != 0;
                         if (taskInfo1.isTopActivityTransparent && isExcluded) {
@@ -411,7 +421,7 @@ public class RecentTasksList {
                     }
                 }
                 if (taskInfo1.isVisible) {
-                    numVisibleTasks++;
+                    isFirstVisibleTaskFound = true;
                 }
                 if (task2 != null) {
                     Objects.requireNonNull(rawTask.getSplitBounds());
@@ -442,7 +452,11 @@ public class RecentTasksList {
         Set<Integer> minimizedTaskIds = minimizedTaskIdArray != null
                 ? CollectionsKt.toSet(ArraysKt.asIterable(minimizedTaskIdArray))
                 : Collections.emptySet();
-        if (enableSeparateExternalDisplayTasks()) {
+        if (enableSeparateExternalDisplayTasks()
+                && !DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_BACKEND.isTrue()) {
+            // This code is not needed when the multiple desktop feature is enabled, since Shell
+            // will send a single `GroupedTaskInfo` for each desk with a unique `deskId` across
+            // all displays.
             Map<Integer, List<Task>> perDisplayTasks = new HashMap<>();
             for (TaskInfo taskInfo : recentTaskInfo.getTaskInfoList()) {
                 Task task = createTask(taskInfo, minimizedTaskIds);
@@ -450,11 +464,16 @@ public class RecentTasksList {
                         k -> new ArrayList<>());
                 tasks.add(task);
             }
-            return MapsKt.map(perDisplayTasks, it -> new DesktopTask(it.getValue()));
+            // When the multiple desktop feature is disabled, there can only be up to a single desk
+            // on each display, The desk ID doesn't matter and should not be used.
+            return MapsKt.map(perDisplayTasks,
+                    it -> new DesktopTask(DesktopVisibilityController.INACTIVE_DESK_ID,
+                            it.getValue()));
         } else {
+            final int deskId = recentTaskInfo.getDeskId();
             List<Task> tasks = CollectionsKt.map(recentTaskInfo.getTaskInfoList(),
                     it -> createTask(it, minimizedTaskIds));
-            return List.of(new DesktopTask(tasks));
+            return List.of(new DesktopTask(deskId, tasks));
         }
     }
 

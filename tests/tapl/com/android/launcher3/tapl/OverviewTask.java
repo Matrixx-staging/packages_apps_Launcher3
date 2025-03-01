@@ -125,11 +125,11 @@ public final class OverviewTask {
         return right - left;
     }
 
-    int getTaskCenterX() {
+    public int getTaskCenterX() {
         return mTask.getVisibleCenter().x;
     }
 
-    int getTaskCenterY() {
+    public int getTaskCenterY() {
         return mTask.getVisibleCenter().y;
     }
 

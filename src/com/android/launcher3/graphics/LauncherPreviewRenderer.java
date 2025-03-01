@@ -28,6 +28,7 @@ import static com.android.launcher3.LauncherPrefs.GRID_NAME;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION;
 import static com.android.launcher3.Utilities.SHOULD_SHOW_FIRST_PAGE_WIDGET;
+import static com.android.launcher3.graphics.ThemeManager.PREF_ICON_SHAPE;
 import static com.android.launcher3.model.ModelUtils.currentScreenContentFilter;
 
 import android.app.Fragment;
@@ -67,7 +68,6 @@ import com.android.launcher3.DeviceProfile.OnDeviceProfileChangeListener;
 import com.android.launcher3.Hotseat;
 import com.android.launcher3.InsettableFrameLayout;
 import com.android.launcher3.InvariantDeviceProfile;
-import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.LauncherSettings.Favorites;
 import com.android.launcher3.ProxyPrefs;
@@ -94,7 +94,7 @@ import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.IntArray;
 import com.android.launcher3.util.IntSet;
-import com.android.launcher3.util.MainThreadInitializedObject.SandboxContext;
+import com.android.launcher3.util.SandboxContext;
 import com.android.launcher3.util.WindowBounds;
 import com.android.launcher3.util.window.WindowManagerProxy;
 import com.android.launcher3.views.ActivityContext;
@@ -138,16 +138,15 @@ public class LauncherPreviewRenderer extends ContextWrapper
 
         private final String mPrefName;
 
-        public PreviewContext(Context base, String gridName) {
+        public PreviewContext(Context base, String gridName, String shapeKey) {
             super(base);
             mPrefName = "preview-" + UUID.randomUUID().toString();
             LauncherPrefs prefs =
                     new ProxyPrefs(this, getSharedPreferences(mPrefName, MODE_PRIVATE));
             prefs.put(GRID_NAME, gridName);
+            prefs.put(PREF_ICON_SHAPE, shapeKey);
             initDaggerComponent(
                     DaggerLauncherPreviewRenderer_PreviewAppComponent.builder().bindPrefs(prefs));
-            putObject(LauncherAppState.INSTANCE,
-                    new LauncherAppState(this, null /* iconCacheFileName */));
         }
 
         @Override

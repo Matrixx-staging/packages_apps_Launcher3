@@ -35,8 +35,8 @@ import com.android.launcher3.testing.shared.ResourceUtils
 import com.android.launcher3.util.AllModulesMinusWMProxy
 import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.FakePrefsModule
-import com.android.launcher3.util.MainThreadInitializedObject.SandboxContext
 import com.android.launcher3.util.NavigationMode
+import com.android.launcher3.util.SandboxContext
 import com.android.launcher3.util.WindowBounds
 import com.android.launcher3.util.rule.TestStabilityRule
 import com.android.launcher3.util.rule.setFlags
@@ -294,6 +294,8 @@ abstract class AbstractDeviceProfileTest {
         gridName: String? = GRID_NAME.defaultValue,
     ) {
         setFlagsRule.setFlags(true, Flags.FLAG_ENABLE_TWOLINE_TOGGLE)
+        // TODO: re-enable as part of b/396211437
+        setFlagsRule.setFlags(false, Flags.FLAG_ENABLE_LAUNCHER_ICON_SHAPES)
         val windowsBounds = perDisplayBoundsCache[displayInfo]!!
         val realBounds = windowsBounds[rotation]
         whenever(windowManagerProxy.getDisplayInfo(any())).thenReturn(displayInfo)
@@ -362,7 +364,13 @@ abstract class AbstractDeviceProfileTest {
         context.assets.open("dumpTests/$fileName").bufferedReader().use(BufferedReader::readText)
 
     private fun writeToDevice(context: Context, fileName: String, content: String) {
-        File(context.getDir("dumpTests", Context.MODE_PRIVATE), fileName).writeText(content)
+        val dir =
+            File(context.filesDir, "dumpTests").also {
+                if (!it.exists()) {
+                    it.mkdirs()
+                }
+            }
+        File(dir, fileName).writeText(content)
     }
 
     protected fun Float.dpToPx(): Float {

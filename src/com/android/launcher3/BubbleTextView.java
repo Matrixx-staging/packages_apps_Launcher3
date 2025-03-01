@@ -20,6 +20,9 @@ import static android.graphics.fonts.FontStyle.FONT_WEIGHT_BOLD;
 import static android.graphics.fonts.FontStyle.FONT_WEIGHT_NORMAL;
 import static android.text.Layout.Alignment.ALIGN_NORMAL;
 
+import static com.android.launcher3.BubbleTextView.RunningAppState.RUNNING;
+import static com.android.launcher3.BubbleTextView.RunningAppState.NOT_RUNNING;
+import static com.android.launcher3.BubbleTextView.RunningAppState.MINIMIZED;
 import static com.android.launcher3.Flags.enableContrastTiles;
 import static com.android.launcher3.Flags.enableCursorHoverStates;
 import static com.android.launcher3.graphics.PreloadIconDrawable.newPendingIcon;
@@ -27,6 +30,7 @@ import static com.android.launcher3.icons.BitmapInfo.FLAG_NO_BADGE;
 import static com.android.launcher3.icons.BitmapInfo.FLAG_SKIP_USER_BADGE;
 import static com.android.launcher3.icons.BitmapInfo.FLAG_THEMED;
 import static com.android.launcher3.icons.GraphicsUtils.setColorAlphaBound;
+import static com.android.launcher3.icons.IconNormalizer.ICON_VISIBLE_AREA_FACTOR;
 import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_INCREMENTAL_DOWNLOAD_ACTIVE;
 import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_INSTALL_SESSION_ACTIVE;
 import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_SHOW_DOWNLOAD_PROGRESS_MASK;
@@ -75,7 +79,6 @@ import com.android.launcher3.dot.DotInfo;
 import com.android.launcher3.dragndrop.DragOptions.PreDragCondition;
 import com.android.launcher3.dragndrop.DraggableView;
 import com.android.launcher3.folder.FolderIcon;
-import com.android.launcher3.graphics.IconShape;
 import com.android.launcher3.graphics.PreloadIconDrawable;
 import com.android.launcher3.icons.DotRenderer;
 import com.android.launcher3.icons.FastBitmapDrawable;
@@ -208,6 +211,9 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     private final int mRunningAppIndicatorColor;
     private final int mMinimizedAppIndicatorColor;
 
+    private final String mMinimizedStateDescription;
+    private final String mRunningStateDescription;
+
     /**
      * Various options for the running state of an app.
      */
@@ -240,6 +246,9 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         super(context, attrs, defStyle);
         mActivity = ActivityContext.lookupContext(context);
         FastBitmapDrawable.setFlagHoverEnabled(enableCursorHoverStates());
+        mMinimizedStateDescription = getContext().getString(
+                R.string.app_minimized_state_description);
+        mRunningStateDescription = getContext().getString(R.string.app_running_state_description);
 
         TypedArray a = context.obtainStyledAttributes(attrs,
                 R.styleable.BubbleTextView, defStyle, 0);
@@ -430,6 +439,19 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     public void updateRunningState(RunningAppState runningAppState) {
         mRunningAppState = runningAppState;
         invalidate();
+    }
+
+    /**
+     * Returns state description of this icon.
+     */
+    public String getIconStateDescription() {
+        if (mRunningAppState == MINIMIZED) {
+            return mMinimizedStateDescription;
+        } else if (mRunningAppState == RUNNING) {
+            return mRunningStateDescription;
+        } else {
+            return "";
+        }
     }
 
     protected void setItemInfo(ItemInfoWithIcon itemInfo) {
@@ -723,8 +745,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     protected void drawDotIfNecessary(Canvas canvas) {
         if (!mForceHideDot && (hasDot() || mDotParams.scale > 0)) {
             getIconBounds(mDotParams.iconBounds);
-            Utilities.scaleRectAboutCenter(mDotParams.iconBounds,
-                    IconShape.INSTANCE.get(getContext()).getNormalizationScale());
+            Utilities.scaleRectAboutCenter(mDotParams.iconBounds, ICON_VISIBLE_AREA_FACTOR);
             final int scrollX = getScrollX();
             final int scrollY = getScrollY();
             canvas.translate(scrollX, scrollY);
@@ -769,15 +790,13 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
 
     /** Draws a line under the app icon if this is representing a running app in Desktop Mode. */
     protected void drawRunningAppIndicatorIfNecessary(Canvas canvas) {
-        if (mRunningAppState == RunningAppState.NOT_RUNNING || mDisplay != DISPLAY_TASKBAR) {
+        if (mRunningAppState == NOT_RUNNING || mDisplay != DISPLAY_TASKBAR) {
             return;
         }
         getIconBounds(mRunningAppIconBounds);
-        Utilities.scaleRectAboutCenter(
-                mRunningAppIconBounds,
-                IconShape.INSTANCE.get(getContext()).getNormalizationScale());
+        Utilities.scaleRectAboutCenter(mRunningAppIconBounds, ICON_VISIBLE_AREA_FACTOR);
 
-        final boolean isMinimized = mRunningAppState == RunningAppState.MINIMIZED;
+        final boolean isMinimized = mRunningAppState == MINIMIZED;
         final int indicatorTop = mRunningAppIconBounds.bottom + mRunningAppIndicatorTopMargin;
         final int indicatorWidth =
                 isMinimized ? mMinimizedAppIndicatorWidth : mRunningAppIndicatorWidth;

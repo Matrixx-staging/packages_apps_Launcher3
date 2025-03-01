@@ -62,7 +62,6 @@ import com.android.launcher3.taskbar.customization.TaskbarAllAppsButtonContainer
 import com.android.launcher3.taskbar.customization.TaskbarDividerContainer;
 import com.android.launcher3.uioverrides.PredictedAppIcon;
 import com.android.launcher3.util.DisplayController;
-import com.android.launcher3.util.LauncherBindableItemsContainer;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
 import com.android.quickstep.util.GroupTask;
@@ -392,6 +391,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
     /** Inflates/binds the hotseat items and recent tasks to the view. */
     protected void updateItems(ItemInfo[] hotseatItemInfos, List<GroupTask> recentTasks) {
+        if (mActivityContext.isDestroyed()) return;
         // Filter out unsupported items.
         hotseatItemInfos = Arrays.stream(hotseatItemInfos)
                 .filter(Objects::nonNull)
@@ -1094,20 +1094,6 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
      */
     public int getAllAppsButtonTranslationXOffsetUsedForLayout() {
         return mAllAppsButtonTranslationOffset;
-    }
-
-    /**
-     * Maps {@code op} over all the child views.
-     */
-    public void mapOverItems(LauncherBindableItemsContainer.ItemOperator op) {
-        // map over all the shortcuts on the taskbar
-        for (int i = 0; i < getChildCount(); i++) {
-            View item = getChildAt(i);
-            // TODO(b/344657629): Support GroupTask as well for notification dots/popup
-            if (item.getTag() instanceof ItemInfo itemInfo && op.evaluate(itemInfo, item)) {
-                return;
-            }
-        }
     }
 
     /**

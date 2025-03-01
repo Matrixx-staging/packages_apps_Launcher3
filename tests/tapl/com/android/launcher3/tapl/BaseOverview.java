@@ -157,12 +157,7 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
              LauncherInstrumentation.Closable c = mLauncher.addContextLayer(
                      "dismissing all tasks")) {
             final BySelector clearAllSelector = mLauncher.getOverviewObjectSelector("clear_all");
-            for (int i = 0;
-                    i < FLINGS_FOR_DISMISS_LIMIT
-                            && !verifyActiveContainer().hasObject(clearAllSelector);
-                    ++i) {
-                flingForwardImpl();
-            }
+            flingForwardUntilClearAllVisibleImpl();
 
             final Runnable clickClearAll = () -> mLauncher.clickLauncherObject(
                     mLauncher.waitForObjectInContainer(verifyActiveContainer(),
@@ -179,6 +174,26 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
             }
 
             mLauncher.waitUntilLauncherObjectGone(clearAllSelector);
+        }
+    }
+
+    /**
+     * Scrolls until Clear-all button is visible.
+     */
+    public void flingForwardUntilClearAllVisible() {
+        try (LauncherInstrumentation.Closable e = mLauncher.eventsCheck()) {
+            flingForwardUntilClearAllVisibleImpl();
+        }
+    }
+
+    private void flingForwardUntilClearAllVisibleImpl() {
+        try (LauncherInstrumentation.Closable c = mLauncher.addContextLayer(
+                "flinging forward to clear all")) {
+            final BySelector clearAllSelector = mLauncher.getOverviewObjectSelector("clear_all");
+            for (int i = 0; i < FLINGS_FOR_DISMISS_LIMIT && !verifyActiveContainer().hasObject(
+                    clearAllSelector); ++i) {
+                flingForwardImpl();
+            }
         }
     }
 

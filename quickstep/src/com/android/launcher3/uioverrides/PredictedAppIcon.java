@@ -17,6 +17,7 @@ package com.android.launcher3.uioverrides;
 
 import static com.android.app.animation.Interpolators.ACCELERATE_DECELERATE;
 import static com.android.launcher3.icons.FastBitmapDrawable.getDisabledColorFilter;
+import static com.android.launcher3.icons.IconNormalizer.ICON_VISIBLE_AREA_FACTOR;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -51,9 +52,8 @@ import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.anim.AnimatorListeners;
 import com.android.launcher3.celllayout.CellLayoutLayoutParams;
 import com.android.launcher3.celllayout.DelegatedCellDrawing;
-import com.android.launcher3.graphics.IconShape;
+import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.icons.FastBitmapDrawable;
-import com.android.launcher3.icons.IconNormalizer;
 import com.android.launcher3.icons.LauncherIcons;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
@@ -138,11 +138,11 @@ public class PredictedAppIcon extends DoubleShadowBubbleTextView {
     public PredictedAppIcon(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         mDeviceProfile = ActivityContext.lookupContext(context).getDeviceProfile();
-        mNormalizedIconSize = IconNormalizer.getNormalizedCircleSize(getIconSize());
+        mNormalizedIconSize = Math.round(getIconSize() * ICON_VISIBLE_AREA_FACTOR);
         int shadowSize = context.getResources().getDimensionPixelSize(
                 R.dimen.blur_size_thin_outline);
         mShadowFilter = new BlurMaskFilter(shadowSize, BlurMaskFilter.Blur.OUTER);
-        mShapePath = IconShape.INSTANCE.get(context).getShape().getPath(mNormalizedIconSize);
+        mShapePath = ThemeManager.INSTANCE.get(context).getIconShape().getPath(mNormalizedIconSize);
     }
 
     @Override

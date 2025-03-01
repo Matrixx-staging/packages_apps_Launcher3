@@ -30,7 +30,9 @@ import androidx.annotation.Nullable;
 
 import com.android.launcher3.R;
 import com.android.launcher3.config.FeatureFlags;
-import com.android.launcher3.graphics.IconShape;
+import com.android.launcher3.dagger.ApplicationContext;
+import com.android.launcher3.dagger.LauncherAppSingleton;
+import com.android.launcher3.graphics.ShapeDelegate;
 import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.util.ApiWrapper;
 
@@ -39,9 +41,12 @@ import org.xmlpull.v1.XmlPullParser;
 import java.util.Collections;
 import java.util.Map;
 
+import javax.inject.Inject;
+
 /**
  * Extension of {@link IconProvider} with support for overriding theme icons
  */
+@LauncherAppSingleton
 public class LauncherIconProvider extends IconProvider {
 
     private static final String TAG_ICON = "icon";
@@ -54,13 +59,17 @@ public class LauncherIconProvider extends IconProvider {
     private Map<String, ThemeData> mThemedIconMap;
 
     private final ApiWrapper mApiWrapper;
-    private final IconShape mIconShape;
+    private final ThemeManager mThemeManager;
 
-    public LauncherIconProvider(Context context) {
+    @Inject
+    public LauncherIconProvider(
+            @ApplicationContext Context context,
+            ThemeManager themeManager,
+            ApiWrapper apiWrapper) {
         super(context);
-        setIconThemeSupported(ThemeManager.INSTANCE.get(context).isMonoThemeEnabled());
-        mApiWrapper = ApiWrapper.INSTANCE.get(context);
-        mIconShape = IconShape.INSTANCE.get(context);
+        mThemeManager = themeManager;
+        mApiWrapper = apiWrapper;
+        setIconThemeSupported(mThemeManager.isMonoThemeEnabled());
     }
 
     /**
@@ -79,7 +88,7 @@ public class LauncherIconProvider extends IconProvider {
     @Override
     public void updateSystemState() {
         super.updateSystemState();
-        mSystemState += "," + ThemeManager.INSTANCE.get(mContext).getIconState().toUniqueId();
+        mSystemState += "," + mThemeManager.getIconState().toUniqueId();
     }
 
     @Override
@@ -91,7 +100,7 @@ public class LauncherIconProvider extends IconProvider {
     @Override
     protected Drawable loadAppInfoIcon(ApplicationInfo info, Resources resources, int density) {
         // Tries to load the round icon res, if the app defines it as an adaptive icon
-        if (mIconShape.getShape() instanceof IconShape.Circle) {
+        if (mThemeManager.getIconShape() instanceof ShapeDelegate.Circle) {
             int roundIconRes = mApiWrapper.getRoundIconRes(info);
             if (roundIconRes != 0 && roundIconRes != info.icon) {
                 try {

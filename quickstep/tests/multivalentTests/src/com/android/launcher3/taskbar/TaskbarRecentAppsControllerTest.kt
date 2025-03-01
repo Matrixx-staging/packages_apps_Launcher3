@@ -877,7 +877,7 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
         val allTasks =
             ArrayList<GroupTask>().apply {
                 if (!runningTasks.isEmpty()) {
-                    add(DesktopTask(ArrayList(runningTasks)))
+                    add(DesktopTask(deskId = 0, ArrayList(runningTasks)))
                 }
                 addAll(recentTasks)
             }
@@ -958,6 +958,8 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
 
     private fun setInDesktopMode(inDesktopMode: Boolean) {
         whenever(taskbarControllers.taskbarDesktopModeController.shouldShowDesktopTasksInTaskbar())
+            .thenReturn(inDesktopMode)
+        whenever(taskbarControllers.taskbarDesktopModeController.isInDesktopMode)
             .thenReturn(inDesktopMode)
     }
 

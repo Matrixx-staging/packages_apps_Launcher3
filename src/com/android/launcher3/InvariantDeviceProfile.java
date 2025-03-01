@@ -57,7 +57,7 @@ import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.dagger.LauncherAppComponent;
 import com.android.launcher3.dagger.LauncherAppSingleton;
-import com.android.launcher3.graphics.IconShape;
+import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.icons.DotRenderer;
 import com.android.launcher3.logging.FileLog;
 import com.android.launcher3.model.DeviceGridState;
@@ -85,6 +85,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -136,7 +137,7 @@ public class InvariantDeviceProfile {
     private final DisplayController mDisplayController;
     private final WindowManagerProxy mWMProxy;
     private final LauncherPrefs mPrefs;
-    private final IconShape mIconShape;
+    private final ThemeManager mThemeManager;
 
     /**
      * Number of icons per row and column in the workspace.
@@ -252,7 +253,7 @@ public class InvariantDeviceProfile {
 
     public Point defaultWallpaperSize;
 
-    private final ArrayList<OnIDPChangeListener> mChangeListeners = new ArrayList<>();
+    private final List<OnIDPChangeListener> mChangeListeners = new CopyOnWriteArrayList<>();
 
     @Inject
     InvariantDeviceProfile(
@@ -260,12 +261,12 @@ public class InvariantDeviceProfile {
             LauncherPrefs prefs,
             DisplayController dc,
             WindowManagerProxy wmProxy,
-            IconShape iconShape,
+            ThemeManager themeManager,
             DaggerSingletonTracker lifeCycle) {
         mDisplayController = dc;
         mWMProxy = wmProxy;
         mPrefs = prefs;
-        mIconShape = iconShape;
+        mThemeManager = themeManager;
 
         String gridName = prefs.get(GRID_NAME);
         initGrid(context, gridName);
@@ -312,7 +313,7 @@ public class InvariantDeviceProfile {
                 context,
                 gridName,
                 displayInfo,
-                RestoreDbTask.isPending(mPrefs),
+                (RestoreDbTask.isPending(mPrefs) && !Flags.oneGridSpecs()),
                 mPrefs.get(FIXED_LANDSCAPE_MODE)
         );
 
@@ -490,7 +491,7 @@ public class InvariantDeviceProfile {
     }
 
     DeviceProfile.Builder newDPBuilder(Context context, Info info) {
-        return new DeviceProfile.Builder(context, this, info, mWMProxy, mIconShape);
+        return new DeviceProfile.Builder(context, this, info, mWMProxy, mThemeManager);
     }
 
     public void addOnChangeListener(OnIDPChangeListener listener) {
@@ -505,6 +506,7 @@ public class InvariantDeviceProfile {
      * Updates the current grid, this triggers a new IDP, reloads the database and triggers a grid
      * migration.
      */
+    @VisibleForTesting
     public void setCurrentGrid(Context context, String newGridName) {
         mPrefs.put(GRID_NAME, newGridName);
         MAIN_EXECUTOR.execute(() -> {

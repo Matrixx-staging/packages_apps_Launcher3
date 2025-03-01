@@ -23,6 +23,7 @@ import static com.android.quickstep.TaskbarModeSwitchRule.Mode.TRANSIENT;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
@@ -50,6 +51,7 @@ import com.android.launcher3.tapl.Workspace;
 import com.android.launcher3.ui.PortraitLandscapeRunner.PortraitLandscape;
 import com.android.launcher3.util.TestUtil;
 import com.android.launcher3.util.Wait;
+import com.android.launcher3.util.rule.ScreenRecordRule;
 import com.android.launcher3.util.rule.TestStabilityRule;
 import com.android.quickstep.NavigationModeSwitchRule.NavigationModeSwitch;
 import com.android.quickstep.TaskbarModeSwitchRule.TaskbarModeSwitch;
@@ -62,6 +64,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Comparator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -541,6 +544,7 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
 
     @Test
     @PortraitLandscape
+    @ScreenRecordRule.ScreenRecord // TODO(b/396447643): Remove screen record.
     public void testDismissCancel() throws Exception {
         startTestAppsWithCheck();
         Overview overview = mLauncher.goHome().switchToOverview();
@@ -555,6 +559,60 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
         runOnRecentsView(recentsView -> assertEquals(
                 "Canceling dismissing a task removed a task from Overview",
                 numTasks == null ? 0 : numTasks, recentsView.getTaskViewCount()));
+    }
+
+    @Test
+    @PortraitLandscape
+    public void testDismissBottomRow() throws Exception {
+        assumeTrue(mLauncher.isTablet());
+        mLauncher.goHome().switchToOverview().dismissAllTasks();
+        startTestAppsWithCheck();
+        Overview overview = mLauncher.goHome().switchToOverview();
+        assertIsInState("Launcher internal state didn't switch to Overview",
+                ExpectedState.OVERVIEW);
+        final Integer numTasks = getFromRecentsView(RecentsView::getTaskViewCount);
+        OverviewTask bottomTask = overview.getCurrentTasksForTablet().stream().max(
+                Comparator.comparingInt(OverviewTask::getTaskCenterY)).get();
+        assertNotNull("bottomTask null", bottomTask);
+
+        bottomTask.dismiss();
+
+        runOnRecentsView(recentsView -> assertEquals(
+                "Dismissing a bottomTask didn't remove 1 bottomTask from Overview",
+                numTasks - 1, recentsView.getTaskViewCount()));
+    }
+
+    @Test
+    @PortraitLandscape
+    public void testDismissLastGridRow() throws Exception {
+        assumeTrue(mLauncher.isTablet());
+        mLauncher.goHome().switchToOverview().dismissAllTasks();
+        startTestAppsWithCheck();
+        startTestActivity(3);
+        startTestActivity(4);
+        runOnRecentsView(
+                recentsView -> assertNotEquals("Grid overview should have unequal row counts",
+                        recentsView.getTopRowTaskCountForTablet(),
+                        recentsView.getBottomRowTaskCountForTablet()));
+        Overview overview = mLauncher.goHome().switchToOverview();
+        assertIsInState("Launcher internal state didn't switch to Overview",
+                ExpectedState.OVERVIEW);
+        overview.flingForwardUntilClearAllVisible();
+        assertTrue("Clear All not visible.", overview.isClearAllVisible());
+        final Integer numTasks = getFromRecentsView(RecentsView::getTaskViewCount);
+        OverviewTask lastGridTask = overview.getCurrentTasksForTablet().stream().min(
+                Comparator.comparingInt(OverviewTask::getTaskCenterX)).get();
+        assertNotNull("lastGridTask null.", lastGridTask);
+
+        lastGridTask.dismiss();
+
+        runOnRecentsView(recentsView -> assertEquals(
+                "Dismissing a lastGridTask didn't remove 1 lastGridTask from Overview",
+                numTasks - 1, recentsView.getTaskViewCount()));
+        runOnRecentsView(recentsView -> assertEquals("Grid overview should have equal row counts.",
+                recentsView.getTopRowTaskCountForTablet(),
+                recentsView.getBottomRowTaskCountForTablet()));
+        assertTrue("Clear All not visible.", overview.isClearAllVisible());
     }
 
     private void startTestAppsWithCheck() throws Exception {

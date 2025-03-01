@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package com.android.quickstep.recents.usecase
+package com.android.launcher3.util
 
-import android.graphics.Bitmap
-import com.android.quickstep.recents.data.RecentTasksRepository
+import android.util.FloatProperty
+import kotlin.reflect.KMutableProperty1
 
-/** Use case for retrieving thumbnail. */
-class GetThumbnailUseCase(private val taskRepository: RecentTasksRepository) {
-    /** Returns the latest thumbnail associated with [taskId] if loaded, or null otherwise */
-    fun run(taskId: Int): Bitmap? = taskRepository.getCurrentThumbnailById(taskId)?.thumbnail
+/** Maps any Kotlin mutable property (var) to [FloatProperty]. */
+class KFloatProperty<T>(private val kProperty: KMutableProperty1<T, Float>) :
+    FloatProperty<T>(kProperty.name) {
+    override fun get(target: T) = kProperty.get(target)
+
+    override fun setValue(target: T, value: Float) {
+        kProperty.set(target, value)
+    }
 }
