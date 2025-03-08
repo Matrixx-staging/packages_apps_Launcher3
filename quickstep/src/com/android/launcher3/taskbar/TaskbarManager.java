@@ -178,6 +178,12 @@ public class TaskbarManager {
      */
     private final RecreationListener mRecreationListener = new RecreationListener();
 
+    // Currently, there is a duplicative call to recreate taskbars when user enter/exit Desktop
+    // Mode upon getting transition callback from shell side. So, we make sure that if taskbar is
+    // already in recreate process due to transition callback, don't recreate for
+    // DisplayInfoChangeListener.
+    private boolean mShouldIgnoreNextDesktopModeChangeFromDisplayController = false;
+
     private class RecreationListener implements DisplayController.DisplayInfoChangeListener {
         @Override
         public void onDisplayInfoChanged(Context context, DisplayController.Info info, int flags) {
@@ -206,10 +212,12 @@ public class TaskbarManager {
                 if ((flags & CHANGE_SHOW_LOCKED_TASKBAR) != 0) {
                     recreateTaskbars();
                 } else if ((flags & CHANGE_DESKTOP_MODE) != 0) {
+                    if (mShouldIgnoreNextDesktopModeChangeFromDisplayController) {
+                        mShouldIgnoreNextDesktopModeChangeFromDisplayController = false;
+                        return;
+                    }
                     // Only Handles Special Exit Cases for Desktop Mode Taskbar Recreation.
                     if (taskbarActivityContext != null
-                            && !DesktopVisibilityController.INSTANCE.get(taskbarActivityContext)
-                            .isInDesktopMode()
                             && !DisplayController.showLockedTaskbarOnHome(context)) {
                         recreateTaskbars();
                     }
@@ -232,26 +240,23 @@ public class TaskbarManager {
 
         @Override
         public void onTaskMovedToFront(int taskId) {
-            if (mPerceptibleTasks.contains(taskId)) {
-                return;
-            }
-
             // This listens to any Task, so we filter them by the ones shown in the launcher.
             // For Tasks restored after startup, they will by default not be Perceptible, and no
             // need to until user interacts with it by bringing it to the foreground.
             for (int i = 0; i < mTaskbars.size(); i++) {
-                // get pinned tasks
+                // get pinned tasks - we care about all tasks, not just the one moved to the front
                 Set<Integer> taskbarPinnedTasks =
                         mTaskbars.valueAt(i).getControllers().taskbarViewController
                                 .getTaskIdsForPinnedApps();
 
-                // mark as perceptible if the foregrounded task is in the list of apps shown in
-                // the launcher.
-                if (taskbarPinnedTasks.contains(taskId)
-                        && ActivityManagerWrapper.getInstance()
-                        .setTaskIsPerceptible(taskId, true)
-                ) {
-                    mPerceptibleTasks.add(taskId);
+                // filter out tasks already marked as perceptible
+                taskbarPinnedTasks.removeAll(mPerceptibleTasks);
+
+                // add the filtered tasks as perceptible
+                for (int pinnedTaskId : taskbarPinnedTasks) {
+                    ActivityManagerWrapper.getInstance()
+                            .setTaskIsPerceptible(pinnedTaskId, true);
+                    mPerceptibleTasks.add(pinnedTaskId);
                 }
             }
         }
@@ -295,6 +300,7 @@ public class TaskbarManager {
                                 displayId);
                         if (taskbarActivityContext != null
                                 && !taskbarActivityContext.isInOverview()) {
+                            mShouldIgnoreNextDesktopModeChangeFromDisplayController = true;
                             AnimatorSet animatorSet = taskbarActivityContext.onDestroyAnimation(
                                     TASKBAR_DESTROY_DURATION);
                             animatorSet.addListener(AnimatorListeners.forEndCallback(
@@ -311,11 +317,15 @@ public class TaskbarManager {
                         int displayId = mTaskbars.keyAt(taskbarIndex);
                         TaskbarActivityContext taskbarActivityContext = getTaskbarForDisplay(
                                 displayId);
-                        AnimatorSet animatorSet = taskbarActivityContext.onDestroyAnimation(
-                                TASKBAR_DESTROY_DURATION);
-                        animatorSet.addListener(AnimatorListeners.forEndCallback(
-                                () -> recreateTaskbarForDisplay(getDefaultDisplayId(), duration)));
-                        animatorSet.start();
+                        if (taskbarActivityContext != null) {
+                            mShouldIgnoreNextDesktopModeChangeFromDisplayController = true;
+                            AnimatorSet animatorSet = taskbarActivityContext.onDestroyAnimation(
+                                    TASKBAR_DESTROY_DURATION);
+                            animatorSet.addListener(AnimatorListeners.forEndCallback(
+                                    () -> recreateTaskbarForDisplay(getDefaultDisplayId(),
+                                            duration)));
+                            animatorSet.start();
+                        }
                     }
                 }
 

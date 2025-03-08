@@ -101,7 +101,6 @@
     <string name="dismiss_prediction_label" msgid="3357562989568808658">"ઍપ સૂચવશો નહીં"</string>
     <string name="pin_prediction" msgid="4196423321649756498">"પૂર્વાનુમાનને પિન કરો"</string>
     <string name="bubble" msgid="3072951361014076670">"બબલ"</string>
-    <string name="pin_to_taskbar" msgid="1281337899690299038">"ટાસ્કબારમાં પિન કરો"</string>
     <string name="permlab_install_shortcut" msgid="5632423390354674437">"શૉર્ટકટ ઇન્સ્ટૉલ કરો"</string>
     <string name="permdesc_install_shortcut" msgid="923466509822011139">"એપ્લિકેશનને વપરાશકર્તા હસ્તક્ષેપ વગર શોર્ટકટ્સ ઉમેરવાની મંજૂરી આપે છે."</string>
     <string name="permlab_read_settings" msgid="5136500343007704955">"હોમ સેટિંગ અને શૉર્ટકટ વાંચો"</string>
@@ -118,6 +117,10 @@
     <string name="default_scroll_format" msgid="7475544710230993317">"%2$d માંથી %1$d પૃષ્ઠ"</string>
     <string name="workspace_scroll_format" msgid="8458889198184077399">"%2$d માંથી %1$d હોમ સ્ક્રીન"</string>
     <string name="workspace_new_page" msgid="257366611030256142">"નવું હોમ સ્ક્રીન પૃષ્ઠ"</string>
+    <!-- no translation found for app_running_state_description (5645053189564740904) -->
+    <skip />
+    <!-- no translation found for app_minimized_state_description (710740620044902509) -->
+    <skip />
     <string name="folder_opened" msgid="94695026776264709">"<xliff:g id="WIDTH">%1$d</xliff:g> બાય <xliff:g id="HEIGHT">%2$d</xliff:g> નું ફોલ્ડર ખોલ્યું"</string>
     <string name="folder_tap_to_close" msgid="4625795376335528256">"ફોલ્ડર બંધ કરવા માટે ટૅપ કરો"</string>
     <string name="folder_tap_to_rename" msgid="4017685068016979677">"નામ બદલવાનું સાચવવા માટે ટૅપ કરો"</string>
@@ -187,6 +190,10 @@
     <string name="accessibility_close" msgid="2277148124685870734">"બંધ કરો"</string>
     <string name="all_apps_personal_tab" msgid="4190252696685155002">"વ્યક્તિગત ઍપ"</string>
     <string name="all_apps_work_tab" msgid="4884822796154055118">"ઑફિસની ઍપ"</string>
+    <!-- no translation found for all_apps_personal_tab_content_description (6286808898381807242) -->
+    <skip />
+    <!-- no translation found for all_apps_work_tab_content_description (3835637212347968316) -->
+    <skip />
     <string name="work_profile_toggle_label" msgid="3081029915775481146">"ઑફિસની પ્રોફાઇલ"</string>
     <string name="work_profile_edu_work_apps" msgid="7895468576497746520">"ઑફિસની ઍપને બૅજ આપેલા હોય છે અને તમારા IT ઍડમિન તેમને જોઈ શકે છે"</string>
     <string name="work_profile_edu_accept" msgid="6069788082535149071">"સમજાઈ ગયું"</string>

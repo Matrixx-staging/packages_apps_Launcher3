@@ -126,7 +126,6 @@ public class BubbleBarViewController {
     });
     private final BubbleBarDragListener mDragListener = new BubbleBarDragListener() {
 
-        @NonNull
         @Override
         public void getBubbleBarLocationHitRect(@NonNull BubbleBarLocation bubbleBarLocation,
                 Rect outRect) {
@@ -145,32 +144,31 @@ public class BubbleBarViewController {
         @Override
         public void onLauncherItemDroppedOverBubbleBarDragZone(@NonNull BubbleBarLocation location,
                 @NonNull ItemInfo itemInfo) {
-            //TODO(b/397459664) : fix drag interruption when there are no bubbles
-            //TODO(b/397459664) : update bubble bar location
-            ShortcutInfo shortcutInfo = null;
             if (itemInfo instanceof WorkspaceItemInfo) {
-                shortcutInfo = ((WorkspaceItemInfo) itemInfo).getDeepShortcutInfo();
+                ShortcutInfo shortcutInfo = ((WorkspaceItemInfo) itemInfo).getDeepShortcutInfo();
+                if (shortcutInfo != null) {
+                    mSystemUiProxy.showShortcutBubble(shortcutInfo, location);
+                    return;
+                }
             }
             Intent itemIntent = itemInfo.getIntent();
-            SystemUiProxy systemUiProxy = SystemUiProxy.INSTANCE.get(mActivity);
-            if (shortcutInfo != null) {
-                systemUiProxy.showShortcutBubble(shortcutInfo);
-            } else if (itemIntent != null && itemIntent.getComponent() != null) {
-                systemUiProxy.showAppBubble(itemIntent, itemInfo.user);
+            if (itemIntent != null && itemIntent.getComponent() != null) {
+                itemIntent.setPackage(itemIntent.getComponent().getPackageName());
+                mSystemUiProxy.showAppBubble(itemIntent, itemInfo.user, location);
             }
         }
 
         @Override
         public void onLauncherItemDraggedOutsideBubbleBarDropZone() {
-            //TODO(b/397459664) : hide expanded view drop target
             onItemDraggedOutsideBubbleBarDropZone();
+            mSystemUiProxy.showBubbleDropTarget(/* show = */ false);
         }
 
         @Override
         public void onLauncherItemDraggedOverBubbleBarDragZone(
                 @NonNull BubbleBarLocation location) {
-            //TODO(b/397459664) : show expanded view drop target
             onDragItemOverBubbleBarDragZone(location);
+            mSystemUiProxy.showBubbleDropTarget(/* show = */ true, location);
         }
 
         @NonNull
@@ -1360,6 +1358,19 @@ public class BubbleBarViewController {
         adjustTaskbarAndHotseatToBubbleBarState(/*isBubbleBarExpanded = */false);
         mTaskbarDragController.removeDropTarget(mBubbleBarLeftDropTarget);
         mTaskbarDragController.removeDropTarget(mBubbleBarRightDropTarget);
+    }
+
+    /**
+     * Removes the bubble from the bubble bar and notifies sysui that the bubble should move to
+     * full screen.
+     */
+    public void moveBubbleToFullscreen(@NonNull BubbleView bubbleView) {
+        if (bubbleView.getBubble() == null) {
+            return;
+        }
+        String key = bubbleView.getBubble().getKey();
+        mSystemUiProxy.moveBubbleToFullscreen(key);
+        onBubbleDismissed(bubbleView);
     }
 
     /**

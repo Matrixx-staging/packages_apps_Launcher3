@@ -19,13 +19,14 @@ import static android.animation.LayoutTransition.APPEARING;
 import static android.animation.LayoutTransition.CHANGE_APPEARING;
 import static android.animation.LayoutTransition.CHANGE_DISAPPEARING;
 import static android.animation.LayoutTransition.DISAPPEARING;
+import static android.window.DesktopModeFlags.ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION;
 
 import static com.android.app.animation.Interpolators.EMPHASIZED;
 import static com.android.app.animation.Interpolators.FINAL_FRAME;
 import static com.android.app.animation.Interpolators.LINEAR;
+import static com.android.launcher3.BubbleTextView.LINE_INDICATOR_ANIM_DURATION;
 import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.Flags.taskbarOverflow;
-import static com.android.launcher3.Flags.taskbarRecentsLayoutTransition;
 import static com.android.launcher3.LauncherAnimUtils.SCALE_PROPERTY;
 import static com.android.launcher3.LauncherAnimUtils.VIEW_ALPHA;
 import static com.android.launcher3.LauncherAnimUtils.VIEW_TRANSLATE_X;
@@ -138,6 +139,8 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     private static final int TRANSITION_DEFAULT_DURATION = 500;
     private static final int TRANSITION_FADE_IN_DURATION = 167;
     private static final int TRANSITION_FADE_OUT_DURATION = 83;
+    private static final int APPEARING_LINE_INDICATOR_ANIM_DELAY =
+            TRANSITION_DEFAULT_DURATION - LINE_INDICATOR_ANIM_DURATION;
 
     private final TaskbarActivityContext mActivity;
     private @Nullable TaskbarDragLayerController mDragLayerController;
@@ -189,7 +192,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
 
     private final View.OnLayoutChangeListener mTaskbarViewLayoutChangeListener =
             (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
-                if (!taskbarRecentsLayoutTransition()) {
+                if (!ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION.isTrue()) {
                     // update shiftX is handled with the animation at the end of the method
                     updateTaskbarIconTranslationXForPinning(/* updateShiftXForBubbleBar = */ false);
                 }
@@ -736,7 +739,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     public void updateIconViewsRunningStates() {
         for (View iconView : getIconViews()) {
             if (iconView instanceof BubbleTextView btv) {
-                btv.updateRunningState(getRunningAppState(btv));
+                updateRunningState(btv);
                 if (shouldUpdateIconContentDescription(btv)) {
                     btv.setContentDescription(
                             btv.getContentDescription() + " " + btv.getIconStateDescription());
@@ -768,6 +771,10 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
             }
         }
         return pinnedAppsWithTasks;
+    }
+
+    private void updateRunningState(BubbleTextView btv) {
+        btv.updateRunningState(getRunningAppState(btv), mTaskbarView.getLayoutTransition() != null);
     }
 
     private BubbleTextView.RunningAppState getRunningAppState(BubbleTextView btv) {
@@ -1191,8 +1198,8 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
      * 3) All Apps button
      */
     public View getFirstIconMatch(Predicate<ItemInfo> matcher) {
-        Predicate<ItemInfo> collectionMatcher = ItemInfoMatcher.forFolderMatch(matcher);
-        return mTaskbarView.getFirstMatch(matcher, collectionMatcher);
+        View icon = mModelCallbacks.getFirstMatch(matcher, ItemInfoMatcher.forFolderMatch(matcher));
+        return icon != null ? icon : mTaskbarView.getAllAppsButtonContainer();
     }
 
     /**
@@ -1206,7 +1213,8 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     /** Called when there's a change in running apps to update the UI. */
     public void commitRunningAppsToUI() {
         mModelCallbacks.commitRunningAppsToUI();
-        if (taskbarRecentsLayoutTransition() && mTaskbarView.getLayoutTransition() == null) {
+        if (ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION.isTrue()
+                && mTaskbarView.getLayoutTransition() == null) {
             // Set up after the first commit so that the initial recents do not animate (janky).
             mTaskbarView.setLayoutTransition(createLayoutTransitionForRunningApps());
         }
@@ -1224,13 +1232,22 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
                     view.setAlpha(0f);
                     view.setScaleX(0f);
                     view.setScaleY(0f);
+                    if (view instanceof BubbleTextView btv) {
+                        // Defer so that app is mostly scaled in before showing indicator.
+                        btv.setLineIndicatorAnimStartDelay(APPEARING_LINE_INDICATOR_ANIM_DELAY);
+                    }
+                } else if (type == DISAPPEARING && view instanceof BubbleTextView btv) {
+                    // Running state updates happen after removing this view, so update it here.
+                    updateRunningState(btv);
                 }
             }
 
             @Override
             public void endTransition(
                     LayoutTransition transition, ViewGroup container, View view, int type) {
-                // Do nothing.
+                if (type == APPEARING && view instanceof BubbleTextView btv) {
+                    btv.setLineIndicatorAnimStartDelay(0);
+                }
             }
         });
 

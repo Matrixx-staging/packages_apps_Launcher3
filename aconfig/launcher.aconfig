@@ -235,7 +235,7 @@ flag {
 
 flag {
     name: "enable_fallback_overview_in_window"
-    namespace: "launcher"
+    namespace: "lse_desktop_experience"
     description: "Enables fallback recents opening inside of a window instead of an activity."
     bug: "292269949"
 }
@@ -450,14 +450,14 @@ flag {
 
 flag {
     name: "enable_recents_window_proto_log"
-    namespace: "launcher"
+    namespace: "lse_desktop_experience"
     description: "Enables tracking recents window logs in ProtoLog"
     bug: "292269949"
 }
 
 flag {
     name: "enable_state_manager_proto_log"
-    namespace: "launcher"
+    namespace: "lse_desktop_experience"
     description: "Enables tracking state manager logs in ProtoLog"
     bug: "292269949"
 }
@@ -488,7 +488,7 @@ flag {
 
 flag {
     name: "enable_launcher_overview_in_window"
-    namespace: "launcher"
+    namespace: "lse_desktop_experience"
     description: "Enables launcher recents opening inside of a window instead of being hosted in launcher activity."
     bug: "292269949"
 }
@@ -515,13 +515,6 @@ flag {
   namespace: "launcher"
   description: "Enable MSDL feedback for Launcher interactions"
   bug: "377496684"
-}
-
-flag {
-    name: "taskbar_recents_layout_transition"
-    namespace: "launcher"
-    description: "Enable Taskbar LayoutTransition for Recent Apps"
-    bug: "343521765"
 }
 
 flag {
@@ -635,4 +628,31 @@ flag {
   namespace: "lse_desktop_experience"
   description: "Enables gesture navigation handling on connected displays"
   bug: "382130680"
+}
+
+flag {
+  name: "enable_taskbar_behind_shade"
+  namespace: "lse_desktop_experience"
+  description: "Keeps taskbar behind notification shade when its pulled down"
+  bug: "343194358"
+  metadata {
+    purpose: PURPOSE_BUGFIX
+  }
+}
+
+flag {
+  name: "enable_scalability_for_desktop_experience"
+  namespace: "launcher"
+  description: "Enable more grid scale options on the launcher for desktop experience"
+  bug: "375491272"
+}
+
+flag {
+  name: "enable_gesture_nav_horizontal_touch_slop"
+  namespace: "launcher"
+  description: "Enables horizontal touch slop checking in non-vertical fling navigation gestures"
+  bug: "394364217"
+  metadata {
+    purpose: PURPOSE_BUGFIX
+  }
 }

@@ -16,18 +16,20 @@
 package com.android.launcher3.taskbar;
 
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS;
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT;
 import static com.android.launcher3.model.data.AppInfo.COMPONENT_KEY_COMPARATOR;
-import static com.android.launcher3.popup.SystemShortcut.PIN_UNPIN_ITEM;
 import static com.android.launcher3.util.SplitConfigurationOptions.getLogEventForPosition;
 
 import android.content.Intent;
 import android.content.pm.LauncherApps;
 import android.graphics.Point;
 import android.util.Pair;
+import android.util.SparseArray;
 import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.android.internal.logging.InstanceId;
 import com.android.launcher3.AbstractFloatingView;
@@ -50,6 +52,7 @@ import com.android.launcher3.util.SplitConfigurationOptions.SplitPositionOption;
 import com.android.launcher3.views.ActivityContext;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.util.LogUtils;
+import com.android.quickstep.util.SingleTask;
 import com.android.wm.shell.shared.bubbles.BubbleAnythingFlagHelper;
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
 
@@ -81,6 +84,8 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
     private TaskbarControllers mControllers;
     private boolean mAllowInitialSplitSelection;
     private AppInfo[] mAppInfosList;
+    // Saves the ItemInfos in the hotseat without the predicted items.
+    private SparseArray<ItemInfo> mHotseatInfosList;
     private ManageWindowsTaskbarShortcut<BaseTaskbarContext> mManageWindowsTaskbarShortcut;
 
 
@@ -136,22 +141,35 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
             icon.clearFocus();
             return null;
         }
-        // TODO(b/344657629) support GroupTask as well, for Taskbar Recent apps
-        if (!(icon.getTag() instanceof ItemInfo item) || !ShortcutUtil.supportsShortcuts(item)) {
+
+        ItemInfo itemInfo;
+        if (icon.getTag() instanceof ItemInfo item && ShortcutUtil.supportsShortcuts(item)) {
+            itemInfo = item;
+        } else if (icon.getTag() instanceof SingleTask task) {
+            itemInfo = SingleTask.Companion.createTaskItemInfo(task);
+        } else {
             return null;
         }
 
         PopupContainerWithArrow<BaseTaskbarContext> container;
-        int deepShortcutCount = mPopupDataProvider.getShortcutCountForItem(item);
+        int deepShortcutCount = mPopupDataProvider.getShortcutCountForItem(itemInfo);
         // TODO(b/198438631): add support for INSTALL shortcut factory
         List<SystemShortcut> systemShortcuts = getSystemShortcuts()
-                .map(s -> s.getShortcut(context, item, icon))
+                .map(s -> s.getShortcut(context, itemInfo, icon))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
+        // TODO(b/375648361): Revisit to see if this can be implemented within getSystemShortcuts().
+        if (Flags.enablePinningAppWithContextMenu()) {
+            SystemShortcut shortcut = createPinShortcut(context, itemInfo, icon);
+            if (shortcut != null) {
+                systemShortcuts.add(0, shortcut);
+            }
+        }
+
         container = (PopupContainerWithArrow) context.getLayoutInflater().inflate(
                     R.layout.popup_container, context.getDragLayer(), false);
-        container.populateAndShowRows(icon, deepShortcutCount, systemShortcuts);
+        container.populateAndShowRows(icon, itemInfo, deepShortcutCount, systemShortcuts);
 
         // TODO (b/198438631): configure for taskbar/context
         container.setPopupItemDragHandler(new TaskbarPopupItemDragHandler());
@@ -172,9 +190,6 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
         // append split options to APP_INFO shortcut if not in Desktop Windowing mode, the order
         // here will reflect in the popup
         ArrayList<SystemShortcut.Factory> shortcuts = new ArrayList<>();
-        if (Flags.enablePinningAppWithContextMenu()) {
-            shortcuts.add(PIN_UNPIN_ITEM);
-        }
         shortcuts.add(APP_INFO);
         if (!mControllers.taskbarDesktopModeController
                 .isInDesktopModeAndNotInOverview(mContext.getDisplayId())) {
@@ -191,6 +206,26 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
             shortcuts.addAll(getMultiInstanceMenuOptions().toList());
         }
         return shortcuts.stream();
+    }
+
+    @Nullable
+    private SystemShortcut createPinShortcut(BaseTaskbarContext target, ItemInfo itemInfo,
+            BubbleTextView originalView) {
+        // Predicted items use {@code HotseatPredictionController.PinPrediction} shortcut to pin.
+        if (itemInfo.isPredictedItem()) {
+            return null;
+        }
+        if (itemInfo.container == CONTAINER_HOTSEAT) {
+            return new PinToTaskbarShortcut<>(target, itemInfo, originalView, false,
+                    mHotseatInfosList);
+        }
+        if (mHotseatInfosList.size()
+                < mContext.getTaskbarSpecsEvaluator().getNumShownHotseatIcons()) {
+            return new PinToTaskbarShortcut<>(target, itemInfo, originalView, true,
+                    mHotseatInfosList);
+        }
+
+        return null;
     }
 
     @Override
@@ -274,6 +309,10 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
         tempInfo.user = key.user;
         int index = Arrays.binarySearch(mAppInfosList, tempInfo, COMPONENT_KEY_COMPARATOR);
         return index < 0 ? null : mAppInfosList[index];
+    }
+
+    public void setHotseatInfosList(SparseArray<ItemInfo> info) {
+        mHotseatInfosList = info;
     }
 
     /**

@@ -165,16 +165,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/gesture_tutorial_fragment_feedback_title" />
 
-        <com.android.quickstep.interaction.TutorialStepIndicator
-            android:id="@+id/gesture_tutorial_fragment_feedback_tutorial_step"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
         <Button
             android:id="@+id/gesture_tutorial_fragment_close_button"
             style="@style/TextAppearance.GestureTutorial.Feedback.Subtext"
@@ -225,7 +215,6 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:clickable="true"
-        android:focusableInTouchMode="true"
         android:accessibilityTraversalAfter="@id/gesture_tutorial_fragment_feedback_subtitle"
         android:contentDescription="@string/gesture_tutorial_action_button_label"
         android:background="@drawable/gesture_tutorial_action_button_background"

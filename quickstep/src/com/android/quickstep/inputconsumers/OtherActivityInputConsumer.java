@@ -126,11 +126,17 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
     // The callback called upon finishing the recents transition if it was force-canceled
     private Runnable mForceFinishRecentsTransitionCallback;
 
-    public OtherActivityInputConsumer(Context base, RecentsAnimationDeviceState deviceState,
-            TaskAnimationManager taskAnimationManager, GestureState gestureState,
-            boolean isDeferredDownTarget, Consumer<OtherActivityInputConsumer> onCompleteCallback,
-            InputMonitorCompat inputMonitorCompat, InputEventReceiver inputEventReceiver,
-            boolean disableHorizontalSwipe, Factory handlerFactory) {
+    public OtherActivityInputConsumer(
+            Context base,
+            RecentsAnimationDeviceState deviceState,
+            TaskAnimationManager taskAnimationManager,
+            GestureState gestureState,
+            boolean isDeferredDownTarget,
+            Consumer<OtherActivityInputConsumer> onCompleteCallback,
+            InputMonitorCompat inputMonitorCompat,
+            InputEventReceiver inputEventReceiver,
+            boolean disableHorizontalSwipe,
+            Factory handlerFactory) {
         super(base);
         mDeviceState = deviceState;
         mNavBarPosition = mDeviceState.getNavBarPosition();
@@ -163,6 +169,11 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
     @Override
     public int getType() {
         return TYPE_OTHER_ACTIVITY;
+    }
+
+    @Override
+    public int getDisplayId() {
+        return mGestureState.getDisplayId();
     }
 
     @Override
@@ -472,7 +483,8 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
                                 : velocityYPxPerMs;
                 mInteractionHandler.updateDisplacement(getDisplacement(ev) - mStartDisplacement);
                 mInteractionHandler.onGestureEnded(velocityPxPerMs,
-                        new PointF(velocityXPxPerMs, velocityYPxPerMs));
+                        new PointF(velocityXPxPerMs, velocityYPxPerMs),
+                        Math.abs(mDownPos.x - mLastPos.x) > mTouchSlop);
             }
         } else {
             // Since we start touch tracking on DOWN, we may reach this state without actually

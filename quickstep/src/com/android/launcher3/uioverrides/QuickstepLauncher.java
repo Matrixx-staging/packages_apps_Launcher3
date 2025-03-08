@@ -48,7 +48,6 @@ import static com.android.launcher3.popup.SystemShortcut.APP_INFO;
 import static com.android.launcher3.popup.SystemShortcut.BUBBLE_SHORTCUT;
 import static com.android.launcher3.popup.SystemShortcut.DONT_SUGGEST_APP;
 import static com.android.launcher3.popup.SystemShortcut.INSTALL;
-import static com.android.launcher3.popup.SystemShortcut.PIN_UNPIN_ITEM;
 import static com.android.launcher3.popup.SystemShortcut.PRIVATE_PROFILE_INSTALL;
 import static com.android.launcher3.popup.SystemShortcut.UNINSTALL_APP;
 import static com.android.launcher3.popup.SystemShortcut.WIDGETS;
@@ -85,6 +84,7 @@ import android.os.IRemoteCallback;
 import android.os.SystemProperties;
 import android.os.Trace;
 import android.os.UserHandle;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.Display;
 import android.view.HapticFeedbackConstants;
@@ -117,6 +117,7 @@ import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.Workspace;
 import com.android.launcher3.accessibility.LauncherAccessibilityDelegate;
+import com.android.launcher3.allapps.AllAppsRecyclerView;
 import com.android.launcher3.anim.AnimatorPlaybackController;
 import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.apppairs.AppPairIcon;
@@ -166,8 +167,10 @@ import com.android.launcher3.util.RunnableList;
 import com.android.launcher3.util.SplitConfigurationOptions;
 import com.android.launcher3.util.SplitConfigurationOptions.SplitPositionOption;
 import com.android.launcher3.util.SplitConfigurationOptions.SplitSelectSource;
+import com.android.launcher3.util.StableViewInfo;
 import com.android.launcher3.util.StartActivityParams;
 import com.android.launcher3.util.TouchController;
+import com.android.launcher3.views.FloatingIconView;
 import com.android.launcher3.widget.LauncherWidgetHolder;
 import com.android.quickstep.OverviewCommandHelper;
 import com.android.quickstep.OverviewComponentObserver;
@@ -475,9 +478,6 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         List<SystemShortcut.Factory> shortcuts = new ArrayList(Arrays.asList(
                 APP_INFO, WellbeingModel.SHORTCUT_FACTORY, mHotseatPredictionController));
 
-        if (Flags.enablePinningAppWithContextMenu()) {
-            shortcuts.add(0, PIN_UNPIN_ITEM);
-        }
         shortcuts.addAll(getSplitShortcuts());
         shortcuts.add(WIDGETS);
         shortcuts.add(INSTALL);
@@ -1453,6 +1453,45 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     /** Sets the location of the bubble bar */
     public void setBubbleBarLocation(BubbleBarLocation bubbleBarLocation) {
         mBubbleBarLocation = bubbleBarLocation;
+    }
+
+    /**
+     * Similar to {@link #getFirstHomeElementForAppClose} but also matches all apps if its visible
+     */
+    @Nullable
+    public View getFirstVisibleElementForAppClose(
+            @Nullable StableViewInfo svi, String packageName, UserHandle user) {
+        if (isInState(LauncherState.ALL_APPS)) {
+            AllAppsRecyclerView activeRecyclerView = getAppsView().getActiveRecyclerView();
+            View v = null;
+            if (svi != null) {
+                // Preferred item match
+                v = activeRecyclerView.findViewByPredicate(view ->
+                        view.isAggregatedVisible()
+                                && view.getTag() instanceof ItemInfo info && svi.matches(info));
+            }
+            if (v == null) {
+                // Package user match
+                v = activeRecyclerView.findViewByPredicate(view ->
+                        view.isAggregatedVisible() && view.getTag() instanceof ItemInfo info
+                                && info.itemType == ITEM_TYPE_APPLICATION
+                                && info.user.equals(user)
+                                && TextUtils.equals(info.getTargetPackage(), packageName));
+            }
+
+            if (v != null && activeRecyclerView.computeVerticalScrollOffset() > 0) {
+                RectF locationBounds = new RectF();
+                FloatingIconView.getLocationBoundsForView(this, v, false, locationBounds,
+                        new Rect());
+                if (locationBounds.top < getAppsView().getHeaderBottom()) {
+                    // Icon is covered by scrim, return null to play fallback animation.
+                    return null;
+                }
+            }
+            return v;
+        }
+
+        return getFirstHomeElementForAppClose(svi, packageName, user);
     }
 
     @Override

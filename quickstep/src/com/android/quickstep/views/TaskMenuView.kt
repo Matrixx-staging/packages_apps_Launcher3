@@ -32,6 +32,7 @@ import android.view.View
 import android.view.ViewOutlineProvider
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.res.ResourcesCompat
 import com.android.app.animation.Interpolators
 import com.android.launcher3.AbstractFloatingView
 import com.android.launcher3.Flags.enableOverviewIconMenu
@@ -66,6 +67,17 @@ constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int = 0) :
     private lateinit var taskContainer: TaskContainer
     private var menuTranslationXBeforeOpen = 0f
     private var menuTranslationYBeforeOpen = 0f
+
+    // Spaced claimed below Overview (taskbar and insets)
+    private val taskbarTop by lazy {
+        recentsViewContainer.deviceProfile.heightPx -
+            recentsViewContainer.deviceProfile.overviewActionsClaimedSpaceBelow
+    }
+    private val minMenuTop by lazy { taskContainer.iconView.height.toFloat() }
+    // TODO(b/401476868): Replace overviewRowSpacing with correct margin to the taskbarTop.
+    private val maxMenuBottom by lazy {
+        (taskbarTop - recentsViewContainer.deviceProfile.overviewRowSpacing).toFloat()
+    }
 
     init {
         clipToOutline = true
@@ -103,13 +115,9 @@ constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int = 0) :
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         var heightMeasure = heightMeasureSpec
-        if (!(enableOverviewIconMenu() && taskView.isOnGridBottomRow())) {
-            // TODO(b/326952853): Cap menu height for grid bottom row in a way that doesn't break
-            // additionalTranslationY.
-            val maxMenuHeight = calculateMaxHeight()
-            if (MeasureSpec.getSize(heightMeasure) > maxMenuHeight) {
-                heightMeasure = MeasureSpec.makeMeasureSpec(maxMenuHeight, MeasureSpec.AT_MOST)
-            }
+        val maxMenuHeight = calculateMaxHeight()
+        if (MeasureSpec.getSize(heightMeasure) > maxMenuHeight) {
+            heightMeasure = MeasureSpec.makeMeasureSpec(maxMenuHeight, MeasureSpec.AT_MOST)
         }
         super.onMeasure(widthMeasureSpec, heightMeasure)
     }
@@ -196,7 +204,7 @@ constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int = 0) :
                 taskContainer.stagePosition,
             )
         // Gravity set to Left instead of Start as sTempRect.left measures Left distance not Start
-        params.gravity = Gravity.START
+        params.gravity = Gravity.LEFT
         layoutParams = params
         scaleX = taskView.scaleX
         scaleY = taskView.scaleY
@@ -207,6 +215,13 @@ constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int = 0) :
         val dividerSpacing = resources.getDimension(R.dimen.task_menu_spacing).toInt()
         optionLayout.showDividers =
             if (enableOverviewIconMenu()) SHOW_DIVIDER_NONE else SHOW_DIVIDER_MIDDLE
+
+        optionLayout.background =
+            if (enableOverviewIconMenu()) {
+                ResourcesCompat.getDrawable(resources, R.drawable.app_chip_menu_bg, context.theme)
+            } else {
+                null
+            }
 
         orientationHandler.setTaskOptionsMenuLayoutOrientation(
             deviceProfile,
@@ -345,15 +360,20 @@ constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int = 0) :
      * view will scroll. The maximum menu size will sit inside the task with a margin on the top and
      * bottom.
      */
-    private fun calculateMaxHeight(): Int {
-        val taskInsetMargin = resources.getDimension(R.dimen.task_card_margin)
-        return taskView.pagedOrientationHandler.getTaskMenuHeight(
-            taskInsetMargin,
-            recentsViewContainer.deviceProfile,
-            translationX,
-            translationY,
+    private fun calculateMaxHeight(): Int =
+        taskView.pagedOrientationHandler.getTaskMenuHeight(
+            taskInsetMargin = resources.getDimension(R.dimen.task_card_margin), // taskInsetMargin
+            deviceProfile = recentsViewContainer.deviceProfile,
+            taskMenuX = translationX,
+            taskMenuY =
+                when {
+                    !enableOverviewIconMenu() -> translationY
+                    // Bottom menu can translate up to show more options. So we use the min
+                    // translation allowed to calculate its max height.
+                    taskView.isOnGridBottomRow() -> minMenuTop
+                    else -> menuTranslationYBeforeOpen
+                },
         )
-    }
 
     private fun setOnClosingStartCallback(onClosingStartCallback: Runnable?) {
         this.onClosingStartCallback = onClosingStartCallback
@@ -362,18 +382,23 @@ constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int = 0) :
     private fun animateOpenOrCloseAppChip(closing: Boolean, animatorBuilder: AnimatorSet.Builder) {
         val iconAppChip = taskContainer.iconView.asView() as IconAppChipView
 
+        // Animate menu up for enough room to display full menu when task on bottom row.
         var additionalTranslationY = 0f
         if (taskView.isOnGridBottomRow()) {
-            // Animate menu up for enough room to display full menu when task on bottom row.
-            val menuBottom = height + menuTranslationYBeforeOpen
-            val taskBottom = taskView.height + taskView.persistentTranslationY
-            val taskbarTop =
-                (recentsViewContainer.deviceProfile.heightPx -
-                        recentsViewContainer.deviceProfile.overviewActionsClaimedSpaceBelow)
-                    .toFloat()
-            val midpoint = (taskBottom + taskbarTop) / 2f
-            additionalTranslationY = (-max((menuBottom - midpoint).toDouble(), 0.0)).toFloat()
+            val currentMenuBottom: Float = menuTranslationYBeforeOpen + height
+            additionalTranslationY =
+                if (currentMenuBottom < maxMenuBottom) 0f
+                // Translate menu up for enough room to display full menu when task on bottom row.
+                else maxMenuBottom - currentMenuBottom
+
+            val currentMenuTop = menuTranslationYBeforeOpen + additionalTranslationY
+            // If it translate above the min accepted, it translates to the top of the screen
+            if (currentMenuTop < minMenuTop) {
+                // It subtracts the menuTranslation to make it 0 (top of the screen) + chip size.
+                additionalTranslationY = -menuTranslationYBeforeOpen + minMenuTop
+            }
         }
+
         val translationYAnim =
             ObjectAnimator.ofFloat(
                 this,

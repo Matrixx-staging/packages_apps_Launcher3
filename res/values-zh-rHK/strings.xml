@@ -101,7 +101,6 @@
     <string name="dismiss_prediction_label" msgid="3357562989568808658">"不要提供應用程式建議"</string>
     <string name="pin_prediction" msgid="4196423321649756498">"固定預測"</string>
     <string name="bubble" msgid="3072951361014076670">"氣泡"</string>
-    <string name="pin_to_taskbar" msgid="1281337899690299038">"固定至工作列"</string>
     <string name="permlab_install_shortcut" msgid="5632423390354674437">"安裝捷徑"</string>
     <string name="permdesc_install_shortcut" msgid="923466509822011139">"允許應用程式無需使用者許可也可新增捷徑。"</string>
     <string name="permlab_read_settings" msgid="5136500343007704955">"讀取主畫面設定和捷徑"</string>
@@ -118,6 +117,10 @@
     <string name="default_scroll_format" msgid="7475544710230993317">"第 %1$d 頁，共 %2$d 頁"</string>
     <string name="workspace_scroll_format" msgid="8458889198184077399">"主畫面 %1$d，共 %2$d 個"</string>
     <string name="workspace_new_page" msgid="257366611030256142">"新主畫面頁面"</string>
+    <!-- no translation found for app_running_state_description (5645053189564740904) -->
+    <skip />
+    <!-- no translation found for app_minimized_state_description (710740620044902509) -->
+    <skip />
     <string name="folder_opened" msgid="94695026776264709">"資料夾已開啟 (<xliff:g id="WIDTH">%1$d</xliff:g> x <xliff:g id="HEIGHT">%2$d</xliff:g>)"</string>
     <string name="folder_tap_to_close" msgid="4625795376335528256">"輕按即可關閉資料夾"</string>
     <string name="folder_tap_to_rename" msgid="4017685068016979677">"輕按即可儲存新名稱"</string>
@@ -187,6 +190,10 @@
     <string name="accessibility_close" msgid="2277148124685870734">"關閉"</string>
     <string name="all_apps_personal_tab" msgid="4190252696685155002">"個人"</string>
     <string name="all_apps_work_tab" msgid="4884822796154055118">"工作"</string>
+    <!-- no translation found for all_apps_personal_tab_content_description (6286808898381807242) -->
+    <skip />
+    <!-- no translation found for all_apps_work_tab_content_description (3835637212347968316) -->
+    <skip />
     <string name="work_profile_toggle_label" msgid="3081029915775481146">"工作設定檔"</string>
     <string name="work_profile_edu_work_apps" msgid="7895468576497746520">"工作應用程式均加有標誌。你的 IT 管理員可以看到這些應用程式"</string>
     <string name="work_profile_edu_accept" msgid="6069788082535149071">"知道了"</string>

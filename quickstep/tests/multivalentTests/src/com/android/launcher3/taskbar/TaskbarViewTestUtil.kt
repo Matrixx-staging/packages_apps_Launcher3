@@ -46,12 +46,14 @@ object TaskbarViewTestUtil {
 
     /** Creates an array of fake hotseat items. */
     fun createHotseatItems(size: Int): Array<ItemInfo> {
-        return Array(size) {
-            WorkspaceItemInfo(
-                    AppInfo(TEST_COMPONENT, "Test App $it", Process.myUserHandle(), Intent())
-                )
-                .apply { id = it }
-        }
+        return Array(size) { createHotseatWorkspaceItem(it) }
+    }
+
+    fun createHotseatWorkspaceItem(id: Int = 0): WorkspaceItemInfo {
+        return WorkspaceItemInfo(
+                AppInfo(TEST_COMPONENT, "Test App $id", Process.myUserHandle(), Intent())
+            )
+            .apply { this.id = id }
     }
 
     /** Creates a list of fake recent tasks. */
@@ -75,13 +77,13 @@ object TaskbarViewTestUtil {
 }
 
 /** A `Truth` [Subject] with extensions for verifying [TaskbarView]. */
-class TaskbarViewSubject(failureMetadata: FailureMetadata, private val view: TaskbarView) :
+class TaskbarViewSubject(failureMetadata: FailureMetadata, private val view: TaskbarView?) :
     Subject(failureMetadata, view) {
 
     /** Verifies that the types of icons match [expectedTypes] in order. */
     fun hasIconTypes(vararg expectedTypes: TaskbarIconType) {
         val actualTypes =
-            view.iconViews.map {
+            view?.iconViews?.map {
                 when (it) {
                     view.allAppsButtonContainer -> ALL_APPS
                     view.taskbarDividerViewContainer -> DIVIDER
@@ -100,7 +102,7 @@ class TaskbarViewSubject(failureMetadata: FailureMetadata, private val view: Tas
     /** Verifies that recents from [startIndex] have IDs that match [expectedIds] in order. */
     fun hasRecentsOrder(startIndex: Int, expectedIds: List<Int>) {
         val actualIds =
-            view.iconViews.slice(startIndex..<startIndex + expectedIds.size).flatMap {
+            view?.iconViews?.slice(startIndex..<startIndex + expectedIds.size)?.flatMap {
                 assertThat(it.tag).isInstanceOf(GroupTask::class.java)
                 (it.tag as GroupTask).tasks.map { task -> task.key.id }
             }

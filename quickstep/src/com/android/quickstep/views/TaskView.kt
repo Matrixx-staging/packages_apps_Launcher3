@@ -85,6 +85,7 @@ import com.android.quickstep.recents.di.inject
 import com.android.quickstep.recents.ui.viewmodel.TaskData
 import com.android.quickstep.recents.ui.viewmodel.TaskTileUiState
 import com.android.quickstep.recents.ui.viewmodel.TaskViewModel
+import com.android.quickstep.task.thumbnail.TaskContentView
 import com.android.quickstep.util.ActiveGestureErrorDetector
 import com.android.quickstep.util.ActiveGestureLog
 import com.android.quickstep.util.BorderAnimator
@@ -100,7 +101,6 @@ import com.android.systemui.shared.recents.model.ThumbnailData
 import com.android.systemui.shared.system.ActivityManagerWrapper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -221,7 +221,7 @@ constructor(
                 SPLIT_SELECT_TRANSLATION_Y,
             )
 
-    protected val primaryDismissTranslationProperty: FloatProperty<TaskView>
+    val primaryDismissTranslationProperty: FloatProperty<TaskView>
         get() =
             pagedOrientationHandler.getPrimaryValue(DISMISS_TRANSLATION_X, DISMISS_TRANSLATION_Y)
 
@@ -309,6 +309,7 @@ constructor(
     // progress: 0 = show icon and no insets; 1 = don't show icon and show full insets.
     protected var fullscreenProgress = 0f
         set(value) {
+            if (value == field && enableOverviewIconMenu()) return
             field = Utilities.boundToRange(value, 0f, 1f)
             onFullscreenProgressChanged(field)
         }
@@ -490,6 +491,7 @@ constructor(
     // 1 = The TaskView is settled and no longer transitioning
     private var settledProgress = 1f
         set(value) {
+            if (value == field && enableOverviewIconMenu()) return
             field = value
             onSettledProgressUpdated(field)
         }
@@ -511,7 +513,7 @@ constructor(
 
     private var viewModel: TaskViewModel? = null
     private val dispatcherProvider: DispatcherProvider by RecentsDependencies.inject()
-    private val coroutineScope by lazy { CoroutineScope(SupervisorJob() + dispatcherProvider.main) }
+    private val coroutineScope: CoroutineScope by RecentsDependencies.inject()
     private val coroutineJobs = mutableListOf<Job>()
 
     /**
@@ -718,13 +720,10 @@ constructor(
     }
 
     protected open fun inflateViewStubs() {
-        findViewById<ViewStub>(R.id.snapshot)
-            ?.apply {
-                layoutResource =
-                    if (enableRefactorTaskThumbnail()) R.layout.task_thumbnail
-                    else R.layout.task_thumbnail_deprecated
-            }
+        findViewById<ViewStub>(R.id.task_content_view)
+            ?.apply { layoutResource = R.layout.task_content_view }
             ?.inflate()
+
         findViewById<ViewStub>(R.id.icon)
             ?.apply {
                 layoutResource =
@@ -741,7 +740,9 @@ constructor(
             // onRecycle. So it should be initialized at this point. TaskView Lifecycle:
             // `bind` -> `onBind` ->  onAttachedToWindow() -> onDetachFromWindow -> onRecycle
             coroutineJobs +=
-                coroutineScope.launch { viewModel!!.state.collectLatest(::updateTaskViewState) }
+                coroutineScope.launch(dispatcherProvider.main) {
+                    viewModel!!.state.collectLatest(::updateTaskViewState)
+                }
         }
     }
 
@@ -835,10 +836,12 @@ constructor(
         taskOverlayFactory: TaskOverlayFactory,
     ) {
         cancelPendingLoadTasks()
+        this.orientedState = orientedState // Needed for dependencies
         taskContainers =
             listOf(
                 createTaskContainer(
                     task,
+                    R.id.task_content_view,
                     R.id.snapshot,
                     R.id.icon,
                     R.id.show_windows,
@@ -852,15 +855,17 @@ constructor(
 
     protected open fun onBind(orientedState: RecentsOrientedState) {
         if (enableRefactorTaskThumbnail()) {
+            val scopeId = context
+            Log.d(TAG, "onBind $scopeId ${orientedState.containerInterface}")
             viewModel =
                 TaskViewModel(
                         taskViewType = type,
-                        recentsViewData = RecentsDependencies.get(),
-                        getTaskUseCase = RecentsDependencies.get(),
-                        getSysUiStatusNavFlagsUseCase = RecentsDependencies.get(),
-                        isThumbnailValidUseCase = RecentsDependencies.get(),
-                        getThumbnailPositionUseCase = RecentsDependencies.get(),
-                        dispatcherProvider = RecentsDependencies.get(),
+                        recentsViewData = RecentsDependencies.get(scopeId),
+                        getTaskUseCase = RecentsDependencies.get(scopeId),
+                        getSysUiStatusNavFlagsUseCase = RecentsDependencies.get(scopeId),
+                        isThumbnailValidUseCase = RecentsDependencies.get(scopeId),
+                        getThumbnailPositionUseCase = RecentsDependencies.get(scopeId),
+                        dispatcherProvider = RecentsDependencies.get(scopeId),
                     )
                     .apply { bind(*taskIds) }
         }
@@ -868,8 +873,9 @@ constructor(
         taskContainers.forEach { container ->
             container.bind()
             if (enableRefactorTaskThumbnail()) {
-                container.thumbnailView.cornerRadius = thumbnailFullscreenParams.currentCornerRadius
-                container.thumbnailView.doOnSizeChange { width, height ->
+                container.taskContentView.cornerRadius =
+                    thumbnailFullscreenParams.currentCornerRadius
+                container.taskContentView.doOnSizeChange { width, height ->
                     updateThumbnailValidity(container)
                     updateThumbnailMatrix(container, width, height)
                 }
@@ -895,6 +901,7 @@ constructor(
 
     protected fun createTaskContainer(
         task: Task,
+        @IdRes taskContentViewId: Int,
         @IdRes thumbnailViewId: Int,
         @IdRes iconViewId: Int,
         @IdRes showWindowViewId: Int,
@@ -903,10 +910,12 @@ constructor(
         taskOverlayFactory: TaskOverlayFactory,
     ): TaskContainer {
         val iconView = findViewById<View>(iconViewId) as TaskViewIcon
+        val taskContentView = findViewById<TaskContentView>(taskContentViewId)
         return TaskContainer(
             this,
             task,
-            findViewById(thumbnailViewId),
+            taskContentView,
+            taskContentView.findViewById(thumbnailViewId),
             iconView,
             TransformingTouchDelegate(iconView.asView()),
             stagePosition,
@@ -994,7 +1003,7 @@ constructor(
     protected open fun updateThumbnailSize() {
         // TODO(b/271468547), we should default to setting translations only on the snapshot instead
         //  of a hybrid of both margins and translations
-        firstTaskContainer?.snapshotView?.updateLayoutParams<LayoutParams> {
+        firstTaskContainer?.taskContentView?.updateLayoutParams<LayoutParams> {
             topMargin = container.deviceProfile.overviewTaskThumbnailTopMarginPx
         }
         taskContainers.forEach { it.digitalWellBeingToast?.setupLayout() }
@@ -1008,11 +1017,11 @@ constructor(
             val thumbnailBounds = Rect()
             if (relativeToDragLayer) {
                 container.dragLayer.getDescendantRectRelativeToSelf(
-                    it.snapshotView,
+                    it.taskContentView,
                     thumbnailBounds,
                 )
             } else {
-                thumbnailBounds.set(it.snapshotView)
+                thumbnailBounds.set(it.taskContentView)
             }
             bounds.union(thumbnailBounds)
         }
@@ -1649,7 +1658,7 @@ constructor(
     protected fun getScrollAdjustment(gridEnabled: Boolean) =
         if (gridEnabled) gridTranslationX else nonGridTranslationX
 
-    protected fun getOffsetAdjustment(gridEnabled: Boolean) = getScrollAdjustment(gridEnabled)
+    fun getOffsetAdjustment(gridEnabled: Boolean) = getScrollAdjustment(gridEnabled)
 
     fun getSizeAdjustment(fullscreenEnabled: Boolean) = if (fullscreenEnabled) nonGridScale else 1f
 
@@ -1687,7 +1696,9 @@ constructor(
 
     protected open fun onFullscreenProgressChanged(fullscreenProgress: Float) {
         taskContainers.forEach {
-            it.iconView.setVisibility(if (fullscreenProgress < 1) VISIBLE else INVISIBLE)
+            if (!enableOverviewIconMenu()) {
+                it.iconView.setVisibility(if (fullscreenProgress < 1) VISIBLE else INVISIBLE)
+            }
             it.overlay.setFullscreenProgress(fullscreenProgress)
         }
         settledProgressFullscreen =
@@ -1699,7 +1710,7 @@ constructor(
         updateFullscreenParams(thumbnailFullscreenParams)
         taskContainers.forEach {
             if (enableRefactorTaskThumbnail()) {
-                it.thumbnailView.cornerRadius = thumbnailFullscreenParams.currentCornerRadius
+                it.taskContentView.cornerRadius = thumbnailFullscreenParams.currentCornerRadius
             } else {
                 it.thumbnailViewDeprecated.setFullscreenParams(thumbnailFullscreenParams)
             }
