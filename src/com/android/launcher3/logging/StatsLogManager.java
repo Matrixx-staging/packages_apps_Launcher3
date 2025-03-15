@@ -166,6 +166,9 @@ public class StatsLogManager implements ResourceBasedOverride {
         @UiEvent(doc = "User tapped or long pressed on settings icon inside launcher settings.")
         LAUNCHER_SETTINGS_BUTTON_TAP_OR_LONGPRESS(463),
 
+        @UiEvent(doc = "User tapped or long pressed on apps icon inside launcher settings.")
+        LAUNCHER_ALL_APPS_TAP_OR_LONGPRESS(2204),
+
         @UiEvent(doc = "User tapped or long pressed on widget tray icon inside launcher settings.")
         LAUNCHER_WIDGETSTRAY_BUTTON_TAP_OR_LONGPRESS(464),
 
@@ -880,6 +883,13 @@ public class StatsLogManager implements ResourceBasedOverride {
 
         @UiEvent(doc = "Work utility view shrink animation ended")
         LAUNCHER_WORK_UTILITY_VIEW_SHRINK_ANIMATION_END(2078),
+
+        @UiEvent(doc = "Standard grid migration occurred")
+        LAUNCHER_STANDARD_GRID_MIGRATION(2200),
+
+        @UiEvent(doc = "Row shift grid migration occurred")
+        LAUNCHER_ROW_SHIFT_GRID_MIGRATION(2201),
+
         // ADD MORE
         ;
 

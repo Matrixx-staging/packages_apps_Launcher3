@@ -82,9 +82,9 @@
     <dimen name="task_thumbnail_icon_menu_drawable_touch_size">44dp</dimen>
     <dimen name="task_thumbnail_icon_menu_elevation">4dp</dimen>
     <!--  The size of the task thumbnail header  -->
-    <dimen name="task_thumbnail_header_height">30dp</dimen>
-    <dimen name="task_thumbnail_header_margin_edge">18dp</dimen>
-    <dimen name="task_thumbnail_header_margin_between_views">9dp</dimen>
+    <dimen name="task_thumbnail_header_padding_top_bottom">6dp</dimen>
+    <dimen name="task_thumbnail_header_padding_start_end">12dp</dimen>
+    <dimen name="task_thumbnail_header_margin_between_views">8dp</dimen>
     <dimen name="task_thumbnail_header_icon_size">18dp</dimen>
     <dimen name="task_thumbnail_header_round_corner_radius">16dp</dimen>
 
@@ -363,6 +363,7 @@
     <dimen name="taskbar_home_button_left_margin_kids">48dp</dimen>
     <dimen name="taskbar_icon_size_kids">32dp</dimen>
     <dimen name="taskbar_all_apps_search_button_translation_x_offset">6dp</dimen>
+    <dimen name="taskbar_all_apps_search_button_translation_x_offset_for_expressive_theme">5.5dp</dimen>
     <dimen name="taskbar_contextual_button_suw_margin">64dp</dimen>
     <dimen name="taskbar_contextual_button_suw_height">64dp</dimen>
     <dimen name="taskbar_back_button_suw_start_margin">48dp</dimen>
@@ -381,6 +382,7 @@
     <dimen name="transient_taskbar_key_shadow_distance">10dp</dimen>
     <dimen name="transient_taskbar_stashed_height">32dp</dimen>
     <dimen name="transient_taskbar_all_apps_button_translation_x_offset">8dp</dimen>
+    <dimen name="transient_taskbar_all_apps_button_translation_x_offset_for_expressive_theme">8dp</dimen>
     <dimen name="transient_taskbar_stash_spring_velocity_dp_per_s">400dp</dimen>
     <dimen name="taskbar_tooltip_vertical_padding">8dp</dimen>
     <dimen name="taskbar_tooltip_horizontal_padding">16dp</dimen>
@@ -459,7 +461,8 @@
     <!-- Container size with pointer included: bubblebar_size + bubblebar_pointer_size -->
     <dimen name="bubblebar_size_with_pointer">80dp</dimen>
     <dimen name="bubblebar_elevation">1dp</dimen>
-    <dimen name="bubblebar_drag_elevation">2dp</dimen>
+    <!-- TODO b/396539130: used wmshared value once resources are fixed -->
+    <dimen name="dragged_bubble_elevation">3dp</dimen>
     <dimen name="bubblebar_hotseat_adjustment_threshold">90dp</dimen>
     <dimen name="bubblebar_bounce_distance">20dp</dimen>
 
@@ -510,7 +513,8 @@
     <dimen name="starting_surface_exit_animation_window_shift_length">20dp</dimen>
 
     <!-- Keyboard Quick Switch -->
-    <dimen name="keyboard_quick_switch_border_width">4dp</dimen>
+    <dimen name="keyboard_quick_switch_border_width">5dp</dimen>
+    <dimen name="keyboard_quick_switch_border_stroke">3dp</dimen>
     <dimen name="keyboard_quick_switch_taskview_width">104dp</dimen>
     <dimen name="keyboard_quick_switch_taskview_height">136dp</dimen>
     <dimen name="keyboard_quick_switch_taskview_icon_size">52dp</dimen>
@@ -531,8 +535,8 @@
     <dimen name="keyboard_quick_switch_text_button_fade_edge_length">20dp</dimen>
     <dimen name="keyboard_quick_switch_scroll_button_width">36dp</dimen>
     <dimen name="keyboard_quick_switch_scroll_button_height">56dp</dimen>
-    <dimen name="keyboard_quick_switch_scroll_button_horizontal_padding">12dp</dimen>
-    <dimen name="keyboard_quick_switch_scroll_button_vertical_padding">32dp</dimen>
+    <dimen name="keyboard_quick_switch_scroll_button_horizontal_padding">6dp</dimen>
+    <dimen name="keyboard_quick_switch_scroll_button_vertical_padding">16dp</dimen>
     <dimen name="keyboard_quick_switch_scroll_button_corner_radius">18dp</dimen>
 
     <!-- Digital Wellbeing -->

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.android.quickstep.task.thumbnail
+package com.android.launcher3.pageindicators
 
-import android.graphics.Bitmap
+interface PageIndicatorArrowClickListener {
+    fun onArrowClick(direction: Direction)
+}
 
-/** Ui state for [com.android.quickstep.TaskOverlayFactory.TaskOverlay] */
-sealed class TaskOverlayUiState {
-    data object Disabled : TaskOverlayUiState()
-
-    data class Enabled(val isRealSnapshot: Boolean, val thumbnail: Bitmap?) : TaskOverlayUiState()
+enum class Direction {
+    END,
+    START,
 }

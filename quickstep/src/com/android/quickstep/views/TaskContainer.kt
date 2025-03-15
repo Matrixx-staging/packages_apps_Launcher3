@@ -18,14 +18,17 @@ package com.android.quickstep.views
 
 import android.graphics.Bitmap
 import android.graphics.Matrix
+import android.util.Log
 import android.view.View
 import android.view.View.OnClickListener
+import com.android.app.tracing.traceSection
 import com.android.launcher3.Flags.enableRefactorTaskThumbnail
 import com.android.launcher3.model.data.TaskViewItemInfo
 import com.android.launcher3.util.SplitConfigurationOptions
 import com.android.launcher3.util.TransformingTouchDelegate
 import com.android.quickstep.TaskOverlayFactory
 import com.android.quickstep.ViewUtils.addAccessibleChildToList
+import com.android.quickstep.recents.domain.usecase.ThumbnailPosition
 import com.android.quickstep.recents.ui.mapper.TaskUiStateMapper
 import com.android.quickstep.recents.ui.viewmodel.TaskData
 import com.android.quickstep.task.thumbnail.TaskContentView
@@ -54,6 +57,8 @@ class TaskContainer(
     taskOverlayFactory: TaskOverlayFactory,
 ) {
     val overlay: TaskOverlayFactory.TaskOverlay<*> = taskOverlayFactory.createOverlay(this)
+    var thumbnailPosition: ThumbnailPosition? = null
+    private var overlayEnabledStatus = false
 
     init {
         if (enableRefactorTaskThumbnail()) {
@@ -96,33 +101,63 @@ class TaskContainer(
     val itemInfo: TaskViewItemInfo
         get() = TaskViewItemInfo(taskView, this)
 
-    fun bind() {
-        digitalWellBeingToast?.bind(task, taskView, snapshotView, stagePosition)
-        if (!enableRefactorTaskThumbnail()) {
-            thumbnailViewDeprecated.bind(task, overlay, taskView)
+    fun bind() =
+        traceSection("TaskContainer.bind") {
+            digitalWellBeingToast?.bind(task, taskView, snapshotView, stagePosition)
+            if (!enableRefactorTaskThumbnail()) {
+                thumbnailViewDeprecated.bind(task, overlay, taskView)
+            }
         }
-        overlay.init()
-    }
 
-    fun destroy() {
-        digitalWellBeingToast?.destroy()
-        taskContentView.scaleX = 1f
-        taskContentView.scaleY = 1f
-        overlay.destroy()
-        if (enableRefactorTaskThumbnail()) {
-            isThumbnailValid = false
-            thumbnailData = null
-            thumbnailView.onRecycle()
-        } else {
-            thumbnailViewDeprecated.setShowSplashForSplitSelection(false)
+    fun destroy() =
+        traceSection("TaskContainer.destroy") {
+            digitalWellBeingToast?.destroy()
+            taskContentView.scaleX = 1f
+            taskContentView.scaleY = 1f
+            overlay.reset()
+            if (enableRefactorTaskThumbnail()) {
+                isThumbnailValid = false
+                thumbnailData = null
+                thumbnailView.onRecycle()
+            } else {
+                thumbnailViewDeprecated.setShowSplashForSplitSelection(false)
+            }
         }
-    }
 
     fun setOverlayEnabled(enabled: Boolean) {
         if (!enableRefactorTaskThumbnail()) {
             thumbnailViewDeprecated.setOverlayEnabled(enabled)
         }
     }
+
+    fun setOverlayEnabled(enabled: Boolean, thumbnailPosition: ThumbnailPosition?) {
+        if (enableRefactorTaskThumbnail()) {
+            if (overlayEnabledStatus != enabled || this.thumbnailPosition != thumbnailPosition) {
+                overlayEnabledStatus = enabled
+
+                refreshOverlay(thumbnailPosition)
+            }
+        }
+    }
+
+    fun refreshOverlay(thumbnailPosition: ThumbnailPosition?) =
+        traceSection("TaskContainer.refreshOverlay") {
+            this.thumbnailPosition = thumbnailPosition
+            when {
+                !overlayEnabledStatus -> overlay.reset()
+                thumbnailPosition == null -> {
+                    Log.e(TAG, "Thumbnail position was null during overlay refresh", Exception())
+                    overlay.reset()
+                }
+                else ->
+                    overlay.initOverlay(
+                        task,
+                        thumbnailData?.thumbnail,
+                        thumbnailPosition.matrix,
+                        thumbnailPosition.isRotated,
+                    )
+            }
+        }
 
     fun addChildForAccessibility(outChildren: ArrayList<View>) {
         addAccessibleChildToList(iconView.asView(), outChildren)
@@ -137,14 +172,16 @@ class TaskContainer(
         liveTile: Boolean,
         hasHeader: Boolean,
         clickCloseListener: OnClickListener?,
-    ) {
-        taskContentView.setState(
-            TaskUiStateMapper.toTaskHeaderState(state, hasHeader, clickCloseListener),
-            TaskUiStateMapper.toTaskThumbnailUiState(state, liveTile),
-            state?.taskId,
-        )
-        thumbnailData = if (state is TaskData.Data) state.thumbnailData else null
-    }
+    ) =
+        traceSection("TaskContainer.setState") {
+            taskContentView.setState(
+                TaskUiStateMapper.toTaskHeaderState(state, hasHeader, clickCloseListener),
+                TaskUiStateMapper.toTaskThumbnailUiState(state, liveTile),
+                state?.taskId,
+            )
+            thumbnailData = if (state is TaskData.Data) state.thumbnailData else null
+            overlay.setThumbnailState(thumbnailData)
+        }
 
     fun updateTintAmount(tintAmount: Float) {
         thumbnailView.updateTintAmount(tintAmount)
@@ -183,5 +220,9 @@ class TaskContainer(
 
     fun updateThumbnailMatrix(matrix: Matrix) {
         thumbnailView.setImageMatrix(matrix)
+    }
+
+    companion object {
+        const val TAG = "TaskContainer"
     }
 }

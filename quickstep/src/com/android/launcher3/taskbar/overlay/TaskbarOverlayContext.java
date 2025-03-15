@@ -55,7 +55,7 @@ public class TaskbarOverlayContext extends BaseTaskbarContext {
             Context windowContext,
             TaskbarActivityContext taskbarContext,
             TaskbarControllers controllers) {
-        super(windowContext);
+        super(windowContext, taskbarContext.isPrimaryDisplay());
         mTaskbarContext = taskbarContext;
         mOverlayController = controllers.taskbarOverlayController;
         mDragController = new TaskbarDragController(this);
@@ -65,6 +65,11 @@ public class TaskbarOverlayContext extends BaseTaskbarContext {
 
         mUiController = controllers.uiController;
         onViewCreated();
+    }
+
+    /** Called when the controller is destroyed. */
+    public void onDestroy() {
+        mDragController.onDestroy();
     }
 
     public @Nullable TaskbarSearchSessionController getSearchSessionController() {

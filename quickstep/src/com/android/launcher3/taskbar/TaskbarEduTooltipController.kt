@@ -52,6 +52,8 @@ import com.android.launcher3.views.ActivityContext
 import com.android.launcher3.views.BaseDragLayer
 import com.android.quickstep.util.ContextualSearchInvoker
 import com.android.quickstep.util.LottieAnimationColorUtils
+import com.android.wm.shell.shared.TypefaceUtils
+import com.android.wm.shell.shared.TypefaceUtils.FontFamily
 import java.io.PrintWriter
 
 /** First EDU step for swiping up to show transient Taskbar. */
@@ -153,7 +155,7 @@ open class TaskbarEduTooltipController(context: Context) :
     fun maybeShowSwipeEdu() {
         if (
             !isTooltipEnabled ||
-                !DisplayController.isTransientTaskbar(activityContext) ||
+                !activityContext.isTransientTaskbar ||
                 tooltipStep > TOOLTIP_STEP_SWIPE
         ) {
             return
@@ -164,7 +166,7 @@ open class TaskbarEduTooltipController(context: Context) :
         tooltip?.run {
             TypefaceUtils.setTypeface(
                 requireViewById(R.id.taskbar_edu_title),
-                TypefaceUtils.FONT_FAMILY_HEADLINE_SMALL_EMPHASIZED,
+                FontFamily.GSF_HEADLINE_SMALL_EMPHASIZED,
             )
             val swipeAnimation = requireViewById<LottieAnimationView>(R.id.swipe_animation)
             swipeAnimation.supportLightTheme()
@@ -198,7 +200,7 @@ open class TaskbarEduTooltipController(context: Context) :
             suggestionsAnim.supportLightTheme()
             pinningAnim.supportLightTheme()
             handleEduAnimations(listOf(splitscreenAnim, suggestionsAnim, pinningAnim))
-            if (DisplayController.isTransientTaskbar(activityContext)) {
+            if (activityContext.isTransientTaskbar) {
                 splitscreenAnim.setAnimation(R.raw.taskbar_edu_splitscreen_transient)
                 suggestionsAnim.setAnimation(R.raw.taskbar_edu_suggestions_transient)
                 pinningEdu.visibility = if (enableTaskbarPinning()) VISIBLE else GONE
@@ -210,25 +212,25 @@ open class TaskbarEduTooltipController(context: Context) :
 
             TypefaceUtils.setTypeface(
                 requireViewById(R.id.taskbar_edu_title),
-                TypefaceUtils.FONT_FAMILY_HEADLINE_SMALL_EMPHASIZED,
+                FontFamily.GSF_HEADLINE_SMALL_EMPHASIZED,
             )
             TypefaceUtils.setTypeface(
                 requireViewById(R.id.splitscreen_text),
-                TypefaceUtils.FONT_FAMILY_BODY_MEDIUM_BASELINE,
+                FontFamily.GSF_BODY_MEDIUM,
             )
             TypefaceUtils.setTypeface(
                 requireViewById(R.id.suggestions_text),
-                TypefaceUtils.FONT_FAMILY_BODY_MEDIUM_BASELINE,
+                FontFamily.GSF_BODY_MEDIUM,
             )
             TypefaceUtils.setTypeface(
                 requireViewById(R.id.pinning_text),
-                TypefaceUtils.FONT_FAMILY_BODY_MEDIUM_BASELINE,
+                FontFamily.GSF_BODY_MEDIUM,
             )
 
             // Set up layout parameters.
             content.updateLayoutParams { width = MATCH_PARENT }
             updateLayoutParams<MarginLayoutParams> {
-                if (DisplayController.isTransientTaskbar(activityContext)) {
+                if (activityContext.isTransientTaskbar) {
                     width =
                         resources.getDimensionPixelSize(
                             if (enableTaskbarPinning())
@@ -261,7 +263,7 @@ open class TaskbarEduTooltipController(context: Context) :
         // for the original 2 edu steps) as a proxy to needing to show the separate pinning edu
         if (
             !enableTaskbarPinning() ||
-                !DisplayController.isTransientTaskbar(activityContext) ||
+                !activityContext.isTransientTaskbar ||
                 !isTooltipEnabled ||
                 tooltipStep > TOOLTIP_STEP_PINNING ||
                 tooltipStep < TOOLTIP_STEP_FEATURES
@@ -275,11 +277,11 @@ open class TaskbarEduTooltipController(context: Context) :
             allowTouchDismissal = true
             TypefaceUtils.setTypeface(
                 requireViewById(R.id.taskbar_edu_title),
-                TypefaceUtils.FONT_FAMILY_HEADLINE_SMALL_EMPHASIZED,
+                FontFamily.GSF_HEADLINE_SMALL_EMPHASIZED,
             )
             TypefaceUtils.setTypeface(
                 requireViewById(R.id.pinning_text),
-                TypefaceUtils.FONT_FAMILY_BODY_MEDIUM_BASELINE,
+                FontFamily.GSF_BODY_MEDIUM,
             )
 
             val pinningAnim =
@@ -287,7 +289,7 @@ open class TaskbarEduTooltipController(context: Context) :
             pinningAnim.supportLightTheme()
             handleEduAnimations(listOf(pinningAnim))
             updateLayoutParams<BaseDragLayer.LayoutParams> {
-                if (DisplayController.isTransientTaskbar(activityContext)) {
+                if (activityContext.isTransientTaskbar) {
                     bottomMargin += activityContext.deviceProfile.taskbarHeight
                 }
                 // Unlike other tooltips, we want to align with taskbar divider rather than center.
@@ -336,13 +338,13 @@ open class TaskbarEduTooltipController(context: Context) :
 
             TypefaceUtils.setTypeface(
                 requireViewById(R.id.taskbar_edu_title),
-                TypefaceUtils.FONT_FAMILY_HEADLINE_SMALL_EMPHASIZED,
+                FontFamily.GSF_HEADLINE_SMALL_EMPHASIZED,
             )
-            TypefaceUtils.setTypeface(eduSubtitle, TypefaceUtils.FONT_FAMILY_BODY_SMALL_BASELINE)
+            TypefaceUtils.setTypeface(eduSubtitle, FontFamily.GSF_BODY_SMALL)
 
             showDisclosureText(eduSubtitle)
             updateLayoutParams<BaseDragLayer.LayoutParams> {
-                if (DisplayController.isTransientTaskbar(activityContext)) {
+                if (activityContext.isTransientTaskbar) {
                     bottomMargin += activityContext.deviceProfile.taskbarHeight
                 }
                 // Unlike other tooltips, we want to align with the all apps button rather than

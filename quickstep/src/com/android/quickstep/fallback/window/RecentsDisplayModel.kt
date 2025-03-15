@@ -17,9 +17,10 @@
 package com.android.quickstep.fallback.window
 
 import android.content.Context
+import android.util.Log
 import android.view.Display
+import android.view.Display.DEFAULT_DISPLAY
 import androidx.core.util.valueIterator
-import com.android.launcher3.Flags
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.util.DaggerSingletonObject
@@ -27,8 +28,11 @@ import com.android.launcher3.util.DaggerSingletonTracker
 import com.android.launcher3.util.WallpaperColorHints
 import com.android.quickstep.DisplayModel
 import com.android.quickstep.FallbackWindowInterface
+import com.android.quickstep.RecentsAnimationDeviceState
+import com.android.quickstep.TaskAnimationManager
 import com.android.quickstep.dagger.QuickstepBaseAppComponent
 import com.android.quickstep.fallback.window.RecentsDisplayModel.RecentsDisplayResource
+import com.android.quickstep.fallback.window.RecentsWindowFlags.Companion.enableOverviewInWindow
 import java.io.PrintWriter
 import javax.inject.Inject
 
@@ -50,17 +54,16 @@ constructor(
             DaggerSingletonObject<RecentsDisplayModel>(
                 QuickstepBaseAppComponent::getRecentsDisplayModel
             )
-
-        @JvmStatic
-        fun enableOverviewInWindow() =
-            Flags.enableFallbackOverviewInWindow() || Flags.enableLauncherOverviewInWindow()
     }
 
     init {
-        if (enableOverviewInWindow()) {
-            registerDisplayListener()
-            tracker.addCloseable { destroy() }
+        if (enableOverviewInWindow) {
+            initializeDisplays()
+        } else {
+            // Always create resource for default display
+            storeDisplayResource(DEFAULT_DISPLAY)
         }
+        tracker.addCloseable { destroy() }
     }
 
     override fun createDisplayResource(display: Display): RecentsDisplayResource {
@@ -72,11 +75,17 @@ constructor(
     }
 
     fun getRecentsWindowManager(displayId: Int): RecentsWindowManager? {
+        if (DEBUG) Log.d(TAG, "getRecentsWindowManager for display $displayId")
         return getDisplayResource(displayId)?.recentsWindowManager
     }
 
     fun getFallbackWindowInterface(displayId: Int): FallbackWindowInterface? {
+        if (DEBUG) Log.d(TAG, "getFallbackWindowInterface for display $displayId")
         return getDisplayResource(displayId)?.fallbackWindowInterface
+    }
+
+    fun getTaskAnimationManager(displayId: Int): TaskAnimationManager? {
+        return getDisplayResource(displayId)?.taskAnimationManager
     }
 
     val activeDisplayResources: Iterable<RecentsDisplayResource>
@@ -90,12 +99,20 @@ constructor(
         val displayContext: Context,
         val wallpaperColorHints: Int,
     ) : DisplayResource() {
-        val recentsWindowManager = RecentsWindowManager(displayContext, wallpaperColorHints)
-        val fallbackWindowInterface: FallbackWindowInterface =
-            FallbackWindowInterface(recentsWindowManager)
+        val recentsWindowManager =
+            if (enableOverviewInWindow) RecentsWindowManager(displayContext, wallpaperColorHints)
+            else null
+        val fallbackWindowInterface =
+            if (enableOverviewInWindow) FallbackWindowInterface(recentsWindowManager) else null
+        val taskAnimationManager =
+            TaskAnimationManager(
+                displayContext,
+                RecentsAnimationDeviceState.INSTANCE.get(displayContext),
+                displayId,
+            )
 
         override fun cleanup() {
-            recentsWindowManager.destroy()
+            recentsWindowManager?.destroy()
         }
 
         override fun dump(prefix: String, writer: PrintWriter) {

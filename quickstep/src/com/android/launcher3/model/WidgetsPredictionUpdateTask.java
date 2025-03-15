@@ -15,7 +15,6 @@
  */
 package com.android.launcher3.model;
 
-import static com.android.launcher3.Flags.enableCategorizedWidgetSuggestions;
 import static com.android.launcher3.Flags.enableTieredWidgetsByDefaultInPicker;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_WIDGETS_PREDICTION;
 import static com.android.launcher3.model.ModelUtils.WIDGET_FILTER;
@@ -83,7 +82,7 @@ public final class WidgetsPredictionUpdateTask implements ModelUpdateTask {
                                 && !widgetsInWorkspace.contains(entry.getValue())
                         ).collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        Context context = taskController.getApp().getContext();
+        Context context = taskController.getContext();
 
         List<WidgetItem> servicePredictedItems = new ArrayList<>();
         List<String> addedWidgetApps = new ArrayList<>();
@@ -129,20 +128,12 @@ public final class WidgetsPredictionUpdateTask implements ModelUpdateTask {
             }
         }
 
-        List<ItemInfo> items;
-        if (enableCategorizedWidgetSuggestions()) {
-            WidgetRecommendationCategoryProvider categoryProvider =
-                    new WidgetRecommendationCategoryProvider();
-            items = servicePredictedItems.stream()
-                    .map(it -> new PendingAddWidgetInfo(it.widgetInfo, CONTAINER_WIDGETS_PREDICTION,
-                            categoryProvider.getWidgetRecommendationCategory(context, it)))
-                    .collect(Collectors.toList());
-        } else {
-            items = servicePredictedItems.stream()
-                    .map(it -> new PendingAddWidgetInfo(it.widgetInfo,
-                            CONTAINER_WIDGETS_PREDICTION)).collect(
-                            Collectors.toList());
-        }
+        WidgetRecommendationCategoryProvider categoryProvider =
+                new WidgetRecommendationCategoryProvider();
+        List<ItemInfo> items = servicePredictedItems.stream()
+                .map(it -> new PendingAddWidgetInfo(it.widgetInfo, CONTAINER_WIDGETS_PREDICTION,
+                        categoryProvider.getWidgetRecommendationCategory(context, it)))
+                .collect(Collectors.toList());
         FixedContainerItems fixedContainerItems =
                 new FixedContainerItems(mPredictorState.containerId, items);
 

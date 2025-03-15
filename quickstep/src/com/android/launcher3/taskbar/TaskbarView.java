@@ -61,7 +61,6 @@ import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.taskbar.customization.TaskbarAllAppsButtonContainer;
 import com.android.launcher3.taskbar.customization.TaskbarDividerContainer;
 import com.android.launcher3.uioverrides.PredictedAppIcon;
-import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
 import com.android.quickstep.util.GroupTask;
@@ -130,7 +129,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
     private final int mAllAppsButtonTranslationOffset;
 
-    private final int mNumStaticViews;
+    private int mNumStaticViews;
 
     private Set<GroupTask> mPrevRecentTasks = Collections.emptySet();
     private Set<GroupTask> mPrevOverflowTasks = Collections.emptySet();
@@ -184,8 +183,9 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         setWillNotDraw(false);
 
         mAllAppsButtonContainer = new TaskbarAllAppsButtonContainer(context);
-        mAllAppsButtonTranslationOffset =  (int) getResources().getDimension(
-                mAllAppsButtonContainer.getAllAppsButtonTranslationXOffset(isTransientTaskbar()));
+        mAllAppsButtonTranslationOffset = (int) getResources().getDimension(
+                mAllAppsButtonContainer.getAllAppsButtonTranslationXOffset(
+                        mActivityContext.isTransientTaskbar()));
 
         if (enableTaskbarPinning() || enableRecentsInTaskbar()) {
             mTaskbarDividerContainer = new TaskbarDividerContainer(context);
@@ -199,11 +199,6 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
         // TODO: Disable touch events on QSB otherwise it can crash.
         mQsb = LayoutInflater.from(context).inflate(R.layout.search_container_hotseat, this, false);
-
-        mNumStaticViews =
-                ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION.isTrue() && !mActivityContext.isPhoneMode()
-                        ? addStaticViews()
-                        : 0;
     }
 
     /**
@@ -243,7 +238,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                 enableTaskbarPinning() && !mActivityContext.isThreeButtonNav();
         availableWidth -= iconSize - (int) getResources().getDimension(
                 mAllAppsButtonContainer.getAllAppsButtonTranslationXOffset(
-                        forceTransientTaskbarSize || isTransientTaskbar()));
+                        forceTransientTaskbarSize || mActivityContext.isTransientTaskbar()));
         ++additionalIcons;
 
         return Math.floorDiv(availableWidth, iconSize) + additionalIcons;
@@ -373,21 +368,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         if (!(view.getTag() instanceof CollectionInfo)) {
             mActivityContext.getViewCache().recycleView(view.getSourceLayoutResId(), view);
         }
-        if (view instanceof FolderIcon fi) {
-            // We should clear FolderInfo's Folder and FolderIcon to avoid memory leak.
-            fi.removeListeners();
-        }
         view.setTag(null);
-    }
-
-    /** Loop through all {@link FolderIcon} as child views and clear listeners to avoid leak. */
-    public void removeFolderIconListeners() {
-        final int childCount = getChildCount();
-        for (int i = 0; i < childCount; i++) {
-            if (getChildAt(i) instanceof FolderIcon fi) {
-                fi.removeListeners();
-            }
-        }
     }
 
     /** Inflates/binds the hotseat items and recent tasks to the view. */
@@ -450,6 +431,9 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
     private void updateItemsWithLayoutTransition(
             ItemInfo[] hotseatItemInfos, List<GroupTask> recentTasks) {
+        if (mNumStaticViews == 0) {
+            mNumStaticViews = addStaticViews();
+        }
 
         // Skip static views and potential All Apps divider, if they are on the left.
         mNextViewIndex = mIsRtl ? 0 : mNumStaticViews;
@@ -478,7 +462,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         }
 
         // Recents divider takes priority.
-        if (!mAddedDividerForRecents && !mActivityContext.areDesktopTasksVisible()) {
+        if (!mAddedDividerForRecents && !mActivityContext.isInDesktopMode()) {
             updateAllAppsDivider();
         }
     }
@@ -580,6 +564,9 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                 LayoutParams lp = new LayoutParams(mIconTouchSize, mIconTouchSize);
                 hotseatView.setPadding(mItemPadding, mItemPadding, mItemPadding, mItemPadding);
                 addView(hotseatView, mNextViewIndex, lp);
+            } else if (hotseatView instanceof FolderIcon fi) {
+                fi.onItemsChanged(false);
+                fi.getFolder().reapplyItemInfo();
             }
 
             // Apply the Hotseat ItemInfos, or hide the view if there is none for a given index.
@@ -1099,11 +1086,6 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     @Override
     public void setInsets(Rect insets) {
         // Ignore, we just implement Insettable to draw behind system insets.
-    }
-
-    private boolean isTransientTaskbar() {
-        return DisplayController.isTransientTaskbar(mActivityContext)
-                && !mActivityContext.isPhoneMode();
     }
 
     public boolean areIconsVisible() {

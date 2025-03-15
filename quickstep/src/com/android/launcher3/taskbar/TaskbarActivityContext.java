@@ -99,6 +99,7 @@ import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.LauncherSettings.Favorites;
 import com.android.launcher3.R;
 import com.android.launcher3.allapps.ActivityAllAppsContainerView;
+import com.android.launcher3.anim.AnimatorListeners;
 import com.android.launcher3.anim.AnimatorPlaybackController;
 import com.android.launcher3.apppairs.AppPairIcon;
 import com.android.launcher3.config.FeatureFlags;
@@ -138,6 +139,7 @@ import com.android.launcher3.taskbar.bubbles.stashing.PersistentBubbleStashContr
 import com.android.launcher3.taskbar.bubbles.stashing.TransientBubbleStashController;
 import com.android.launcher3.taskbar.customization.TaskbarFeatureEvaluator;
 import com.android.launcher3.taskbar.customization.TaskbarSpecsEvaluator;
+import com.android.launcher3.taskbar.growth.NudgeController;
 import com.android.launcher3.taskbar.navbutton.NearestTouchFrame;
 import com.android.launcher3.taskbar.overlay.TaskbarOverlayController;
 import com.android.launcher3.testing.TestLogging;
@@ -255,7 +257,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             TaskbarNavButtonController buttonController,
             ScopedUnfoldTransitionProgressProvider unfoldTransitionProgressProvider,
             boolean isPrimaryDisplay, SystemUiProxy sysUiProxy) {
-        super(windowContext);
+        super(windowContext, isPrimaryDisplay);
         mIsPrimaryDisplay = isPrimaryDisplay;
         mNavigationBarPanelContext = navigationBarPanelContext;
         mSysUiProxy = sysUiProxy;
@@ -380,17 +382,11 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                 new TaskbarPinningController(this),
                 bubbleControllersOptional,
                 new TaskbarDesktopModeController(this,
-                        DesktopVisibilityController.INSTANCE.get(this)));
+                        DesktopVisibilityController.INSTANCE.get(this)),
+                new NudgeController(this));
 
         mLauncherPrefs = LauncherPrefs.get(this);
         onViewCreated();
-    }
-
-    /**
-     * Returns whether this is a primary display.
-     */
-    public boolean isPrimaryDisplay() {
-        return mIsPrimaryDisplay;
     }
 
     /** Updates {@link DeviceProfile} instances for any Taskbar windows. */
@@ -411,7 +407,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
 
     /** Returns whether current taskbar is transient. */
     public boolean isTransientTaskbar() {
-        return DisplayController.isTransientTaskbar(this) && !isPhoneMode();
+        return super.isTransientTaskbar() && !isPhoneMode();
     }
 
     /**
@@ -432,7 +428,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         mDeviceProfile = originDeviceProfile.toBuilder(this)
                 .withDimensionsOverride(overrideProvider).build();
 
-        if (DisplayController.isTransientTaskbar(this)) {
+        if (isTransientTaskbar()) {
             mTransientTaskbarDeviceProfile = mDeviceProfile;
             mPersistentTaskbarDeviceProfile = mDeviceProfile
                     .toBuilder(this)
@@ -450,7 +446,6 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         mNavMode = (DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue()
                 && !mIsPrimaryDisplay) ? NavigationMode.THREE_BUTTONS
                 : DisplayController.getNavigationMode(this);
-
     }
 
     /** Called when the visibility of the bubble bar changed. */
@@ -661,8 +656,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         int windowFlags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                 | WindowManager.LayoutParams.FLAG_SLIPPERY
                 | WindowManager.LayoutParams.FLAG_SPLIT_TOUCH;
-        boolean watchOutside = DisplayController.isTransientTaskbar(this)
-                || isThreeButtonNav();
+        boolean watchOutside = isTransientTaskbar() || isThreeButtonNav();
         if (watchOutside && !isRunningInTestHarness()) {
             windowFlags |= WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
                     | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH;
@@ -926,7 +920,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         options.setSplashScreenStyle(splashScreenStyle);
         options.setPendingIntentBackgroundActivityStartMode(
                 ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
-        IRemoteCallback endCallback = completeRunnableListCallback(callbacks);
+        IRemoteCallback endCallback = completeRunnableListCallback(callbacks, this);
         options.setOnAnimationAbortListener(endCallback);
         options.setOnAnimationFinishedListener(endCallback);
 
@@ -1223,8 +1217,8 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                 bubbleControllers.bubbleBarViewController.getBubbleBarWithFlyoutMaximumHeight()
         ).orElse(0);
         int taskbarWindowSize;
-        boolean shouldTreatAsTransient = DisplayController.isTransientTaskbar(this)
-                || (enableTaskbarPinning() && !isThreeButtonNav());
+        boolean shouldTreatAsTransient =
+                isTransientTaskbar() || (enableTaskbarPinning() && !isThreeButtonNav());
 
         int extraHeightForTaskbarTooltips = enableCursorHoverStates()
                 ? resources.getDimensionPixelSize(R.dimen.arrow_toast_arrow_height)
@@ -1297,7 +1291,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
      * Applies forcibly show flag to taskbar window iff transient taskbar is unstashed.
      */
     public void applyForciblyShownFlagWhileTransientTaskbarUnstashed(boolean shouldForceShow) {
-        if (!DisplayController.isTransientTaskbar(this) || isPhoneMode()) {
+        if (!isTransientTaskbar() || isPhoneMode()) {
             return;
         }
         if (shouldForceShow) {
@@ -1344,7 +1338,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         mControllers.uiController.startSplitSelection(splitSelectSource);
     }
 
-    boolean areDesktopTasksVisible() {
+    boolean isInDesktopMode() {
         return mControllers != null
                 && mControllers.taskbarDesktopModeController.isInDesktopMode(getDisplayId());
     }
@@ -1360,23 +1354,23 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         // TODO: b/316004172, b/343289567: Handle `DesktopTask` and `SplitTask`.
         if (tag instanceof SingleTask singleTask) {
             RemoteTransition remoteTransition =
-                    (areDesktopTasksVisible() && canUnminimizeDesktopTask(
+                    (isInDesktopMode() && canUnminimizeDesktopTask(
                             singleTask.getTask().key.id))
                             ? createDesktopAppLaunchRemoteTransition(AppLaunchType.UNMINIMIZE,
                             Cuj.CUJ_DESKTOP_MODE_APP_LAUNCH_FROM_ICON)
                             : null;
-            if (areDesktopTasksVisible() && mControllers.uiController.isInOverviewUi()) {
+            if (isInDesktopMode() && mControllers.uiController.isInOverviewUi()) {
                 RunnableList runnableList = recents.launchRunningDesktopTaskView();
                 // Wrapping it in runnable so we post after DW is ready for the app
                 // launch.
                 if (runnableList != null) {
                     runnableList.add(() -> UI_HELPER_EXECUTOR.execute(
                             () -> handleGroupTaskLaunch(singleTask, remoteTransition,
-                                    areDesktopTasksVisible(),
+                                    isInDesktopMode(),
                                     DesktopTaskToFrontReason.TASKBAR_TAP)));
                 }
             } else {
-                handleGroupTaskLaunch(singleTask, remoteTransition, areDesktopTasksVisible(),
+                handleGroupTaskLaunch(singleTask, remoteTransition, isInDesktopMode(),
                         DesktopTaskToFrontReason.TASKBAR_TAP);
             }
             mControllers.taskbarStashController.updateAndAnimateTransientTaskbar(true);
@@ -1402,7 +1396,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                     : null;
 
 
-            if (areDesktopTasksVisible() && mControllers.uiController.isInOverviewUi()) {
+            if (isInDesktopMode() && mControllers.uiController.isInOverviewUi()) {
                 RunnableList runnableList = recents.launchRunningDesktopTaskView();
                 if (runnableList != null) {
                     runnableList.add(() ->
@@ -1676,7 +1670,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                                                 .launchAppPair((AppPairIcon) launchingIconView,
                                                         -1 /*cuj*/)));
                     } else {
-                        if (areDesktopTasksVisible()
+                        if (isInDesktopMode()
                                 && mControllers.uiController.isInOverviewUi()) {
                             RunnableList runnableList = recents.launchRunningDesktopTaskView();
                             // Wrapping it in runnable so we post after DW is ready for the app
@@ -1722,7 +1716,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                     return;
                 }
             }
-            if (areDesktopTasksVisible()
+            if (isInDesktopMode()
                     && DesktopModeFlags.ENABLE_DESKTOP_APP_LAUNCH_TRANSITIONS_BUGFIX.isTrue()) {
                 launchDesktopApp(intent, info, displayId);
             } else {
@@ -1887,7 +1881,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
      */
     @VisibleForTesting
     public void unstashTaskbarIfStashed() {
-        if (DisplayController.isTransientTaskbar(this)) {
+        if (isTransientTaskbar()) {
             mControllers.taskbarStashController.updateAndAnimateTransientTaskbar(false);
         }
     }
@@ -1950,6 +1944,8 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                 // Override the alpha updates in the icon alignment animation.
                 allAppsButton.setAlpha(0);
             });
+            alphaOverride.addListener(AnimatorListeners.forSuccessCallback(
+                    () -> allAppsButton.setAlpha(1f)));
             fullAnimation.play(alphaOverride);
         }
 
