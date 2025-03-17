@@ -20,6 +20,7 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Matrix
 import android.graphics.PointF
 import android.graphics.Rect
@@ -33,10 +34,13 @@ import android.view.Display.INVALID_DISPLAY
 import android.view.Gravity
 import android.view.View
 import android.view.ViewStub
+import android.widget.ImageView
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.updateLayoutParams
 import com.android.internal.hidden_from_bootclasspath.com.android.window.flags.Flags.enableDesktopRecentsTransitionsCornersBugfix
 import com.android.launcher3.Flags.enableDesktopExplodedView
+import com.android.launcher3.Flags.enableOverviewDesktopTileWallpaperBackground
 import com.android.launcher3.Flags.enableRefactorTaskContentView
 import com.android.launcher3.Flags.enableRefactorTaskThumbnail
 import com.android.launcher3.R
@@ -49,6 +53,7 @@ import com.android.launcher3.util.RunnableList
 import com.android.launcher3.util.SplitConfigurationOptions
 import com.android.launcher3.util.TransformingTouchDelegate
 import com.android.launcher3.util.ViewPool
+import com.android.launcher3.util.coroutines.DispatcherProvider
 import com.android.launcher3.util.rects.lerpRect
 import com.android.launcher3.util.rects.set
 import com.android.quickstep.BaseContainerInterface
@@ -57,6 +62,8 @@ import com.android.quickstep.FullscreenDrawParams
 import com.android.quickstep.RemoteTargetGluer.RemoteTargetHandle
 import com.android.quickstep.TaskOverlayFactory
 import com.android.quickstep.ViewUtils
+import com.android.quickstep.recents.data.DesktopBackgroundResult
+import com.android.quickstep.recents.data.DesktopTileBackgroundRepository.Companion.DESKTOP_BACKGROUND_FALLBACK_COLOR
 import com.android.quickstep.recents.di.RecentsDependencies
 import com.android.quickstep.recents.di.get
 import com.android.quickstep.recents.domain.model.DesktopLayoutConfig
@@ -69,6 +76,9 @@ import com.android.quickstep.util.DesktopTask
 import com.android.quickstep.util.RecentsOrientedState
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus.enableMultipleDesktops
 import kotlin.math.roundToInt
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 /** TaskView that contains all tasks that are part of the desktop. */
 class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
@@ -123,9 +133,17 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
     private val lastComputedTaskSize = Rect()
     private lateinit var iconView: TaskViewIcon
     private lateinit var contentView: DesktopTaskContentView
-    private lateinit var backgroundView: View
-
-    private var viewModel: DesktopTaskViewModel? = null
+    private lateinit var backgroundView: ImageView
+    private val dispatcherProvider: DispatcherProvider = RecentsDependencies.get(context)
+    private var viewModel =
+        DesktopTaskViewModel(
+            organizeDesktopTasksUseCase = RecentsDependencies.get(context),
+            removeTaskAndRebalanceLayoutUseCase = RecentsDependencies.get(context),
+            desktopTileBackgroundRepository = RecentsDependencies.get(context),
+            dispatcherProvider = dispatcherProvider,
+        )
+    private val coroutineScope: CoroutineScope = RecentsDependencies.get(context)
+    private val wallpaperBackgroundFetchCoroutineJobs = mutableListOf<Job>()
 
     /**
      * Holds the default (user placed) positions of task windows. This can be moved into the
@@ -191,9 +209,13 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                 }
                 cornerRadius = contentViewFullscreenParams.currentCornerRadius
                 backgroundView = findViewById(R.id.background)
-                backgroundView.setBackgroundColor(
-                    resources.getColor(android.R.color.system_neutral2_300, context.theme)
-                )
+                if (!enableOverviewDesktopTileWallpaperBackground()) {
+                    setWallpaperBackground(
+                        DesktopBackgroundResult.FallbackBackground(
+                            DESKTOP_BACKGROUND_FALLBACK_COLOR
+                        )
+                    )
+                }
             }
     }
 
@@ -219,8 +241,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                 fullscreenTaskPositions.firstOrNull { it.taskId == taskId }?.bounds ?: return
             val overviewTaskBounds =
                 if (enableDesktopExplodedView()) {
-                    viewModel!!
-                        .organizedDesktopTaskPositions
+                    viewModel.organizedDesktopTaskPositions
                         .firstOrNull { it.taskId == taskId }
                         ?.bounds ?: fullscreenTaskBounds
                 } else {
@@ -428,13 +449,10 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
 
     override fun onBind(orientedState: RecentsOrientedState) {
         super.onBind(orientedState)
-
         if (enableRefactorTaskThumbnail()) {
-            viewModel =
-                DesktopTaskViewModel(
-                    organizeDesktopTasksUseCase = RecentsDependencies.get(context),
-                    removeTaskAndRebalanceLayoutUseCase = RecentsDependencies.get(context),
-                )
+            if (enableOverviewDesktopTileWallpaperBackground()) {
+                setWallpaperBackground(false)
+            }
         }
     }
 
@@ -443,7 +461,6 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         explodeProgress = 0.0f
         taskRemoveProgress = 0.0f
         previousOrganizedDesktopTaskPositions = null
-        viewModel = null
         visibility = VISIBLE
         taskContainers.forEach { removeAndRecycleThumbnailView(it) }
         if (enableOverviewIconMenu()) {
@@ -623,7 +640,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
 
             // Store the current organized positions before computing new ones. This allows us to
             // animate from the current layout to the new.
-            previousOrganizedDesktopTaskPositions = viewModel!!.organizedDesktopTaskPositions
+            previousOrganizedDesktopTaskPositions = viewModel.organizedDesktopTaskPositions
             updateTaskPositions(taskId)
         }
     }
@@ -633,8 +650,10 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         when {
             enableRefactorTaskContentView() ->
                 taskContentViewPool!!.recycle(taskContainer.taskContentView as TaskContentView)
+
             enableRefactorTaskThumbnail() ->
                 taskThumbnailViewPool!!.recycle(taskContainer.taskContentView as TaskThumbnailView)
+
             else -> taskThumbnailViewDeprecatedPool!!.recycle(taskContainer.thumbnailViewDeprecated)
         }
     }
@@ -687,7 +706,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
             if (dismissedTaskId != null) {
                 viewModel?.removeTaskAndRebalanceLayout(dismissedTaskId, layoutConfig)
             } else {
-                viewModel?.organizeDesktopTasks(desktopSize, fullscreenTaskPositions, layoutConfig)
+                viewModel.organizeDesktopTasks(desktopSize, fullscreenTaskPositions, layoutConfig)
             }
         }
         positionTaskWindows(updateLayout = true)
@@ -719,6 +738,54 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         return Rect(0, 0, tempPointF.x.toInt(), tempPointF.y.toInt())
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
+        if (enableOverviewDesktopTileWallpaperBackground()) {
+            cancelFetchWallpaperBackgroundJobs()
+            setWallpaperBackground(true)
+        }
+    }
+
+    private fun setWallpaperBackground(forceRefresh: Boolean) {
+        wallpaperBackgroundFetchCoroutineJobs +=
+            coroutineScope.launch(dispatcherProvider.main) {
+                setWallpaperBackground(viewModel.getWallpaperBackground(forceRefresh))
+            }
+    }
+
+    private fun setWallpaperBackground(desktopBackgroundResult: DesktopBackgroundResult) {
+        backgroundView.setImageDrawable(
+            when (desktopBackgroundResult) {
+                is DesktopBackgroundResult.WallpaperBackground -> {
+                    desktopBackgroundResult.background.toDrawable(resources)
+                }
+
+                is DesktopBackgroundResult.FallbackBackground -> {
+                    resources
+                        .getColor(desktopBackgroundResult.background, context.theme)
+                        .toDrawable()
+                }
+            }
+        )
+    }
+
+    override fun cancelJobs() {
+        super.cancelJobs()
+        cancelFetchWallpaperBackgroundJobs()
+    }
+
+    private fun cancelFetchWallpaperBackgroundJobs() {
+        if (enableOverviewDesktopTileWallpaperBackground()) {
+            val coroutineJobsToCancel = wallpaperBackgroundFetchCoroutineJobs.toList()
+            wallpaperBackgroundFetchCoroutineJobs.clear()
+            if (coroutineJobsToCancel.isNotEmpty()) {
+                coroutineScope.launch(dispatcherProvider.lightweightBackground) {
+                    coroutineJobsToCancel.forEach { it.cancel() }
+                }
+            }
+        }
+    }
+
     companion object {
         private const val TAG = "DesktopTaskView"
         private const val DEBUG = false
@@ -727,6 +794,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         // As DesktopTaskView is inflated in background, use initialSize=0 to avoid initPool.
         private const val VIEW_POOL_INITIAL_SIZE = 0
         private val DEFAULT_BOUNDS = Rect()
+
         // Temporaries used for various purposes to avoid allocations.
         private val TEMP_OVERVIEW_TASK_POSITION = Rect()
         private val TEMP_FROM_RECTF = RectF()

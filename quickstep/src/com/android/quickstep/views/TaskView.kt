@@ -950,7 +950,7 @@ constructor(
             cancelJobs()
         }
 
-    fun cancelJobs() {
+    open fun cancelJobs() {
         if (enableRefactorTaskThumbnail()) {
             // The jobs are being cancelled in the background thread. So we make a copy of the
             // list to prevent cleaning a new job that might be added to this list during

@@ -38,6 +38,7 @@ import static com.android.launcher3.Flags.enableCoroutineThreadingImprovements;
 import static com.android.launcher3.Flags.enableDesktopExplodedView;
 import static com.android.launcher3.Flags.enableExpressiveDismissTaskMotion;
 import static com.android.launcher3.Flags.enableOverviewBackgroundWallpaperBlur;
+import static com.android.launcher3.Flags.enableOverviewDesktopTileWallpaperBackground;
 import static com.android.launcher3.Flags.enableRefactorTaskThumbnail;
 import static com.android.launcher3.LauncherAnimUtils.SUCCESS_TRANSITION_PROGRESS;
 import static com.android.launcher3.LauncherAnimUtils.VIEW_ALPHA;
@@ -1306,6 +1307,9 @@ public abstract class RecentsView<
     public void destroy() {
         Log.d(TAG, "destroy");
         if (enableRefactorTaskThumbnail()) {
+            if (enableOverviewDesktopTileWallpaperBackground()) {
+                reset();
+            }
             try {
                 mTaskViewPool.killOngoingInitializations();
                 mGroupedTaskViewPool.killOngoingInitializations();
