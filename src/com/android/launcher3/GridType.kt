@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package com.android.quickstep.task.thumbnail
+package com.android.launcher3
 
-import android.graphics.drawable.Drawable
-import android.view.View
+import androidx.annotation.IntDef
 
-sealed class TaskHeaderUiState {
-    data class ShowHeader(val header: ThumbnailHeader) : TaskHeaderUiState()
-
-    data object HideHeader : TaskHeaderUiState()
-
-    data class ThumbnailHeader(
-        val icon: Drawable,
-        val title: String,
-        val clickCloseListener: View.OnClickListener,
-    )
+/** The type of grid. */
+@IntDef(GridType.GRID_TYPE_ONE_GRID, GridType.GRID_TYPE_NON_ONE_GRID, GridType.GRID_TYPE_ANY)
+@Retention(AnnotationRetention.SOURCE)
+annotation class GridType {
+    companion object {
+        /** These are grids that use one grid spec. */
+        const val GRID_TYPE_ONE_GRID = 1
+        /** These are grids that don't use one grid spec. */
+        const val GRID_TYPE_NON_ONE_GRID = 2
+        /** Any grid type. */
+        const val GRID_TYPE_ANY = GRID_TYPE_NON_ONE_GRID or GRID_TYPE_ONE_GRID
+    }
 }

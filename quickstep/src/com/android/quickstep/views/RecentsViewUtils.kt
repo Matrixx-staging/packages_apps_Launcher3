@@ -16,6 +16,7 @@
 
 package com.android.quickstep.views
 
+import android.graphics.PointF
 import android.graphics.Rect
 import android.util.FloatProperty
 import android.view.KeyEvent
@@ -25,9 +26,11 @@ import android.view.View.LAYOUT_DIRECTION_RTL
 import androidx.core.view.children
 import com.android.launcher3.AbstractFloatingView.TYPE_TASK_MENU
 import com.android.launcher3.AbstractFloatingView.getTopOpenViewWithType
+import com.android.launcher3.Flags.enableGridOnlyOverview
 import com.android.launcher3.Flags.enableLargeDesktopWindowingTile
 import com.android.launcher3.Flags.enableOverviewIconMenu
 import com.android.launcher3.Flags.enableSeparateExternalDisplayTasks
+import com.android.launcher3.Utilities.getPivotsForScalingRectToRect
 import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.statehandlers.DesktopVisibilityController.Companion.INACTIVE_DESK_ID
 import com.android.launcher3.util.IntArray
@@ -36,8 +39,11 @@ import com.android.quickstep.util.DesktopTask
 import com.android.quickstep.util.GroupTask
 import com.android.quickstep.util.isExternalDisplay
 import com.android.quickstep.views.RecentsView.RUNNING_TASK_ATTACH_ALPHA
+import com.android.systemui.shared.recents.model.Task
 import com.android.systemui.shared.recents.model.ThumbnailData
+import com.android.wm.shell.shared.GroupedTaskInfo
 import java.util.function.BiConsumer
+import kotlin.math.min
 import kotlin.reflect.KMutableProperty1
 
 /**
@@ -387,11 +393,89 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) {
         }
     }
 
+    fun updateCentralTask() {
+        val isTablet: Boolean = getDeviceProfile().isTablet
+        val actionsViewCanRelateToTaskView = !(isTablet && enableGridOnlyOverview())
+        val focusedTaskView = recentsView.focusedTaskView
+        val currentPageTaskView = recentsView.currentPageTaskView
+
+        fun isInExpectedScrollPosition(taskView: TaskView?) =
+            taskView?.let { recentsView.isTaskInExpectedScrollPosition(it) } ?: false
+
+        val centralTaskIds: Set<Int> =
+            when {
+                !actionsViewCanRelateToTaskView -> emptySet()
+                isTablet && isInExpectedScrollPosition(focusedTaskView) ->
+                    focusedTaskView!!.taskIdSet
+                isInExpectedScrollPosition(currentPageTaskView) -> currentPageTaskView!!.taskIdSet
+                else -> emptySet()
+            }
+
+        recentsView.mRecentsViewModel.updateCentralTaskIds(centralTaskIds)
+    }
+
     var deskExplodeProgress: Float = 0f
         set(value) {
             field = value
             taskViews.filterIsInstance<DesktopTaskView>().forEach { it.explodeProgress = field }
         }
+
+    var selectedTaskView: TaskView? = null
+        set(newValue) {
+            val oldValue = field
+            field = newValue
+            if (oldValue != newValue) {
+                onSelectedTaskViewUpdated(oldValue, newValue)
+            }
+        }
+
+    private fun onSelectedTaskViewUpdated(
+        oldSelectedTaskView: TaskView?,
+        newSelectedTaskView: TaskView?,
+    ) {
+        if (!enableGridOnlyOverview()) return
+        with(recentsView) {
+            oldSelectedTaskView?.modalScale = 1f
+            oldSelectedTaskView?.modalPivot = null
+
+            if (newSelectedTaskView == null) return
+
+            val modalTaskBounds = mTempRect
+            getModalTaskSize(modalTaskBounds)
+            val selectedTaskBounds = getTaskBounds(newSelectedTaskView)
+
+            // Map bounds to selectedTaskView's coordinate system.
+            modalTaskBounds.offset(-selectedTaskBounds.left, -selectedTaskBounds.top)
+            selectedTaskBounds.offset(-selectedTaskBounds.left, -selectedTaskBounds.top)
+
+            val modalScale =
+                min(
+                    (modalTaskBounds.height().toFloat() / selectedTaskBounds.height()),
+                    (modalTaskBounds.width().toFloat() / selectedTaskBounds.width()),
+                )
+            val modalPivot = PointF()
+            getPivotsForScalingRectToRect(modalTaskBounds, selectedTaskBounds, modalPivot)
+
+            newSelectedTaskView.modalScale = modalScale
+            newSelectedTaskView.modalPivot = modalPivot
+        }
+    }
+
+    /**
+     * Creates a [DesktopTaskView] for the currently active desk on this display, which contains the
+     * tasks with the given [groupedTaskInfo].
+     */
+    fun createDesktopTaskViewForActiveDesk(groupedTaskInfo: GroupedTaskInfo): DesktopTaskView {
+        val desktopTaskView =
+            recentsView.getTaskViewFromPool(TaskViewType.DESKTOP) as DesktopTaskView
+        val tasks: List<Task> = groupedTaskInfo.taskInfoList.map { taskInfo -> Task.from(taskInfo) }
+        desktopTaskView.bind(
+            DesktopTask(groupedTaskInfo.deskId, groupedTaskInfo.deskDisplayId, tasks),
+            recentsView.mOrientationState,
+            recentsView.mTaskOverlayFactory,
+        )
+        return desktopTaskView
+    }
 
     companion object {
         class RecentsViewFloatProperty(

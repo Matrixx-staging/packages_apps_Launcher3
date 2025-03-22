@@ -33,6 +33,7 @@ import android.util.Log
 import android.view.Display
 import android.view.MotionEvent
 import android.view.View
+import android.view.View.OnClickListener
 import android.view.ViewGroup
 import android.view.ViewStub
 import android.view.accessibility.AccessibilityNodeInfo
@@ -88,7 +89,6 @@ import com.android.quickstep.recents.domain.usecase.ThumbnailPosition
 import com.android.quickstep.recents.ui.viewmodel.TaskData
 import com.android.quickstep.recents.ui.viewmodel.TaskTileUiState
 import com.android.quickstep.recents.ui.viewmodel.TaskViewModel
-import com.android.quickstep.task.thumbnail.TaskContentView
 import com.android.quickstep.util.ActiveGestureErrorDetector
 import com.android.quickstep.util.ActiveGestureLog
 import com.android.quickstep.util.BorderAnimator
@@ -96,8 +96,11 @@ import com.android.quickstep.util.BorderAnimator.Companion.createSimpleBorderAni
 import com.android.quickstep.util.RecentsOrientedState
 import com.android.quickstep.util.TaskCornerRadius
 import com.android.quickstep.util.TaskRemovedDuringLaunchListener
-import com.android.quickstep.util.displayId
 import com.android.quickstep.util.isExternalDisplay
+import com.android.quickstep.util.safeDisplayId
+import com.android.quickstep.views.IconAppChipView.AppChipStatus
+import com.android.quickstep.views.OverviewActionsView.DISABLED_NO_THUMBNAIL
+import com.android.quickstep.views.OverviewActionsView.DISABLED_ROTATED
 import com.android.quickstep.views.RecentsView.UNBOUND_TASK_VIEW_ID
 import com.android.systemui.shared.recents.model.Task
 import com.android.systemui.shared.recents.model.ThumbnailData
@@ -147,8 +150,11 @@ constructor(
     val isRunningTask: Boolean
         get() = this === recentsView?.runningTaskView
 
+    private val isSelectedTask: Boolean
+        get() = this === recentsView?.selectedTaskView
+
     open val displayId: Int
-        get() = taskContainers.firstOrNull()?.task.displayId
+        get() = taskContainers.firstOrNull()?.task.safeDisplayId
 
     val isExternalDisplay: Boolean
         get() = displayId.isExternalDisplay
@@ -337,6 +343,12 @@ constructor(
             onModalnessUpdated(field)
         }
 
+    var modalPivot: PointF? = null
+        set(value) {
+            field = value
+            updatePivots()
+        }
+
     var splitSplashAlpha = 0f
         set(value) {
             field = value
@@ -356,6 +368,12 @@ constructor(
         }
 
     private var dismissScale = 1f
+        set(value) {
+            field = value
+            applyScale()
+        }
+
+    var modalScale = 1f
         set(value) {
             field = value
             applyScale()
@@ -446,9 +464,10 @@ constructor(
         }
 
     private val taskViewAlpha = MultiValueAlpha(this, Alpha.entries.size)
-    protected var stableAlpha by MultiPropertyDelegate(taskViewAlpha, Alpha.STABLE)
-    var attachAlpha by MultiPropertyDelegate(taskViewAlpha, Alpha.ATTACH)
-    var splitAlpha by MultiPropertyDelegate(taskViewAlpha, Alpha.SPLIT)
+    protected var stableAlpha by MultiPropertyDelegate(taskViewAlpha, Alpha.Stable)
+    var attachAlpha by MultiPropertyDelegate(taskViewAlpha, Alpha.Attach)
+    var splitAlpha by MultiPropertyDelegate(taskViewAlpha, Alpha.Split)
+    private var modalAlpha by MultiPropertyDelegate(taskViewAlpha, Alpha.Modal)
 
     protected var shouldShowScreenshot = false
         get() = !isRunningTask || field
@@ -628,14 +647,7 @@ constructor(
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
-        val thumbnailTopMargin = container.deviceProfile.overviewTaskThumbnailTopMarginPx
-        if (container.deviceProfile.isTablet) {
-            pivotX = (if (layoutDirection == LAYOUT_DIRECTION_RTL) 0 else right - left).toFloat()
-            pivotY = thumbnailTopMargin.toFloat()
-        } else {
-            pivotX = (right - left) * 0.5f
-            pivotY = thumbnailTopMargin + (height - thumbnailTopMargin) * 0.5f
-        }
+        updatePivots()
         systemGestureExclusionRects =
             SYSTEM_GESTURE_EXCLUSION_RECT.onEach {
                 it.right = width
@@ -646,6 +658,24 @@ constructor(
         }
     }
 
+    private fun updatePivots() {
+        val modalPivot = modalPivot
+        if (modalPivot != null) {
+            pivotX = modalPivot.x
+            pivotY = modalPivot.y
+        } else {
+            val thumbnailTopMargin = container.deviceProfile.overviewTaskThumbnailTopMarginPx
+            if (container.deviceProfile.isTablet) {
+                pivotX =
+                    (if (layoutDirection == LAYOUT_DIRECTION_RTL) 0 else right - left).toFloat()
+                pivotY = thumbnailTopMargin.toFloat()
+            } else {
+                pivotX = (right - left) * 0.5f
+                pivotY = thumbnailTopMargin + (height - thumbnailTopMargin) * 0.5f
+            }
+        }
+    }
+
     override fun onRecycle() {
         resetPersistentViewTransforms()
 
@@ -653,6 +683,9 @@ constructor(
         attachAlpha = 1f
         splitAlpha = 1f
         splitSplashAlpha = 0f
+        modalAlpha = 1f
+        modalScale = 1f
+        modalPivot = null
         taskThumbnailSplashAlpha = 0f
         // Clear any references to the thumbnail (it will be re-read either from the cache or the
         // system on next bind)
@@ -733,10 +766,13 @@ constructor(
     }
 
     protected open fun inflateViewStubs() {
-        findViewById<ViewStub>(R.id.task_content_view)
-            ?.apply { layoutResource = R.layout.task_content_view }
+        findViewById<ViewStub>(R.id.snapshot)
+            ?.apply {
+                layoutResource =
+                    if (enableRefactorTaskThumbnail()) R.layout.task_thumbnail
+                    else R.layout.task_thumbnail_deprecated
+            }
             ?.inflate()
-
         findViewById<ViewStub>(R.id.icon)
             ?.apply {
                 layoutResource =
@@ -797,6 +833,20 @@ constructor(
                         height = container.thumbnailView.height,
                     )
                 container.setOverlayEnabled(state.taskOverlayEnabled, thumbnailPosition)
+                if (state.isCentralTask) {
+                    this.container.actionsView.let {
+                        it.updateDisabledFlags(
+                            DISABLED_ROTATED,
+                            thumbnailPosition?.isRotated ?: false,
+                        )
+                        it.updateDisabledFlags(
+                            DISABLED_NO_THUMBNAIL,
+                            state.tasks.any { taskData ->
+                                (taskData as? TaskData.Data)?.thumbnailData?.thumbnail == null
+                            },
+                        )
+                    }
+                }
 
                 if (enableOverviewIconMenu()) {
                     setIconState(container, containerState)
@@ -869,7 +919,6 @@ constructor(
             listOf(
                 createTaskContainer(
                     task,
-                    R.id.task_content_view,
                     R.id.snapshot,
                     R.id.icon,
                     R.id.show_windows,
@@ -904,9 +953,9 @@ constructor(
             taskContainers.forEach { container ->
                 container.bind()
                 if (enableRefactorTaskThumbnail()) {
-                    container.taskContentView.cornerRadius =
+                    container.thumbnailView.cornerRadius =
                         thumbnailFullscreenParams.currentCornerRadius
-                    container.taskContentView.doOnSizeChange { width, height ->
+                    container.thumbnailView.doOnSizeChange { width, height ->
                         updateThumbnailValidity(container)
                         val thumbnailPosition = updateThumbnailMatrix(container, width, height)
                         container.refreshOverlay(thumbnailPosition)
@@ -933,7 +982,6 @@ constructor(
 
     protected fun createTaskContainer(
         task: Task,
-        @IdRes taskContentViewId: Int,
         @IdRes thumbnailViewId: Int,
         @IdRes iconViewId: Int,
         @IdRes showWindowViewId: Int,
@@ -943,12 +991,10 @@ constructor(
     ): TaskContainer =
         traceSection("TaskView.createTaskContainer") {
             val iconView = findViewById<View>(iconViewId) as TaskViewIcon
-            val taskContentView = findViewById<TaskContentView>(taskContentViewId)
             return TaskContainer(
                 this,
                 task,
-                taskContentView,
-                taskContentView.findViewById(thumbnailViewId),
+                findViewById(thumbnailViewId),
                 iconView,
                 TransformingTouchDelegate(iconView.asView()),
                 stagePosition,
@@ -1037,7 +1083,7 @@ constructor(
     protected open fun updateThumbnailSize() {
         // TODO(b/271468547), we should default to setting translations only on the snapshot instead
         //  of a hybrid of both margins and translations
-        firstTaskContainer?.taskContentView?.updateLayoutParams<LayoutParams> {
+        firstTaskContainer?.snapshotView?.updateLayoutParams<LayoutParams> {
             topMargin = container.deviceProfile.overviewTaskThumbnailTopMarginPx
         }
         taskContainers.forEach { it.digitalWellBeingToast?.setupLayout() }
@@ -1051,11 +1097,11 @@ constructor(
             val thumbnailBounds = Rect()
             if (relativeToDragLayer) {
                 container.dragLayer.getDescendantRectRelativeToSelf(
-                    it.taskContentView,
+                    it.snapshotView,
                     thumbnailBounds,
                 )
             } else {
-                thumbnailBounds.set(it.taskContentView)
+                thumbnailBounds.set(it.snapshotView)
             }
             bounds.union(thumbnailBounds)
         }
@@ -1286,7 +1332,7 @@ constructor(
                 targets.apps,
                 targets.wallpapers,
                 targets.nonApps,
-                true /* launcherClosing */,
+                true, /* launcherClosing */
                 recentsView.stateManager,
                 recentsView,
                 recentsView.depthController,
@@ -1520,7 +1566,7 @@ constructor(
             recentsView.setTaskBorderEnabled(false)
         }
         return if (enableOverviewIconMenu() && menuContainer.iconView is IconAppChipView) {
-            if (menuContainer.iconView.isExpanded) {
+            if (menuContainer.iconView.status == AppChipStatus.Expanded) {
                 closeTaskMenu()
             } else {
                 menuContainer.iconView.revealAnim(/* isRevealing= */ true)
@@ -1722,7 +1768,7 @@ constructor(
     fun getSizeAdjustment(fullscreenEnabled: Boolean) = if (fullscreenEnabled) nonGridScale else 1f
 
     private fun applyScale() {
-        val scale = persistentScale * dismissScale
+        val scale = persistentScale * dismissScale * Utilities.mapRange(modalness, 1f, modalScale)
         scaleX = scale
         scaleY = scale
         updateFullscreenParams()
@@ -1769,7 +1815,7 @@ constructor(
         updateFullscreenParams(thumbnailFullscreenParams)
         taskContainers.forEach {
             if (enableRefactorTaskThumbnail()) {
-                it.taskContentView.cornerRadius = thumbnailFullscreenParams.currentCornerRadius
+                it.thumbnailView.cornerRadius = thumbnailFullscreenParams.currentCornerRadius
             } else {
                 it.thumbnailViewDeprecated.setFullscreenParams(thumbnailFullscreenParams)
             }
@@ -1784,8 +1830,12 @@ constructor(
     private fun onModalnessUpdated(modalness: Float) {
         isClickable = modalness == 0f
         taskContainers.forEach {
-            it.iconView.setModalAlpha(1 - modalness)
+            it.iconView.setModalAlpha(1f - modalness)
             it.digitalWellBeingToast?.bannerOffsetPercentage = modalness
+        }
+        if (enableGridOnlyOverview()) {
+            modalAlpha = if (isSelectedTask) 1f else (1f - modalness)
+            applyScale()
         }
     }
 
@@ -1842,9 +1892,10 @@ constructor(
         private const val TAG = "TaskView"
 
         private enum class Alpha {
-            STABLE,
-            ATTACH,
-            SPLIT,
+            Stable,
+            Attach,
+            Split,
+            Modal,
         }
 
         private enum class SettledProgress {

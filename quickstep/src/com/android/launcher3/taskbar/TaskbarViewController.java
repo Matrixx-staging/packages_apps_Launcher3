@@ -19,6 +19,7 @@ import static android.animation.LayoutTransition.APPEARING;
 import static android.animation.LayoutTransition.CHANGE_APPEARING;
 import static android.animation.LayoutTransition.CHANGE_DISAPPEARING;
 import static android.animation.LayoutTransition.DISAPPEARING;
+import static android.view.Display.DEFAULT_DISPLAY;
 import static android.window.DesktopModeFlags.ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION;
 
 import static com.android.app.animation.Interpolators.EMPHASIZED;
@@ -86,7 +87,6 @@ import com.android.launcher3.taskbar.bubbles.BubbleBarController;
 import com.android.launcher3.taskbar.bubbles.BubbleControllers;
 import com.android.launcher3.taskbar.customization.TaskbarAllAppsButtonContainer;
 import com.android.launcher3.taskbar.customization.TaskbarDividerContainer;
-import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.ItemInfoMatcher;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
 import com.android.launcher3.util.MultiPropertyFactory;
@@ -495,7 +495,8 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
         View[] iconViews = mTaskbarView.getIconViews();
 
         float finalScale;
-        if (mControllers.getSharedState().startTaskbarVariantIsTransient) {
+        TaskbarSharedState sharedState = mControllers.getSharedState();
+        if (sharedState != null && sharedState.startTaskbarVariantIsTransient) {
             finalScale = mapRange(scale, 1f, ((float) mPersistentIconSize / mTransientIconSize));
         } else {
             finalScale = mapRange(scale, ((float) mTransientIconSize / mPersistentIconSize), 1f);
@@ -747,7 +748,8 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     }
 
     private boolean shouldUpdateIconContentDescription(BubbleTextView btv) {
-        boolean isInDesktopMode = mControllers.taskbarDesktopModeController.isInDesktopMode();
+        boolean isInDesktopMode = mControllers.taskbarDesktopModeController.isInDesktopMode(
+                DEFAULT_DISPLAY);
         boolean isAllAppsButton = btv instanceof TaskbarAllAppsButtonContainer;
         boolean isDividerButton = btv instanceof TaskbarDividerContainer;
         return isInDesktopMode && !isAllAppsButton && !isDividerButton;
@@ -930,7 +932,9 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     private AnimatorPlaybackController createIconAlignmentController(DeviceProfile launcherDp) {
         PendingAnimation setter = new PendingAnimation(100);
         // icon alignment not needed for pinned taskbar.
-        if (DisplayController.isPinnedTaskbar(mActivity)) return setter.createPlaybackController();
+        if (mActivity.isPinnedTaskbar()) {
+            return setter.createPlaybackController();
+        }
         mOnControllerPreCreateCallback.run();
         DeviceProfile taskbarDp = mActivity.getDeviceProfile();
         Rect hotseatPadding = launcherDp.getHotseatLayoutPadding(mActivity);
@@ -948,7 +952,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
         // or fade in while already in in-app state.
         Interpolator interpolator = mIsHotseatIconOnTopWhenAligned ? LINEAR : FINAL_FRAME;
 
-        int offsetY = launcherDp.getTaskbarOffsetY();
+        int offsetY = taskbarDp.getTaskbarOffsetY();
         setter.setFloat(mTaskbarIconTranslationYForHome, VALUE, -offsetY, interpolator);
         setter.setFloat(mTaskbarNavButtonTranslationY, VALUE, -offsetY, interpolator);
         setter.setFloat(mTaskbarNavButtonTranslationYForInAppDisplay, VALUE, offsetY, interpolator);

@@ -22,6 +22,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.platform.test.annotations.DisableFlags
 import android.platform.test.annotations.EnableFlags
+import android.platform.test.flag.junit.SetFlagsRule
 import android.view.Display.DEFAULT_DISPLAY
 import androidx.test.platform.app.InstrumentationRegistry
 import com.android.dx.mockito.inline.extended.ExtendedMockito.mockitoSession
@@ -36,7 +37,6 @@ import com.android.launcher3.model.data.TaskViewItemInfo
 import com.android.launcher3.util.SplitConfigurationOptions
 import com.android.launcher3.util.TransformingTouchDelegate
 import com.android.quickstep.TaskOverlayFactory.TaskOverlay
-import com.android.quickstep.task.thumbnail.TaskContentView
 import com.android.quickstep.task.thumbnail.TaskThumbnailView
 import com.android.quickstep.views.LauncherRecentsView
 import com.android.quickstep.views.RecentsViewContainer
@@ -52,6 +52,7 @@ import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource
 import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
@@ -64,7 +65,10 @@ import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 
 /** Test for [DesktopSystemShortcut] */
+// TODO(b/403558856): Improve test coverage for DesktopModeCompatPolicy integration.
 class DesktopSystemShortcutTest {
+
+    @get:Rule val setFlagsRule = SetFlagsRule(SetFlagsRule.DefaultInitValueType.DEVICE_DEFAULT)
 
     private val launcher: RecentsViewContainer = mock()
     private val statsLogManager: StatsLogManager = mock()
@@ -249,7 +253,6 @@ class DesktopSystemShortcutTest {
         TaskContainer(
             taskView,
             task,
-            mock<TaskContentView>(),
             if (enableRefactorTaskThumbnail()) mock<TaskThumbnailView>()
             else mock<TaskThumbnailViewDeprecated>(),
             mock<TaskViewIcon>(),

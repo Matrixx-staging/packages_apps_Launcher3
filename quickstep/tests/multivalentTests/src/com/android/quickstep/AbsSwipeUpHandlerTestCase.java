@@ -101,7 +101,8 @@ public abstract class AbsSwipeUpHandlerTestCase<
     protected final ActivityManager.RunningTaskInfo mRunningTaskInfo =
             new ActivityManager.RunningTaskInfo();
     protected final TopTaskTracker.CachedTaskInfo mCachedTaskInfo =
-            new TopTaskTracker.CachedTaskInfo(Collections.singletonList(mRunningTaskInfo));
+            new TopTaskTracker.CachedTaskInfo(
+                    Collections.singletonList(mRunningTaskInfo), /* canEnterDesktopMode = */ false);
     protected final RemoteAnimationTarget mRemoteAnimationTarget = new RemoteAnimationTarget(
             /* taskId= */ 0,
             /* mode= */ RemoteAnimationTarget.MODE_CLOSING,
@@ -292,7 +293,7 @@ public abstract class AbsSwipeUpHandlerTestCase<
     public void testHomeGesture_invalidatesHandlerAfterParallelAnim() {
         ValueAnimator parallelAnim = new ValueAnimator();
         parallelAnim.setRepeatCount(ValueAnimator.INFINITE);
-        when(mActivityInterface.getParallelAnimationToLauncher(any(), anyLong(), any()))
+        when(mActivityInterface.getParallelAnimationToGestureEndTarget(any(), anyLong(), any()))
                 .thenReturn(parallelAnim);
         SWIPE_HANDLER handler = createSwipeUpHandlerForGesture(GestureState.GestureEndTarget.HOME);
         runOnMainSync(() -> {
@@ -306,7 +307,7 @@ public abstract class AbsSwipeUpHandlerTestCase<
 
     @Test
     public void testHomeGesture_invalidatesHandlerIfNoParallelAnim() {
-        when(mActivityInterface.getParallelAnimationToLauncher(any(), anyLong(), any()))
+        when(mActivityInterface.getParallelAnimationToGestureEndTarget(any(), anyLong(), any()))
                 .thenReturn(null);
         SWIPE_HANDLER handler = createSwipeUpHandlerForGesture(GestureState.GestureEndTarget.HOME);
         runOnMainSync(() -> {

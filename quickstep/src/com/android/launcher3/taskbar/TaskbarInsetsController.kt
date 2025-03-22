@@ -51,7 +51,6 @@ import com.android.launcher3.config.FeatureFlags.ENABLE_TASKBAR_NAVBAR_UNIFICATI
 import com.android.launcher3.config.FeatureFlags.enableTaskbarNoRecreate
 import com.android.launcher3.taskbar.TaskbarControllers.LoggableTaskbarController
 import com.android.launcher3.testing.shared.ResourceUtils
-import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.Executors
 import java.io.PrintWriter
 import kotlin.jvm.optionals.getOrNull
@@ -150,7 +149,7 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
         if (
             taskbarStashController.isInApp ||
                 controllers.uiController.isInOverviewUi ||
-                DisplayController.showLockedTaskbarOnHome(context)
+                context.showLockedTaskbarOnHome()
         ) {
             // only add the taskbar touch region if not on home
             val bottom = windowLayoutParams.height
@@ -349,13 +348,17 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
             controllers.bubbleControllers.isPresent &&
                 controllers.bubbleControllers.get().bubbleBarViewController.isBubbleBarVisible()
         var insetsIsTouchableRegion = true
+        // Prevents the taskbar from taking touches and conflicting with setup wizard
         if (
             context.isPhoneButtonNavMode &&
+                context.isUserSetupComplete &&
                 (!controllers.navbarButtonsViewController.isImeVisible ||
                     !controllers.navbarButtonsViewController.isImeRenderingNavButtons)
         ) {
             insetsInfo.setTouchableInsets(TOUCHABLE_INSETS_FRAME)
             insetsIsTouchableRegion = false
+            debugTouchableRegion.lastSetTouchableReason =
+                "Phone button nav mode: Fullscreen touchable, IME not affecting nav buttons"
         } else if (context.dragLayer.alpha < AlphaUpdateListener.ALPHA_CUTOFF_THRESHOLD) {
             // Let touches pass through us.
             insetsInfo.setTouchableInsets(TOUCHABLE_INSETS_REGION)

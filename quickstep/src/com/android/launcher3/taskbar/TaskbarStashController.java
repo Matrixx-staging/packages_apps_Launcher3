@@ -28,6 +28,7 @@ import static com.android.launcher3.QuickstepTransitionManager.PINNED_TASKBAR_TR
 import static com.android.launcher3.config.FeatureFlags.ENABLE_TASKBAR_NAVBAR_UNIFICATION;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TRANSIENT_TASKBAR_HIDE;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TRANSIENT_TASKBAR_SHOW;
+import static com.android.launcher3.taskbar.TaskbarActivityContext.ENABLE_TASKBAR_BEHIND_SHADE;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 import static com.android.launcher3.util.FlagDebugUtils.appendFlag;
 import static com.android.launcher3.util.FlagDebugUtils.formatFlagChange;
@@ -65,7 +66,6 @@ import com.android.launcher3.R;
 import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.anim.AnimationSuccessListener;
 import com.android.launcher3.anim.AnimatorListeners;
-import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.MultiPropertyFactory.MultiProperty;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.util.SystemUiFlagUtils;
@@ -306,8 +306,8 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
         // TODO(b/390665752): Feature to "lock" pinned taskbar to home screen will be superseded by
         //     pinning, in other launcher states, at which point this variable can be removed.
         mInAppStateAffectsDesktopTasksVisibilityInTaskbar =
-                !DisplayController.showDesktopTaskbarForFreeformDisplay(mActivity)
-                        && DisplayController.showLockedTaskbarOnHome(mActivity);
+                !mActivity.showDesktopTaskbarForFreeformDisplay()
+                        && mActivity.showLockedTaskbarOnHome();
 
         mTaskbarBackgroundDuration = activity.getResources().getInteger(
                 R.integer.taskbar_background_duration);
@@ -412,7 +412,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
      * Returns how long the stash/unstash animation should play.
      */
     public long getStashDuration() {
-        if (DisplayController.isPinnedTaskbar(mActivity)) {
+        if (mActivity.isPinnedTaskbar()) {
             return PINNED_TASKBAR_TRANSITION_DURATION;
         }
         return mActivity.isTransientTaskbar() ? TRANSIENT_TASKBAR_STASH_DURATION
@@ -1138,7 +1138,10 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
         long startDelay = 0;
 
         updateStateForFlag(FLAG_STASHED_IN_APP_SYSUI, hasAnyFlag(systemUiStateFlags,
-                SYSUI_STATE_NOTIFICATION_PANEL_VISIBLE | SYSUI_STATE_DIALOG_SHOWING));
+                SYSUI_STATE_DIALOG_SHOWING | (ENABLE_TASKBAR_BEHIND_SHADE.isTrue()
+                        ? 0
+                        : SYSUI_STATE_NOTIFICATION_PANEL_VISIBLE)
+        ));
 
         boolean stashForBubbles = hasAnyFlag(FLAG_IN_OVERVIEW)
                 && hasAnyFlag(systemUiStateFlags, SYSUI_STATE_BUBBLES_EXPANDED)
@@ -1182,7 +1185,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
         }
 
         // Do not stash if pinned taskbar, hardware keyboard is attached and no IME is docked
-        if (mActivity.isHardwareKeyboard() && DisplayController.isPinnedTaskbar(mActivity)
+        if (mActivity.isHardwareKeyboard() && mActivity.isPinnedTaskbar()
                 && !mActivity.isImeDocked()) {
             return false;
         }

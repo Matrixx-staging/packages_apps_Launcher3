@@ -261,7 +261,8 @@ public final class LauncherActivityInterface extends
         return launcher != null
                 && launcher.getStateManager().getState() == OVERVIEW
                 && launcher.isStarted()
-                && TopTaskTracker.INSTANCE.get(launcher).getCachedTopTask(false).isHomeTask();
+                && TopTaskTracker.INSTANCE.get(launcher).getCachedTopTask(false,
+                launcher.getDisplayId()).isHomeTask();
     }
 
     private boolean isInMinusOne() {
@@ -270,7 +271,8 @@ public final class LauncherActivityInterface extends
         return launcher != null
                 && launcher.getStateManager().getState() == NORMAL
                 && !launcher.isStarted()
-                && TopTaskTracker.INSTANCE.get(launcher).getCachedTopTask(false).isHomeTask();
+                && TopTaskTracker.INSTANCE.get(launcher).getCachedTopTask(false,
+                launcher.getDisplayId()).isHomeTask();
     }
 
     @Override
@@ -298,16 +300,16 @@ public final class LauncherActivityInterface extends
     }
 
     @Override
-    public @Nullable Animator getParallelAnimationToLauncher(GestureEndTarget endTarget,
+    public @Nullable Animator getParallelAnimationToGestureEndTarget(GestureEndTarget endTarget,
             long duration, RecentsAnimationCallbacks callbacks) {
         LauncherTaskbarUIController uiController = getTaskbarController();
-        Animator superAnimator = super.getParallelAnimationToLauncher(
+        Animator superAnimator = super.getParallelAnimationToGestureEndTarget(
                 endTarget, duration, callbacks);
         if (uiController == null || callbacks == null) {
             return superAnimator;
         }
-        LauncherState toState = stateFromGestureEndTarget(endTarget);
-        Animator taskbarAnimator = uiController.createAnimToLauncher(toState, callbacks, duration);
+        Animator taskbarAnimator = uiController.getParallelAnimationToGestureEndTarget(endTarget,
+                duration, callbacks);
         if (superAnimator == null) {
             return taskbarAnimator;
         } else {
