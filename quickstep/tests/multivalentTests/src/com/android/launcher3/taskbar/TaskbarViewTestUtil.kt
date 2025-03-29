@@ -83,21 +83,23 @@ object TaskbarViewTestUtil {
 
     /** Creates a list of fake recent tasks. */
     fun createRecents(size: Int): List<GroupTask> {
-        return List(size) {
-            SingleTask(
-                Task().apply {
-                    key =
-                        TaskKey(
-                            it,
-                            5,
-                            TEST_INTENT,
-                            TEST_COMPONENT,
-                            Process.myUserHandle().identifier,
-                            System.currentTimeMillis(),
-                        )
-                }
-            )
-        }
+        return List(size) { createRecentTask(it) }
+    }
+
+    fun createRecentTask(id: Int = 0): GroupTask {
+        return SingleTask(
+            Task().apply {
+                key =
+                    TaskKey(
+                        id,
+                        5,
+                        TEST_INTENT,
+                        TEST_COMPONENT,
+                        Process.myUserHandle().identifier,
+                        System.currentTimeMillis(),
+                    )
+            }
+        )
     }
 }
 

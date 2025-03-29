@@ -25,6 +25,7 @@ import com.android.launcher3.AbstractFloatingView
 import com.android.launcher3.R
 import com.android.launcher3.Utilities.EDGE_NAV_BAR
 import com.android.launcher3.Utilities.boundToRange
+import com.android.launcher3.Utilities.debugLog
 import com.android.launcher3.Utilities.isRtl
 import com.android.launcher3.Utilities.mapToRange
 import com.android.launcher3.touch.SingleAxisSwipeDetector
@@ -36,6 +37,7 @@ import com.android.quickstep.views.RecentsViewContainer
 import com.android.quickstep.views.TaskView
 import com.google.android.msdl.data.model.MSDLToken
 import kotlin.math.abs
+import kotlin.math.ceil
 
 /** Touch controller for handling task view card dismiss swipes */
 class TaskViewDismissTouchController<CONTAINER>(
@@ -70,6 +72,7 @@ CONTAINER : RecentsViewContainer {
             // Don't intercept swipes on the nav bar, as user might be trying to go home during a
             // task dismiss animation.
             (ev.edgeFlags and EDGE_NAV_BAR) != 0 -> {
+                debugLog(TAG, "Not intercepting edge swipe on nav bar.")
                 false
             }
 
@@ -77,14 +80,23 @@ CONTAINER : RecentsViewContainer {
             AbstractFloatingView.getTopOpenViewWithType(
                 container,
                 AbstractFloatingView.TYPE_TOUCH_CONTROLLER_NO_INTERCEPT,
-            ) != null -> false
-
-            // Disable swiping if the task overlay is modal.
-            taskViewRecentsTouchContext.isRecentsModal -> {
+            ) != null -> {
+                debugLog(TAG, "Not intercepting, open floating view blocking touch.")
                 false
             }
 
-            else -> taskViewRecentsTouchContext.isRecentsInteractive
+            // Disable swiping if the task overlay is modal.
+            taskViewRecentsTouchContext.isRecentsModal -> {
+                debugLog(TAG, "Not intercepting touch in modal overlay.")
+                false
+            }
+
+            else ->
+                taskViewRecentsTouchContext.isRecentsInteractive.also { isRecentsInteractive ->
+                    if (!isRecentsInteractive) {
+                        debugLog(TAG, "Not intercepting touch, recents not interactive.")
+                    }
+                }
         }
 
     override fun onControllerInterceptTouchEvent(ev: MotionEvent): Boolean {
@@ -124,12 +136,16 @@ CONTAINER : RecentsViewContainer {
                             container.dragLayer
                         )
                     // Dismiss length as bottom of task so it is fully off screen when dismissed.
+                    // Take into account the recents scale when fully zoomed out on dismiss.
                     it.getThumbnailBounds(tempTaskThumbnailBounds, relativeToDragLayer = true)
                     dismissLength =
-                        recentsView.pagedOrientationHandler.getTaskDismissLength(
-                            secondaryLayerDimension,
-                            tempTaskThumbnailBounds,
-                        )
+                        ceil(
+                                recentsView.pagedOrientationHandler.getTaskDismissLength(
+                                    secondaryLayerDimension,
+                                    tempTaskThumbnailBounds,
+                                ) / RECENTS_SCALE_ON_DISMISS_SUCCESS
+                            )
+                            .toInt()
                     verticalFactor =
                         recentsView.pagedOrientationHandler.getTaskDismissVerticalDirection()
                 }
@@ -140,6 +156,7 @@ CONTAINER : RecentsViewContainer {
     override fun onDragStart(start: Boolean, startDisplacement: Float) {
         if (isBlockedDuringDismissal) return
         val taskBeingDragged = taskBeingDragged ?: return
+        debugLog(TAG, "Handling touch event.")
 
         initialDisplacement =
             taskBeingDragged.secondaryDismissTranslationProperty.get(taskBeingDragged)
@@ -219,20 +236,16 @@ CONTAINER : RecentsViewContainer {
         val isFlingingTowardsRestState = detector.isFling(velocity) && !velocityIsGoingUp
         val isDismissing =
             isFlingingTowardsDismiss || (isBeyondDismissThreshold && !isFlingingTowardsRestState)
+        val finalPosition = if (isDismissing) (dismissLength * verticalFactor).toFloat() else 0f
         springAnimation =
-            recentsView
-                .createTaskDismissSettlingSpringAnimation(
-                    taskBeingDragged,
-                    velocity,
-                    isDismissing,
-                    dismissLength,
-                    this::clearState,
-                )
-                .apply {
-                    animateToFinalPosition(
-                        if (isDismissing) (dismissLength * verticalFactor).toFloat() else 0f
-                    )
-                }
+            recentsView.runTaskDismissSettlingSpringAnimation(
+                taskBeingDragged,
+                velocity,
+                isDismissing,
+                dismissLength,
+                finalPosition,
+                this::clearState,
+            )
         isBlockedDuringDismissal = true
         recentsScaleAnimation =
             recentsView.animateRecentsScale(RECENTS_SCALE_DEFAULT).addEndListener { _, _, _, _ ->
@@ -289,6 +302,8 @@ CONTAINER : RecentsViewContainer {
     }
 
     companion object {
+        private const val TAG = "TaskViewDismissTouchController"
+
         private const val DISMISS_THRESHOLD_FRACTION = 0.5f
         private const val DISMISS_THRESHOLD_HAPTIC_RANGE = 10f
 

@@ -20,9 +20,7 @@ import static android.graphics.fonts.FontStyle.FONT_WEIGHT_BOLD;
 import static android.graphics.fonts.FontStyle.FONT_WEIGHT_NORMAL;
 import static android.text.Layout.Alignment.ALIGN_NORMAL;
 
-import static com.android.app.animation.Interpolators.EMPHASIZED;
 import static com.android.launcher3.BubbleTextView.RunningAppState.RUNNING;
-import static com.android.launcher3.BubbleTextView.RunningAppState.NOT_RUNNING;
 import static com.android.launcher3.BubbleTextView.RunningAppState.MINIMIZED;
 import static com.android.launcher3.Flags.enableContrastTiles;
 import static com.android.launcher3.Flags.enableCursorHoverStates;
@@ -36,10 +34,10 @@ import static com.android.launcher3.icons.IconNormalizer.ICON_VISIBLE_AREA_FACTO
 import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_INCREMENTAL_DOWNLOAD_ACTIVE;
 import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_INSTALL_SESSION_ACTIVE;
 import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_SHOW_DOWNLOAD_PROGRESS_MASK;
+import static com.android.launcher3.util.MultiTranslateDelegate.INDEX_TASKBAR_APP_RUNNING_STATE_ANIM;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.res.ColorStateList;
@@ -134,9 +132,6 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
             StringMatcherUtility.StringMatcher.getInstance();
     private static final int BOLD_TEXT_ADJUSTMENT = FONT_WEIGHT_BOLD - FONT_WEIGHT_NORMAL;
 
-    public static final int LINE_INDICATOR_ANIM_DURATION = 150;
-    private static final float MINIMIZED_APP_INDICATOR_SCALE = 0.5f;
-
     private static final int[] STATE_PRESSED = new int[]{android.R.attr.state_pressed};
 
     private float mScaleForReorderBounce = 1f;
@@ -171,36 +166,6 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
             bubbleTextView.setTextAlpha(alpha);
         }
     };
-
-    private static final Property<BubbleTextView, Integer> LINE_INDICATOR_COLOR_PROPERTY =
-            new Property<>(Integer.class, "lineIndicatorColor") {
-
-                @Override
-                public Integer get(BubbleTextView bubbleTextView) {
-                    return bubbleTextView.mLineIndicatorColor;
-                }
-
-                @Override
-                public void set(BubbleTextView bubbleTextView, Integer color) {
-                    bubbleTextView.mLineIndicatorColor = color;
-                    bubbleTextView.invalidate();
-                }
-            };
-
-    private static final Property<BubbleTextView, Float> LINE_INDICATOR_SCALE_PROPERTY =
-            new Property<>(Float.TYPE, "lineIndicatorScale") {
-
-                @Override
-                public Float get(BubbleTextView bubbleTextView) {
-                    return bubbleTextView.mLineIndicatorScale;
-                }
-
-                @Override
-                public void set(BubbleTextView bubbleTextView, Float scale) {
-                    bubbleTextView.mLineIndicatorScale = scale;
-                    bubbleTextView.invalidate();
-                }
-            };
 
     private final MultiTranslateDelegate mTranslateDelegate = new MultiTranslateDelegate(this);
     protected final ActivityContext mActivity;
@@ -238,20 +203,16 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     private boolean mForceHideDot;
 
     // These fields, related to showing running apps, are only used for Taskbar.
-    private final int mRunningAppIndicatorWidth;
     private final int mRunningAppIndicatorHeight;
     private final int mRunningAppIndicatorTopMargin;
     private final Paint mRunningAppIndicatorPaint;
     private final Rect mRunningAppIconBounds = new Rect();
     private RunningAppState mRunningAppState;
-    private final int mRunningAppIndicatorColor;
-    private final int mMinimizedAppIndicatorColor;
+
     @ViewDebug.ExportedProperty(category = "launcher")
     private int mLineIndicatorColor;
     @ViewDebug.ExportedProperty(category = "launcher")
-    private float mLineIndicatorScale;
-    private int mLineIndicatorAnimStartDelay;
-    private Animator mLineIndicatorAnim;
+    private float mLineIndicatorWidth;
 
     private final String mMinimizedStateDescription;
     private final String mRunningStateDescription;
@@ -334,19 +295,12 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
                 defaultIconSize);
         a.recycle();
 
-        mRunningAppIndicatorWidth =
-                getResources().getDimensionPixelSize(R.dimen.taskbar_running_app_indicator_width);
         mRunningAppIndicatorHeight =
                 getResources().getDimensionPixelSize(R.dimen.taskbar_running_app_indicator_height);
         mRunningAppIndicatorTopMargin =
                 getResources().getDimensionPixelSize(
                         R.dimen.taskbar_running_app_indicator_top_margin);
-
         mRunningAppIndicatorPaint = new Paint();
-        mRunningAppIndicatorColor = getResources().getColor(
-                R.color.taskbar_running_app_indicator_color, context.getTheme());
-        mMinimizedAppIndicatorColor = getResources().getColor(
-                R.color.taskbar_minimized_app_indicator_color, context.getTheme());
 
         mLongPressHelper = new CheckLongPressHelper(this);
 
@@ -385,9 +339,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         setBackground(null);
 
         mLineIndicatorColor = Color.TRANSPARENT;
-        mLineIndicatorScale = 0;
-        mLineIndicatorAnimStartDelay = 0;
-        cancelLineIndicatorAnim();
+        mLineIndicatorWidth = 0;
 
         setTag(null);
         if (mIconLoadRequest != null) {
@@ -473,58 +425,36 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
      * Directly set the icon and label.
      */
     @UiThread
-    public void applyIconAndLabel(Drawable icon, CharSequence label) {
+    public void applyIconAndLabel(Drawable icon, CharSequence title, CharSequence description) {
         applyCompoundDrawables(icon);
-        setText(label);
-        setContentDescription(label);
+        setText(title);
+        setContentDescription(description);
     }
 
-    /** Updates whether the app this view represents is currently running. */
-    @UiThread
-    public void updateRunningState(RunningAppState runningAppState, boolean animate) {
-        if (runningAppState.equals(mRunningAppState)) {
-            return;
-        }
+    public void setRunningAppState(RunningAppState runningAppState) {
         mRunningAppState = runningAppState;
-        cancelLineIndicatorAnim();
-
-        int color = switch (mRunningAppState) {
-            case NOT_RUNNING -> Color.TRANSPARENT;
-            case RUNNING -> mRunningAppIndicatorColor;
-            case MINIMIZED -> mMinimizedAppIndicatorColor;
-        };
-        float scale = switch (mRunningAppState) {
-            case NOT_RUNNING -> 0;
-            case RUNNING -> 1;
-            case MINIMIZED -> MINIMIZED_APP_INDICATOR_SCALE;
-        };
-
-        if (!animate) {
-            mLineIndicatorColor = color;
-            mLineIndicatorScale = scale;
-            invalidate();
-            return;
-        }
-
-        AnimatorSet lineIndicatorAnim  = new AnimatorSet();
-        mLineIndicatorAnim = lineIndicatorAnim;
-        Animator colorAnimator = ObjectAnimator.ofArgb(this, LINE_INDICATOR_COLOR_PROPERTY, color);
-        Animator scaleAnimator = ObjectAnimator.ofFloat(this, LINE_INDICATOR_SCALE_PROPERTY, scale);
-        lineIndicatorAnim.playTogether(colorAnimator, scaleAnimator);
-
-        lineIndicatorAnim.setInterpolator(EMPHASIZED);
-        lineIndicatorAnim.setStartDelay(mLineIndicatorAnimStartDelay);
-        lineIndicatorAnim.setDuration(LINE_INDICATOR_ANIM_DURATION).start();
     }
 
-    public void setLineIndicatorAnimStartDelay(int lineIndicatorAnimStartDelay) {
-        mLineIndicatorAnimStartDelay = lineIndicatorAnimStartDelay;
+    public RunningAppState getRunningAppState() {
+        return mRunningAppState;
     }
 
-    private void cancelLineIndicatorAnim() {
-        if (mLineIndicatorAnim != null) {
-            mLineIndicatorAnim.cancel();
-        }
+    public int getLineIndicatorColor() {
+        return mLineIndicatorColor;
+    }
+
+    public void setLineIndicatorColor(int lineIndicatorColor) {
+        mLineIndicatorColor = lineIndicatorColor;
+        invalidate();
+    }
+
+    public float getLineIndicatorWidth() {
+        return mLineIndicatorWidth;
+    }
+
+    public void setLineIndicatorWidth(float lineIndicatorWidth) {
+        mLineIndicatorWidth = lineIndicatorWidth;
+        invalidate();
     }
 
     /**
@@ -879,22 +809,25 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     /** Draws a line under the app icon if this is representing a running app in Desktop Mode. */
     protected void drawRunningAppIndicatorIfNecessary(Canvas canvas) {
         if (mDisplay != DISPLAY_TASKBAR
-                || mLineIndicatorScale == 0
+                || Float.compare(mLineIndicatorWidth, 0) == 0
                 || mLineIndicatorColor == Color.TRANSPARENT) {
             return;
         }
         getIconBounds(mRunningAppIconBounds);
         Utilities.scaleRectAboutCenter(mRunningAppIconBounds, ICON_VISIBLE_AREA_FACTOR);
 
-        final int indicatorTop = mRunningAppIconBounds.bottom + mRunningAppIndicatorTopMargin;
-        final float indicatorWidth = mRunningAppIndicatorWidth * mLineIndicatorScale;
+        float taskbarAppRunningStateAnimOffset =
+                mTranslateDelegate.getTranslationY(INDEX_TASKBAR_APP_RUNNING_STATE_ANIM).getValue();
+        final float indicatorTop = mRunningAppIconBounds.bottom
+                + mRunningAppIndicatorTopMargin
+                - taskbarAppRunningStateAnimOffset;
         final float cornerRadius = mRunningAppIndicatorHeight / 2f;
         mRunningAppIndicatorPaint.setColor(mLineIndicatorColor);
 
         canvas.drawRoundRect(
-                mRunningAppIconBounds.centerX() - indicatorWidth / 2f,
+                mRunningAppIconBounds.centerX() - mLineIndicatorWidth / 2f,
                 indicatorTop,
-                mRunningAppIconBounds.centerX() + indicatorWidth / 2f,
+                mRunningAppIconBounds.centerX() + mLineIndicatorWidth / 2f,
                 indicatorTop + mRunningAppIndicatorHeight,
                 cornerRadius,
                 cornerRadius,

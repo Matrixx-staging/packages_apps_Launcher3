@@ -422,7 +422,6 @@ public class BgDataModel {
         default void bindScreens(IntArray orderedScreenIds) { }
         default void setIsFirstPagePinnedItemEnabled(boolean isFirstPagePinnedItemEnabled) { }
         default void finishBindingItems(IntSet pagesBoundFirst) { }
-        default void preAddApps() { }
         default void bindAppsAdded(IntArray newScreens,
                 ArrayList<ItemInfo> addNotAnimated, ArrayList<ItemInfo> addAnimated) { }
 

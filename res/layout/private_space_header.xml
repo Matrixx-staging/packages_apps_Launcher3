@@ -75,7 +75,7 @@
                 android:maxLines="1"
                 android:visibility="gone"
                 android:alpha="0"
-                style="@style/TextHeadline"/>
+                style="@style/PrivateSpaceLockTextStyle"/>
         </LinearLayout>
     </LinearLayout>
     <ImageView

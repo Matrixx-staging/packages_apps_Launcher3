@@ -16,6 +16,8 @@
 
 package com.android.quickstep;
 
+import static android.view.Display.DEFAULT_DISPLAY;
+
 import static com.android.quickstep.AbsSwipeUpHandler.STATE_HANDLER_INVALIDATED;
 import static com.android.wm.shell.shared.ShellSharedConstants.KEY_EXTRA_SHELL_CAN_HAND_OFF_ANIMATION;
 import static com.android.wm.shell.shared.split.SplitBounds.KEY_EXTRA_SPLIT_BOUNDS;
@@ -49,7 +51,6 @@ import android.os.SystemClock;
 import android.platform.test.annotations.DisableFlags;
 import android.platform.test.annotations.EnableFlags;
 import android.platform.test.flag.junit.SetFlagsRule;
-import android.view.Display;
 import android.view.RemoteAnimationTarget;
 import android.view.SurfaceControl;
 import android.view.ViewTreeObserver;
@@ -62,8 +63,8 @@ import com.android.launcher3.LauncherRootView;
 import com.android.launcher3.dragndrop.DragLayer;
 import com.android.launcher3.statemanager.BaseState;
 import com.android.launcher3.statemanager.StatefulContainer;
-import com.android.launcher3.util.LauncherModelHelper;
 import com.android.launcher3.util.MSDLPlayerWrapper;
+import com.android.launcher3.util.SandboxApplication;
 import com.android.launcher3.util.SystemUiController;
 import com.android.quickstep.util.ContextInitListener;
 import com.android.quickstep.util.MotionPauseDetector;
@@ -93,16 +94,22 @@ public abstract class AbsSwipeUpHandlerTestCase<
         SWIPE_HANDLER extends AbsSwipeUpHandler<RECENTS_CONTAINER, RECENTS_VIEW, STATE_TYPE>,
         CONTAINER_INTERFACE extends BaseContainerInterface<STATE_TYPE, RECENTS_CONTAINER>> {
 
-    protected final LauncherModelHelper mLauncherModelHelper = new LauncherModelHelper();
-    protected final LauncherModelHelper.SandboxModelContext mContext =
-            mLauncherModelHelper.sandboxContext;
+    @Rule
+    public final MockitoRule mMockitoRule = MockitoJUnit.rule();
+
+    @Rule
+    public final SetFlagsRule mSetFlagsRule = new SetFlagsRule();
+
+    @Rule
+    public final SandboxApplication mContext = new SandboxApplication();
+
     protected final InputConsumerController mInputConsumerController =
             InputConsumerController.getRecentsAnimationInputConsumer();
     protected final ActivityManager.RunningTaskInfo mRunningTaskInfo =
             new ActivityManager.RunningTaskInfo();
     protected final TopTaskTracker.CachedTaskInfo mCachedTaskInfo =
             new TopTaskTracker.CachedTaskInfo(
-                    Collections.singletonList(mRunningTaskInfo), /* canEnterDesktopMode = */ false);
+                    Collections.singletonList(mRunningTaskInfo), mContext, DEFAULT_DISPLAY);
     protected final RemoteAnimationTarget mRemoteAnimationTarget = new RemoteAnimationTarget(
             /* taskId= */ 0,
             /* mode= */ RemoteAnimationTarget.MODE_CLOSING,
@@ -134,12 +141,7 @@ public abstract class AbsSwipeUpHandlerTestCase<
     @Mock protected SystemUiController mSystemUiController;
     @Mock protected GestureState mGestureState;
     @Mock protected MSDLPlayerWrapper mMSDLPlayerWrapper;
-
-    @Rule
-    public final MockitoRule mMockitoRule = MockitoJUnit.rule();
-
-    @Rule
-    public final SetFlagsRule mSetFlagsRule = new SetFlagsRule();
+    @Mock protected RecentsAnimationDeviceState mDeviceState;
 
     @Before
     public void setUpAnimationTargets() {
@@ -190,8 +192,7 @@ public abstract class AbsSwipeUpHandlerTestCase<
 
     @Before
     public void setUpRecentsContainer() {
-        mTaskAnimationManager = new TaskAnimationManager(mContext,
-                RecentsAnimationDeviceState.INSTANCE.get(mContext), Display.DEFAULT_DISPLAY);
+        mTaskAnimationManager = new TaskAnimationManager(mContext, DEFAULT_DISPLAY);
         RecentsViewContainer recentsContainer = getRecentsContainer();
         RECENTS_VIEW recentsView = getRecentsView();
 

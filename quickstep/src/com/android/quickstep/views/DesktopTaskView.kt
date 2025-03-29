@@ -144,18 +144,6 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
 
     override fun onFinishInflate() {
         super.onFinishInflate()
-        iconView =
-            (findViewById<View>(R.id.icon) as TaskViewIcon).apply {
-                setIcon(
-                    this,
-                    ResourcesCompat.getDrawable(
-                        context.resources,
-                        R.drawable.ic_desktop_with_bg,
-                        context.theme,
-                    ),
-                )
-                setText(resources.getText(R.string.recent_task_desktop))
-            }
         contentView =
             findViewById<DesktopTaskContentView>(R.id.desktop_content).apply {
                 updateLayoutParams<LayoutParams> {
@@ -179,7 +167,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
             ?.inflate()
     }
 
-    private fun positionTaskWindows() {
+    private fun positionTaskWindows(updateLayout: Boolean = false) {
         if (taskContainers.isEmpty()) {
             return
         }
@@ -197,33 +185,33 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         val scaleWidth = taskViewWidth / screenWidth.toFloat()
         val scaleHeight = taskViewHeight / screenHeight.toFloat()
 
-        taskContainers.forEach {
-            val taskId = it.task.key.id
-            val fullscreenTaskPosition =
-                fullscreenTaskPositions.firstOrNull { it.taskId == taskId } ?: return
-            val overviewTaskPosition =
+        taskContainers.forEach { taskContainer ->
+            val taskId = taskContainer.task.key.id
+            val fullscreenTaskBounds =
+                fullscreenTaskPositions.firstOrNull { it.taskId == taskId }?.bounds ?: return
+            val overviewTaskBounds =
                 if (enableDesktopExplodedView()) {
                     viewModel!!
                         .organizedDesktopTaskPositions
                         .firstOrNull { it.taskId == taskId }
-                        ?.let { organizedPosition ->
-                            TEMP_OVERVIEW_TASK_POSITION.apply {
-                                lerpRect(
-                                    fullscreenTaskPosition.bounds,
-                                    organizedPosition.bounds,
-                                    explodeProgress,
-                                )
-                            }
-                        } ?: fullscreenTaskPosition.bounds
+                        ?.bounds ?: fullscreenTaskBounds
                 } else {
-                    fullscreenTaskPosition.bounds
+                    fullscreenTaskBounds
+                }
+            val currentTaskBounds =
+                if (enableDesktopExplodedView()) {
+                    TEMP_OVERVIEW_TASK_POSITION.apply {
+                        lerpRect(fullscreenTaskBounds, overviewTaskBounds, explodeProgress)
+                    }
+                } else {
+                    fullscreenTaskBounds
                 }
 
             if (enableDesktopExplodedView()) {
                 getRemoteTargetHandle(taskId)?.let { remoteTargetHandle ->
                     val fromRect =
                         TEMP_FROM_RECTF.apply {
-                            set(fullscreenTaskPosition.bounds)
+                            set(fullscreenTaskBounds)
                             scale(scaleWidth)
                             offset(
                                 lastComputedTaskSize.left.toFloat(),
@@ -232,7 +220,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                         }
                     val toRect =
                         TEMP_TO_RECTF.apply {
-                            set(overviewTaskPosition)
+                            set(currentTaskBounds)
                             scale(scaleWidth)
                             offset(
                                 lastComputedTaskSize.left.toFloat(),
@@ -246,59 +234,56 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                 }
             }
 
-            val taskLeft = overviewTaskPosition.left * scaleWidth
-            val taskTop = overviewTaskPosition.top * scaleHeight
-            val taskWidth = overviewTaskPosition.width() * scaleWidth
-            val taskHeight = overviewTaskPosition.height() * scaleHeight
-            // TODO(b/394660950): Revisit the choice to update the layout when explodeProgress == 1.
-            // To run the explode animation in reverse, it may be simpler to use translation/scale
-            // for all cases where the progress is non-zero.
-            if (explodeProgress == 0.0f || explodeProgress == 1.0f) {
-                // Reset scaling and translation that may have been applied during animation.
-                it.snapshotView.apply {
-                    scaleX = 1.0f
-                    scaleY = 1.0f
-                    translationX = 0.0f
-                    translationY = 0.0f
-                }
-
+            val overviewTaskLeft = overviewTaskBounds.left * scaleWidth
+            val overviewTaskTop = overviewTaskBounds.top * scaleHeight
+            val overviewTaskWidth = overviewTaskBounds.width() * scaleWidth
+            val overviewTaskHeight = overviewTaskBounds.height() * scaleHeight
+            if (updateLayout) {
                 // Position the task to the same position as it would be on the desktop
-                it.snapshotView.updateLayoutParams<LayoutParams> {
+                taskContainer.snapshotView.updateLayoutParams<LayoutParams> {
                     gravity = Gravity.LEFT or Gravity.TOP
-                    width = taskWidth.toInt()
-                    height = taskHeight.toInt()
-                    leftMargin = taskLeft.toInt()
-                    topMargin = taskTop.toInt()
+                    width = overviewTaskWidth.toInt()
+                    height = overviewTaskHeight.toInt()
+                    leftMargin = overviewTaskLeft.toInt()
+                    topMargin = overviewTaskTop.toInt()
                 }
+            }
 
-                if (
-                    enableDesktopRecentsTransitionsCornersBugfix() && enableRefactorTaskThumbnail()
-                ) {
-                    it.thumbnailView.outlineBounds =
-                        if (intersects(overviewTaskPosition, screenRect))
-                            Rect(overviewTaskPosition).apply {
-                                intersectUnchecked(screenRect)
-                                // Offset to 0,0 to transform into TaskThumbnailView's coordinate
-                                // system.
-                                offset(-overviewTaskPosition.left, -overviewTaskPosition.top)
-                                left = (left * scaleWidth).roundToInt()
-                                top = (top * scaleHeight).roundToInt()
-                                right = (right * scaleWidth).roundToInt()
-                                bottom = (bottom * scaleHeight).roundToInt()
-                            }
-                        else null
-                }
-            } else {
-                // During the animation, apply translation and scale such that the view is
-                // transformed to where we want, without triggering layout.
-                it.snapshotView.apply {
-                    pivotX = 0.0f
-                    pivotY = 0.0f
-                    translationX = taskLeft - left
-                    translationY = taskTop - top
-                    scaleX = taskWidth / width.toFloat()
-                    scaleY = taskHeight / height.toFloat()
-                }
+            if (enableDesktopRecentsTransitionsCornersBugfix() && enableRefactorTaskThumbnail()) {
+                // When exploded view is disabled, these scale factors will be 1.0. This secondary
+                // scale factor is needed because a scale transform is applied to the thumbnail.
+                val thumbnailScaleWidth =
+                    overviewTaskBounds.width().toFloat() / currentTaskBounds.width()
+                val thumbnailScaleHeight =
+                    overviewTaskBounds.height().toFloat() / currentTaskBounds.height()
+                taskContainer.thumbnailView.outlineBounds =
+                    if (intersects(currentTaskBounds, screenRect))
+                        Rect(currentTaskBounds).apply {
+                            intersectUnchecked(screenRect)
+                            // Offset to 0,0 to transform into TaskThumbnailView's coordinate
+                            // system.
+                            offset(-currentTaskBounds.left, -currentTaskBounds.top)
+                            left = (left * scaleWidth * thumbnailScaleWidth).roundToInt()
+                            top = (top * scaleHeight * thumbnailScaleHeight).roundToInt()
+                            right = (right * scaleWidth * thumbnailScaleWidth).roundToInt()
+                            bottom = (bottom * scaleHeight * thumbnailScaleHeight).roundToInt()
+                        }
+                    else null
+            }
+
+            val currentTaskLeft = currentTaskBounds.left * scaleWidth
+            val currentTaskTop = currentTaskBounds.top * scaleHeight
+            val currentTaskWidth = currentTaskBounds.width() * scaleWidth
+            val currentTaskHeight = currentTaskBounds.height() * scaleHeight
+            // During the animation, apply translation and scale such that the view is transformed
+            // to where we want, without triggering layout.
+            taskContainer.snapshotView.apply {
+                pivotX = 0.0f
+                pivotY = 0.0f
+                translationX = currentTaskLeft - overviewTaskLeft
+                translationY = currentTaskTop - overviewTaskTop
+                scaleX = currentTaskWidth / overviewTaskWidth
+                scaleY = currentTaskHeight / overviewTaskHeight
             }
         }
     }
@@ -320,6 +305,19 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
             tasks.forEach { sb.append(" key=${it.key}\n") }
             Log.d(TAG, sb.toString())
         }
+
+        iconView =
+            (findViewById<View>(R.id.icon) as TaskViewIcon).apply {
+                setIcon(
+                    this,
+                    ResourcesCompat.getDrawable(
+                        context.resources,
+                        R.drawable.ic_desktop_with_bg,
+                        context.theme,
+                    ),
+                )
+                setText(resources.getText(R.string.recent_task_desktop))
+            }
 
         cancelPendingLoadTasks()
         val backgroundViewIndex = contentView.indexOfChild(backgroundView)
@@ -509,7 +507,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         if (enableDesktopExplodedView()) {
             viewModel?.organizeDesktopTasks(desktopSize, fullscreenTaskPositions)
         }
-        positionTaskWindows()
+        positionTaskWindows(updateLayout = true)
     }
 
     companion object {

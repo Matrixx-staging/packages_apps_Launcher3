@@ -53,6 +53,7 @@ import com.android.quickstep.util.TransformParams;
 import com.android.quickstep.util.TransformParams.BuilderProxy;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.TaskView;
+import com.android.wm.shell.shared.GroupedTaskInfo;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -90,7 +91,14 @@ public abstract class SwipeUpAnimationLogic implements
         updateIsGestureForSplit(TopTaskTracker.INSTANCE.get(context)
                 .getRunningSplitTaskIds().length);
 
-        mTargetGluer = new RemoteTargetGluer(mContext, mGestureState.getContainerInterface());
+        GroupedTaskInfo groupedTaskInfo = null;
+        if (mGestureState.getRunningTask() != null) {
+            groupedTaskInfo =
+                    mGestureState.getRunningTask().getPlaceholderGroupedTaskInfo(
+                            /* splitTaskIds = */ null);
+        }
+        mTargetGluer = new RemoteTargetGluer(mContext, mGestureState.getContainerInterface(),
+                groupedTaskInfo);
         mRemoteTargetHandles = mTargetGluer.getRemoteTargetHandles();
         RotationTouchHelper rotationTouchHelper = RotationTouchHelper.INSTANCE.get(context);
         runActionOnRemoteHandles(remoteTargetHandle ->

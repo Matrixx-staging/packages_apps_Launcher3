@@ -460,6 +460,21 @@ public class StatsLogManager implements ResourceBasedOverride {
         @UiEvent(doc = "Current grid size is changed to 6x5")
         LAUNCHER_GRID_SIZE_6_BY_5(2188),
 
+        @UiEvent(doc = "App icon shape changed to Circle")
+        LAUNCHER_ICON_SHAPE_CIRCLE(2229),
+
+        @UiEvent(doc = "App icon shape changed to Square")
+        LAUNCHER_ICON_SHAPE_SQUARE(2230),
+
+        @UiEvent(doc = "App icon shape changed to 4-sided Cookie")
+        LAUNCHER_ICON_SHAPE_FOUR_SIDED_COOKIE(2231),
+
+        @UiEvent(doc = "App icon shape changed to 7-sided Cookie")
+        LAUNCHER_ICON_SHAPE_SEVEN_SIDED_COOKIE(2232),
+
+        @UiEvent(doc = "App icon shape changed to Arch")
+        LAUNCHER_ICON_SHAPE_ARCH(2233),
+
         @UiEvent(doc = "Launcher entered into AllApps state.")
         LAUNCHER_ALLAPPS_ENTRY(692),
 
@@ -864,6 +879,9 @@ public class StatsLogManager implements ResourceBasedOverride {
 
         @UiEvent(doc = "User long press nav handle and a long press runnable was created.")
         LAUNCHER_OMNI_GET_LONG_PRESS_RUNNABLE(1545),
+
+        @UiEvent(doc = "User tapped on \"change aspect ratio\" system shortcut.")
+        LAUNCHER_ASPECT_RATIO_SETTINGS_SYSTEM_SHORTCUT_TAP(2219),
 
         // One Grid Flags
         @UiEvent(doc = "User sets the device in Fixed Landscape")

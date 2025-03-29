@@ -736,7 +736,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         if (taskIcon != null) {
             taskIcon = taskIcon.getConstantState().newDrawable().mutate();
         }
-        btv.applyIconAndLabel(taskIcon, task.titleDescription);
+        btv.applyIconAndLabel(taskIcon, task.title, task.titleDescription);
         btv.setTag(singleTask);
     }
 

@@ -80,7 +80,7 @@ class WidgetPickerDataProviderTest {
         userHandle = UserHandle.CURRENT
         context = ActivityContextWrapper(ApplicationProvider.getApplicationContext())
         testInvariantProfile = LauncherAppState.getIDP(context)
-        underTest = WidgetPickerDataProvider(context)
+        underTest = WidgetPickerDataProvider()
         doAnswer { invocation: InvocationOnMock ->
                 val componentWithLabel = invocation.getArgument<Any>(0) as CachedObject
                 componentWithLabel.getComponent().shortClassName

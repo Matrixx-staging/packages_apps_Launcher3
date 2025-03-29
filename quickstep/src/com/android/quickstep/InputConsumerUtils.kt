@@ -23,6 +23,7 @@ import com.android.launcher3.statemanager.BaseState
 import com.android.launcher3.statemanager.StatefulContainer
 import com.android.launcher3.taskbar.TaskbarManager
 import com.android.launcher3.util.LockedUserState.Companion.get
+import com.android.quickstep.fallback.window.RecentsWindowFlags
 import com.android.quickstep.inputconsumers.AccessibilityInputConsumer
 import com.android.quickstep.inputconsumers.AssistantInputConsumer
 import com.android.quickstep.inputconsumers.BubbleBarInputConsumer
@@ -591,19 +592,18 @@ object InputConsumerUtils {
                 previousGestureState,
                 gestureState,
                 event,
-                reasonString.append(
-                    if (previousGestureAnimatedToLauncher)
-                        ("%sprevious gesture animated to launcher, " +
-                            "trying to use overview input consumer")
-                    else
-                        (if (launcherResumedThroughShellTransition)
-                            ("%slauncher resumed through a shell transition, " +
-                                "trying to use overview input consumer")
-                        else
-                            ("%sforceOverviewInputConsumer == true, " +
-                                "trying to use overview input consumer")),
-                    SUBSTRING_PREFIX,
-                ),
+                reasonString
+                    .append(
+                        if (previousGestureAnimatedToLauncher)
+                            (if (previousGestureState.isRunningAnimationToLauncher)
+                                "%sprevious gesture is still animating to launcher"
+                            else "%spredictive back animation is still in progress")
+                        else if (launcherResumedThroughShellTransition)
+                            "%slauncher resumed through a shell transition"
+                        else "%sforceOverviewInputConsumer == true",
+                        SUBSTRING_PREFIX,
+                    )
+                    .append(", trying to use overview input consumer"),
             )
         } else if (deviceState.isGestureBlockedTask(runningTask) || launcherChildActivityResumed) {
             getDefaultInputConsumer(
@@ -631,6 +631,7 @@ object InputConsumerUtils {
                 inputEventReceiver,
                 gestureState,
                 event,
+                runningTask.isHomeTask,
             )
         }
     }
@@ -713,11 +714,12 @@ object InputConsumerUtils {
 
         reasonString.append(
             if (hasWindowFocus) "%sactivity has window focus"
-            else
-                (if (isPreviousGestureAnimatingToLauncher)
+            else if (isPreviousGestureAnimatingToLauncher)
+                (if (previousGestureState.isRunningAnimationToLauncher)
                     "%sprevious gesture is still animating to launcher"
-                else if (isInLiveTileMode) "%sdevice is in live mode"
-                else "%sall overview focus conditions failed"),
+                else "%spredictive back animation is still in progress")
+            else if (isInLiveTileMode) "%sdevice is in live mode"
+            else "%sall overview focus conditions failed",
             SUBSTRING_PREFIX,
         )
         return if (hasWindowFocus || isPreviousGestureAnimatingToLauncher || isInLiveTileMode) {
@@ -790,13 +792,16 @@ object InputConsumerUtils {
         inputEventReceiver: InputChannelCompat.InputEventReceiver,
         gestureState: GestureState,
         event: MotionEvent,
+        isHomeTask: Boolean,
     ): InputConsumer where T : RecentsViewContainer, T : StatefulContainer<S> {
         val shouldDefer =
             (!overviewComponentObserver.isHomeAndOverviewSame ||
                 gestureState
                     .getContainerInterface<S, T>()
                     .deferStartingActivity(deviceState, event))
-        val disableHorizontalSwipe = deviceState.isInExclusionRegion(event)
+        val disableHorizontalSwipe =
+            deviceState.isInExclusionRegion(event) &&
+                (!RecentsWindowFlags.enableOverviewInWindow || !isHomeTask)
         return OtherActivityInputConsumer(
             /* base= */ context,
             deviceState,

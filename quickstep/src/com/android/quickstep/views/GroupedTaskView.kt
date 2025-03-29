@@ -109,6 +109,9 @@ class GroupedTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                     else R.layout.icon_view
             }
             ?.inflate()
+        findViewById<ViewStub>(R.id.bottomRight_digital_wellbeing_toast)
+            ?.apply { layoutResource = R.layout.digital_wellbeing_toast }
+            ?.inflate()
     }
 
     override fun onRecycle() {

@@ -177,7 +177,7 @@ public class TaskbarControllers {
         bubbleControllers.ifPresent(controllers -> controllers.init(sharedState, this));
         taskbarInsetsController.init(this);
         voiceInteractionWindowController.init(this);
-        taskbarRecentAppsController.init(this);
+        taskbarRecentAppsController.init(this, sharedState.recentTasksBeforeTaskbarRecreate);
         taskbarTranslationController.init(this);
         taskbarEduTooltipController.init(this);
         keyboardQuickSwitchController.init(this);
@@ -264,7 +264,6 @@ public class TaskbarControllers {
      */
     public void onDestroy() {
         mAreAllControllersInitialized = false;
-        mSharedState = null;
 
         taskbarDragController.onDestroy();
         navbarButtonsViewController.onDestroy();
@@ -289,6 +288,7 @@ public class TaskbarControllers {
         taskbarDesktopModeController.onDestroy();
         mControllersToLog = null;
         mBackgroundRendererControllers = null;
+        mSharedState = null;
     }
 
     /**

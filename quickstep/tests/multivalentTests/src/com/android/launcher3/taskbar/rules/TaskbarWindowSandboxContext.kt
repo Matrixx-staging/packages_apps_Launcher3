@@ -109,7 +109,7 @@ private constructor(
                 }
 
             return TaskbarWindowSandboxContext(
-                SandboxApplication(base.createDisplayContext(virtualDisplay.display)),
+                SandboxApplication(base = base.createDisplayContext(virtualDisplay.display)),
                 virtualDisplay,
                 params,
             )

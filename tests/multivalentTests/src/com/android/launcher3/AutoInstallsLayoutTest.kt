@@ -49,8 +49,7 @@ import com.android.launcher3.util.AllModulesMinusApiWrapper
 import com.android.launcher3.util.ApiWrapper
 import com.android.launcher3.util.Executors
 import com.android.launcher3.util.LauncherLayoutBuilder
-import com.android.launcher3.util.LauncherModelHelper
-import com.android.launcher3.util.LauncherModelHelper.SandboxModelContext
+import com.android.launcher3.util.SandboxApplication
 import com.android.launcher3.util.TestUtil
 import com.android.launcher3.util.UserIconInfo
 import com.android.launcher3.util.UserIconInfo.TYPE_MAIN
@@ -60,12 +59,11 @@ import com.google.common.truth.Truth.assertThat
 import dagger.BindsInstance
 import dagger.Component
 import java.io.StringReader
-import org.junit.After
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
@@ -75,26 +73,13 @@ import org.mockito.kotlin.whenever
 @RunWith(AndroidJUnit4::class)
 class AutoInstallsLayoutTest {
 
-    lateinit var modelHelper: LauncherModelHelper
-    lateinit var targetContext: SandboxModelContext
+    @get:Rule val mockitoRule = MockitoJUnit.rule()
+    @get:Rule val targetContext = SandboxApplication()
 
-    lateinit var callback: MyCallback
+    private val callback: MyCallback = MyCallback()
 
     @Mock lateinit var widgetHolder: LauncherWidgetHolder
     @Mock lateinit var db: SQLiteDatabase
-
-    @Before
-    fun setup() {
-        MockitoAnnotations.initMocks(this)
-        modelHelper = LauncherModelHelper()
-        targetContext = modelHelper.sandboxContext
-        callback = MyCallback()
-    }
-
-    @After
-    fun tearDown() {
-        modelHelper.destroy()
-    }
 
     @Test
     fun pending_icon_added_on_home() {

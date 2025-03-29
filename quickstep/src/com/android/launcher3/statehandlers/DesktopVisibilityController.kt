@@ -23,6 +23,7 @@ import android.util.SparseArray
 import android.view.Display.DEFAULT_DISPLAY
 import android.window.DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY
 import androidx.core.util.forEach
+import com.android.internal.util.LatencyTracker
 import com.android.launcher3.LauncherState
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppComponent
@@ -175,7 +176,7 @@ constructor(
     private var desktopTaskListener: DesktopTaskListenerImpl?
 
     init {
-        desktopTaskListener = DesktopTaskListenerImpl(this, context, context.displayId)
+        desktopTaskListener = DesktopTaskListenerImpl(this, context)
         systemUiProxy.setDesktopTaskListener(desktopTaskListener)
 
         lifecycleTracker.addCloseable {
@@ -645,9 +646,9 @@ constructor(
     private class DesktopTaskListenerImpl(
         controller: DesktopVisibilityController,
         @ApplicationContext private val context: Context,
-        private val displayId: Int,
     ) : Stub() {
         private val controller = WeakReference(controller)
+        private val displayId = context.displayId
 
         override fun onListenerConnected(
             displayDeskStates: Array<DisplayDeskState>,
@@ -710,7 +711,10 @@ constructor(
 
         // TODO: b/402496827 - The multi-desks backend needs to be updated to call this API only
         //  once, not between desk switches.
-        override fun onExitDesktopModeTransitionStarted(transitionDuration: Int) {
+        override fun onExitDesktopModeTransitionStarted(
+            transitionDuration: Int,
+            shouldEndUpAtHome: Boolean,
+        ) {
             val controller = controller.get() ?: return
             MAIN_EXECUTOR.execute {
                 Log.d(
@@ -719,6 +723,16 @@ constructor(
                         "duration= " +
                         transitionDuration),
                 )
+                // If shouldEndUpAtHome is true, desktop mode is ending from the user
+                // closing/minimizing the last open window. If it's false, the display is
+                // probably transitioning to an app's full screen mode instead so this metric
+                // should not be logged.
+                if (shouldEndUpAtHome) {
+                    LatencyTracker.getInstance(context)
+                        .onActionStart(
+                            LatencyTracker.ACTION_DESKTOP_MODE_EXIT_MODE_ON_LAST_WINDOW_CLOSE
+                        )
+                }
                 if (enableMultipleDesktops(context)) {
                     controller.notifyTaskbarDesktopModeListenersForExit(transitionDuration)
                 } else if (controller.isInDesktopModeDeprecated) {

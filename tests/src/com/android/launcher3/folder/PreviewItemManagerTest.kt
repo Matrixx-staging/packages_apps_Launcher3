@@ -17,13 +17,14 @@
 package com.android.launcher3.folder
 
 import android.R
+import android.content.ComponentName
 import android.os.Process
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.android.dx.mockito.inline.extended.ExtendedMockito.spyOn
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherPrefs
-import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_FOLDER
+import com.android.launcher3.LauncherSettings.Favorites.DESKTOP_ICON_FLAG
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.graphics.PreloadIconDrawable
@@ -34,6 +35,7 @@ import com.android.launcher3.icons.IconCache
 import com.android.launcher3.icons.IconCache.ItemInfoUpdateReceiver
 import com.android.launcher3.icons.PlaceHolderIconDrawable
 import com.android.launcher3.icons.UserBadgeDrawable
+import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_ARCHIVED
 import com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_INSTALL_SESSION_ACTIVE
@@ -41,11 +43,15 @@ import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.util.ActivityContextWrapper
 import com.android.launcher3.util.AllModulesForTest
 import com.android.launcher3.util.Executors
+import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import com.android.launcher3.util.FakePrefsModule
 import com.android.launcher3.util.FlagOp
-import com.android.launcher3.util.LauncherLayoutBuilder
-import com.android.launcher3.util.LauncherModelHelper
-import com.android.launcher3.util.LauncherModelHelper.SandboxModelContext
+import com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY
+import com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY2
+import com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY3
+import com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY4
+import com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE
+import com.android.launcher3.util.SandboxApplication
 import com.android.launcher3.util.TestUtil
 import com.android.launcher3.util.UserIconInfo
 import com.google.common.truth.Truth.assertThat
@@ -54,7 +60,6 @@ import kotlin.annotation.AnnotationRetention.RUNTIME
 import kotlin.annotation.AnnotationTarget.FUNCTION
 import kotlin.annotation.AnnotationTarget.PROPERTY_GETTER
 import kotlin.annotation.AnnotationTarget.PROPERTY_SETTER
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -75,20 +80,17 @@ import org.mockito.kotlin.whenever
 @RunWith(AndroidJUnit4::class)
 class PreviewItemManagerTest {
 
+    @get:Rule val context = SandboxApplication().withModelDependency()
     @get:Rule val theseStateRule = ThemeStateRule()
 
     private lateinit var previewItemManager: PreviewItemManager
-    private lateinit var context: SandboxModelContext
     private lateinit var folderItems: ArrayList<WorkspaceItemInfo>
-    private lateinit var modelHelper: LauncherModelHelper
     private lateinit var folderIcon: FolderIcon
     private lateinit var iconCache: IconCache
 
     @Before
     fun setup() {
         MockitoAnnotations.initMocks(this)
-        modelHelper = LauncherModelHelper()
-        context = modelHelper.sandboxContext
         context.initDaggerComponent(DaggerPreviewItemManagerTestComponent.builder())
         theseStateRule.themeState?.let {
             LauncherPrefs.get(context).putSync(ThemeManager.THEMED_ICONS.to(it))
@@ -100,22 +102,15 @@ class PreviewItemManagerTest {
         doReturn(null).whenever(iconCache).updateIconInBackground(any(), any())
 
         previewItemManager = PreviewItemManager(folderIcon)
-        modelHelper
-            .setupDefaultLayoutProvider(
-                LauncherLayoutBuilder()
-                    .atWorkspace(0, 0, 1)
-                    .putFolder(R.string.copy)
-                    .addApp(LauncherModelHelper.TEST_PACKAGE, LauncherModelHelper.TEST_ACTIVITY)
-                    .addApp(LauncherModelHelper.TEST_PACKAGE, LauncherModelHelper.TEST_ACTIVITY2)
-                    .addApp(LauncherModelHelper.TEST_PACKAGE, LauncherModelHelper.TEST_ACTIVITY3)
-                    .addApp(LauncherModelHelper.TEST_PACKAGE, LauncherModelHelper.TEST_ACTIVITY4)
-                    .build()
-            )
-            .loadModelSync()
 
         folderIcon.mInfo =
-            modelHelper.bgDataModel.itemsIdMap.find { it.itemType == ITEM_TYPE_FOLDER }
-                as FolderInfo
+            FolderInfo().apply {
+                title = context.getString(R.string.copy)
+                add(buildWorkspaceItemInfo(TEST_ACTIVITY))
+                add(buildWorkspaceItemInfo(TEST_ACTIVITY2))
+                add(buildWorkspaceItemInfo(TEST_ACTIVITY3))
+                add(buildWorkspaceItemInfo(TEST_ACTIVITY4))
+            }
         // Use getAppContents() to "cast" contents to WorkspaceItemInfo so we can set bitmaps
         folderItems = folderIcon.mInfo.getAppContents()
 
@@ -130,12 +125,6 @@ class PreviewItemManagerTest {
         folderItems[3].bitmap =
             folderItems[3].bitmap.withFlags(profileFlagOp(UserIconInfo.TYPE_WORK))
         folderItems[3].bitmap.themedBitmap = null
-    }
-
-    @After
-    @Throws(Exception::class)
-    fun tearDown() {
-        modelHelper.destroy()
     }
 
     @Test
@@ -277,6 +266,14 @@ class PreviewItemManagerTest {
 
     private fun profileFlagOp(type: Int) =
         UserIconInfo(Process.myUserHandle(), type).applyBitmapInfoFlags(FlagOp.NO_OP)
+
+    private fun buildWorkspaceItemInfo(targetClass: String) =
+        WorkspaceItemInfo().apply {
+            intent = AppInfo.makeLaunchIntent(ComponentName(TEST_PACKAGE, targetClass))
+            TestUtil.runOnExecutorSync(MODEL_EXECUTOR) {
+                iconCache.getTitleAndIcon(this, DESKTOP_ICON_FLAG)
+            }
+        }
 }
 
 class ThemeStateRule : TestRule {

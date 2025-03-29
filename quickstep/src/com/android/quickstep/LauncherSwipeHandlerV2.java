@@ -69,9 +69,10 @@ public class LauncherSwipeHandlerV2 extends AbsSwipeUpHandler<
         QuickstepLauncher, RecentsView<QuickstepLauncher, LauncherState>, LauncherState> {
 
     public LauncherSwipeHandlerV2(Context context, TaskAnimationManager taskAnimationManager,
+            RecentsAnimationDeviceState deviceState,
             GestureState gestureState, long touchTimeMs, boolean continuingLastGesture,
             InputConsumerController inputConsumer, MSDLPlayerWrapper msdlPlayerWrapper) {
-        super(context, taskAnimationManager, gestureState, touchTimeMs,
+        super(context, taskAnimationManager, deviceState, gestureState, touchTimeMs,
                 continuingLastGesture, inputConsumer, msdlPlayerWrapper);
     }
 

@@ -46,7 +46,8 @@ object ActivityPreloadUtil {
         try {
             if (!LockedUserState.get(ctx).isUserUnlocked) return
 
-            val deviceState = RecentsAnimationDeviceState.INSTANCE[ctx]
+            val deviceState =
+                RecentsAnimationDeviceState.REPOSITORY_INSTANCE.get(ctx)[ctx.displayId] ?: return
             val overviewCompObserver = OverviewComponentObserver.INSTANCE[ctx]
 
             // Prevent the overview from being started before the real home on first boot

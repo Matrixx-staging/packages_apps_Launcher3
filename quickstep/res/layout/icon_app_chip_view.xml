@@ -51,25 +51,19 @@
         android:importantForAccessibility="no" />
 
     <TextView
-        android:id="@+id/icon_text_collapsed"
-        android:layout_width="@dimen/task_thumbnail_icon_menu_text_collapsed_max_width"
+        android:id="@+id/icon_title"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="start|center_vertical"
         android:maxLines="1"
-        android:ellipsize="end"
+        android:singleLine="true"
+        android:ellipsize="none"
         android:textAlignment="viewStart"
         android:importantForAccessibility="no"
-        style="@style/IconAppChipMenuTextStyle" />
-
-    <TextView
-        android:id="@+id/icon_text_expanded"
-        android:layout_width="@dimen/task_thumbnail_icon_menu_text_expanded_max_width"
-        android:layout_height="wrap_content"
-        android:gravity="start|center_vertical"
-        android:maxLines="1"
-        android:ellipsize="end"
-        android:textAlignment="viewStart"
-        android:importantForAccessibility="no"
+        android:requiresFadingEdge="horizontal"
+        android:fadingEdgeLength="@dimen/task_thumbnail_icon_menu_text_fading_size"
+        android:marqueeRepeatLimit="1"
+        android:scrollHorizontally="true"
         style="@style/IconAppChipMenuTextStyle" />
 
     <ImageView

@@ -23,7 +23,7 @@ import com.android.launcher3.model.WidgetItem
 import com.android.launcher3.util.ActivityContextWrapper
 import com.android.launcher3.util.Executors
 import com.android.launcher3.util.Executors.MAIN_EXECUTOR
-import com.android.launcher3.util.LauncherModelHelper.SandboxModelContext
+import com.android.launcher3.util.SandboxApplication
 import com.android.launcher3.util.TestUtil
 import com.google.common.truth.Truth.assertThat
 import org.junit.After
@@ -52,7 +52,7 @@ class GeneratedPreviewTest {
             resources.getIdentifier("test_layout_appwidget_blue", "layout", packageName)
         }
 
-    private lateinit var context: SandboxModelContext
+    @get:Rule val context = SandboxApplication()
     private lateinit var uiContext: Context
     private lateinit var generatedPreview: RemoteViews
     private lateinit var widgetCell: WidgetCell
@@ -64,7 +64,6 @@ class GeneratedPreviewTest {
     @Before
     fun setup() {
         MockitoAnnotations.initMocks(this)
-        context = SandboxModelContext()
         generatedPreview = RemoteViews(context.packageName, generatedPreviewLayout)
         uiContext =
             ActivityContextWrapper(ContextThemeWrapper(context, R.style.WidgetContainerTheme))

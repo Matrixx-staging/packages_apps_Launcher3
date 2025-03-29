@@ -22,9 +22,11 @@ import static com.android.quickstep.InputConsumerUtils.newConsumer;
 import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.kotlin.StubberKt.doCallRealMethod;
 
 import android.annotation.NonNull;
 import android.os.Looper;
@@ -36,6 +38,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 
+import com.android.app.displaylib.PerDisplayRepository;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.dagger.LauncherAppComponent;
@@ -111,6 +114,7 @@ public class InputConsumerUtilsTest {
     @NonNull @Mock private TaskbarActivityContext mTaskbarActivityContext;
     @NonNull @Mock private OverviewComponentObserver mOverviewComponentObserver;
     @NonNull @Mock private RecentsAnimationDeviceState mDeviceState;
+    @NonNull @Mock private PerDisplayRepository<RecentsAnimationDeviceState> mDeviceStateRepo;
     @NonNull @Mock private AbsSwipeUpHandler.Factory mSwipeUpHandlerFactory;
     @NonNull @Mock private TaskbarManager mTaskbarManager;
     @NonNull @Mock private OverviewCommandHelper mOverviewCommandHelper;
@@ -126,7 +130,7 @@ public class InputConsumerUtilsTest {
 
     @Before
     public void setupTaskAnimationManager() {
-        mTaskAnimationManager = new TaskAnimationManager(mContext, mDeviceState, mDisplayId);
+        mTaskAnimationManager = new TaskAnimationManager(mContext, mDisplayId);
     }
 
     @Before
@@ -134,8 +138,8 @@ public class InputConsumerUtilsTest {
         mContext.initDaggerComponent(DaggerInputConsumerUtilsTest_TestComponent
                 .builder()
                 .bindLockedState(mLockedUserState)
-                .bindRotationHelper(mock(RotationTouchHelper.class))
-                .bindRecentsState(mDeviceState));
+                .bindRotationHelper(mock(RotationTouchHelper.class)));
+//                .bindRecentsState(mDeviceState));
     }
 
     @Before
@@ -191,6 +195,7 @@ public class InputConsumerUtilsTest {
 
     @Before
     public void setupDeviceState() {
+        when(mDeviceStateRepo.get(anyInt())).thenReturn(mDeviceState);
         when(mDeviceState.canStartTrackpadGesture()).thenReturn(true);
         when(mDeviceState.canStartSystemGesture()).thenReturn(true);
         when(mDeviceState.isFullyGesturalNavMode()).thenReturn(true);
@@ -303,6 +308,16 @@ public class InputConsumerUtilsTest {
         when(mDeviceState.isGestureBlockedTask(any())).thenReturn(true);
 
         assertEqualsDefaultInputConsumer(this::createBaseInputConsumer);
+    }
+
+    @Test
+    public void testNewBaseConsumer_noGestureBlockedTask_returnsOtherActivityInputConsumer() {
+        doCallRealMethod().when(mDeviceState).setGestureBlockingTaskId(anyInt());
+        mDeviceState.setGestureBlockingTaskId(-1);
+        when(mDeviceState.isGestureBlockedTask(any())).thenCallRealMethod();
+
+        assertCorrectInputConsumer(this::createBaseInputConsumer, OtherActivityInputConsumer.class,
+                InputConsumer.TYPE_OTHER_ACTIVITY);
     }
 
     @Test
@@ -614,7 +629,6 @@ public class InputConsumerUtilsTest {
         interface Builder extends LauncherAppComponent.Builder {
             @BindsInstance Builder bindLockedState(LockedUserState state);
             @BindsInstance Builder bindRotationHelper(RotationTouchHelper helper);
-            @BindsInstance Builder bindRecentsState(RecentsAnimationDeviceState state);
 
             @Override
             TestComponent build();

@@ -41,9 +41,9 @@ import com.android.launcher3.provider.RestoreDbTask
 import com.android.launcher3.ui.TestViewHelpers
 import com.android.launcher3.util.AllModulesForTest
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
-import com.android.launcher3.util.LauncherModelHelper.SandboxModelContext
 import com.android.launcher3.util.LooperIdleLock
 import com.android.launcher3.util.ModelTestExtensions
+import com.android.launcher3.util.SandboxApplication
 import com.android.launcher3.util.TestUtil
 import com.android.launcher3.util.UserIconInfo
 import com.google.common.truth.Truth.assertThat
@@ -78,7 +78,7 @@ private const val INSERTION_STATEMENT_FILE = "databases/workspace_items.sql"
 @SmallTest
 @RunWith(AndroidJUnit4::class)
 class LoaderTaskTest {
-    private var context = SandboxModelContext()
+    @get:Rule val context = SandboxApplication()
     private val expectedBroadcastModel =
         FirstScreenBroadcastModel(
             installerPackage = "installerPackage",
@@ -174,7 +174,6 @@ class LoaderTaskTest {
         LauncherPrefs.get(context).removeSync(RESTORE_DEVICE)
         LauncherPrefs.get(context).putSync(IS_FIRST_LOAD_AFTER_RESTORE.to(false))
         inMemoryDb.close()
-        context.onDestroy()
         mockitoSession.finishMocking()
     }
 

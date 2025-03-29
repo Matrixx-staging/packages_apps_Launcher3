@@ -96,7 +96,6 @@ import com.android.launcher3.shortcuts.ShortcutKey;
 import com.android.launcher3.shortcuts.ShortcutRequest;
 import com.android.launcher3.shortcuts.ShortcutRequest.QueryResult;
 import com.android.launcher3.util.ApiWrapper;
-import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.IOUtils;
 import com.android.launcher3.util.IntArray;
 import com.android.launcher3.util.IntSet;
@@ -275,7 +274,7 @@ public class LoaderTask implements Runnable {
         }
         try (LauncherModel.LoaderTransaction transaction = mModel.beginLoader(this)) {
             List<CacheableShortcutInfo> allShortcuts = new ArrayList<>();
-            loadWorkspace(allShortcuts, "", new HashMap<>(), memoryLogger, restoreEventLogger);
+            loadWorkspace(allShortcuts, "", memoryLogger, restoreEventLogger);
 
             // Sanitize data re-syncs widgets/shortcuts based on the workspace loaded from db.
             // sanitizeData should not be invoked if the workspace is loaded from a db different
@@ -419,22 +418,19 @@ public class LoaderTask implements Runnable {
         this.notify();
     }
 
-    public void loadWorkspaceForPreview(String selection,
-            Map<ComponentKey, AppWidgetProviderInfo> widgetProviderInfoMap) {
-        loadWorkspace(new ArrayList<>(), selection, widgetProviderInfoMap, null, null);
+    public void loadWorkspaceForPreview(String selection) {
+        loadWorkspace(new ArrayList<>(), selection, null, null);
     }
 
     private void loadWorkspace(
             List<CacheableShortcutInfo> allDeepShortcuts,
             String selection,
-            Map<ComponentKey, AppWidgetProviderInfo> widgetProviderInfoMap,
             @Nullable LoaderMemoryLogger memoryLogger,
             @Nullable LauncherRestoreEventLogger restoreEventLogger
     ) {
         Trace.beginSection("LoadWorkspace");
         try {
-            loadWorkspaceImpl(allDeepShortcuts, selection, widgetProviderInfoMap,
-                    memoryLogger, restoreEventLogger);
+            loadWorkspaceImpl(allDeepShortcuts, selection, memoryLogger, restoreEventLogger);
         } finally {
             Trace.endSection();
         }
@@ -448,7 +444,6 @@ public class LoaderTask implements Runnable {
     private void loadWorkspaceImpl(
             List<CacheableShortcutInfo> allDeepShortcuts,
             String selection,
-            Map<ComponentKey, AppWidgetProviderInfo> widgetProviderInfoMap,
             @Nullable LoaderMemoryLogger memoryLogger,
             @Nullable LauncherRestoreEventLogger restoreEventLogger) {
         final boolean isSdCardReady = Utilities.isBootCompleted();
@@ -498,9 +493,8 @@ public class LoaderTask implements Runnable {
                         mUserCache, mUserManagerState, mLauncherApps, mPendingPackages,
                         mShortcutKeyToPinnedShortcuts, mContext, mIDP, mIconCache,
                         mIsSafeModeEnabled, mBgDataModel,
-                        widgetProviderInfoMap, installingPkgs, isSdCardReady,
-                        widgetInflater, mPmHelper, mWorkspaceIconRequestInfos, unlockedUsers,
-                        allDeepShortcuts);
+                        installingPkgs, isSdCardReady, widgetInflater, mPmHelper,
+                        mWorkspaceIconRequestInfos, unlockedUsers, allDeepShortcuts);
 
                 if (mStopped) {
                     Log.w(TAG, "loadWorkspaceImpl: Loader stopped, skipping item processing");

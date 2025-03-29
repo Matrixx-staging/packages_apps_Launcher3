@@ -184,7 +184,6 @@ import com.android.launcher3.compat.AccessibilityManagerCompat;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.debug.TestEventEmitter;
 import com.android.launcher3.debug.TestEventEmitter.TestEvent;
-import com.android.launcher3.dragndrop.DragController;
 import com.android.launcher3.dragndrop.DragLayer;
 import com.android.launcher3.dragndrop.DragView;
 import com.android.launcher3.dragndrop.LauncherDragController;
@@ -397,7 +396,7 @@ public class Launcher extends StatefulActivity<LauncherState>
     private RotationHelper mRotationHelper;
 
     protected LauncherOverlayManager mOverlayManager;
-    protected DragController mDragController;
+    protected LauncherDragController mDragController;
     // If true, overlay callbacks are deferred
     private boolean mDeferOverlayCallbacks;
     private final Runnable mDeferredOverlayCallbacks = this::checkIfOverlayStillDeferred;
@@ -546,7 +545,7 @@ public class Launcher extends StatefulActivity<LauncherState>
                 mFocusHandler, new CellLayout(mWorkspace.getContext(), mWorkspace));
 
         mPopupDataProvider = new PopupDataProvider(this);
-        mWidgetPickerDataProvider = new WidgetPickerDataProvider(this);
+        mWidgetPickerDataProvider = new WidgetPickerDataProvider();
         PillColorProvider.getInstance(mWorkspace.getContext()).registerObserver();
 
         boolean internalStateHandled = ACTIVITY_TRACKER.handleCreate(this);
@@ -1438,7 +1437,7 @@ public class Launcher extends StatefulActivity<LauncherState>
 
         if (container < 0) {
             // Adding a shortcut to the Workspace.
-            final View view = mItemInflater.inflateItem(info, getModelWriter());
+            final View view = mItemInflater.inflateItem(info);
             boolean foundCellSpan = false;
             // First we check if we already know the exact location where we want to add this item.
             if (cellX >= 0 && cellY >= 0) {
@@ -1814,7 +1813,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         return mAccessibilityDelegate;
     }
 
-    public DragController getDragController() {
+    public LauncherDragController getDragController() {
         return mDragController;
     }
 
@@ -1982,8 +1981,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         getModelWriter().addItemToDatabase(folderInfo, container, screenId, cellX, cellY);
 
         // Create the view
-        FolderIcon newFolder = FolderIcon.inflateFolderAndIcon(R.layout.folder_icon, this, layout,
-                folderInfo);
+        FolderIcon newFolder = (FolderIcon) mItemInflater.inflateItem(folderInfo, layout);
         mWorkspace.addInScreen(newFolder, folderInfo);
         // Force measure the new folder icon
         CellLayout parent = mWorkspace.getParentCellLayoutForView(newFolder);
@@ -2236,11 +2234,6 @@ public class Launcher extends StatefulActivity<LauncherState>
     }
 
     @Override
-    public void preAddApps() {
-        mModelCallbacks.preAddApps();
-    }
-
-    @Override
     public void bindAppsAdded(IntArray newScreens, ArrayList<ItemInfo> addNotAnimated,
             ArrayList<ItemInfo> addAnimated) {
         mModelCallbacks.bindAppsAdded(newScreens, addNotAnimated, addAnimated);
@@ -2254,7 +2247,7 @@ public class Launcher extends StatefulActivity<LauncherState>
     @Override
     public void bindItems(final List<ItemInfo> items, final boolean forceAnimateIcons) {
         bindInflatedItems(items.stream()
-                .map(i -> Pair.create(i, getItemInflater().inflateItem(i, getModelWriter())))
+                .map(i -> Pair.create(i, getItemInflater().inflateItem(i)))
                 .collect(Collectors.toList()),
                 forceAnimateIcons ? new AnimatorSet() : null);
     }
@@ -2339,7 +2332,7 @@ public class Launcher extends StatefulActivity<LauncherState>
      * Add the views for a widget to the workspace.
      */
     public void bindAppWidget(LauncherAppWidgetInfo item) {
-        View view = mItemInflater.inflateItem(item, getModelWriter());
+        View view = mItemInflater.inflateItem(item);
         if (view != null) {
             mWorkspace.addInScreen(view, item);
             mWorkspace.requestLayout();
@@ -2532,6 +2525,11 @@ public class Launcher extends StatefulActivity<LauncherState>
     @Override
     public void bindWorkspaceComponentsRemoved(Predicate<ItemInfo> matcher) {
         mModelCallbacks.bindWorkspaceComponentsRemoved(matcher);
+    }
+
+    @Override
+    public void bindItemsModified(List<ItemInfo> items) {
+        mModelCallbacks.bindItemsModified(items);
     }
 
     /**
@@ -2983,9 +2981,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         return mModel;
     }
 
-    /**
-     * Returns the ModelWriter writer, make sure to call the function every time you want to use it.
-     */
+    @Override
     public ModelWriter getModelWriter() {
         return mModelWriter;
     }
@@ -3066,6 +3062,7 @@ public class Launcher extends StatefulActivity<LauncherState>
     }
 
     @Override
+    @NonNull
     public ItemInflater<Launcher> getItemInflater() {
         return mItemInflater;
     }

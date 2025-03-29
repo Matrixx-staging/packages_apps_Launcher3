@@ -49,6 +49,7 @@ import com.android.launcher3.Flags;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.dragndrop.FolderAdaptiveIcon;
+import com.android.launcher3.graphics.ShapeDelegate;
 import com.android.launcher3.graphics.ThemeManager;
 
 /**
@@ -67,6 +68,7 @@ public class ClipIconView extends View implements ClipPathView {
     private @Nullable Drawable mBackground;
 
     private boolean mIsAdaptiveIcon = false;
+    private boolean mIsFolderIcon = false;
 
     private ValueAnimator mRevealAnimator;
     private float mIconScale;
@@ -180,8 +182,9 @@ public class ClipIconView extends View implements ClipPathView {
             if ((!isOpening || Flags.enableLauncherIconShapes())
                     && progress >= shapeProgressStart) {
                 if (mRevealAnimator == null) {
-                    mRevealAnimator = themeManager.getIconShape()
-                            .createRevealAnimator(this, mStartRevealRect,
+                    ShapeDelegate shape = mIsFolderIcon ? themeManager.getFolderShape()
+                            : themeManager.getIconShape();
+                    mRevealAnimator = shape.createRevealAnimator(this, mStartRevealRect,
                                     mOutline, mTaskCornerRadius, !isOpening);
                     mRevealAnimator.addListener(forEndCallback(() -> mRevealAnimator = null));
                     mRevealAnimator.start();
@@ -235,7 +238,7 @@ public class ClipIconView extends View implements ClipPathView {
             boolean isOpening, DeviceProfile dp) {
         mIsAdaptiveIcon = drawable instanceof AdaptiveIconDrawable;
         if (mIsAdaptiveIcon) {
-            boolean isFolderIcon = drawable instanceof FolderAdaptiveIcon;
+            mIsFolderIcon = drawable instanceof FolderAdaptiveIcon;
 
             AdaptiveIconDrawable adaptiveIcon = (AdaptiveIconDrawable) drawable;
             Drawable background = adaptiveIcon.getBackground();
@@ -255,7 +258,7 @@ public class ClipIconView extends View implements ClipPathView {
             int blurMargin = mBlurSizeOutline / 2;
             mFinalDrawableBounds.set(0, 0, originalWidth, originalHeight);
 
-            if (!isFolderIcon) {
+            if (!mIsFolderIcon) {
                 mFinalDrawableBounds.inset(iconOffset - blurMargin, iconOffset - blurMargin);
             }
             mForeground.setBounds(mFinalDrawableBounds);
@@ -263,7 +266,7 @@ public class ClipIconView extends View implements ClipPathView {
 
             mStartRevealRect.set(0, 0, originalWidth, originalHeight);
 
-            if (!isFolderIcon) {
+            if (!mIsFolderIcon) {
                 Utilities.scaleRectAboutCenter(mStartRevealRect, ICON_VISIBLE_AREA_FACTOR);
             }
 
@@ -319,11 +322,13 @@ public class ClipIconView extends View implements ClipPathView {
             canvas.clipPath(mClipPath);
         }
         int count2 = canvas.save();
-        float iconCenterX =
-                (mFinalDrawableBounds.right - mFinalDrawableBounds.left) / 2f * mIconScale;
-        float iconCenterY =
-                (mFinalDrawableBounds.bottom - mFinalDrawableBounds.top) / 2f * mIconScale;
-        canvas.scale(mIconScale, mIconScale, iconCenterX, iconCenterY);
+        if (!mIsFolderIcon) {
+            float iconCenterX =
+                    (mFinalDrawableBounds.right - mFinalDrawableBounds.left) / 2f * mIconScale;
+            float iconCenterY =
+                    (mFinalDrawableBounds.bottom - mFinalDrawableBounds.top) / 2f * mIconScale;
+            canvas.scale(mIconScale, mIconScale, iconCenterX, iconCenterY);
+        }
         if (mBackground != null) {
             mBackground.draw(canvas);
         }

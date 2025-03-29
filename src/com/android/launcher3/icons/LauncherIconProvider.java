@@ -69,15 +69,7 @@ public class LauncherIconProvider extends IconProvider {
         super(context);
         mThemeManager = themeManager;
         mApiWrapper = apiWrapper;
-        setIconThemeSupported(mThemeManager.isMonoThemeEnabled());
-    }
-
-    /**
-     * Enables or disables icon theme support
-     */
-    public void setIconThemeSupported(boolean isSupported) {
-        mThemedIconMap = isSupported && FeatureFlags.USE_LOCAL_ICON_OVERRIDES.get()
-                ? null : DISABLED_MAP;
+        mThemedIconMap = FeatureFlags.USE_LOCAL_ICON_OVERRIDES.get() ? null : DISABLED_MAP;
     }
 
     @Override

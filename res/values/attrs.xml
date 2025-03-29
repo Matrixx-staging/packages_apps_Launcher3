@@ -40,6 +40,7 @@
     <attr name="iconOnlyShortcutColor" format="color" />
     <attr name="eduHalfSheetBGColor" format="color" />
     <attr name="overviewScrimColor" format="color" />
+    <attr name="overviewScrimColorOverBlur" format="color" />
     <attr name="popupNotificationDotColor" format="color" />
     <attr name="notificationDotColor" format="color" />
     <attr name="focusOutlineColor" format="color" />
@@ -170,7 +171,6 @@
         <attr name="numGridColumns" format="integer"/>
         <attr name="dbFile" />
         <attr name="defaultLayoutId"/>
-        <attr name="demoModeLayoutId"/>
     </declare-styleable>
 
     <declare-styleable name="GridDisplayOption">
@@ -232,7 +232,6 @@
 
         <attr name="dbFile" format="string" />
         <attr name="defaultLayoutId" format="reference" />
-        <attr name="demoModeLayoutId" format="reference" />
         <attr name="isScalable" format="boolean" />
         <attr name="devicePaddingId" format="reference" />
 

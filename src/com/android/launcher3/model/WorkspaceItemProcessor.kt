@@ -16,7 +16,6 @@
 package com.android.launcher3.model
 
 import android.annotation.SuppressLint
-import android.appwidget.AppWidgetProviderInfo
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -49,7 +48,6 @@ import com.android.launcher3.shortcuts.ShortcutKey
 import com.android.launcher3.shortcuts.ShortcutRequest
 import com.android.launcher3.util.ApiWrapper
 import com.android.launcher3.util.ApplicationInfoWrapper
-import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.PackageManagerHelper
 import com.android.launcher3.util.PackageUserKey
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo
@@ -76,7 +74,6 @@ class WorkspaceItemProcessor(
     private val iconCache: IconCache,
     private val isSafeMode: Boolean,
     private val bgDataModel: BgDataModel,
-    private val widgetProvidersMap: MutableMap<ComponentKey, AppWidgetProviderInfo?>,
     private val installingPkgs: HashMap<PackageUserKey, PackageInstaller.SessionInfo>,
     private val isSdCardReady: Boolean,
     private val widgetInflater: WidgetInflater,
@@ -584,7 +581,6 @@ class WorkspaceItemProcessor(
                 .commit()
         }
         if (lapi != null) {
-            widgetProvidersMap[ComponentKey(lapi.provider, lapi.user)] = inflationResult.widgetInfo
             if (appWidgetInfo.spanX < lapi.minSpanX || appWidgetInfo.spanY < lapi.minSpanY) {
                 FileLog.d(
                     TAG,

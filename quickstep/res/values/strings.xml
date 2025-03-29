@@ -386,4 +386,11 @@
     <string name="pin_to_taskbar">Pin to taskbar</string>
     <!-- Label for unpinning an item from the taskbar. [CHAR_LIMIT=20] -->
     <string name="unpin_from_taskbar">Unpin from taskbar</string>
+
+    <!-- ******* Growth Framework Nudge ******* -->
+    <!-- Accessibility title for the nudge window. [CHAR_LIMIT=NONE] -->
+    <string name="nudge_a11y_title">Nudge</string>
+    <!-- Accessibility announcement for closing the nudge window. [CHAR_LIMIT=16] -->
+    <string name="nudge_a11y_close">Close</string>
+    <string name="nudge_a11y_image">Nudge image</string>
 </resources>

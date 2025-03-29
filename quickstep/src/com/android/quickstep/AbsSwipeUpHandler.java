@@ -221,15 +221,6 @@ public abstract class AbsSwipeUpHandler<
     // The previous task view type before the user quick switches between tasks
     private TaskViewType mPreviousTaskViewType;
 
-    private final Runnable mLauncherOnDestroyCallback = () -> {
-        ActiveGestureProtoLogProxy.logLauncherDestroyed();
-        mRecentsView.removeOnScrollChangedListener(mOnRecentsScrollListener);
-        mRecentsView = null;
-        mContainer = null;
-        mStateCallback.clearState(STATE_LAUNCHER_PRESENT);
-        mRecentsAnimationStartCallbacks.clear();
-    };
-
     private static int FLAG_COUNT = 0;
     private static int getNextStateFlag(String name) {
         if (DEBUG_STATES) {
@@ -356,6 +347,16 @@ public abstract class AbsSwipeUpHandler<
     private final SwipePipToHomeAnimator[] mSwipePipToHomeAnimators =
             new SwipePipToHomeAnimator[2];
 
+    private final Runnable mLauncherOnDestroyCallback = () -> {
+        ActiveGestureProtoLogProxy.logLauncherDestroyed();
+        mRecentsView.removeOnScrollChangedListener(mOnRecentsScrollListener);
+        mRecentsView = null;
+        mContainer = null;
+        mStateCallback.clearState(STATE_LAUNCHER_PRESENT);
+        mRecentsAnimationStartCallbacks.clear();
+        mTaskAnimationManager.onLauncherDestroyed();
+    };
+
     // Interpolate RecentsView scale from start of quick switch scroll until this scroll threshold
     private final float mQuickSwitchScaleScrollThreshold;
 
@@ -380,12 +381,12 @@ public abstract class AbsSwipeUpHandler<
     private final MSDLPlayerWrapper mMSDLPlayerWrapper;
 
     public AbsSwipeUpHandler(Context context,
-            TaskAnimationManager taskAnimationManager, GestureState gestureState,
+            TaskAnimationManager taskAnimationManager, RecentsAnimationDeviceState deviceState,
+            GestureState gestureState,
             long touchTimeMs, boolean continuingLastGesture,
             InputConsumerController inputConsumer,
             MSDLPlayerWrapper msdlPlayerWrapper) {
         super(context, gestureState);
-        mDeviceState = RecentsAnimationDeviceState.INSTANCE.get(mContext);
         mContainerInterface = gestureState.getContainerInterface();
         mContextInitListener =
                 mContainerInterface.createActivityInitListener(this::onActivityInit);
@@ -400,6 +401,7 @@ public abstract class AbsSwipeUpHandler<
                     endLauncherTransitionController();
                 }, new InputProxyHandlerFactory(mContainerInterface, mGestureState));
         mTaskAnimationManager = taskAnimationManager;
+        mDeviceState = deviceState;
         mTouchTimeMs = touchTimeMs;
         mContinuingLastGesture = continuingLastGesture;
 
@@ -961,7 +963,21 @@ public abstract class AbsSwipeUpHandler<
     public void onRecentsAnimationStart(RecentsAnimationController controller,
             RecentsAnimationTargets targets, @Nullable TransitionInfo transitionInfo) {
         super.onRecentsAnimationStart(controller, targets, transitionInfo);
-        if (targets.hasDesktopTasks(mContext)) {
+        boolean forDesktop;
+        if (DesktopModeStatus.enableMultipleDesktops(mContext)) {
+            GroupedTaskInfo groupedTaskInfo;
+            if (mGestureState.getRunningTask() != null
+                    && (groupedTaskInfo =
+                    mGestureState.getRunningTask().getPlaceholderGroupedTaskInfo(
+                            /* splitTaskIds = */ null)) != null) {
+                forDesktop = groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_DESK);
+            } else {
+                forDesktop = false;
+            }
+        } else {
+            forDesktop = targets.hasDesktopTasks(mContext);
+        }
+        if (forDesktop) {
             mRemoteTargetHandles = mTargetGluer.assignTargetsForDesktop(targets, transitionInfo);
         } else {
             int untrimmedAppCount = mRemoteTargetHandles.length;
@@ -2787,6 +2803,7 @@ public abstract class AbsSwipeUpHandler<
     }
 
     public interface Factory {
-        AbsSwipeUpHandler newHandler(GestureState gestureState, long touchTimeMs);
+        @Nullable
+        AbsSwipeUpHandler<?, ?, ?> newHandler(GestureState gestureState, long touchTimeMs);
     }
 }

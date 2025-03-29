@@ -206,7 +206,7 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
     @Override
     protected WindowInsets getWindowInsets() {
         RecentsViewContainer container = getRecentsViewContainer();
-        WindowInsets insets = container == null
+        WindowInsets insets = container == null || container.getRootView() == null
                 ? null : container.getRootView().getRootWindowInsets();
         return insets == null ? super.getWindowInsets() : insets;
     }

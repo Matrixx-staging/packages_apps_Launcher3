@@ -565,7 +565,7 @@ public class DisplayController implements DesktopVisibilityListener {
             mShowLockedTaskbarOnHome = wmProxy.showLockedTaskbarOnHome(displayInfoContext);
             mShowDesktopTaskbarForFreeformDisplay = wmProxy.showDesktopTaskbarForFreeformDisplay(
                     displayInfoContext);
-            mIsHomeVisible = wmProxy.isHomeVisible(displayInfoContext);
+            mIsHomeVisible = wmProxy.isHomeVisible();
         }
 
         /**

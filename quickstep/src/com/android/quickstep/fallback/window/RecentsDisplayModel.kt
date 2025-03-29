@@ -28,8 +28,6 @@ import com.android.launcher3.util.DaggerSingletonTracker
 import com.android.launcher3.util.WallpaperColorHints
 import com.android.quickstep.DisplayModel
 import com.android.quickstep.FallbackWindowInterface
-import com.android.quickstep.RecentsAnimationDeviceState
-import com.android.quickstep.TaskAnimationManager
 import com.android.quickstep.dagger.QuickstepBaseAppComponent
 import com.android.quickstep.fallback.window.RecentsDisplayModel.RecentsDisplayResource
 import com.android.quickstep.fallback.window.RecentsWindowFlags.Companion.enableOverviewInWindow
@@ -84,10 +82,6 @@ constructor(
         return getDisplayResource(displayId)?.fallbackWindowInterface
     }
 
-    fun getTaskAnimationManager(displayId: Int): TaskAnimationManager? {
-        return getDisplayResource(displayId)?.taskAnimationManager
-    }
-
     val activeDisplayResources: Iterable<RecentsDisplayResource>
         get() =
             object : Iterable<RecentsDisplayResource> {
@@ -104,12 +98,6 @@ constructor(
             else null
         val fallbackWindowInterface =
             if (enableOverviewInWindow) FallbackWindowInterface(recentsWindowManager) else null
-        val taskAnimationManager =
-            TaskAnimationManager(
-                displayContext,
-                RecentsAnimationDeviceState.INSTANCE.get(displayContext),
-                displayId,
-            )
 
         override fun cleanup() {
             recentsWindowManager?.destroy()

@@ -40,6 +40,7 @@ import static com.android.app.animation.Interpolators.DECELERATE_1_5;
 import static com.android.app.animation.Interpolators.DECELERATE_1_7;
 import static com.android.app.animation.Interpolators.EXAGGERATED_EASE;
 import static com.android.app.animation.Interpolators.LINEAR;
+import static com.android.internal.util.LatencyTracker.ACTION_DESKTOP_MODE_EXIT_MODE_ON_LAST_WINDOW_CLOSE;
 import static com.android.launcher3.BaseActivity.EVENT_DESTROYED;
 import static com.android.launcher3.BaseActivity.INVISIBLE_ALL;
 import static com.android.launcher3.BaseActivity.INVISIBLE_BY_APP_TRANSITIONS;
@@ -122,6 +123,7 @@ import androidx.core.graphics.ColorUtils;
 
 import com.android.app.animation.Animations;
 import com.android.internal.jank.Cuj;
+import com.android.internal.util.LatencyTracker;
 import com.android.launcher3.DeviceProfile.OnDeviceProfileChangeListener;
 import com.android.launcher3.LauncherAnimationRunner.RemoteAnimationFactory;
 import com.android.launcher3.anim.AnimationSuccessListener;
@@ -263,6 +265,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
     private RemoteTransition mLauncherOpenTransition;
 
     private final RemoteAnimationCoordinateTransfer mCoordinateTransfer;
+    private final LatencyTracker mLatencyTracker;
 
     private LauncherBackAnimationController mBackAnimationController;
     private final AnimatorListenerAdapter mForceInvisibleListener = new AnimatorListenerAdapter() {
@@ -317,6 +320,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         mOpeningInterpolator = AnimationUtils.loadInterpolator(context,
                 R.interpolator.emphasized_interpolator);
         mCoordinateTransfer = new RemoteAnimationCoordinateTransfer(mLauncher);
+        mLatencyTracker = LatencyTracker.getInstance(context);
     }
 
     @Override
@@ -369,6 +373,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         LauncherTaskbarUIController taskbarController = mLauncher.getTaskbarUIController();
         if (syncAppLaunchWithTaskbarStash()
                 && enableScalingRevealHomeAnimation()
+                && mLauncher.getStateManager().getState() == NORMAL
                 && taskbarController != null) {
             taskbarController.setIgnoreInAppFlagForSync(true);
             mLauncher.addEventCallback(EVENT_DESTROYED, onEndCallback::executeAllAndDestroy);
@@ -1630,14 +1635,20 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
     }
 
     private void addCujInstrumentation(Animator anim, int cuj) {
-        anim.addListener(getCujAnimationSuccessListener(cuj));
+        anim.addListener(getCujAnimationSuccessListener(cuj, /* cujPreStartCallback= */null));
+    }
+
+    private void addCujInstrumentation(Animator anim, int cuj, Runnable cujPreStartCallback) {
+        anim.addListener(getCujAnimationSuccessListener(cuj, cujPreStartCallback));
     }
 
     private void addCujInstrumentation(RectFSpringAnim anim, int cuj) {
-        anim.addAnimatorListener(getCujAnimationSuccessListener(cuj));
+        anim.addAnimatorListener(
+                getCujAnimationSuccessListener(cuj, /* cujPreStartCallback= */null));
     }
 
-    private AnimationSuccessListener getCujAnimationSuccessListener(int cuj) {
+    private AnimationSuccessListener getCujAnimationSuccessListener(
+            int cuj, Runnable cujPreStartCallback) {
         return new AnimationSuccessListener() {
             @Override
             public void onAnimationStart(Animator animation) {
@@ -1651,7 +1662,9 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                                     return;
                                 }
                                 mHandled = true;
-
+                                if (cujPreStartCallback != null) {
+                                    cujPreStartCallback.run();
+                                }
                                 InteractionJankMonitorWrapper.begin(mDragLayer, cuj);
 
                                 mDragLayer.post(() ->
@@ -1803,8 +1816,13 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 addCujInstrumentation(rectFSpringAnim, Cuj.CUJ_LAUNCHER_APP_CLOSE_TO_HOME);
             } else {
                 if (isFreeformAnimation(appTargets)) {
-                    addCujInstrumentation(anim,
-                            Cuj.CUJ_DESKTOP_MODE_EXIT_MODE_ON_LAST_WINDOW_CLOSE);
+                    addCujInstrumentation(
+                            anim,
+                            Cuj.CUJ_DESKTOP_MODE_EXIT_MODE_ON_LAST_WINDOW_CLOSE,
+                            /* cujPreStartCallback= */ () -> {
+                                mLatencyTracker.onActionEnd(
+                                        ACTION_DESKTOP_MODE_EXIT_MODE_ON_LAST_WINDOW_CLOSE);
+                            });
                 }
                 addCujInstrumentation(anim, playFallBackAnimation
                         ? Cuj.CUJ_LAUNCHER_APP_CLOSE_TO_HOME_FALLBACK

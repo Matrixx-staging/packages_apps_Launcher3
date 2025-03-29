@@ -85,7 +85,6 @@ public class BubbleStashedHandleViewController {
         mActivity = activity;
         mStashedHandleView = stashedHandleView;
         mStashedHandleAlpha = new MultiValueAlpha(mStashedHandleView, 1);
-        mStashedHandleAlpha.setUpdateVisibility(true);
     }
 
     /** Initialize controller. */

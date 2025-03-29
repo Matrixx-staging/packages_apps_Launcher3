@@ -38,7 +38,6 @@ import com.android.launcher3.Launcher;
 import com.android.launcher3.R;
 import com.android.launcher3.celllayout.CellLayoutLayoutParams;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
-import com.android.launcher3.uioverrides.PredictedAppIcon;
 import com.android.launcher3.views.AbstractSlideInView;
 
 import java.util.List;
@@ -184,10 +183,9 @@ public class HotseatEduDialog extends AbstractSlideInView<Launcher> implements I
     private void populatePreview(List<WorkspaceItemInfo> predictions) {
         for (int i = 0; i < mActivityContext.getDeviceProfile().numShownHotseatIcons; i++) {
             WorkspaceItemInfo info = predictions.get(i);
-            PredictedAppIcon icon = PredictedAppIcon.createIcon(mSampleHotseat, info);
+            View icon = mActivityContext.getItemInflater().inflateItem(info, mSampleHotseat);
             icon.setEnabled(false);
             icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-            icon.verifyHighRes();
             CellLayoutLayoutParams lp = new CellLayoutLayoutParams(i, 0, 1, 1);
             mSampleHotseat.addViewToCellLayout(icon, i, info.getViewId(), lp, true);
         }

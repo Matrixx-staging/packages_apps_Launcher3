@@ -361,7 +361,8 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
      * @return the single top-most running taskId for this gesture
      */
     public int getTopRunningTaskId() {
-        return getRunningTaskIds(false /*getMultipleTasks*/)[0];
+        var taskIds = getRunningTaskIds(/* getMultipleTasks = */ false);
+        return taskIds.length != 0 ? taskIds[0] : INVALID_TASK_ID;
     }
 
     /**

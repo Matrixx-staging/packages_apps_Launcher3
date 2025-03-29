@@ -181,6 +181,9 @@ constructor(
     val firstItemInfo: ItemInfo?
         get() = firstTaskContainer?.itemInfo
 
+    val isOnGridBottomRow: Boolean
+        get() = recentsView?.isOnGridBottomRow(this) == true
+
     /**
      * A [TaskViewItemInfo] of this TaskView. The [firstTaskContainer] will be used to get some
      * specific information like user, title etc of the Task. However, these task specific
@@ -780,6 +783,10 @@ constructor(
                     else R.layout.icon_view
             }
             ?.inflate()
+
+        findViewById<ViewStub>(R.id.digital_wellbeing_toast)
+            ?.apply { layoutResource = R.layout.digital_wellbeing_toast }
+            ?.inflate()
     }
 
     override fun onAttachedToWindow() =
@@ -850,6 +857,13 @@ constructor(
 
                 if (enableOverviewIconMenu()) {
                     setIconState(container, containerState)
+                    if (
+                        containerState is TaskData &&
+                            container.digitalWellBeingToast?.isDestroyed == false &&
+                            container.task.titleDescription != null
+                    ) {
+                        container.digitalWellBeingToast.initialize()
+                    }
                 }
             }
         }
@@ -888,17 +902,21 @@ constructor(
             return thumbnailPosition
         }
 
-    override fun onDetachedFromWindow() =
-        traceSection("TaskView.onDetachedFromWindow") {
-            super.onDetachedFromWindow()
-            if (enableRefactorTaskThumbnail()) {
-                // The jobs are being cancelled in the background thread. So we make a copy of the
-                // list to prevent cleaning a new job that might be added to this list during
-                // onAttach or another moment in the lifecycle.
-                val coroutineJobsToCancel = coroutineJobs.toList()
-                coroutineJobs.clear()
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        cancelJobs()
+    }
+
+    fun cancelJobs() =
+        traceSection("TaskView.cancelJobs") {
+            // The jobs are being cancelled in the background thread. So we make a copy of the
+            // list to prevent cleaning a new job that might be added to this list during
+            // onAttach or another moment in the lifecycle.
+            val coroutineJobsToCancel = coroutineJobs.toList()
+            coroutineJobs.clear()
+            if (coroutineJobsToCancel.isNotEmpty()) {
                 coroutineScope.launch(dispatcherProvider.background) {
-                    traceSection("TaskView.onDetachedFromWindow.cancellingJobs") {
+                    traceSection("TaskView.cancelJobs.cancellingJobs") {
                         coroutineJobsToCancel.forEach {
                             it.cancel("TaskView detaching from window")
                         }
@@ -1181,7 +1199,6 @@ constructor(
                 if (state is TaskData.Data) {
                     setIcon(container.iconView, state.icon)
                     container.iconView.setText(state.title)
-                    container.digitalWellBeingToast?.initialize()
                 } else {
                     setIcon(container.iconView, null)
                     container.iconView.setText(null)

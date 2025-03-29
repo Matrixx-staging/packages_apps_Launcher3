@@ -20,6 +20,8 @@ import com.android.launcher3.FakeLauncherPrefs
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.dagger.ApiWrapperModule
 import com.android.launcher3.dagger.AppModule
+import com.android.launcher3.dagger.LauncherConcurrencyModule
+import com.android.launcher3.dagger.PerDisplayModule
 import com.android.launcher3.dagger.StaticObjectModule
 import com.android.launcher3.dagger.WidgetModule
 import com.android.launcher3.dagger.WindowManagerProxyModule
@@ -33,34 +35,29 @@ abstract class FakePrefsModule {
     @Binds abstract fun bindLauncherPrefs(prefs: FakeLauncherPrefs): LauncherPrefs
 }
 
-/** All modules. We also exclude the plugin module from tests */
 @Module(
     includes =
         [
-            ApiWrapperModule::class,
-            WindowManagerProxyModule::class,
             StaticObjectModule::class,
             WidgetModule::class,
             AppModule::class,
+            PerDisplayModule::class,
+            LauncherConcurrencyModule::class,
         ]
+)
+class CommonModulesForTest
+
+/** All modules. We also exclude the plugin module from tests */
+@Module(
+    includes =
+        [ApiWrapperModule::class, CommonModulesForTest::class, WindowManagerProxyModule::class]
 )
 class AllModulesForTest
 
 /** All modules except the WMProxy */
-@Module(
-    includes =
-        [ApiWrapperModule::class, StaticObjectModule::class, AppModule::class, WidgetModule::class]
-)
+@Module(includes = [ApiWrapperModule::class, CommonModulesForTest::class])
 class AllModulesMinusWMProxy
 
 /** All modules except the ApiWrapper */
-@Module(
-    includes =
-        [
-            WindowManagerProxyModule::class,
-            StaticObjectModule::class,
-            AppModule::class,
-            WidgetModule::class,
-        ]
-)
+@Module(includes = [WindowManagerProxyModule::class, CommonModulesForTest::class])
 class AllModulesMinusApiWrapper

@@ -297,6 +297,10 @@ class RecentsWindowManager(context: Context, wallpaperColorHints: Int) :
         stateManager.moveToRestState()
     }
 
+    fun onNewIntent() {
+        cleanupRecentsWindow()
+    }
+
     private fun cleanupRecentsWindow() {
         RecentsWindowProtoLogProxy.logCleanup(isShowing())
         if (isShowing()) {

@@ -556,6 +556,7 @@ class TransientBubbleStashController(
     ) {
         if (bubbleBarViewController.isHiddenForNoBubbles) {
             // If there are no bubbles the bar and handle are invisible, nothing to do here.
+            cancelAnimation()
             return
         }
         val isStashed = stash && !isBubblesShowingOnHome && !isBubblesShowingOnOverview

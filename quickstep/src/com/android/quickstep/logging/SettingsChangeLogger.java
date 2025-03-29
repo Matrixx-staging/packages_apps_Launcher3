@@ -19,15 +19,26 @@ package com.android.quickstep.logging;
 import static com.android.launcher3.LauncherPrefs.getDevicePrefs;
 import static com.android.launcher3.LauncherPrefs.getPrefs;
 import static com.android.launcher3.graphics.ThemeManager.KEY_THEMED_ICONS;
+import static com.android.launcher3.graphics.ThemeManager.PREF_ICON_SHAPE;
 import static com.android.launcher3.graphics.ThemeManager.THEMED_ICONS;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_HOME_SCREEN_SUGGESTIONS_DISABLED;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_HOME_SCREEN_SUGGESTIONS_ENABLED;
+import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ICON_SHAPE_ARCH;
+import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ICON_SHAPE_CIRCLE;
+import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ICON_SHAPE_FOUR_SIDED_COOKIE;
+import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ICON_SHAPE_SEVEN_SIDED_COOKIE;
+import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ICON_SHAPE_SQUARE;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_NOTIFICATION_DOT_DISABLED;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_NOTIFICATION_DOT_ENABLED;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_THEMED_ICON_DISABLED;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_THEMED_ICON_ENABLED;
 import static com.android.launcher3.model.DeviceGridState.KEY_WORKSPACE_SIZE;
 import static com.android.launcher3.model.PredictionUpdateTask.LAST_PREDICTION_ENABLED;
+import static com.android.launcher3.shapes.ShapesProvider.ARCH_KEY;
+import static com.android.launcher3.shapes.ShapesProvider.CIRCLE_KEY;
+import static com.android.launcher3.shapes.ShapesProvider.FOUR_SIDED_COOKIE_KEY;
+import static com.android.launcher3.shapes.ShapesProvider.SEVEN_SIDED_COOKIE_KEY;
+import static com.android.launcher3.shapes.ShapesProvider.SQUARE_KEY;
 import static com.android.launcher3.util.DisplayController.CHANGE_NAVIGATION_MODE;
 import static com.android.launcher3.util.SettingsCache.NOTIFICATION_BADGING_URI;
 
@@ -41,12 +52,14 @@ import android.util.Xml;
 
 import androidx.annotation.VisibleForTesting;
 
+import com.android.launcher3.Flags;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.R;
 import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.logging.InstanceId;
 import com.android.launcher3.logging.StatsLogManager;
+import com.android.launcher3.logging.StatsLogManager.LauncherEvent;
 import com.android.launcher3.logging.StatsLogManager.StatsLogger;
 import com.android.launcher3.model.DeviceGridState;
 import com.android.launcher3.util.DaggerSingletonObject;
@@ -86,8 +99,8 @@ public class SettingsChangeLogger implements
     private final StatsLogManager mStatsLogManager;
 
     private NavigationMode mNavMode;
-    private StatsLogManager.LauncherEvent mNotificationDotsEvent;
-    private StatsLogManager.LauncherEvent mHomeScreenSuggestionEvent;
+    private LauncherEvent mNotificationDotsEvent;
+    private LauncherEvent mHomeScreenSuggestionEvent;
 
     private final SettingsCache.OnChangeListener mListener = this::onNotificationDotsChanged;
 
@@ -168,7 +181,7 @@ public class SettingsChangeLogger implements
     }
 
     private void onNotificationDotsChanged(boolean isDotsEnabled) {
-        StatsLogManager.LauncherEvent mEvent =
+        LauncherEvent mEvent =
                 isDotsEnabled ? LAUNCHER_NOTIFICATION_DOT_ENABLED
                         : LAUNCHER_NOTIFICATION_DOT_DISABLED;
 
@@ -218,6 +231,19 @@ public class SettingsChangeLogger implements
         logger.log(LauncherPrefs.get(mContext).get(THEMED_ICONS)
                 ? LAUNCHER_THEMED_ICON_ENABLED
                 : LAUNCHER_THEMED_ICON_DISABLED);
+
+        if (Flags.enableLauncherIconShapes()) {
+            Optional.ofNullable(
+                    switch (LauncherPrefs.get(mContext).get(PREF_ICON_SHAPE)) {
+                        case CIRCLE_KEY -> LAUNCHER_ICON_SHAPE_CIRCLE;
+                        case SQUARE_KEY -> LAUNCHER_ICON_SHAPE_SQUARE;
+                        case FOUR_SIDED_COOKIE_KEY -> LAUNCHER_ICON_SHAPE_FOUR_SIDED_COOKIE;
+                        case SEVEN_SIDED_COOKIE_KEY -> LAUNCHER_ICON_SHAPE_SEVEN_SIDED_COOKIE;
+                        case ARCH_KEY -> LAUNCHER_ICON_SHAPE_ARCH;
+                        default -> null;
+                    }
+            ).ifPresent(logger::log);
+        }
 
         mLoggablePrefs.forEach((key, lp) -> logger.log(() ->
                 prefs.getBoolean(key, lp.defaultValue) ? lp.eventIdOn : lp.eventIdOff));

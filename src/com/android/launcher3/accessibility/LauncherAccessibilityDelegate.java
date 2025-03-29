@@ -490,7 +490,7 @@ public class LauncherAccessibilityDelegate extends BaseAccessibilityDelegate<Lau
 
     private void bindItem(ItemInfo item, boolean focusForAccessibility,
             @Nullable Consumer<Boolean> finishCallback) {
-        View view = mContext.getItemInflater().inflateItem(item, mContext.getModelWriter());
+        View view = mContext.getItemInflater().inflateItem(item);
         if (view == null) {
             if (finishCallback != null) {
                 finishCallback.accept(false /*success*/);

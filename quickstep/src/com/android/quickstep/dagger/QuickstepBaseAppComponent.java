@@ -16,6 +16,8 @@
 
 package com.android.quickstep.dagger;
 
+import com.android.app.displaylib.DisplayRepository;
+import com.android.app.displaylib.PerDisplayRepository;
 import com.android.launcher3.dagger.LauncherAppComponent;
 import com.android.launcher3.dagger.LauncherBaseAppComponent;
 import com.android.launcher3.model.WellbeingModel;
@@ -27,6 +29,7 @@ import com.android.quickstep.RotationTouchHelper;
 import com.android.quickstep.SimpleOrientationTouchTransformer;
 import com.android.quickstep.SystemDecorationChangeObserver;
 import com.android.quickstep.SystemUiProxy;
+import com.android.quickstep.TaskAnimationManager;
 import com.android.quickstep.TopTaskTracker;
 import com.android.quickstep.fallback.window.RecentsDisplayModel;
 import com.android.quickstep.logging.SettingsChangeLogger;
@@ -64,7 +67,8 @@ public interface QuickstepBaseAppComponent extends LauncherBaseAppComponent {
 
     ContextualSearchStateManager getContextualSearchStateManager();
 
-    RecentsAnimationDeviceState getRecentsAnimationDeviceState();
+    PerDisplayRepository<RecentsAnimationDeviceState> getRecentsAnimationDeviceStateRepository();
+    PerDisplayRepository<TaskAnimationManager> getTaskAnimationManagerRepository();
 
     RecentsModel getRecentsModel();
 
@@ -73,4 +77,6 @@ public interface QuickstepBaseAppComponent extends LauncherBaseAppComponent {
     SimpleOrientationTouchTransformer getSimpleOrientationTouchTransformer();
 
     SystemDecorationChangeObserver getSystemDecorationChangeObserver();
+
+    DisplayRepository getDisplayRepository();
 }

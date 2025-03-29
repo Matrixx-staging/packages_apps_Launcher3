@@ -34,6 +34,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
@@ -91,6 +92,16 @@ class TaskViewModel(
     val state: Flow<TaskTileUiState> =
         combine(taskData, isLiveTile, overlayEnabled, isCentralTask, ::mapToTaskTile)
             .distinctUntilChanged()
+            .debounce { state ->
+                // Debouncing only when thumbnails are not present gives the best results.
+                // This is because thumbnail loading is a decent predictor of there being no more
+                // emissions to come as they are typically the last emission for a TaskView.
+                if (state.tasks.any { (it as? TaskData.Data)?.thumbnailData?.thumbnail == null }) {
+                    DEBOUNCE_DELAY_MS
+                } else {
+                    0
+                }
+            }
             .flowOn(dispatcherProvider.background)
 
     fun bind(vararg taskId: TaskId) {
@@ -150,5 +161,6 @@ class TaskViewModel(
 
     private companion object {
         const val TAG = "TaskViewModel"
+        const val DEBOUNCE_DELAY_MS = 16L
     }
 }

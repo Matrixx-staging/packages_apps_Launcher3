@@ -18,8 +18,8 @@ package com.android.launcher3.model
 import android.graphics.Rect
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
+import com.android.launcher3.util.ModelTestExtensions.bgDataModel
 import com.google.common.truth.Truth.assertThat
-import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -34,17 +34,8 @@ class WorkspaceItemSpaceFinderTest : AbstractWorkspaceModelTest() {
         super.setup()
     }
 
-    @After
-    override fun tearDown() {
-        super.tearDown()
-    }
-
     private fun findSpace(spanX: Int, spanY: Int): NewItemSpace =
-        WorkspaceItemSpaceFinder(
-                mModelHelper.bgDataModel,
-                mAppState.invariantDeviceProfile,
-                mModelHelper.model,
-            )
+        WorkspaceItemSpaceFinder(model.bgDataModel, mAppState.invariantDeviceProfile, model)
             .findSpaceForItem(mExistingScreens, mNewScreens, spanX, spanY)
             .let { NewItemSpace.fromIntArray(it) }
 

@@ -145,6 +145,7 @@ public class PrivateProfileManager extends UserProfileManager {
     private final String mPrivateSpaceAppContentDesc;
     private final String mLockedStateContentDesc;
     private final String mUnLockedStateContentDesc;
+    private final String mPSAppTitleOverride;
 
     public PrivateProfileManager(UserManager userManager,
             ActivityAllAppsContainerView<?> allApps,
@@ -170,6 +171,7 @@ public class PrivateProfileManager extends UserProfileManager {
                 R.dimen.ps_lock_icon_text_margin_start_expanded);
         mLockTextMarginEnd = mAllApps.getContext().getResources().getDimensionPixelSize(
                 R.dimen.ps_lock_icon_text_margin_end_expanded);
+        mPSAppTitleOverride = mAllApps.getContext().getString(R.string.ps_app_label_override);
     }
 
     /** Adds Private Space Header to the layout. */
@@ -937,6 +939,10 @@ public class PrivateProfileManager extends UserProfileManager {
 
     String getPsAppContentDesc() {
         return mPrivateSpaceAppContentDesc;
+    }
+
+    String getPSAppTitleOverride() {
+        return mPSAppTitleOverride;
     }
 
     boolean isPrivateSpaceItem(BaseAllAppsAdapter.AdapterItem item) {

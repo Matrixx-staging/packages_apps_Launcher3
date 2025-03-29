@@ -42,12 +42,11 @@ import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.util.AllModulesForTest
 import com.android.launcher3.util.Executors
-import com.android.launcher3.util.LauncherModelHelper
+import com.android.launcher3.util.SandboxApplication
 import com.android.launcher3.util.TestUtil
 import com.google.common.truth.Truth.assertThat
 import dagger.BindsInstance
 import dagger.Component
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -63,10 +62,9 @@ import org.mockito.kotlin.whenever
 class PackageUpdatedTaskTest {
 
     @get:Rule val setFlagsRule = SetFlagsRule()
+    @get:Rule val mContext = SandboxApplication()
 
     private val mUser = myUserHandle()
-    private val mLauncherModelHelper = LauncherModelHelper()
-    private val mContext = mLauncherModelHelper.sandboxContext
 
     private val expectedPackage = "Test.Package"
     private val expectedComponent = ComponentName(expectedPackage, "TestClass")
@@ -119,11 +117,6 @@ class PackageUpdatedTaskTest {
             whenever(targetPackage).thenReturn(expectedPackage)
             whenever(targetComponent).thenReturn(expectedComponent)
         }
-    }
-
-    @After
-    fun tearDown() {
-        mLauncherModelHelper.destroy()
     }
 
     @Test

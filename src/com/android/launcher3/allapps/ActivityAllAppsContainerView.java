@@ -1425,6 +1425,11 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
             mTmpPath.reset();
             mTmpPath.addRoundRect(mTmpRectF, mBottomSheetCornerRadii, Direction.CW);
             canvas.drawPath(mTmpPath, mHeaderPaint);
+
+            // When the background panel is blurred, we don't add header protection.
+            if (Flags.allAppsBlur()) {
+                return;
+            }
         }
 
         if (DEBUG_HEADER_PROTECTION) {

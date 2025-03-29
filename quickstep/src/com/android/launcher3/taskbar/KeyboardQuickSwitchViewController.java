@@ -43,6 +43,7 @@ import com.android.launcher3.taskbar.overlay.TaskbarOverlayContext;
 import com.android.launcher3.taskbar.overlay.TaskbarOverlayDragLayer;
 import com.android.launcher3.views.BaseDragLayer;
 import com.android.quickstep.SystemUiProxy;
+import com.android.quickstep.util.DesktopTask;
 import com.android.quickstep.util.GroupTask;
 import com.android.quickstep.util.SingleTask;
 import com.android.quickstep.util.SlideInRemoteTransition;
@@ -50,6 +51,7 @@ import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.recents.model.ThumbnailData;
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
 import com.android.systemui.shared.system.QuickStepContract;
+import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource;
 import com.android.wm.shell.shared.desktopmode.DesktopTaskToFrontReason;
 
 import java.io.PrintWriter;
@@ -266,9 +268,11 @@ public class KeyboardQuickSwitchViewController {
                 onStartCallback,
                 onFinishCallback),
                 "SlideInTransition");
+        SystemUiProxy systemUiProxy = SystemUiProxy.INSTANCE.get(
+                mKeyboardQuickSwitchView.getContext());
         if (index == mKeyboardQuickSwitchView.getDesktopTaskIndex()) {
             UI_HELPER_EXECUTOR.execute(() ->
-                    SystemUiProxy.INSTANCE.get(mKeyboardQuickSwitchView.getContext())
+                    systemUiProxy
                             .showDesktopApps(
                                     mKeyboardQuickSwitchView.getDisplay().getDisplayId(),
                                     slideInTransition));
@@ -284,20 +288,19 @@ public class KeyboardQuickSwitchViewController {
             // Ignore attempts to run the selected task if it is already running.
             return -1;
         }
+
+        if (Flags.enableAltTabKqsFlatenning()
+                && tryLaunchingCombinedTask(task, slideInTransition, systemUiProxy)) {
+            return -1;
+        }
+
         RemoteTransition remoteTransition = slideInTransition;
         boolean canUnminimizeDesktopTask = task instanceof SingleTask singleTask
                 && mControllers.taskbarActivityContext.canUnminimizeDesktopTask(
                         singleTask.getTask().key.id);
         if (mOnDesktop && canUnminimizeDesktopTask) {
             // This app is being unminimized - use our own transition runner.
-            remoteTransition = new RemoteTransition(
-                    new DesktopAppLaunchTransition(
-                            context,
-                            UNMINIMIZE,
-                            Cuj.CUJ_DESKTOP_MODE_KEYBOARD_QUICK_SWITCH_APP_LAUNCH,
-                            MAIN_EXECUTOR
-                    ),
-                    "DesktopKeyboardQuickSwitchUnminimize");
+            remoteTransition = getUnminimizeTransition();
         }
         mControllers.taskbarActivityContext.handleGroupTaskLaunch(
                 task,
@@ -307,6 +310,61 @@ public class KeyboardQuickSwitchViewController {
                 onStartCallback,
                 onFinishCallback);
         return -1;
+    }
+
+    private boolean tryLaunchingCombinedTask(GroupTask task, RemoteTransition slideInTransition,
+            SystemUiProxy systemUiProxy) {
+        TaskbarActivityContext context = mControllers.taskbarActivityContext;
+        int taskId = task.getTasks().getFirst().key.id;
+
+        // All DesktopTasks, irrespective of whether desktop mode is active, are launched here as
+        // the class DesktopTask is used in a special way by KQS view for showing thumbnails of
+        // freeform tasks.
+        if (task instanceof DesktopTask) {
+            boolean canUnminimizeDesktopTask = context.canUnminimizeDesktopTask(taskId);
+            runOnUiWithJankMonitoring(() -> {
+                if (!mOnDesktop) {
+                    systemUiProxy.showDesktopApps(context.getDisplayId(), slideInTransition);
+                }
+
+                systemUiProxy.showDesktopApp(taskId,
+                        canUnminimizeDesktopTask ? getUnminimizeTransition() : null,
+                        DesktopTaskToFrontReason.ALT_TAB);
+            });
+            return true;
+        } else if (mOnDesktop && task instanceof SingleTask) {
+            // Use the special API if user wants to switch to a fullscreen app while in desktop.
+            runOnUiWithJankMonitoring(
+                    () -> systemUiProxy.moveToFullscreen(taskId,
+                            DesktopModeTransitionSource.KEYBOARD_SHORTCUT, slideInTransition));
+            return true;
+        }
+
+        // For all other cases, let TaskbarActivityContext handle launching the task.
+        return false;
+    }
+
+    private void runOnUiWithJankMonitoring(Runnable runnable) {
+        Runnable onStartCallback = () -> InteractionJankMonitorWrapper.begin(
+                mKeyboardQuickSwitchView, Cuj.CUJ_LAUNCHER_KEYBOARD_QUICK_SWITCH_APP_LAUNCH);
+        Runnable onFinishCallback = () -> InteractionJankMonitorWrapper.end(
+                Cuj.CUJ_LAUNCHER_KEYBOARD_QUICK_SWITCH_APP_LAUNCH);
+        UI_HELPER_EXECUTOR.execute(() -> {
+            onStartCallback.run();
+            runnable.run();
+            onFinishCallback.run();
+        });
+    }
+
+    private RemoteTransition getUnminimizeTransition() {
+        return new RemoteTransition(
+                new DesktopAppLaunchTransition(
+                        mControllers.taskbarActivityContext,
+                        UNMINIMIZE,
+                        Cuj.CUJ_DESKTOP_MODE_KEYBOARD_QUICK_SWITCH_APP_LAUNCH,
+                        MAIN_EXECUTOR
+                ),
+                "DesktopKeyboardQuickSwitchUnminimize");
     }
 
     private void onCloseComplete() {

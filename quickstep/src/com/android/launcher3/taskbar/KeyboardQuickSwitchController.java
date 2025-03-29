@@ -15,6 +15,7 @@
  */
 package com.android.launcher3.taskbar;
 
+import static com.android.launcher3.Flags.enableAltTabKqsFlatenning;
 import static com.android.launcher3.Flags.enableAltTabKqsOnConnectedDisplays;
 
 import android.app.ActivityManager;
@@ -48,6 +49,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Handles initialization of the {@link KeyboardQuickSwitchViewController}.
@@ -243,11 +245,37 @@ public final class KeyboardQuickSwitchController implements
     private void processLoadedTasks(List<GroupTask> tasks, Set<Integer> taskIdsToExclude) {
         mHasDesktopTask = false;
         mWasDesktopTaskFilteredOut = false;
-        if (mControllers.taskbarDesktopModeController.shouldShowDesktopTasksInTaskbar()) {
+
+        if (enableAltTabKqsFlatenning()) {
+            processLoadedTasksCombined(tasks, taskIdsToExclude);
+        } else if (mControllers.taskbarDesktopModeController.shouldShowDesktopTasksInTaskbar()) {
             processLoadedTasksOnDesktop(tasks, taskIdsToExclude);
         } else {
             processLoadedTasksOutsideDesktop(tasks, taskIdsToExclude);
         }
+    }
+
+    private void processLoadedTasksCombined(List<GroupTask> tasks, Set<Integer> taskIdsToExclude) {
+        List<GroupTask> allTasks = tasks.stream()
+                .flatMap(task -> {
+                    // In case of DesktopTasks, convert each contained task into a new DesktopTask
+                    // this way the view controller will be able to show a thumbnail in KQS view.
+                    if (task instanceof DesktopTask desktopTask) {
+                        return desktopTask.getTasks().stream()
+                                .map(singleTask -> new DesktopTask(desktopTask.getDeskId(),
+                                        desktopTask.getDisplayId(), List.of(singleTask)));
+                    }
+
+                    return Stream.of(task);
+                })
+                .filter(task -> !shouldExcludeTask(task, taskIdsToExclude))
+                .toList();
+
+        // TODO(b/382769617): Sort tasks, including desktop and split, before limiting to max.
+        mTasks = allTasks.stream()
+                .limit(MAX_TASKS)
+                .toList();
+        mNumHiddenTasks = Math.max(0, allTasks.size() - MAX_TASKS);
     }
 
     private void processLoadedTasksOutsideDesktop(List<GroupTask> tasks,

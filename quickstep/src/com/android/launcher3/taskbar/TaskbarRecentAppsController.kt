@@ -171,7 +171,12 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
     // tasks again if we have already requested it and the task list has not changed
     private var taskListChangeId = -1
 
-    fun init(taskbarControllers: TaskbarControllers) {
+    private var recentTasksLoaded = false
+
+    fun init(taskbarControllers: TaskbarControllers, previousShownTasks: List<GroupTask>) {
+        if (previousShownTasks.isNotEmpty()) {
+            shownTasks = previousShownTasks
+        }
         controllers = taskbarControllers
         if (canShowRunningApps || canShowRecentApps) {
             recentsModel.registerRecentTasksChangedListener(recentTasksChangedListener)
@@ -180,6 +185,10 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
     }
 
     fun onDestroy() {
+        controllers.sharedState?.recentTasksBeforeTaskbarRecreate?.clear()
+        if (shownTasks.isNotEmpty()) {
+            controllers.sharedState?.recentTasksBeforeTaskbarRecreate?.addAll(shownTasks)
+        }
         recentsModel.unregisterRecentTasksChangedListener()
         iconLoadRequests.forEach { it.cancel() }
         iconLoadRequests.clear()
@@ -211,7 +220,9 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
                 )
         }
 
-        onRecentsOrHotseatChanged()
+        if (recentTasksLoaded) {
+            onRecentsOrHotseatChanged()
+        }
 
         return shownHotseatItems.toTypedArray()
     }
@@ -229,6 +240,7 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
             taskListChangeId =
                 recentsModel.getTasks(
                     { tasks ->
+                        recentTasksLoaded = true
                         allRecentTasks = tasks
                         val oldRunningTaskdIds = runningTaskIds
                         val oldMinimizedTaskIds = minimizedTaskIds

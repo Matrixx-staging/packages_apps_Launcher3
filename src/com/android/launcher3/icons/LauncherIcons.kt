@@ -88,7 +88,12 @@ internal constructor(
         canvas.clipPath(overridePath)
         canvas.drawColor(Color.BLACK)
         canvas.save()
-        canvas.scale(iconScale, iconScale, canvas.width / 2f, canvas.height / 2f)
+        canvas.scale(
+            iconScale,
+            iconScale,
+            drawable.bounds.exactCenterX(),
+            drawable.bounds.exactCenterY(),
+        )
         if (drawable.background != null) {
             drawable.background.draw(canvas)
         }

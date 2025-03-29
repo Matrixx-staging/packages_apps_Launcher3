@@ -692,7 +692,7 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
 
     /** Tells SysUI to move the dragged bubble to full screen. */
     fun moveDraggedBubbleToFullscreen(key: String, dropLocation: Point) {
-        executeWithErrorLog({ "Failed to call moveDraggedBubbleToFullscreen"}) {
+        executeWithErrorLog({ "Failed to call moveDraggedBubbleToFullscreen" }) {
             bubbles?.moveDraggedBubbleToFullscreen(key, dropLocation)
         }
     }
@@ -1130,6 +1130,17 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
     ) =
         executeWithErrorLog({ "Failed call showDesktopApp" }) {
             desktopMode?.showDesktopApp(taskId, transition, toFrontReason)
+        }
+
+    /** Call shell to move to an existing fullscreen task (given by [taskId]) from desktop. */
+    @JvmOverloads
+    fun moveToFullscreen(
+        taskId: Int,
+        desktopModeTransitionSource: DesktopModeTransitionSource,
+        remoteTransition: RemoteTransition? = null,
+    ) =
+        executeWithErrorLog({ "Failed call moveToFullscreen" }) {
+            desktopMode?.moveToFullscreen(taskId, desktopModeTransitionSource, remoteTransition)
         }
 
     /** Set a listener on shell to get updates about desktop task state */

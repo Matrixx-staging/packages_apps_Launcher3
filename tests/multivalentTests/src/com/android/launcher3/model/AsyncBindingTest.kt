@@ -24,6 +24,8 @@ import android.view.View
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.android.launcher3.Flags
+import com.android.launcher3.LauncherAppState
+import com.android.launcher3.LauncherModel
 import com.android.launcher3.model.BgDataModel.Callbacks
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.util.Executors.MAIN_EXECUTOR
@@ -32,10 +34,11 @@ import com.android.launcher3.util.IntArray
 import com.android.launcher3.util.IntSet
 import com.android.launcher3.util.ItemInflater
 import com.android.launcher3.util.LauncherLayoutBuilder
-import com.android.launcher3.util.LauncherModelHelper
 import com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE
+import com.android.launcher3.util.ModelTestExtensions.loadModelSync
 import com.android.launcher3.util.RunnableList
-import org.junit.After
+import com.android.launcher3.util.SandboxApplication
+import com.android.launcher3.util.rule.LayoutProviderRule
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -63,29 +66,31 @@ import org.mockito.kotlin.whenever
 class AsyncBindingTest {
 
     @get:Rule val setFlagsRule = SetFlagsRule()
+    @get:Rule val context = SandboxApplication().withModelDependency()
+    @get:Rule val layoutProvider = LayoutProviderRule(context)
 
     @Spy private var callbacks = MyCallbacks()
     @Mock private lateinit var itemInflater: ItemInflater<*>
 
     private val inflationLooper = SparseArray<Looper>()
 
-    private lateinit var modelHelper: LauncherModelHelper
+    private val model: LauncherModel
+        get() = LauncherAppState.getInstance(context).model
 
     @Before
     fun setUp() {
         setFlagsRule.enableFlags(Flags.FLAG_ENABLE_WORKSPACE_INFLATION)
         MockitoAnnotations.initMocks(this)
-        modelHelper = LauncherModelHelper()
 
         doAnswer { i ->
                 inflationLooper[(i.arguments[0] as ItemInfo).id] = Looper.myLooper()
-                View(modelHelper.sandboxContext)
+                View(context)
             }
             .whenever(itemInflater)
-            .inflateItem(any(), any(), isNull())
+            .inflateItem(any(), isNull())
 
         // Set up the workspace with 3 pages of apps
-        modelHelper.setupDefaultLayoutProvider(
+        layoutProvider.setupDefaultLayoutProvider(
             LauncherLayoutBuilder()
                 .atWorkspace(0, 1, 0)
                 .putApp(TEST_PACKAGE, TEST_PACKAGE)
@@ -100,14 +105,9 @@ class AsyncBindingTest {
         )
     }
 
-    @After
-    fun tearDown() {
-        modelHelper.destroy()
-    }
-
     @Test
     fun test_bind_normally_without_itemInflater() {
-        MAIN_EXECUTOR.execute { modelHelper.model.addCallbacksAndLoad(callbacks) }
+        MAIN_EXECUTOR.execute { model.addCallbacksAndLoad(callbacks) }
         waitForLoaderAndTempMainThread()
 
         verify(callbacks, never()).bindInflatedItems(any())
@@ -117,7 +117,7 @@ class AsyncBindingTest {
     @Test
     fun test_bind_inflates_item_on_background() {
         callbacks.inflater = itemInflater
-        MAIN_EXECUTOR.execute { modelHelper.model.addCallbacksAndLoad(callbacks) }
+        MAIN_EXECUTOR.execute { model.addCallbacksAndLoad(callbacks) }
         waitForLoaderAndTempMainThread()
 
         verify(callbacks, never()).bindItems(any(), any())
@@ -135,14 +135,14 @@ class AsyncBindingTest {
 
     @Test
     fun test_bind_sync_partially_inflates_on_background() {
-        modelHelper.loadModelSync()
-        assertTrue(modelHelper.model.isModelLoaded())
+        model.loadModelSync()
+        assertTrue(model.isModelLoaded())
         callbacks.inflater = itemInflater
 
         val firstPageBindIds = IntSet()
 
         MAIN_EXECUTOR.submit {
-                modelHelper.model.addCallbacksAndLoad(callbacks)
+                model.addCallbacksAndLoad(callbacks)
                 verify(callbacks, never()).bindItems(any(), any())
                 verify(callbacks, times(1))
                     .bindInflatedItems(

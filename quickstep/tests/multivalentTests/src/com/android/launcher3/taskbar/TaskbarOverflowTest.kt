@@ -129,7 +129,10 @@ class TaskbarOverflowTest {
             if (!recentAppsController.canShowRunningApps) {
                 recentAppsController.onDestroy()
                 recentAppsController.canShowRunningApps = true
-                recentAppsController.init(taskbarUnitTestRule.activityContext.controllers)
+                recentAppsController.init(
+                    taskbarUnitTestRule.activityContext.controllers,
+                    emptyList(),
+                )
             }
 
             currentControllerInitCallback.invoke()

@@ -417,6 +417,7 @@ public class RecentTasksList implements WindowManagerProxy.DesktopVisibilityList
                 continue;
             }
 
+            // [getTaskInfo1] will not be null for types below beside [TYPE_DESK].
             if (Flags.enableShellTopTaskTracking()) {
                 final TaskInfo taskInfo1 = rawTask.getBaseGroupedTask().getTaskInfo1();
                 final Task.TaskKey task1Key = new Task.TaskKey(taskInfo1);

@@ -20,13 +20,11 @@ import android.content.Intent
 import android.content.pm.ShortcutInfo
 import android.os.UserHandle
 import android.text.TextUtils
-import android.util.Pair
 import androidx.annotation.WorkerThread
 import com.android.launcher3.celllayout.CellPosMapper
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.icons.IconCache
-import com.android.launcher3.model.AddWorkspaceItemsTask
 import com.android.launcher3.model.AllAppsList
 import com.android.launcher3.model.BaseLauncherBinder.BaseLauncherBinderFactory
 import com.android.launcher3.model.BgDataModel
@@ -45,8 +43,6 @@ import com.android.launcher3.model.ReloadStringCacheTask
 import com.android.launcher3.model.ShortcutsChangedTask
 import com.android.launcher3.model.UserLockStateChangedTask
 import com.android.launcher3.model.UserManagerState
-import com.android.launcher3.model.WorkspaceItemSpaceFinder
-import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.shortcuts.ShortcutRequest
@@ -85,7 +81,6 @@ constructor(
     private val mBgDataModel: BgDataModel,
     private val loaderFactory: LoaderTaskFactory,
     private val binderFactory: BaseLauncherBinderFactory,
-    private val spaceFinderFactory: Provider<WorkspaceItemSpaceFinder>,
     val modelDbController: ModelDbController,
 ) {
 
@@ -132,12 +127,6 @@ constructor(
     }
 
     fun newModelCallbacks() = ModelLauncherCallbacks(this::enqueueModelUpdateTask)
-
-    /** Adds the provided items to the workspace. */
-    fun addAndBindAddedWorkspaceItems(itemList: List<Pair<ItemInfo?, Any?>?>) {
-        callbacks.forEach { it.preAddApps() }
-        enqueueModelUpdateTask(AddWorkspaceItemsTask(itemList, spaceFinderFactory.get()))
-    }
 
     fun getWriter(
         verifyChanges: Boolean,

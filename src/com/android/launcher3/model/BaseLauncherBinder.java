@@ -38,7 +38,6 @@ import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherModel;
 import com.android.launcher3.LauncherModel.CallbackTask;
 import com.android.launcher3.LauncherSettings;
-import com.android.launcher3.celllayout.CellPosMapper;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.model.BgDataModel.Callbacks;
@@ -370,10 +369,8 @@ public class BaseLauncherBinder {
                 return;
             }
 
-            ModelWriter writer = mModel.getWriter(
-                    false /* verifyChanges */, CellPosMapper.DEFAULT, null);
             List<Pair<ItemInfo, View>> bindItems = items.stream()
-                    .map(i -> Pair.create(i, inflater.inflateItem(i, writer, null)))
+                    .map(i -> Pair.create(i, inflater.inflateItem(i, null)))
                     .collect(Collectors.toList());
             executeCallbacksTask(c -> c.bindInflatedItems(bindItems), executor);
         }

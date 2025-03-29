@@ -481,6 +481,7 @@ android_library {
         "SettingsLibSettingsTheme",
         "dagger2",
         "protolog-group",
+        "displaylib",
     ],
     manifest: "quickstep/AndroidManifest.xml",
     min_sdk_version: "current",

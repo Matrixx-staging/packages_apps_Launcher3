@@ -561,6 +561,15 @@ public class ActiveGestureProtoLogProxy {
                 displayId);
     }
 
+    public static void logOnAbsSwipeUpHandlerNotAvailable(int displayId) {
+        ActiveGestureLog.INSTANCE.addLog(new ActiveGestureLog.CompoundString(
+                "AbsSwipeUpHandler not available for displayId=%d",
+                displayId));
+        if (!enableActiveGestureProtoLog() || !isProtoLogInitialized()) return;
+        ProtoLog.d(ACTIVE_GESTURE_LOG, "AbsSwipeUpHandler not available for displayId=%d",
+                displayId);
+    }
+
     public static void logGestureStartSwipeHandler(@NonNull String interactionHandler) {
         ActiveGestureLog.INSTANCE.addLog(new ActiveGestureLog.CompoundString(
                 "OtherActivityInputConsumer.startTouchTrackingForWindowAnimation: "
@@ -569,5 +578,14 @@ public class ActiveGestureProtoLogProxy {
         ProtoLog.d(ACTIVE_GESTURE_LOG,
                 "OtherActivityInputConsumer.startTouchTrackingForWindowAnimation: "
                         + "interactionHandler=%s", interactionHandler);
+    }
+
+    public static void logQueuingForceFinishRecentsAnimation() {
+        ActiveGestureLog.INSTANCE.addLog("Launcher destroyed while mRecentsAnimationStartPending =="
+                        + " true, queuing a callback to clean the pending animation up on start",
+                /* gestureEvent= */ ON_START_RECENTS_ANIMATION);
+        if (!enableActiveGestureProtoLog() || !isProtoLogInitialized()) return;
+        ProtoLog.d(ACTIVE_GESTURE_LOG, "Launcher destroyed while mRecentsAnimationStartPending =="
+                + " true, queuing a callback to clean the pending animation up on start");
     }
 }

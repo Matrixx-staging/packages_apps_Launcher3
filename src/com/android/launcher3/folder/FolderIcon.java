@@ -442,7 +442,7 @@ public class FolderIcon extends FrameLayout implements FloatingIconViewCompanion
         CharSequence newTitle = nameInfos.getLabels()[0];
         FromState fromState = mInfo.getFromLabelState();
 
-        mInfo.setTitle(newTitle, mFolder.mLauncherDelegate.getModelWriter());
+        mInfo.setTitle(newTitle, mActivity.getModelWriter());
         onTitleChanged(mInfo.title);
         mFolder.getFolderName().setText(mInfo.title);
 

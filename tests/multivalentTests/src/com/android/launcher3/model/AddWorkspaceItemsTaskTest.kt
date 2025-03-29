@@ -25,7 +25,6 @@ import com.android.launcher3.util.Executors
 import com.android.launcher3.util.IntArray
 import com.android.launcher3.util.TestUtil.runOnExecutorSync
 import com.google.common.truth.Truth.assertThat
-import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -50,13 +49,7 @@ class AddWorkspaceItemsTaskTest : AbstractWorkspaceModelTest() {
     override fun setup() {
         super.setup()
         mDataModelCallbacks = MyCallbacks()
-        Executors.MAIN_EXECUTOR.submit { mModelHelper.model.addCallbacks(mDataModelCallbacks) }
-            .get()
-    }
-
-    @After
-    override fun tearDown() {
-        super.tearDown()
+        Executors.MAIN_EXECUTOR.submit { model.addCallbacks(mDataModelCallbacks) }.get()
     }
 
     @Test
@@ -175,7 +168,7 @@ class AddWorkspaceItemsTaskTest : AbstractWorkspaceModelTest() {
 
         runOnExecutorSync(Executors.MODEL_EXECUTOR) {
             mDataModelCallbacks.addedItems.clear()
-            mModelHelper.model.enqueueModelUpdateTask(task)
+            model.enqueueModelUpdateTask(task)
             runOnExecutorSync(Executors.MAIN_EXECUTOR) {}
             addedItems.addAll(mDataModelCallbacks.addedItems)
         }

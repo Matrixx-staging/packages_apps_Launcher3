@@ -18,6 +18,7 @@ package com.android.quickstep;
 
 import static com.android.quickstep.util.SplitScreenUtils.convertShellSplitBoundsToLauncher;
 import static com.android.wm.shell.shared.split.SplitBounds.KEY_EXTRA_SPLIT_BOUNDS;
+import static com.android.wm.shell.shared.desktopmode.DesktopModeStatus.enableMultipleDesktops;
 
 import android.app.WindowConfiguration;
 import android.content.Context;
@@ -34,6 +35,7 @@ import com.android.launcher3.util.SplitConfigurationOptions;
 import com.android.quickstep.util.AnimatorControllerWithResistance;
 import com.android.quickstep.util.TaskViewSimulator;
 import com.android.quickstep.util.TransformParams;
+import com.android.wm.shell.shared.GroupedTaskInfo;
 import com.android.wm.shell.shared.split.SplitBounds;
 
 import java.util.ArrayList;
@@ -67,21 +69,31 @@ public class RemoteTargetGluer {
      * Use this constructor if you want the number of handles created to match the number of active
      * running tasks
      */
-    public RemoteTargetGluer(Context context, BaseContainerInterface sizingStrategy) {
+    public RemoteTargetGluer(Context context, BaseContainerInterface sizingStrategy,
+            @Nullable GroupedTaskInfo groupedTaskInfo) {
         // TODO: b/403344864 Make sure init with correct number of RemoteTargetHandle with
         //  multi-desks feature enabled as well.
-        int visibleTasksCount = DesktopVisibilityController.INSTANCE.get(context)
-                .getVisibleDesktopTasksCountDeprecated();
-        if (visibleTasksCount > 0) {
-            // Allocate +1 to account for a new task added to the desktop mode
-            int numHandles = visibleTasksCount + 1;
-            init(context, sizingStrategy, numHandles, true /* forDesktop */);
-            return;
+        if (enableMultipleDesktops(context)) {
+            if (groupedTaskInfo != null && groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_DESK)) {
+                // Allocate +1 to account for the DesktopWallpaperActivity added to the desk.
+                int numHandles = groupedTaskInfo.getTaskInfoList().size() + 1;
+                init(context, sizingStrategy, numHandles, /* forDesktop = */ true);
+                return;
+            }
+        } else {
+            int visibleTasksCount = DesktopVisibilityController.INSTANCE.get(context)
+                    .getVisibleDesktopTasksCountDeprecated();
+            if (visibleTasksCount > 0) {
+                // Allocate +1 to account for the DesktopWallpaperActivity added to the desk.
+                int numHandles = visibleTasksCount + 1;
+                init(context, sizingStrategy, numHandles, /* forDesktop = */ true);
+                return;
+            }
         }
 
         // Assume 2 handles needed for split, scale down as needed later on when we actually
         // get remote targets
-        init(context, sizingStrategy, DEFAULT_NUM_HANDLES, false /* forDesktop */);
+        init(context, sizingStrategy, DEFAULT_NUM_HANDLES, /* forDesktop = */ false);
     }
 
     private void init(Context context, BaseContainerInterface sizingStrategy, int numHandles,

@@ -167,7 +167,7 @@ public class WidgetPickerActivity extends BaseActivity implements
         InvariantDeviceProfile idp = mApp.getInvariantDeviceProfile();
         mDeviceProfile = idp.getDeviceProfile(this);
         mModel = new WidgetsModel(mApp.getContext());
-        mWidgetPickerDataProvider = new WidgetPickerDataProvider(this);
+        mWidgetPickerDataProvider = new WidgetPickerDataProvider();
 
         setContentView(R.layout.widget_picker_activity);
         mDragLayer = findViewById(R.id.drag_layer);

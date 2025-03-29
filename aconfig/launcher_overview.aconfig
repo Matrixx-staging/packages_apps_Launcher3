@@ -120,3 +120,10 @@ flag {
         purpose: PURPOSE_BUGFIX
     }
 }
+
+flag {
+    name: "enable_refactor_digital_wellbeing_toast"
+    namespace: "launcher_overview"
+    description: "Enables rewritten version of digital wellbeing toast in overview."
+    bug: "404838605"
+}

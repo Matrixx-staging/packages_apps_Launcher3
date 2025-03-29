@@ -25,6 +25,7 @@ import static com.android.launcher3.LauncherPrefs.GRID_NAME;
 import static com.android.launcher3.WorkspaceLayoutManager.FIRST_SCREEN_ID;
 import static com.android.launcher3.WorkspaceLayoutManager.SECOND_SCREEN_ID;
 import static com.android.launcher3.graphics.ThemeManager.PREF_ICON_SHAPE;
+import static com.android.launcher3.graphics.ThemeManager.THEMED_ICONS;
 import static com.android.launcher3.provider.LauncherDbUtils.selectionForWorkspaceScreen;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
@@ -32,7 +33,6 @@ import static com.android.launcher3.widget.LauncherWidgetHolder.APPWIDGET_HOST_I
 
 import android.app.WallpaperColors;
 import android.appwidget.AppWidgetHost;
-import android.appwidget.AppWidgetProviderInfo;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.database.Cursor;
@@ -71,14 +71,11 @@ import com.android.launcher3.model.BgDataModel.Callbacks;
 import com.android.launcher3.model.LoaderTask;
 import com.android.launcher3.model.ModelDbController;
 import com.android.launcher3.model.UserManagerState;
-import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.RunnableList;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.widget.LocalColorExtractor;
 import com.android.systemui.shared.Flags;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /** Render preview using surface view. */
@@ -103,6 +100,7 @@ public class PreviewSurfaceRenderer {
     private String mGridName;
     private String mShapeKey;
     private String mLayoutXml;
+    private boolean mIsMonoThemeEnabled;
 
     @Nullable private Boolean mDarkMode;
     private boolean mDestroyed = false;
@@ -121,6 +119,8 @@ public class PreviewSurfaceRenderer {
     private final RunnableList mLifeCycleTracker;
     private final SurfaceControlViewHost mSurfaceControlViewHost;
 
+    private LauncherPreviewRenderer mCurrentRenderer;
+
     public PreviewSurfaceRenderer(Context context, RunnableList lifecycleTracker, Bundle bundle,
             int callingPid) throws Exception {
         mContext = context;
@@ -132,6 +132,7 @@ public class PreviewSurfaceRenderer {
             mGridName = LauncherPrefs.get(context).get(GRID_NAME);
         }
         mShapeKey = LauncherPrefs.get(context).get(PREF_ICON_SHAPE);
+        mIsMonoThemeEnabled = LauncherPrefs.get(context).get(THEMED_ICONS);
         mWallpaperColors = bundle.getParcelable(KEY_COLORS);
         if (Flags.newCustomizationPickerUi()) {
             updateColorOverrides(bundle);
@@ -171,8 +172,16 @@ public class PreviewSurfaceRenderer {
         return mSurfaceControlViewHost.getSurfacePackage();
     }
 
+    private void setCurrentRenderer(LauncherPreviewRenderer renderer) {
+        if (mCurrentRenderer != null) {
+            mCurrentRenderer.onViewDestroyed();
+        }
+        mCurrentRenderer = renderer;
+    }
+
     private void destroy() {
         mDestroyed = true;
+        setCurrentRenderer(null);
     }
 
     /**
@@ -245,6 +254,19 @@ public class PreviewSurfaceRenderer {
             return;
         }
         mShapeKey = shapeKey;
+        loadAsync();
+    }
+
+    /**
+     * Update whether to enable monochrome themed icon
+     *
+     * @param isMonoThemeEnabled True if enabling mono themed icons
+     */
+    public void updateTheme(boolean isMonoThemeEnabled) {
+        if (mIsMonoThemeEnabled == isMonoThemeEnabled) {
+            return;
+        }
+        mIsMonoThemeEnabled = isMonoThemeEnabled;
         loadAsync();
     }
 
@@ -347,6 +369,7 @@ public class PreviewSurfaceRenderer {
         final Context inflationContext = getPreviewContext();
         if (!mGridName.equals(LauncherPrefs.INSTANCE.get(mContext).get(GRID_NAME))
                 || !mShapeKey.equals(LauncherPrefs.INSTANCE.get(mContext).get(PREF_ICON_SHAPE))
+                || mIsMonoThemeEnabled != LauncherPrefs.INSTANCE.get(mContext).get(THEMED_ICONS)
                 || !TextUtils.isEmpty(mLayoutXml)) {
 
             boolean isCustomLayout = extendibleThemeManager() &&  !TextUtils.isEmpty(mLayoutXml);
@@ -354,7 +377,8 @@ public class PreviewSurfaceRenderer {
 
             // Start the migration
             PreviewContext previewContext = new PreviewContext(
-                    inflationContext, mGridName, mShapeKey, widgetHostId, mLayoutXml);
+                    inflationContext, mGridName, mShapeKey, widgetHostId, mLayoutXml,
+                    mIsMonoThemeEnabled);
             PreviewAppComponent appComponent =
                     (PreviewAppComponent) LauncherComponentProvider.get(previewContext);
 
@@ -378,20 +402,17 @@ public class PreviewSurfaceRenderer {
             String query = deviceProfile.isTwoPanels
                     ? selectionForWorkspaceScreen(FIRST_SCREEN_ID, SECOND_SCREEN_ID)
                     : selectionForWorkspaceScreen(FIRST_SCREEN_ID);
-            Map<ComponentKey, AppWidgetProviderInfo> widgetProviderInfoMap = new HashMap<>();
-            task.loadWorkspaceForPreview(query, widgetProviderInfoMap);
+            task.loadWorkspaceForPreview(query);
             final SparseArray<Size> spanInfo = getLoadedLauncherWidgetInfo();
             MAIN_EXECUTOR.execute(() -> {
-                renderView(previewContext, appComponent.getDataModel(), widgetHostId,
-                        widgetProviderInfoMap, spanInfo, idp);
+                renderView(previewContext, appComponent.getDataModel(), spanInfo, idp);
                 mLifeCycleTracker.add(previewContext::onDestroy);
             });
         } else {
             LauncherAppState.getInstance(inflationContext).getModel().loadAsync(dataModel -> {
                 if (dataModel != null) {
                     MAIN_EXECUTOR.execute(() -> renderView(inflationContext, dataModel,
-                            APPWIDGET_HOST_ID, null, null,
-                            LauncherAppState.getIDP(inflationContext)));
+                            null, LauncherAppState.getIDP(inflationContext)));
                 } else {
                     Log.e(TAG, "Model loading failed");
                 }
@@ -400,22 +421,24 @@ public class PreviewSurfaceRenderer {
     }
 
     @UiThread
-    private void renderView(Context inflationContext, BgDataModel dataModel, int widgetHostId,
-            Map<ComponentKey, AppWidgetProviderInfo> widgetProviderInfoMap,
+    private void renderView(Context inflationContext, BgDataModel dataModel,
             @Nullable final SparseArray<Size> launcherWidgetSpanInfo, InvariantDeviceProfile idp) {
         if (mDestroyed) {
             return;
         }
         LauncherPreviewRenderer renderer;
         if (Flags.newCustomizationPickerUi()) {
-            renderer = new LauncherPreviewRenderer(inflationContext, idp, widgetHostId,
+            renderer = new LauncherPreviewRenderer(inflationContext, idp,
                     mPreviewColorOverride, mWallpaperColors, launcherWidgetSpanInfo);
         } else {
-            renderer = new LauncherPreviewRenderer(inflationContext, idp, widgetHostId,
+            renderer = new LauncherPreviewRenderer(inflationContext, idp,
                     mWallpaperColors, launcherWidgetSpanInfo);
         }
         renderer.hideBottomRow(mHideQsb);
-        View view = renderer.getRenderedView(dataModel, widgetProviderInfoMap);
+        renderer.populate(dataModel);
+
+        View view = renderer.getRootView();
+        setCurrentRenderer(renderer);
 
         view.setPivotX(0);
         view.setPivotY(0);

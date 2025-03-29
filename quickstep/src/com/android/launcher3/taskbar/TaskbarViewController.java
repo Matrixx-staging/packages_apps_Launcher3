@@ -25,7 +25,6 @@ import static android.window.DesktopModeFlags.ENABLE_TASKBAR_RECENTS_LAYOUT_TRAN
 import static com.android.app.animation.Interpolators.EMPHASIZED;
 import static com.android.app.animation.Interpolators.FINAL_FRAME;
 import static com.android.app.animation.Interpolators.LINEAR;
-import static com.android.launcher3.BubbleTextView.LINE_INDICATOR_ANIM_DURATION;
 import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.Flags.taskbarOverflow;
 import static com.android.launcher3.LauncherAnimUtils.SCALE_PROPERTY;
@@ -81,6 +80,7 @@ import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.anim.RevealOutlineAnimation;
 import com.android.launcher3.anim.RoundedRectRevealOutlineProvider;
 import com.android.launcher3.config.FeatureFlags;
+import com.android.launcher3.model.ModelWriter;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.TaskItemInfo;
 import com.android.launcher3.taskbar.bubbles.BubbleBarController;
@@ -136,11 +136,9 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     private static final float ERROR_POSITION_IN_HOTSEAT_NOT_FOUND = -100;
 
     private static final int TRANSITION_DELAY = 50;
-    private static final int TRANSITION_DEFAULT_DURATION = 500;
+    static final int TRANSITION_DEFAULT_DURATION = 500;
     private static final int TRANSITION_FADE_IN_DURATION = 167;
     private static final int TRANSITION_FADE_OUT_DURATION = 83;
-    private static final int APPEARING_LINE_INDICATOR_ANIM_DELAY =
-            TRANSITION_DEFAULT_DURATION - LINE_INDICATOR_ANIM_DURATION;
 
     private final TaskbarActivityContext mActivity;
     private @Nullable TaskbarDragLayerController mDragLayerController;
@@ -224,6 +222,8 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
 
     private final float mTaskbarLeftRightMargin;
 
+    private final TaskbarRunningAppStateAnimationController mRunningStateController;
+
     public TaskbarViewController(TaskbarActivityContext activity, TaskbarView taskbarView) {
         mActivity = activity;
         mTransientTaskbarDp = mActivity.getTransientTaskbarDeviceProfile();
@@ -242,6 +242,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
         mIsRtl = Utilities.isRtl(mTaskbarView.getResources());
         mTaskbarLeftRightMargin = mActivity.getResources().getDimensionPixelSize(
                 R.dimen.transient_taskbar_padding);
+        mRunningStateController = new TaskbarRunningAppStateAnimationController(mActivity);
     }
 
     /**
@@ -395,6 +396,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
         }
         LauncherAppState.getInstance(mActivity).getModel().removeCallbacks(mModelCallbacks);
         mActivity.removeOnDeviceProfileChangeListener(mDeviceProfileChangeListener);
+        mRunningStateController.onDestroy();
     }
 
     /**
@@ -410,6 +412,12 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
 
     public MultiPropertyFactory<View> getTaskbarIconAlpha() {
         return mTaskbarIconAlpha;
+    }
+
+    /** Creates a ModelWriter for updating model properties */
+    public ModelWriter getModelWriter() {
+        return LauncherAppState.getInstance(mActivity).getModel()
+                .getWriter(false, mActivity.getCellPosMapper(), mModelCallbacks);
     }
 
     /**
@@ -774,7 +782,10 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     }
 
     private void updateRunningState(BubbleTextView btv) {
-        btv.updateRunningState(getRunningAppState(btv), mTaskbarView.getLayoutTransition() != null);
+        mRunningStateController.updateRunningState(
+                btv,
+                getRunningAppState(btv),
+                /* animate = */ mTaskbarView.getLayoutTransition() != null);
     }
 
     private BubbleTextView.RunningAppState getRunningAppState(BubbleTextView btv) {
@@ -1234,10 +1245,6 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
                     view.setAlpha(0f);
                     view.setScaleX(0f);
                     view.setScaleY(0f);
-                    if (view instanceof BubbleTextView btv) {
-                        // Defer so that app is mostly scaled in before showing indicator.
-                        btv.setLineIndicatorAnimStartDelay(APPEARING_LINE_INDICATOR_ANIM_DELAY);
-                    }
                 } else if (type == DISAPPEARING && view instanceof BubbleTextView btv) {
                     // Running state updates happen after removing this view, so update it here.
                     updateRunningState(btv);
@@ -1247,9 +1254,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
             @Override
             public void endTransition(
                     LayoutTransition transition, ViewGroup container, View view, int type) {
-                if (type == APPEARING && view instanceof BubbleTextView btv) {
-                    btv.setLineIndicatorAnimStartDelay(0);
-                }
+                // Do nothing.
             }
         });
 

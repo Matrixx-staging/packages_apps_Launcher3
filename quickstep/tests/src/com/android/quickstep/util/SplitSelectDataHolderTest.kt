@@ -22,6 +22,7 @@ import android.app.ActivityTaskManager.INVALID_TASK_ID
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
+import android.os.Process
 import android.os.UserHandle
 import androidx.test.platform.app.InstrumentationRegistry
 import com.android.launcher3.model.data.ItemInfo
@@ -54,7 +55,7 @@ class SplitSelectDataHolderTest {
     private val sampleTaskInfo = RunningTaskInfo()
     private val sampleTaskId = 10
     private val sampleTaskId2 = 11
-    private val sampleUser = UserHandle(0)
+    private val sampleUser = UserHandle(Process.myUserHandle().identifier)
     private val sampleIntent = Intent()
     private val sampleIntent2 = Intent()
     private val sampleShortcut = Intent()

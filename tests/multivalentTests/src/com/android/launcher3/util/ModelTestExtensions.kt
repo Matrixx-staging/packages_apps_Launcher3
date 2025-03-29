@@ -25,6 +25,7 @@ import com.android.launcher3.LauncherSettings.Favorites.TITLE
 import com.android.launcher3.LauncherSettings.Favorites._ID
 import com.android.launcher3.model.BgDataModel
 import com.android.launcher3.model.ModelDbController
+import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
@@ -104,6 +105,15 @@ object ModelTestExtensions {
             }
         }
     }
+
+    @JvmStatic
+    val LauncherModel.bgDataModel: BgDataModel
+        get() {
+            var data: BgDataModel? = null
+            enqueueModelUpdateTask { _, dataModel, _ -> data = dataModel }
+            TestUtil.runOnExecutorSync(MODEL_EXECUTOR) {}
+            return data!!
+        }
 
     /** Creates an in-memory sqlite DB and initializes with the data in [insertFile] */
     fun createInMemoryDb(insertFile: String): SQLiteDatabase =

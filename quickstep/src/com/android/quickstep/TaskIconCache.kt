@@ -85,9 +85,9 @@ class TaskIconCache(
 
     // TODO(b/387496731): Add ensureActive() calls if they show performance benefit
     override suspend fun getIcon(task: Task): TaskCacheEntry {
-        task.icon?.let {
+        task.icon?.let { icon ->
             // Nothing to load, the icon is already loaded
-            return TaskCacheEntry(it, task.titleDescription ?: "", task.title)
+            return TaskCacheEntry(icon, task.titleDescription ?: "", task.title ?: "")
         }
 
         val entry = getCacheEntry(task)

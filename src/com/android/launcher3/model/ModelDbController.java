@@ -35,7 +35,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Process;
 import android.os.UserHandle;
-import android.os.UserManager;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -649,12 +648,8 @@ public class ModelDbController {
     }
 
     private DefaultLayoutParser getDefaultLayoutParser(LauncherWidgetHolder widgetHolder) {
-        int defaultLayout = mIdp.demoModeLayoutId != 0
-                && mContext.getSystemService(UserManager.class).isDemoUser()
-                ? mIdp.demoModeLayoutId : mIdp.defaultLayoutId;
-
         return new DefaultLayoutParser(mContext, widgetHolder,
-                mOpenHelper, mContext.getResources(), defaultLayout);
+                mOpenHelper, mContext.getResources(), mIdp.defaultLayoutId);
     }
 
     private ConstantItem<Boolean> getEmptyDbCreatedKey() {

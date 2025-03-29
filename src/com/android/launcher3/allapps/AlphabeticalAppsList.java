@@ -437,6 +437,7 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
                         currentItem.itemInfo.getTargetPackage(), PRIVATE_SPACE_PACKAGE)) {
                     currentItem.itemInfo.bitmap = mPrivateProviderManager.preparePSBitmapInfo();
                     currentItem.itemInfo.bitmap.creationFlags |= FLAG_NO_BADGE;
+                    currentItem.itemInfo.title = mPrivateProviderManager.getPSAppTitleOverride();
                     currentItem.itemInfo.contentDescription =
                             mPrivateProviderManager.getPsAppContentDesc();
                     privateSpaceAppIndex = i;

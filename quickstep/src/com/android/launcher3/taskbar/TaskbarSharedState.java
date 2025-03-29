@@ -29,10 +29,12 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.view.InsetsFrameProvider;
 
+import com.android.quickstep.util.GroupTask;
 import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags;
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation;
 import com.android.wm.shell.shared.bubbles.BubbleInfo;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -121,4 +123,6 @@ public class TaskbarSharedState {
 
     // should show corner radius on persistent taskbar when in desktop mode.
     public boolean showCornerRadiusInDesktopMode = false;
+
+    public List<GroupTask> recentTasksBeforeTaskbarRecreate = new ArrayList<>();
 }

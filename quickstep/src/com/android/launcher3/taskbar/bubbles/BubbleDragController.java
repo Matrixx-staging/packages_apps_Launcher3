@@ -36,6 +36,7 @@ import com.android.wm.shell.shared.bubbles.BubbleBarLocation;
 import com.android.wm.shell.shared.bubbles.DeviceConfig;
 import com.android.wm.shell.shared.bubbles.DragZone;
 import com.android.wm.shell.shared.bubbles.DragZoneFactory;
+import com.android.wm.shell.shared.bubbles.DragZoneFactory.BubbleBarPropertiesProvider;
 import com.android.wm.shell.shared.bubbles.DragZoneFactory.DesktopWindowModeChecker;
 import com.android.wm.shell.shared.bubbles.DragZoneFactory.SplitScreenModeChecker;
 import com.android.wm.shell.shared.bubbles.DraggedObject;
@@ -113,8 +114,25 @@ public class BubbleDragController {
                 return false;
             }
         };
+        BubbleBarPropertiesProvider bubbleBarPropertiesProvider =
+                new BubbleBarPropertiesProvider() {
+                    @Override
+                    public int getHeight() {
+                        return (int) mBubbleBarViewController.getBubbleBarCollapsedHeight();
+                    }
+
+                    @Override
+                    public int getWidth() {
+                        return (int) mBubbleBarViewController.getBubbleBarCollapsedWidth();
+                    }
+
+                    @Override
+                    public int getBottomPadding() {
+                        return (int) -mBubbleBarViewController.getBubbleBarTranslationY().value;
+                    }
+                };
         mDragZoneFactory = new DragZoneFactory(mActivity.getApplicationContext(), deviceConfig,
-                splitScreenModeChecker, desktopWindowModeChecker);
+                splitScreenModeChecker, desktopWindowModeChecker, bubbleBarPropertiesProvider);
         mBubbleDragZoneChangedListener = new BubbleDragZoneChangedListener();
         mDropTargetManager = new DropTargetManager(mActivity.getApplicationContext(),
                 dropTargetParent, mBubbleDragZoneChangedListener);
@@ -194,9 +212,7 @@ public class BubbleDragController {
             protected void onDragUpdate(float x, float y, float newTx, float newTy) {
                 bubbleView.setDragTranslationX(newTx);
                 bubbleView.setTranslationY(newTy);
-                if (BubbleAnythingFlagHelper.enableBubbleToFullscreen()) {
-                    mDropTargetManager.onDragUpdated((int) x, (int) y);
-                } else {
+                if (!BubbleAnythingFlagHelper.enableBubbleToFullscreen()) {
                     mBubblePinController.onDragUpdate(x, y);
                 }
             }
@@ -305,9 +321,7 @@ public class BubbleDragController {
             protected void onDragUpdate(float x, float y, float newTx, float newTy) {
                 bubbleBarView.setTranslationX(newTx);
                 bubbleBarView.setTranslationY(newTy);
-                if (BubbleAnythingFlagHelper.enableBubbleToFullscreen()) {
-                    mDropTargetManager.onDragUpdated((int) x, (int) y);
-                } else {
+                if (!BubbleAnythingFlagHelper.enableBubbleToFullscreen()) {
                     mBubbleBarPinController.onDragUpdate(x, y);
                 }
             }
@@ -570,7 +584,17 @@ public class BubbleDragController {
 
         private void drag(@NonNull View view, @NonNull MotionEvent event, float dx, float dy,
                 float x, float y) {
-            if (mBubbleDismissController.handleTouchEvent(event)) return;
+            if (BubbleAnythingFlagHelper.enableBubbleToFullscreen()) {
+                // notify drop target manager about the new drag location regardless of whether we
+                // are in the dismiss zone so that it can keep track of the current zone and update
+                // the drop target view
+                mDropTargetManager.onDragUpdated((int) x, (int) y);
+            }
+            if (mBubbleDismissController.handleTouchEvent(event)) {
+                // if we're dragging within the dismiss target, return immediately; the dragged
+                // object is manipulated by the dismiss target
+                return;
+            }
             final float newTx = mViewInitialPosition.x + dx;
             final float newTy = mViewInitialPosition.y + dy;
             onDragUpdate(x, y, newTx, newTy);
@@ -598,7 +622,7 @@ public class BubbleDragController {
                     }
                 } else {
                     mAnimator.animateToRestingState(getRestingPosition(), getCurrentVelocity(),
-                        onComplete);
+                            onComplete);
                 }
             }
             mBubbleDismissController.hideDismissView();

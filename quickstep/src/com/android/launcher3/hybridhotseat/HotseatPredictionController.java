@@ -47,6 +47,7 @@ import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.LauncherSettings;
 import com.android.launcher3.R;
 import com.android.launcher3.anim.AnimationSuccessListener;
+import com.android.launcher3.celllayout.CellLayoutLayoutParams;
 import com.android.launcher3.dragndrop.DragController;
 import com.android.launcher3.dragndrop.DragOptions;
 import com.android.launcher3.graphics.DragPreviewProvider;
@@ -232,7 +233,7 @@ public class HotseatPredictionController implements DragController.DragListener,
                 if (icon.applyFromWorkspaceItemWithAnimation(predictedItem, numViewsAnimated)) {
                     numViewsAnimated++;
                 }
-                icon.finishBinding(mPredictionLongClickListener);
+                finishBinding(icon);
             } else {
                 newItems.add(predictedItem);
             }
@@ -246,9 +247,9 @@ public class HotseatPredictionController implements DragController.DragListener,
     private void bindItems(List<WorkspaceItemInfo> itemsToAdd, boolean animate) {
         AnimatorSet animationSet = new AnimatorSet();
         for (WorkspaceItemInfo item : itemsToAdd) {
-            PredictedAppIcon icon = PredictedAppIcon.createIcon(mHotseat, item);
+            View icon = mLauncher.getItemInflater().inflateItem(item, mHotseat);
             mLauncher.getWorkspace().addInScreenFromBind(icon, item);
-            icon.finishBinding(mPredictionLongClickListener);
+            finishBinding(icon);
             if (animate) {
                 animationSet.play(ObjectAnimator.ofFloat(icon, SCALE_PROPERTY, 0.2f, 1));
             }
@@ -260,6 +261,11 @@ public class HotseatPredictionController implements DragController.DragListener,
         } else {
             removeOutlineDrawings();
         }
+    }
+
+    private void finishBinding(View view) {
+        view.setOnLongClickListener(mPredictionLongClickListener);
+        ((CellLayoutLayoutParams) view.getLayoutParams()).canReorder = false;
     }
 
     private void removeOutlineDrawings() {

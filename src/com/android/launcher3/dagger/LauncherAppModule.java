@@ -24,7 +24,9 @@ import dagger.Module;
         PluginManagerWrapperModule.class,
         StaticObjectModule.class,
         WidgetModule.class,
-        AppModule.class
+        AppModule.class,
+        PerDisplayModule.class,
+        LauncherConcurrencyModule.class,
 })
 public class LauncherAppModule {
 }

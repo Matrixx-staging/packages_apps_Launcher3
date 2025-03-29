@@ -83,7 +83,8 @@ constructor(
             }
         }
 
-    private var isDestroyed = false
+    var isDestroyed = false
+        private set
 
     var hasLimit = false
     var splitBounds: SplitConfigurationOptions.SplitBounds? = null

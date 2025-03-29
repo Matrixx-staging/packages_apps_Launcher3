@@ -102,11 +102,12 @@ public class FallbackSwipeHandler extends
 
     private boolean mAppCanEnterPip;
 
-    public FallbackSwipeHandler(Context context,
-            TaskAnimationManager taskAnimationManager, GestureState gestureState, long touchTimeMs,
+    public FallbackSwipeHandler(Context context, TaskAnimationManager taskAnimationManager,
+            RecentsAnimationDeviceState deviceState,
+            GestureState gestureState, long touchTimeMs,
             boolean continuingLastGesture, InputConsumerController inputConsumer,
             MSDLPlayerWrapper msdlPlayerWrapper) {
-        super(context, taskAnimationManager, gestureState, touchTimeMs,
+        super(context, taskAnimationManager, deviceState, gestureState, touchTimeMs,
                 continuingLastGesture, inputConsumer, msdlPlayerWrapper);
 
         mRunningOverHome = mGestureState.getRunningTask() != null

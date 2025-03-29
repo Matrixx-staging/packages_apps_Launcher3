@@ -163,4 +163,7 @@
     <string name="header_close_icon_description" msgid="5400033616675911319">"Close button"</string>
     <string name="pin_to_taskbar" msgid="6607778046321626950">"Pin to taskbar"</string>
     <string name="unpin_from_taskbar" msgid="2178811773165572676">"Unpin from taskbar"</string>
+    <string name="nudge_a11y_title" msgid="2126529303123687912">"Nudge"</string>
+    <string name="nudge_a11y_close" msgid="4513937143817625570">"Close"</string>
+    <string name="nudge_a11y_image" msgid="117910310515857252">"Nudge image"</string>
 </resources>

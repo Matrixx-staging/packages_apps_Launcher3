@@ -16,7 +16,6 @@
 
 package com.android.launcher3.model
 
-import android.appwidget.AppWidgetProviderInfo
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.ApplicationInfo
@@ -52,12 +51,10 @@ import com.android.launcher3.model.data.WorkspaceItemInfo.FLAG_RESTORED_ICON
 import com.android.launcher3.model.data.WorkspaceItemInfo.FLAG_RESTORE_STARTED
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.shortcuts.ShortcutKey
-import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.ContentWriter
-import com.android.launcher3.util.LauncherModelHelper
-import com.android.launcher3.util.LauncherModelHelper.SandboxModelContext
 import com.android.launcher3.util.PackageManagerHelper
 import com.android.launcher3.util.PackageUserKey
+import com.android.launcher3.util.SandboxApplication
 import com.android.launcher3.util.UserIconInfo
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo
 import com.android.launcher3.widget.WidgetInflater
@@ -87,6 +84,7 @@ import org.mockito.kotlin.whenever
 class WorkspaceItemProcessorTest {
 
     @get:Rule val setFlagsRule: SetFlagsRule = SetFlagsRule()
+    @get:Rule val mContext = SandboxApplication()
 
     @Mock private lateinit var mockIconRequestInfo: IconRequestInfo<WorkspaceItemInfo>
     @Mock private lateinit var mockWorkspaceInfo: WorkspaceItemInfo
@@ -98,8 +96,6 @@ class WorkspaceItemProcessorTest {
     @Mock private lateinit var mockWidgetInflater: WidgetInflater
     @Mock private lateinit var mockIconCache: IconCache
 
-    lateinit var mModelHelper: LauncherModelHelper
-    lateinit var mContext: SandboxModelContext
     lateinit var mLauncherApps: LauncherApps
     private var mIntent: Intent = Intent()
     private var mUserHandle: UserHandle = Process.myUserHandle()
@@ -109,8 +105,6 @@ class WorkspaceItemProcessorTest {
     private var mKeyToPinnedShortcutsMap: MutableMap<ShortcutKey, ShortcutInfo> = mutableMapOf()
     private var mInstallingPkgs: HashMap<PackageUserKey, PackageInstaller.SessionInfo> = hashMapOf()
     private var mAllDeepShortcuts: MutableList<CacheableShortcutInfo> = mutableListOf()
-    private var mWidgetProvidersMap: MutableMap<ComponentKey, AppWidgetProviderInfo?> =
-        mutableMapOf()
     private var mPendingPackages: MutableSet<PackageUserKey> = mutableSetOf()
 
     private lateinit var itemProcessorUnderTest: WorkspaceItemProcessor
@@ -118,8 +112,6 @@ class WorkspaceItemProcessorTest {
     @Before
     fun setup() {
         MockitoAnnotations.initMocks(this)
-        mModelHelper = LauncherModelHelper()
-        mContext = mModelHelper.sandboxContext
         mLauncherApps =
             mContext.spyService(LauncherApps::class.java).apply {
                 doReturn(true).whenever(this).isPackageEnabled("package", mUserHandle)
@@ -157,7 +149,6 @@ class WorkspaceItemProcessorTest {
         mKeyToPinnedShortcutsMap = mutableMapOf()
         mInstallingPkgs = hashMapOf()
         mAllDeepShortcuts = mutableListOf()
-        mWidgetProvidersMap = mutableMapOf()
         mIconRequestInfos = mutableListOf()
         mPendingPackages = mutableSetOf()
     }
@@ -175,7 +166,6 @@ class WorkspaceItemProcessorTest {
         launcherApps: LauncherApps = mLauncherApps,
         shortcutKeyToPinnedShortcuts: Map<ShortcutKey, ShortcutInfo> = mKeyToPinnedShortcutsMap,
         bgDataModel: BgDataModel = mockBgDataModel,
-        widgetProvidersMap: MutableMap<ComponentKey, AppWidgetProviderInfo?> = mWidgetProvidersMap,
         widgetInflater: WidgetInflater = mockWidgetInflater,
         pmHelper: PackageManagerHelper = mockPmHelper,
         iconRequestInfos: MutableList<IconRequestInfo<WorkspaceItemInfo>> = mIconRequestInfos,
@@ -193,7 +183,6 @@ class WorkspaceItemProcessorTest {
             launcherApps = launcherApps,
             context = mContext,
             bgDataModel = bgDataModel,
-            widgetProvidersMap = widgetProvidersMap,
             widgetInflater = widgetInflater,
             pmHelper = pmHelper,
             unlockedUsers = unlockedUsers,
@@ -651,8 +640,7 @@ class WorkspaceItemProcessorTest {
         mInstallingPkgs[packageUserKey] = PackageInstaller.SessionInfo()
 
         // When
-        itemProcessorUnderTest =
-            createWorkspaceItemProcessorUnderTest(widgetProvidersMap = mWidgetProvidersMap)
+        itemProcessorUnderTest = createWorkspaceItemProcessorUnderTest()
         itemProcessorUnderTest.processItem()
 
         // Then
@@ -666,9 +654,6 @@ class WorkspaceItemProcessorTest {
             assertThat(targetComponent).isEqualTo(expectedWidgetInfo.targetComponent)
             assertThat(appWidgetId).isEqualTo(expectedWidgetInfo.appWidgetId)
         }
-        val expectedComponentKey =
-            ComponentKey(expectedWidgetProviderInfo.provider, expectedWidgetProviderInfo.user)
-        assertThat(mWidgetProvidersMap[expectedComponentKey]).isEqualTo(expectedWidgetProviderInfo)
     }
 
     @Test
@@ -706,8 +691,7 @@ class WorkspaceItemProcessorTest {
             mock<WidgetInflater>().apply {
                 whenever(inflateAppWidget(any())).thenReturn(inflationResult)
             }
-        itemProcessorUnderTest =
-            createWorkspaceItemProcessorUnderTest(widgetProvidersMap = mWidgetProvidersMap)
+        itemProcessorUnderTest = createWorkspaceItemProcessorUnderTest()
 
         // When
         itemProcessorUnderTest.processItem()
@@ -747,8 +731,7 @@ class WorkspaceItemProcessorTest {
         val expectedComponentName = ComponentName.unflattenFromString(expectedProvider)
 
         // When
-        itemProcessorUnderTest =
-            createWorkspaceItemProcessorUnderTest(widgetProvidersMap = mWidgetProvidersMap)
+        itemProcessorUnderTest = createWorkspaceItemProcessorUnderTest()
         itemProcessorUnderTest.processItem()
 
         // Then
@@ -787,8 +770,7 @@ class WorkspaceItemProcessorTest {
             mock<WidgetInflater>().apply {
                 whenever(inflateAppWidget(any())).thenReturn(inflationResult)
             }
-        itemProcessorUnderTest =
-            createWorkspaceItemProcessorUnderTest(widgetProvidersMap = mWidgetProvidersMap)
+        itemProcessorUnderTest = createWorkspaceItemProcessorUnderTest()
 
         // When
         itemProcessorUnderTest.processItem()

@@ -47,11 +47,13 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.android.app.animation.Interpolators;
 import com.android.internal.jank.Cuj;
+import com.android.launcher3.Flags;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.TestProtocol;
+import com.android.quickstep.util.DesktopTask;
 import com.android.quickstep.util.GroupTask;
 import com.android.quickstep.util.SingleTask;
 import com.android.quickstep.util.SplitTask;
@@ -284,6 +286,10 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
                 task2 = splitTask.getBottomRightTask();
             } else if (groupTask instanceof SingleTask singleTask) {
                 task1 = singleTask.getTask();
+                task2 = null;
+            } else if (Flags.enableAltTabKqsFlatenning()
+                    && groupTask instanceof DesktopTask desktopTask) {
+                task1 = desktopTask.getTasks().get(0);
                 task2 = null;
             } else {
                 continue;

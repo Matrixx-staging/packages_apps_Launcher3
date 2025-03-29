@@ -19,6 +19,7 @@ package com.android.quickstep.views
 import android.graphics.PointF
 import android.graphics.Rect
 import android.util.FloatProperty
+import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.View.LAYOUT_DIRECTION_LTR
@@ -34,14 +35,17 @@ import com.android.launcher3.Utilities.getPivotsForScalingRectToRect
 import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.statehandlers.DesktopVisibilityController.Companion.INACTIVE_DESK_ID
 import com.android.launcher3.util.IntArray
+import com.android.launcher3.util.window.WindowManagerProxy.DesktopVisibilityListener
 import com.android.quickstep.util.DesksUtils.Companion.areMultiDesksFlagsEnabled
 import com.android.quickstep.util.DesktopTask
 import com.android.quickstep.util.GroupTask
 import com.android.quickstep.util.isExternalDisplay
 import com.android.quickstep.views.RecentsView.RUNNING_TASK_ATTACH_ALPHA
+import com.android.quickstep.views.RecentsView.TAG
 import com.android.systemui.shared.recents.model.Task
 import com.android.systemui.shared.recents.model.ThumbnailData
 import com.android.wm.shell.shared.GroupedTaskInfo
+import com.android.wm.shell.shared.desktopmode.DesktopModeStatus.enableMultipleDesktops
 import java.util.function.BiConsumer
 import kotlin.math.min
 import kotlin.reflect.KMutableProperty1
@@ -50,7 +54,7 @@ import kotlin.reflect.KMutableProperty1
  * Helper class for [RecentsView]. This util class contains refactored and extracted functions from
  * RecentsView to facilitate the implementation of unit tests.
  */
-class RecentsViewUtils(private val recentsView: RecentsView<*, *>) {
+class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisibilityListener {
     val taskViews = TaskViewsIterable(recentsView)
 
     /** Takes a screenshot of all [taskView] and return map of taskId to the screenshot */
@@ -112,16 +116,19 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) {
         taskViews.filter { recentsView.mTopRowIdSet.contains(it.taskViewId) }
 
     /** Returns all the task Ids in the top row, without the focused task */
-    fun getTopRowIdArray(): IntArray = getTopRowTaskViews().map { it.taskViewId }.toIntArray()
+    fun getTopRowIdArray(): IntArray =
+        getTopRowTaskViews().map { it.taskViewId }.toLauncher3IntArray()
 
     /** Returns all the TaskViews in the bottom row, without the focused task */
     fun getBottomRowTaskViews(): List<TaskView> =
         taskViews.filter { !recentsView.mTopRowIdSet.contains(it.taskViewId) && !it.isLargeTile }
 
     /** Returns all the task Ids in the bottom row, without the focused task */
-    fun getBottomRowIdArray(): IntArray = getBottomRowTaskViews().map { it.taskViewId }.toIntArray()
+    fun getBottomRowIdArray(): IntArray =
+        getBottomRowTaskViews().map { it.taskViewId }.toLauncher3IntArray()
 
-    private fun List<Int>.toIntArray() = IntArray(size).apply { this@toIntArray.forEach(::add) }
+    private fun List<Int>.toLauncher3IntArray() =
+        IntArray(size).apply { this@toLauncher3IntArray.forEach(::add) }
 
     /** Counts [TaskView]s that are large tiles. */
     fun getLargeTileCount(): Int = taskViews.count { it.isLargeTile }
@@ -231,6 +238,65 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) {
 
     /** Returns the last TaskView that should be displayed as a large tile. */
     fun getLastLargeTaskView(): TaskView? = taskViews.lastOrNull { it.isLargeTile }
+
+    override fun onCanCreateDesksChanged(canCreateDesks: Boolean) {
+        // TODO: b/389209338 - update the AddDesktopButton's visibility on this.
+    }
+
+    override fun onDeskAdded(displayId: Int, deskId: Int) {
+        with(recentsView) {
+            // Ignore desk changes that don't belong to this display.
+            if (displayId != mContainer.displayId) {
+                return
+            }
+
+            if (getDesktopTaskViewForDeskId(deskId) != null) {
+                Log.e(TAG, "A task view for this desk has already been added.")
+                return
+            }
+
+            val currentTaskView = currentPageTaskView
+
+            // We assume that a newly added desk is always empty and gets added to the left of the
+            // `AddNewDesktopButton`.
+            val desktopTaskView = getTaskViewFromPool(TaskViewType.DESKTOP) as DesktopTaskView
+            desktopTaskView.bind(
+                DesktopTask(deskId, displayId, emptyList()),
+                pagedViewOrientedState,
+                taskOverlayFactory,
+            )
+
+            val insertionIndex = 1 + indexOfChild(addDeskButton!!)
+            addView(desktopTaskView, insertionIndex)
+            updateTaskSize()
+            updateChildTaskOrientations()
+            updateScrollSynchronously()
+
+            // Set Current Page based on the stored TaskView.
+            currentTaskView?.let { setCurrentPage(indexOfChild(it)) }
+        }
+    }
+
+    override fun onDeskRemoved(displayId: Int, deskId: Int) {
+        with(recentsView) {
+            // Ignore desk changes that don't belong to this display.
+            if (displayId != mContainer.displayId) {
+                return
+            }
+
+            // We need to distinguish between desk removals that are triggered from outside of
+            // overview vs. the ones that were initiated from overview by dismissing the
+            // corresponding desktop task view.
+            getDesktopTaskViewForDeskId(deskId)?.let {
+                dismissTaskView(it, /* animateTaskView= */ true, /* removeTask= */ true)
+            }
+        }
+    }
+
+    override fun onActiveDeskChanged(displayId: Int, newActiveDesk: Int, oldActiveDesk: Int) {
+        // TODO: b/400870600 - We may need to add code here to special case when an empty desk gets
+        // activated, since `RemoteDesktopLaunchTransitionRunner` doesn't always get triggered.
+    }
 
     /**
      * Gets the list of accessibility children. Currently all the children of RecentsViews are
@@ -475,6 +541,26 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) {
             recentsView.mTaskOverlayFactory,
         )
         return desktopTaskView
+    }
+
+    fun shouldAddStubTaskView(groupedTaskInfo: GroupedTaskInfo): Boolean {
+        val matchingTaskView =
+            when {
+                groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_DESK) &&
+                    enableMultipleDesktops(recentsView.context) ->
+                    getDesktopTaskViewForDeskId(groupedTaskInfo.deskId)
+
+                groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_DESK) &&
+                    groupedTaskInfo.taskInfoList.size == 1 ->
+                    recentsView.getTaskViewByTaskId(groupedTaskInfo.taskInfo1!!.taskId)
+                        as? DesktopTaskView
+
+                else -> {
+                    val runningTaskIds = groupedTaskInfo.taskInfoList.map { it.taskId }.toIntArray()
+                    recentsView.getTaskViewByTaskIds(runningTaskIds)
+                }
+            }
+        return matchingTaskView == null
     }
 
     companion object {
