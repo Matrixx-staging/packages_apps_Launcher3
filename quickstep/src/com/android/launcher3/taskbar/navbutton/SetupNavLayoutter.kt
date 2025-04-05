@@ -59,7 +59,9 @@ class SetupNavLayoutter(
 
     override fun layoutButtons(context: TaskbarActivityContext, isA11yButtonPersistent: Boolean) {
         val SUWTheme = SystemProperties.get(SUW_THEME_SYSTEM_PROPERTY, "")
-        if (SUWTheme == GLIF_EXPRESSIVE_THEME || SUWTheme == GLIF_EXPRESSIVE_LIGHT_THEME) {
+        val expressiveThemeEnabled =
+            SUWTheme == GLIF_EXPRESSIVE_THEME || SUWTheme == GLIF_EXPRESSIVE_LIGHT_THEME
+        if (expressiveThemeEnabled && !context.isSimpleViewEnabled) {
             return
         }
         // Since setup wizard only has back button enabled, it looks strange to be

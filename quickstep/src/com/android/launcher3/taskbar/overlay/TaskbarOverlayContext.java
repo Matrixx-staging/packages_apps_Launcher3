@@ -16,6 +16,7 @@
 package com.android.launcher3.taskbar.overlay;
 
 import android.content.Context;
+import android.graphics.Point;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -56,7 +57,7 @@ public class TaskbarOverlayContext extends BaseTaskbarContext {
             Context windowContext,
             TaskbarActivityContext taskbarContext,
             TaskbarControllers controllers) {
-        super(windowContext, taskbarContext.isPrimaryDisplay());
+        super(windowContext, taskbarContext.getDisplayId(), taskbarContext.isPrimaryDisplay());
         mTaskbarContext = taskbarContext;
         mOverlayController = controllers.taskbarOverlayController;
         mDragController = new TaskbarDragController(this);
@@ -163,6 +164,11 @@ public class TaskbarOverlayContext extends BaseTaskbarContext {
     }
 
     @Override
+    public boolean isTaskbarShowingDesktopTasks() {
+        return mTaskbarContext.isTaskbarShowingDesktopTasks();
+    }
+
+    @Override
     public boolean showLockedTaskbarOnHome() {
         return mTaskbarContext.showLockedTaskbarOnHome();
     }
@@ -173,8 +179,18 @@ public class TaskbarOverlayContext extends BaseTaskbarContext {
     }
 
     @Override
-    public boolean isPrimaryDisplay() {
-        return mTaskbarContext.isPrimaryDisplay();
+    public Point getScreenSize() {
+        return mTaskbarContext.getScreenSize();
+    }
+
+    @Override
+    public int getDisplayHeight() {
+        return mTaskbarContext.getDisplayHeight();
+    }
+
+    @Override
+    public void notifyConfigChanged() {
+        mTaskbarContext.notifyConfigChanged();
     }
 
     @Override

@@ -44,7 +44,6 @@ import com.android.launcher3.R;
 import com.android.launcher3.anim.AnimatorListeners;
 import com.android.launcher3.taskbar.BarsLocationAnimatorHelper;
 import com.android.launcher3.taskbar.bubbles.animation.BubbleAnimator;
-import com.android.launcher3.util.DisplayController;
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation;
 
 import java.io.PrintWriter;
@@ -656,7 +655,7 @@ public class BubbleBarView extends FrameLayout {
      * Get bubble bar top coordinate on screen when bar is resting
      */
     public int getRestingTopPositionOnScreen() {
-        int displayHeight = DisplayController.INSTANCE.get(getContext()).getInfo().currentSize.y;
+        int displayHeight = mController.getScreenHeight();
         int bubbleBarHeight = getBubbleBarBounds().height();
         return displayHeight - bubbleBarHeight + (int) mController.getBubbleBarTranslationY();
     }
@@ -1645,6 +1644,9 @@ public class BubbleBarView extends FrameLayout {
 
     /** Interface for BubbleBarView to communicate with its controller. */
     interface Controller {
+
+        /** Returns the screen height. */
+        int getScreenHeight();
 
         /** Returns the translation Y that the bubble bar should have. */
         float getBubbleBarTranslationY();

@@ -260,6 +260,16 @@
     <string name="accessibility_rotate_button">Rotate screen</string>
 
     <!-- ******* Taskbar Edu ******* -->
+    <!-- Text description to describe Taskbar education animation for Taskbar autohide functionality. [CHAR_LIMIT=NONE] -->
+    <string name="taskbar_edu_swipe_animation_description">Animation showing how the taskbar comes into view from the bottom of the screen, and automatically hides when not in use</string>
+    <!-- Text description to describe Taskbar education animation for Taskbar pinning functionality. [CHAR_LIMIT=NONE] -->
+    <string name="taskbar_edu_pinning_animation_description">Animation showing how to pin your taskbar using a toggle, so the taskbar remains permanently visible at the bottom of the screen</string>
+    <!-- Text description to describe Taskbar education animation for split screen functionality. [CHAR_LIMIT=NONE] -->
+    <string name="taskbar_edu_split_screen_animation_description">Animation showing how to create a split screen, by dragging and dropping an app from the taskbar above an open app</string>
+    <!-- Text description to describe Taskbar education animation for app suggestion functionality. [CHAR_LIMIT=NONE] -->
+    <string name="taskbar_edu_suggested_app_animation_description">Animation showing how to access suggested apps on your device</string>
+    <!-- Text description to describe Taskbar education animation for app suggestion functionality. [CHAR_LIMIT=NONE] -->
+    <string name="taskbar_edu_suggested_search_animation_description">Animation showing how to search for an item on screen, by touching and holding the action key and selecting the area the item is in</string>
     <!-- Accessibility title for the Taskbar education window. [CHAR_LIMIT=NONE] -->
     <string name="taskbar_edu_a11y_title">Taskbar education</string>
     <!-- Text in dialog that lets a user know how they can use the Taskbar to use multiple apps at once on their device. [CHAR_LIMIT=60] -->

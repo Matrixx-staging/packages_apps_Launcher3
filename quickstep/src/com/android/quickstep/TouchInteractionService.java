@@ -73,6 +73,7 @@ import com.android.app.displaylib.PerDisplayRepository;
 import com.android.launcher3.ConstantItem;
 import com.android.launcher3.EncryptionType;
 import com.android.launcher3.Flags;
+import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.desktop.DesktopAppLaunchTransitionManager;
@@ -96,6 +97,7 @@ import com.android.launcher3.util.TraceHelper;
 import com.android.quickstep.OverviewCommandHelper.CommandType;
 import com.android.quickstep.OverviewComponentObserver.OverviewChangeListener;
 import com.android.quickstep.fallback.window.RecentsDisplayModel;
+import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.quickstep.fallback.window.RecentsWindowSwipeHandler;
 import com.android.quickstep.inputconsumers.BubbleBarInputConsumer;
 import com.android.quickstep.inputconsumers.OneHandedModeInputConsumer;
@@ -537,10 +539,17 @@ public class TouchInteractionService extends Service {
         }
 
         /** Refreshes the current overview target. */
-        public void refreshOverviewTarget() {
+        @VisibleForTesting
+        public void refreshOverviewTargetForTest() {
             executeForTouchInteractionService(tis -> {
                 tis.mAllAppsActionManager.onDestroy();
                 tis.onOverviewTargetChanged(tis.mOverviewComponentObserver.isHomeAndOverviewSame());
+                if (RecentsWindowFlags.getEnableOverviewInWindow()) {
+                    Launcher launcher = Launcher.ACTIVITY_TRACKER.getCreatedContext();
+                    if (launcher != null) {
+                        tis.mTaskbarManager.setActivity(launcher);
+                    }
+                }
             });
         }
     }

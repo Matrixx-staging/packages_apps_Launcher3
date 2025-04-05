@@ -33,12 +33,12 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.updateLayoutParams
 import com.android.internal.hidden_from_bootclasspath.com.android.window.flags.Flags.enableDesktopRecentsTransitionsCornersBugfix
 import com.android.launcher3.Flags.enableDesktopExplodedView
-import com.android.launcher3.Flags.enableOverviewIconMenu
 import com.android.launcher3.Flags.enableRefactorTaskThumbnail
 import com.android.launcher3.R
 import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.testing.TestLogging
 import com.android.launcher3.testing.shared.TestProtocol
+import com.android.launcher3.util.OverviewReleaseFlags.enableOverviewIconMenu
 import com.android.launcher3.util.RunnableList
 import com.android.launcher3.util.SplitConfigurationOptions
 import com.android.launcher3.util.TransformingTouchDelegate
@@ -417,8 +417,22 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         val endCallback = RunnableList()
         val desktopController = recentsView.desktopRecentsController
         checkNotNull(desktopController) { "recentsController is null" }
-        desktopController.launchDesktopFromRecents(this, animated) {
-            endCallback.executeAllAndDestroy()
+
+        val launchDesktopFromRecents = {
+            desktopController.launchDesktopFromRecents(this, animated) {
+                endCallback.executeAllAndDestroy()
+            }
+        }
+        if (enableMultipleDesktops(context) && desktopTask?.tasks?.isEmpty() == true) {
+            recentsView.switchToScreenshot {
+                recentsView.finishRecentsAnimation(
+                    /* toRecents= */ true,
+                    /* shouldPip= */ false,
+                    launchDesktopFromRecents,
+                )
+            }
+        } else {
+            launchDesktopFromRecents()
         }
         Log.d(
             TAG,

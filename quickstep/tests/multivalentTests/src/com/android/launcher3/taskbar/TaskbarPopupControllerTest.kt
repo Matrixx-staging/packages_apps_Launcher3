@@ -17,12 +17,14 @@
 package com.android.launcher3.taskbar
 
 import android.platform.test.annotations.DisableFlags
+import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
+import android.util.SparseArray
 import com.android.launcher3.AbstractFloatingView
 import com.android.launcher3.BubbleTextView
 import com.android.launcher3.Flags.FLAG_ENABLE_MULTI_INSTANCE_MENU_TASKBAR
-import com.android.launcher3.Flags.FLAG_ENABLE_PINNING_APP_WITH_CONTEXT_MENU
 import com.android.launcher3.R
+import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.taskbar.TaskbarControllerTestUtil.runOnMainSync
 import com.android.launcher3.taskbar.TaskbarViewTestUtil.createHotseatWorkspaceItem
@@ -33,6 +35,7 @@ import com.android.launcher3.taskbar.rules.TaskbarWindowSandboxContext
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.LauncherMultivalentJUnit.EmulatedDevices
 import com.android.quickstep.util.GroupTask
+import com.android.window.flags.Flags.FLAG_ENABLE_PINNING_APP_WITH_CONTEXT_MENU
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -41,7 +44,7 @@ import org.junit.runner.RunWith
 
 @RunWith(LauncherMultivalentJUnit::class)
 @EmulatedDevices(["pixelFoldable2023", "pixelTablet2023"])
-@DisableFlags(FLAG_ENABLE_MULTI_INSTANCE_MENU_TASKBAR, FLAG_ENABLE_PINNING_APP_WITH_CONTEXT_MENU)
+@DisableFlags(FLAG_ENABLE_MULTI_INSTANCE_MENU_TASKBAR)
 class TaskbarPopupControllerTest {
     @get:Rule(order = 0) val setFlagsRule = SetFlagsRule()
 
@@ -64,6 +67,12 @@ class TaskbarPopupControllerTest {
         runOnMainSync { taskbarView = taskbarContext.dragLayer.findViewById(R.id.taskbar_view) }
 
         val hotseatItems = arrayOf(createHotseatWorkspaceItem())
+        popupController.setApps(
+            hotseatItems
+                .map { item -> AppInfo(item.targetComponent, item.title, item.user, item.intent) }
+                .toTypedArray()
+        )
+        popupController.setHotseatInfosList(SparseArray())
         val recentItems = createRecents(2)
         runOnMainSync {
             taskbarView.updateItems(hotseatItems, recentItems)
@@ -86,6 +95,7 @@ class TaskbarPopupControllerTest {
     }
 
     @Test
+    @EnableFlags(FLAG_ENABLE_PINNING_APP_WITH_CONTEXT_MENU)
     fun showForIcon_recentTask() {
         assertThat(hasPopupMenu()).isFalse()
         runOnMainSync { popupController.showForIcon(recentTaskIcon) }

@@ -29,6 +29,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.Switch
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.postDelayed
 import com.android.app.animation.Interpolators.EMPHASIZED_ACCELERATE
 import com.android.launcher3.Flags
@@ -37,6 +38,7 @@ import com.android.launcher3.popup.ArrowPopup
 import com.android.launcher3.popup.RoundedArrowDrawable
 import com.android.launcher3.util.Themes
 import com.android.launcher3.views.ActivityContext
+import com.android.wm.shell.Flags.enableGsf
 import kotlin.math.max
 import kotlin.math.min
 
@@ -108,6 +110,15 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         val taskbarSwitchOption = requireViewById<LinearLayout>(R.id.taskbar_switch_option)
         val alwaysShowTaskbarSwitch = requireViewById<Switch>(R.id.taskbar_pinning_switch)
         val taskbarVisibilityIcon = requireViewById<View>(R.id.taskbar_pinning_visibility_icon)
+
+        if (enableGsf()) {
+            taskbarVisibilityIcon.background =
+                ResourcesCompat.getDrawable(
+                    context.resources,
+                    R.drawable.ic_visibility_filled,
+                    context.theme,
+                )
+        }
 
         alwaysShowTaskbarSwitch.isChecked = alwaysShowTaskbarOn
         alwaysShowTaskbarSwitch.setOnTouchListener { view, event ->

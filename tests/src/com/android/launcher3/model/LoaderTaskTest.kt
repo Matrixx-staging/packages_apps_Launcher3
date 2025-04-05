@@ -30,6 +30,7 @@ import com.android.launcher3.LauncherSettings.Favorites.TABLE_NAME
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.icons.IconCache
+import com.android.launcher3.icons.cache.CacheLookupFlag.Companion.DEFAULT_LOOKUP_FLAG
 import com.android.launcher3.icons.cache.CachingLogic
 import com.android.launcher3.icons.cache.IconCacheUpdateHandler
 import com.android.launcher3.model.LoaderTask.LoaderTaskFactory
@@ -480,7 +481,7 @@ class LoaderTaskTest {
                     },
                     activityInfo,
                     expectedIconBlob,
-                    false, /* useLowResIcon */
+                    DEFAULT_LOOKUP_FLAG.withUseLowRes(false),
                 )
             )
         val expectedAppInfo = AppInfo().apply { componentName = expectedComponent }
@@ -516,7 +517,7 @@ class LoaderTaskTest {
                     },
                     activityInfo,
                     expectedIconBlob,
-                    false, /* useLowResIcon */
+                    DEFAULT_LOOKUP_FLAG.withUseLowRes(false),
                 )
             )
         val expectedAppInfo = AppInfo().apply { componentName = expectedComponent }
@@ -552,7 +553,7 @@ class LoaderTaskTest {
                     },
                     activityInfo,
                     expectedIconBlob,
-                    false, /* useLowResIcon */
+                    DEFAULT_LOOKUP_FLAG.withUseLowRes(false),
                 )
             )
         val expectedAppInfo = AppInfo().apply { componentName = expectedComponent }
@@ -588,7 +589,7 @@ class LoaderTaskTest {
                     },
                     activityInfo,
                     expectedIconBlob,
-                    false, /* useLowResIcon */
+                    DEFAULT_LOOKUP_FLAG.withUseLowRes(false),
                 )
             )
         val expectedAppInfo =
@@ -622,7 +623,7 @@ class LoaderTaskTest {
                     WorkspaceItemInfo(),
                     activityInfo,
                     expectedIconBlob,
-                    false, /* useLowResIcon */
+                    DEFAULT_LOOKUP_FLAG.withUseLowRes(false),
                 )
             )
         val expectedAppInfo = AppInfo()

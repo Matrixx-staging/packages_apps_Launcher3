@@ -16,6 +16,8 @@
 
 package com.android.quickstep;
 
+import static com.android.quickstep.fallback.RecentsStateUtilsKt.toLauncherState;
+
 import static org.junit.Assert.assertTrue;
 
 import android.os.SystemProperties;
@@ -23,20 +25,19 @@ import android.os.SystemProperties;
 import androidx.test.uiautomator.By;
 import androidx.test.uiautomator.Until;
 
+import com.android.launcher3.LauncherState;
 import com.android.launcher3.tapl.LaunchedAppState;
 import com.android.launcher3.tapl.TestHelpers;
 import com.android.launcher3.ui.AbstractLauncherUiTest;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.TestUtil;
 import com.android.launcher3.util.Wait;
-import com.android.quickstep.fallback.RecentsState;
 import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.views.RecentsView;
 
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -64,9 +65,10 @@ public abstract class AbstractQuickStepTest extends AbstractLauncherUiTest<Quick
 
     // Cannot be used in TaplTests between a Tapl call injecting a gesture and a tapl call
     // expecting the results of that gesture because the wait can hide flakeness.
-    protected void waitForRecentsWindowState(String message, Supplier<RecentsState> state) {
+    protected void waitForRecentsWindowState(String message, Supplier<LauncherState> state) {
         waitForRecentsWindowCondition(message, recentsWindow ->
-                recentsWindow.getStateManager().getCurrentStableState() == state.get());
+                state.get() == toLauncherState(
+                        recentsWindow.getStateManager().getCurrentStableState()));
     }
 
     // Cannot be used in TaplTests after injecting any gesture using Tapl because this can hide
@@ -94,10 +96,10 @@ public abstract class AbstractQuickStepTest extends AbstractLauncherUiTest<Quick
         Wait.atMost(message, () -> getFromRecentsWindow(condition), mLauncher, timeout);
     }
 
-    protected boolean isInRecentsWindowState(Supplier<RecentsState> state) {
+    protected boolean isInRecentsWindowState(Supplier<LauncherState> state) {
         if (!TestHelpers.isInLauncherProcess()) return true;
-        return getFromRecentsWindow(
-                recentsWindow -> recentsWindow.getStateManager().getState() == state.get());
+        return getFromRecentsWindow(recentsWindow ->
+                state.get() == toLauncherState(recentsWindow.getStateManager().getState()));
     }
 
     protected void assertTestActivityIsRunning(int activityNumber, String message) {

@@ -18,7 +18,6 @@ package com.android.launcher3.model;
 import static com.android.launcher3.EncryptionType.ENCRYPTED;
 import static com.android.launcher3.LauncherPrefs.nonRestorableItem;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT;
-import static com.android.launcher3.icons.cache.CacheLookupFlag.DEFAULT_LOOKUP_FLAG;
 import static com.android.quickstep.InstantAppResolverImpl.COMPONENT_CLASS_MARKER;
 
 import android.app.prediction.AppTarget;
@@ -107,7 +106,7 @@ public class PredictionUpdateTask implements ModelUpdateTask {
                                 return null;
                             }
                             AppInfo ai = new AppInfo(context, lai, user);
-                            iconCache.getTitleAndIcon(ai, lai, DEFAULT_LOOKUP_FLAG);
+                            iconCache.getTitleAndIcon(ai, lai, mPredictorState.lookupFlag);
                             return ai.makeWorkspaceItem(context);
                         });
 

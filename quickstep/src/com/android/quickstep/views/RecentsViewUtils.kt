@@ -16,10 +16,13 @@
 
 package com.android.quickstep.views
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.graphics.PointF
 import android.graphics.Rect
 import android.util.FloatProperty
 import android.util.Log
+import android.util.Property
 import android.view.KeyEvent
 import android.view.View
 import android.view.View.LAYOUT_DIRECTION_LTR
@@ -27,21 +30,28 @@ import android.view.View.LAYOUT_DIRECTION_RTL
 import androidx.core.view.children
 import com.android.launcher3.AbstractFloatingView.TYPE_TASK_MENU
 import com.android.launcher3.AbstractFloatingView.getTopOpenViewWithType
-import com.android.launcher3.Flags.enableGridOnlyOverview
+import com.android.launcher3.Flags.enableDesktopExplodedView
 import com.android.launcher3.Flags.enableLargeDesktopWindowingTile
-import com.android.launcher3.Flags.enableOverviewIconMenu
 import com.android.launcher3.Flags.enableSeparateExternalDisplayTasks
 import com.android.launcher3.Utilities.getPivotsForScalingRectToRect
 import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.statehandlers.DesktopVisibilityController.Companion.INACTIVE_DESK_ID
+import com.android.launcher3.statemanager.BaseState
 import com.android.launcher3.util.IntArray
+import com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview
+import com.android.launcher3.util.OverviewReleaseFlags.enableOverviewIconMenu
 import com.android.launcher3.util.window.WindowManagerProxy.DesktopVisibilityListener
+import com.android.quickstep.GestureState
+import com.android.quickstep.RemoteTargetGluer.RemoteTargetHandle
 import com.android.quickstep.util.DesksUtils.Companion.areMultiDesksFlagsEnabled
 import com.android.quickstep.util.DesktopTask
 import com.android.quickstep.util.GroupTask
 import com.android.quickstep.util.isExternalDisplay
+import com.android.quickstep.views.RecentsView.DESKTOP_CAROUSEL_DETACH_PROGRESS
+import com.android.quickstep.views.RecentsView.RECENTS_GRID_PROGRESS
 import com.android.quickstep.views.RecentsView.RUNNING_TASK_ATTACH_ALPHA
 import com.android.quickstep.views.RecentsView.TAG
+import com.android.quickstep.views.RecentsView.TASK_THUMBNAIL_SPLASH_ALPHA
 import com.android.systemui.shared.recents.model.Task
 import com.android.systemui.shared.recents.model.ThumbnailData
 import com.android.wm.shell.shared.GroupedTaskInfo
@@ -293,11 +303,6 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
         }
     }
 
-    override fun onActiveDeskChanged(displayId: Int, newActiveDesk: Int, oldActiveDesk: Int) {
-        // TODO: b/400870600 - We may need to add code here to special case when an empty desk gets
-        // activated, since `RemoteDesktopLaunchTransitionRunner` doesn't always get triggered.
-    }
-
     /**
      * Gets the list of accessibility children. Currently all the children of RecentsViews are
      * added, and in the reverse order to the list.
@@ -543,24 +548,125 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
         return desktopTaskView
     }
 
-    fun shouldAddStubTaskView(groupedTaskInfo: GroupedTaskInfo): Boolean {
-        val matchingTaskView =
-            when {
+    fun getRunningTaskViewFromGroupTaskInfo(groupedTaskInfo: GroupedTaskInfo) =
+        if (enableMultipleDesktops(recentsView.context)) {
+            if (groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_DESK)) {
+                getDesktopTaskViewForDeskId(groupedTaskInfo.deskId)
+            } else {
+                val runningTaskIds = groupedTaskInfo.taskInfoList.map { it.taskId }.toIntArray()
+                val taskView = recentsView.getTaskViewByTaskIds(runningTaskIds)
+                if (taskView?.type == groupedTaskInfo.getTaskViewType()) taskView else null
+            }
+        } else {
+            if (
                 groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_DESK) &&
-                    enableMultipleDesktops(recentsView.context) ->
-                    getDesktopTaskViewForDeskId(groupedTaskInfo.deskId)
+                    groupedTaskInfo.taskInfoList.size == 1
+            ) {
+                recentsView.getTaskViewByTaskId(groupedTaskInfo.taskInfo1!!.taskId)
+                    as? DesktopTaskView
+            } else {
+                val runningTaskIds = groupedTaskInfo.taskInfoList.map { it.taskId }.toIntArray()
+                recentsView.getTaskViewByTaskIds(runningTaskIds)
+            }
+        }
 
-                groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_DESK) &&
-                    groupedTaskInfo.taskInfoList.size == 1 ->
-                    recentsView.getTaskViewByTaskId(groupedTaskInfo.taskInfo1!!.taskId)
-                        as? DesktopTaskView
+    private fun GroupedTaskInfo.getTaskViewType() =
+        when {
+            isBaseType(GroupedTaskInfo.TYPE_FULLSCREEN) -> TaskViewType.SINGLE
+            isBaseType(GroupedTaskInfo.TYPE_SPLIT) -> TaskViewType.GROUPED
+            isBaseType(GroupedTaskInfo.TYPE_DESK) -> TaskViewType.DESKTOP
+            else -> null
+        }
 
-                else -> {
-                    val runningTaskIds = groupedTaskInfo.taskInfoList.map { it.taskId }.toIntArray()
-                    recentsView.getTaskViewByTaskIds(runningTaskIds)
+    fun onPrepareGestureEndAnimation(
+        animatorSet: AnimatorSet,
+        endTarget: GestureState.GestureEndTarget,
+        remoteTargetHandles: Array<RemoteTargetHandle>,
+        isHandlingAtomicEvent: Boolean,
+    ) {
+        // Create ObjectAnimator that immediately settles on [endStateValue] when
+        // [isHandlingAtomicEvent] is true.
+        fun <T> immediateObjectAnimator(
+            target: T,
+            property: Property<T, Float>,
+            endStateValue: Float,
+        ) =
+            if (isHandlingAtomicEvent)
+                ObjectAnimator.ofFloat(target, property, endStateValue, endStateValue)
+            else ObjectAnimator.ofFloat(target, property, endStateValue)
+
+        with(recentsView) {
+            Log.d(TAG, "onPrepareGestureEndAnimation - endTarget: $endTarget")
+            mCurrentGestureEndTarget = endTarget
+            val endState: BaseState<*> = mSizeStrategy.stateFromGestureEndTarget(endTarget)
+
+            // Starting the desk exploded animation when the gesture from an app is released.
+            if (enableDesktopExplodedView()) {
+                animatorSet.play(
+                    ObjectAnimator.ofFloat(
+                        this,
+                        DESK_EXPLODE_PROGRESS,
+                        if (endState.showExplodedDesktopView()) 1f else 0f,
+                    )
+                )
+                taskViews.filterIsInstance<DesktopTaskView>().forEach {
+                    it.remoteTargetHandles = remoteTargetHandles
                 }
             }
-        return matchingTaskView == null
+
+            if (endState.displayOverviewTasksAsGrid(getDeviceProfile())) {
+                updateGridProperties()
+                animatorSet.play(immediateObjectAnimator(this, RECENTS_GRID_PROGRESS, 1f))
+
+                val runningTaskView = runningTaskView
+                var runningTaskGridTranslationX = 0f
+                var runningTaskGridTranslationY = 0f
+                if (runningTaskView != null) {
+                    // Apply the grid translation to running task unless it's being snapped to
+                    // and removes the current translation applied to the running task.
+                    runningTaskGridTranslationX =
+                        (runningTaskView.gridTranslationX - runningTaskView.nonGridTranslationX)
+                    runningTaskGridTranslationY = runningTaskView.gridTranslationY
+                }
+                remoteTargetHandles.forEach { remoteTargetHandle ->
+                    val taskViewSimulator = remoteTargetHandle.taskViewSimulator
+                    if (enableGridOnlyOverview()) {
+                        animatorSet.play(taskViewSimulator.carouselScale.animateToValue(1f))
+                        animatorSet.play(
+                            taskViewSimulator.taskGridTranslationX.animateToValue(
+                                runningTaskGridTranslationX
+                            )
+                        )
+                        animatorSet.play(
+                            taskViewSimulator.taskGridTranslationY.animateToValue(
+                                runningTaskGridTranslationY
+                            )
+                        )
+                    } else {
+                        animatorSet.play(
+                            taskViewSimulator.taskPrimaryTranslation.animateToValue(
+                                runningTaskGridTranslationX
+                            )
+                        )
+                        animatorSet.play(
+                            taskViewSimulator.taskSecondaryTranslation.animateToValue(
+                                runningTaskGridTranslationY
+                            )
+                        )
+                    }
+                }
+            }
+            animatorSet.play(
+                immediateObjectAnimator(
+                    this,
+                    TASK_THUMBNAIL_SPLASH_ALPHA,
+                    if (endState.showTaskThumbnailSplash()) 1f else 0f,
+                )
+            )
+            if (enableLargeDesktopWindowingTile()) {
+                animatorSet.play(ObjectAnimator.ofFloat(this, DESKTOP_CAROUSEL_DETACH_PROGRESS, 0f))
+            }
+        }
     }
 
     companion object {

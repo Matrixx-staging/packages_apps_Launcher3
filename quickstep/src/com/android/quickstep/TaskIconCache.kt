@@ -24,7 +24,6 @@ import android.graphics.drawable.Drawable
 import android.os.UserHandle
 import android.util.SparseArray
 import androidx.annotation.WorkerThread
-import com.android.launcher3.Flags.enableOverviewIconMenu
 import com.android.launcher3.Flags.enableRefactorTaskThumbnail
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
@@ -38,6 +37,7 @@ import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.DisplayController.DisplayInfoChangeListener
 import com.android.launcher3.util.Executors
 import com.android.launcher3.util.FlagOp
+import com.android.launcher3.util.OverviewReleaseFlags.enableOverviewIconMenu
 import com.android.launcher3.util.Preconditions
 import com.android.quickstep.task.thumbnail.data.TaskIconDataSource
 import com.android.quickstep.util.IconLabelUtil.getBadgedContentDescription

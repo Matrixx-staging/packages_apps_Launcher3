@@ -30,11 +30,11 @@ import androidx.core.util.component1
 import androidx.core.util.component2
 import androidx.core.view.updateLayoutParams
 import com.android.launcher3.DeviceProfile
-import com.android.launcher3.Flags
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.launcher3.logger.LauncherAtom
 import com.android.launcher3.touch.SingleAxisSwipeDetector
+import com.android.launcher3.util.OverviewReleaseFlags.enableOverviewIconMenu
 import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT
 import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_TOP_OR_LEFT
 import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_UNDEFINED
@@ -81,7 +81,7 @@ class SeascapePagedViewHandler : LandscapePagedViewHandler() {
         taskInsetMargin: Float,
         taskViewIcon: View,
     ): Float {
-        if (Flags.enableOverviewIconMenu()) {
+        if (enableOverviewIconMenu()) {
             return y
         }
         val lp = taskMenuView.layoutParams as BaseDragLayer.LayoutParams
@@ -363,7 +363,7 @@ class SeascapePagedViewHandler : LandscapePagedViewHandler() {
         dividerSize: Int,
         oneIconHiddenDueToSmallWidth: Boolean,
     ): SplitIconPositions {
-        return if (Flags.enableOverviewIconMenu()) {
+        return if (enableOverviewIconMenu()) {
             if (isRtl) {
                 SplitIconPositions(
                     topLeftY = totalThumbnailHeight - primarySnapshotHeight,
@@ -405,7 +405,7 @@ class SeascapePagedViewHandler : LandscapePagedViewHandler() {
     override fun updateSplitIconsPosition(iconView: View, translationY: Int, isRtl: Boolean) {
         val layoutParams = iconView.layoutParams as FrameLayout.LayoutParams
 
-        if (Flags.enableOverviewIconMenu()) {
+        if (enableOverviewIconMenu()) {
             val appChipView = iconView as IconAppChipView
             layoutParams.gravity =
                 if (isRtl) Gravity.TOP or Gravity.START else Gravity.BOTTOM or Gravity.END

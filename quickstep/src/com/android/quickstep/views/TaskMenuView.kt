@@ -35,13 +35,13 @@ import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
 import com.android.app.animation.Interpolators
 import com.android.launcher3.AbstractFloatingView
-import com.android.launcher3.Flags.enableOverviewIconMenu
 import com.android.launcher3.Flags.enableRefactorTaskThumbnail
 import com.android.launcher3.R
 import com.android.launcher3.anim.AnimationSuccessListener
 import com.android.launcher3.anim.RoundedRectRevealOutlineProvider
 import com.android.launcher3.popup.SystemShortcut
 import com.android.launcher3.util.MultiPropertyFactory
+import com.android.launcher3.util.OverviewReleaseFlags.enableOverviewIconMenu
 import com.android.launcher3.util.SplitConfigurationOptions
 import com.android.launcher3.views.BaseDragLayer
 import com.android.quickstep.TaskOverlayFactory

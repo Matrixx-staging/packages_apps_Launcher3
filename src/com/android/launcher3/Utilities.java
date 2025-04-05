@@ -17,6 +17,7 @@
 package com.android.launcher3;
 
 import static com.android.launcher3.BuildConfig.WIDGET_ON_FIRST_SCREEN;
+import static com.android.launcher3.Flags.enableMouseInteractionChanges;
 import static com.android.launcher3.Flags.enableSmartspaceAsAWidget;
 import static com.android.launcher3.graphics.ShapeDelegate.DEFAULT_PATH_SIZE;
 import static com.android.launcher3.icons.BitmapInfo.FLAG_THEMED;
@@ -974,5 +975,14 @@ public final class Utilities {
         if (BuildConfig.IS_DEBUG_DEVICE) {
             Log.d(tag, message);
         }
+    }
+
+    /**
+     * Returns whether mouse interaction changes intended for the desktop form factor should be
+     * enabled.
+     */
+    public static boolean shouldEnableMouseInteractionChanges(Context context) {
+        return enableMouseInteractionChanges() && context.getResources().getBoolean(
+                R.bool.desktop_form_factor);
     }
 }

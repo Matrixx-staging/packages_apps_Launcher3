@@ -71,7 +71,6 @@ public class ClipIconView extends View implements ClipPathView {
     private boolean mIsFolderIcon = false;
 
     private ValueAnimator mRevealAnimator;
-    private float mIconScale;
 
     private final Rect mStartRevealRect = new Rect();
     private final Rect mEndRevealRect = new Rect();
@@ -178,7 +177,6 @@ public class ClipIconView extends View implements ClipPathView {
         mTaskCornerRadius = cornerRadius / scale;
         if (mIsAdaptiveIcon) {
             final ThemeManager themeManager = ThemeManager.INSTANCE.get(getContext());
-            mIconScale = themeManager.getIconState().getIconScale();
             if ((!isOpening || Flags.enableLauncherIconShapes())
                     && progress >= shapeProgressStart) {
                 if (mRevealAnimator == null) {
@@ -322,13 +320,6 @@ public class ClipIconView extends View implements ClipPathView {
             canvas.clipPath(mClipPath);
         }
         int count2 = canvas.save();
-        if (!mIsFolderIcon) {
-            float iconCenterX =
-                    (mFinalDrawableBounds.right - mFinalDrawableBounds.left) / 2f * mIconScale;
-            float iconCenterY =
-                    (mFinalDrawableBounds.bottom - mFinalDrawableBounds.top) / 2f * mIconScale;
-            canvas.scale(mIconScale, mIconScale, iconCenterX, iconCenterY);
-        }
         if (mBackground != null) {
             mBackground.draw(canvas);
         }

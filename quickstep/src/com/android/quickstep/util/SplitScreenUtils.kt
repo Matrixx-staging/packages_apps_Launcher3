@@ -17,14 +17,13 @@
 package com.android.quickstep.util
 
 import android.util.Log
-import android.view.WindowManager.TRANSIT_OPEN
-import android.view.WindowManager.TRANSIT_TO_FRONT
+import android.view.WindowManager.TRANSIT_CHANGE
 import android.window.TransitionInfo
 import android.window.TransitionInfo.Change
 import android.window.TransitionInfo.FLAG_FIRST_CUSTOM
 import com.android.launcher3.util.SplitConfigurationOptions
+import com.android.wm.shell.shared.TransitionUtil
 import com.android.wm.shell.shared.split.SplitBounds
-import java.lang.IllegalStateException
 
 class SplitScreenUtils {
     companion object {
@@ -54,14 +53,7 @@ class SplitScreenUtils {
         ): Pair<Change, List<Change>>? {
             val parentToChildren = mutableMapOf<Change, MutableList<Change>>()
             val hasParent = mutableSetOf<Change>()
-            // filter out anything that isn't opening and the divider
-            val taskChanges: List<Change> =
-                transitionInfo.changes
-                    .filter { change ->
-                        (change.mode == TRANSIT_OPEN || change.mode == TRANSIT_TO_FRONT) &&
-                            change.flags < FLAG_FIRST_CUSTOM
-                    }
-                    .toList()
+            val taskChanges: List<Change> = getNonClosingChanges(transitionInfo)
 
             // 1. Build Parent-Child Relationships
             for (change in taskChanges) {
@@ -89,6 +81,17 @@ class SplitScreenUtils {
                 Log.w(TAG, "No top parent found")
                 null
             }
+        }
+
+
+        /** @return includes only opening + [TRANSIT_CHANGE] changes and the divider */
+        private fun getNonClosingChanges(transitionInfo: TransitionInfo): List<Change> {
+            return transitionInfo.changes
+                .filter { change ->
+                    (TransitionUtil.isOpeningMode(change.mode) || change.mode == TRANSIT_CHANGE)
+                            && change.flags < FLAG_FIRST_CUSTOM
+                }
+                .toList()
         }
     }
 }

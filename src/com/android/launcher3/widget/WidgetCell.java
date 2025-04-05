@@ -19,6 +19,7 @@ package com.android.launcher3.widget;
 import static android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK;
 
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_WIDGETS_TRAY;
+import static com.android.launcher3.icons.cache.CacheLookupFlag.DEFAULT_LOOKUP_FLAG;
 import static com.android.launcher3.widget.util.WidgetSizes.getWidgetItemSizePx;
 
 import android.animation.Animator;
@@ -568,7 +569,8 @@ public class WidgetCell extends LinearLayout {
                     mItem.componentName.getPackageName(),
                     mItem.user);
             mIconLoadRequest = LauncherAppState.getInstance(getContext()).getIconCache()
-                    .updateIconInBackground(this::reapplyIconInfo, tmpPackageItem);
+                    .updateIconInBackground(this::reapplyIconInfo, tmpPackageItem,
+                            DEFAULT_LOOKUP_FLAG);
         }
     }
 

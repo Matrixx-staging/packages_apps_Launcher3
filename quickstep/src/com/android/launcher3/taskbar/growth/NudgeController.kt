@@ -20,7 +20,6 @@ import com.android.launcher3.Utilities
 import com.android.launcher3.taskbar.TaskbarActivityContext
 import com.android.launcher3.taskbar.TaskbarControllers
 import com.android.launcher3.taskbar.TaskbarControllers.LoggableTaskbarController
-import com.android.launcher3.util.DisplayController
 import com.android.launcher3.views.ActivityContext
 import java.io.PrintWriter
 
@@ -43,7 +42,7 @@ class NudgeController(context: Context) : LoggableTaskbarController {
     }
 
     fun maybeShow(payload: NudgePayload) {
-        if (!isNudgeEnabled || !DisplayController.isTransientTaskbar(activityContext)) {
+        if (!isNudgeEnabled || !activityContext.isTransientTaskbar) {
             return
         }
         // TODO: b/398033012 - create and show nudge view based on the payload.

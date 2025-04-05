@@ -298,13 +298,6 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         mContent.setFolder(this);
 
         mPageIndicator = findViewById(R.id.folder_page_indicator);
-        if (enableLauncherVisualRefresh()) {
-            MarginLayoutParams params = ((MarginLayoutParams) mPageIndicator.getLayoutParams());
-            int horizontalMargin = getContext().getResources()
-                    .getDimensionPixelSize(R.dimen.folder_footer_horiz_padding);
-            params.setMarginStart(horizontalMargin);
-            params.setMarginEnd(horizontalMargin);
-        }
         mFooter = findViewById(R.id.folder_footer);
         mFooterHeight = dp.folderFooterHeightPx;
         mFolderName = findViewById(R.id.folder_name);
@@ -317,9 +310,24 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
                 | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
                 | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
         mFolderName.forceDisableSuggestions(true);
-
         mKeyboardInsetAnimationCallback = new KeyboardInsetAnimationCallback(this);
         setWindowInsetsAnimationCallback(mKeyboardInsetAnimationCallback);
+    }
+
+    /** If arrows are visible, replace the container padding with indicator padding */
+    public void onIndicatorVisibilityChanged() {
+        int sidePadding = getResources().getDimensionPixelSize(R.dimen.folder_footer_horiz_padding);
+        if (mPageIndicator.getVisibility() == View.VISIBLE) {
+            // Replace the container padding with indicator padding for arrows
+            mFooter.setPadding(0, 0, 0, 0);
+            mPageIndicator.setPadding(sidePadding, 0, sidePadding, 0);
+            ((MarginLayoutParams) mFolderName.getLayoutParams())
+                    .setMarginStart(sidePadding);
+        } else {
+            mFooter.setPadding(sidePadding, 0, sidePadding, 0);
+            mPageIndicator.setPadding(0, 0, 0, 0);
+            ((MarginLayoutParams) mFolderName.getLayoutParams()).setMarginStart(0);
+        }
     }
 
     public boolean onLongClick(View v) {
@@ -1278,7 +1286,9 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         super.onSizeChanged(w, h, oldw, oldh);
         int minTitleWidth = getResources().getDimensionPixelSize(R.dimen.folder_title_min_width);
         if (enableLauncherVisualRefresh() && mFolderName.getMeasuredWidth() < minTitleWidth) {
-            mFolderName.setVisibility(View.GONE);
+            ((MarginLayoutParams) mFolderName.getLayoutParams()).setMarginStart(0);
+            // The post is necessary for margins to be recalculated. RTL UI is shifted otherwise.
+            mFolderName.post(() -> mFolderName.setVisibility(View.GONE));
         }
     }
 

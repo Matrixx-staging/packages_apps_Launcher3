@@ -89,7 +89,6 @@ interface ShapeDelegate {
     }
 
     /** Rounded square with [radiusRatio] as a ratio of its half edge size */
-    @VisibleForTesting
     open class RoundedSquare(val radiusRatio: Float) : ShapeDelegate {
 
         override fun drawShape(
@@ -129,17 +128,17 @@ interface ShapeDelegate {
         ): ValueAnimator where T : View, T : ClipPathView {
             val startRadius = (startRect.width() / 2f) * radiusRatio
             return ClipAnimBuilder(target) { progress, path ->
-                val radius = (1 - progress) * startRadius + progress * endRadius
-                path.addRoundRect(
-                    (1 - progress) * startRect.left + progress * endRect.left,
-                    (1 - progress) * startRect.top + progress * endRect.top,
-                    (1 - progress) * startRect.right + progress * endRect.right,
-                    (1 - progress) * startRect.bottom + progress * endRect.bottom,
-                    radius,
-                    radius,
-                    Path.Direction.CW,
-                )
-            }
+                    val radius = (1 - progress) * startRadius + progress * endRadius
+                    path.addRoundRect(
+                        (1 - progress) * startRect.left + progress * endRect.left,
+                        (1 - progress) * startRect.top + progress * endRect.top,
+                        (1 - progress) * startRect.right + progress * endRect.right,
+                        (1 - progress) * startRect.bottom + progress * endRect.bottom,
+                        radius,
+                        radius,
+                        Path.Direction.CW,
+                    )
+                }
                 .toAnim(isReversed)
         }
 

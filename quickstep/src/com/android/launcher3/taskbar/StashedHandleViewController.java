@@ -17,6 +17,7 @@ package com.android.launcher3.taskbar;
 
 import static android.view.Display.DEFAULT_DISPLAY;
 
+import static com.android.launcher3.taskbar.Utilities.getShapedTaskbarRadius;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_NAV_BAR_HIDDEN;
 
 import android.animation.Animator;
@@ -31,6 +32,7 @@ import android.view.View;
 import android.view.ViewOutlineProvider;
 
 import com.android.launcher3.DeviceProfile;
+import com.android.launcher3.Flags;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.R;
 import com.android.launcher3.anim.AnimatedFloat;
@@ -147,7 +149,9 @@ public class StashedHandleViewController implements TaskbarControllers.LoggableT
                         stashedCenterX + mStashedHandleWidth / 2,
                         stashedCenterY + mStashedHandleHeight / 2);
                 mStashedHandleView.updateSampledRegion(mStashedHandleBounds);
-                mStashedHandleRadius = view.getHeight() / 2f;
+                mStashedHandleRadius = Flags.enableLauncherIconShapes()
+                        ? getShapedTaskbarRadius(mActivity)
+                        : view.getHeight() / 2f;
                 outline.setRoundRect(mStashedHandleBounds, mStashedHandleRadius);
             }
         });
@@ -167,6 +171,7 @@ public class StashedHandleViewController implements TaskbarControllers.LoggableT
 
     /**
      * Returns the stashed handle bounds.
+     *
      * @param out The destination rect.
      */
     public void getStashedHandleBounds(Rect out) {
@@ -221,8 +226,9 @@ public class StashedHandleViewController implements TaskbarControllers.LoggableT
             int heightDiff = (mTaskbarSize - visualBounds.height()) / 2;
             visualBounds.top -= heightDiff;
             visualBounds.bottom += heightDiff;
-
-            startRadius = visualBounds.height() / 2f;
+            startRadius = Flags.enableLauncherIconShapes()
+                    ? getShapedTaskbarRadius(mActivity)
+                    : visualBounds.height() / 2f;
         }
 
         final RevealOutlineAnimation handleRevealProvider = new RoundedRectRevealOutlineProvider(

@@ -253,6 +253,7 @@ private constructor(appContext: Context, dispatcherProvider: DispatcherProvider)
             }
         }
 
+        @JvmStatic
         fun maybeInitialize(
             context: Context,
             dispatcherProvider: DispatcherProvider,

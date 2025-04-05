@@ -75,10 +75,8 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
     private static final int ENTER_ANIMATION_STAGGERED_DELAY = 150;
     private static final int ENTER_ANIMATION_DURATION = 400;
 
-    private static final int LARGE_HEIGHT_MULTIPLIER = 12;
-    private static final int SMALL_HEIGHT_MULTIPLIER = 4;
-    private static final int LARGE_WIDTH_MULTIPLIER = 5;
-    private static final int SMALL_WIDTH_MULTIPLIER = 3;
+    private static final int HEIGHT_MULTIPLIER = 4;
+    private static final int WIDTH_MULTIPLIER = 3;
     private static final float ARROW_TOUCH_BOX_FACTOR = 5f;
 
     private static final int PAGE_INDICATOR_ALPHA = 255;
@@ -88,7 +86,7 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
     private static final int VISIBLE_ALPHA = 255;
     private static final int INVISIBLE_ALPHA = 0;
     private Paint mPaginationPaint;
-    private Consumer<Direction> mOnArrowClickListener;
+    private @Nullable Consumer<Direction> mOnArrowClickListener;
 
     // This value approximately overshoots to 1.5 times the original size.
     private static final float ENTER_ANIMATION_OVERSHOOT_TENSION = 4.9f;
@@ -135,6 +133,8 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
     private final VectorDrawable mArrowLeft;
     private final Rect mArrowRightBounds = new Rect();
     private final Rect mArrowLeftBounds = new Rect();
+    private final int mArrowWidth;
+    private final int mArrowHeight;
 
     private int mNumPages;
     private int mActivePage;
@@ -188,6 +188,11 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
         mIsRtl = Utilities.isRtl(getResources());
         mArrowRight = (VectorDrawable) getResources().getDrawable(R.drawable.ic_chevron_end);
         mArrowLeft = (VectorDrawable) getResources().getDrawable(R.drawable.ic_chevron_start);
+        /* the width of the arrows themselves plus extra folder / touch padding. x2 for 2 arrows. */
+        mArrowWidth = 2 * ((int) ((5.5f) * mGapWidth)
+                + getResources().getDimensionPixelSize(R.dimen.folder_footer_horiz_padding));
+        mArrowHeight =
+                getResources().getDimensionPixelSize(R.dimen.folder_footer_height_default);
     }
 
     @Override
@@ -426,7 +431,7 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
     }
 
     @Override
-    public void setArrowClickListener(Consumer<Direction> listener) {
+    public void setArrowClickListener(@Nullable Consumer<Direction> listener) {
         mOnArrowClickListener = listener;
     }
 
@@ -449,12 +454,15 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
         // and so the hitboxes of arrows can be clicked easier.
         int width = MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.EXACTLY ?
                 MeasureSpec.getSize(widthMeasureSpec)
-                : (int) ((mNumPages * ((enableLauncherVisualRefresh())
-                        ? LARGE_WIDTH_MULTIPLIER : SMALL_WIDTH_MULTIPLIER) + 2) * mDotRadius);
+                : (int) ((mNumPages * WIDTH_MULTIPLIER + 2) * mDotRadius);
         int height = MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.EXACTLY
                 ? MeasureSpec.getSize(heightMeasureSpec)
-                : (int) (((enableLauncherVisualRefresh())
-                        ? LARGE_HEIGHT_MULTIPLIER : SMALL_HEIGHT_MULTIPLIER) * mDotRadius);
+                : (int) (HEIGHT_MULTIPLIER * mDotRadius);
+        if (enableLauncherVisualRefresh() && mOnArrowClickListener != null) {
+            // Extra height and width and gaps for accessibility arrows.
+            width += mArrowWidth;
+            height = mArrowHeight;
+        }
         setMeasuredDimension(width, height);
     }
 

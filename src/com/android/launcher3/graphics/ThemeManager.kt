@@ -29,6 +29,7 @@ import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.graphics.ShapeDelegate.Companion.pickBestShape
 import com.android.launcher3.icons.IconThemeController
 import com.android.launcher3.icons.mono.MonoIconThemeController
+import com.android.launcher3.shapes.IconShapeModel.Companion.DEFAULT_ICON_RADIUS
 import com.android.launcher3.shapes.ShapesProvider
 import com.android.launcher3.util.DaggerSingletonObject
 import com.android.launcher3.util.DaggerSingletonTracker
@@ -116,33 +117,34 @@ constructor(
             if (oldState != null && oldState.iconMask == iconMask) oldState.iconShape
             else pickBestShape(iconMask)
 
-        val folderShapeMask = shapeModel?.folderPathString ?: iconMask
+        val folderRadius = shapeModel?.folderRadiusRatio ?: 1f
         val folderShape =
-            when {
-                oldState != null && oldState.folderShapeMask == folderShapeMask ->
-                    oldState.folderShape
-                folderShapeMask == iconMask || folderShapeMask.isEmpty() -> iconShape
-                else -> pickBestShape(folderShapeMask)
+            if (oldState != null && oldState.folderRadius == folderRadius) {
+                oldState.folderShape
+            } else if (folderRadius == 1f) {
+                ShapeDelegate.Circle()
+            } else {
+                ShapeDelegate.RoundedSquare(folderRadius)
             }
 
         return IconState(
             iconMask = iconMask,
-            folderShapeMask = folderShapeMask,
+            folderRadius = folderRadius,
             themeController = iconControllerFactory.createThemeController(),
-            iconScale = shapeModel?.iconScale ?: 1f,
             iconShape = iconShape,
             folderShape = folderShape,
+            shapeRadius = shapeModel?.shapeRadius ?: DEFAULT_ICON_RADIUS,
         )
     }
 
     data class IconState(
         val iconMask: String,
-        val folderShapeMask: String,
+        val folderRadius: Float,
         val themeController: IconThemeController?,
         val themeCode: String = themeController?.themeID ?: "no-theme",
-        val iconScale: Float = 1f,
         val iconShape: ShapeDelegate,
         val folderShape: ShapeDelegate,
+        val shapeRadius: Float,
     ) {
         fun toUniqueId() = "${iconMask.hashCode()},$themeCode"
     }

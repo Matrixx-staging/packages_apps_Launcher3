@@ -60,6 +60,7 @@ CONTAINER : RecentsViewContainer {
     private var launchEndDisplacement: Float = 0f
     private var playbackController: AnimatorPlaybackController? = null
     private var verticalFactor: Int = 0
+    private var canInterceptTouch = false
 
     private fun canTaskLaunchTaskView(taskView: TaskView?) =
         taskView != null &&
@@ -108,10 +109,15 @@ CONTAINER : RecentsViewContainer {
             clearState()
         }
         if (ev.action == MotionEvent.ACTION_DOWN) {
-            if (!onActionDown(ev)) {
+            canInterceptTouch = onActionDown(ev)
+            if (!canInterceptTouch) {
                 clearState()
                 return false
             }
+        }
+        // Ignore other actions if touch intercepting has not been enabled in an ACTION_DOWN event.
+        if (!canInterceptTouch) {
+            return false
         }
         onControllerTouchEvent(ev)
         val downDirectionIsNegative = downDirection == SingleAxisSwipeDetector.DIRECTION_NEGATIVE

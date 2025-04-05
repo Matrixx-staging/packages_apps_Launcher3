@@ -31,6 +31,7 @@ import androidx.annotation.VisibleForTesting
 import com.android.app.displaylib.PerDisplayRepository
 import com.android.app.tracing.traceSection
 import com.android.internal.jank.Cuj
+import com.android.launcher3.DeviceProfile
 import com.android.launcher3.Flags.enableLargeDesktopWindowingTile
 import com.android.launcher3.Flags.enableOverviewCommandHelperTimeout
 import com.android.launcher3.PagedView
@@ -335,18 +336,34 @@ constructor(
         val recentsViewContainer = containerInterface.getCreatedContainer()
         val recentsView: RecentsView<*, *>? = recentsViewContainer?.getOverviewPanel()
         val deviceProfile = recentsViewContainer?.getDeviceProfile()
-        val taskbarUIController: TaskbarUIController? = containerInterface.getTaskbarController()
+        val taskbarUIController: TaskbarUIController? =
+            if (command.displayId != DEFAULT_DISPLAY && !enableOverviewInWindow) {
+                // When enableOverviewInWindow is false, getContainerInterface can only return
+                // BaseContainerInterface of DEFAULT_DISPLAY. Getting TaskbarUiController from
+                // TaskbarManager as a workaround.
+                taskbarManager.getUIControllerForDisplay(command.displayId)
+            } else {
+                containerInterface.getTaskbarController()
+            }
 
         when (command.type) {
             HIDE -> {
-                if (taskbarUIController == null || deviceProfile?.isTablet == false) return true
+                if (
+                    taskbarUIController == null ||
+                        !shouldShowAltTabKqs(deviceProfile, command.displayId)
+                ) {
+                    return true
+                }
                 keyboardTaskFocusIndex = taskbarUIController.launchFocusedTask()
 
                 if (keyboardTaskFocusIndex == -1) return true
             }
 
             KEYBOARD_INPUT ->
-                if (taskbarUIController != null && deviceProfile?.isTablet == true) {
+                if (
+                    taskbarUIController != null &&
+                        shouldShowAltTabKqs(deviceProfile, command.displayId)
+                ) {
                     taskbarUIController.openQuickSwitchView()
                     return true
                 } else {
@@ -501,6 +518,12 @@ constructor(
         Log.d(TAG, "switching via recents animation - onGestureStarted: $command")
         return false
     }
+
+    private fun shouldShowAltTabKqs(deviceProfile: DeviceProfile?, displayId: Int): Boolean =
+        // Alt+Tab KQS is always shown on tablets (large screen devices).
+        deviceProfile?.isTablet == true ||
+            // For small screen devices, it's only shown on connected displays.
+            displayId != DEFAULT_DISPLAY
 
     private fun onTransitionComplete(
         command: CommandInfo,

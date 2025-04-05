@@ -16,7 +16,6 @@
 package com.android.launcher3.taskbar;
 
 import static android.os.Trace.TRACE_TAG_APP;
-import static android.view.Display.DEFAULT_DISPLAY;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM;
 import static android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
@@ -64,6 +63,7 @@ import android.content.pm.ActivityInfo.Config;
 import android.content.pm.LauncherApps;
 import android.content.res.Resources;
 import android.graphics.PixelFormat;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.hardware.display.DisplayManager;
@@ -207,6 +207,8 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
 
     private static final String WINDOW_TITLE = "Taskbar";
 
+    public static final String SIMPLE_VIEW_SETTINGS_KEY = "matcha_enable";
+
     protected static final DesktopModeFlag ENABLE_TASKBAR_BEHIND_SHADE = new DesktopModeFlag(
             Flags::enableTaskbarBehindShade, false);
 
@@ -216,7 +218,6 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     private final TaskbarControllers mControllers;
 
     private final WindowManager mWindowManager;
-    private final boolean mIsPrimaryDisplay;
     private DeviceProfile mDeviceProfile;
     private WindowManager.LayoutParams mWindowLayoutParams;
     private WindowManager.LayoutParams mLastUpdatedLayoutParams;
@@ -264,13 +265,12 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     private @Nullable View mTaskbarSnapshotView;
     private @Nullable TaskbarOverlayContext mTaskbarSnapshotOverlay;
 
-    public TaskbarActivityContext(Context windowContext,
+    public TaskbarActivityContext(int displayId, Context windowContext,
             @Nullable Context navigationBarPanelContext, DeviceProfile launcherDp,
             TaskbarNavButtonController buttonController,
             ScopedUnfoldTransitionProgressProvider unfoldTransitionProgressProvider,
             boolean isPrimaryDisplay, SystemUiProxy sysUiProxy) {
-        super(windowContext, isPrimaryDisplay);
-        mIsPrimaryDisplay = isPrimaryDisplay;
+        super(windowContext, displayId, isPrimaryDisplay);
         mNavigationBarPanelContext = navigationBarPanelContext;
         mSysUiProxy = sysUiProxy;
         applyDeviceProfile(launcherDp);
@@ -318,11 +318,8 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         BubbleBarController.onTaskbarRecreated();
         final boolean deviceBubbleBarEnabled = enableBubbleBarOnPhones()
                 || (!mDeviceProfile.isPhone && !mDeviceProfile.isVerticalBarLayout());
-        if (BubbleBarController.isBubbleBarEnabled()
-                && deviceBubbleBarEnabled
-                && bubbleBarView != null
-                && isPrimaryDisplay
-        ) {
+        if (BubbleBarController.isBubbleBarEnabled() && deviceBubbleBarEnabled
+                && bubbleBarView != null && isPrimaryDisplay) {
             Optional<BubbleStashedHandleViewController> bubbleHandleController = Optional.empty();
             Optional<BubbleBarSwipeController> bubbleBarSwipeController = Optional.empty();
             if (isTransientTaskbar) {
@@ -344,10 +341,8 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                     bubbleHandleController,
                     new BubbleDragController(this, mDragLayer),
                     new BubbleDismissController(this, mDragLayer),
-                    new BubbleBarPinController(this, bubbleBarContainer,
-                            () -> DisplayController.INSTANCE.get(this).getInfo().currentSize),
-                    new BubblePinController(this, bubbleBarContainer,
-                            () -> DisplayController.INSTANCE.get(this).getInfo().currentSize),
+                    new BubbleBarPinController(this, bubbleBarContainer, this::getScreenSize),
+                    new BubblePinController(this, bubbleBarContainer, this::getScreenSize),
                     bubbleBarSwipeController,
                     new BubbleCreator(this)
             ));
@@ -420,7 +415,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
 
     @Override
     public boolean isTransientTaskbar() {
-        return DisplayController.isTransientTaskbar(this) && mIsPrimaryDisplay && !isPhoneMode();
+        return DisplayController.isTransientTaskbar(this) && isPrimaryDisplay() && !isPhoneMode();
     }
 
     @Override
@@ -441,6 +436,13 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     }
 
     @Override
+    public boolean isTaskbarShowingDesktopTasks() {
+        return mControllers != null
+                && mControllers.taskbarDesktopModeController.shouldShowDesktopTasksInTaskbar(
+                        getDisplayId());
+    }
+
+    @Override
     public boolean showLockedTaskbarOnHome() {
         return DisplayController.showLockedTaskbarOnHome(this);
     }
@@ -451,8 +453,18 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     }
 
     @Override
-    public boolean isPrimaryDisplay() {
-        return mIsPrimaryDisplay;
+    public Point getScreenSize() {
+        return DisplayController.INSTANCE.get(this).getInfo().currentSize;
+    }
+
+    @Override
+    public int getDisplayHeight() {
+        return DisplayController.INSTANCE.get(this).getInfo().currentSize.y;
+    }
+
+    @Override
+    public void notifyConfigChanged() {
+        DisplayController.INSTANCE.get(this).notifyConfigChange();
     }
 
     /**
@@ -596,6 +608,11 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         return isPhoneMode() && !isThreeButtonNav();
     }
 
+    /** Returns whether Taskbar draws its own background, vs being translucent for apps to draw. */
+    public boolean drawsTaskbarBackground() {
+        return !isPhoneMode();
+    }
+
     /** Returns {@code true} iff a tiny version of taskbar is shown on phone. */
     public boolean isTinyTaskbar() {
         return enableTinyTaskbar() && mDeviceProfile.isPhone && mDeviceProfile.isTaskbarPresent;
@@ -730,7 +747,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
      */
     private WindowManager.LayoutParams createAllWindowParams() {
         final int windowType =
-                (ENABLE_TASKBAR_NAVBAR_UNIFICATION && mIsPrimaryDisplay) ? TYPE_NAVIGATION_BAR
+                (ENABLE_TASKBAR_NAVBAR_UNIFICATION && isPrimaryDisplay()) ? TYPE_NAVIGATION_BAR
                         : TYPE_NAVIGATION_BAR_PANEL;
         WindowManager.LayoutParams windowLayoutParams =
                 createDefaultWindowLayoutParams(windowType, TaskbarActivityContext.WINDOW_TITLE);
@@ -1461,6 +1478,28 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         mControllers.uiController.startSplitSelection(splitSelectSource);
     }
 
+    // If in overview, and a desktop task is available, launches the overview desktop task and
+    // schedules the provided runnable.
+    // Returns whether the runnable has been posted.
+    private boolean runAfterLaunchingDesktopTaskIfInOverview(
+            RecentsView recents,
+            Runnable runnableToRun) {
+        if (recents == null || !isTaskbarShowingDesktopTasks()
+                || !mControllers.uiController.isInOverviewUi()) {
+            return false;
+        }
+
+        RunnableList runnableList = recents.launchRunningDesktopTaskView();
+        // Wrapping it in runnable so we post after DW is ready for the app
+        // launch.
+        if (runnableList == null) {
+            return false;
+        }
+
+        runnableList.add(() -> UI_HELPER_EXECUTOR.execute(runnableToRun));
+        return true;
+    }
+
     protected void onTaskbarIconClicked(View view) {
         TaskbarUIController taskbarUIController = mControllers.uiController;
         RecentsView recents = taskbarUIController.getRecentsView();
@@ -1472,25 +1511,17 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         // TODO: b/316004172, b/343289567: Handle `DesktopTask` and `SplitTask`.
         if (tag instanceof SingleTask singleTask) {
             RemoteTransition remoteTransition =
-                    (isInDesktopMode() && canUnminimizeDesktopTask(
+                    (isTaskbarShowingDesktopTasks() && canUnminimizeDesktopTask(
                             singleTask.getTask().key.id))
                             ? createDesktopAppLaunchRemoteTransition(AppLaunchType.UNMINIMIZE,
                             Cuj.CUJ_DESKTOP_MODE_APP_LAUNCH_FROM_ICON)
                             : null;
-            if (isInDesktopMode() && mControllers.uiController.isInOverviewUi()) {
-                RunnableList runnableList = recents.launchRunningDesktopTaskView();
-                // Wrapping it in runnable so we post after DW is ready for the app
-                // launch.
-                if (runnableList != null) {
-                    runnableList.add(() -> UI_HELPER_EXECUTOR.execute(
-                            () -> handleGroupTaskLaunch(singleTask, remoteTransition,
-                                    isInDesktopMode(),
-                                    DesktopTaskToFrontReason.TASKBAR_TAP)));
-                }
-            } else {
-                handleGroupTaskLaunch(singleTask, remoteTransition, isInDesktopMode(),
-                        DesktopTaskToFrontReason.TASKBAR_TAP);
+            Runnable launchTask = () -> handleGroupTaskLaunch(singleTask, remoteTransition,
+                    isTaskbarShowingDesktopTasks(), DesktopTaskToFrontReason.TASKBAR_TAP);
+            if (!runAfterLaunchingDesktopTaskIfInOverview(recents, launchTask)) {
+                launchTask.run();
             }
+
             mControllers.taskbarStashController.updateAndAnimateTransientTaskbar(true);
         } else if (tag instanceof FolderInfo) {
             // Tapping an expandable folder icon on Taskbar
@@ -1513,24 +1544,12 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                             AppLaunchType.UNMINIMIZE, Cuj.CUJ_DESKTOP_MODE_APP_LAUNCH_FROM_ICON)
                     : null;
 
-
-            if (isInDesktopMode() && mControllers.uiController.isInOverviewUi()) {
-                RunnableList runnableList = recents.launchRunningDesktopTaskView();
-                if (runnableList != null) {
-                    runnableList.add(() ->
-                            // wrapped it in runnable here since we need the post for DW to be
-                            // ready. if we don't other DW will be gone and only the launched
-                            // task will show.
-                            UI_HELPER_EXECUTOR.execute(() ->
-                                    SystemUiProxy.INSTANCE.get(this).showDesktopApp(
-                                            info.getTaskId(), remoteTransition,
-                                            DesktopTaskToFrontReason.TASKBAR_TAP)));
-                }
-            } else {
-                UI_HELPER_EXECUTOR.execute(() ->
-                        SystemUiProxy.INSTANCE.get(this).showDesktopApp(
-                                info.getTaskId(), remoteTransition,
-                                DesktopTaskToFrontReason.TASKBAR_TAP));
+            Runnable launchTask = () ->
+                    SystemUiProxy.INSTANCE.get(this).showDesktopApp(
+                            info.getTaskId(), remoteTransition,
+                            DesktopTaskToFrontReason.TASKBAR_TAP);
+            if (!runAfterLaunchingDesktopTaskIfInOverview(recents, launchTask)) {
+                UI_HELPER_EXECUTOR.execute(launchTask);
             }
 
             mControllers.taskbarStashController.updateAndAnimateTransientTaskbar(
@@ -1619,15 +1638,6 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         }
     }
 
-    public void handleGroupTaskLaunch(
-            GroupTask task,
-            @Nullable RemoteTransition remoteTransition,
-            boolean onDesktop,
-            DesktopTaskToFrontReason toFrontReason) {
-        handleGroupTaskLaunch(task, remoteTransition, onDesktop, toFrontReason,
-                /* onStartCallback= */ null, /* onFinishCallback= */ null);
-    }
-
     /**
      * Launches the given GroupTask with the following behavior:
      * - If the GroupTask is a DesktopTask, launch the tasks in that Desktop.
@@ -1643,26 +1653,18 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             GroupTask task,
             @Nullable RemoteTransition remoteTransition,
             boolean onDesktop,
-            DesktopTaskToFrontReason toFrontReason,
-            @Nullable Runnable onStartCallback,
-            @Nullable Runnable onFinishCallback) {
+            DesktopTaskToFrontReason toFrontReason) {
         if (task instanceof DesktopTask) {
-            UI_HELPER_EXECUTOR.execute(() ->
-                    SystemUiProxy.INSTANCE.get(this).showDesktopApps(getDisplay().getDisplayId(),
+            UI_HELPER_EXECUTOR.execute(
+                    () -> SystemUiProxy.INSTANCE.get(this).showDesktopApps(getDisplayId(),
                             remoteTransition));
             return;
         }
         if (onDesktop && task instanceof SingleTask singleTask) {
             boolean useRemoteTransition = canUnminimizeDesktopTask(singleTask.getTask().key.id);
             UI_HELPER_EXECUTOR.execute(() -> {
-                if (onStartCallback != null) {
-                    onStartCallback.run();
-                }
                 SystemUiProxy.INSTANCE.get(this).showDesktopApp(singleTask.getTask().key.id,
                         useRemoteTransition ? remoteTransition : null, toFrontReason);
-                if (onFinishCallback != null) {
-                    onFinishCallback.run();
-                }
             });
             return;
         }
@@ -1722,7 +1724,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             @Nullable View launchingIconView, List<? extends ItemInfo> itemInfos) {
         boolean launchedFromExternalDisplay =
                 DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue()
-                        && !mIsPrimaryDisplay;
+                        && !isPrimaryDisplay();
         if (recents == null && !launchedFromExternalDisplay) {
             return;
         }
@@ -1787,17 +1789,10 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                                                 .launchAppPair((AppPairIcon) launchingIconView,
                                                         -1 /*cuj*/)));
                     } else {
-                        if (isInDesktopMode()
-                                && mControllers.uiController.isInOverviewUi()) {
-                            RunnableList runnableList = recents.launchRunningDesktopTaskView();
-                            // Wrapping it in runnable so we post after DW is ready for the app
-                            // launch.
-                            if (runnableList != null) {
-                                runnableList.add(() -> UI_HELPER_EXECUTOR.execute(
-                                        () -> startItemInfoActivity(itemInfos.get(0), foundTask)));
-                            }
-                        } else {
-                            startItemInfoActivity(itemInfos.get(0), foundTask);
+                        Runnable launchTask =
+                                () -> startItemInfoActivity(itemInfos.get(0), foundTask);
+                        if (!runAfterLaunchingDesktopTaskIfInOverview(recents, launchTask)) {
+                            launchTask.run();
                         }
                     }
                 }
@@ -1820,7 +1815,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                         intent.getComponent(), info.user, intent.getSourceBounds(), null);
                 return;
             }
-            int displayId = getDisplay() == null ? DEFAULT_DISPLAY : getDisplay().getDisplayId();
+            int displayId = getDisplayId();
             // TODO(b/216683257): Use startActivityForResult for search results that require it.
             if (taskInRecents != null) {
                 // Re launch instance from recents
@@ -1833,7 +1828,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                     return;
                 }
             }
-            if (isInDesktopMode()
+            if (isTaskbarShowingDesktopTasks()
                     && DesktopModeFlags.ENABLE_DESKTOP_APP_LAUNCH_TRANSITIONS_BUGFIX.isTrue()) {
                 launchDesktopApp(intent, info, displayId);
             } else {
@@ -2015,6 +2010,18 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
 
     public boolean isUserSetupComplete() {
         return mIsUserSetupComplete;
+    }
+
+    /**
+     * Checks if the simple view mode is enabled.
+     *
+     * Since Simple View puts the device in 3 button nav mode, we use that as a precursor to
+     * checking the actual value in Settings to avoid extra calls to Settings.
+     */
+    public boolean isSimpleViewEnabled() {
+        return isThreeButtonNav()
+                && Settings.Secure.getInt(getContentResolver(), SIMPLE_VIEW_SETTINGS_KEY, 0)
+                > 0;
     }
 
     public boolean isNavBarKidsModeActive() {

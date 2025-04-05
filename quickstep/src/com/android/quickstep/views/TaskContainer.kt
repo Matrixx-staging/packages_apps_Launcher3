@@ -18,13 +18,12 @@ package com.android.quickstep.views
 
 import android.graphics.Bitmap
 import android.graphics.Matrix
-import android.util.Log
 import android.view.View
 import android.view.View.OnClickListener
 import com.android.app.tracing.traceSection
-import com.android.launcher3.Flags.enableOverviewIconMenu
 import com.android.launcher3.Flags.enableRefactorTaskThumbnail
 import com.android.launcher3.model.data.TaskViewItemInfo
+import com.android.launcher3.util.OverviewReleaseFlags.enableOverviewIconMenu
 import com.android.launcher3.util.SplitConfigurationOptions
 import com.android.launcher3.util.TransformingTouchDelegate
 import com.android.quickstep.TaskOverlayFactory
@@ -133,7 +132,7 @@ class TaskContainer(
         }
     }
 
-    fun setOverlayEnabled(enabled: Boolean, thumbnailPosition: ThumbnailPosition?) {
+    fun setOverlayEnabled(enabled: Boolean, thumbnailPosition: ThumbnailPosition) {
         if (enableRefactorTaskThumbnail()) {
             if (overlayEnabledStatus != enabled || this.thumbnailPosition != thumbnailPosition) {
                 overlayEnabledStatus = enabled
@@ -143,22 +142,18 @@ class TaskContainer(
         }
     }
 
-    fun refreshOverlay(thumbnailPosition: ThumbnailPosition?) =
+    fun refreshOverlay(thumbnailPosition: ThumbnailPosition) =
         traceSection("TaskContainer.refreshOverlay") {
             this.thumbnailPosition = thumbnailPosition
-            when {
-                !overlayEnabledStatus -> overlay.reset()
-                thumbnailPosition == null -> {
-                    Log.e(TAG, "Thumbnail position was null during overlay refresh", Exception())
-                    overlay.reset()
-                }
-                else ->
-                    overlay.initOverlay(
-                        task,
-                        thumbnailData?.thumbnail,
-                        thumbnailPosition.matrix,
-                        thumbnailPosition.isRotated,
-                    )
+            if (overlayEnabledStatus) {
+                overlay.initOverlay(
+                    task,
+                    thumbnailData?.thumbnail,
+                    thumbnailPosition.matrix,
+                    thumbnailPosition.isRotated,
+                )
+            } else {
+                overlay.reset()
             }
         }
 

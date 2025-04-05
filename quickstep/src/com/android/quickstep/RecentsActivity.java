@@ -102,7 +102,7 @@ import java.util.List;
  * See {@link com.android.quickstep.views.RecentsView}.
  */
 public final class RecentsActivity extends StatefulActivity<RecentsState> implements
-        RecentsViewContainer {
+        RecentsViewContainer,  InvariantDeviceProfile.OnIDPChangeListener {
     private static final String TAG = "RecentsActivity";
 
     public static final ContextTracker.ActivityTracker<RecentsActivity> ACTIVITY_TRACKER =
@@ -378,6 +378,7 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
         mStateManager = new StateManager<>(this, RecentsState.BG_LAUNCHER);
 
         initDeviceProfile();
+        InvariantDeviceProfile.INSTANCE.get(this).addOnChangeListener(this);
         setupViews();
 
         getSystemUiController().updateUiState(SystemUiController.UI_STATE_BASE_WINDOW,
@@ -463,6 +464,7 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
         mActivityLaunchAnimationRunner = null;
         mSplitSelectStateController.onDestroy();
         mTISBindHelper.onDestroy();
+        InvariantDeviceProfile.INSTANCE.get(this).removeOnChangeListener(this);
     }
 
     @Override
@@ -554,5 +556,10 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
     @Override
     public boolean isRecentsViewVisible() {
         return getStateManager().getState().isRecentsViewVisible();
+    }
+
+    @Override
+    public void onIdpChanged(boolean modelPropertiesChanged) {
+        onHandleConfigurationChanged();
     }
 }

@@ -493,7 +493,6 @@
     <dimen name="task_dismiss_max_undershoot">0dp</dimen>
     <dimen name="overview_task_margin">0dp</dimen>
     <dimen name="overview_actions_height">0dp</dimen>
-    <dimen name="overview_actions_button_spacing">0dp</dimen>
     <dimen name="overview_actions_margin_gesture">0dp</dimen>
     <dimen name="overview_actions_top_margin">0dp</dimen>
     <dimen name="overview_grid_side_margin">0dp</dimen>

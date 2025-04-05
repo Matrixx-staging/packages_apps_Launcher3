@@ -16,6 +16,9 @@
 
 package com.android.quickstep;
 
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.when;
+
 import androidx.annotation.NonNull;
 import androidx.test.filters.SmallTest;
 
@@ -28,7 +31,6 @@ import com.android.quickstep.fallback.RecentsState;
 import com.android.quickstep.fallback.window.RecentsDisplayModel;
 import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.fallback.window.RecentsWindowSwipeHandler;
-import com.android.quickstep.views.RecentsViewContainer;
 
 import dagger.BindsInstance;
 import dagger.Component;
@@ -52,6 +54,9 @@ public class RecentsWindowSwipeHandlerTestCase extends AbsSwipeUpHandlerTestCase
 
     @Before
     public void setRecentsDisplayModel() {
+        when(mRecentsDisplayModel.getRecentsWindowManager(anyInt()))
+                .thenReturn(mRecentsWindowManager);
+
         mContext.initDaggerComponent(DaggerRecentsWindowSwipeHandlerTestCase_TestComponent.builder()
                 .bindRecentsDisplayModel(mRecentsDisplayModel));
     }
@@ -73,7 +78,7 @@ public class RecentsWindowSwipeHandlerTestCase extends AbsSwipeUpHandlerTestCase
 
     @NonNull
     @Override
-    protected RecentsViewContainer getRecentsContainer() {
+    protected RecentsWindowManager getRecentsContainer() {
         return mRecentsWindowManager;
     }
 
@@ -81,6 +86,12 @@ public class RecentsWindowSwipeHandlerTestCase extends AbsSwipeUpHandlerTestCase
     @Override
     protected FallbackRecentsView<RecentsWindowManager> getRecentsView() {
         return mRecentsView;
+    }
+
+    @NonNull
+    @Override
+    protected RecentsState getBaseState() {
+        return RecentsState.BG_LAUNCHER;
     }
 
     @LauncherAppSingleton

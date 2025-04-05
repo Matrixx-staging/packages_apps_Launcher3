@@ -95,4 +95,10 @@ public class LauncherSwipeHandlerV2TestCase extends AbsSwipeUpHandlerTestCase<
     protected RecentsView<QuickstepLauncher, LauncherState> getRecentsView() {
         return mRecentsView;
     }
+
+    @NonNull
+    @Override
+    protected LauncherState getBaseState() {
+        return LauncherState.NORMAL;
+    }
 }

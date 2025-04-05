@@ -60,7 +60,6 @@ import com.android.launcher3.taskbar.bubbles.flyout.BubbleBarFlyoutController;
 import com.android.launcher3.taskbar.bubbles.flyout.BubbleBarFlyoutPositioner;
 import com.android.launcher3.taskbar.bubbles.flyout.FlyoutCallbacks;
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController;
-import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.MultiPropertyFactory;
 import com.android.launcher3.util.MultiValueAlpha;
 import com.android.quickstep.SystemUiProxy;
@@ -130,7 +129,7 @@ public class BubbleBarViewController {
         @Override
         public void getBubbleBarLocationHitRect(@NonNull BubbleBarLocation bubbleBarLocation,
                 Rect outRect) {
-            Point screenSize = DisplayController.INSTANCE.get(mActivity).getInfo().currentSize;
+            Point screenSize = mActivity.getScreenSize();
             outRect.top = screenSize.y - mBubbleBarDropTargetSize;
             outRect.bottom = screenSize.y;
             if (bubbleBarLocation.isOnLeft(mBarView.isLayoutRtl())) {
@@ -281,6 +280,11 @@ public class BubbleBarViewController {
                 : PINNING_PERSISTENT;
         mBubbleBarPinning.updateValue(pinningValue);
         mBarView.setController(new BubbleBarView.Controller() {
+            @Override
+            public int getScreenHeight() {
+                return mActivity.getScreenSize().y;
+            }
+
             @Override
             public float getBubbleBarTranslationY() {
                 return mBubbleStashController.getBubbleBarTranslationY();

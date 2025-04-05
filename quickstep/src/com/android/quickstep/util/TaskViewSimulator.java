@@ -17,7 +17,7 @@ package com.android.quickstep.util;
 
 import static android.app.WindowConfiguration.WINDOWING_MODE_FULLSCREEN;
 
-import static com.android.launcher3.Flags.enableGridOnlyOverview;
+import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 import static com.android.launcher3.states.RotationHelper.deltaRotation;
 import static com.android.launcher3.touch.PagedOrientationHandler.MATRIX_POST_TRANSLATE;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT;
@@ -317,9 +317,10 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
     /**
      * Adds animation for all the components corresponding to transition from an app to carousel.
      */
-    public void addAppToCarouselAnim(PendingAnimation pa, Interpolator interpolator) {
+    public void addAppToCarouselAnim(PendingAnimation pa, Interpolator interpolator,
+            boolean isHandlingAtomicEvent) {
         pa.addFloat(fullScreenProgress, AnimatedFloat.VALUE, 1, 0, interpolator);
-        if (enableGridOnlyOverview() && mDp.isTablet && mDp.isGestureMode) {
+        if (enableGridOnlyOverview() && mDp.isTablet && !isHandlingAtomicEvent) {
             mIsAnimatingToCarousel = true;
             carouselScale.value = mCarouselTaskSize.width() / (float) mFullTaskSize.width();
         }

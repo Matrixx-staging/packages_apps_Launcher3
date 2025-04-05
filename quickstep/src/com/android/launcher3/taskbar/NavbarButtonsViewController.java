@@ -345,8 +345,10 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         // Start at 1 because relevant flags are unset at init.
         mOnBackgroundNavButtonColorOverrideMultiplier.value = 1;
 
-        // Potentially force the back button to be visible during setup wizard.
-        boolean shouldShowInSetup = !mContext.isUserSetupComplete() && !mIsExpressiveThemeEnabled;
+        // Potentially force the back button to be visible during setup wizard. The back button
+        // won't show up if the expressive theme is enabled and simple view is disabled
+        boolean shouldShowInSetup = !mContext.isUserSetupComplete()
+                && (!mIsExpressiveThemeEnabled || mContext.isSimpleViewEnabled());
         boolean isInKidsMode = mContext.isNavBarKidsModeActive();
         boolean alwaysShowButtons = isThreeButtonNav || shouldShowInSetup;
 
@@ -995,15 +997,15 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         if (mFloatingRotationButton != null) {
             mFloatingRotationButton.onConfigurationChanged(configChanges);
         }
-        if (!mContext.isUserSetupComplete()) {
+        if (!mContext.isUserSetupComplete() && !ENABLE_TASKBAR_NAVBAR_UNIFICATION) {
             handleSetupUi();
         }
         updateButtonLayoutSpacing();
     }
 
     private void handleSetupUi() {
-        // Setup wizard handles the UI when the expressive theme is enabled.
-        if (mIsExpressiveThemeEnabled) {
+        // Setup wizard handles the UI when the expressive theme is enabled and Simple View isn't.
+        if (mIsExpressiveThemeEnabled && !mContext.isSimpleViewEnabled()) {
             return;
         }
         // Since setup wizard only has back button enabled, it looks strange to be

@@ -42,13 +42,13 @@ import com.android.launcher3.logging.StatsLogManager.StatsLogger
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.TaskViewItemInfo
 import com.android.launcher3.util.RunnableList
+import com.android.launcher3.util.SandboxContext
 import com.android.launcher3.util.SplitConfigurationOptions
-import com.android.launcher3.util.TestDispatcherProvider
 import com.android.launcher3.util.TransformingTouchDelegate
 import com.android.launcher3.util.WindowBounds
+import com.android.quickstep.TaskViewTestDIHelpers.initializeRecentsDependencies
+import com.android.quickstep.TaskViewTestDIHelpers.mockRecentsModel
 import com.android.quickstep.orientation.LandscapePagedViewHandler
-import com.android.quickstep.recents.data.RecentsDeviceProfileRepository
-import com.android.quickstep.recents.data.RecentsRotationStateRepository
 import com.android.quickstep.recents.di.RecentsDependencies
 import com.android.quickstep.task.thumbnail.TaskThumbnailView
 import com.android.quickstep.util.RecentsOrientedState
@@ -60,16 +60,13 @@ import com.android.quickstep.views.TaskView
 import com.android.quickstep.views.TaskViewIcon
 import com.android.systemui.shared.recents.model.Task
 import com.android.systemui.shared.recents.model.Task.TaskKey
-import com.android.window.flags.Flags
 import com.google.common.truth.Truth.assertThat
-import kotlinx.coroutines.test.StandardTestDispatcher
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.eq
-import org.mockito.Mockito.isNull
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
@@ -85,6 +82,7 @@ class AspectRatioSystemShortcutTests {
 
     /** Spy on a concrete Context so we can reference real View, Layout, and Display properties. */
     private val context: Context = spy(InstrumentationRegistry.getInstrumentation().targetContext)
+    private val applicationContext = SandboxContext(context)
 
     /**
      * RecentsViewContainer and its super-interface ActivityContext contain methods to convert
@@ -125,10 +123,7 @@ class AspectRatioSystemShortcutTests {
     private val statsLogger = mock<StatsLogger>()
     private val orientedState: RecentsOrientedState =
         mock(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
-    private val taskView: TaskView =
-        LayoutInflater.from(context).cloneInContext(launcher).inflate(R.layout.task, null)
-            as TaskView
-    private val dispatcher = StandardTestDispatcher()
+    private lateinit var taskView: TaskView
 
     @Before
     fun setUp() {
@@ -139,23 +134,17 @@ class AspectRatioSystemShortcutTests {
         whenever(statsLogger.withItemInfo(any())).thenReturn(statsLogger)
 
         whenever(orientedState.orientationHandler).thenReturn(LandscapePagedViewHandler())
-        taskView.setLayoutParams(ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
 
         if (enableRefactorTaskThumbnail()) {
-            val recentsDependencies =
-                RecentsDependencies.maybeInitialize(launcher, TestDispatcherProvider(dispatcher))
-            val scopeId = recentsDependencies.createRecentsViewScope(launcher)
-            recentsDependencies.provide(
-                RecentsRotationStateRepository::class.java,
-                scopeId,
-                { mock<RecentsRotationStateRepository>() },
+            applicationContext.initDaggerComponent(
+                DaggerTaskViewTestComponent.builder().bindRecentsModel(mockRecentsModel())
             )
-            recentsDependencies.provide(
-                RecentsDeviceProfileRepository::class.java,
-                scopeId,
-                { mock<RecentsDeviceProfileRepository>() },
-            )
+            initializeRecentsDependencies(launcher)
         }
+        taskView =
+            LayoutInflater.from(context).cloneInContext(launcher).inflate(R.layout.task, null)
+                as TaskView
+        taskView.setLayoutParams(ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
     }
 
     @After

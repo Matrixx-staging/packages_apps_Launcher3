@@ -23,6 +23,7 @@ import static android.view.View.VISIBLE;
 import static com.android.launcher3.DeviceProfile.DEFAULT_SCALE;
 import static com.android.launcher3.Flags.extendibleThemeManager;
 import static com.android.launcher3.Hotseat.ALPHA_CHANNEL_PREVIEW_RENDERER;
+import static com.android.launcher3.LauncherPrefs.FIXED_LANDSCAPE_MODE;
 import static com.android.launcher3.LauncherPrefs.GRID_NAME;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION;
 import static com.android.launcher3.Utilities.SHOULD_SHOW_FIRST_PAGE_WIDGET;
@@ -154,6 +155,7 @@ public class LauncherPreviewRenderer extends BaseContext
                     new ProxyPrefs(this, getSharedPreferences(mPrefName, MODE_PRIVATE));
             prefs.put(GRID_NAME, gridName);
             prefs.put(PREF_ICON_SHAPE, shapeKey);
+            prefs.put(FIXED_LANDSCAPE_MODE, false);
             prefs.put(THEMED_ICONS, isMonoThemeEnabled);
 
             PreviewAppComponent.Builder builder =

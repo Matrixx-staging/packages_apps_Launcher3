@@ -99,7 +99,7 @@ class PreviewItemManagerTest {
 
         iconCache = LauncherAppState.INSTANCE[context].iconCache
         spyOn(iconCache)
-        doReturn(null).whenever(iconCache).updateIconInBackground(any(), any())
+        doReturn(null).whenever(iconCache).updateIconInBackground(any(), any(), any())
 
         previewItemManager = PreviewItemManager(folderIcon)
 
@@ -249,7 +249,8 @@ class PreviewItemManagerTest {
         assertThat(drawingParams.drawable).isInstanceOf(PlaceHolderIconDrawable::class.java)
 
         val callbackCaptor = argumentCaptor<ItemInfoUpdateReceiver>()
-        verify(iconCache).updateIconInBackground(callbackCaptor.capture(), eq(folderItems[3]))
+        verify(iconCache)
+            .updateIconInBackground(callbackCaptor.capture(), eq(folderItems[3]), any())
 
         // Restore high-res icon
         folderItems[3].bitmap = originalBitmap

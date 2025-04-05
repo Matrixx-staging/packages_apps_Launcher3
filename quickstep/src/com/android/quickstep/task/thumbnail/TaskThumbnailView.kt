@@ -87,11 +87,6 @@ class TaskThumbnailView : FrameLayout, ViewPool.Reusable {
         defStyleAttr: Int,
     ) : super(context, attrs, defStyleAttr)
 
-    override fun onFinishInflate() {
-        super.onFinishInflate()
-        maybeCreateHeader()
-    }
-
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         clipToOutline = true
@@ -198,6 +193,7 @@ class TaskThumbnailView : FrameLayout, ViewPool.Reusable {
         liveTileView.isInvisible = false
 
         if (liveTile is LiveTile.WithHeader) {
+            maybeCreateHeader()
             taskThumbnailViewHeader?.isInvisible = false
             taskThumbnailViewHeader?.setHeader(liveTile.header)
         }
@@ -213,6 +209,7 @@ class TaskThumbnailView : FrameLayout, ViewPool.Reusable {
 
     private fun drawSnapshot(snapshot: Snapshot) {
         if (snapshot is Snapshot.WithHeader) {
+            maybeCreateHeader()
             taskThumbnailViewHeader?.isInvisible = false
             taskThumbnailViewHeader?.setHeader(snapshot.header)
         }

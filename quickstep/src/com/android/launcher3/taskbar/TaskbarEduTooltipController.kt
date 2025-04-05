@@ -168,6 +168,8 @@ open class TaskbarEduTooltipController(context: Context) :
                 FontFamily.GSF_HEADLINE_SMALL_EMPHASIZED,
             )
             val swipeAnimation = requireViewById<LottieAnimationView>(R.id.swipe_animation)
+            swipeAnimation.contentDescription =
+                context.getString(R.string.taskbar_edu_swipe_animation_description)
             swipeAnimation.supportLightTheme()
             handleEduAnimations(listOf(swipeAnimation))
             show()
@@ -192,8 +194,14 @@ open class TaskbarEduTooltipController(context: Context) :
         tooltip?.run {
             allowTouchDismissal = false
             val splitscreenAnim = requireViewById<LottieAnimationView>(R.id.splitscreen_animation)
+            splitscreenAnim.contentDescription =
+                context.getString(R.string.taskbar_edu_split_screen_animation_description)
             val suggestionsAnim = requireViewById<LottieAnimationView>(R.id.suggestions_animation)
+            suggestionsAnim.contentDescription =
+                context.getString(R.string.taskbar_edu_suggested_app_animation_description)
             val pinningAnim = requireViewById<LottieAnimationView>(R.id.pinning_animation)
+            pinningAnim.contentDescription =
+                context.getString(R.string.taskbar_edu_pinning_animation_description)
             val pinningEdu = requireViewById<View>(R.id.pinning_edu)
             splitscreenAnim.supportLightTheme()
             suggestionsAnim.supportLightTheme()
@@ -285,6 +293,8 @@ open class TaskbarEduTooltipController(context: Context) :
 
             val pinningAnim =
                 requireViewById<LottieAnimationView>(R.id.standalone_pinning_animation)
+            pinningAnim.contentDescription =
+                context.getString(R.string.taskbar_edu_pinning_animation_description)
             pinningAnim.supportLightTheme()
             handleEduAnimations(listOf(pinningAnim))
             updateLayoutParams<BaseDragLayer.LayoutParams> {
@@ -331,6 +341,8 @@ open class TaskbarEduTooltipController(context: Context) :
         tooltip?.run {
             allowTouchDismissal = true
             val searchEdu = requireViewById<LottieAnimationView>(R.id.search_edu_animation)
+            searchEdu.contentDescription =
+                context.getString(R.string.taskbar_edu_suggested_search_animation_description)
             searchEdu.supportLightTheme()
             handleEduAnimations(listOf(searchEdu))
             val eduSubtitle: TextView = requireViewById(R.id.search_edu_text)

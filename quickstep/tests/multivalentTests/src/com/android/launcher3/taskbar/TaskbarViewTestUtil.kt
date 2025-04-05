@@ -150,4 +150,7 @@ enum class TaskbarIconType {
 
 private const val TEST_PACKAGE = "com.android.launcher3.taskbar"
 private val TEST_COMPONENT = ComponentName(TEST_PACKAGE, "Activity")
-private val TEST_INTENT = Intent().apply { `package` = TEST_PACKAGE }
+private val TEST_INTENT = Intent().apply {
+    `package` = TEST_PACKAGE
+    component = TEST_COMPONENT
+}

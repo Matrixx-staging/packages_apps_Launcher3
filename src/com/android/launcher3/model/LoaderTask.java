@@ -776,7 +776,7 @@ public class LoaderTask implements Runnable {
                     allAppsItemRequestInfos.add(new IconRequestInfo<>(
                             promiseAppInfo,
                             /* launcherActivityInfo= */ null,
-                            promiseAppInfo.getMatchingLookupFlag().useLowRes()));
+                            promiseAppInfo.getMatchingLookupFlag().withThemeIcon(false)));
                 }
             }
         }
@@ -843,7 +843,7 @@ public class LoaderTask implements Runnable {
                         appInfo,
                         activityInfo,
                         workspaceIconRequest.get().iconBlob,
-                        false /* useLowResIcon= */
+                        DEFAULT_LOOKUP_FLAG.withUseLowRes(false)
                 );
                 if (!iconRequestInfo.loadIconFromDbBlob(mContext)) {
                     Log.d(TAG, "AppInfo Icon failed to load from blob, using cache.");
@@ -861,7 +861,8 @@ public class LoaderTask implements Runnable {
                         + ", isArchived: " + activityInfo.getApplicationInfo().isArchived);
             }
         }
-        return new IconRequestInfo<>(appInfo, activityInfo, false /* useLowResIcon= */);
+        return new IconRequestInfo<>(appInfo, activityInfo,
+                DEFAULT_LOOKUP_FLAG.withUseLowRes(false));
     }
 
     private List<ShortcutInfo> loadDeepShortcuts() {

@@ -33,7 +33,6 @@ import android.util.Log
 import android.view.Display
 import android.view.MotionEvent
 import android.view.View
-import android.view.View.OnClickListener
 import android.view.ViewGroup
 import android.view.ViewStub
 import android.view.accessibility.AccessibilityNodeInfo
@@ -47,10 +46,8 @@ import com.android.app.tracing.traceSection
 import com.android.launcher3.AbstractFloatingView
 import com.android.launcher3.Flags.enableCursorHoverStates
 import com.android.launcher3.Flags.enableDesktopExplodedView
-import com.android.launcher3.Flags.enableGridOnlyOverview
 import com.android.launcher3.Flags.enableHoverOfChildElementsInTaskview
 import com.android.launcher3.Flags.enableLargeDesktopWindowingTile
-import com.android.launcher3.Flags.enableOverviewIconMenu
 import com.android.launcher3.Flags.enableRefactorTaskThumbnail
 import com.android.launcher3.Flags.enableSeparateExternalDisplayTasks
 import com.android.launcher3.R
@@ -67,6 +64,8 @@ import com.android.launcher3.util.KFloatProperty
 import com.android.launcher3.util.MultiPropertyDelegate
 import com.android.launcher3.util.MultiPropertyFactory
 import com.android.launcher3.util.MultiValueAlpha
+import com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview
+import com.android.launcher3.util.OverviewReleaseFlags.enableOverviewIconMenu
 import com.android.launcher3.util.RunnableList
 import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_UNDEFINED
 import com.android.launcher3.util.SplitConfigurationOptions.StagePosition
@@ -426,7 +425,7 @@ constructor(
         }
 
     // The following grid translations scales with mGridProgress.
-    protected var gridTranslationX = 0f
+    var gridTranslationX = 0f
         set(value) {
             field = value
             applyTranslationX()
@@ -447,7 +446,7 @@ constructor(
 
     // Applied as a complement to gridTranslation, for adjusting the carousel overview and quick
     // switch.
-    protected var nonGridTranslationX = 0f
+    var nonGridTranslationX = 0f
         set(value) {
             field = value
             applyTranslationX()
@@ -536,7 +535,18 @@ constructor(
     private var settledProgressDismiss by
         MultiPropertyDelegate(settledProgressPropertyFactory, SettledProgress.Dismiss)
 
-    private var viewModel: TaskViewModel? = null
+    private val viewModel =
+        if (enableRefactorTaskThumbnail()) {
+            TaskViewModel(
+                taskViewType = type,
+                recentsViewData = RecentsDependencies.get(context),
+                getTaskUseCase = RecentsDependencies.get(context),
+                getSysUiStatusNavFlagsUseCase = RecentsDependencies.get(context),
+                isThumbnailValidUseCase = RecentsDependencies.get(context),
+                getThumbnailPositionUseCase = RecentsDependencies.get(context),
+                dispatcherProvider = RecentsDependencies.get(context),
+            )
+        } else null
     private val dispatcherProvider: DispatcherProvider by RecentsDependencies.inject()
     private val coroutineScope: CoroutineScope by RecentsDependencies.inject()
     private val coroutineJobs = mutableListOf<Job>()
@@ -682,7 +692,8 @@ constructor(
     override fun onRecycle() {
         resetPersistentViewTransforms()
 
-        viewModel = null
+        // Bind ViewModel to no taskIds
+        viewModel?.bind()
         attachAlpha = 1f
         splitAlpha = 1f
         splitSplashAlpha = 0f
@@ -793,9 +804,9 @@ constructor(
         traceSection("TaskView.onAttachedToWindow") {
             super.onAttachedToWindow()
             if (enableRefactorTaskThumbnail()) {
-                // The TaskView lifecycle is starts the ViewModel during onBind, and cleans it in
-                // onRecycle. So it should be initialized at this point. TaskView Lifecycle:
-                // `bind` -> `onBind` ->  onAttachedToWindow() -> onDetachFromWindow -> onRecycle
+                // TaskView binds the ViewModel during onBind, and unbinds it in onRecycle. So it
+                // should start listening here.
+                // TV Lifecycle: onBind -> onAttachedToWindow -> onDetachFromWindow -> onRecycle
                 coroutineJobs +=
                     coroutineScope.launch(dispatcherProvider.main) {
                         viewModel!!.state.collectLatest(::updateTaskViewState)
@@ -842,10 +853,7 @@ constructor(
                 container.setOverlayEnabled(state.taskOverlayEnabled, thumbnailPosition)
                 if (state.isCentralTask) {
                     this.container.actionsView.let {
-                        it.updateDisabledFlags(
-                            DISABLED_ROTATED,
-                            thumbnailPosition?.isRotated ?: false,
-                        )
+                        it.updateDisabledFlags(DISABLED_ROTATED, thumbnailPosition.isRotated)
                         it.updateDisabledFlags(
                             DISABLED_NO_THUMBNAIL,
                             state.tasks.any { taskData ->
@@ -870,11 +878,11 @@ constructor(
 
     private fun updateThumbnailValidity(container: TaskContainer) {
         container.isThumbnailValid =
-            viewModel?.isThumbnailValid(
+            viewModel!!.isThumbnailValid(
                 thumbnail = container.thumbnailData,
                 width = container.thumbnailView.width,
                 height = container.thumbnailView.height,
-            ) ?: return
+            )
         applyThumbnailSplashAlpha()
     }
 
@@ -893,11 +901,15 @@ constructor(
         container: TaskContainer,
         width: Int,
         height: Int,
-    ): ThumbnailPosition? =
+    ): ThumbnailPosition =
         traceSection("TaskView.updateThumbnailMatrix") {
             val thumbnailPosition =
-                viewModel?.getThumbnailPosition(container.thumbnailData, width, height, isLayoutRtl)
-                    ?: return null
+                viewModel!!.getThumbnailPosition(
+                    container.thumbnailData,
+                    width,
+                    height,
+                    isLayoutRtl,
+                )
             container.updateThumbnailMatrix(thumbnailPosition.matrix)
             return thumbnailPosition
         }
@@ -950,21 +962,10 @@ constructor(
 
     protected open fun onBind(orientedState: RecentsOrientedState) =
         traceSection("TaskView.onBind") {
-            traceSection("TaskView.onBind.createViewModel") {
+            traceSection("TaskView.onBind.bindViewModel") {
                 if (enableRefactorTaskThumbnail()) {
-                    val scopeId = context
-                    Log.d(TAG, "onBind $scopeId ${orientedState.containerInterface}")
-                    viewModel =
-                        TaskViewModel(
-                                taskViewType = type,
-                                recentsViewData = RecentsDependencies.get(scopeId),
-                                getTaskUseCase = RecentsDependencies.get(scopeId),
-                                getSysUiStatusNavFlagsUseCase = RecentsDependencies.get(scopeId),
-                                isThumbnailValidUseCase = RecentsDependencies.get(scopeId),
-                                getThumbnailPositionUseCase = RecentsDependencies.get(scopeId),
-                                dispatcherProvider = RecentsDependencies.get(scopeId),
-                            )
-                            .apply { bind(*taskIds) }
+                    Log.d(TAG, "onBind $context ${orientedState.containerInterface}")
+                    viewModel!!.bind(*taskIds)
                 }
             }
 
@@ -1161,7 +1162,10 @@ constructor(
                 }
             }
         }
-        if (needsUpdate(changes, FLAG_UPDATE_ICON) && !enableOverviewIconMenu()) {
+        if (
+            needsUpdate(changes, FLAG_UPDATE_ICON) &&
+                !(enableOverviewIconMenu() && enableRefactorTaskThumbnail())
+        ) {
             taskContainers.forEach {
                 if (visible) {
                     recentsModel.iconCache

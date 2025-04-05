@@ -17,13 +17,12 @@ package com.android.quickstep.fallback;
 
 import static android.app.ActivityTaskManager.INVALID_TASK_ID;
 
-import static com.android.launcher3.Flags.enableGridOnlyOverview;
+import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 import static com.android.quickstep.GestureState.GestureEndTarget.RECENTS;
 import static com.android.quickstep.fallback.RecentsState.DEFAULT;
 import static com.android.quickstep.fallback.RecentsState.MODAL_TASK;
 import static com.android.quickstep.fallback.RecentsState.OVERVIEW_SPLIT_SELECT;
 
-import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.content.Context;
 import android.util.AttributeSet;
@@ -134,25 +133,21 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
      */
     @Override
     public void onPrepareGestureEndAnimation(
-            @Nullable AnimatorSet animatorSet, GestureState.GestureEndTarget endTarget,
-            RemoteTargetHandle[] remoteTargetHandles) {
-        super.onPrepareGestureEndAnimation(animatorSet, endTarget, remoteTargetHandles);
+            AnimatorSet animatorSet, GestureState.GestureEndTarget endTarget,
+            RemoteTargetHandle[] remoteTargetHandles, boolean isHandlingAtomicEvent) {
+        super.onPrepareGestureEndAnimation(animatorSet, endTarget, remoteTargetHandles,
+                isHandlingAtomicEvent);
         if (mHomeTask != null && endTarget == RECENTS) {
             TaskView homeTaskView = getTaskViewByTaskId(mHomeTask.key.id);
             if (homeTaskView != null) {
                 PendingAnimation pendingAnimation = new PendingAnimation(TASK_DISMISS_DURATION);
                 createTaskDismissAnimation(pendingAnimation, homeTaskView, true, false,
                         TASK_DISMISS_DURATION, false /* dismissingForSplitSelection*/,
-                        false /* isExpressiveDismiss */);
+                        false /* isExpressiveDismiss */, null /* gridEndData */);
                 pendingAnimation.addEndListener(e -> setCurrentTask(-1));
                 AnimatorPlaybackController controller = pendingAnimation.createPlaybackController();
                 controller.dispatchOnStart();
-                Animator homeDismissAnimator = controller.getAnimationPlayer();
-                if (animatorSet != null) {
-                    animatorSet.play(homeDismissAnimator);
-                } else {
-                    homeDismissAnimator.setDuration(0).start();
-                }
+                animatorSet.play(controller.getAnimationPlayer());
             }
         }
     }
@@ -184,20 +179,20 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
     }
 
     @Override
-    protected boolean shouldAddStubTaskView(GroupedTaskInfo groupedTaskInfo) {
+    protected boolean shouldAvoidAddingStubTaskView(GroupedTaskInfo groupedTaskInfo) {
         if (!groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_FULLSCREEN)) {
             // can't be in split screen w/ home task
-            return super.shouldAddStubTaskView(groupedTaskInfo);
+            return super.shouldAvoidAddingStubTaskView(groupedTaskInfo);
         }
 
         if (mHomeTask != null && groupedTaskInfo.containsTask(mHomeTask.key.id) && !hasTaskViews()
                 && mLoadPlanEverApplied) {
             // Do not add a stub task if we are running over home with empty recents, so that we
             // show the empty recents message instead of showing a stub task and later removing it.
-            // Ignore empty task signal if applyLoadPlan has never run.
-            return false;
+            // Ignore empty task signal if [applyLoadPlan] has never run.
+            return true;
         }
-        return super.shouldAddStubTaskView(groupedTaskInfo);
+        return super.shouldAvoidAddingStubTaskView(groupedTaskInfo);
     }
 
     @Override

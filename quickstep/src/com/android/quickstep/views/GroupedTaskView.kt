@@ -23,10 +23,10 @@ import android.util.Log
 import android.view.View
 import android.view.ViewStub
 import com.android.internal.jank.Cuj
-import com.android.launcher3.Flags.enableOverviewIconMenu
 import com.android.launcher3.Flags.enableRefactorTaskThumbnail
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
+import com.android.launcher3.util.OverviewReleaseFlags.enableOverviewIconMenu
 import com.android.launcher3.util.RunnableList
 import com.android.launcher3.util.SplitConfigurationOptions
 import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT
@@ -53,7 +53,7 @@ import com.android.wm.shell.shared.split.SplitScreenConstants.PersistentSnapPosi
 class GroupedTaskView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
     TaskView(context, attrs, type = TaskViewType.GROUPED) {
 
-    private val MINIMUM_RATIO_TO_SHOW_ICON = 0.2f
+    private val MINIMUM_RATIO_TO_SHOW_ICON = 0.25f
 
     val leftTopTaskContainer: TaskContainer
         get() = taskContainers[0]

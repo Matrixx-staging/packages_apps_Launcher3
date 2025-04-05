@@ -39,7 +39,6 @@ import androidx.core.util.component1
 import androidx.core.util.component2
 import androidx.core.view.updateLayoutParams
 import com.android.launcher3.DeviceProfile
-import com.android.launcher3.Flags
 import com.android.launcher3.LauncherAnimUtils
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
@@ -48,6 +47,7 @@ import com.android.launcher3.touch.PagedOrientationHandler.ChildBounds
 import com.android.launcher3.touch.PagedOrientationHandler.Float2DAction
 import com.android.launcher3.touch.PagedOrientationHandler.Int2DAction
 import com.android.launcher3.touch.SingleAxisSwipeDetector
+import com.android.launcher3.util.OverviewReleaseFlags.enableOverviewIconMenu
 import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT
 import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_TOP_OR_LEFT
 import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_UNDEFINED
@@ -206,7 +206,7 @@ open class LandscapePagedViewHandler : RecentsPagedOrientationHandler {
         @StagePosition stagePosition: Int,
     ): Int =
         when {
-            Flags.enableOverviewIconMenu() ->
+            enableOverviewIconMenu() ->
                 thumbnailView.resources.getDimensionPixelSize(
                     R.dimen.task_thumbnail_icon_menu_expanded_width
                 )
@@ -659,7 +659,7 @@ open class LandscapePagedViewHandler : RecentsPagedOrientationHandler {
         dividerSize: Int,
         oneIconHiddenDueToSmallWidth: Boolean,
     ): SplitIconPositions {
-        return if (Flags.enableOverviewIconMenu()) {
+        return if (enableOverviewIconMenu()) {
             if (isRtl) {
                 SplitIconPositions(-(totalThumbnailHeight - primarySnapshotHeight), 0)
             } else {
@@ -695,7 +695,7 @@ open class LandscapePagedViewHandler : RecentsPagedOrientationHandler {
     open fun updateSplitIconsPosition(iconView: View, translationY: Int, isRtl: Boolean) {
         val layoutParams = iconView.layoutParams as FrameLayout.LayoutParams
 
-        if (Flags.enableOverviewIconMenu()) {
+        if (enableOverviewIconMenu()) {
             val appChipView = iconView as IconAppChipView
             layoutParams.gravity =
                 if (isRtl) Gravity.BOTTOM or Gravity.START else Gravity.TOP or Gravity.END

@@ -193,7 +193,7 @@ public final class OverviewTask {
         // Dismiss the task via flinging it up.
         final Rect taskBounds = mLauncher.getVisibleBounds(mTask);
         final int centerX = taskBounds.centerX();
-        final int centerY = taskBounds.bottom - 1;
+        final int centerY = taskBounds.centerY();
         mLauncher.executeAndWaitForLauncherEvent(
                 () -> mLauncher.linearGesture(centerX, centerY, centerX, 0, 10, false,
                         LauncherInstrumentation.GestureScope.DONT_EXPECT_PILFER),
@@ -227,10 +227,9 @@ public final class OverviewTask {
             final int endCenterY = centerY - (taskBounds.height() / 4);
             mLauncher.executeAndWaitForLauncherEvent(
                     // Set slowDown to true so we do not fling the task at the end of the drag, as
-                    // we want it to cancel and return back to the origin. We use 30 steps to
-                    // perform the gesture slowly as well, to avoid flinging.
+                    // we want it to cancel and return back to the origin.
                     () -> mLauncher.linearGesture(centerX, centerY, centerX, endCenterY,
-                            /* steps= */ 30, /* slowDown= */ true,
+                            /* steps= */ 10, /* slowDown= */ true,
                             LauncherInstrumentation.GestureScope.DONT_EXPECT_PILFER),
                     event -> TestProtocol.DISMISS_ANIMATION_ENDS_MESSAGE.equals(
                             event.getClassName()),

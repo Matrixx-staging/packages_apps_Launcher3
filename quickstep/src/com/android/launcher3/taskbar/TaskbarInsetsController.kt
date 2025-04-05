@@ -43,6 +43,7 @@ import android.view.WindowManager
 import android.view.WindowManager.LayoutParams.TYPE_INPUT_METHOD
 import android.view.WindowManager.LayoutParams.TYPE_VOICE_INTERACTION
 import androidx.core.graphics.toRegion
+import com.android.app.tracing.traceSection
 import com.android.internal.policy.GestureNavigationSettingsObserver
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.R
@@ -61,6 +62,7 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
     companion object {
         private const val INDEX_LEFT = 0
         private const val INDEX_RIGHT = 1
+        private const val TAG = "TaskbarInsetsController"
 
         private fun Region.addBoundsToRegion(bounds: Rect?) {
             bounds?.let { op(it, Region.Op.UNION) }
@@ -102,76 +104,82 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
         gestureNavSettingsObserver.unregister()
     }
 
-    fun onTaskbarOrBubblebarWindowHeightOrInsetsChanged() {
-        val taskbarStashController = controllers.taskbarStashController
-        val tappableHeight = taskbarStashController.tappableHeightToReportToApps
-        // We only report tappableElement height for unstashed, persistent taskbar,
-        // which is also when we draw the rounded corners above taskbar.
-        val insetsRoundedCornerFlag =
-            if (tappableHeight > 0) {
-                FLAG_INSETS_ROUNDED_CORNER
-            } else {
-                0
+    fun onTaskbarOrBubblebarWindowHeightOrInsetsChanged() =
+        traceSection("$TAG.onTaskbarOrBubblebarWindowHeightOrInsetsChanged") {
+            val taskbarStashController = controllers.taskbarStashController
+            val tappableHeight = taskbarStashController.tappableHeightToReportToApps
+            // We only report tappableElement height for unstashed, persistent taskbar,
+            // which is also when we draw the rounded corners above taskbar on tablets.
+            val insetsRoundedCornerFlag =
+                if (tappableHeight > 0 && context.drawsTaskbarBackground()) {
+                    FLAG_INSETS_ROUNDED_CORNER
+                } else {
+                    0
+                }
+
+            windowLayoutParams.providedInsets =
+                if (enableTaskbarNoRecreate() && controllers.sharedState != null) {
+                    getProvidedInsets(
+                        controllers.sharedState!!.insetsFrameProviders,
+                        insetsRoundedCornerFlag,
+                    )
+                } else {
+                    getProvidedInsets(insetsRoundedCornerFlag)
+                }
+
+            if (windowLayoutParams.paramsForRotation != null) {
+                for (layoutParams in windowLayoutParams.paramsForRotation) {
+                    layoutParams.providedInsets = getProvidedInsets(insetsRoundedCornerFlag)
+                }
             }
 
-        windowLayoutParams.providedInsets =
-            if (enableTaskbarNoRecreate() && controllers.sharedState != null) {
-                getProvidedInsets(
-                    controllers.sharedState!!.insetsFrameProviders,
-                    insetsRoundedCornerFlag,
-                )
-            } else {
-                getProvidedInsets(insetsRoundedCornerFlag)
+            val bubbleControllers = controllers.bubbleControllers.getOrNull()
+            val taskbarTouchableHeight = taskbarStashController.touchableHeight
+            val bubblesTouchableHeight =
+                bubbleControllers?.bubbleStashController?.getTouchableHeight() ?: 0
+            // reset touch bounds
+            defaultTouchableRegion.setEmpty()
+            if (bubbleControllers != null) {
+                val bubbleBarViewController = bubbleControllers.bubbleBarViewController
+                val isBubbleBarVisible =
+                    bubbleControllers.bubbleStashController.isBubbleBarVisible()
+                val isAnimatingNewBubble = bubbleBarViewController.isAnimatingNewBubble
+                // if bubble bar is visible or animating new bubble, add bar bounds to the touch
+                // region
+                if (isBubbleBarVisible || isAnimatingNewBubble) {
+                    defaultTouchableRegion.addBoundsToRegion(
+                        bubbleBarViewController.bubbleBarBounds
+                    )
+                    defaultTouchableRegion.addBoundsToRegion(bubbleBarViewController.flyoutBounds)
+                }
+            }
+            if (
+                taskbarStashController.isInApp ||
+                    controllers.uiController.isInOverviewUi ||
+                    context.showLockedTaskbarOnHome()
+            ) {
+                // only add the taskbar touch region if not on home
+                val bottom = windowLayoutParams.height
+                val top = bottom - taskbarTouchableHeight
+                val right = context.deviceProfile.widthPx
+                defaultTouchableRegion.addBoundsToRegion(Rect(/* left= */ 0, top, right, bottom))
             }
 
-        if (windowLayoutParams.paramsForRotation != null) {
-            for (layoutParams in windowLayoutParams.paramsForRotation) {
-                layoutParams.providedInsets = getProvidedInsets(insetsRoundedCornerFlag)
+            // Pre-calculate insets for different providers across different rotations for this
+            // gravity
+            for (rotation in Surface.ROTATION_0..Surface.ROTATION_270) {
+                // Add insets for navbar rotated params
+                val layoutParams = windowLayoutParams.paramsForRotation[rotation]
+                for (provider in layoutParams.providedInsets) {
+                    setProviderInsets(provider, layoutParams.gravity, rotation)
+                }
             }
-        }
-
-        val bubbleControllers = controllers.bubbleControllers.getOrNull()
-        val taskbarTouchableHeight = taskbarStashController.touchableHeight
-        val bubblesTouchableHeight =
-            bubbleControllers?.bubbleStashController?.getTouchableHeight() ?: 0
-        // reset touch bounds
-        defaultTouchableRegion.setEmpty()
-        if (bubbleControllers != null) {
-            val bubbleBarViewController = bubbleControllers.bubbleBarViewController
-            val isBubbleBarVisible = bubbleControllers.bubbleStashController.isBubbleBarVisible()
-            val isAnimatingNewBubble = bubbleBarViewController.isAnimatingNewBubble
-            // if bubble bar is visible or animating new bubble, add bar bounds to the touch region
-            if (isBubbleBarVisible || isAnimatingNewBubble) {
-                defaultTouchableRegion.addBoundsToRegion(bubbleBarViewController.bubbleBarBounds)
-                defaultTouchableRegion.addBoundsToRegion(bubbleBarViewController.flyoutBounds)
+            // Also set the parent providers (i.e. not in paramsForRotation).
+            for (provider in windowLayoutParams.providedInsets) {
+                setProviderInsets(provider, windowLayoutParams.gravity, context.display.rotation)
             }
+            context.notifyUpdateLayoutParams()
         }
-        if (
-            taskbarStashController.isInApp ||
-                controllers.uiController.isInOverviewUi ||
-                context.showLockedTaskbarOnHome()
-        ) {
-            // only add the taskbar touch region if not on home
-            val bottom = windowLayoutParams.height
-            val top = bottom - taskbarTouchableHeight
-            val right = context.deviceProfile.widthPx
-            defaultTouchableRegion.addBoundsToRegion(Rect(/* left= */ 0, top, right, bottom))
-        }
-
-        // Pre-calculate insets for different providers across different rotations for this gravity
-        for (rotation in Surface.ROTATION_0..Surface.ROTATION_270) {
-            // Add insets for navbar rotated params
-            val layoutParams = windowLayoutParams.paramsForRotation[rotation]
-            for (provider in layoutParams.providedInsets) {
-                setProviderInsets(provider, layoutParams.gravity, rotation)
-            }
-        }
-        // Also set the parent providers (i.e. not in paramsForRotation).
-        for (provider in windowLayoutParams.providedInsets) {
-            setProviderInsets(provider, windowLayoutParams.gravity, context.display.rotation)
-        }
-        context.notifyUpdateLayoutParams()
-    }
 
     /**
      * This is for when ENABLE_TASKBAR_NO_RECREATION is enabled. We generate one instance of

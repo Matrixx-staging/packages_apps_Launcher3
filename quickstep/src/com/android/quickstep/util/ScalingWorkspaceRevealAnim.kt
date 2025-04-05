@@ -253,6 +253,7 @@ class ScalingWorkspaceRevealAnim(
             Animations.setOngoingAnimation(launcher.workspace, animators)
             Animations.setOngoingAnimation(launcher.hotseat, animators)
         }
+        launcher.stateManager.setCurrentAnimation(animators, LauncherState.NORMAL)
         animators.start()
     }
 }

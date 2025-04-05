@@ -22,6 +22,7 @@ import static android.view.Display.DEFAULT_DISPLAY;
 
 import static com.android.launcher3.Flags.extendibleThemeManager;
 import static com.android.launcher3.LauncherPrefs.GRID_NAME;
+import static com.android.launcher3.LauncherPrefs.NON_FIXED_LANDSCAPE_GRID_NAME;
 import static com.android.launcher3.WorkspaceLayoutManager.FIRST_SCREEN_ID;
 import static com.android.launcher3.WorkspaceLayoutManager.SECOND_SCREEN_ID;
 import static com.android.launcher3.graphics.ThemeManager.PREF_ICON_SHAPE;
@@ -46,7 +47,6 @@ import android.util.SparseArray;
 import android.util.SparseIntArray;
 import android.view.ContextThemeWrapper;
 import android.view.Display;
-import android.view.Surface;
 import android.view.SurfaceControlViewHost;
 import android.view.SurfaceControlViewHost.SurfacePackage;
 import android.view.View;
@@ -76,6 +76,9 @@ import com.android.launcher3.util.Themes;
 import com.android.launcher3.widget.LocalColorExtractor;
 import com.android.systemui.shared.Flags;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /** Render preview using surface view. */
@@ -94,6 +97,7 @@ public class PreviewSurfaceRenderer {
     private static final String KEY_DARK_MODE = "use_dark_mode";
     private static final String KEY_LAYOUT_XML = "layout_xml";
     public static final String KEY_SKIP_ANIMATIONS = "skip_animations";
+    public static final String FIXED_LANDSCAPE_GRID = "fixed_landscape_mode";
 
     private final Context mContext;
     private SparseIntArray mPreviewColorOverride;
@@ -130,6 +134,9 @@ public class PreviewSurfaceRenderer {
         bundle.remove("name");
         if (mGridName == null) {
             mGridName = LauncherPrefs.get(context).get(GRID_NAME);
+        }
+        if (Objects.equals(mGridName, FIXED_LANDSCAPE_GRID)) {
+            mGridName = LauncherPrefs.get(context).get(NON_FIXED_LANDSCAPE_GRID_NAME);
         }
         mShapeKey = LauncherPrefs.get(context).get(PREF_ICON_SHAPE);
         mIsMonoThemeEnabled = LauncherPrefs.get(context).get(THEMED_ICONS);
@@ -236,7 +243,7 @@ public class PreviewSurfaceRenderer {
      * @param gridName Name of the grid, e.g. normal, practical
      */
     public void updateGrid(@NonNull String gridName) {
-        if (gridName.equals(mGridName)) {
+        if (gridName.equals(mGridName) || gridName.equals(FIXED_LANDSCAPE_GRID)) {
             return;
         }
         mGridName = gridName;
@@ -323,19 +330,6 @@ public class PreviewSurfaceRenderer {
             }
             context = context.createConfigurationContext(configuration);
         }
-        if (InvariantDeviceProfile.INSTANCE.get(context).isFixedLandscape) {
-            Configuration configuration = new Configuration(
-                    context.getResources().getConfiguration()
-            );
-            int width = configuration.screenWidthDp;
-            int height = configuration.screenHeightDp;
-            if (configuration.screenHeightDp > configuration.screenWidthDp) {
-                configuration.screenWidthDp = height;
-                configuration.screenHeightDp = width;
-                configuration.orientation = Surface.ROTATION_90;
-            }
-            context = context.createConfigurationContext(configuration);
-        }
 
         if (Flags.newCustomizationPickerUi()) {
             if (mPreviewColorOverride != null) {
@@ -364,13 +358,18 @@ public class PreviewSurfaceRenderer {
         }
     }
 
+    private boolean shouldReloadModelData() {
+        return InvariantDeviceProfile.INSTANCE.get(mContext).isFixedLandscape
+                || !mGridName.equals(LauncherPrefs.INSTANCE.get(mContext).get(GRID_NAME))
+                || !mShapeKey.equals(LauncherPrefs.INSTANCE.get(mContext).get(PREF_ICON_SHAPE))
+                || mIsMonoThemeEnabled != LauncherPrefs.INSTANCE.get(mContext).get(THEMED_ICONS)
+                || !TextUtils.isEmpty(mLayoutXml);
+    }
+
     @WorkerThread
     private void loadModelData() {
         final Context inflationContext = getPreviewContext();
-        if (!mGridName.equals(LauncherPrefs.INSTANCE.get(mContext).get(GRID_NAME))
-                || !mShapeKey.equals(LauncherPrefs.INSTANCE.get(mContext).get(PREF_ICON_SHAPE))
-                || mIsMonoThemeEnabled != LauncherPrefs.INSTANCE.get(mContext).get(THEMED_ICONS)
-                || !TextUtils.isEmpty(mLayoutXml)) {
+        if (shouldReloadModelData()) {
 
             boolean isCustomLayout = extendibleThemeManager() &&  !TextUtils.isEmpty(mLayoutXml);
             int widgetHostId = isCustomLayout ? APPWIDGET_HOST_ID + mCallingPid : APPWIDGET_HOST_ID;
@@ -442,23 +441,13 @@ public class PreviewSurfaceRenderer {
 
         view.setPivotX(0);
         view.setPivotY(0);
-        if (idp.isFixedLandscape) {
-            final float scale = Math.min(mHeight / (float) view.getMeasuredWidth(),
-                    mWidth / (float) view.getMeasuredHeight());
-            view.setScaleX(scale);
-            view.setScaleY(scale);
-            view.setRotation(90);
-            view.setTranslationX((mHeight - scale * view.getWidth()) / 2 + mWidth);
-            view.setTranslationY((mWidth - scale * view.getHeight()) / 2);
-        } else {
-            // This aspect scales the view to fit in the surface and centers it
-            final float scale = Math.min(mWidth / (float) view.getMeasuredWidth(),
-                    mHeight / (float) view.getMeasuredHeight());
-            view.setScaleX(scale);
-            view.setScaleY(scale);
-            view.setTranslationX((mWidth - scale * view.getWidth()) / 2);
-            view.setTranslationY((mHeight - scale * view.getHeight()) / 2);
-        }
+        // This aspect scales the view to fit in the surface and centers it
+        final float scale = Math.min(mWidth / (float) view.getMeasuredWidth(),
+                mHeight / (float) view.getMeasuredHeight());
+        view.setScaleX(scale);
+        view.setScaleY(scale);
+        view.setTranslationX((mWidth - scale * view.getWidth()) / 2);
+        view.setTranslationY((mHeight - scale * view.getHeight()) / 2);
 
         if (!Flags.newCustomizationPickerUi()) {
             view.setAlpha(mSkipAnimations ? 1 : 0);

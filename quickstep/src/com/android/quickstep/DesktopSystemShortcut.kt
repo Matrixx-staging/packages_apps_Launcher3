@@ -77,12 +77,11 @@ class DesktopSystemShortcut(
                     return when {
                         !DesktopModeStatus.canEnterDesktopMode(context) -> null
 
-                        desktopModeCompatPolicy.isTopActivityExemptFromDesktopWindowing(
+                        desktopModeCompatPolicy.shouldDisableDesktopEntryPoints(
                             taskKey.baseActivity?.packageName,
                             taskKey.numActivities,
                             taskKey.isTopActivityNoDisplay,
                             taskKey.isActivityStackTransparent,
-                            taskKey.userId,
                         ) -> null
 
                         !taskContainer.task.isDockable -> null

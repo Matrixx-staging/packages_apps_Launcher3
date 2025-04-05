@@ -35,11 +35,13 @@ import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.BaseLauncherActivityTest;
+import com.android.launcher3.util.rule.ScreenRecordRule;
 import com.android.quickstep.views.DigitalWellBeingToast;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.TaskContainer;
 import com.android.quickstep.views.TaskView;
 
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -49,9 +51,14 @@ import java.time.Duration;
 @RunWith(AndroidJUnit4.class)
 public class DigitalWellBeingToastTest extends BaseLauncherActivityTest<QuickstepLauncher> {
 
+    @Rule
+    public ScreenRecordRule mScreenRecordRule = new ScreenRecordRule();
+
+
     public final String calculatorPackage =
             resolveSystemAppInfo(Intent.CATEGORY_APP_CALCULATOR).packageName;
 
+    @ScreenRecordRule.ScreenRecord // b/407406547
     @Test
     public void testToast() {
         startAppFast(calculatorPackage);

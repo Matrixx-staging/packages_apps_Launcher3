@@ -120,7 +120,8 @@ public abstract class SwipeUpAnimationLogic implements
             PendingAnimation pendingAnimation = new PendingAnimation(mTransitionDragLength * 2);
             TaskViewSimulator taskViewSimulator = remoteHandle.getTaskViewSimulator();
             taskViewSimulator.setDp(dp);
-            taskViewSimulator.addAppToCarouselAnim(pendingAnimation, LINEAR);
+            taskViewSimulator.addAppToCarouselAnim(pendingAnimation, LINEAR,
+                    mGestureState.isHandlingAtomicEvent());
             AnimatorPlaybackController playbackController =
                     pendingAnimation.createPlaybackController();
 

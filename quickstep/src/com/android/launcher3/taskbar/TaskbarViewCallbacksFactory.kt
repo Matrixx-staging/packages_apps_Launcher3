@@ -43,7 +43,7 @@ open class TaskbarViewCallbacksFactory : ResourceBasedOverride {
                     val runningPackage =
                         TopTaskTracker.INSTANCE[activity].getCachedTopTask(
                                 /* filterOnlyVisibleRecents */ true,
-                                activity.display.displayId,
+                                activity.displayId,
                             )
                             .getPackageName()
                     activity.statsLogManager

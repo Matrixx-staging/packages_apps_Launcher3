@@ -101,8 +101,8 @@ constructor(
         resources.getDimensionPixelSize(R.dimen.task_thumbnail_icon_view_start_margin)
     private val appIconSize =
         resources.getDimensionPixelSize(R.dimen.task_thumbnail_icon_menu_app_icon_collapsed_size)
-    private val expandedMaxTextWidth =
-        resources.getDimensionPixelSize(R.dimen.task_thumbnail_icon_menu_text_expanded_max_width)
+    private val iconMenuElevation =
+        resources.getDimension(R.dimen.task_thumbnail_icon_menu_elevation)
     private val arrowSize =
         resources.getDimensionPixelSize(R.dimen.task_thumbnail_icon_menu_arrow_size)
     private val iconViewDrawableExpandedSize =
@@ -507,19 +507,19 @@ constructor(
 
     override fun bringToFront() {
         super.bringToFront()
-        z += Z_INDEX_FRONT
+        z = iconMenuElevation + Z_INDEX_FRONT
         updateParentZIndex(Z_INDEX_FRONT)
     }
 
     private fun sendToBack() {
-        z -= Z_INDEX_FRONT
-        updateParentZIndex(-Z_INDEX_FRONT)
+        z = iconMenuElevation
+        updateParentZIndex(0f)
     }
 
     private fun updateParentZIndex(zIndex: Float) {
         val parentView = parent as? TaskView
         if (parentView?.isOnGridBottomRow == true) {
-            parentView.z += zIndex
+            parentView.z = zIndex
         }
     }
 

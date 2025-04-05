@@ -1768,8 +1768,10 @@ public abstract class AbsSwipeUpHandler<
             mLauncherTransitionController = null;
 
             if (mRecentsView != null) {
-                mRecentsView.onPrepareGestureEndAnimation(null, mGestureState.getEndTarget(),
-                        mRemoteTargetHandles);
+                AnimatorSet animatorSet = new AnimatorSet();
+                mRecentsView.onPrepareGestureEndAnimation(animatorSet, mGestureState.getEndTarget(),
+                        mRemoteTargetHandles, /* isHandlingAtomicEvent= */ true);
+                animatorSet.setDuration(0).start();
             }
         } else {
             AnimatorSet animatorSet = new AnimatorSet();
@@ -1811,9 +1813,10 @@ public abstract class AbsSwipeUpHandler<
             animatorSet.play(windowAnim);
             if (mRecentsView != null) {
                 mRecentsView.onPrepareGestureEndAnimation(
-                        mGestureState.isHandlingAtomicEvent() ? null : animatorSet,
+                        animatorSet,
                         mGestureState.getEndTarget(),
-                        mRemoteTargetHandles);
+                        mRemoteTargetHandles,
+                        mGestureState.isHandlingAtomicEvent());
             }
             animatorSet.setDuration(duration).setInterpolator(interpolator);
             animatorSet.start();
@@ -2363,6 +2366,10 @@ public abstract class AbsSwipeUpHandler<
         }
     }
 
+    /**
+     * The returned Consumer has strong ref to RecentsView and thus Launcher activity. Caller should
+     * ensure it clears the ref to returned consumer once gesture is ended.
+     */
     public Consumer<MotionEvent> getRecentsViewDispatcher(float navbarRotation) {
         return mRecentsView != null ? mRecentsView.getEventDispatcher(navbarRotation) : null;
     }

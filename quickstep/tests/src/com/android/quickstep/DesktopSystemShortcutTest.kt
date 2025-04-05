@@ -16,13 +16,10 @@
 
 package com.android.quickstep
 
-import android.Manifest.permission.SYSTEM_ALERT_WINDOW
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import android.platform.test.annotations.DisableFlags
 import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
 import android.view.Display.DEFAULT_DISPLAY
@@ -57,8 +54,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.ArgumentMatchers.anyInt
-import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -117,7 +112,28 @@ class DesktopSystemShortcutTest {
 
     @Test
     @EnableFlags(Flags.FLAG_ENABLE_DESKTOP_WINDOWING_MODALS_POLICY)
-    @DisableFlags(Flags.FLAG_ENABLE_MODALS_FULLSCREEN_WITH_PERMISSION)
+    fun createDesktopTaskShortcutFactory_noDisplayActivity() {
+        val baseComponent = ComponentName("", /* class */ "")
+        val taskKey =
+            TaskKey(
+                /* id */ 1,
+                /* windowingMode */ 0,
+                Intent(),
+                baseComponent,
+                /* userId */ 0,
+                /* lastActiveTime */ 2000,
+                DEFAULT_DISPLAY,
+                baseComponent,
+                /* numActivities */ 1,
+                /* isTopActivityNoDisplay */ true,
+                /* isActivityStackTransparent */ false,
+            )
+        val taskContainer = createTaskContainer(Task(taskKey))
+        val shortcuts = factory.getShortcuts(launcher, taskContainer)
+    }
+
+    @Test
+    @EnableFlags(Flags.FLAG_ENABLE_DESKTOP_WINDOWING_MODALS_POLICY)
     fun createDesktopTaskShortcutFactory_transparentTask() {
         val baseComponent = ComponentName("", /* class */ "")
         val taskKey =
@@ -137,64 +153,6 @@ class DesktopSystemShortcutTest {
         val taskContainer = createTaskContainer(Task(taskKey))
         val shortcuts = factory.getShortcuts(launcher, taskContainer)
         assertThat(shortcuts).isNull()
-    }
-
-    @Test
-    @EnableFlags(
-        Flags.FLAG_ENABLE_DESKTOP_WINDOWING_MODALS_POLICY,
-        Flags.FLAG_ENABLE_MODALS_FULLSCREEN_WITH_PERMISSION,
-    )
-    fun createDesktopTaskShortcutFactoryPermissionEnabledAllowed_transparentTask() {
-        val packageManager: PackageManager = mock()
-        setUpTransparentPermission(packageManager, isAllowed = true)
-        val baseComponent = ComponentName("", /* class */ "")
-        val taskKey =
-            TaskKey(
-                /* id */ 1,
-                /* windowingMode */ 0,
-                Intent(),
-                baseComponent,
-                /* userId */ 0,
-                /* lastActiveTime */ 2000,
-                DEFAULT_DISPLAY,
-                baseComponent,
-                /* numActivities */ 1,
-                /* isTopActivityNoDisplay */ false,
-                /* isActivityStackTransparent */ true,
-            )
-        val taskContainer = createTaskContainer(Task(taskKey))
-        val shortcuts = factory.getShortcuts(launcher, taskContainer)
-        assertThat(shortcuts).isNull()
-    }
-
-    @Test
-    @EnableFlags(
-        Flags.FLAG_ENABLE_DESKTOP_WINDOWING_MODALS_POLICY,
-        Flags.FLAG_ENABLE_MODALS_FULLSCREEN_WITH_PERMISSION,
-    )
-    fun createDesktopTaskShortcutFactoryPermissionEnabledNotAllowed_transparentTask() {
-        val packageManager: PackageManager = mock()
-        setUpTransparentPermission(packageManager, isAllowed = false)
-        val baseComponent = ComponentName("", /* class */ "")
-        val homeActivities = ComponentName("defaultHomePackage", /* class */ "")
-        whenever(packageManager.getHomeActivities(any())).thenReturn(homeActivities)
-        val taskKey =
-            TaskKey(
-                /* id */ 1,
-                /* windowingMode */ 0,
-                Intent(),
-                baseComponent,
-                /* userId */ 0,
-                /* lastActiveTime */ 2000,
-                DEFAULT_DISPLAY,
-                baseComponent,
-                /* numActivities */ 1,
-                /* isTopActivityNoDisplay */ false,
-                /* isActivityStackTransparent */ true,
-            )
-        val taskContainer = createTaskContainer(Task(taskKey).apply { isDockable = true })
-        val shortcuts = factory.getShortcuts(launcher, taskContainer)
-        assertThat(shortcuts).isNotEmpty()
     }
 
     @Test
@@ -325,22 +283,6 @@ class DesktopSystemShortcutTest {
             showWindowsView = null,
             overlayFactory,
         )
-
-    private fun setUpTransparentPermission(packageManager: PackageManager, isAllowed: Boolean) {
-        val packageInfo: PackageInfo = mock()
-        if (isAllowed) {
-            packageInfo.requestedPermissions = arrayOf(SYSTEM_ALERT_WINDOW)
-        }
-        whenever(context.packageManager).thenReturn(packageManager)
-        whenever(
-                packageManager.getPackageInfoAsUser(
-                    anyString(),
-                    eq(PackageManager.GET_PERMISSIONS),
-                    anyInt(),
-                )
-            )
-            .thenReturn(packageInfo)
-    }
 
     private fun createTaskViewMock(): TaskView {
         val taskView: TaskView = mock()

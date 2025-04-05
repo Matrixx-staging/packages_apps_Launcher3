@@ -174,7 +174,7 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
                 return response;
 
             case TestProtocol.REQUEST_REFRESH_OVERVIEW_TARGET:
-                runOnTISBinder(TouchInteractionService.TISBinder::refreshOverviewTarget);
+                runOnTISBinder(TouchInteractionService.TISBinder::refreshOverviewTargetForTest);
                 return response;
 
             case TestProtocol.REQUEST_RECREATE_TASKBAR:

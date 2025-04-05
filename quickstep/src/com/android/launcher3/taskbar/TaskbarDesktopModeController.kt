@@ -48,8 +48,12 @@ class TaskbarDesktopModeController(
     }
 
     fun shouldShowDesktopTasksInTaskbar(): Boolean {
+        return shouldShowDesktopTasksInTaskbar(context.displayId)
+    }
+
+    fun shouldShowDesktopTasksInTaskbar(displayId: Int): Boolean {
         val activityContext = taskbarControllers.taskbarActivityContext
-        return isInDesktopMode(context.displayId) ||
+        return isInDesktopMode(displayId) ||
             activityContext.showDesktopTaskbarForFreeformDisplay() ||
             (activityContext.showLockedTaskbarOnHome() &&
                 taskbarControllers.taskbarStashController.isOnHome)

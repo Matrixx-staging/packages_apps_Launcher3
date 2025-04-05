@@ -34,6 +34,7 @@ import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -62,6 +63,7 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.LauncherRootView;
 import com.android.launcher3.dragndrop.DragLayer;
 import com.android.launcher3.statemanager.BaseState;
+import com.android.launcher3.statemanager.StateManager;
 import com.android.launcher3.statemanager.StatefulContainer;
 import com.android.launcher3.util.MSDLPlayerWrapper;
 import com.android.launcher3.util.SandboxApplication;
@@ -130,6 +132,7 @@ public abstract class AbsSwipeUpHandlerTestCase<
 
     protected RecentsAnimationTargets mRecentsAnimationTargets;
     protected TaskAnimationManager mTaskAnimationManager;
+    protected StateManager<STATE_TYPE, RECENTS_CONTAINER> mStateManager;
 
     @Mock protected CONTAINER_INTERFACE mActivityInterface;
     @Mock protected ContextInitListener<?> mContextInitListener;
@@ -142,6 +145,7 @@ public abstract class AbsSwipeUpHandlerTestCase<
     @Mock protected GestureState mGestureState;
     @Mock protected MSDLPlayerWrapper mMSDLPlayerWrapper;
     @Mock protected RecentsAnimationDeviceState mDeviceState;
+    @Mock protected StateManager.AtomicAnimationFactory<STATE_TYPE> mAtomicAnimationFactory;
 
     @Before
     public void setUpAnimationTargets() {
@@ -193,7 +197,7 @@ public abstract class AbsSwipeUpHandlerTestCase<
     @Before
     public void setUpRecentsContainer() {
         mTaskAnimationManager = new TaskAnimationManager(mContext, DEFAULT_DISPLAY);
-        RecentsViewContainer recentsContainer = getRecentsContainer();
+        RECENTS_CONTAINER recentsContainer = getRecentsContainer();
         RECENTS_VIEW recentsView = getRecentsView();
 
         when(recentsContainer.getDeviceProfile()).thenReturn(new DeviceProfile());
@@ -201,6 +205,7 @@ public abstract class AbsSwipeUpHandlerTestCase<
         when(recentsContainer.getDragLayer()).thenReturn(mDragLayer);
         when(recentsContainer.getRootView()).thenReturn(mRootView);
         when(recentsContainer.getSystemUiController()).thenReturn(mSystemUiController);
+        when(recentsContainer.createAtomicAnimationFactory()).thenReturn(mAtomicAnimationFactory);
         when(mActivityInterface.createActivityInitListener(any()))
                 .thenReturn(mContextInitListener);
         doReturn(recentsContainer).when(mActivityInterface).getCreatedContainer();
@@ -208,6 +213,10 @@ public abstract class AbsSwipeUpHandlerTestCase<
             answer.<Runnable>getArgument(0).run();
             return this;
         }).when(recentsContainer).runOnBindToTouchInteractionService(any());
+
+        mStateManager = spy(new StateManager<>(recentsContainer, getBaseState()));
+
+        doReturn(mStateManager).when(recentsContainer).getStateManager();
     }
 
     @Test
@@ -393,8 +402,11 @@ public abstract class AbsSwipeUpHandlerTestCase<
             long touchTimeMs, boolean continuingLastGesture);
 
     @NonNull
-    protected abstract RecentsViewContainer getRecentsContainer();
+    protected abstract RECENTS_CONTAINER getRecentsContainer();
 
     @NonNull
     protected abstract RECENTS_VIEW getRecentsView();
+
+    @NonNull
+    protected abstract STATE_TYPE getBaseState();
 }

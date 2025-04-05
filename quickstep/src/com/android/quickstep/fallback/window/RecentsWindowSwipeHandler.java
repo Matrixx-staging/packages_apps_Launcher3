@@ -27,6 +27,7 @@ import static com.android.launcher3.GestureNavContract.EXTRA_ON_FINISH_CALLBACK;
 import static com.android.launcher3.GestureNavContract.EXTRA_REMOTE_CALLBACK;
 import static com.android.launcher3.anim.AnimatorListeners.forEndCallback;
 
+import android.animation.Animator;
 import android.app.ActivityManager.RunningTaskInfo;
 import android.content.Context;
 import android.content.Intent;
@@ -58,6 +59,7 @@ import androidx.annotation.UiThread;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.anim.AnimatedFloat;
+import com.android.launcher3.anim.AnimationSuccessListener;
 import com.android.launcher3.anim.AnimatorPlaybackController;
 import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.anim.SpringAnimationBuilder;
@@ -273,8 +275,10 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
         public AnimatorPlaybackController createActivityAnimationToHome() {
             // copied from {@link LauncherSwipeHandlerV2.LauncherHomeAnimationFactory}
             long accuracy = 2 * Math.max(mDp.widthPx, mDp.heightPx);
-            return mContainer.getStateManager().createAnimationToNewWorkspace(
-                    RecentsState.HOME, accuracy, StateAnimationConfig.SKIP_ALL_ANIMATIONS);
+            return mRecentsDisplayModel.getRecentsWindowManager(mGestureState.getDisplayId())
+                    .getStateManager()
+                    .createAnimationToNewWorkspace(
+                            RecentsState.HOME, accuracy, StateAnimationConfig.SKIP_ALL_ANIMATIONS);
         }
     }
 
@@ -321,9 +325,18 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
         @NonNull
         @Override
         public AnimatorPlaybackController createActivityAnimationToHome() {
+            // TODO(b/377678992): Implement a new AtomicAnimationFactory for RecentsWindowManager
             PendingAnimation pa = new PendingAnimation(mDuration);
             pa.setFloat(mRecentsAlpha, AnimatedFloat.VALUE, 0, ACCELERATE);
             pa.setFloat(mHomeAlpha, AnimatedFloat.VALUE, 1, ACCELERATE);
+            pa.addListener(new AnimationSuccessListener() {
+                @Override
+                public void onAnimationSuccess(Animator animator) {
+                    mRecentsDisplayModel.getRecentsWindowManager(mGestureState.getDisplayId())
+                            .getStateManager()
+                            .goToState(RecentsState.HOME, false);
+                }
+            });
             return pa.createPlaybackController();
         }
 

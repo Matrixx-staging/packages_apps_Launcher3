@@ -64,4 +64,10 @@ public class FallbackSwipeHandlerTestCase extends AbsSwipeUpHandlerTestCase<
     protected FallbackRecentsView<RecentsActivity> getRecentsView() {
         return mRecentsView;
     }
+
+    @NonNull
+    @Override
+    protected RecentsState getBaseState() {
+        return RecentsState.BG_LAUNCHER;
+    }
 }

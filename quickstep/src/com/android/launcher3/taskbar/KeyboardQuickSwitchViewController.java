@@ -254,19 +254,13 @@ public class KeyboardQuickSwitchViewController {
             // first hidden non-desktop task view in recents view
             return mOnDesktop ? 1 : (mWasDesktopTaskFilteredOut ? index + 1 : index);
         }
-        Runnable onStartCallback = () -> InteractionJankMonitorWrapper.begin(
-                mKeyboardQuickSwitchView, Cuj.CUJ_LAUNCHER_KEYBOARD_QUICK_SWITCH_APP_LAUNCH);
-        Runnable onFinishCallback = () -> InteractionJankMonitorWrapper.end(
-                Cuj.CUJ_LAUNCHER_KEYBOARD_QUICK_SWITCH_APP_LAUNCH);
         TaskbarActivityContext context = mControllers.taskbarActivityContext;
         final RemoteTransition slideInTransition = new RemoteTransition(new SlideInRemoteTransition(
                 Utilities.isRtl(mControllers.taskbarActivityContext.getResources()),
                 context.getDeviceProfile().overviewPageSpacing,
                 QuickStepContract.getWindowCornerRadius(context),
                 AnimationUtils.loadInterpolator(
-                        context, android.R.interpolator.fast_out_extra_slow_in),
-                onStartCallback,
-                onFinishCallback),
+                        context, android.R.interpolator.fast_out_extra_slow_in)),
                 "SlideInTransition");
         SystemUiProxy systemUiProxy = SystemUiProxy.INSTANCE.get(
                 mKeyboardQuickSwitchView.getContext());
@@ -306,9 +300,7 @@ public class KeyboardQuickSwitchViewController {
                 task,
                 remoteTransition,
                 mOnDesktop,
-                DesktopTaskToFrontReason.ALT_TAB,
-                onStartCallback,
-                onFinishCallback);
+                DesktopTaskToFrontReason.ALT_TAB);
         return -1;
     }
 

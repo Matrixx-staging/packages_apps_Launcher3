@@ -571,7 +571,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
             sizeDiffTranslationRange *= -1;
         }
 
-        if (mActivity.isThreeButtonNav()) {
+        if (!mTaskbarView.canTransitionToTransientTaskbar()) {
             mTaskbarView.getAllAppsButtonContainer()
                     .setTranslationXForTaskbarAllAppsIcon(allAppIconTranslateRange);
             return;
@@ -756,8 +756,9 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     }
 
     private boolean shouldUpdateIconContentDescription(BubbleTextView btv) {
-        boolean isInDesktopMode = mControllers.taskbarDesktopModeController.isInDesktopMode(
-                DEFAULT_DISPLAY);
+        boolean isInDesktopMode =
+                mControllers.taskbarDesktopModeController.shouldShowDesktopTasksInTaskbar(
+                        DEFAULT_DISPLAY);
         boolean isAllAppsButton = btv instanceof TaskbarAllAppsButtonContainer;
         boolean isDividerButton = btv instanceof TaskbarDividerContainer;
         return isInDesktopMode && !isAllAppsButton && !isDividerButton;
@@ -959,11 +960,13 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
                 launcherDp.numShownHotseatIcons);
 
         boolean isToHome = mControllers.uiController.isIconAlignedWithHotseat();
+        boolean isDeviceLocked = mControllers.taskbarStashController.isDeviceLocked();
         // If Hotseat is not the top element, Taskbar should maintain in-app state as it fades out,
         // or fade in while already in in-app state.
         Interpolator interpolator = mIsHotseatIconOnTopWhenAligned ? LINEAR : FINAL_FRAME;
 
-        int offsetY = taskbarDp.getTaskbarOffsetY();
+        int offsetY =
+                isDeviceLocked ? taskbarDp.getTaskbarOffsetY() : launcherDp.getTaskbarOffsetY();
         setter.setFloat(mTaskbarIconTranslationYForHome, VALUE, -offsetY, interpolator);
         setter.setFloat(mTaskbarNavButtonTranslationY, VALUE, -offsetY, interpolator);
         setter.setFloat(mTaskbarNavButtonTranslationYForInAppDisplay, VALUE, offsetY, interpolator);
@@ -1227,6 +1230,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     public void commitRunningAppsToUI() {
         mModelCallbacks.commitRunningAppsToUI();
         if (ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION.isTrue()
+                && !mActivity.isTransientTaskbar()
                 && mTaskbarView.getLayoutTransition() == null) {
             // Set up after the first commit so that the initial recents do not animate (janky).
             mTaskbarView.setLayoutTransition(createLayoutTransitionForRunningApps());

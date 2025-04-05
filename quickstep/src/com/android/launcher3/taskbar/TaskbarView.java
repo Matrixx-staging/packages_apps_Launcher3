@@ -160,7 +160,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
         int actualMargin = resources.getDimensionPixelSize(R.dimen.taskbar_icon_spacing);
         int actualIconSize = mActivityContext.getDeviceProfile().taskbarIconSize;
-        if (enableTaskbarPinning() && !mActivityContext.isThreeButtonNav()) {
+        if (enableTaskbarPinning() && canTransitionToTransientTaskbar()) {
             DeviceProfile deviceProfile = mActivityContext.getTransientTaskbarDeviceProfile();
             actualIconSize = deviceProfile.taskbarIconSize;
         }
@@ -235,13 +235,22 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         // All apps icon takes less space compared to normal icon size, reserve space for the icon
         // separately.
         boolean forceTransientTaskbarSize =
-                enableTaskbarPinning() && !mActivityContext.isThreeButtonNav();
+                enableTaskbarPinning() && canTransitionToTransientTaskbar();
         availableWidth -= iconSize - (int) getResources().getDimension(
                 mAllAppsButtonContainer.getAllAppsButtonTranslationXOffset(
                         forceTransientTaskbarSize || mActivityContext.isTransientTaskbar()));
         ++additionalIcons;
 
         return Math.floorDiv(availableWidth, iconSize) + additionalIcons;
+    }
+
+    /**
+     * Whether the taskbar in the state context supports transition to a transient taskbar (e.g.
+     * using a popup menu).
+     */
+    boolean canTransitionToTransientTaskbar() {
+        return !mActivityContext.isThreeButtonNav()
+                && !mActivityContext.showDesktopTaskbarForFreeformDisplay();
     }
 
     /**
@@ -462,7 +471,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         }
 
         // Recents divider takes priority.
-        if (!mAddedDividerForRecents && !mActivityContext.isInDesktopMode()) {
+        if (!mAddedDividerForRecents && !mActivityContext.isTaskbarShowingDesktopTasks()) {
             updateAllAppsDivider();
         }
     }
