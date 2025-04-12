@@ -16,7 +16,6 @@
 package com.android.launcher3.secondarydisplay;
 
 import static com.android.launcher3.util.WallpaperThemeManager.setWallpaperDependentTheme;
-import static com.android.window.flags.Flags.enableTaskbarConnectedDisplays;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -83,7 +82,7 @@ public class SecondaryDisplayLauncher extends BaseActivity
     private boolean mAppDrawerShown = false;
 
     private StringCache mStringCache;
-    private SecondaryDisplayPredictions mSecondaryDisplayPredictions;
+    private SecondaryDisplayQuickstepDelegate mSecondaryDisplayQuickstepDelegate;
 
     private final int[] mTempXY = new int[2];
 
@@ -93,7 +92,7 @@ public class SecondaryDisplayLauncher extends BaseActivity
         setWallpaperDependentTheme(this);
         mModel = LauncherAppState.getInstance(this).getModel();
         mDragController = new SecondaryDragController(this);
-        mSecondaryDisplayPredictions = SecondaryDisplayPredictions.newInstance(this);
+        mSecondaryDisplayQuickstepDelegate = SecondaryDisplayQuickstepDelegate.newInstance(this);
 
         mDeviceProfile = InvariantDeviceProfile.INSTANCE.get(this)
                 .createDeviceProfileForSecondaryDisplay(this);
@@ -103,8 +102,7 @@ public class SecondaryDisplayLauncher extends BaseActivity
         mDragLayer = findViewById(R.id.drag_layer);
         mAppsView = findViewById(R.id.apps_view);
         mAppsButton = findViewById(R.id.all_apps_button);
-        // TODO (b/391965805): Replace this flag with DesktopExperiences flag.
-        if (enableTaskbarConnectedDisplays()) {
+        if (mSecondaryDisplayQuickstepDelegate.enableTaskbarConnectedDisplays()) {
             mAppsButton.setVisibility(View.INVISIBLE);
         }
 
@@ -218,16 +216,17 @@ public class SecondaryDisplayLauncher extends BaseActivity
             mAppDrawerShown = true;
             mAppsView.setVisibility(View.VISIBLE);
             mAppsButton.setVisibility(View.INVISIBLE);
-            mSecondaryDisplayPredictions.updateAppDivider();
+            mSecondaryDisplayQuickstepDelegate.updateAppDivider();
         } else {
             mAppDrawerShown = false;
             animator.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
                     mAppsView.setVisibility(View.INVISIBLE);
-                    // TODO (b/391965805): Replace this flag with DesktopExperiences flag.
                     mAppsButton.setVisibility(
-                            enableTaskbarConnectedDisplays() ? View.INVISIBLE : View.VISIBLE);
+                            mSecondaryDisplayQuickstepDelegate.enableTaskbarConnectedDisplays()
+                                    ? View.INVISIBLE
+                                    : View.VISIBLE);
                     mAppsView.getSearchUiManager().resetSearch();
                 }
             });
@@ -258,7 +257,7 @@ public class SecondaryDisplayLauncher extends BaseActivity
     @Override
     public void bindExtraContainerItems(BgDataModel.FixedContainerItems item) {
         if (item.containerId == LauncherSettings.Favorites.CONTAINER_PREDICTION) {
-            mSecondaryDisplayPredictions.setPredictedApps(item);
+            mSecondaryDisplayQuickstepDelegate.setPredictedApps(item);
         }
     }
 

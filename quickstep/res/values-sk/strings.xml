@@ -54,7 +54,7 @@
     <string name="back_gesture_feedback_cancelled" msgid="762621530959111290">"Musíte potiahnuť z pravého alebo ľavého okraja do stredu obrazovky a potom uvoľniť"</string>
     <string name="back_gesture_feedback_complete_with_overview_follow_up" msgid="9176400654037014471">"Naučili ste sa prejsť späť potiahnutím sprava. V ďalšom kroku sa naučíte prepínať aplikácie."</string>
     <string name="back_gesture_feedback_complete_with_follow_up" msgid="8653374779579748392">"Dokončili ste gesto na prechod späť. V ďalšom kroku sa naučíte, ako prepínať aplikácie."</string>
-    <string name="back_gesture_feedback_complete_without_follow_up" msgid="197189945858268342">"Dokončili ste gesto na prechod späť"</string>
+    <string name="back_gesture_feedback_complete_without_follow_up" msgid="197189945858268342">"Použili ste gesto na prechod späť."</string>
     <string name="back_gesture_feedback_swipe_in_nav_bar" msgid="9157480023651452969">"Nesmiete potiahnuť príliš blízko dolnej časti obrazovky"</string>
     <string name="back_gesture_tutorial_confirm_subtitle" msgid="5181305411668713250">"Ak chcete zmeniť citlivosť gesta Späť, prejdite do Nastavení"</string>
     <string name="back_gesture_intro_title" msgid="19551256430224428">"Prechod späť potiahnutím"</string>
@@ -75,7 +75,7 @@
     <string name="overview_gesture_feedback_home_detected" msgid="663432226180397138">"Skúste okno pred uvoľnením podržať dlhšie"</string>
     <string name="overview_gesture_feedback_wrong_swipe_direction" msgid="1191055451018584958">"Musite potiahnuť priamo nahor a potom zastať."</string>
     <string name="overview_gesture_feedback_complete_with_follow_up" msgid="3544611727467765026">"Naučili ste sa používať gestá. Gestá môžete vypnúť v Nastaveniach."</string>
-    <string name="overview_gesture_feedback_complete_without_follow_up" msgid="2903050864432331629">"Dokončili ste gesto na prepnutie aplikácií"</string>
+    <string name="overview_gesture_feedback_complete_without_follow_up" msgid="2903050864432331629">"Použili ste gesto na prepnutie aplikácií."</string>
     <string name="overview_gesture_intro_title" msgid="2902054412868489378">"Prepínanie aplikácií potiahnutím"</string>
     <string name="overview_gesture_intro_subtitle" msgid="4968091015637850859">"Aplikácie môžete prepínať potiahnutím obrazovky zdola nahor, pridržaním a následným uvoľnením."</string>
     <string name="overview_gesture_tutorial_title" msgid="4125835002668708720">"Prepnutie aplikácií"</string>
@@ -109,6 +109,11 @@
     <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"Zrušiť"</string>
     <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"Preskočiť"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"Otočiť obrazovku"</string>
+    <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"Animácia zobrazujúca, ako sa panel aplikácií zobrazí z dolnej časti obrazovky a automaticky skryje, keď ho nepoužívate"</string>
+    <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"Animácia znázorňujúca, ako pripnúť panel aplikácií pomocou prepínača, aby bol stále viditeľný v dolnej časti obrazovky"</string>
+    <string name="taskbar_edu_split_screen_animation_description" msgid="371796444988899166">"Animácia znázorňujúca, ako vytvoriť rozdelenú obrazovku presunutím aplikácie z panela aplikácií nad otvorenú aplikáciu"</string>
+    <string name="taskbar_edu_suggested_app_animation_description" msgid="3443453246478079085">"Animácia znázorňujúca, ako získať prístup k navrhovaným aplikáciám v zariadení"</string>
+    <string name="taskbar_edu_suggested_search_animation_description" msgid="1874284242557104818">"Animácia znázorňujúca, ako vyhľadať určitú položku na obrazovke pridržaním akčného klávesa a výberom oblasti, v ktorej sa daná položka nachádza"</string>
     <string name="taskbar_edu_a11y_title" msgid="5417986057866415355">"Panel vzdelávacích aplikácií"</string>
     <string name="taskbar_edu_splitscreen" msgid="5605512479258053350">"Ak chcete použiť dve aplikácie naraz, presuňte aplikáciu nabok"</string>
     <string name="taskbar_edu_stashing" msgid="5645461372669217294">"Panel aplikácií zobrazíte pomalým potiahnutím nahor"</string>
@@ -163,10 +168,7 @@
     <string name="header_close_icon_description" msgid="5400033616675911319">"Tlačidlo Zavrieť"</string>
     <string name="pin_to_taskbar" msgid="6607778046321626950">"Pripnúť na panel"</string>
     <string name="unpin_from_taskbar" msgid="2178811773165572676">"Odopnúť z panela"</string>
-    <!-- no translation found for nudge_a11y_title (2126529303123687912) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_close (4513937143817625570) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_image (117910310515857252) -->
-    <skip />
+    <string name="nudge_a11y_title" msgid="2126529303123687912">"Posunúť"</string>
+    <string name="nudge_a11y_close" msgid="4513937143817625570">"Zavrieť"</string>
+    <string name="nudge_a11y_image" msgid="117910310515857252">"Posunúť obrázok"</string>
 </resources>

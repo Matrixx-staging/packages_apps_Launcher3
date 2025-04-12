@@ -33,7 +33,6 @@ import com.android.systemui.shared.recents.model.ThumbnailData
  */
 data class TaskTileUiState(
     val tasks: List<TaskData>,
-    val isLiveTile: Boolean,
     val hasHeader: Boolean,
     val sysUiStatusNavFlags: Int,
     val taskOverlayEnabled: Boolean,
@@ -56,6 +55,7 @@ sealed class TaskData {
      * @property thumbnailData Information related to the last snapshot retrieved from the app
      * @property backgroundColor The background color of the task.
      * @property isLocked Indicates whether the task is locked or not.
+     * @property isLiveTile Indicates whether the task is shown with a live tile or not.
      */
     data class Data(
         override val taskId: Int,
@@ -65,5 +65,6 @@ sealed class TaskData {
         val thumbnailData: ThumbnailData?,
         val backgroundColor: Int,
         val isLocked: Boolean,
+        val isLiveTile: Boolean,
     ) : TaskData()
 }

@@ -175,10 +175,11 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
     private var recentTasksLoaded = false
 
     fun init(taskbarControllers: TaskbarControllers, previousShownTasks: List<GroupTask>) {
+        controllers = taskbarControllers
         if (previousShownTasks.isNotEmpty()) {
             shownTasks = previousShownTasks
+            fetchIcons()
         }
-        controllers = taskbarControllers
         if (canShowRunningApps || canShowRecentApps) {
             recentsModel.registerRecentTasksChangedListener(recentTasksChangedListener)
             controllers.runAfterInit { reloadRecentTasksIfNeeded() }
@@ -279,7 +280,11 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
         if (!shownTasksChanged) {
             return shownTasksChanged
         }
+        fetchIcons()
+        return shownTasksChanged
+    }
 
+    private fun fetchIcons() {
         for (groupTask in shownTasks) {
             for (task in groupTask.tasks) {
                 val cancellableTask =
@@ -297,7 +302,6 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
                 }
             }
         }
-        return shownTasksChanged
     }
 
     private fun updateOrderedRunningTaskIds(): MutableList<Int> {

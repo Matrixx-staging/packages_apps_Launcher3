@@ -78,6 +78,10 @@ public class DigitalWellBeingToastTest extends BaseLauncherActivityTest<Quickste
                                             .setPackage(targetContext().getPackageName()),
                                     PendingIntent.FLAG_MUTABLE)));
 
+            // b/324261526 when removing BaseLauncherActivityTest we should be able to tell test
+            // by test test if they should start the activity from the start or wait, and that
+            // should get rid of this.
+            getLauncherActivity().close();
             loadLauncherSync();
             final DigitalWellBeingToast toast = getToast();
 
@@ -88,7 +92,7 @@ public class DigitalWellBeingToastTest extends BaseLauncherActivityTest<Quickste
             runWithShellPermission(
                     () -> usageStatsManager.unregisterAppUsageLimitObserver(observerId));
 
-            goToState(LauncherState.NORMAL);
+            getLauncherActivity().goToState(LauncherState.NORMAL);
             assertFalse("Toast is visible", getToast().getHasLimit());
         } finally {
             runWithShellPermission(
@@ -97,10 +101,10 @@ public class DigitalWellBeingToastTest extends BaseLauncherActivityTest<Quickste
     }
 
     private DigitalWellBeingToast getToast() {
-        goToState(LauncherState.OVERVIEW);
+        getLauncherActivity().goToState(LauncherState.OVERVIEW);
         final TaskView task = getOnceNotNull("No latest task", launcher -> getLatestTask(launcher));
 
-        return getFromLauncher(launcher -> {
+        return getLauncherActivity().getFromLauncher(launcher -> {
             TaskContainer taskContainer = task.getFirstTaskContainer();
             assertNotNull(taskContainer);
             assertTrue("Latest task is not Calculator", calculatorPackage.equals(

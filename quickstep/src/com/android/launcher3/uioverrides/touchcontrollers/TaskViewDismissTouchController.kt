@@ -255,6 +255,8 @@ CONTAINER : RecentsViewContainer {
                 dismissLength,
                 dismissThreshold,
                 finalPosition,
+                /* shouldRemoveTaskView= */ isDismissing,
+                /* isSplitSelection= */ false,
                 this::clearState,
             )
         isBlockedDuringDismissal = true

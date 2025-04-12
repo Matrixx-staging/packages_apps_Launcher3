@@ -93,8 +93,7 @@ public class WorkProfileTest extends BaseLauncherActivityTest<Launcher> {
         }
 
         loadLauncherSync();
-        goToState(ALL_APPS);
-        waitForState("Launcher internal state didn't switch to All Apps", () -> ALL_APPS);
+        getLauncherActivity().goToState(ALL_APPS);
     }
 
     @After
@@ -132,12 +131,14 @@ public class WorkProfileTest extends BaseLauncherActivityTest<Launcher> {
     public void toggleWorks() {
         assumeTrue(mWorkProfileSetupSuccessful);
         waitForWorkTabSetup();
-        executeOnLauncher(launcher -> {
+        getLauncherActivity().executeOnLauncher(launcher -> {
             AllAppsPagedView pagedView = (AllAppsPagedView) launcher.getAppsView().getContentView();
             pagedView.setCurrentPage(WORK_PAGE);
         });
 
-        WorkProfileManager manager = getFromLauncher(l -> l.getAppsView().getWorkManager());
+        WorkProfileManager manager = getLauncherActivity().getFromLauncher(
+                l -> l.getAppsView().getWorkManager()
+        );
 
         waitForLauncherCondition("work profile initial state check failed", launcher ->
                         manager.getWorkUtilityView() != null
@@ -146,7 +147,7 @@ public class WorkProfileTest extends BaseLauncherActivityTest<Launcher> {
                 WAIT_TIME_MS);
 
         //start work profile toggle OFF test
-        executeOnLauncher(l -> {
+        getLauncherActivity().executeOnLauncher(l -> {
             // Ensure updates are not deferred so notification happens when apps pause.
             l.getAppsView().getAppsStore().disableDeferUpdates(DEFER_UPDATES_TEST);
             l.getAppsView().getWorkManager().getWorkUtilityView().getWorkFAB().performClick();
@@ -160,7 +161,7 @@ public class WorkProfileTest extends BaseLauncherActivityTest<Launcher> {
         waitForWorkCard("Work paused card not shown", view -> view instanceof WorkPausedCard);
 
         // start work profile toggle ON test
-        executeOnLauncher(l -> {
+        getLauncherActivity().executeOnLauncher(l -> {
             ActivityAllAppsContainerView<?> allApps = l.getAppsView();
             assertEquals("Work tab is not focused", allApps.getCurrentPage(), WORK_PAGE);
             View workPausedCard = allApps.getActiveRecyclerView()
@@ -178,7 +179,7 @@ public class WorkProfileTest extends BaseLauncherActivityTest<Launcher> {
     public void testEdu() {
         assumeTrue(mWorkProfileSetupSuccessful);
         waitForWorkTabSetup();
-        executeOnLauncher(l -> {
+        getLauncherActivity().executeOnLauncher(l -> {
             LauncherPrefs.get(l).putSync(WORK_EDU_STEP.to(0));
             ((AllAppsPagedView) l.getAppsView().getContentView()).setCurrentPage(WORK_PAGE);
             l.getAppsView().getWorkManager().reset();

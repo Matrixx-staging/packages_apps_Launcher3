@@ -69,6 +69,7 @@ public class RecentsWindowSwipeHandlerTestCase extends AbsSwipeUpHandlerTestCase
                 mContext,
                 mTaskAnimationManager,
                 mDeviceState,
+                mRotationTouchHelper,
                 mGestureState,
                 touchTimeMs,
                 continuingLastGesture,

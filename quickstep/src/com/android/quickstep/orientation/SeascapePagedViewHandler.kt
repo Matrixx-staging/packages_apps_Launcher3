@@ -25,6 +25,7 @@ import android.view.Gravity
 import android.view.Surface
 import android.view.View
 import android.view.View.MeasureSpec
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.core.util.component1
 import androidx.core.util.component2
@@ -39,10 +40,10 @@ import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTO
 import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_TOP_OR_LEFT
 import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_UNDEFINED
 import com.android.launcher3.util.SplitConfigurationOptions.STAGE_TYPE_MAIN
-import com.android.launcher3.util.SplitConfigurationOptions.SplitBounds
 import com.android.launcher3.util.SplitConfigurationOptions.SplitPositionOption
 import com.android.launcher3.views.BaseDragLayer
 import com.android.quickstep.views.IconAppChipView
+import com.android.wm.shell.shared.split.SplitBounds
 
 class SeascapePagedViewHandler : LandscapePagedViewHandler() {
     override fun rotateInsets(insets: Rect, outInsets: Rect) {
@@ -151,7 +152,7 @@ class SeascapePagedViewHandler : LandscapePagedViewHandler() {
         desiredTaskId: Int,
         banner: View,
     ): Pair<Float, Float> {
-        val snapshotParams = thumbnailViews[0].layoutParams as FrameLayout.LayoutParams
+        val snapshotParams = thumbnailViews[0].layoutParams as ViewGroup.MarginLayoutParams
         val translationX: Float = (taskViewWidth - banner.height).toFloat()
         val translationY: Float
         if (splitBounds == null) {

@@ -27,9 +27,12 @@ import android.animation.ValueAnimator;
 import android.animation.ValueAnimator.AnimatorUpdateListener;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.ColorFilter;
 import android.graphics.Outline;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.VectorDrawable;
@@ -45,8 +48,10 @@ import android.view.ViewOutlineProvider;
 import android.view.animation.Interpolator;
 import android.view.animation.OvershootInterpolator;
 
+import androidx.annotation.DrawableRes;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+import androidx.core.content.ContextCompat;
 
 import com.android.launcher3.Insettable;
 import com.android.launcher3.R;
@@ -63,7 +68,6 @@ import java.util.function.Consumer;
  * WorkspacePageIndicator. A lot of the functionality in this class is only used by one UI purpose.
  */
 public class PageIndicatorDots extends View implements Insettable, PageIndicator {
-
     private static final float SHIFT_PER_ANIMATION = 0.5f;
     private static final float SHIFT_THRESHOLD = (enableLauncherVisualRefresh() ? 0.5f : 0.2f);
     private static final long ANIMATION_DURATION = (enableLauncherVisualRefresh() ? 200 : 150);
@@ -71,13 +75,15 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
     private static final int PAGINATION_FADE_IN_DURATION = 83;
     private static final int PAGINATION_FADE_OUT_DURATION = 167;
 
+    private static final int DISABLED_ARROW_OPACITY = 97; // 38%
+
     private static final int ENTER_ANIMATION_START_DELAY = 300;
     private static final int ENTER_ANIMATION_STAGGERED_DELAY = 150;
     private static final int ENTER_ANIMATION_DURATION = 400;
 
     private static final int HEIGHT_MULTIPLIER = 4;
     private static final int WIDTH_MULTIPLIER = 3;
-    private static final float ARROW_TOUCH_BOX_FACTOR = 5f;
+    private static final float ARROW_TOUCH_BOX_FACTOR = 2f;
 
     private static final int PAGE_INDICATOR_ALPHA = 255;
     private static final int DOT_ALPHA = 128;
@@ -133,8 +139,10 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
     private final VectorDrawable mArrowLeft;
     private final Rect mArrowRightBounds = new Rect();
     private final Rect mArrowLeftBounds = new Rect();
-    private final int mArrowWidth;
-    private final int mArrowHeight;
+    private final int mArrowTouchBoxExtraWidth;
+    private final int mArrowTouchBoxHeight;
+    private final int mArrowGapWidth;
+    private final int mArrowLength;
 
     private int mNumPages;
     private int mActivePage;
@@ -186,13 +194,23 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
                 : DOT_GAP_FACTOR * mDotRadius;
         setOutlineProvider(new MyOutlineProver());
         mIsRtl = Utilities.isRtl(getResources());
-        mArrowRight = (VectorDrawable) getResources().getDrawable(R.drawable.ic_chevron_end);
-        mArrowLeft = (VectorDrawable) getResources().getDrawable(R.drawable.ic_chevron_start);
+        mArrowRight = setupArrow(R.drawable.ic_chevron_right_rounded_700);
+        mArrowLeft = setupArrow(R.drawable.ic_chevron_left_rounded_700);
         /* the width of the arrows themselves plus extra folder / touch padding. x2 for 2 arrows. */
-        mArrowWidth = 2 * ((int) ((5.5f) * mGapWidth)
+        mArrowTouchBoxExtraWidth = 2 * ((int) ((5.5f) * mGapWidth)
                 + getResources().getDimensionPixelSize(R.dimen.folder_footer_horiz_padding));
-        mArrowHeight =
+        mArrowTouchBoxHeight =
                 getResources().getDimensionPixelSize(R.dimen.folder_footer_height_default);
+        mArrowLength = getResources().getDimensionPixelSize(R.dimen.folder_arrow_icon_length);
+        mArrowGapWidth = getResources().getDimensionPixelSize(R.dimen.folder_arrow_gap_width);
+    }
+
+    private VectorDrawable setupArrow(@DrawableRes int resId) {
+        VectorDrawable icon = (VectorDrawable) ContextCompat.getDrawable(getContext(), resId);
+        ColorFilter arrowColorFilter = new PorterDuffColorFilter(mPaginationPaint.getColor(),
+                PorterDuff.Mode.SRC_ATOP);
+        icon.setColorFilter(arrowColorFilter);
+        return icon;
     }
 
     @Override
@@ -460,8 +478,8 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
                 : (int) (HEIGHT_MULTIPLIER * mDotRadius);
         if (enableLauncherVisualRefresh() && mOnArrowClickListener != null) {
             // Extra height and width and gaps for accessibility arrows.
-            width += mArrowWidth;
-            height = mArrowHeight;
+            width += mArrowTouchBoxExtraWidth;
+            height = mArrowTouchBoxHeight;
         }
         setMeasuredDimension(width, height);
     }
@@ -480,6 +498,9 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
         float circleGap = mCircleGap;
         float x = ((float) getWidth() / 2) - (mCircleGap * ((float) mNumPages - 1) / 2);
         float y = getHeight() / 2;
+
+        // Save the current alpha value, so we can reset to it again after drawing the dots
+        int alpha = mPaginationPaint.getAlpha();
 
         if (mEntryAnimationRadiusFactors != null) {
             if (enableLauncherVisualRefresh()) {
@@ -529,8 +550,6 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
                 }
             }
         } else {
-            // Save the current alpha value, so we can reset to it again after drawing the dots
-            int alpha = mPaginationPaint.getAlpha();
 
             if (enableLauncherVisualRefresh()) {
                 int nonActiveAlpha = (int) (alpha * DOT_ALPHA_FRACTION);
@@ -554,14 +573,13 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
                 float bounceProgress = (posDif > 1) ? posDif - 1 : 0;
                 float bounceAdjustment = Math.abs(currentPosition - boundedPosition) * diameter;
 
-                if (mOnArrowClickListener != null && boundedPosition >= 1) {
+                if (mOnArrowClickListener != null) {
                     // Here we draw the Left Arrow
-                    mArrowLeft.setAlpha(alpha);
-                    int size = (int) (mGapWidth * 4);
-                    mArrowLeftBounds.left = (int) (sTempRect.left - mGapWidth - size);
-                    mArrowLeftBounds.top = (int) (y - size / 2);
-                    mArrowLeftBounds.right = (int) (sTempRect.left - mGapWidth);
-                    mArrowLeftBounds.bottom = (int) (y + size / 2);
+                    mArrowLeft.setAlpha(boundedPosition == 0 ? DISABLED_ARROW_OPACITY : alpha);
+                    mArrowLeftBounds.left = (int) (sTempRect.left - mArrowGapWidth - mArrowLength);
+                    mArrowLeftBounds.top = (int) (y - (float) mArrowLength / 2);
+                    mArrowLeftBounds.right = mArrowLeftBounds.left + mArrowLength;
+                    mArrowLeftBounds.bottom = mArrowLeftBounds.top + mArrowLength;
                     mArrowLeft.setBounds(mArrowLeftBounds);
                     mArrowLeft.draw(canvas);
                 }
@@ -622,14 +640,14 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
                     sTempRect.left = sTempRect.right + mGapWidth;
                 }
 
-                if (mOnArrowClickListener != null && boundedPosition <= mNumPages - 2) {
+                if (mOnArrowClickListener != null) {
                     // Here we draw the Right Arrow
-                    mArrowRight.setAlpha(alpha);
-                    int size = (int) (mGapWidth * 4);
-                    mArrowRightBounds.left = (int) sTempRect.left;
-                    mArrowRightBounds.top = (int) (y - size / 2);
-                    mArrowRightBounds.right = (int) (int) (sTempRect.left + size);
-                    mArrowRightBounds.bottom = (int) (y + size / 2);
+                    mArrowRight.setAlpha(boundedPosition == (mNumPages - 1)
+                            ? DISABLED_ARROW_OPACITY : alpha);
+                    mArrowRightBounds.left = (int) (sTempRect.left - mGapWidth + mArrowGapWidth);
+                    mArrowRightBounds.top = (int) (y - (float) mArrowLength / 2);
+                    mArrowRightBounds.right = mArrowRightBounds.left + mArrowLength;
+                    mArrowRightBounds.bottom = mArrowRightBounds.top + mArrowLength;
                     mArrowRight.setBounds(mArrowRightBounds);
                     mArrowRight.draw(canvas);
                 }
@@ -645,10 +663,9 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
                 mPaginationPaint.setAlpha(alpha);
                 canvas.drawRoundRect(getActiveRect(), mDotRadius, mDotRadius, mPaginationPaint);
             }
-
-            // Reset the alpha so it doesn't become progressively more transparent each onDraw call
-            mPaginationPaint.setAlpha(alpha);
         }
+        // Reset the alpha so it doesn't become progressively more transparent each onDraw call
+        mPaginationPaint.setAlpha(alpha);
     }
 
     @Override

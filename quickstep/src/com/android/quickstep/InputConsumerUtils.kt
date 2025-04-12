@@ -72,6 +72,7 @@ object InputConsumerUtils {
         swipeUpProxyProvider: Function<GestureState?, AnimatedFloat?>,
         overviewCommandHelper: OverviewCommandHelper,
         event: MotionEvent,
+        rotationTouchHelper: RotationTouchHelper,
     ): InputConsumer where T : RecentsViewContainer, T : StatefulContainer<S> {
         val tac = taskbarManager.currentActivityContext
         val bubbleControllers = tac?.bubbleControllers
@@ -130,6 +131,7 @@ object InputConsumerUtils {
                         taskAnimationManager,
                         inputMonitorCompat,
                         reasonString.append("%scan start system gesture", SUBSTRING_PREFIX),
+                        rotationTouchHelper,
                     )
                 } else {
                     getDefaultInputConsumer(
@@ -171,6 +173,7 @@ object InputConsumerUtils {
                     inputEventReceiver,
                     event,
                     reasonString,
+                    rotationTouchHelper,
                 )
         } else {
             reasonString =
@@ -390,6 +393,7 @@ object InputConsumerUtils {
                         deviceState,
                         base,
                         inputMonitorCompat,
+                        rotationTouchHelper,
                     )
             }
         } else {
@@ -497,6 +501,7 @@ object InputConsumerUtils {
         inputEventReceiver: InputChannelCompat.InputEventReceiver,
         event: MotionEvent,
         reasonString: CompoundString,
+        rotationTouchHelper: RotationTouchHelper,
     ): InputConsumer where T : RecentsViewContainer, T : StatefulContainer<S> {
         if (deviceState.isKeyguardShowingOccluded) {
             // This handles apps showing over the lockscreen (e.g. camera)
@@ -513,6 +518,7 @@ object InputConsumerUtils {
                         "trying to use device locked input consumer",
                     SUBSTRING_PREFIX,
                 ),
+                rotationTouchHelper,
             )
         }
 
@@ -632,6 +638,7 @@ object InputConsumerUtils {
                 gestureState,
                 event,
                 runningTask.isHomeTask,
+                rotationTouchHelper,
             )
         }
     }
@@ -645,6 +652,7 @@ object InputConsumerUtils {
         taskAnimationManager: TaskAnimationManager,
         inputMonitorCompat: InputMonitorCompat,
         reasonString: CompoundString,
+        rotationTouchHelper: RotationTouchHelper,
     ): InputConsumer {
         return if (
             (deviceState.isFullyGesturalNavMode || gestureState.isTrackpadGesture) &&
@@ -661,6 +669,7 @@ object InputConsumerUtils {
                 taskAnimationManager,
                 gestureState,
                 inputMonitorCompat,
+                rotationTouchHelper,
             )
         } else {
             getDefaultInputConsumer(
@@ -793,6 +802,7 @@ object InputConsumerUtils {
         gestureState: GestureState,
         event: MotionEvent,
         isHomeTask: Boolean,
+        rotationTouchHelper: RotationTouchHelper,
     ): InputConsumer where T : RecentsViewContainer, T : StatefulContainer<S> {
         val shouldDefer =
             (!overviewComponentObserver.isHomeAndOverviewSame ||
@@ -813,6 +823,7 @@ object InputConsumerUtils {
             inputEventReceiver,
             disableHorizontalSwipe,
             swipeUpHandlerFactory,
+            rotationTouchHelper,
         )
     }
 

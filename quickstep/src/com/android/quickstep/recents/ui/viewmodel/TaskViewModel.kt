@@ -75,10 +75,10 @@ class TaskViewModel(
     private val taskData =
         taskIds.flatMapLatest { ids ->
             // Combine Tasks requests
-            combine(
-                ids.map { id -> getTaskUseCase(id).map { taskModel -> id to taskModel } },
-                ::mapToTaskData,
-            )
+            val taskFlows =
+                ids.map { id -> getTaskUseCase(id).map { taskModel -> id to taskModel } }
+            val combinedTaskFlows = combine(taskFlows) { taskArray -> taskArray }
+            combine(combinedTaskFlows, isLiveTile, ::mapToTaskData)
         }
 
     private val overlayEnabled =
@@ -90,7 +90,7 @@ class TaskViewModel(
             .distinctUntilChanged()
 
     val state: Flow<TaskTileUiState> =
-        combine(taskData, isLiveTile, overlayEnabled, isCentralTask, ::mapToTaskTile)
+        combine(taskData, overlayEnabled, isCentralTask, ::mapToTaskTile)
             .distinctUntilChanged()
             .debounce { state ->
                 // Debouncing only when thumbnails are not present gives the best results.
@@ -126,14 +126,12 @@ class TaskViewModel(
 
     private fun mapToTaskTile(
         tasks: List<TaskData>,
-        isLiveTile: Boolean,
         overlayEnabled: Boolean,
         isCentralTask: Boolean,
     ): TaskTileUiState {
         val firstThumbnailData = (tasks.firstOrNull() as? TaskData.Data)?.thumbnailData
         return TaskTileUiState(
             tasks = tasks,
-            isLiveTile = isLiveTile,
             hasHeader = taskViewType == TaskViewType.DESKTOP,
             sysUiStatusNavFlags = getSysUiStatusNavFlagsUseCase(firstThumbnailData),
             taskOverlayEnabled = overlayEnabled,
@@ -141,10 +139,12 @@ class TaskViewModel(
         )
     }
 
-    private fun mapToTaskData(result: Array<Pair<TaskId, TaskModel?>>): List<TaskData> =
-        result.map { mapToTaskData(it.first, it.second) }
+    private fun mapToTaskData(
+        result: Array<Pair<TaskId, TaskModel?>>,
+        isLiveTile: Boolean,
+    ): List<TaskData> = result.map { mapToTaskData(it.first, it.second, isLiveTile) }
 
-    private fun mapToTaskData(taskId: TaskId, result: TaskModel?): TaskData =
+    private fun mapToTaskData(taskId: TaskId, result: TaskModel?, isLiveTile: Boolean): TaskData =
         result?.let {
             TaskData.Data(
                 taskId = taskId,
@@ -154,6 +154,7 @@ class TaskViewModel(
                 thumbnailData = result.thumbnail,
                 backgroundColor = result.backgroundColor.removeAlpha(),
                 isLocked = result.isLocked,
+                isLiveTile = isLiveTile && !result.isMinimized,
             )
         } ?: TaskData.NoData(taskId)
 

@@ -45,7 +45,6 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.anim.PendingAnimation;
-import com.android.launcher3.util.SplitConfigurationOptions.SplitBounds;
 import com.android.launcher3.util.TraceHelper;
 import com.android.quickstep.BaseActivityInterface;
 import com.android.quickstep.BaseContainerInterface;
@@ -55,6 +54,7 @@ import com.android.quickstep.TaskAnimationManager;
 import com.android.quickstep.util.SurfaceTransaction.SurfaceProperties;
 import com.android.systemui.shared.recents.model.ThumbnailData;
 import com.android.systemui.shared.recents.utilities.PreviewPositionHelper;
+import com.android.wm.shell.shared.split.SplitBounds;
 
 /**
  * A utility class which emulates the layout behavior of TaskView and RecentsView
@@ -287,6 +287,10 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
 
     public void setDrawsBelowRecents(boolean drawsBelowRecents) {
         mDrawsBelowRecents = drawsBelowRecents;
+    }
+
+    public boolean getDrawsBelowRecents() {
+        return mDrawsBelowRecents != null ? mDrawsBelowRecents : false;
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.launcher3.celllayout.integrationtest
+package com.android.launcher3.integration.util
 
 import android.graphics.Point
 import android.graphics.Rect
@@ -46,7 +46,7 @@ object TestUtils {
     fun getWidgetAtCell(
         workspace: Workspace<*>,
         cellX: Int,
-        cellY: Int
+        cellY: Int,
     ): LauncherAppWidgetHostView {
         val view =
             (workspace.getPageAt(workspace.currentPage) as CellLayout).getChildAt(cellX, cellY)
@@ -57,7 +57,7 @@ object TestUtils {
 
     fun getCellTopLeftRelativeToWorkspace(
         workspace: Workspace<*>,
-        cellAndSpan: CellAndSpan
+        cellAndSpan: CellAndSpan,
     ): Point {
         val target = Rect()
         val cellLayout = workspace.getPageAt(workspace.currentPage) as CellLayout
@@ -66,7 +66,7 @@ object TestUtils {
             cellAndSpan.cellY,
             cellAndSpan.spanX,
             cellAndSpan.spanY,
-            target
+            target,
         )
         val point = floatArrayOf(target.left.toFloat(), target.top.toFloat())
         Utilities.getDescendantCoordRelativeToAncestor(cellLayout, workspace, point, false)

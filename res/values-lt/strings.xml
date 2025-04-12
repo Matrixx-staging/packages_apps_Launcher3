@@ -29,8 +29,7 @@
     <string name="home_screen" msgid="5629429142036709174">"Pagrindinis"</string>
     <string name="set_default_home_app" msgid="5808906607627586381">"Nustatykite „<xliff:g id="LAUNCHER_NAME">%1$s</xliff:g>“ kaip numatytąją pagrindinę programą skiltyje „Nustatymai“"</string>
     <string name="recent_task_option_split_screen" msgid="6690461455618725183">"Išskaidytas ekranas"</string>
-    <!-- no translation found for recent_task_option_aspect_ratio (7008605516391096989) -->
-    <skip />
+    <string name="recent_task_option_aspect_ratio" msgid="7008605516391096989">"Keisti kraštinių santykį"</string>
     <string name="split_app_info_accessibility" msgid="5475288491241414932">"Programos „%1$s“ informacija"</string>
     <string name="split_app_usage_settings" msgid="7214375263347964093">"„%1$s“ naudojimo nustatymai"</string>
     <string name="new_window_option_taskbar" msgid="6448780542727767211">"Naujas langas"</string>
@@ -217,16 +216,12 @@
     <string name="ps_container_lock_title" msgid="2640257399982364682">"Užrakinti"</string>
     <string name="ps_container_transition" msgid="8667331812048014412">"Privačios erdvės perkėlimas"</string>
     <string name="ps_add_button_label" msgid="8127988716897128773">"Įdiegti"</string>
+    <string name="ps_app_label_override" msgid="6876160706011676804">"Pridėti"</string>
     <string name="ps_add_button_content_description" msgid="3254274107740952556">"Įdiegti programas privačioje erdvėje"</string>
     <string name="ps_app_content_description" msgid="1129133475892816226">"Pridėkite failų ir kt. prie privačios erdvės"</string>
-    <!-- no translation found for circle_shape_title (3582075061179674565) -->
-    <skip />
-    <!-- no translation found for square_shape_title (3085320803149569308) -->
-    <skip />
-    <!-- no translation found for four_sided_cookie_shape_title (3275212586290522151) -->
-    <skip />
-    <!-- no translation found for seven_sided_cookie_shape_title (4862560582029671668) -->
-    <skip />
-    <!-- no translation found for arch_shape_title (2213843822192871318) -->
-    <skip />
+    <string name="circle_shape_title" msgid="3582075061179674565">"Apskritimas"</string>
+    <string name="square_shape_title" msgid="3085320803149569308">"Kvadratas"</string>
+    <string name="four_sided_cookie_shape_title" msgid="3275212586290522151">"Keturkampis sausainis"</string>
+    <string name="seven_sided_cookie_shape_title" msgid="4862560582029671668">"Septyniakampis sausainis"</string>
+    <string name="arch_shape_title" msgid="2213843822192871318">"Arka"</string>
 </resources>

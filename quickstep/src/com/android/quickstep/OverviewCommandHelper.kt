@@ -418,6 +418,9 @@ constructor(
             return false
         }
 
+        // If we get here then launcher is not the top visible task, so we should animate
+        // that task.
+
         if (!enableOverviewInWindow) {
             containerInterface.getCreatedContainer()?.rootView?.let { view ->
                 InteractionJankMonitorWrapper.begin(view, Cuj.CUJ_LAUNCHER_QUICK_SWITCH)

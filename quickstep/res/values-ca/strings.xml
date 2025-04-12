@@ -68,7 +68,7 @@
     <string name="home_gesture_feedback_complete_without_follow_up" msgid="2978063221383413443">"Has completat el gest per anar a la pantalla d\'inici"</string>
     <string name="home_gesture_intro_title" msgid="836590312858441830">"Llisca per anar a la pantalla d\'inici"</string>
     <string name="home_gesture_intro_subtitle" msgid="2632238748497975326">"Llisca cap amunt des de la part inferior de la pantalla. Aquest gest et porta a la pantalla d\'inici."</string>
-    <string name="home_gesture_tutorial_title" msgid="3126834347496917376">"Ves a la pàgina d\'inici"</string>
+    <string name="home_gesture_tutorial_title" msgid="3126834347496917376">"Ves a la pantalla d\'inici"</string>
     <string name="home_gesture_tutorial_subtitle" msgid="7245995490408668778">"Llisca cap amunt des de la part inferior de la pantalla."</string>
     <string name="home_gesture_tutorial_success" msgid="1736295017642244751">"Ben fet!"</string>
     <string name="overview_gesture_feedback_swipe_too_far_from_edge" msgid="6402349235265407385">"Assegura\'t de lliscar cap amunt des de la part inferior de la pantalla."</string>
@@ -109,6 +109,11 @@
     <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"Cancel·la"</string>
     <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"Omet"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"Gira la pantalla"</string>
+    <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"Animació que mostra com apareix la barra de tasques des de la part inferior de la pantalla i com s\'amaga automàticament quan no s\'utilitza"</string>
+    <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"Animació que mostra com es pot fixar la barra de tasques mitjançant un commutador perquè es mantingui visible permanentment a la part inferior de la pantalla"</string>
+    <string name="taskbar_edu_split_screen_animation_description" msgid="371796444988899166">"Animació que mostra com es pot crear una pantalla dividida arrossegant i deixant anar una aplicació des de la barra de tasques sobre una aplicació oberta"</string>
+    <string name="taskbar_edu_suggested_app_animation_description" msgid="3443453246478079085">"Animació que mostra com es pot accedir a les aplicacions suggerides al dispositiu"</string>
+    <string name="taskbar_edu_suggested_search_animation_description" msgid="1874284242557104818">"Animació que mostra com es pot cercar un element a la pantalla mantenint premuda la tecla d\'acció i seleccionant l\'àrea on es troba l\'element"</string>
     <string name="taskbar_edu_a11y_title" msgid="5417986057866415355">"Informació sobre Barra de tasques"</string>
     <string name="taskbar_edu_splitscreen" msgid="5605512479258053350">"Arrossega una aplicació al costat per utilitzar-ne dues alhora"</string>
     <string name="taskbar_edu_stashing" msgid="5645461372669217294">"Llisca lentament cap amunt per mostrar la Barra de tasques"</string>
@@ -163,10 +168,7 @@
     <string name="header_close_icon_description" msgid="5400033616675911319">"Botó Tanca"</string>
     <string name="pin_to_taskbar" msgid="6607778046321626950">"Fixa a barra tasques"</string>
     <string name="unpin_from_taskbar" msgid="2178811773165572676">"Deixa de fixar"</string>
-    <!-- no translation found for nudge_a11y_title (2126529303123687912) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_close (4513937143817625570) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_image (117910310515857252) -->
-    <skip />
+    <string name="nudge_a11y_title" msgid="2126529303123687912">"Desplaça"</string>
+    <string name="nudge_a11y_close" msgid="4513937143817625570">"Tanca"</string>
+    <string name="nudge_a11y_image" msgid="117910310515857252">"Desplaça la imatge"</string>
 </resources>

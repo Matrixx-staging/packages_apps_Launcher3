@@ -47,6 +47,7 @@ import com.android.quickstep.util.GroupTask
 import com.android.quickstep.util.SingleTask
 import com.android.quickstep.util.SplitTask
 import com.android.systemui.shared.recents.model.Task
+import com.android.wm.shell.shared.split.SplitBounds
 import com.android.wm.shell.shared.split.SplitScreenConstants
 import com.google.common.truth.Truth.assertThat
 import java.util.function.Consumer
@@ -922,7 +923,7 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
                 SplitTask(
                     createTask(100, splitPackages[0]),
                     createTask(101, splitPackages[1]),
-                    SplitConfigurationOptions.SplitBounds(
+                    SplitBounds(
                         /* leftTopBounds = */ Rect(),
                         /* rightBottomBounds = */ Rect(),
                         /* leftTopTaskId = */ -1,

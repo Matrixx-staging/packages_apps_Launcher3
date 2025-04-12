@@ -109,6 +109,11 @@
     <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"Hætta við"</string>
     <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"Sleppa"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"Snúa skjánum"</string>
+    <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"Hreyfimynd sem sýnir hvernig forritastikan birtist neðst á skjánum og hverfur þegar hún er ekki í notkun"</string>
+    <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"Hreyfimynd sem sýnir hvernig hægt er að nota rofa til að festa forritastikuna og gera hana þannig varanlega sýnilega neðst á skjánum"</string>
+    <string name="taskbar_edu_split_screen_animation_description" msgid="371796444988899166">"Hreyfimynd sem sýnir hvernig hægt er að skipta skjánum með því að draga forrit af forritastikunni og sleppa því yfir opnu forriti"</string>
+    <string name="taskbar_edu_suggested_app_animation_description" msgid="3443453246478079085">"Hreyfimynd sem sýnir hvernig hægt er að nálgast tillögð forrit í tæki"</string>
+    <string name="taskbar_edu_suggested_search_animation_description" msgid="1874284242557104818">"Hreyfimynd sem sýnir hvernig hægt er að leita að atriði á skjánum með því að halda aðgerðalyklinum inni og velja svæðið sem atriðið er á"</string>
     <string name="taskbar_edu_a11y_title" msgid="5417986057866415355">"Leiðsögn verkefnastiku"</string>
     <string name="taskbar_edu_splitscreen" msgid="5605512479258053350">"Dragðu forrit til hliðar til að nota 2 forrit í einu"</string>
     <string name="taskbar_edu_stashing" msgid="5645461372669217294">"Strjúktu hægt upp til að birta forritastikuna"</string>
@@ -163,10 +168,7 @@
     <string name="header_close_icon_description" msgid="5400033616675911319">"Hnappur til að loka"</string>
     <string name="pin_to_taskbar" msgid="6607778046321626950">"Festa á forritastiku"</string>
     <string name="unpin_from_taskbar" msgid="2178811773165572676">"Losa af forritastiku"</string>
-    <!-- no translation found for nudge_a11y_title (2126529303123687912) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_close (4513937143817625570) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_image (117910310515857252) -->
-    <skip />
+    <string name="nudge_a11y_title" msgid="2126529303123687912">"Hnippa"</string>
+    <string name="nudge_a11y_close" msgid="4513937143817625570">"Loka"</string>
+    <string name="nudge_a11y_image" msgid="117910310515857252">"Færa myndina ögn"</string>
 </resources>

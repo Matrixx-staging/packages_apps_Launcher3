@@ -21,6 +21,7 @@ import android.graphics.Matrix
 import android.view.View
 import android.view.View.OnClickListener
 import com.android.app.tracing.traceSection
+import com.android.launcher3.Flags.enableRefactorTaskContentView
 import com.android.launcher3.Flags.enableRefactorTaskThumbnail
 import com.android.launcher3.model.data.TaskViewItemInfo
 import com.android.launcher3.util.OverviewReleaseFlags.enableOverviewIconMenu
@@ -31,6 +32,7 @@ import com.android.quickstep.ViewUtils.addAccessibleChildToList
 import com.android.quickstep.recents.domain.usecase.ThumbnailPosition
 import com.android.quickstep.recents.ui.mapper.TaskUiStateMapper
 import com.android.quickstep.recents.ui.viewmodel.TaskData
+import com.android.quickstep.task.thumbnail.TaskContentView
 import com.android.quickstep.task.thumbnail.TaskThumbnailView
 import com.android.systemui.shared.recents.model.Task
 import com.android.systemui.shared.recents.model.ThumbnailData
@@ -39,6 +41,8 @@ import com.android.systemui.shared.recents.model.ThumbnailData
 class TaskContainer(
     val taskView: TaskView,
     val task: Task,
+    // TODO(b/409248525): Upon flag cleanup, use the `TaskContentView` type
+    val taskContentView: View,
     val snapshotView: View,
     val iconView: TaskViewIcon,
     /**
@@ -59,10 +63,19 @@ class TaskContainer(
     private var overlayEnabledStatus = false
 
     init {
-        if (enableRefactorTaskThumbnail()) {
-            require(snapshotView is TaskThumbnailView)
-        } else {
-            require(snapshotView is TaskThumbnailViewDeprecated)
+        when {
+            enableRefactorTaskContentView() -> {
+                require(taskContentView is TaskContentView)
+                require(snapshotView is TaskThumbnailView)
+            }
+            enableRefactorTaskThumbnail() -> {
+                require(taskContentView is TaskThumbnailView)
+                require(snapshotView is TaskThumbnailView)
+            }
+            else -> {
+                require(taskContentView is TaskThumbnailViewDeprecated)
+                require(snapshotView is TaskThumbnailViewDeprecated)
+            }
         }
     }
 
@@ -110,8 +123,8 @@ class TaskContainer(
     fun destroy() =
         traceSection("TaskContainer.destroy") {
             digitalWellBeingToast?.destroy()
-            snapshotView.scaleX = 1f
-            snapshotView.scaleY = 1f
+            taskContentView.scaleX = 1f
+            taskContentView.scaleY = 1f
             overlay.reset()
             if (enableRefactorTaskThumbnail()) {
                 isThumbnailValid = false
@@ -159,28 +172,29 @@ class TaskContainer(
 
     fun addChildForAccessibility(outChildren: ArrayList<View>) {
         addAccessibleChildToList(iconView.asView(), outChildren)
-        addAccessibleChildToList(snapshotView, outChildren)
+        addAccessibleChildToList(
+            if (enableRefactorTaskContentView()) taskContentView else snapshotView,
+            outChildren,
+        )
         showWindowsView?.let { addAccessibleChildToList(it, outChildren) }
         digitalWellBeingToast?.let { addAccessibleChildToList(it, outChildren) }
         overlay.addChildForAccessibility(outChildren)
     }
 
-    fun setState(
-        state: TaskData?,
-        liveTile: Boolean,
-        hasHeader: Boolean,
-        clickCloseListener: OnClickListener?,
-    ) =
+    fun setState(state: TaskData?, hasHeader: Boolean, clickCloseListener: OnClickListener?) =
         traceSection("TaskContainer.setState") {
-            thumbnailView.setState(
-                TaskUiStateMapper.toTaskThumbnailUiState(
-                    state,
-                    liveTile,
-                    hasHeader,
-                    clickCloseListener,
-                ),
-                state?.taskId,
-            )
+            if (enableRefactorTaskContentView()) {
+                (taskContentView as TaskContentView).setState(
+                    TaskUiStateMapper.toTaskHeaderState(state, hasHeader, clickCloseListener),
+                    TaskUiStateMapper.toTaskThumbnailUiState(state),
+                    state?.taskId,
+                )
+            } else {
+                thumbnailView.setState(
+                    TaskUiStateMapper.toTaskThumbnailUiState(state),
+                    state?.taskId,
+                )
+            }
             thumbnailData = if (state is TaskData.Data) state.thumbnailData else null
             overlay.setThumbnailState(thumbnailData)
         }

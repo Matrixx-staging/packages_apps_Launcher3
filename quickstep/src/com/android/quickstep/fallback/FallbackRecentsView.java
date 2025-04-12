@@ -92,6 +92,10 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
     public void init(OverviewActionsView actionsView, SplitSelectStateController splitController,
             @Nullable DesktopRecentsTransitionController desktopRecentsTransitionController) {
         super.init(actionsView, splitController, desktopRecentsTransitionController);
+        if (RecentsWindowFlags.getEnableOverviewInWindow()) {
+            // These will be set during the state transition to DEFAULT
+            return;
+        }
         setOverviewStateEnabled(true);
         setOverlayEnabled(true);
     }

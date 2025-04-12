@@ -65,7 +65,7 @@
     <string name="home_gesture_feedback_overview_detected" msgid="5177627157303895077">"Ne álljon meg, mielőtt elengedi a képernyőt."</string>
     <string name="home_gesture_feedback_wrong_swipe_direction" msgid="8328465201424027148">"Csúsztasson egyenesen felfelé."</string>
     <string name="home_gesture_feedback_complete_with_follow_up" msgid="8766981412895888417">"Teljesítette a kezdőképernyőre lépés kézmozdulatát. Most megtanulhatja, hogyan léphet vissza."</string>
-    <string name="home_gesture_feedback_complete_without_follow_up" msgid="2978063221383413443">"Teljesítette a kezdőképernyőre lépés kézmozdulatát."</string>
+    <string name="home_gesture_feedback_complete_without_follow_up" msgid="2978063221383413443">"Megtanulta a kezdőképernyőre lépés kézmozdulatát."</string>
     <string name="home_gesture_intro_title" msgid="836590312858441830">"Csúsztatás a kezdőképernyőre lépéshez"</string>
     <string name="home_gesture_intro_subtitle" msgid="2632238748497975326">"Csúsztassa ujját felfelé a képernyő aljától. Ez a mozdulat mindig a kezdőképernyőre visz."</string>
     <string name="home_gesture_tutorial_title" msgid="3126834347496917376">"Ugrás a kezdőképernyőre"</string>
@@ -75,7 +75,7 @@
     <string name="overview_gesture_feedback_home_detected" msgid="663432226180397138">"Próbálja tovább lenyomva tartani az ablakot, mielőtt elengedi a képernyőt."</string>
     <string name="overview_gesture_feedback_wrong_swipe_direction" msgid="1191055451018584958">"Csúsztasson egyenesen felfelé, majd várjon egy kicsit"</string>
     <string name="overview_gesture_feedback_complete_with_follow_up" msgid="3544611727467765026">"Eddig megismerhette a kézmozdulatok használatát. A kézmozdulatokat a Beállításokban kapcsolhatja ki."</string>
-    <string name="overview_gesture_feedback_complete_without_follow_up" msgid="2903050864432331629">"Teljesítette az alkalmazásváltás kézmozdulatát."</string>
+    <string name="overview_gesture_feedback_complete_without_follow_up" msgid="2903050864432331629">"Megtanulta az alkalmazásváltás kézmozdulatát."</string>
     <string name="overview_gesture_intro_title" msgid="2902054412868489378">"Alkalmazásváltás csúsztatással"</string>
     <string name="overview_gesture_intro_subtitle" msgid="4968091015637850859">"Appok közti váltáshoz csúsztasson felfelé a kép aljáról, tartsa lenyomva az ujját, majd emelje fel."</string>
     <string name="overview_gesture_tutorial_title" msgid="4125835002668708720">"Váltás az alkalmazások között"</string>
@@ -109,6 +109,11 @@
     <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"Mégse"</string>
     <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"Kihagyás"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"Képernyő elforgatása"</string>
+    <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"Animáció, amely bemutatja, hogy a feladatsáv hogyan jelenik meg a képernyő alján, majd tűnik el automatikusan, amikor éppen nincs használatban."</string>
+    <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"Animáció, amely bemutatja, hogyan lehet kitűzni a feladatsávot egy kapcsolóval, hogy állandóan látható legyen a képernyő alján."</string>
+    <string name="taskbar_edu_split_screen_animation_description" msgid="371796444988899166">"Animáció, amely bemutatja, hogyan lehet létrehozni osztott képernyőt úgy, hogy egy alkalmazást a feladatsávról egy megnyitott alkalmazás fölé húz."</string>
+    <string name="taskbar_edu_suggested_app_animation_description" msgid="3443453246478079085">"Animáció, amely bemutatja, hogyan lehet hozzáférni a javasolt alkalmazásokhoz az eszközön."</string>
+    <string name="taskbar_edu_suggested_search_animation_description" msgid="1874284242557104818">"Animáció, amely bemutatja, hogyan lehet megkeresni egy elemet a képernyőn úgy, hogy lenyomva tartja a műveletbillentyűt, majd kiválasztja az elemet tartalmazó területet."</string>
     <string name="taskbar_edu_a11y_title" msgid="5417986057866415355">"Tálca használatának ismertetése"</string>
     <string name="taskbar_edu_splitscreen" msgid="5605512479258053350">"Húzzon egy appot oldalra, ha kettőt használna egyidejűleg"</string>
     <string name="taskbar_edu_stashing" msgid="5645461372669217294">"Lassan csúsztassa fel az ujját a Feladatsáv megjelenítéséhez"</string>
@@ -163,10 +168,7 @@
     <string name="header_close_icon_description" msgid="5400033616675911319">"Bezárás gomb"</string>
     <string name="pin_to_taskbar" msgid="6607778046321626950">"Kitűzés a feladatsávon"</string>
     <string name="unpin_from_taskbar" msgid="2178811773165572676">"Kitűzés feloldása"</string>
-    <!-- no translation found for nudge_a11y_title (2126529303123687912) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_close (4513937143817625570) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_image (117910310515857252) -->
-    <skip />
+    <string name="nudge_a11y_title" msgid="2126529303123687912">"Bökés"</string>
+    <string name="nudge_a11y_close" msgid="4513937143817625570">"Bezárás"</string>
+    <string name="nudge_a11y_image" msgid="117910310515857252">"Kép megbökése"</string>
 </resources>

@@ -33,6 +33,7 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import androidx.test.platform.app.InstrumentationRegistry
 import com.android.launcher3.AbstractFloatingView
 import com.android.launcher3.AbstractFloatingViewHelper
+import com.android.launcher3.Flags.enableRefactorTaskContentView
 import com.android.launcher3.Flags.enableRefactorTaskThumbnail
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.R
@@ -50,8 +51,10 @@ import com.android.quickstep.TaskViewTestDIHelpers.initializeRecentsDependencies
 import com.android.quickstep.TaskViewTestDIHelpers.mockRecentsModel
 import com.android.quickstep.orientation.LandscapePagedViewHandler
 import com.android.quickstep.recents.di.RecentsDependencies
+import com.android.quickstep.task.thumbnail.TaskContentView
 import com.android.quickstep.task.thumbnail.TaskThumbnailView
 import com.android.quickstep.util.RecentsOrientedState
+import com.android.quickstep.util.SingleTask
 import com.android.quickstep.views.LauncherRecentsView
 import com.android.quickstep.views.RecentsViewContainer
 import com.android.quickstep.views.TaskContainer
@@ -165,7 +168,7 @@ class AspectRatioSystemShortcutTests {
         val taskContainer = createTaskContainer(task)
 
         setScreenSizeDp(widthDp = 1200, heightDp = 800)
-        taskView.bind(task, orientedState, taskOverlayFactory)
+        taskView.bind(SingleTask(task), orientedState, taskOverlayFactory)
 
         assertThat(factory.getShortcuts(launcher, taskContainer)).isNull()
     }
@@ -181,7 +184,7 @@ class AspectRatioSystemShortcutTests {
         val taskContainer = createTaskContainer(task)
 
         setScreenSizeDp(widthDp = 599, heightDp = 599)
-        taskView.bind(task, orientedState, taskOverlayFactory)
+        taskView.bind(SingleTask(task), orientedState, taskOverlayFactory)
 
         assertThat(factory.getShortcuts(launcher, taskContainer)).isNull()
     }
@@ -199,7 +202,7 @@ class AspectRatioSystemShortcutTests {
         doReturn(taskViewItemInfo).whenever(taskContainer).itemInfo
 
         setScreenSizeDp(widthDp = 1200, heightDp = 800)
-        taskView.bind(task, orientedState, taskOverlayFactory)
+        taskView.bind(SingleTask(task), orientedState, taskOverlayFactory)
 
         val shortcuts = factory.getShortcuts(launcher, taskContainer)
         assertThat(shortcuts).hasSize(1)
@@ -266,6 +269,11 @@ class AspectRatioSystemShortcutTests {
         TaskContainer(
             taskView,
             task,
+            when {
+                enableRefactorTaskContentView() -> mock<TaskContentView>()
+                enableRefactorTaskThumbnail() -> mock<TaskThumbnailView>()
+                else -> mock<TaskThumbnailViewDeprecated>()
+            },
             if (enableRefactorTaskThumbnail()) mock<TaskThumbnailView>()
             else mock<TaskThumbnailViewDeprecated>(),
             mock<TaskViewIcon>(),

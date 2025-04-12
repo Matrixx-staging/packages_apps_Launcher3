@@ -16,6 +16,7 @@
 package com.android.launcher3.taskbar;
 
 import static com.android.launcher3.desktop.DesktopAppLaunchTransition.AppLaunchType.UNMINIMIZE;
+import static com.android.launcher3.taskbar.TaskbarDesktopExperienceFlags.enableAltTabKqsFlatenning;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 
@@ -283,7 +284,7 @@ public class KeyboardQuickSwitchViewController {
             return -1;
         }
 
-        if (Flags.enableAltTabKqsFlatenning()
+        if (enableAltTabKqsFlatenning.isTrue()
                 && tryLaunchingCombinedTask(task, slideInTransition, systemUiProxy)) {
             return -1;
         }

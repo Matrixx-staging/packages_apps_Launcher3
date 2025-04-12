@@ -72,13 +72,6 @@ flag {
 }
 
 flag {
-    name: "enable_unfolded_two_pane_picker"
-    namespace: "launcher"
-    description: "Enables two pane widget picker for unfolded foldables"
-    bug: "313922374"
-}
-
-flag {
     name: "enable_tablet_two_pane_picker_v2"
     namespace: "launcher"
     description: "Enables full width two pane widget picker for tablets in landscape and portrait"
@@ -224,16 +217,6 @@ flag {
 }
 
 flag {
-  name: "enable_handle_delayed_gesture_callbacks"
-  namespace: "launcher"
-  description: "Enables additional handling for delayed mid-gesture callbacks"
-  bug: "285636175"
-  metadata {
-    purpose: PURPOSE_BUGFIX
-  }
-}
-
-flag {
     name: "enable_fallback_overview_in_window"
     namespace: "lse_desktop_experience"
     description: "Enables fallback recents opening inside of a window instead of an activity."
@@ -356,16 +339,6 @@ flag {
 }
 
 flag {
-    name: "enable_desktop_task_alpha_animation"
-    namespace: "launcher"
-    description: "Enables the animation of the desktop task's background view"
-    bug: "320307666"
-    metadata {
-      purpose: PURPOSE_BUGFIX
-    }
-}
-
-flag {
     name: "ignore_three_finger_trackpad_for_nav_handle_long_press"
     namespace: "launcher"
     description: "Ignore three finger trackpad event for nav handle long press"
@@ -446,13 +419,6 @@ flag {
     namespace: "launcher"
     description: "Show recent apps in the taskbar overflow."
     bug: "368119679"
-}
-
-flag {
-    name: "enable_active_gesture_proto_log"
-    namespace: "launcher"
-    description: "Enables tracking active gesture logs in ProtoLog"
-    bug: "293182501"
 }
 
 flag {

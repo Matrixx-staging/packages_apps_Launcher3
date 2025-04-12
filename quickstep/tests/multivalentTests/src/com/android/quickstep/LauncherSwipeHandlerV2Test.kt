@@ -41,7 +41,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Answers.RETURNS_DEEP_STUBS
 import org.mockito.Mock
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.eq
@@ -62,6 +61,8 @@ class LauncherSwipeHandlerV2Test {
     @Mock(answer = RETURNS_DEEP_STUBS) private lateinit var systemUiProxy: SystemUiProxy
 
     @Mock private lateinit var msdlPlayerWrapper: MSDLPlayerWrapper
+
+    @Mock private lateinit var rotationTouchHelper: RotationTouchHelper
 
     private lateinit var underTest: LauncherSwipeHandlerV2
 
@@ -87,9 +88,7 @@ class LauncherSwipeHandlerV2Test {
         whenever(displayManager.displays).thenReturn(arrayOf(display))
 
         sandboxContext.initDaggerComponent(
-            DaggerTestComponent.builder()
-                .bindSystemUiProxy(systemUiProxy)
-                .bindRotationHelper(mock(RotationTouchHelper::class.java))
+            DaggerTestComponent.builder().bindSystemUiProxy(systemUiProxy)
         )
         gestureState =
             spy(
@@ -105,6 +104,7 @@ class LauncherSwipeHandlerV2Test {
                 sandboxContext,
                 taskAnimationManager,
                 deviceState,
+                rotationTouchHelper,
                 gestureState,
                 0,
                 false,
@@ -136,8 +136,6 @@ interface TestComponent : LauncherAppComponent {
     @Component.Builder
     interface Builder : LauncherAppComponent.Builder {
         @BindsInstance fun bindSystemUiProxy(proxy: SystemUiProxy): Builder
-
-        @BindsInstance fun bindRotationHelper(helper: RotationTouchHelper): Builder
 
         override fun build(): TestComponent
     }

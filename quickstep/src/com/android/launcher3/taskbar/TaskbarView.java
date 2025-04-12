@@ -1088,6 +1088,12 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         }
     }
 
+    @Override
+    protected void dispatchDraw(Canvas canvas) {
+        if (mActivityContext.isDestroyed()) return;
+        super.dispatchDraw(canvas);
+    }
+
     private View inflate(@LayoutRes int layoutResId) {
         return mActivityContext.getViewCache().getView(layoutResId, mActivityContext, this);
     }

@@ -34,6 +34,7 @@ import static com.android.launcher3.util.DisplayController.CHANGE_DESKTOP_MODE;
 import static com.android.launcher3.util.DisplayController.CHANGE_NAVIGATION_MODE;
 import static com.android.launcher3.util.DisplayController.CHANGE_SHOW_LOCKED_TASKBAR;
 import static com.android.launcher3.util.DisplayController.CHANGE_TASKBAR_PINNING;
+import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 import static com.android.launcher3.util.FlagDebugUtils.formatFlagChange;
 import static com.android.quickstep.util.SystemActionConstants.ACTION_SHOW_TASKBAR;
@@ -44,12 +45,16 @@ import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.content.ComponentCallbacks;
 import android.content.Context;
+import android.content.IIntentReceiver;
+import android.content.IIntentSender;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.hardware.display.DisplayManager;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Trace;
 import android.provider.Settings;
 import android.util.ArraySet;
@@ -116,6 +121,12 @@ public class TaskbarManager implements DisplayDecorationListener {
 
     // TODO: b/397738606  - Remove all logs with this tag after the growth framework is integrated.
     public static final String GROWTH_FRAMEWORK_TAG = "Growth Framework";
+    /**
+     * An integer extra specifying the ID of the display on which the All Apps UI should be shown
+     * or hidden.
+     */
+    public static final String EXTRA_KEY_ALL_APPS_ACTION_DISPLAY_ID =
+            "com.android.quickstep.allapps.display_id";
 
     /**
      * All the configurations which do not initiate taskbar recreation.
@@ -575,10 +586,19 @@ public class TaskbarManager implements DisplayDecorationListener {
     }
 
     /**
-     * Toggles All Apps for Taskbar or Launcher depending on the current state.
+     * Shows or hides the All Apps view in the Taskbar or Launcher, based on its current
+     * visibility on the System UI tracked focused display.
      */
     public void toggleAllAppsSearch() {
-        TaskbarActivityContext taskbar = getTaskbarForDisplay(getFocusedDisplayId());
+        toggleAllAppsSearchForDisplay(getFocusedDisplayId());
+    }
+
+    /**
+     * Shows or hides the All Apps view in the Taskbar or Launcher, based on its current
+     * visibility on the given display, with ID {@code displayId}.
+     */
+    public void toggleAllAppsSearchForDisplay(int displayId) {
+        TaskbarActivityContext taskbar = getTaskbarForDisplay(displayId);
         if (taskbar == null) {
             // Home All Apps should be toggled from this class, because the controllers are not
             // initialized when Taskbar is disabled (i.e. TaskbarActivityContext is null).
@@ -1711,6 +1731,28 @@ public class TaskbarManager implements DisplayDecorationListener {
      */
     public void debugPrimaryTaskbar(String debugReason, boolean verbose) {
         debugTaskbarManager(debugReason, mPrimaryDisplayId, verbose);
+    }
+
+    /** Creates a {@link PendingIntent} for showing / hiding the all apps UI. */
+    public PendingIntent createAllAppsPendingIntent() {
+        return new PendingIntent(new IIntentSender.Stub() {
+            @Override
+            public void send(int code, Intent intent, String resolvedType,
+                    IBinder allowlistToken, IIntentReceiver finishedReceiver,
+                    String requiredPermission, Bundle options) {
+                MAIN_EXECUTOR.execute(() -> {
+                    int displayId = -1;
+                    if (options != null) {
+                        displayId = options.getInt(EXTRA_KEY_ALL_APPS_ACTION_DISPLAY_ID, -1);
+                    }
+                    if (displayId == -1) {
+                        toggleAllAppsSearch();
+                    } else {
+                        toggleAllAppsSearchForDisplay(displayId);
+                    }
+                });
+            }
+        });
     }
 
     /**

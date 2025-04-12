@@ -69,6 +69,7 @@ public class TaskbarControllers {
     public final Optional<BubbleControllers> bubbleControllers;
     public final TaskbarDesktopModeController taskbarDesktopModeController;
     public final NudgeController nudgeController;
+    public final NudgeViewController nudgeViewController;
 
     @Nullable private LoggableTaskbarController[] mControllersToLog = null;
     @Nullable private BackgroundRendererController[] mBackgroundRendererControllers = null;
@@ -118,7 +119,8 @@ public class TaskbarControllers {
             TaskbarPinningController taskbarPinningController,
             Optional<BubbleControllers> bubbleControllers,
             TaskbarDesktopModeController taskbarDesktopModeController,
-            NudgeController nudgeController) {
+            NudgeController nudgeController,
+            NudgeViewController nudgeViewController) {
         this.taskbarActivityContext = taskbarActivityContext;
         this.taskbarDragController = taskbarDragController;
         this.navButtonController = navButtonController;
@@ -147,6 +149,7 @@ public class TaskbarControllers {
         this.bubbleControllers = bubbleControllers;
         this.taskbarDesktopModeController = taskbarDesktopModeController;
         this.nudgeController = nudgeController;
+        this.nudgeViewController = nudgeViewController;
     }
 
     /**
@@ -273,6 +276,7 @@ public class TaskbarControllers {
         taskbarUnfoldAnimationController.onDestroy();
         taskbarViewController.onDestroy();
         stashedHandleViewController.onDestroy();
+        nudgeViewController.onDestroy();
         taskbarAutohideSuspendController.onDestroy();
         taskbarPopupController.onDestroy();
         taskbarForceVisibleImmersiveController.onDestroy();

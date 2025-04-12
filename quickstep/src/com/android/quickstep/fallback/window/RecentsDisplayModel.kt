@@ -28,6 +28,7 @@ import com.android.launcher3.util.DaggerSingletonTracker
 import com.android.launcher3.util.WallpaperColorHints
 import com.android.quickstep.DisplayModel
 import com.android.quickstep.FallbackWindowInterface
+import com.android.quickstep.SystemDecorationChangeObserver
 import com.android.quickstep.dagger.QuickstepBaseAppComponent
 import com.android.quickstep.fallback.window.RecentsDisplayModel.RecentsDisplayResource
 import com.android.quickstep.fallback.window.RecentsWindowFlags.Companion.enableOverviewInWindow
@@ -40,8 +41,9 @@ class RecentsDisplayModel
 constructor(
     @ApplicationContext context: Context,
     private val wallpaperColorHints: WallpaperColorHints,
+    systemDecorationChangeObserver: SystemDecorationChangeObserver,
     tracker: DaggerSingletonTracker,
-) : DisplayModel<RecentsDisplayResource>(context) {
+) : DisplayModel<RecentsDisplayResource>(context, systemDecorationChangeObserver) {
 
     companion object {
         private const val TAG = "RecentsDisplayModel"

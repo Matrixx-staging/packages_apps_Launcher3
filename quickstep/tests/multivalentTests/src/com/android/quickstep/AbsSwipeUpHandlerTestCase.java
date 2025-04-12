@@ -145,6 +145,7 @@ public abstract class AbsSwipeUpHandlerTestCase<
     @Mock protected GestureState mGestureState;
     @Mock protected MSDLPlayerWrapper mMSDLPlayerWrapper;
     @Mock protected RecentsAnimationDeviceState mDeviceState;
+    @Mock protected RotationTouchHelper mRotationTouchHelper;
     @Mock protected StateManager.AtomicAnimationFactory<STATE_TYPE> mAtomicAnimationFactory;
 
     @Before

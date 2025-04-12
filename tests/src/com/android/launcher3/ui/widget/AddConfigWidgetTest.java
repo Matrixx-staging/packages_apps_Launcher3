@@ -100,13 +100,13 @@ public class AddConfigWidgetTest extends BaseLauncherActivityTest<Launcher> {
 
         // Add widget to homescreen
         WidgetConfigStartupMonitor monitor = new WidgetConfigStartupMonitor();
-        executeOnLauncher(OptionsPopupView::openWidgets);
+        getLauncherActivity().executeOnLauncher(OptionsPopupView::openWidgets);
         uiDevice.waitForIdle();
 
         // Select the widget header
         Context testContext = getInstrumentation().getContext();
         String packageName = testContext.getPackageName();
-        executeOnLauncher(l -> {
+        getLauncherActivity().executeOnLauncher(l -> {
             WidgetsRecyclerView wrv = WidgetsFullSheet.getWidgetsView(l);
             WidgetsListAdapter adapter = (WidgetsListAdapter) wrv.getAdapter();
             int pos = adapter.getItems().indexOf(

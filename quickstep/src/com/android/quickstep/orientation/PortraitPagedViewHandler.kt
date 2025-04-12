@@ -44,6 +44,7 @@ import com.android.launcher3.util.SplitConfigurationOptions
 import com.android.launcher3.util.SplitConfigurationOptions.SplitPositionOption
 import com.android.launcher3.util.SplitConfigurationOptions.StagePosition
 import com.android.quickstep.views.IconAppChipView
+import com.android.wm.shell.shared.split.SplitBounds
 import kotlin.math.max
 import kotlin.math.min
 
@@ -82,6 +83,8 @@ class PortraitPagedViewHandler : DefaultPagedViewHandler(), RecentsPagedOrientat
     override fun getPrimarySize(view: View): Int = view.width
 
     override fun getPrimarySize(rect: RectF): Float = rect.width()
+
+    override fun getSecondarySize(rect: RectF): Float = rect.height()
 
     override fun getStart(rect: RectF): Float = rect.left
 
@@ -236,7 +239,7 @@ class PortraitPagedViewHandler : DefaultPagedViewHandler(), RecentsPagedOrientat
     override fun getDwbBannerTranslations(
         taskViewWidth: Int,
         taskViewHeight: Int,
-        splitBounds: SplitConfigurationOptions.SplitBounds?,
+        splitBounds: SplitBounds?,
         deviceProfile: DeviceProfile,
         thumbnailViews: Array<View>,
         desiredTaskId: Int,
@@ -255,7 +258,8 @@ class PortraitPagedViewHandler : DefaultPagedViewHandler(), RecentsPagedOrientat
                 }
             } else {
                 if (desiredTaskId == splitBounds.leftTopTaskId) {
-                    val snapshotParams = thumbnailViews[0].layoutParams as FrameLayout.LayoutParams
+                    val snapshotParams =
+                        thumbnailViews[0].layoutParams as ViewGroup.MarginLayoutParams
                     val bottomRightTaskPlusDividerPercent =
                         (splitBounds.rightBottomTaskPercent + splitBounds.dividerPercent)
                     translationY =
@@ -513,7 +517,7 @@ class PortraitPagedViewHandler : DefaultPagedViewHandler(), RecentsPagedOrientat
     override fun setSplitTaskSwipeRect(
         dp: DeviceProfile,
         outRect: Rect,
-        splitInfo: SplitConfigurationOptions.SplitBounds,
+        splitInfo: SplitBounds,
         desiredStagePosition: Int,
     ) {
         val topLeftTaskPercent = splitInfo.leftTopTaskPercent
@@ -552,7 +556,7 @@ class PortraitPagedViewHandler : DefaultPagedViewHandler(), RecentsPagedOrientat
         secondarySnapshot: View,
         parentWidth: Int,
         parentHeight: Int,
-        splitBoundsConfig: SplitConfigurationOptions.SplitBounds,
+        splitBoundsConfig: SplitBounds,
         dp: DeviceProfile,
         isRtl: Boolean,
         inSplitSelection: Boolean,
@@ -611,7 +615,7 @@ class PortraitPagedViewHandler : DefaultPagedViewHandler(), RecentsPagedOrientat
 
     override fun getGroupedTaskViewSizes(
         dp: DeviceProfile,
-        splitBoundsConfig: SplitConfigurationOptions.SplitBounds,
+        splitBoundsConfig: SplitBounds,
         parentWidth: Int,
         parentHeight: Int,
     ): Pair<Point, Point> {
@@ -704,7 +708,7 @@ class PortraitPagedViewHandler : DefaultPagedViewHandler(), RecentsPagedOrientat
         groupedTaskViewWidth: Int,
         isRtl: Boolean,
         deviceProfile: DeviceProfile,
-        splitConfig: SplitConfigurationOptions.SplitBounds,
+        splitConfig: SplitBounds,
         inSplitSelection: Boolean,
         oneIconHiddenDueToSmallWidth: Boolean,
     ) {

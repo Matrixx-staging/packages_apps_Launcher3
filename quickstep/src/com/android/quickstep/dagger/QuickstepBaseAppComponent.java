@@ -61,14 +61,13 @@ public interface QuickstepBaseAppComponent extends LauncherBaseAppComponent {
 
     TopTaskTracker getTopTaskTracker();
 
-    RotationTouchHelper getRotationTouchHelper();
-
     ContextualSearchHapticManager getContextualSearchHapticManager();
 
     ContextualSearchStateManager getContextualSearchStateManager();
 
     PerDisplayRepository<RecentsAnimationDeviceState> getRecentsAnimationDeviceStateRepository();
     PerDisplayRepository<TaskAnimationManager> getTaskAnimationManagerRepository();
+    PerDisplayRepository<RotationTouchHelper> getRotationTouchHelperRepository();
 
     RecentsModel getRecentsModel();
 

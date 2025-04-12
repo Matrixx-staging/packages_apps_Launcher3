@@ -65,7 +65,7 @@
     <string name="home_gesture_feedback_overview_detected" msgid="5177627157303895077">"Pauzeer niet voordat je loslaat"</string>
     <string name="home_gesture_feedback_wrong_swipe_direction" msgid="8328465201424027148">"Swipe recht omhoog"</string>
     <string name="home_gesture_feedback_complete_with_follow_up" msgid="8766981412895888417">"Je weet nu hoe je het gebaar Naar startscherm maakt. Ontdek als volgende hoe je kunt teruggaan."</string>
-    <string name="home_gesture_feedback_complete_without_follow_up" msgid="2978063221383413443">"Je weet nu hoe je teruggaat naar het startscherm"</string>
+    <string name="home_gesture_feedback_complete_without_follow_up" msgid="2978063221383413443">"Je weet nu hoe je het gebaar Naar het startscherm maakt"</string>
     <string name="home_gesture_intro_title" msgid="836590312858441830">"Swipe om naar het startscherm te gaan"</string>
     <string name="home_gesture_intro_subtitle" msgid="2632238748497975326">"Swipe omhoog vanaf de onderkant van het scherm. Met dit gebaar ga je altijd naar het startscherm."</string>
     <string name="home_gesture_tutorial_title" msgid="3126834347496917376">"Naar het startscherm"</string>
@@ -109,6 +109,11 @@
     <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"Annuleren"</string>
     <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"Overslaan"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"Scherm draaien"</string>
+    <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"Animatie die toont hoe de taakbalk onderaan het scherm verschijnt en automatisch wordt verborgen als deze niet wordt gebruikt"</string>
+    <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"Animatie die toont hoe je de taakbalk vastzet met een schakelaar, zodat de taakbalk altijd zichtbaar blijft onderaan het scherm"</string>
+    <string name="taskbar_edu_split_screen_animation_description" msgid="371796444988899166">"Animatie die toont hoe je een gesplitst scherm maakt door een app van de taakbalk naar een geopende app te slepen"</string>
+    <string name="taskbar_edu_suggested_app_animation_description" msgid="3443453246478079085">"Animatie die toont hoe je toegang krijgt tot voorgestelde apps op je apparaat"</string>
+    <string name="taskbar_edu_suggested_search_animation_description" msgid="1874284242557104818">"Animatie die toont hoe je een item op het scherm kunt zoeken door de actietoets ingedrukt te houden en het gebied te selecteren waarin het item zich bevindt"</string>
     <string name="taskbar_edu_a11y_title" msgid="5417986057866415355">"Taakbalk Onderwijs"</string>
     <string name="taskbar_edu_splitscreen" msgid="5605512479258053350">"Sleep een app naar de zijkant om 2 apps tegelijk te gebruiken"</string>
     <string name="taskbar_edu_stashing" msgid="5645461372669217294">"Swipe langzaam omhoog om de taakbalk te tonen"</string>
@@ -163,10 +168,7 @@
     <string name="header_close_icon_description" msgid="5400033616675911319">"Knop Sluiten"</string>
     <string name="pin_to_taskbar" msgid="6607778046321626950">"Vastzetten op taakbalk"</string>
     <string name="unpin_from_taskbar" msgid="2178811773165572676">"Losmaken van taakbalk"</string>
-    <!-- no translation found for nudge_a11y_title (2126529303123687912) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_close (4513937143817625570) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_image (117910310515857252) -->
-    <skip />
+    <string name="nudge_a11y_title" msgid="2126529303123687912">"Verschuiven"</string>
+    <string name="nudge_a11y_close" msgid="4513937143817625570">"Sluiten"</string>
+    <string name="nudge_a11y_image" msgid="117910310515857252">"Afbeelding verschuiven"</string>
 </resources>

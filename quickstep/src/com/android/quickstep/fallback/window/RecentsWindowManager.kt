@@ -231,34 +231,40 @@ class RecentsWindowManager(context: Context, wallpaperColorHints: Int) :
         }
         windowManager.addView(windowView, windowLayoutParams)
 
-        windowView
-            ?.findOnBackInvokedDispatcher()
-            ?.registerSystemOnBackInvokedCallback(onBackInvokedCallback)
+        windowView?.let {
+            actionsView = it.findViewById(R.id.overview_actions_view)
+            recentsView =
+                it.findViewById<FallbackRecentsView<RecentsWindowManager>?>(R.id.overview_panel)
+                    ?.apply {
+                        init(
+                            actionsView,
+                            SplitSelectStateController(
+                                /* container= */ this@RecentsWindowManager,
+                                stateManager,
+                                /* depthController= */ null,
+                                statsLogManager,
+                                SystemUiProxy.INSTANCE[this@RecentsWindowManager],
+                                RecentsModel.INSTANCE[this@RecentsWindowManager],
+                                /* activityBackCallback= */ null,
+                            ),
+                            /* desktopRecentsTransitionController= */ null,
+                        )
+                    }
+            actionsView?.apply {
+                updateDimension(getDeviceProfile(), recentsView?.lastComputedTaskSize)
+                updateVerticalMargin(DisplayController.getNavigationMode(this@RecentsWindowManager))
+            }
+            scrimView = it.findViewById(R.id.scrim_view)
+            dragLayer = it.findViewById(R.id.drag_layer)
 
-        windowView?.systemUiVisibility =
-            (View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
+            it.findOnBackInvokedDispatcher()
+                ?.registerSystemOnBackInvokedCallback(onBackInvokedCallback)
 
-        recentsView = windowView?.findViewById(R.id.overview_panel)
-        actionsView = windowView?.findViewById(R.id.overview_actions_view)
-        scrimView = windowView?.findViewById(R.id.scrim_view)
-        val systemUiProxy = SystemUiProxy.INSTANCE[this]
-        val splitSelectStateController =
-            SplitSelectStateController(
-                this,
-                getStateManager(),
-                null, /* depthController */
-                statsLogManager,
-                systemUiProxy,
-                RecentsModel.INSTANCE[this],
-                null, /*activityBackCallback*/
-            )
-        recentsView?.init(actionsView, splitSelectStateController, null)
-        dragLayer = windowView?.findViewById(R.id.drag_layer)
-
-        actionsView?.updateDimension(getDeviceProfile(), recentsView?.lastComputedTaskSize)
-        actionsView?.updateVerticalMargin(DisplayController.getNavigationMode(this))
+            it.systemUiVisibility =
+                (View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
+        }
 
         systemUiController = SystemUiController(windowView)
         recentsWindowTracker.handleCreate(this)

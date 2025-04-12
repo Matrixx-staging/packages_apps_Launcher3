@@ -16,6 +16,8 @@
 
 package com.android.launcher3.dagger
 
+import com.android.launcher3.icons.LauncherIconProvider
+import com.android.launcher3.icons.LauncherIconProviderImpl
 import com.android.launcher3.uioverrides.QuickstepWidgetHolder.QuickstepWidgetHolderFactory
 import com.android.launcher3.uioverrides.SystemApiWrapper
 import com.android.launcher3.uioverrides.plugins.PluginManagerWrapperImpl
@@ -41,6 +43,9 @@ abstract class WindowManagerProxyModule {
 @Module
 abstract class ApiWrapperModule {
     @Binds abstract fun bindApiWrapper(systemApiWrapper: SystemApiWrapper): ApiWrapper
+
+    @Binds
+    abstract fun bindIconProvider(iconProviderImpl: LauncherIconProviderImpl): LauncherIconProvider
 }
 
 @Module

@@ -47,14 +47,14 @@ public class LauncherIntentTest extends BaseLauncherActivityTest<Launcher> {
     @Test
     public void testAllAppsIntent() {
         // Try executing ALL_APPS intent
-        executeOnLauncher(launcher -> launcher.onNewIntent(allAppsIntent));
+        getLauncherActivity().executeOnLauncher(launcher -> launcher.onNewIntent(allAppsIntent));
         // A-Z view with Main adapter should be loaded
         assertOnMainAdapterAToZView();
 
         // Try Moving to search view now
         moveToSearchView();
         // Try executing ALL_APPS intent
-        executeOnLauncher(launcher -> launcher.onNewIntent(allAppsIntent));
+        getLauncherActivity().executeOnLauncher(launcher -> launcher.onNewIntent(allAppsIntent));
         // A-Z view with Main adapter should be loaded
         assertOnMainAdapterAToZView();
     }
@@ -64,7 +64,9 @@ public class LauncherIntentTest extends BaseLauncherActivityTest<Launcher> {
         // All Apps view should be loaded
         assertTrue("Launcher internal state is not All Apps",
                 isInState(() -> LauncherState.ALL_APPS));
-        executeOnLauncher(launcher -> launcher.getAppsView().getSearchView().requestFocus());
+        getLauncherActivity().executeOnLauncher(
+                launcher -> launcher.getAppsView().getSearchView().requestFocus()
+        );
         // Search view should be in focus
         waitForLauncherCondition("Search view is not in focus.",
                 launcher -> launcher.getAppsView().getSearchView().hasFocus());
@@ -96,8 +98,12 @@ public class LauncherIntentTest extends BaseLauncherActivityTest<Launcher> {
         waitForLauncherCondition("Search view has focus.",
                 launcher -> !launcher.getAppsView().getSearchView().hasFocus());
         // Scroller should be at top
-        executeOnLauncher(launcher -> assertEquals(
-                "All Apps started in already scrolled state", 0,
-                getAllAppsScroll(launcher)));
+        getLauncherActivity().executeOnLauncher(launcher ->
+                assertEquals(
+                        "All Apps started in already scrolled state",
+                        0,
+                        launcher.getAppsView().getActiveRecyclerView().computeVerticalScrollOffset()
+                )
+        );
     }
 }

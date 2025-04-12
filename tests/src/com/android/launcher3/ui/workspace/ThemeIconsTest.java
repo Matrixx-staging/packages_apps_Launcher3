@@ -64,10 +64,12 @@ public class ThemeIconsTest extends BaseLauncherActivityTest<Launcher> {
         switchToAllApps();
 
         scrollToAppIcon(APP_NAME);
-        BubbleTextView btv = getFromLauncher(
+        BubbleTextView btv = getLauncherActivity().getFromLauncher(
                 l -> verifyIconTheme(APP_NAME, l.getAppsView(), false));
         addToWorkspace(btv);
-        executeOnLauncher(l -> verifyIconTheme(APP_NAME, l.getWorkspace(), false));
+        getLauncherActivity().executeOnLauncher(
+                l -> verifyIconTheme(APP_NAME, l.getWorkspace(), false)
+        );
     }
 
     @Test
@@ -78,14 +80,16 @@ public class ThemeIconsTest extends BaseLauncherActivityTest<Launcher> {
         switchToAllApps();
 
         scrollToAppIcon(TEST_APP_NAME);
-        BubbleTextView btv = getFromLauncher(l -> findBtv(TEST_APP_NAME, l.getAppsView()));
+        BubbleTextView btv = getLauncherActivity().getFromLauncher(
+                l -> findBtv(TEST_APP_NAME, l.getAppsView()));
         TestUtil.runOnExecutorSync(MAIN_EXECUTOR, btv::performLongClick);
 
         BubbleTextView menuItem = getOnceNotNull("Popup menu not open", l ->
                 (AbstractFloatingView.getOpenView(l, TYPE_ACTION_POPUP) instanceof ArrowPopup ap)
                         ? findBtv(SHORTCUT_NAME, ap) : null);
         addToWorkspace(menuItem);
-        executeOnLauncher(l -> verifyIconTheme(SHORTCUT_NAME, l.getWorkspace(), false));
+        getLauncherActivity().executeOnLauncher(
+                l -> verifyIconTheme(SHORTCUT_NAME, l.getWorkspace(), false));
     }
 
     @Test
@@ -96,10 +100,13 @@ public class ThemeIconsTest extends BaseLauncherActivityTest<Launcher> {
         switchToAllApps();
 
         scrollToAppIcon(APP_NAME);
-        BubbleTextView btv = getFromLauncher(l ->
-                verifyIconTheme(APP_NAME, l.getAppsView(), false));
+        BubbleTextView btv = getLauncherActivity().getFromLauncher(
+                l -> verifyIconTheme(APP_NAME, l.getAppsView(), false)
+        );
+
         addToWorkspace(btv);
-        executeOnLauncher(l -> verifyIconTheme(APP_NAME, l.getWorkspace(), true));
+        getLauncherActivity().executeOnLauncher(
+                l -> verifyIconTheme(APP_NAME, l.getWorkspace(), true));
     }
 
     @Test
@@ -109,26 +116,29 @@ public class ThemeIconsTest extends BaseLauncherActivityTest<Launcher> {
         switchToAllApps();
 
         scrollToAppIcon(TEST_APP_NAME);
-        BubbleTextView btv = getFromLauncher(l -> findBtv(TEST_APP_NAME, l.getAppsView()));
+        BubbleTextView btv = getLauncherActivity().getFromLauncher(
+                l -> findBtv(TEST_APP_NAME, l.getAppsView()));
         TestUtil.runOnExecutorSync(MAIN_EXECUTOR, btv::performLongClick);
 
         BubbleTextView menuItem = getOnceNotNull("Popup menu not open", l ->
                 (AbstractFloatingView.getOpenView(l, TYPE_ACTION_POPUP) instanceof ArrowPopup ap)
                         ? findBtv(SHORTCUT_NAME, ap) : null);
         addToWorkspace(menuItem);
-        executeOnLauncher(l -> verifyIconTheme(SHORTCUT_NAME, l.getWorkspace(), true));
+        getLauncherActivity().executeOnLauncher(
+                l -> verifyIconTheme(SHORTCUT_NAME, l.getWorkspace(), true));
     }
 
     private BubbleTextView findBtv(String title, ViewGroup parent) {
         // Wait for Launcher model to be completed
         try {
-            Executors.MODEL_EXECUTOR.submit(() -> { }).get();
+            Executors.MODEL_EXECUTOR.submit(() -> {
+            }).get();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
         return (BubbleTextView) searchView(parent, v ->
                 v instanceof BubbleTextView btv
-                    && btv.getContentDescription() != null
+                        && btv.getContentDescription() != null
                         && title.equals(btv.getContentDescription().toString()));
     }
 
@@ -154,14 +164,12 @@ public class ThemeIconsTest extends BaseLauncherActivityTest<Launcher> {
     }
 
     private void switchToAllApps() {
-        goToState(LauncherState.ALL_APPS);
-        waitForState("Launcher internal state didn't switch to All Apps",
-                () -> LauncherState.ALL_APPS);
+        getLauncherActivity().goToState(LauncherState.ALL_APPS);
         freezeAllApps();
     }
 
     private void scrollToAppIcon(String appName) {
-        executeOnLauncher(l -> {
+        getLauncherActivity().executeOnLauncher(l -> {
             l.hideKeyboard();
             AllAppsRecyclerView rv = l.getAppsView().getActiveRecyclerView();
             int pos = rv.getApps().getAdapterItems().indexOf(rv.getApps().getAdapterItems().stream()

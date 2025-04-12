@@ -87,12 +87,12 @@ public class TaskbarNavButtonControllerTest {
     private int mOverviewToggleCount;
     private final TaskbarNavButtonCallbacks mCallbacks = new TaskbarNavButtonCallbacks() {
         @Override
-        public void onNavigateHome() {
+        public void onNavigateHome(int displayId) {
             mHomePressCount++;
         }
 
         @Override
-        public void onToggleOverview() {
+        public void onToggleOverview(int displayId) {
             mOverviewToggleCount++;
         }
     };
@@ -110,6 +110,7 @@ public class TaskbarNavButtonControllerTest {
         when(mockTaskbarControllers.getTaskbarActivityContext())
                 .thenReturn(mockTaskbarActivityContext);
         doReturn(mockStatsLogManager).when(mockTaskbarActivityContext).getStatsLogManager();
+        when(mockTaskbarActivityContext.getDisplayId()).thenReturn(DISPLAY_ID);
         mNavButtonController = new TaskbarNavButtonController(
                 mockService,
                 mCallbacks,
@@ -343,6 +344,7 @@ public class TaskbarNavButtonControllerTest {
     @Test
     @RequiresFlagsEnabled(FLAG_PREDICTIVE_BACK_THREE_BUTTON_NAV)
     public void testPredictiveBackInvoked() {
+        mNavButtonController.init(mockTaskbarControllers);
         ArgumentCaptor<KeyEvent> keyEventCaptor = ArgumentCaptor.forClass(KeyEvent.class);
         mNavButtonController.sendBackKeyEvent(KeyEvent.ACTION_DOWN, false);
         mNavButtonController.sendBackKeyEvent(KeyEvent.ACTION_UP, false);
@@ -354,6 +356,7 @@ public class TaskbarNavButtonControllerTest {
     @Test
     @RequiresFlagsEnabled(FLAG_PREDICTIVE_BACK_THREE_BUTTON_NAV)
     public void testPredictiveBackCancelled() {
+        mNavButtonController.init(mockTaskbarControllers);
         ArgumentCaptor<KeyEvent> keyEventCaptor = ArgumentCaptor.forClass(KeyEvent.class);
         mNavButtonController.sendBackKeyEvent(KeyEvent.ACTION_DOWN, false);
         mNavButtonController.sendBackKeyEvent(KeyEvent.ACTION_UP, true);
@@ -365,6 +368,7 @@ public class TaskbarNavButtonControllerTest {
     @Test
     @RequiresFlagsEnabled(FLAG_PREDICTIVE_BACK_THREE_BUTTON_NAV)
     public void testButtonsDisabledWhileBackPressed() {
+        mNavButtonController.init(mockTaskbarControllers);
         mNavButtonController.sendBackKeyEvent(KeyEvent.ACTION_DOWN, false);
         mNavButtonController.onButtonClick(BUTTON_HOME, mockView);
         mNavButtonController.onButtonClick(BUTTON_RECENTS, mockView);

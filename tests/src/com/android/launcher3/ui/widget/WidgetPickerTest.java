@@ -64,20 +64,32 @@ public class WidgetPickerTest extends BaseLauncherActivityTest<Launcher> {
     public void testWidgets() {
         loadLauncherSync();
         // Test opening widgets.
-        executeOnLauncher(launcher ->
-                assertTrue("Widgets is initially opened", getWidgetsView(launcher) == null));
+        getLauncherActivity().executeOnLauncher(launcher ->
+                assertTrue(
+                        "Widgets is initially opened",
+                        getWidgetsView(launcher) == null)
+        );
         assertNotNull("openAllWidgets() returned null",
-                getFromLauncher(OptionsPopupView::openWidgets));
-        WidgetsRecyclerView widgets = getFromLauncher(this::getWidgetsView);
+                getLauncherActivity().getFromLauncher(OptionsPopupView::openWidgets));
+        WidgetsRecyclerView widgets = getLauncherActivity().getFromLauncher(this::getWidgetsView);
         assertNotNull("getAllWidgets() returned null", widgets);
-        executeOnLauncher(launcher -> assertTrue("Widgets is not shown", widgets.isShown()));
-        executeOnLauncher(launcher -> assertEquals("Widgets is scrolled upon opening",
-                0, getWidgetsScroll(launcher)));
+        getLauncherActivity().executeOnLauncher(
+                launcher -> assertTrue("Widgets is not shown", widgets.isShown())
+        );
+        getLauncherActivity().executeOnLauncher(launcher ->
+                assertEquals(
+                        "Widgets is scrolled upon opening",
+                        0,
+                        getWidgetsScroll(launcher)
+                )
+        );
 
-        executeOnLauncher(AbstractFloatingView::closeAllOpenViews);
+        getLauncherActivity().executeOnLauncher(AbstractFloatingView::closeAllOpenViews);
         uiDevice.waitForIdle();
 
-        waitForLauncherCondition("Widgets were not closed",
-                launcher -> getWidgetsView(launcher) == null);
+        waitForLauncherCondition(
+                "Widgets were not closed",
+                launcher -> getWidgetsView(launcher) == null
+        );
     }
 }

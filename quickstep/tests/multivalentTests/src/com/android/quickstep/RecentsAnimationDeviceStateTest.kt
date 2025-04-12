@@ -49,6 +49,7 @@ class RecentsAnimationDeviceStateTest {
 
     @Mock private lateinit var exclusionManager: GestureExclusionManager
     @Mock private lateinit var info: Info
+    @Mock private lateinit var rotationTouchHelper: RotationTouchHelper
 
     private lateinit var underTest: RecentsAnimationDeviceState
 
@@ -61,10 +62,10 @@ class RecentsAnimationDeviceStateTest {
             RecentsAnimationDeviceState(
                 context,
                 DEFAULT_DISPLAY,
+                rotationTouchHelper,
                 exclusionManager,
                 component.displayController,
                 component.contextualSearchStateManager,
-                component.rotationTouchHelper,
                 component.settingsCache,
                 component.daggerSingletonTracker,
             )

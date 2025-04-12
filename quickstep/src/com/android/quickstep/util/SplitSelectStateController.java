@@ -302,6 +302,10 @@ public class SplitSelectStateController {
         if (task == null || task.key.id == mSplitSelectDataHolder.getInitialTaskId()) {
             return false;
         }
+        if (task.key.baseIntent.getComponent() == null) {
+            Log.w(TAG, "Task has null component.");
+            return false;
+        }
 
         return task.key.baseIntent.getComponent().equals(componentKey.componentName)
                 && task.key.userId == componentKey.user.getIdentifier();

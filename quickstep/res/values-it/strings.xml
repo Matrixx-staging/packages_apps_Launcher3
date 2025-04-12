@@ -109,6 +109,11 @@
     <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"Annulla"</string>
     <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"Salta"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"Ruota lo schermo"</string>
+    <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"Animazione che mostra come la barra delle app appaia dalla parte inferiore dello schermo e si nasconda automaticamente quando non in uso"</string>
+    <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"Animazione che mostra come fissare la barra delle app utilizzando un\'opzione di attivazione/disattivazione, in modo che rimanga visibile in modo permanente nella parte inferiore dello schermo"</string>
+    <string name="taskbar_edu_split_screen_animation_description" msgid="371796444988899166">"Animazione che mostra come creare uno schermo diviso trascinando un\'app dalla barra delle app sopra un\'app aperta"</string>
+    <string name="taskbar_edu_suggested_app_animation_description" msgid="3443453246478079085">"Animazione che mostra come accedere alle app suggerite sul dispositivo"</string>
+    <string name="taskbar_edu_suggested_search_animation_description" msgid="1874284242557104818">"Animazione che mostra come cercare un elemento sullo schermo toccando e tenendo premuto il tasto azione e selezionando l\'area in cui si trova l\'elemento"</string>
     <string name="taskbar_edu_a11y_title" msgid="5417986057866415355">"Informazioni sulla barra delle applicazioni"</string>
     <string name="taskbar_edu_splitscreen" msgid="5605512479258053350">"Trascina un\'app di lato per usare due app contemporaneamente"</string>
     <string name="taskbar_edu_stashing" msgid="5645461372669217294">"Scorri lentamente in su per mostrare la barra delle app"</string>
@@ -163,10 +168,7 @@
     <string name="header_close_icon_description" msgid="5400033616675911319">"Pulsante Chiudi"</string>
     <string name="pin_to_taskbar" msgid="6607778046321626950">"Fissa alla barra app"</string>
     <string name="unpin_from_taskbar" msgid="2178811773165572676">"Sblocca da barra app"</string>
-    <!-- no translation found for nudge_a11y_title (2126529303123687912) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_close (4513937143817625570) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_image (117910310515857252) -->
-    <skip />
+    <string name="nudge_a11y_title" msgid="2126529303123687912">"Nudge"</string>
+    <string name="nudge_a11y_close" msgid="4513937143817625570">"Chiudi"</string>
+    <string name="nudge_a11y_image" msgid="117910310515857252">"Immagine Nudge"</string>
 </resources>

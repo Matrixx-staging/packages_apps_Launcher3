@@ -31,6 +31,7 @@ import com.android.app.displaylib.createDisplayLibComponent
 import com.android.launcher3.Flags.enableOverviewOnConnectedDisplays
 import com.android.launcher3.util.coroutines.DispatcherProvider
 import com.android.quickstep.RecentsAnimationDeviceState
+import com.android.quickstep.RotationTouchHelper
 import com.android.quickstep.TaskAnimationManager
 import com.android.systemui.dagger.qualifiers.Background
 import dagger.Binds
@@ -38,8 +39,11 @@ import dagger.Module
 import dagger.Provides
 import kotlinx.coroutines.CoroutineScope
 
-@Module(includes = [DisplayLibModule::class, PerDisplayRepositoriesModule::class])
-interface PerDisplayModule {
+@Module(includes = [BasePerDisplayModule::class, PerDisplayRepositoriesModule::class])
+interface PerDisplayModule
+
+@Module(includes = [DisplayLibModule::class])
+interface BasePerDisplayModule {
     @Binds
     @DisplayLibBackground
     abstract fun bindDisplayLibBackground(@Background bgScope: CoroutineScope): CoroutineScope
@@ -48,21 +52,33 @@ interface PerDisplayModule {
 @Module
 object PerDisplayRepositoriesModule {
     @Provides
+    @LauncherAppSingleton
     fun provideRecentsAnimationDeviceStateRepo(
         repositoryFactory: PerDisplayInstanceRepositoryImpl.Factory<RecentsAnimationDeviceState>,
+        rotationTouchHelperRepository: PerDisplayRepository<RotationTouchHelper>,
         instanceFactory: RecentsAnimationDeviceState.Factory,
     ): PerDisplayRepository<RecentsAnimationDeviceState> {
         return if (enableOverviewOnConnectedDisplays()) {
-            repositoryFactory.create("RecentsAnimationDeviceStateRepo", instanceFactory::create)
+            repositoryFactory.create(
+                "RecentsAnimationDeviceStateRepo",
+                { displayId ->
+                    rotationTouchHelperRepository[displayId]?.let {
+                        instanceFactory.create(displayId, it)
+                    }
+                },
+            )
         } else {
             SingleInstanceRepositoryImpl(
                 "RecentsAnimationDeviceStateRepo",
-                instanceFactory.create(DEFAULT_DISPLAY),
+                rotationTouchHelperRepository[DEFAULT_DISPLAY]?.let {
+                    instanceFactory.create(DEFAULT_DISPLAY, it)
+                }!!, // Assert the default display is always available.
             )
         }
     }
 
     @Provides
+    @LauncherAppSingleton
     fun provideTaskAnimationManagerRepo(
         repositoryFactory: PerDisplayInstanceRepositoryImpl.Factory<TaskAnimationManager>,
         instanceFactory: TaskAnimationManager.Factory,
@@ -78,10 +94,51 @@ object PerDisplayRepositoriesModule {
     }
 
     @Provides
-    fun dumpRegistrationLambda(): PerDisplayRepository.InitCallback =
-        PerDisplayRepository.InitCallback { debugName, _ ->
-            Log.d("PerDisplayInitCallback", debugName)
+    @LauncherAppSingleton
+    fun provideRotationTouchHandlerRepo(
+        repositoryFactory: PerDisplayInstanceRepositoryImpl.Factory<RotationTouchHelper>,
+        @DisplayContext displayContextRepository: PerDisplayRepository<Context>,
+        instanceFactory: RotationTouchHelper.Factory,
+    ): PerDisplayRepository<RotationTouchHelper> {
+        return if (enableOverviewOnConnectedDisplays()) {
+            repositoryFactory.create(
+                "RotationTouchHelperRepo",
+                { displayId ->
+                    displayContextRepository[displayId]?.let { instanceFactory.create(it) }
+                },
+            )
+        } else {
+            SingleInstanceRepositoryImpl(
+                "RotationTouchHelperRepo",
+                instanceFactory.create(displayContextRepository[DEFAULT_DISPLAY]),
+            )
         }
+    }
+
+    @Provides
+    @LauncherAppSingleton
+    @DisplayContext
+    fun provideDisplayContext(
+        repositoryFactory: PerDisplayInstanceRepositoryImpl.Factory<Context>,
+        @ApplicationContext context: Context,
+        displayRepository: DisplayRepository,
+    ): PerDisplayRepository<Context> {
+        return if (enableOverviewOnConnectedDisplays()) {
+            repositoryFactory.create(
+                "DisplayContextRepo",
+                { displayId ->
+                    displayRepository.getDisplay(displayId)?.let {
+                        context.createDisplayContext(it)
+                    }
+                },
+            )
+        } else {
+            SingleInstanceRepositoryImpl(
+                "DisplayContextRepo",
+                context.createDisplayContext(displayRepository.getDisplay(DEFAULT_DISPLAY)!!),
+            )
+        }
+    }
 }
 
 /**
@@ -113,4 +170,10 @@ object DisplayLibModule {
     ): DisplayRepository {
         return displayLibComponent.displayRepository
     }
+
+    @Provides
+    fun dumpRegistrationLambda(): PerDisplayRepository.InitCallback =
+        PerDisplayRepository.InitCallback { debugName, _ ->
+            Log.d("PerDisplayInitCallback", debugName)
+        }
 }

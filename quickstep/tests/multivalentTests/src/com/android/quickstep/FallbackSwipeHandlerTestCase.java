@@ -46,6 +46,7 @@ public class FallbackSwipeHandlerTestCase extends AbsSwipeUpHandlerTestCase<
                 mContext,
                 mTaskAnimationManager,
                 mDeviceState,
+                mRotationTouchHelper,
                 mGestureState,
                 touchTimeMs,
                 continuingLastGesture,

@@ -23,7 +23,6 @@ import android.app.Person;
 import android.app.role.RoleManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.LauncherActivityInfo;
 import android.content.pm.ShortcutInfo;
 import android.graphics.drawable.ColorDrawable;
@@ -199,21 +198,6 @@ public class ApiWrapper {
             Launcher launcher = Launcher.getLauncher(context);
             launcher.startActivityForResult(roleRequestIntent, REQUEST_HOME_ROLE);
         }
-    }
-
-    /**
-     * Returns a hash to uniquely identify a particular version of appInfo
-     */
-    public String getApplicationInfoHash(@NonNull ApplicationInfo appInfo) {
-        // The hashString in source dir changes with every install
-        return appInfo.sourceDir;
-    }
-
-    /**
-     * Returns the round icon resource Id if defined by the app
-     */
-    public int getRoundIconRes(@NonNull ApplicationInfo appInfo) {
-        return 0;
     }
 
     /**

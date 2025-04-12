@@ -35,6 +35,7 @@ import com.android.systemui.shared.recents.model.ThumbnailData
  * @property backgroundColor The background color of the task, represented as an integer color
  *   value.
  * @property isLocked Indicates whether the [Task] is locked.
+ * @property isMinimized Indicates whether the [Task] is minimized.
  */
 data class TaskModel(
     val id: TaskId,
@@ -44,6 +45,7 @@ data class TaskModel(
     val thumbnail: ThumbnailData?,
     val backgroundColor: Int,
     val isLocked: Boolean,
+    val isMinimized: Boolean,
 )
 
 typealias TaskId = Int

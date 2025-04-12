@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.android.launcher3.secondarydisplay;
 import static com.android.launcher3.util.OnboardingPrefs.ALL_APPS_VISITED_COUNT;
 
 import android.content.Context;
+import android.window.DesktopExperienceFlags;
 
 import com.android.launcher3.appprediction.AppsDividerView;
 import com.android.launcher3.appprediction.PredictionRowView;
@@ -25,15 +26,15 @@ import com.android.launcher3.model.BgDataModel;
 import com.android.launcher3.views.ActivityContext;
 
 /**
- * Implementation of SecondaryDisplayPredictions.
+ * Implementation of {@link SecondaryDisplayQuickstepDelegate}..
  */
 @SuppressWarnings("unused")
-public final class SecondaryDisplayPredictionsImpl extends SecondaryDisplayPredictions {
+public final class SecondaryDisplayQuickstepDelegateImpl extends SecondaryDisplayQuickstepDelegate {
 
     private final ActivityContext mActivityContext;
     private final Context mContext;
 
-    public SecondaryDisplayPredictionsImpl(Context context) {
+    public SecondaryDisplayQuickstepDelegateImpl(Context context) {
         mContext = context;
         mActivityContext = ActivityContext.lookupContext(context);
     }
@@ -51,5 +52,10 @@ public final class SecondaryDisplayPredictionsImpl extends SecondaryDisplayPredi
         mActivityContext.getAppsView().getFloatingHeaderView()
                 .findFixedRowByType(PredictionRowView.class)
                 .setPredictedApps(item.items);
+    }
+
+    @Override
+    boolean enableTaskbarConnectedDisplays() {
+        return DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue();
     }
 }

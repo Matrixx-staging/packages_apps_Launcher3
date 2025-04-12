@@ -30,6 +30,7 @@ import com.android.quickstep.util.SingleTask
 import com.android.quickstep.util.SplitTask
 import com.android.systemui.shared.recents.model.Task
 import com.android.systemui.shared.recents.model.ThumbnailData
+import com.android.wm.shell.shared.split.SplitBounds
 import com.android.wm.shell.shared.split.SplitScreenConstants.SNAP_TO_2_50_50
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -57,7 +58,7 @@ class TasksRepositoryTest {
             SplitTask(
                 tasks[1],
                 tasks[2],
-                SplitConfigurationOptions.SplitBounds(
+                SplitBounds(
                     /* leftTopBounds = */ Rect(),
                     /* rightBottomBounds = */ Rect(),
                     /* leftTopTaskId = */ -1,

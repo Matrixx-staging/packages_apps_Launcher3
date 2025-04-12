@@ -109,6 +109,11 @@
     <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"取消"</string>
     <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"略過"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"旋轉螢幕"</string>
+    <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"這個動畫說明如何讓螢幕底部顯示工作列，並在閒置時自動隱藏"</string>
+    <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"這個動畫說明如何使用切換鈕固定工作列，讓工作列永久顯示在螢幕底部"</string>
+    <string name="taskbar_edu_split_screen_animation_description" msgid="371796444988899166">"這個動畫說明如何建立分割畫面，方法是從工作列拖曳應用程式，並放在已開啟應用程式的上方"</string>
+    <string name="taskbar_edu_suggested_app_animation_description" msgid="3443453246478079085">"這個動畫說明如何在裝置上存取建議的應用程式"</string>
+    <string name="taskbar_edu_suggested_search_animation_description" msgid="1874284242557104818">"這個動畫說明如何在畫面上搜尋項目，方法是按住快捷操作鍵，並選取項目所在區域"</string>
     <string name="taskbar_edu_a11y_title" msgid="5417986057866415355">"工作列教學課程"</string>
     <string name="taskbar_edu_splitscreen" msgid="5605512479258053350">"將應用程式拖曳到一邊即可同時使用 2 個應用程式"</string>
     <string name="taskbar_edu_stashing" msgid="5645461372669217294">"緩慢向上滑動讓工作列顯示在畫面上"</string>
@@ -163,10 +168,7 @@
     <string name="header_close_icon_description" msgid="5400033616675911319">"關閉按鈕"</string>
     <string name="pin_to_taskbar" msgid="6607778046321626950">"固定到工作列"</string>
     <string name="unpin_from_taskbar" msgid="2178811773165572676">"從工作列中取消固定"</string>
-    <!-- no translation found for nudge_a11y_title (2126529303123687912) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_close (4513937143817625570) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_image (117910310515857252) -->
-    <skip />
+    <string name="nudge_a11y_title" msgid="2126529303123687912">"提醒"</string>
+    <string name="nudge_a11y_close" msgid="4513937143817625570">"關閉"</string>
+    <string name="nudge_a11y_image" msgid="117910310515857252">"提醒圖片"</string>
 </resources>

@@ -36,6 +36,7 @@ import com.android.launcher3.util.UserIconInfo
 import com.android.quickstep.TaskOverlayFactory
 import com.android.quickstep.TaskOverlayFactory.TaskOverlay
 import com.android.quickstep.recents.di.RecentsDependencies
+import com.android.quickstep.task.thumbnail.TaskContentView
 import com.android.quickstep.task.thumbnail.TaskThumbnailView
 import com.android.quickstep.views.RecentsView
 import com.android.quickstep.views.TaskContainer
@@ -201,6 +202,7 @@ class TaskViewItemInfoTest {
         return TaskContainer(
             taskView,
             task,
+            mock<TaskContentView>(),
             if (enableRefactorTaskThumbnail()) mock<TaskThumbnailView>()
             else mock<TaskThumbnailViewDeprecated>(),
             mock<TaskViewIcon>(),

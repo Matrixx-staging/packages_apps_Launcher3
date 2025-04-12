@@ -113,6 +113,7 @@ public class InputConsumerUtilsTest {
     @NonNull @Mock private TaskbarActivityContext mTaskbarActivityContext;
     @NonNull @Mock private OverviewComponentObserver mOverviewComponentObserver;
     @NonNull @Mock private RecentsAnimationDeviceState mDeviceState;
+    @NonNull @Mock private RotationTouchHelper mRotationTouchHelper;
     @NonNull @Mock private AbsSwipeUpHandler.Factory mSwipeUpHandlerFactory;
     @NonNull @Mock private TaskbarManager mTaskbarManager;
     @NonNull @Mock private OverviewCommandHelper mOverviewCommandHelper;
@@ -136,7 +137,7 @@ public class InputConsumerUtilsTest {
         mContext.initDaggerComponent(DaggerInputConsumerUtilsTest_TestComponent
                 .builder()
                 .bindLockedState(mLockedUserState)
-                .bindRotationHelper(mock(RotationTouchHelper.class)));
+        );
     }
 
     @Before
@@ -501,7 +502,8 @@ public class InputConsumerUtilsTest {
                 mTaskbarManager,
                 mSwipeUpProxyProvider,
                 mOverviewCommandHelper,
-                event);
+                event,
+                mRotationTouchHelper);
 
         event.recycle();
 
@@ -524,7 +526,8 @@ public class InputConsumerUtilsTest {
                 otherActivityInputConsumer -> {},
                 mInputEventReceiver,
                 event,
-                ActiveGestureLog.CompoundString.NO_OP);
+                ActiveGestureLog.CompoundString.NO_OP,
+                mRotationTouchHelper);
 
         event.recycle();
 
@@ -624,7 +627,6 @@ public class InputConsumerUtilsTest {
         @Component.Builder
         interface Builder extends LauncherAppComponent.Builder {
             @BindsInstance Builder bindLockedState(LockedUserState state);
-            @BindsInstance Builder bindRotationHelper(RotationTouchHelper helper);
 
             @Override
             TestComponent build();

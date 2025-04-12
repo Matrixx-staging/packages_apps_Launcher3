@@ -18,7 +18,6 @@ package com.android.quickstep;
 
 import static android.view.Display.DEFAULT_DISPLAY;
 
-import static com.android.launcher3.Flags.FLAG_ENABLE_SEPARATE_EXTERNAL_DISPLAY_TASKS;
 import static com.android.window.flags.Flags.FLAG_ENABLE_MULTIPLE_DESKTOPS_BACKEND;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -236,39 +235,6 @@ public class RecentTasksListTest {
     }
 
     @Test
-    @DisableFlags({FLAG_ENABLE_SEPARATE_EXTERNAL_DISPLAY_TASKS,
-            FLAG_ENABLE_MULTIPLE_DESKTOPS_BACKEND})
-    public void loadTasksInBackground_freeformTask_createsDesktopTask() throws Exception  {
-        List<TaskInfo> tasks = Arrays.asList(
-                createRecentTaskInfo(1 /* taskId */, DEFAULT_DISPLAY),
-                createRecentTaskInfo(4 /* taskId */, DEFAULT_DISPLAY),
-                createRecentTaskInfo(5 /* taskId */, 1 /* displayId */),
-                createRecentTaskInfo(6 /* taskId */, 1 /* displayId */));
-        GroupedTaskInfo recentTaskInfos = GroupedTaskInfo.forDeskTasks(
-                0 /* deskId */, DEFAULT_DISPLAY, tasks,
-                Collections.emptySet() /* minimizedTaskIds */);
-        when(mSystemUiProxy.getRecentTasks(anyInt(), anyInt()))
-                .thenReturn(new ArrayList<>(Collections.singletonList(recentTaskInfos)));
-
-        List<GroupTask> taskList = mRecentTasksList.loadTasksInBackground(
-                Integer.MAX_VALUE /* numTasks */, -1 /* requestId */, false /* loadKeysOnly */);
-
-        assertEquals(1, taskList.size());
-        assertEquals(TaskViewType.DESKTOP, taskList.get(0).taskViewType);
-        List<Task> actualFreeformTasks = taskList.get(0).getTasks();
-        assertEquals(4, actualFreeformTasks.size());
-        assertEquals(1, actualFreeformTasks.get(0).key.id);
-        assertFalse(actualFreeformTasks.get(0).isMinimized);
-        assertEquals(4, actualFreeformTasks.get(1).key.id);
-        assertFalse(actualFreeformTasks.get(1).isMinimized);
-        assertEquals(5, actualFreeformTasks.get(2).key.id);
-        assertFalse(actualFreeformTasks.get(2).isMinimized);
-        assertEquals(6, actualFreeformTasks.get(3).key.id);
-        assertFalse(actualFreeformTasks.get(3).isMinimized);
-    }
-
-    @Test
-    @EnableFlags(FLAG_ENABLE_SEPARATE_EXTERNAL_DISPLAY_TASKS)
     @DisableFlags(FLAG_ENABLE_MULTIPLE_DESKTOPS_BACKEND)
     public void loadTasksInBackground_freeformTask_createsDesktopTaskPerDisplay() throws Exception {
         List<TaskInfo> tasks = Arrays.asList(

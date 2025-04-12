@@ -29,6 +29,7 @@ import com.android.dx.mockito.inline.extended.StaticMockitoSession
 import com.android.internal.R
 import com.android.launcher3.AbstractFloatingView
 import com.android.launcher3.AbstractFloatingViewHelper
+import com.android.launcher3.Flags.enableRefactorTaskContentView
 import com.android.launcher3.Flags.enableRefactorTaskThumbnail
 import com.android.launcher3.logging.StatsLogManager
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent
@@ -36,6 +37,7 @@ import com.android.launcher3.model.data.TaskViewItemInfo
 import com.android.launcher3.util.SplitConfigurationOptions
 import com.android.launcher3.util.TransformingTouchDelegate
 import com.android.quickstep.TaskOverlayFactory.TaskOverlay
+import com.android.quickstep.task.thumbnail.TaskContentView
 import com.android.quickstep.task.thumbnail.TaskThumbnailView
 import com.android.quickstep.views.LauncherRecentsView
 import com.android.quickstep.views.RecentsViewContainer
@@ -274,6 +276,11 @@ class DesktopSystemShortcutTest {
         TaskContainer(
             taskView,
             task,
+            when {
+                enableRefactorTaskContentView() -> mock<TaskContentView>()
+                enableRefactorTaskThumbnail() -> mock<TaskThumbnailView>()
+                else -> mock<TaskThumbnailViewDeprecated>()
+            },
             if (enableRefactorTaskThumbnail()) mock<TaskThumbnailView>()
             else mock<TaskThumbnailViewDeprecated>(),
             mock<TaskViewIcon>(),

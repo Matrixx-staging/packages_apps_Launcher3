@@ -23,7 +23,6 @@ import android.content.IIntentReceiver
 import android.content.IIntentSender
 import android.content.Intent
 import android.content.pm.ActivityInfo
-import android.content.pm.ApplicationInfo
 import android.content.pm.LauncherActivityInfo
 import android.content.pm.LauncherApps
 import android.content.pm.ShortcutInfo
@@ -197,11 +196,6 @@ open class SystemApiWrapper @Inject constructor(@ApplicationContext context: Con
             context.startActivity(ProxyActivityStarter.getLaunchIntent(context, params))
         }
     }
-
-    override fun getApplicationInfoHash(appInfo: ApplicationInfo): String =
-        (appInfo.sourceDir?.hashCode() ?: 0).toString() + " " + appInfo.longVersionCode
-
-    override fun getRoundIconRes(appInfo: ApplicationInfo) = appInfo.roundIconRes
 
     override fun isFileDrawable(shortcutInfo: ShortcutInfo) =
         shortcutInfo.hasIconFile() || shortcutInfo.hasIconUri()

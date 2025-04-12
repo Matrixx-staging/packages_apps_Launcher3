@@ -78,7 +78,7 @@
     <string name="overview_gesture_feedback_complete_without_follow_up" msgid="2903050864432331629">"Gest przełączania aplikacji został opanowany"</string>
     <string name="overview_gesture_intro_title" msgid="2902054412868489378">"Przesuń palcem, aby przełączać aplikacje"</string>
     <string name="overview_gesture_intro_subtitle" msgid="4968091015637850859">"Aby przełączać się między aplikacjami, przesuń palcem od dołu do góry ekranu, przytrzymaj i puść."</string>
-    <string name="overview_gesture_tutorial_title" msgid="4125835002668708720">"Przełącz aplikację"</string>
+    <string name="overview_gesture_tutorial_title" msgid="4125835002668708720">"Przełączanie aplikacji"</string>
     <string name="overview_gesture_tutorial_subtitle" msgid="5253549754058973071">"Przesuń palcem z dołu ekranu w górę, przytrzymaj i puść"</string>
     <string name="overview_gesture_tutorial_success" msgid="1910267697807973076">"Brawo!"</string>
     <string name="gesture_tutorial_confirm_title" msgid="6201516182040074092">"Wszystko gotowe"</string>
@@ -109,6 +109,11 @@
     <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"Anuluj"</string>
     <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"Pomiń"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"Obróć ekran"</string>
+    <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"Animacja pokazująca, jak pasek aplikacji pojawia się u dołu ekranu i automatycznie znika, gdy nie jest używany"</string>
+    <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"Animacja pokazująca, jak za pomocą przełącznika przypiąć pasek aplikacji, aby był on stale widoczny u dołu ekranu"</string>
+    <string name="taskbar_edu_split_screen_animation_description" msgid="371796444988899166">"Animacja pokazująca, jak utworzyć podzielony ekran, przeciągając i upuszczając aplikację z paska aplikacji nad aktualnie otwartą"</string>
+    <string name="taskbar_edu_suggested_app_animation_description" msgid="3443453246478079085">"Animacja pokazująca, jak uzyskać dostęp do sugerowanych aplikacji na urządzeniu"</string>
+    <string name="taskbar_edu_suggested_search_animation_description" msgid="1874284242557104818">"Animacja pokazująca, jak wyszukać element na ekranie, naciskając i przytrzymując klawisz działania oraz wybierając obszar, w którym jest dany element"</string>
     <string name="taskbar_edu_a11y_title" msgid="5417986057866415355">"Informacje o pasku aplikacji"</string>
     <string name="taskbar_edu_splitscreen" msgid="5605512479258053350">"Przeciągnij aplikację na bok, aby używać 2 aplikacji naraz"</string>
     <string name="taskbar_edu_stashing" msgid="5645461372669217294">"Aby wyświetlić pasek aplikacji, powoli przesuń palcem w górę"</string>
@@ -163,10 +168,7 @@
     <string name="header_close_icon_description" msgid="5400033616675911319">"Przycisk Zamknij"</string>
     <string name="pin_to_taskbar" msgid="6607778046321626950">"Przypnij do paska"</string>
     <string name="unpin_from_taskbar" msgid="2178811773165572676">"Odepnij od paska"</string>
-    <!-- no translation found for nudge_a11y_title (2126529303123687912) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_close (4513937143817625570) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_image (117910310515857252) -->
-    <skip />
+    <string name="nudge_a11y_title" msgid="2126529303123687912">"Ponaglenie"</string>
+    <string name="nudge_a11y_close" msgid="4513937143817625570">"Zamknij"</string>
+    <string name="nudge_a11y_image" msgid="117910310515857252">"Obraz ponaglenia"</string>
 </resources>

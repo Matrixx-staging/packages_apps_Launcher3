@@ -259,6 +259,7 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
          * Called when the overlay is no longer used.
          */
         public void reset() {
+            setThumbnailState(null);
         }
 
         /**

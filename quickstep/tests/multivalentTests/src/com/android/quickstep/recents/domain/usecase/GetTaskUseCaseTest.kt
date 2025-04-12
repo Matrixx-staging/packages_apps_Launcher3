@@ -75,6 +75,7 @@ class GetTaskUseCaseTest {
                     thumbnail = null,
                     backgroundColor = Color.BLACK,
                     isLocked = false,
+                    isMinimized = false,
                 )
             val result = sut.invoke(TASK_1_ID).firstOrNull()
             assertThat(result).isEqualTo(expectedResult)
@@ -102,6 +103,7 @@ class GetTaskUseCaseTest {
                     icon = TASK_1_ICON
                     thumbnail = null
                     isLocked = false
+                    isMinimized = false
                 }
     }
 }

@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.annotation.UiThread
 import com.android.launcher3.Flags.enableSmartspaceRemovalToggle
 import com.android.launcher3.LauncherConstants.TraceEvents
+import com.android.launcher3.LauncherSettings.Favorites.containerBelongsToWorkspace
 import com.android.launcher3.Utilities.SHOULD_SHOW_FIRST_PAGE_WIDGET
 import com.android.launcher3.WorkspaceLayoutManager.FIRST_SCREEN_ID
 import com.android.launcher3.allapps.AllAppsStore
@@ -223,7 +224,8 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         PopupContainerWithArrow.dismissInvalidPopup(launcher)
     }
 
-    override fun bindItemsModified(items: MutableList<ItemInfo>) {
+    override fun bindItemsModified(itemsParam: MutableList<ItemInfo>) {
+        val items = itemsParam.filter { containerBelongsToWorkspace(it.container) }
         launcher.workspace.removeItemsByMatcher(ItemInfoMatcher.ofItems(items), false)
         launcher.bindItems(items, false)
         launcher.workspace.stripEmptyScreens()

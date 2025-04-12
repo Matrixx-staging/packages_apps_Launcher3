@@ -29,8 +29,7 @@
     <string name="home_screen" msgid="5629429142036709174">"Accueil"</string>
     <string name="set_default_home_app" msgid="5808906607627586381">"Définissez <xliff:g id="LAUNCHER_NAME">%1$s</xliff:g> comme appli d\'accueil par défaut dans les paramètres"</string>
     <string name="recent_task_option_split_screen" msgid="6690461455618725183">"Écran divisé"</string>
-    <!-- no translation found for recent_task_option_aspect_ratio (7008605516391096989) -->
-    <skip />
+    <string name="recent_task_option_aspect_ratio" msgid="7008605516391096989">"Modifier les proportions"</string>
     <string name="split_app_info_accessibility" msgid="5475288491241414932">"Renseignements sur l\'appli pour %1$s"</string>
     <string name="split_app_usage_settings" msgid="7214375263347964093">"Paramètres d\'utilisation pour %1$s"</string>
     <string name="new_window_option_taskbar" msgid="6448780542727767211">"Nouvelle fenêtre"</string>
@@ -137,9 +136,9 @@
     <string name="allow_rotation_title" msgid="7222049633713050106">"Autoriser la rotation de l\'écran d\'accueil"</string>
     <string name="allow_rotation_desc" msgid="8662546029078692509">"Lorsque vous faites pivoter le téléphone"</string>
     <string name="landscape_mode_title" msgid="5138814555934843926">"Mode paysage"</string>
-    <string name="landscape_mode_desc" msgid="7372569859592816793">"Configurez le téléphone en mode paysage"</string>
+    <string name="landscape_mode_desc" msgid="7372569859592816793">"Configurez le téléphone en mode Paysage"</string>
     <string name="notification_dots_title" msgid="9062440428204120317">"Pastilles de notification"</string>
-    <string name="notification_dots_desc_on" msgid="1679848116452218908">"Activé"</string>
+    <string name="notification_dots_desc_on" msgid="1679848116452218908">"Activées"</string>
     <string name="notification_dots_desc_off" msgid="1760796511504341095">"Désactivé"</string>
     <string name="title_missing_notification_access" msgid="7503287056163941064">"L\'accès aux notifications est requis"</string>
     <string name="msg_missing_notification_access" msgid="281113995110910548">"Pour afficher les points de notification, activez les notifications d\'appli pour <xliff:g id="NAME">%1$s</xliff:g>"</string>
@@ -217,16 +216,12 @@
     <string name="ps_container_lock_title" msgid="2640257399982364682">"Verrouiller"</string>
     <string name="ps_container_transition" msgid="8667331812048014412">"Transition vers l\'Espace privé"</string>
     <string name="ps_add_button_label" msgid="8127988716897128773">"Installer"</string>
+    <string name="ps_app_label_override" msgid="6876160706011676804">"Ajouter"</string>
     <string name="ps_add_button_content_description" msgid="3254274107740952556">"Installer des applis dans l\'Espace privé"</string>
     <string name="ps_app_content_description" msgid="1129133475892816226">"Ajouter des fichiers et plus à l\'espace privé"</string>
-    <!-- no translation found for circle_shape_title (3582075061179674565) -->
-    <skip />
-    <!-- no translation found for square_shape_title (3085320803149569308) -->
-    <skip />
-    <!-- no translation found for four_sided_cookie_shape_title (3275212586290522151) -->
-    <skip />
-    <!-- no translation found for seven_sided_cookie_shape_title (4862560582029671668) -->
-    <skip />
-    <!-- no translation found for arch_shape_title (2213843822192871318) -->
-    <skip />
+    <string name="circle_shape_title" msgid="3582075061179674565">"Cercle"</string>
+    <string name="square_shape_title" msgid="3085320803149569308">"Carré"</string>
+    <string name="four_sided_cookie_shape_title" msgid="3275212586290522151">"Biscuit à quatre côtés"</string>
+    <string name="seven_sided_cookie_shape_title" msgid="4862560582029671668">"Biscuit à sept côtés"</string>
+    <string name="arch_shape_title" msgid="2213843822192871318">"Arche"</string>
 </resources>

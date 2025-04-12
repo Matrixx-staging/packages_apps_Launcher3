@@ -544,9 +544,16 @@ constructor(
             return
         }
 
-        getDisplayDeskConfig(displayId)?.also {
-            check(it.deskIds.add(deskId)) {
-                "Found a duplicate desk Id: $deskId on display: $displayId"
+        // Add the config for the desk if there is nothing yet, as the display can start without any
+        // desks.
+        if (getDisplayDeskConfig(displayId) == null) {
+            displaysDesksConfigsMap[displayId] =
+                DisplayDeskConfig(displayId, INACTIVE_DESK_ID, mutableSetOf(deskId))
+        } else {
+            getDisplayDeskConfig(displayId)!!.also {
+                check(it.deskIds.add(deskId)) {
+                    "Found a duplicate desk Id: $deskId on display: $displayId"
+                }
             }
         }
 
@@ -575,7 +582,8 @@ constructor(
             return
         }
 
-        val wasInDesktopMode = isInDesktopModeAndNotInOverview(displayId)
+        val wasInDeskAndNotInOverview = isInDesktopModeAndNotInOverview(displayId)
+        val wasInDesk = isInDesktopMode(displayId)
 
         getDisplayDeskConfig(displayId)?.also {
             check(oldActiveDesk == it.activeDeskId) {
@@ -591,8 +599,17 @@ constructor(
             notifyOnActiveDeskChanged(displayId, newActiveDesk, oldActiveDesk)
         }
 
-        if (wasInDesktopMode != isInDesktopModeAndNotInOverview(displayId)) {
-            notifyIsInDesktopModeChanged(displayId, !wasInDesktopMode)
+        if (wasInDeskAndNotInOverview != isInDesktopModeAndNotInOverview(displayId)) {
+            notifyIsInDesktopModeChanged(displayId, !wasInDeskAndNotInOverview)
+        }
+
+        val isInDesk = isInDesktopMode(displayId)
+        if (wasInDesk != isInDesk) {
+            if (isInDesk) {
+                notifyTaskbarDesktopModeListenersForEntry(336)
+            } else {
+                notifyTaskbarDesktopModeListenersForExit(336)
+            }
         }
     }
 
@@ -689,9 +706,9 @@ constructor(
             }
         }
 
-        // TODO: b/402496827 - The multi-desks backend needs to be updated to call this API only
-        //  once, not between desk switches.
+        @Deprecated("Not needed by multi-desks")
         override fun onEnterDesktopModeTransitionStarted(transitionDuration: Int) {
+            if (enableMultipleDesktops(context)) return
             val controller = controller.get() ?: return
             MAIN_EXECUTOR.execute {
                 Log.d(
@@ -700,21 +717,19 @@ constructor(
                         "duration= " +
                         transitionDuration),
                 )
-                if (enableMultipleDesktops(context)) {
-                    controller.notifyTaskbarDesktopModeListenersForEntry(transitionDuration)
-                } else if (!controller.isInDesktopModeDeprecated) {
+                if (!controller.isInDesktopModeDeprecated) {
                     controller.isInDesktopModeDeprecated = true
                     controller.notifyTaskbarDesktopModeListenersForEntry(transitionDuration)
                 }
             }
         }
 
-        // TODO: b/402496827 - The multi-desks backend needs to be updated to call this API only
-        //  once, not between desk switches.
+        @Deprecated("Not needed by multi-desks")
         override fun onExitDesktopModeTransitionStarted(
             transitionDuration: Int,
             shouldEndUpAtHome: Boolean,
         ) {
+            if (enableMultipleDesktops(context)) return
             val controller = controller.get() ?: return
             MAIN_EXECUTOR.execute {
                 Log.d(
@@ -733,9 +748,7 @@ constructor(
                             LatencyTracker.ACTION_DESKTOP_MODE_EXIT_MODE_ON_LAST_WINDOW_CLOSE
                         )
                 }
-                if (enableMultipleDesktops(context)) {
-                    controller.notifyTaskbarDesktopModeListenersForExit(transitionDuration)
-                } else if (controller.isInDesktopModeDeprecated) {
+                if (controller.isInDesktopModeDeprecated) {
                     controller.isInDesktopModeDeprecated = false
                     controller.notifyTaskbarDesktopModeListenersForExit(transitionDuration)
                 }

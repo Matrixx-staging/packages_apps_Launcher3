@@ -18,9 +18,7 @@ package com.android.quickstep;
 
 import static android.content.Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS;
 
-import static com.android.launcher3.Flags.enableSeparateExternalDisplayTasks;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
-import static com.android.quickstep.util.SplitScreenUtils.convertShellSplitBoundsToLauncher;
 import static com.android.wm.shell.shared.GroupedTaskInfo.TYPE_DESK;
 import static com.android.wm.shell.shared.GroupedTaskInfo.TYPE_SPLIT;
 
@@ -52,6 +50,7 @@ import com.android.wm.shell.Flags;
 import com.android.wm.shell.recents.IRecentTasksListener;
 import com.android.wm.shell.shared.GroupedTaskInfo;
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
+import com.android.wm.shell.shared.split.SplitBounds;
 
 import kotlin.collections.ArraysKt;
 import kotlin.collections.CollectionsKt;
@@ -429,10 +428,8 @@ public class RecentTasksList implements WindowManagerProxy.DesktopVisibilityList
                     final Task.TaskKey task2Key = new Task.TaskKey(taskInfo2);
                     final Task task2 = Task.from(task2Key, taskInfo2,
                             tmpLockedUsers.get(task2Key.userId) /* isLocked */);
-                    final SplitConfigurationOptions.SplitBounds launcherSplitBounds =
-                            convertShellSplitBoundsToLauncher(
-                                    rawTask.getBaseGroupedTask().getSplitBounds());
-                    allTasks.add(new SplitTask(task1, task2, launcherSplitBounds));
+                    allTasks.add(new SplitTask(task1, task2,
+                            rawTask.getBaseGroupedTask().getSplitBounds()));
                 } else {
                     allTasks.add(new SingleTask(task1));
                 }
@@ -469,9 +466,7 @@ public class RecentTasksList implements WindowManagerProxy.DesktopVisibilityList
                 }
                 if (task2 != null) {
                     Objects.requireNonNull(rawTask.getSplitBounds());
-                    final SplitConfigurationOptions.SplitBounds launcherSplitBounds =
-                            convertShellSplitBoundsToLauncher(rawTask.getSplitBounds());
-                    allTasks.add(new SplitTask(task1, task2, launcherSplitBounds));
+                    allTasks.add(new SplitTask(task1, task2, rawTask.getSplitBounds()));
                 } else {
                     allTasks.add(new SingleTask(task1));
                 }
@@ -496,8 +491,7 @@ public class RecentTasksList implements WindowManagerProxy.DesktopVisibilityList
         Set<Integer> minimizedTaskIds = minimizedTaskIdArray != null
                 ? CollectionsKt.toSet(ArraysKt.asIterable(minimizedTaskIdArray))
                 : Collections.emptySet();
-        if (enableSeparateExternalDisplayTasks()
-                && !DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_BACKEND.isTrue()) {
+        if (!DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_BACKEND.isTrue()) {
             // This code is not needed when the multiple desktop feature is enabled, since Shell
             // will send a single `GroupedTaskInfo` for each desk with a unique `deskId` across
             // all displays.

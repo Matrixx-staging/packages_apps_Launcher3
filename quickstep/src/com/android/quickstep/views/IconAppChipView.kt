@@ -25,6 +25,7 @@ import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.text.TextUtils.TruncateAt
 import android.util.AttributeSet
+import android.view.Gravity
 import android.view.View
 import android.view.ViewAnimationUtils
 import android.view.ViewOutlineProvider
@@ -168,6 +169,8 @@ constructor(
         isLayoutNaturalToLauncher = orientationHandler.isLayoutNaturalToLauncher
         // Layout params for anchor view
         val anchorLayoutParams = menuAnchorView!!.layoutParams as LayoutParams
+        anchorLayoutParams.gravity =
+            if (orientationHandler.isLayoutNaturalToLauncher) Gravity.START else Gravity.LEFT
         anchorLayoutParams.topMargin = expandedMenuDefaultHeight + menuToChipGap
         menuAnchorView!!.layoutParams = anchorLayoutParams
 
@@ -342,19 +345,9 @@ constructor(
         val initialBackground = Rect(backgroundRelativeLtrLocation)
         animator = AnimatorSet()
 
+        val isRtl = isLayoutRtl
         if (isRevealing) {
-            val isRtl = isLayoutRtl
             bringToFront()
-            // Clip expanded text with reveal animation so it doesn't go beyond the edge of the menu
-            val expandedAppTitleWidth = calculateExpandedTextWidth(expandedBackgroundBounds.width())
-            val expandedTextRevealAnim =
-                ViewAnimationUtils.createCircularReveal(
-                    appTitle,
-                    0,
-                    appTitle!!.height / 2,
-                    appTitle!!.width.toFloat(),
-                    expandedAppTitleWidth.toFloat(),
-                )
             // Animate background clipping
             val backgroundAnimator =
                 ValueAnimator.ofObject(
@@ -376,7 +369,6 @@ constructor(
             val arrowTranslationWithRtl = if (isRtl) -arrowTranslationX else arrowTranslationX
 
             animator!!.playTogether(
-                expandedTextRevealAnim,
                 backgroundAnimator,
                 ObjectAnimator.ofFloat(iconView, SCALE_X, iconViewScaling),
                 ObjectAnimator.ofFloat(iconView, SCALE_Y, iconViewScaling),
@@ -391,7 +383,7 @@ constructor(
             val expandedTextClipAnim =
                 ViewAnimationUtils.createCircularReveal(
                     appTitle,
-                    0,
+                    if (isRtl) appTitle!!.width else 0,
                     appTitle!!.height / 2,
                     appTitle!!.width.toFloat(),
                     calculateCollapsedTextWidth(collapsedBackgroundBounds.width()).toFloat(),

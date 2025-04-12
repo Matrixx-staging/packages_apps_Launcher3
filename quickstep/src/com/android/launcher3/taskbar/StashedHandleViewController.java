@@ -39,7 +39,6 @@ import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.anim.RevealOutlineAnimation;
 import com.android.launcher3.anim.RoundedRectRevealOutlineProvider;
 import com.android.launcher3.util.Executors;
-import com.android.launcher3.util.MultiPropertyFactory;
 import com.android.launcher3.util.MultiValueAlpha;
 import com.android.quickstep.NavHandle;
 import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags;
@@ -57,7 +56,8 @@ public class StashedHandleViewController implements TaskbarControllers.LoggableT
     public static final int ALPHA_INDEX_HOME_DISABLED = 1;
     public static final int ALPHA_INDEX_ASSISTANT_INVOKED = 2;
     public static final int ALPHA_INDEX_HIDDEN_WHILE_DREAMING = 3;
-    private static final int NUM_ALPHA_CHANNELS = 4;
+    public static final int ALPHA_INDEX_NUDGED = 4;
+    private static final int NUM_ALPHA_CHANNELS = 5;
 
     // Values for long press animations, picked to most closely match navbar spec.
     private static final float SCALE_TOUCH_ANIMATION_SHRINK = 0.85f;
@@ -203,7 +203,7 @@ public class StashedHandleViewController implements TaskbarControllers.LoggableT
         mRegionSamplingHelper = null;
     }
 
-    public MultiPropertyFactory<View> getStashedHandleAlpha() {
+    public MultiValueAlpha getStashedHandleAlpha() {
         return mTaskbarStashedHandleAlpha;
     }
 

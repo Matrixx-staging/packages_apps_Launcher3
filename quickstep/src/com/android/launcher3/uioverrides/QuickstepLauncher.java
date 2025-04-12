@@ -64,6 +64,7 @@ import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 import static com.android.quickstep.util.AnimUtils.completeRunnableListCallback;
 import static com.android.quickstep.util.SplitAnimationTimings.TABLET_HOME_TO_SPLIT;
 import static com.android.systemui.shared.system.ActivityManagerWrapper.CLOSE_SYSTEM_WINDOWS_REASON_HOME_KEY;
+import static com.android.wm.shell.shared.split.SplitScreenConstants.SNAP_TO_2_50_50;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -1395,7 +1396,9 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
                 SplitConfigurationOptions.STAGE_POSITION_TOP_OR_LEFT,
                 /* callback= */ success -> mSplitSelectStateController.resetState(),
                 /* freezeTaskList= */ false,
-                splitTask.getSplitBounds().snapPosition,
+                splitTask.getSplitBounds() == null
+                        ? SNAP_TO_2_50_50
+                        : splitTask.getSplitBounds().snapPosition,
                 remoteTransition);
     }
 

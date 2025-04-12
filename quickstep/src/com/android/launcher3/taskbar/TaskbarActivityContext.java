@@ -307,6 +307,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         TaskbarScrimView taskbarScrimView = mDragLayer.findViewById(R.id.taskbar_scrim);
         NearestTouchFrame navButtonsView = mDragLayer.findViewById(R.id.navbuttons_view);
         StashedHandleView stashedHandleView = mDragLayer.findViewById(R.id.stashed_handle);
+        NudgeView nudgeView = mDragLayer.findViewById(R.id.nudge_icon);
         BubbleBarView bubbleBarView = mDragLayer.findViewById(R.id.taskbar_bubbles);
         FrameLayout bubbleBarContainer = mDragLayer.findViewById(R.id.taskbar_bubbles_container);
         StashedHandleView bubbleHandleView = mDragLayer.findViewById(R.id.stashed_bubble_handle);
@@ -391,7 +392,8 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                 bubbleControllersOptional,
                 new TaskbarDesktopModeController(this,
                         DesktopVisibilityController.INSTANCE.get(this)),
-                new NudgeController(this));
+                new NudgeController(this),
+                new NudgeViewController(this, nudgeView));
 
         mLauncherPrefs = LauncherPrefs.get(this);
         onViewCreated();
@@ -1052,6 +1054,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
      */
     public void onDestroy() {
         onViewDestroyed();
+        removeTaskbarSnapshot();
         mIsDestroyed = true;
         mTaskbarFeatureEvaluator.onDestroy();
         setUIController(TaskbarUIController.DEFAULT);
@@ -1060,8 +1063,6 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             mWindowManager.removeViewImmediate(mDragLayer);
             mAddedWindow = false;
         }
-        mTaskbarSnapshotView = null;
-        mTaskbarSnapshotOverlay = null;
     }
 
     public boolean isDestroyed() {
@@ -1148,6 +1149,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             if (!mTaskbarSnapshotView.isAttachedToWindow()
                     && mDragLayer.isAttachedToWindow()
                     && mDragLayer.isLaidOut()
+                    && mDragLayer.isVisibleToUser()
                     && mTaskbarSnapshotView.getParent() == null) {
                 NearestTouchFrame navButtonsView = mDragLayer.findViewById(R.id.navbuttons_view);
                 int oldNavButtonsVisibility = navButtonsView.getVisibility();
@@ -1187,26 +1189,27 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                 mTaskbarSnapshotOverlay.getDragLayer().addView(mTaskbarSnapshotView, layoutParams);
             }
         } else {
-            Runnable removeSnapshotView = () -> {
-                if (mTaskbarSnapshotOverlay != null) {
-                    mTaskbarSnapshotOverlay.getDragLayer().removeView(mTaskbarSnapshotView);
-                    mTaskbarSnapshotView = null;
-                    mTaskbarSnapshotOverlay = null;
-                }
-            };
             if (mTaskbarSnapshotView.isAttachedToWindow()) {
                 mTaskbarSnapshotView.setAlpha(0f);
                 anim.end();
                 if (Utilities.isRunningInTestHarness()) {
-                    removeSnapshotView.run();
+                    removeTaskbarSnapshot();
                 } else {
                     ViewRootSync.synchronizeNextDraw(mDragLayer, mTaskbarSnapshotView,
-                            removeSnapshotView);
+                            this::removeTaskbarSnapshot);
                 }
             } else {
-                removeSnapshotView.run();
+                removeTaskbarSnapshot();
             }
         }
+    }
+
+    private void removeTaskbarSnapshot() {
+        if (mTaskbarSnapshotOverlay != null) {
+            mTaskbarSnapshotOverlay.getDragLayer().removeView(mTaskbarSnapshotView);
+        }
+        mTaskbarSnapshotView = null;
+        mTaskbarSnapshotOverlay = null;
     }
 
     public void onRotationProposal(int rotation, boolean isValid) {

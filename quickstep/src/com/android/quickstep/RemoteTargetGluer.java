@@ -16,7 +16,6 @@
 
 package com.android.quickstep;
 
-import static com.android.quickstep.util.SplitScreenUtils.convertShellSplitBoundsToLauncher;
 import static com.android.wm.shell.shared.split.SplitBounds.KEY_EXTRA_SPLIT_BOUNDS;
 import static com.android.wm.shell.shared.desktopmode.DesktopModeStatus.enableMultipleDesktops;
 
@@ -31,7 +30,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.launcher3.statehandlers.DesktopVisibilityController;
-import com.android.launcher3.util.SplitConfigurationOptions;
 import com.android.quickstep.util.AnimatorControllerWithResistance;
 import com.android.quickstep.util.TaskViewSimulator;
 import com.android.quickstep.util.TransformParams;
@@ -55,7 +53,7 @@ public class RemoteTargetGluer {
     private static final int DEFAULT_NUM_HANDLES = 4;
 
     private RemoteTargetHandle[] mRemoteTargetHandles;
-    private SplitConfigurationOptions.SplitBounds mSplitBounds;
+    private SplitBounds mSplitBounds;
 
     /**
      * Use this constructor if remote targets are split-screen independent
@@ -136,7 +134,7 @@ public class RemoteTargetGluer {
      * information specified.
      */
     public RemoteTargetHandle[] assignTargetsForSplitScreen(RemoteAnimationTargets targets,
-            SplitConfigurationOptions.SplitBounds splitBounds) {
+            SplitBounds splitBounds) {
         mSplitBounds = splitBounds;
         return assignTargetsForSplitScreen(targets);
     }
@@ -154,11 +152,7 @@ public class RemoteTargetGluer {
         //     b) A SplitBounds was passed up from shell (via AbsSwipeUpHandler)
         // If both of these are null, we are in a 1-app or 1-app-plus-assistant case.
         if (mSplitBounds == null) {
-            SplitBounds shellSplitBounds = targets.extras.getParcelable(KEY_EXTRA_SPLIT_BOUNDS,
-                    SplitBounds.class);
-            if (shellSplitBounds != null) {
-                mSplitBounds = convertShellSplitBoundsToLauncher(shellSplitBounds);
-            }
+            mSplitBounds = targets.extras.getParcelable(KEY_EXTRA_SPLIT_BOUNDS, SplitBounds.class);
         }
 
         boolean containsSplitTargets = mSplitBounds != null;
@@ -318,7 +312,7 @@ public class RemoteTargetGluer {
         return mRemoteTargetHandles;
     }
 
-    public SplitConfigurationOptions.SplitBounds getSplitBounds() {
+    public SplitBounds getSplitBounds() {
         return mSplitBounds;
     }
 

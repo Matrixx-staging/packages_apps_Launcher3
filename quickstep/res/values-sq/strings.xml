@@ -109,6 +109,11 @@
     <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"Anulo"</string>
     <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"Kapërce"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"Rrotullo ekranin"</string>
+    <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"Animacioni që tregon se si shfaqet shiriti i detyrave nga fundi i ekranit dhe si fshihet automatikisht kur nuk është në përdorim"</string>
+    <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"Animacioni që tregon se si të gozhdosh shiritin e detyrave duke përdorur një çelës, në mënyrë që shiriti i detyrave të qëndrojë përgjithmonë i dukshëm në fund të ekranit"</string>
+    <string name="taskbar_edu_split_screen_animation_description" msgid="371796444988899166">"Animacioni që tregon si të krijosh një ekran të ndarë duke zvarritur dhe lëshuar një aplikacion nga shiriti i detyrave mbi një aplikacion të hapur"</string>
+    <string name="taskbar_edu_suggested_app_animation_description" msgid="3443453246478079085">"Animacioni që tregon se si të qasesh në aplikacionet e sugjeruara në pajisjen tënde"</string>
+    <string name="taskbar_edu_suggested_search_animation_description" msgid="1874284242557104818">"Animacioni që tregon se si të kërkosh për një artikull në ekran, duke prekur dhe mbajtur shtypur tastin e veprimit dhe duke zgjedhur zonën ku është artikulli"</string>
     <string name="taskbar_edu_a11y_title" msgid="5417986057866415355">"Edukimi për shiritin e detyrave"</string>
     <string name="taskbar_edu_splitscreen" msgid="5605512479258053350">"Zvarrit një aplikacion në anë për të përdorur 2 aplikacione njëherësh"</string>
     <string name="taskbar_edu_stashing" msgid="5645461372669217294">"Rrëshqit lart ngadalë për të shfaqur \"Shiritin e detyrave\""</string>
@@ -163,10 +168,7 @@
     <string name="header_close_icon_description" msgid="5400033616675911319">"Butoni i mbylljes"</string>
     <string name="pin_to_taskbar" msgid="6607778046321626950">"Gozhdo te shiriti"</string>
     <string name="unpin_from_taskbar" msgid="2178811773165572676">"Zhgozhdo nga shiriti"</string>
-    <!-- no translation found for nudge_a11y_title (2126529303123687912) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_close (4513937143817625570) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_image (117910310515857252) -->
-    <skip />
+    <string name="nudge_a11y_title" msgid="2126529303123687912">"Shtytje"</string>
+    <string name="nudge_a11y_close" msgid="4513937143817625570">"Mbyll"</string>
+    <string name="nudge_a11y_image" msgid="117910310515857252">"Shtyj imazhin"</string>
 </resources>

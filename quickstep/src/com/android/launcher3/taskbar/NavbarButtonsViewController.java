@@ -480,8 +480,9 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         if (!mContext.isPhoneMode()) {
             mPropertyHolders.add(new StatePropertyHolder(
                     mBackButton, flags -> mContext.isUserSetupComplete()
-                            && ((flags & FLAG_ONLY_BACK_FOR_BOUNCER_VISIBLE) != 0
-                                    || (flags & FLAG_KEYGUARD_VISIBLE) != 0),
+                        && ((flags & FLAG_ONLY_BACK_FOR_BOUNCER_VISIBLE) != 0
+                            || (flags & FLAG_KEYGUARD_VISIBLE) != 0)
+                        && (!shouldShowHomeButtonInLockscreen(flags)),
                     VIEW_TRANSLATE_X, navButtonSize * (isRtl ? -2 : 2), 0));
         }
 
@@ -491,19 +492,8 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         mHomeButtonAlpha = new MultiValueAlpha(mHomeButton, NUM_ALPHA_CHANNELS);
         mHomeButtonAlpha.setUpdateVisibility(true);
         mPropertyHolders.add(
-                new StatePropertyHolder(mHomeButtonAlpha.get(
-                        ALPHA_INDEX_KEYGUARD_OR_DISABLE),
-                        flags -> {
-                            /* when the keyguard is visible hide home button. Anytime we are
-                             * occluded we want to show the home button for apps over keyguard.
-                             * however we don't want to show when not occluded/visible.
-                             * (visible false || occluded true) && disable false && not gnav
-                             */
-                            return ((flags & FLAG_KEYGUARD_VISIBLE) == 0
-                                    || (flags & FLAG_KEYGUARD_OCCLUDED) != 0)
-                                    && (flags & FLAG_DISABLE_HOME) == 0
-                                    && !mContext.isGestureNav();
-                        }));
+                new StatePropertyHolder(mHomeButtonAlpha.get(ALPHA_INDEX_KEYGUARD_OR_DISABLE),
+                        this::shouldShowHomeButtonInLockscreen));
 
         // Recents button
         mRecentsButton = addButton(R.drawable.ic_sysbar_recent, BUTTON_RECENTS,
@@ -536,6 +526,21 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
                 navButtonController.onButtonLongClick(BUTTON_SPACE, view));
     }
 
+    /**
+     * Method to determine whether to show the home button in lockscreen
+     *
+     * When the keyguard is visible hide home button. Anytime we are
+     * occluded we want to show the home button for apps over keyguard.
+     * however we don't want to show when not occluded/visible.
+     * (visible false || occluded true) && disable false && not gnav
+     */
+    private boolean shouldShowHomeButtonInLockscreen(int flags) {
+        return ((flags & FLAG_KEYGUARD_VISIBLE) == 0
+                || (flags & FLAG_KEYGUARD_OCCLUDED) != 0)
+                && (flags & FLAG_DISABLE_HOME) == 0
+                && !mContext.isGestureNav();
+    }
+
     private void parseSystemUiFlags(@SystemUiStateFlags long sysUiStateFlags) {
         mSysuiStateFlags = sysUiStateFlags;
         boolean isImeSwitcherButtonVisible =
@@ -544,7 +549,9 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         boolean isBackDismissIme = (sysUiStateFlags & SYSUI_STATE_BACK_DISMISS_IME) != 0;
         boolean a11yVisible = (sysUiStateFlags & SYSUI_STATE_A11Y_BUTTON_CLICKABLE) != 0;
         boolean isHomeDisabled = (sysUiStateFlags & SYSUI_STATE_HOME_DISABLED) != 0;
-        boolean isRecentsDisabled = (sysUiStateFlags & SYSUI_STATE_OVERVIEW_DISABLED) != 0;
+        // TODO: b/409075366 - ensure this signal is correctly set for external displays.
+        boolean isRecentsDisabled = mContext.isPrimaryDisplay()
+                && (sysUiStateFlags & SYSUI_STATE_OVERVIEW_DISABLED) != 0;
         boolean isBackDisabled = (sysUiStateFlags & SYSUI_STATE_BACK_DISABLED) != 0;
         long shadeExpandedFlags = SYSUI_STATE_NOTIFICATION_PANEL_EXPANDED
                 | SYSUI_STATE_QUICK_SETTINGS_EXPANDED;
@@ -641,7 +648,8 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
      * Returns true if the recents (overview) button is disabled
      */
     public boolean isRecentsDisabled() {
-        return (mState & FLAG_DISABLE_RECENTS) != 0;
+        // TODO: b/409075366 - ensure this signal is correctly set for external displays.
+        return (mState & FLAG_DISABLE_RECENTS) != 0 && mContext.isPrimaryDisplay();
     }
 
     /**

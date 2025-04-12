@@ -33,6 +33,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.updateLayoutParams
 import com.android.internal.hidden_from_bootclasspath.com.android.window.flags.Flags.enableDesktopRecentsTransitionsCornersBugfix
 import com.android.launcher3.Flags.enableDesktopExplodedView
+import com.android.launcher3.Flags.enableRefactorTaskContentView
 import com.android.launcher3.Flags.enableRefactorTaskThumbnail
 import com.android.launcher3.R
 import com.android.launcher3.statehandlers.DesktopVisibilityController
@@ -56,6 +57,7 @@ import com.android.quickstep.recents.di.get
 import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData
 import com.android.quickstep.recents.ui.viewmodel.DesktopTaskViewModel
 import com.android.quickstep.recents.ui.viewmodel.TaskData
+import com.android.quickstep.task.thumbnail.TaskContentView
 import com.android.quickstep.task.thumbnail.TaskThumbnailView
 import com.android.quickstep.util.DesktopTask
 import com.android.quickstep.util.RecentsOrientedState
@@ -70,10 +72,11 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         type = TaskViewType.DESKTOP,
         thumbnailFullscreenParams = DesktopFullscreenDrawParams(context),
     ) {
+    private val desktopTask: DesktopTask?
+        get() = groupTask as? DesktopTask
+
     val deskId
         get() = desktopTask?.deskId ?: DesktopVisibilityController.INACTIVE_DESK_ID
-
-    private var desktopTask: DesktopTask? = null
 
     private val contentViewFullscreenParams = FullscreenDrawParams(context)
 
@@ -94,6 +97,17 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                 context,
                 this,
                 R.layout.task_thumbnail,
+                VIEW_POOL_MAX_SIZE,
+                VIEW_POOL_INITIAL_SIZE,
+            )
+        } else null
+
+    private val taskContentViewPool =
+        if (enableRefactorTaskContentView()) {
+            ViewPool<TaskContentView>(
+                context,
+                this,
+                R.layout.task_content_view,
                 VIEW_POOL_MAX_SIZE,
                 VIEW_POOL_INITIAL_SIZE,
             )
@@ -240,7 +254,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
             val overviewTaskHeight = overviewTaskBounds.height() * scaleHeight
             if (updateLayout) {
                 // Position the task to the same position as it would be on the desktop
-                taskContainer.snapshotView.updateLayoutParams<LayoutParams> {
+                taskContainer.taskContentView.updateLayoutParams<LayoutParams> {
                     gravity = Gravity.LEFT or Gravity.TOP
                     width = overviewTaskWidth.toInt()
                     height = overviewTaskHeight.toInt()
@@ -256,7 +270,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                     overviewTaskBounds.width().toFloat() / currentTaskBounds.width()
                 val thumbnailScaleHeight =
                     overviewTaskBounds.height().toFloat() / currentTaskBounds.height()
-                taskContainer.thumbnailView.outlineBounds =
+                val contentOutlineBounds =
                     if (intersects(currentTaskBounds, screenRect))
                         Rect(currentTaskBounds).apply {
                             intersectUnchecked(screenRect)
@@ -269,6 +283,13 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                             bottom = (bottom * scaleHeight * thumbnailScaleHeight).roundToInt()
                         }
                     else null
+
+                if (enableRefactorTaskContentView()) {
+                    (taskContainer.taskContentView as TaskContentView).outlineBounds =
+                        contentOutlineBounds
+                } else {
+                    taskContainer.thumbnailView.outlineBounds = contentOutlineBounds
+                }
             }
 
             val currentTaskLeft = currentTaskBounds.left * scaleWidth
@@ -277,13 +298,17 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
             val currentTaskHeight = currentTaskBounds.height() * scaleHeight
             // During the animation, apply translation and scale such that the view is transformed
             // to where we want, without triggering layout.
-            taskContainer.snapshotView.apply {
+            taskContainer.taskContentView.apply {
                 pivotX = 0.0f
                 pivotY = 0.0f
                 translationX = currentTaskLeft - overviewTaskLeft
                 translationY = currentTaskTop - overviewTaskTop
                 scaleX = currentTaskWidth / overviewTaskWidth
                 scaleY = currentTaskHeight / overviewTaskHeight
+            }
+
+            if (taskContainer.task.isMinimized) {
+                taskContainer.taskContentView.alpha = explodeProgress
             }
         }
     }
@@ -294,11 +319,14 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         orientedState: RecentsOrientedState,
         taskOverlayFactory: TaskOverlayFactory,
     ) {
-        this.desktopTask = desktopTask
-        // TODO(b/370495260): Minimized tasks should not be filtered with desktop exploded view
-        // support.
-        // Minimized tasks should not be shown in Overview.
-        val tasks = desktopTask.tasks.filterNot { it.isMinimized }
+        this.groupTask = desktopTask
+        // Minimized tasks are shown in Overview when exploded view is enabled.
+        val tasks =
+            if (enableDesktopExplodedView()) {
+                desktopTask.tasks
+            } else {
+                desktopTask.tasks.filterNot { it.isMinimized }
+            }
         if (DEBUG) {
             val sb = StringBuilder()
             sb.append("bind tasks=").append(tasks.size).append("\n")
@@ -323,17 +351,24 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         val backgroundViewIndex = contentView.indexOfChild(backgroundView)
         taskContainers =
             tasks.map { task ->
-                val snapshotView =
-                    if (enableRefactorTaskThumbnail()) {
-                        taskThumbnailViewPool!!.view
-                    } else {
-                        taskThumbnailViewDeprecatedPool!!.view
+                val taskContentView =
+                    when {
+                        enableRefactorTaskContentView() -> taskContentViewPool!!.view
+                        enableRefactorTaskThumbnail() -> taskThumbnailViewPool!!.view
+                        else -> taskThumbnailViewDeprecatedPool!!.view
                     }
-                contentView.addView(snapshotView, backgroundViewIndex + 1)
+                contentView.addView(taskContentView, backgroundViewIndex + 1)
+                val snapshotView =
+                    if (enableRefactorTaskContentView()) {
+                        taskContentView.findViewById<TaskThumbnailView>(R.id.snapshot)
+                    } else {
+                        taskContentView
+                    }
 
                 TaskContainer(
                     this,
                     task,
+                    taskContentView,
                     snapshotView,
                     iconView,
                     TransformingTouchDelegate(iconView.asView()),
@@ -357,7 +392,6 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
 
     override fun onRecycle() {
         super.onRecycle()
-        desktopTask = null
         explodeProgress = 0.0f
         viewModel = null
         visibility = VISIBLE
@@ -500,11 +534,13 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
     }
 
     private fun removeAndRecycleThumbnailView(taskContainer: TaskContainer) {
-        contentView.removeView(taskContainer.snapshotView)
-        if (enableRefactorTaskThumbnail()) {
-            taskThumbnailViewPool!!.recycle(taskContainer.thumbnailView)
-        } else {
-            taskThumbnailViewDeprecatedPool!!.recycle(taskContainer.thumbnailViewDeprecated)
+        contentView.removeView(taskContainer.taskContentView)
+        when {
+            enableRefactorTaskContentView() ->
+                taskContentViewPool!!.recycle(taskContainer.taskContentView as TaskContentView)
+            enableRefactorTaskThumbnail() ->
+                taskThumbnailViewPool!!.recycle(taskContainer.taskContentView as TaskThumbnailView)
+            else -> taskThumbnailViewDeprecatedPool!!.recycle(taskContainer.thumbnailViewDeprecated)
         }
     }
 

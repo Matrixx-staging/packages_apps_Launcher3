@@ -43,12 +43,12 @@ import androidx.core.view.isVisible
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.launcher3.util.Executors
-import com.android.launcher3.util.SplitConfigurationOptions
 import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_TOP_OR_LEFT
 import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_UNDEFINED
 import com.android.launcher3.util.SplitConfigurationOptions.StagePosition
 import com.android.quickstep.TaskUtils
 import com.android.systemui.shared.recents.model.Task
+import com.android.wm.shell.shared.split.SplitBounds
 import java.time.Duration
 import java.util.Locale
 
@@ -87,7 +87,7 @@ constructor(
         private set
 
     var hasLimit = false
-    var splitBounds: SplitConfigurationOptions.SplitBounds? = null
+    var splitBounds: SplitBounds? = null
     var bannerOffsetPercentage = 0f
         set(value) {
             if (field != value) {
@@ -339,7 +339,7 @@ constructor(
                 taskView.layoutParams.height,
                 splitBounds,
                 recentsViewContainer.deviceProfile,
-                taskView.snapshotViews,
+                taskView.taskContentViews,
                 task.key.id,
                 this,
             )

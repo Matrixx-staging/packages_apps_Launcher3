@@ -85,7 +85,8 @@ public abstract class SwipeUpAnimationLogic implements
 
     protected boolean mIsSwipeForSplit;
 
-    public SwipeUpAnimationLogic(Context context, GestureState gestureState) {
+    public SwipeUpAnimationLogic(Context context, GestureState gestureState,
+            RotationTouchHelper rotationTouchHelper) {
         mContext = context;
         mGestureState = gestureState;
         updateIsGestureForSplit(TopTaskTracker.INSTANCE.get(context)
@@ -100,7 +101,6 @@ public abstract class SwipeUpAnimationLogic implements
         mTargetGluer = new RemoteTargetGluer(mContext, mGestureState.getContainerInterface(),
                 groupedTaskInfo);
         mRemoteTargetHandles = mTargetGluer.getRemoteTargetHandles();
-        RotationTouchHelper rotationTouchHelper = RotationTouchHelper.INSTANCE.get(context);
         runActionOnRemoteHandles(remoteTargetHandle ->
                 remoteTargetHandle.getTaskViewSimulator().getOrientationState().update(
                         rotationTouchHelper.getCurrentActiveRotation(),

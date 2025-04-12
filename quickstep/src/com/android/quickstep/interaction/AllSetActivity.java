@@ -171,10 +171,9 @@ public class AllSetActivity extends Activity {
 
         TextView subtitle = findViewById(R.id.subtitle);
         String suwDeviceName = intent.getStringExtra(EXTRA_DEVICE_NAME);
-        subtitle.setText(getString(
-                R.string.allset_description_generic,
-                !TextUtils.isEmpty(suwDeviceName)
-                        ? suwDeviceName : getString(R.string.default_device_name)));
+        subtitle.setText(TextUtils.isEmpty(suwDeviceName)
+                ? getString(R.string.allset_description_fallback)
+                : getString(R.string.allset_description_generic, suwDeviceName));
 
         TextView settings = findViewById(R.id.navigation_settings);
         settings.setTextColor(accentColor);

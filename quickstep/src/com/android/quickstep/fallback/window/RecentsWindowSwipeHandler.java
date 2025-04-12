@@ -71,6 +71,7 @@ import com.android.quickstep.GestureState;
 import com.android.quickstep.RecentsAnimationController;
 import com.android.quickstep.RecentsAnimationDeviceState;
 import com.android.quickstep.RecentsAnimationTargets;
+import com.android.quickstep.RotationTouchHelper;
 import com.android.quickstep.TaskAnimationManager;
 import com.android.quickstep.fallback.FallbackRecentsView;
 import com.android.quickstep.fallback.RecentsState;
@@ -114,11 +115,11 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
     private boolean mAppCanEnterPip;
 
     public RecentsWindowSwipeHandler(Context context, TaskAnimationManager taskAnimationManager,
-            RecentsAnimationDeviceState deviceState,
+            RecentsAnimationDeviceState deviceState, RotationTouchHelper rotationTouchHelper,
             GestureState gestureState, long touchTimeMs, boolean continuingLastGesture,
             InputConsumerController inputConsumer, MSDLPlayerWrapper msdlPlayerWrapper) {
-        super(context, taskAnimationManager, deviceState, gestureState, touchTimeMs,
-                continuingLastGesture, inputConsumer, msdlPlayerWrapper);
+        super(context, taskAnimationManager, deviceState, rotationTouchHelper, gestureState,
+                touchTimeMs, continuingLastGesture, inputConsumer, msdlPlayerWrapper);
 
         mRecentsDisplayModel = RecentsDisplayModel.getINSTANCE().get(context);
         mRunningOverHome = mGestureState.getRunningTask() != null

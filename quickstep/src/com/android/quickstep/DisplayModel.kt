@@ -23,13 +23,14 @@ import android.util.SparseArray
 import android.view.Display
 import androidx.core.util.valueIterator
 import com.android.quickstep.DisplayModel.DisplayResource
-import com.android.quickstep.SystemDecorationChangeObserver.Companion.INSTANCE
 import com.android.quickstep.SystemDecorationChangeObserver.DisplayDecorationListener
 import java.io.PrintWriter
 
 /** data model for managing resources with lifecycles that match that of the connected display */
-abstract class DisplayModel<RESOURCE_TYPE : DisplayResource>(val context: Context) :
-    DisplayDecorationListener {
+abstract class DisplayModel<RESOURCE_TYPE : DisplayResource>(
+    val context: Context,
+    private val systemDecorationChangeObserver: SystemDecorationChangeObserver,
+) : DisplayDecorationListener {
 
     companion object {
         private const val TAG = "DisplayModel"
@@ -37,7 +38,6 @@ abstract class DisplayModel<RESOURCE_TYPE : DisplayResource>(val context: Contex
     }
 
     private val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
-    private var systemDecorationChangeObserver: SystemDecorationChangeObserver? = null
     protected val displayResourceArray = SparseArray<RESOURCE_TYPE>()
 
     override fun onDisplayAddSystemDecorations(displayId: Int) {
@@ -58,16 +58,14 @@ abstract class DisplayModel<RESOURCE_TYPE : DisplayResource>(val context: Contex
     protected abstract fun createDisplayResource(display: Display): RESOURCE_TYPE
 
     protected fun initializeDisplays() {
-        systemDecorationChangeObserver = INSTANCE[context]
-        systemDecorationChangeObserver?.registerDisplayDecorationListener(this)
+        systemDecorationChangeObserver.registerDisplayDecorationListener(this)
         displayManager.displays
             .filter { getDisplayResource(it.displayId) == null }
             .forEach { storeDisplayResource(it.displayId) }
     }
 
     fun destroy() {
-        systemDecorationChangeObserver?.unregisterDisplayDecorationListener(this)
-        systemDecorationChangeObserver = null
+        systemDecorationChangeObserver.unregisterDisplayDecorationListener(this)
         displayResourceArray.valueIterator().forEach { displayResource ->
             displayResource.cleanup()
         }

@@ -77,6 +77,7 @@ public class LauncherSwipeHandlerV2TestCase extends AbsSwipeUpHandlerTestCase<
                 mContext,
                 mTaskAnimationManager,
                 mDeviceState,
+                mRotationTouchHelper,
                 mGestureState,
                 touchTimeMs,
                 continuingLastGesture,

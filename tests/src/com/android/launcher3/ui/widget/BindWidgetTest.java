@@ -171,7 +171,7 @@ public class BindWidgetTest extends BaseLauncherActivityTest<Launcher> {
         waitForLauncherCondition("App widget options did not update",
                 l -> appWidgetManager.getAppWidgetOptions(appWidgetId).getBoolean(
                         WidgetManagerHelper.WIDGET_OPTION_RESTORE_COMPLETED));
-        executeOnLauncher(l -> l.getAppWidgetHolder().startListening());
+        getLauncherActivity().executeOnLauncher(l -> l.getAppWidgetHolder().startListening());
         verifyWidgetPresent(info);
         verifyItemEventuallyNull("Pending widget exists", pendingWidgetProvider());
     }
@@ -250,7 +250,7 @@ public class BindWidgetTest extends BaseLauncherActivityTest<Launcher> {
     }
 
     private void verifyItemEventuallyNull(String message, Function<Launcher, Object> provider) {
-        atMost(message, () -> getFromLauncher(provider) == null);
+        atMost(message, () -> getLauncherActivity().getFromLauncher(provider) == null);
     }
 
     private void addPendingItemToScreen(LauncherAppWidgetInfo item, int restoreStatus) {

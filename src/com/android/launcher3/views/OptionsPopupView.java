@@ -16,6 +16,7 @@
 package com.android.launcher3.views;
 
 import static com.android.launcher3.BuildConfig.WIDGETS_ENABLED;
+import static com.android.launcher3.LauncherState.ALL_APPS;
 import static com.android.launcher3.LauncherState.EDIT_MODE;
 import static com.android.launcher3.config.FeatureFlags.MULTI_SELECT_EDIT_MODE;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.IGNORE;
@@ -233,16 +234,12 @@ public class OptionsPopupView<T extends Context & ActivityContext> extends Arrow
     }
 
     /**
-     * Used by the options to open All Apps, uses an intent as to not tie the implementation of
-     * opening All Apps with OptionsPopup, instead it uses the public API to open All Apps.
+     * Used by the options to open All Apps.
      */
     public static boolean enterAllApps(View view) {
         Launcher launcher = Launcher.getLauncher(view.getContext());
-        launcher.startActivity(
-                new Intent(Intent.ACTION_ALL_APPS)
-                .setComponent(launcher.getComponentName())
-                .setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-        );
+        launcher.getStatsLogManager().keyboardStateManager().setLaunchedFromA11y(true);
+        launcher.getStateManager().goToState(ALL_APPS);
         return true;
     }
 

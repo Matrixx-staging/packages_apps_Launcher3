@@ -75,7 +75,7 @@
     <string name="overview_gesture_feedback_home_detected" msgid="663432226180397138">"ਛੱਡਣ ਤੋਂ ਪਹਿਲਾਂ ਵਿੰਡੋ ਨੂੰ ਕੁਝ ਸਮੇਂ ਲਈ ਦਬਾ ਕੇ ਰੱਖੋ"</string>
     <string name="overview_gesture_feedback_wrong_swipe_direction" msgid="1191055451018584958">"ਇਹ ਪੱਕਾ ਕਰੋ ਕਿ ਤੁਸੀਂ ਸਿੱਧਾ ਉੱਪਰ ਵੱਲ ਸਵਾਈਪ ਕਰੋ, ਫਿਰ ਰੋਕੋ"</string>
     <string name="overview_gesture_feedback_complete_with_follow_up" msgid="3544611727467765026">"ਤੁਸੀਂ ਇਸ਼ਾਰੇ ਵਰਤਣ ਬਾਰੇ ਜਾਣਿਆ। ਇਸ਼ਾਰੇ ਬੰਦ ਕਰਨ ਲਈ, ਸੈਟਿੰਗਾਂ \'ਤੇ ਜਾਓ।"</string>
-    <string name="overview_gesture_feedback_complete_without_follow_up" msgid="2903050864432331629">"ਤੁਸੀਂ \'ਐਪਾਂ ਵਿਚਾਲੇ ਅਦਲਾ-ਬਦਲੀ ਕਰੋ\' ਦਾ ਇਸ਼ਾਰਾ ਪੂਰਾ ਕੀਤਾ"</string>
+    <string name="overview_gesture_feedback_complete_without_follow_up" msgid="2903050864432331629">"ਤੁਸੀਂ \'ਐਪਾਂ ਵਿਚਾਲੇ ਸਵਿੱਚ ਕਰੋ\' ਦਾ ਇਸ਼ਾਰਾ ਪੂਰਾ ਕੀਤਾ"</string>
     <string name="overview_gesture_intro_title" msgid="2902054412868489378">"ਐਪਾਂ ਵਿਚਾਲੇ ਅਦਲਾ-ਬਦਲੀ ਕਰਨ ਲਈ ਸਵਾਈਪ ਕਰੋ"</string>
     <string name="overview_gesture_intro_subtitle" msgid="4968091015637850859">"ਐਪਾਂ ਵਿਚਾਲੇ ਸਵਿੱਚ ਕਰਨ ਲਈ, ਸਕ੍ਰੀਨ ਦੇ ਹੇਠਾਂ ਤੋਂ ਉੱਤੇ ਸਵਾਈਪ ਕਰ ਕੇ ਦਬਾਈ ਰੱਖੋ ਅਤੇ ਫਿਰ ਛੱਡੋ।"</string>
     <string name="overview_gesture_tutorial_title" msgid="4125835002668708720">"ਐਪਾਂ ਸਵਿੱਚ ਕਰੋ"</string>
@@ -109,6 +109,11 @@
     <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"ਰੱਦ ਕਰੋ"</string>
     <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"ਛੱਡੋ"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"ਸਕ੍ਰੀਨ ਘੁਮਾਓ"</string>
+    <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"ਟਾਸਕਬਾਰ ਦੇ ਸਕ੍ਰੀਨ ਦੇ ਹੇਠਾਂ ਤੋਂ ਦ੍ਰਿਸ਼ ਵਿੱਚ ਆਉਣ ਅਤੇ ਵਰਤੋਂ ਵਿੱਚ ਨਾ ਹੋਣ \'ਤੇ ਆਪਣੇ ਆਪ ਲੁਕ ਜਾਣ ਦਾ ਤਰੀਕਾ ਦਿਖਾਉਣ ਵਾਲਾ ਐਨੀਮੇਸ਼ਨ"</string>
+    <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"ਟੌਗਲ ਦੀ ਵਰਤੋਂ ਕਰ ਕੇ ਤੁਹਾਡੇ ਟਾਸਕਬਾਰ ਨੂੰ ਪਿੰਨ ਕਰਨ ਦਾ ਤਰੀਕਾ ਦਿਖਾਉਣ ਵਾਲਾ ਐਨੀਮੇਸ਼ਨ, ਤਾਂ ਜੋ ਟਾਸਕਬਾਰ ਪੱਕੇ ਤੌਰ \'ਤੇ ਸਕ੍ਰੀਨ ਦੇ ਹੇਠਾਂ ਦਿਖਣਯੋਗ ਰਹੇ"</string>
+    <string name="taskbar_edu_split_screen_animation_description" msgid="371796444988899166">"ਕਿਸੇ ਖੁੱਲ੍ਹੀ ਐਪ ਉੱਪਰ ਟਾਸਕਬਾਰ ਤੋਂ ਘਸੀਟ ਅਤੇ ਛੱਡ ਕੇ, ਸਪਲਿਟ ਸਕ੍ਰੀਨ ਬਣਾਉਣ ਦਾ ਤਰੀਕਾ ਦਿਖਾਉਣ ਵਾਲਾ ਐਨੀਮੇਸ਼ਨ"</string>
+    <string name="taskbar_edu_suggested_app_animation_description" msgid="3443453246478079085">"ਤੁਹਾਡੇ ਡੀਵਾਈਸ \'ਤੇ ਸੁਝਾਈਆਂ ਗਈਆਂ ਐਪਾਂ ਤੱਕ ਪਹੁੰਚ ਕਰਨ ਦਾ ਤਰੀਕਾ ਦਿਖਾਉਣ ਵਾਲਾ ਐਨੀਮੇਸ਼ਨ"</string>
+    <string name="taskbar_edu_suggested_search_animation_description" msgid="1874284242557104818">"ਕਾਰਵਾਈ ਕੁੰਜੀ ਨੂੰ ਸਪਰਸ਼ ਕਰ ਕੇ ਰੱਖਦੇ ਹੋਏ ਅਤੇ ਆਈਟਮ ਜਿਸ ਖੇਤਰ ਵਿੱਚ ਹੈ ਉਸਨੂੰ ਚੁਣਦੇ ਹੋਏ, ਸਕ੍ਰੀਨ \'ਤੇ ਦਿੱਤੀ ਆਈਟਮ ਨੂੰ ਖੋਜਣ ਦਾ ਤਰੀਕਾ ਦਿਖਾਉਣ ਵਾਲਾ ਐਨੀਮੇਸ਼ਨ"</string>
     <string name="taskbar_edu_a11y_title" msgid="5417986057866415355">"ਟਾਸਕਬਾਰ ਸਿੱਖਿਆ"</string>
     <string name="taskbar_edu_splitscreen" msgid="5605512479258053350">"ਇੱਕੋ ਵੇਲੇ 2 ਐਪਾਂ ਵਰਤਣ ਲਈ, ਕਿਸੇ ਐਪ ਨੂੰ ਸਾਈਡ \'ਤੇ ਘਸੀਟੋ"</string>
     <string name="taskbar_edu_stashing" msgid="5645461372669217294">"ਟਾਸਕਬਾਰ ਦਿਖਾਉਣ ਲਈ ਹੌਲੀ ਜਿਹੀ ਉੱਤੇ ਵੱਲ ਸਵਾਈਪ ਕਰੋ"</string>
@@ -163,10 +168,7 @@
     <string name="header_close_icon_description" msgid="5400033616675911319">"\'ਬੰਦ ਕਰੋ\' ਬਟਨ"</string>
     <string name="pin_to_taskbar" msgid="6607778046321626950">"ਟਾਸਕਬਾਰ \'ਤੇ ਪਿੰਨ ਕਰੋ"</string>
     <string name="unpin_from_taskbar" msgid="2178811773165572676">"ਟਾਸਕਬਾਰ ਤੋਂ ਅਣਪਿੰਨ ਕਰੋ"</string>
-    <!-- no translation found for nudge_a11y_title (2126529303123687912) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_close (4513937143817625570) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_image (117910310515857252) -->
-    <skip />
+    <string name="nudge_a11y_title" msgid="2126529303123687912">"ਰਿਮਾਈਂਡਰ"</string>
+    <string name="nudge_a11y_close" msgid="4513937143817625570">"ਬੰਦ ਕਰੋ"</string>
+    <string name="nudge_a11y_image" msgid="117910310515857252">"ਰਿਮਾਈਂਡਰ ਦਾ ਚਿੱਤਰ"</string>
 </resources>

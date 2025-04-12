@@ -17,6 +17,8 @@ package com.android.launcher3.taskbar;
 
 import static androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID;
 
+import static com.android.launcher3.taskbar.TaskbarDesktopExperienceFlags.enableAltTabKqsFlatenning;
+
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
@@ -47,7 +49,6 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.android.app.animation.Interpolators;
 import com.android.internal.jank.Cuj;
-import com.android.launcher3.Flags;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.anim.AnimatedFloat;
@@ -287,7 +288,7 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
             } else if (groupTask instanceof SingleTask singleTask) {
                 task1 = singleTask.getTask();
                 task2 = null;
-            } else if (Flags.enableAltTabKqsFlatenning()
+            } else if (enableAltTabKqsFlatenning.isTrue()
                     && groupTask instanceof DesktopTask desktopTask) {
                 task1 = desktopTask.getTasks().get(0);
                 task2 = null;

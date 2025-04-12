@@ -75,7 +75,7 @@
     <string name="overview_gesture_feedback_home_detected" msgid="663432226180397138">"వేలిని రిలీజ్ చేయడానికి ముందు విండోను ఎక్కువసేపు నొక్కి, పట్టుకోవడానికి ట్రై చేయండి"</string>
     <string name="overview_gesture_feedback_wrong_swipe_direction" msgid="1191055451018584958">"స్క్రీన్‌పై నేరుగా పైకి స్వైప్ చేసి, ఆపై పాజ్ చేయండి"</string>
     <string name="overview_gesture_feedback_complete_with_follow_up" msgid="3544611727467765026">"మీరు సంజ్ఞలను ఎలా ఉపయోగించాలో నేర్చుకున్నారు. సంజ్ఞలను ఆఫ్ చేయడానికి, సెట్టింగ్‌లకు వెళ్లండి."</string>
-    <string name="overview_gesture_feedback_complete_without_follow_up" msgid="2903050864432331629">"మీరు \'యాప్‌ల మధ్య మార్పు\' సంజ్ఞను పూర్తి చేశారు"</string>
+    <string name="overview_gesture_feedback_complete_without_follow_up" msgid="2903050864432331629">"మీరు \'యాప్‌ల మధ్య మారేందుకు సంజ్ఞ\' ట్యుటోరియల్‌ను పూర్తి చేశారు"</string>
     <string name="overview_gesture_intro_title" msgid="2902054412868489378">"యాప్‌ల మధ్య మార్చడం కోసం స్వైప్ చేయండి"</string>
     <string name="overview_gesture_intro_subtitle" msgid="4968091015637850859">"యాప్‌ల మధ్య మారడానికి, మీ స్క్రీన్ కింది వైపు నుండి పైకి స్వైప్ చేసి, పట్టుకుని, తర్వాత వదలండి."</string>
     <string name="overview_gesture_tutorial_title" msgid="4125835002668708720">"యాప్‌ల మధ్య స్విచ్ అవ్వండి"</string>
@@ -109,6 +109,11 @@
     <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"రద్దు చేయండి"</string>
     <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"స్కిప్ చేయండి"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"స్క్రీన్‌ను తిప్పండి"</string>
+    <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"టాస్క్‌బార్ స్క్రీన్ దిగువ నుండి ఎలా కనిపిస్తుందో, ఉపయోగంలో లేనప్పుడు ఆటోమేటిక్‌గా ఎలా దాచబడుతుందో చూపించే యానిమేషన్"</string>
+    <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"టోగుల్ ఉపయోగించి మీ టాస్క్‌బార్‌ను ఎలా పిన్ చేయాలో చూపించే యానిమేషన్, తద్వారా టాస్క్‌బార్ స్క్రీన్ దిగువున శాశ్వతంగా కనిపిస్తుంది"</string>
+    <string name="taskbar_edu_split_screen_animation_description" msgid="371796444988899166">"తెరిచి ఉన్న యాప్ పైన టాస్క్‌బార్ నుండి యాప్‌ను లాగి, వదలడం ద్వారా స్ప్లిట్ స్క్రీన్‌ను ఎలా క్రియేట్ చేయాలో చూపించే యానిమేషన్"</string>
+    <string name="taskbar_edu_suggested_app_animation_description" msgid="3443453246478079085">"మీ పరికరంలో సూచించబడిన యాప్‌లను ఎలా యాక్సెస్ చేయాలో చూపించే యానిమేషన్"</string>
+    <string name="taskbar_edu_suggested_search_animation_description" msgid="1874284242557104818">"యాక్షన్ కీని నొక్కి పట్టుకుని, ఆ ఐటెమ్ ఉన్న ప్రాంతాన్ని ఎంచుకోవడం ద్వారా స్క్రీన్‌పై ఐటెమ్ కోసం ఎలా సెర్చ్ చేయాలో చూపించే యానిమేషన్"</string>
     <string name="taskbar_edu_a11y_title" msgid="5417986057866415355">"టాస్క్‌బార్ ఎడ్యుకేషన్"</string>
     <string name="taskbar_edu_splitscreen" msgid="5605512479258053350">"ఒకేసారి 2 యాప్‌లను ఉపయోగించడానికి యాప్‌ను పక్కకు లాగండి"</string>
     <string name="taskbar_edu_stashing" msgid="5645461372669217294">"టాస్క్‌బార్‌ను చూపడానికి నెమ్మదిగా పైకి స్వైప్ చేయండి"</string>
@@ -163,10 +168,7 @@
     <string name="header_close_icon_description" msgid="5400033616675911319">"\'మూసివేయండి\' బటన్"</string>
     <string name="pin_to_taskbar" msgid="6607778046321626950">"టాస్క్‌బార్‌కు పిన్"</string>
     <string name="unpin_from_taskbar" msgid="2178811773165572676">"టాస్క్‌బార్ అన్‌పిన్"</string>
-    <!-- no translation found for nudge_a11y_title (2126529303123687912) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_close (4513937143817625570) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_image (117910310515857252) -->
-    <skip />
+    <string name="nudge_a11y_title" msgid="2126529303123687912">"ఆటోమేటిక్ రిమైండర్"</string>
+    <string name="nudge_a11y_close" msgid="4513937143817625570">"మూసివేయండి"</string>
+    <string name="nudge_a11y_image" msgid="117910310515857252">"ఆటోమేటిక్ రిమైండర్ ఇమేజ్"</string>
 </resources>

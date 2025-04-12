@@ -35,6 +35,7 @@ import com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR
 import com.android.launcher3.util.TestUtil
 import com.android.quickstep.AllAppsActionManager
 import com.android.quickstep.fallback.window.RecentsDisplayModel
+import com.android.quickstep.input.QuickstepKeyGestureEventsManager
 import java.lang.reflect.Field
 import java.lang.reflect.ParameterizedType
 import java.util.Locale
@@ -108,7 +109,11 @@ class TaskbarUnitTestRule(
                         object :
                             TaskbarManager(
                                 context,
-                                AllAppsActionManager(context, UI_HELPER_EXECUTOR) {
+                                AllAppsActionManager(
+                                    context,
+                                    UI_HELPER_EXECUTOR,
+                                    QuickstepKeyGestureEventsManager(context),
+                                ) {
                                     PendingIntent(IIntentSender.Default())
                                 },
                                 object : TaskbarNavButtonCallbacks {},

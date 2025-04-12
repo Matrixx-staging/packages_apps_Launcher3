@@ -33,6 +33,7 @@ class GetTaskUseCase(private val repository: RecentTasksRepository) {
                     thumbnail = task.thumbnail,
                     backgroundColor = task.colorBackground,
                     isLocked = task.isLocked,
+                    isMinimized = task.isMinimized,
                 )
             } else {
                 null

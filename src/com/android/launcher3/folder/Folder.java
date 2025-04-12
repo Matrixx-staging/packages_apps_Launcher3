@@ -1150,7 +1150,8 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
 
     private void updateItemLocationsInDatabaseBatch(boolean isBind) {
         FolderGridOrganizer verifier = createFolderGridOrganizer(
-                mActivityContext.getDeviceProfile()).setFolderInfo(mInfo);
+                mActivityContext.getDeviceProfile()
+        ).setFolderInfo(mInfo);
 
         ArrayList<ItemInfo> items = new ArrayList<>();
         int total = mInfo.getContents().size();

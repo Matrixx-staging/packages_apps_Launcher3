@@ -216,16 +216,12 @@
     <string name="ps_container_lock_title" msgid="2640257399982364682">"Kunci"</string>
     <string name="ps_container_transition" msgid="8667331812048014412">"Ruang Pribadi Bertransisi"</string>
     <string name="ps_add_button_label" msgid="8127988716897128773">"Instal"</string>
+    <string name="ps_app_label_override" msgid="6876160706011676804">"Tambahkan"</string>
     <string name="ps_add_button_content_description" msgid="3254274107740952556">"Instal aplikasi ke Ruang Pribadi"</string>
     <string name="ps_app_content_description" msgid="1129133475892816226">"Tambahkan file dan lainnya ke Ruang Privasi"</string>
-    <!-- no translation found for circle_shape_title (3582075061179674565) -->
-    <skip />
-    <!-- no translation found for square_shape_title (3085320803149569308) -->
-    <skip />
-    <!-- no translation found for four_sided_cookie_shape_title (3275212586290522151) -->
-    <skip />
-    <!-- no translation found for seven_sided_cookie_shape_title (4862560582029671668) -->
-    <skip />
-    <!-- no translation found for arch_shape_title (2213843822192871318) -->
-    <skip />
+    <string name="circle_shape_title" msgid="3582075061179674565">"Lingkaran"</string>
+    <string name="square_shape_title" msgid="3085320803149569308">"Persegi"</string>
+    <string name="four_sided_cookie_shape_title" msgid="3275212586290522151">"Kue kering 4 sisi"</string>
+    <string name="seven_sided_cookie_shape_title" msgid="4862560582029671668">"Kue kering 7 sisi"</string>
+    <string name="arch_shape_title" msgid="2213843822192871318">"Lengkungan"</string>
 </resources>

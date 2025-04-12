@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,16 +22,16 @@ import com.android.launcher3.model.BgDataModel;
 import com.android.launcher3.util.ResourceBasedOverride;
 
 /**
- * Exposes Quickstep app prediction row APIs to {@link SecondaryDisplayLauncher}.
+ * Exposes Quickstep-specific APIs to {@link SecondaryDisplayLauncher}.
  */
-public class SecondaryDisplayPredictions implements ResourceBasedOverride {
+public class SecondaryDisplayQuickstepDelegate implements ResourceBasedOverride {
     /**
-     * Creates a {@link SecondaryDisplayPredictions} instance.
+     * Creates a {@link SecondaryDisplayQuickstepDelegate} instance.
      */
-    static SecondaryDisplayPredictions newInstance(Context context) {
+    static SecondaryDisplayQuickstepDelegate newInstance(Context context) {
         return Overrides.getObject(
-                SecondaryDisplayPredictions.class, context,
-                R.string.secondary_display_predictions_class);
+                SecondaryDisplayQuickstepDelegate.class, context,
+                R.string.secondary_display_quickstep_delegate_class);
     }
 
     /**
@@ -44,5 +44,9 @@ public class SecondaryDisplayPredictions implements ResourceBasedOverride {
      * Set predicted apps in top of app drawer.
      */
     public void setPredictedApps(BgDataModel.FixedContainerItems item) {
+    }
+
+    boolean enableTaskbarConnectedDisplays() {
+        return false;
     }
 }

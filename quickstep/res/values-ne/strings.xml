@@ -109,6 +109,11 @@
     <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"रद्द गर्नुहोस्"</string>
     <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"स्किप गर्नुहोस्"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"स्क्रिन घुमाउनुहोस्"</string>
+    <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"टास्कबार कसरी स्क्रिनको फेदबाट माथितिर निस्कन्छ र प्रयोग नगरिएका बेलामा कसरी स्वतः लुक्छ भन्ने कुरा देखाइएको एनिमेसन"</string>
+    <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"टास्कबार स्क्रिनको फेदमा स्थायी रूपमा देखियोस् भन्नाका लागि टगल प्रयोग गरी आफ्नो टास्कबार पिन गर्ने तरिका देखाइएको एनिमेसन"</string>
+    <string name="taskbar_edu_split_screen_animation_description" msgid="371796444988899166">"टास्कबारमा भएको कुनै एप खुला रहेको अर्को एपमाथि ड्र्याग एन्ड ड्रप गरेर स्प्लिट स्क्रिन बनाउने तरिका देखाइएको एनिमेसन"</string>
+    <string name="taskbar_edu_suggested_app_animation_description" msgid="3443453246478079085">"आफ्नो डिभाइसमा सिफारिस गरिएका एपहरू एक्सेस गर्ने तरिका देखाइएको एनिमेसन"</string>
+    <string name="taskbar_edu_suggested_search_animation_description" msgid="1874284242557104818">"एक्सन की टच गरिराखेर र सामग्री रहेको क्षेत्र चयन गरेर स्क्रिनमा भएको कुनै सामग्री खोज्ने तरिका देखाइएको एनिमेसन"</string>
     <string name="taskbar_edu_a11y_title" msgid="5417986057866415355">"टास्कबार एजुकेसन"</string>
     <string name="taskbar_edu_splitscreen" msgid="5605512479258053350">"एपलाई छेउतिर ड्र्याग गरेर एकै पटक २ वटा एप चलाउनुहोस्"</string>
     <string name="taskbar_edu_stashing" msgid="5645461372669217294">"टास्कबार देखाउन माथितिर बिस्तारै स्वाइप गर्नुहोस्"</string>
@@ -163,10 +168,7 @@
     <string name="header_close_icon_description" msgid="5400033616675911319">"\"बन्द गर्नुहोस्\" बटन"</string>
     <string name="pin_to_taskbar" msgid="6607778046321626950">"टास्कबारमा पिन गर्नुहोस्"</string>
     <string name="unpin_from_taskbar" msgid="2178811773165572676">"टास्कबारबाट पिन गर्नुहोस्"</string>
-    <!-- no translation found for nudge_a11y_title (2126529303123687912) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_close (4513937143817625570) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_image (117910310515857252) -->
-    <skip />
+    <string name="nudge_a11y_title" msgid="2126529303123687912">"हल्का सार्नुहोस्"</string>
+    <string name="nudge_a11y_close" msgid="4513937143817625570">"बन्द गर्नुहोस्"</string>
+    <string name="nudge_a11y_image" msgid="117910310515857252">"फोटो हल्का सार्नुहोस्"</string>
 </resources>

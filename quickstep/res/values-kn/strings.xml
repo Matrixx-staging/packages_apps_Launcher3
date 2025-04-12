@@ -109,6 +109,11 @@
     <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"ರದ್ದುಮಾಡಿ"</string>
     <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"ಸ್ಕಿಪ್ ಮಾಡಿ"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"ಸ್ಕ್ರೀನ್ ತಿರುಗಿಸಿ"</string>
+    <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"ಸ್ಕ್ರೀನ್ ಕೆಳಗಿನಿಂದ ಟಾಸ್ಕ್ ಬಾರ್ ಹೇಗೆ ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತದೆ ಮತ್ತು ಬಳಕೆಯಲ್ಲಿಲ್ಲದಿದ್ದಾಗ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಹೇಗೆ ಮರೆಮಾಡುತ್ತದೆ ಎಂಬುದನ್ನು ತೋರಿಸುವ ಆ್ಯನಿಮೇಶನ್"</string>
+    <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"ಟಾಗಲ್ ಬಳಸಿ ನಿಮ್ಮ ಟಾಸ್ಕ್ ಬಾರ್ ಅನ್ನು ಹೇಗೆ ಪಿನ್ ಮಾಡುವುದು ಎಂಬುದನ್ನು ತೋರಿಸುವ ಆ್ಯನಿಮೇಶನ್, ಇದರಿಂದ ಟಾಸ್ಕ್ ಬಾರ್ ಸ್ಕ್ರೀನ್‌ನ ಕೆಳಭಾಗದಲ್ಲಿ ಶಾಶ್ವತವಾಗಿ ಗೋಚರಿಸುತ್ತದೆ"</string>
+    <string name="taskbar_edu_split_screen_animation_description" msgid="371796444988899166">"ತೆರೆದಿರುವ ಆ್ಯಪ್‌ನ ಮೇಲಿರುವ ಟಾಸ್ಕ್ ಬಾರ್‌ನಿಂದ ಆ್ಯಪ್ ಅನ್ನು ಡ್ರ್ಯಾಗ್ ಅಂಡ್ ಡ್ರಾಪ್ ಮಾಡುವ ಮೂಲಕ ಸ್ಪ್ಲಿಟ್ ಸ್ಕ್ರೀನ್ ಅನ್ನು ಹೇಗೆ ರಚಿಸುವುದು ಎಂಬುದನ್ನು ತೋರಿಸುವ ಆ್ಯನಿಮೇಶನ್"</string>
+    <string name="taskbar_edu_suggested_app_animation_description" msgid="3443453246478079085">"ನಿಮ್ಮ ಸಾಧನದಲ್ಲಿ ಸೂಚಿಸಲಾದ ಆ್ಯಪ್‌ಗಳನ್ನು ಹೇಗೆ ಆ್ಯಕ್ಸೆಸ್ ಮಾಡುವುದು ಎಂಬುದನ್ನು ತೋರಿಸುವ ಆ್ಯನಿಮೇಶನ್"</string>
+    <string name="taskbar_edu_suggested_search_animation_description" msgid="1874284242557104818">"ಸ್ಕ್ರೀನ್ ಮೇಲೆ ಐಟಂ ಅನ್ನು ಹೇಗೆ ಹುಡುಕುವುದು ಎಂಬುದನ್ನು ತೋರಿಸುವ ಆ್ಯನಿಮೇಶನ್, ಆಕ್ಷನ್ ಕೀಯನ್ನು ಸ್ಪರ್ಶಿಸಿ ಮತ್ತು ಒತ್ತಿ ಹಿಡಿಯುವ ಮೂಲಕ ಮತ್ತು ಐಟಂ ಇರುವ ಪ್ರದೇಶವನ್ನು ಆಯ್ಕೆ ಮಾಡಿ"</string>
     <string name="taskbar_edu_a11y_title" msgid="5417986057866415355">"ಟಾಸ್ಕ್‌ಬಾರ್ ಶಿಕ್ಷಣ"</string>
     <string name="taskbar_edu_splitscreen" msgid="5605512479258053350">"ಒಂದೇ ಬಾರಿಗೆ 2 ಆ್ಯಪ್‌ಗಳನ್ನು ಬಳಸಲು ಆ್ಯಪ್ ಅನ್ನು ಬದಿಗೆ ಎಳೆಯಿರಿ"</string>
     <string name="taskbar_edu_stashing" msgid="5645461372669217294">"ಟಾಸ್ಕ್‌ಬಾರ್ ಕಾಣುವಂತೆ ಮಾಡಲು ನಿಧಾನವಾಗಿ ಮೇಲಕ್ಕೆ ಸ್ವೈಪ್ ಮಾಡಿ"</string>
@@ -163,10 +168,7 @@
     <string name="header_close_icon_description" msgid="5400033616675911319">"ಮುಚ್ಚುವ ಬಟನ್"</string>
     <string name="pin_to_taskbar" msgid="6607778046321626950">"ಟಾಸ್ಕ್‌ಬಾರ್‌ಗೆ ಪಿನ್ ಮಾಡಿ"</string>
     <string name="unpin_from_taskbar" msgid="2178811773165572676">"ಟಾಸ್ಕ್‌ಬಾರ್‌ನಿಂದ ಅನ್‌ಪಿನ್"</string>
-    <!-- no translation found for nudge_a11y_title (2126529303123687912) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_close (4513937143817625570) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_image (117910310515857252) -->
-    <skip />
+    <string name="nudge_a11y_title" msgid="2126529303123687912">"ನಡ್ಜ್"</string>
+    <string name="nudge_a11y_close" msgid="4513937143817625570">"ಮುಚ್ಚಿರಿ"</string>
+    <string name="nudge_a11y_image" msgid="117910310515857252">"ಚಿತ್ರವನ್ನು ನಡ್ಜ್ ಮಾಡಿ"</string>
 </resources>

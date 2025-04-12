@@ -142,10 +142,10 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
     RecentsAnimationDeviceState(
             @ApplicationContext Context context,
             @Assisted int displayId,
+            @Assisted RotationTouchHelper rotationTouchHelper,
             GestureExclusionManager exclusionManager,
             DisplayController displayController,
             ContextualSearchStateManager contextualSearchStateManager,
-            RotationTouchHelper rotationTouchHelper,
             SettingsCache settingsCache,
             DaggerSingletonTracker lifeCycle) {
         mContext = context;
@@ -672,8 +672,9 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
 
     @AssistedFactory
     public interface Factory {
-        /** Creates a new instance of [RecentsAnimationDeviceState] for a given [displayId]. */
-        RecentsAnimationDeviceState create(int displayId);
+        /** Creates a new instance of [RecentsAnimationDeviceState] for a given [displayId] and
+         * [rotationTouchHelper]. */
+        RecentsAnimationDeviceState create(int displayId, RotationTouchHelper rotationTouchHelper);
     }
 
 }

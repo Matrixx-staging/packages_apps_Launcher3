@@ -35,7 +35,7 @@ public class KeyboardFocusTest extends BaseLauncherActivityTest<Launcher> {
     @Test
     public void testAllAppsFocusApp() {
         loadLauncherSync();
-        goToState(LauncherState.ALL_APPS);
+        getLauncherActivity().goToState(LauncherState.ALL_APPS);
         freezeAllApps();
 
         injectKeyEvent(KeyEvent.KEYCODE_DPAD_DOWN, true);
@@ -48,10 +48,11 @@ public class KeyboardFocusTest extends BaseLauncherActivityTest<Launcher> {
     @Test
     public void testAllAppsExitSearchAndFocusApp() {
         loadLauncherSync();
-        goToState(LauncherState.ALL_APPS);
+        getLauncherActivity().goToState(LauncherState.ALL_APPS);
         freezeAllApps();
 
-        executeOnLauncher(launcher -> launcher.getAppsView().getSearchView().requestFocus());
+        getLauncherActivity().executeOnLauncher(
+                launcher -> launcher.getAppsView().getSearchView().requestFocus());
         waitForLauncherCondition("Search view does not have focus.",
                 launcher -> launcher.getAppsView().getSearchView().hasFocus());
 
@@ -65,10 +66,11 @@ public class KeyboardFocusTest extends BaseLauncherActivityTest<Launcher> {
     @Test
     public void testAllAppsExitSearchAndFocusSearchResults() {
         loadLauncherSync();
-        goToState(LauncherState.ALL_APPS);
+        getLauncherActivity().goToState(LauncherState.ALL_APPS);
         freezeAllApps();
 
-        executeOnLauncher(launcher -> launcher.getAppsView().getSearchView().requestFocus());
+        getLauncherActivity().executeOnLauncher(
+                launcher -> launcher.getAppsView().getSearchView().requestFocus());
         waitForLauncherCondition("Search view does not have focus.",
                 launcher -> launcher.getAppsView().getSearchView().hasFocus());
 
@@ -78,8 +80,9 @@ public class KeyboardFocusTest extends BaseLauncherActivityTest<Launcher> {
                         instanceof SearchRecyclerView);
         injectKeyEvent(KeyEvent.KEYCODE_C, false);
 
-        executeOnLauncher(launcher -> launcher.getAppsView().getSearchUiManager().getEditText()
-                .hideKeyboard(/* clearFocus= */ false));
+        getLauncherActivity().executeOnLauncher(
+                launcher -> launcher.getAppsView().getSearchUiManager().getEditText()
+                        .hideKeyboard(/* clearFocus= */ false));
         waitForLauncherCondition("Keyboard still visible.",
                 ActivityContext::isSoftwareKeyboardHidden);
 

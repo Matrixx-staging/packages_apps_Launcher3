@@ -380,13 +380,15 @@ public abstract class AbsSwipeUpHandler<
 
     private final MSDLPlayerWrapper mMSDLPlayerWrapper;
 
+    private final RotationTouchHelper mRotationTouchHelper;
+
     public AbsSwipeUpHandler(Context context,
             TaskAnimationManager taskAnimationManager, RecentsAnimationDeviceState deviceState,
-            GestureState gestureState,
+            RotationTouchHelper rotationTouchHelper, GestureState gestureState,
             long touchTimeMs, boolean continuingLastGesture,
             InputConsumerController inputConsumer,
             MSDLPlayerWrapper msdlPlayerWrapper) {
-        super(context, gestureState);
+        super(context, gestureState, rotationTouchHelper);
         mContainerInterface = gestureState.getContainerInterface();
         mContextInitListener =
                 mContainerInterface.createActivityInitListener(this::onActivityInit);
@@ -404,6 +406,7 @@ public abstract class AbsSwipeUpHandler<
         mDeviceState = deviceState;
         mTouchTimeMs = touchTimeMs;
         mContinuingLastGesture = continuingLastGesture;
+        mRotationTouchHelper = rotationTouchHelper;
 
         Resources res = context.getResources();
         mQuickSwitchScaleScrollThreshold = res
@@ -671,9 +674,9 @@ public abstract class AbsSwipeUpHandler<
         mGestureState.getContainerInterface().setOnDeferredActivityLaunchCallback(
                 mOnDeferredActivityLaunch);
 
-        mGestureState.runOnceAtState(STATE_END_TARGET_SET, () ->
-                RotationTouchHelper.INSTANCE.get(mContext)
-                        .onEndTargetCalculated(mGestureState.getEndTarget(), mContainerInterface));
+        mGestureState.runOnceAtState(STATE_END_TARGET_SET,
+                () -> mRotationTouchHelper.onEndTargetCalculated(mGestureState.getEndTarget(),
+                        mContainerInterface));
 
         notifyGestureStarted();
     }

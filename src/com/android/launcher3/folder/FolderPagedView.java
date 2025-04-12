@@ -131,7 +131,7 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
     public void setFolder(Folder folder) {
         mFolder = folder;
         mPageIndicator = folder.findViewById(R.id.folder_page_indicator);
-        mPageIndicator.setArrowClickListener(direction -> snapToPageImmediately(
+        mPageIndicator.setArrowClickListener(direction -> snapToPage(
                 (Direction.END == direction) ? mCurrentPage + 1 : mCurrentPage - 1));
         initParentViews(folder);
     }

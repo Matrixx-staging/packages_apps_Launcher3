@@ -86,9 +86,9 @@
     <!--  The size of the text fading horizontally -->
     <dimen name="task_thumbnail_icon_menu_text_fading_size">20dp</dimen>
     <!--  The size of the task thumbnail header  -->
-    <dimen name="task_thumbnail_header_height">30dp</dimen>
-    <dimen name="task_thumbnail_header_margin_edge">18dp</dimen>
-    <dimen name="task_thumbnail_header_margin_between_views">9dp</dimen>
+    <dimen name="task_thumbnail_header_padding_top_bottom">6dp</dimen>
+    <dimen name="task_thumbnail_header_padding_start_end">12dp</dimen>
+    <dimen name="task_thumbnail_header_margin_between_views">8dp</dimen>
     <dimen name="task_thumbnail_header_icon_size">18dp</dimen>
     <dimen name="task_thumbnail_header_round_corner_radius">16dp</dimen>
 
@@ -363,6 +363,9 @@
     <dimen name="taskbar_stashed_small_screen">108dp</dimen>
     <dimen name="taskbar_unstash_input_area">316dp</dimen>
     <dimen name="taskbar_stashed_handle_height">4dp</dimen>
+    <dimen name="taskbar_nudge_pill_height">24dp</dimen>
+    <dimen name="taskbar_nudge_pill_width">108dp</dimen>
+    <dimen name="taskbar_nudge_glow_radius_percent">200%</dimen>
     <dimen name="taskbar_stashed_screen_edge_hover_deadzone_height">10dp</dimen>
     <dimen name="taskbar_stashed_below_hover_deadzone_height">1dp</dimen>
     <dimen name="taskbar_edu_horizontal_margin">112dp</dimen>

@@ -52,11 +52,11 @@ import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTO
 import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_TOP_OR_LEFT
 import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_UNDEFINED
 import com.android.launcher3.util.SplitConfigurationOptions.STAGE_TYPE_MAIN
-import com.android.launcher3.util.SplitConfigurationOptions.SplitBounds
 import com.android.launcher3.util.SplitConfigurationOptions.SplitPositionOption
 import com.android.launcher3.util.SplitConfigurationOptions.StagePosition
 import com.android.launcher3.views.BaseDragLayer
 import com.android.quickstep.views.IconAppChipView
+import com.android.wm.shell.shared.split.SplitBounds
 import kotlin.math.max
 
 open class LandscapePagedViewHandler : RecentsPagedOrientationHandler {
@@ -117,6 +117,8 @@ open class LandscapePagedViewHandler : RecentsPagedOrientationHandler {
     override fun getPrimarySize(view: View): Int = view.height
 
     override fun getPrimarySize(rect: RectF): Float = rect.height()
+
+    override fun getSecondarySize(rect: RectF): Float = rect.width()
 
     override fun getStart(rect: RectF): Float = rect.top
 
@@ -275,7 +277,7 @@ open class LandscapePagedViewHandler : RecentsPagedOrientationHandler {
         desiredTaskId: Int,
         banner: View,
     ): Pair<Float, Float> {
-        val snapshotParams = thumbnailViews[0].layoutParams as FrameLayout.LayoutParams
+        val snapshotParams = thumbnailViews[0].layoutParams as ViewGroup.MarginLayoutParams
         val translationX = banner.height.toFloat()
         val translationY: Float
         if (splitBounds == null) {

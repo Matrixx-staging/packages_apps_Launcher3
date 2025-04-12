@@ -60,7 +60,7 @@
     <string name="back_gesture_intro_title" msgid="19551256430224428">"Vuốt để quay lại"</string>
     <string name="back_gesture_intro_subtitle" msgid="7912576483031802797">"Để quay lại màn hình gần đây nhất, hãy vuốt từ mép trái hoặc mép phải tới chính giữa màn hình."</string>
     <string name="back_gesture_tutorial_title" msgid="1944737946101059789">"Quay lại"</string>
-    <string name="back_gesture_tutorial_subtitle" msgid="6639993416000920142">"Hãy vuốt từ mép trái hoặc mép phải tới giữa màn hình"</string>
+    <string name="back_gesture_tutorial_subtitle" msgid="6639993416000920142">"Vuốt từ mép trái hoặc mép phải tới giữa màn hình"</string>
     <string name="home_gesture_feedback_swipe_too_far_from_edge" msgid="4816365433160895458">"Hãy vuốt lên từ mép dưới cùng của màn hình"</string>
     <string name="home_gesture_feedback_overview_detected" msgid="5177627157303895077">"Hãy nhớ không được dừng trước khi nhấc ngón tay"</string>
     <string name="home_gesture_feedback_wrong_swipe_direction" msgid="8328465201424027148">"Hãy vuốt thẳng lên"</string>
@@ -109,6 +109,11 @@
     <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"Hủy"</string>
     <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"Bỏ qua"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"Xoay màn hình"</string>
+    <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"Ảnh động minh hoạ cách thanh tác vụ xuất hiện từ cuối màn hình và tự động ẩn khi người dùng không sử dụng"</string>
+    <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"Ảnh động minh hoạ cách ghim thanh tác vụ bằng nút bật/tắt để thanh tác vụ luôn hiển thị ở cuối màn hình"</string>
+    <string name="taskbar_edu_split_screen_animation_description" msgid="371796444988899166">"Ảnh động minh hoạ cách tạo chế độ chia đôi màn hình bằng cách kéo và thả một ứng dụng từ thanh tác vụ lên trên một ứng dụng đang mở"</string>
+    <string name="taskbar_edu_suggested_app_animation_description" msgid="3443453246478079085">"Ảnh động minh hoạ cách truy cập vào các ứng dụng được đề xuất trên thiết bị của bạn"</string>
+    <string name="taskbar_edu_suggested_search_animation_description" msgid="1874284242557104818">"Ảnh động minh hoạ cách tìm một mục trên màn hình bằng cách chạm và giữ phím hành động rồi chọn khu vực có mục đó"</string>
     <string name="taskbar_edu_a11y_title" msgid="5417986057866415355">"Cách sử dụng thanh tác vụ"</string>
     <string name="taskbar_edu_splitscreen" msgid="5605512479258053350">"Kéo một ứng dụng sang bên để dùng 2 ứng dụng cùng lúc"</string>
     <string name="taskbar_edu_stashing" msgid="5645461372669217294">"Từ từ vuốt lên để Thanh tác vụ xuất hiện"</string>
@@ -163,10 +168,7 @@
     <string name="header_close_icon_description" msgid="5400033616675911319">"Nút đóng"</string>
     <string name="pin_to_taskbar" msgid="6607778046321626950">"Ghim vào thanh tác vụ"</string>
     <string name="unpin_from_taskbar" msgid="2178811773165572676">"Bỏ ghim khỏi thanh tác vụ"</string>
-    <!-- no translation found for nudge_a11y_title (2126529303123687912) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_close (4513937143817625570) -->
-    <skip />
-    <!-- no translation found for nudge_a11y_image (117910310515857252) -->
-    <skip />
+    <string name="nudge_a11y_title" msgid="2126529303123687912">"Dịch chuyển"</string>
+    <string name="nudge_a11y_close" msgid="4513937143817625570">"Đóng"</string>
+    <string name="nudge_a11y_image" msgid="117910310515857252">"Dịch chuyển hình ảnh"</string>
 </resources>

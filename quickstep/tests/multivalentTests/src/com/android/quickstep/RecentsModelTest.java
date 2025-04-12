@@ -50,6 +50,7 @@ import com.android.quickstep.util.GroupTask;
 import com.android.quickstep.util.SplitTask;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.system.TaskStackChangeListeners;
+import com.android.wm.shell.shared.split.SplitBounds;
 import com.android.wm.shell.shared.split.SplitScreenConstants;
 
 import org.junit.Before;
@@ -197,7 +198,7 @@ public class RecentsModelTest {
         Task task2 = Task.from(taskKey2, taskInfo2, false);
 
         allTasks.add(
-                new SplitTask(task1, task2, new SplitConfigurationOptions.SplitBounds(
+                new SplitTask(task1, task2, new SplitBounds(
                         /* leftTopBounds = */ new Rect(),
                         /* rightBottomBounds = */ new Rect(),
                         /* leftTopTaskId = */ -1,

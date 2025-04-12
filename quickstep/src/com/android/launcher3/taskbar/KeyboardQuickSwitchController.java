@@ -15,8 +15,8 @@
  */
 package com.android.launcher3.taskbar;
 
-import static com.android.launcher3.Flags.enableAltTabKqsFlatenning;
-import static com.android.launcher3.Flags.enableAltTabKqsOnConnectedDisplays;
+import static com.android.launcher3.taskbar.TaskbarDesktopExperienceFlags.enableAltTabKqsFlatenning;
+import static com.android.launcher3.taskbar.TaskbarDesktopExperienceFlags.enableAltTabKqsOnConnectedDisplays;
 
 import android.app.ActivityManager;
 import android.content.ComponentName;
@@ -246,7 +246,7 @@ public final class KeyboardQuickSwitchController implements
         mHasDesktopTask = false;
         mWasDesktopTaskFilteredOut = false;
 
-        if (enableAltTabKqsFlatenning()) {
+        if (enableAltTabKqsFlatenning.isTrue()) {
             processLoadedTasksCombined(tasks, taskIdsToExclude);
         } else if (mControllers.taskbarDesktopModeController.shouldShowDesktopTasksInTaskbar()) {
             processLoadedTasksOnDesktop(tasks, taskIdsToExclude);
@@ -313,7 +313,7 @@ public final class KeyboardQuickSwitchController implements
         // multiple desktops flag disabled. So, until multiple desktops is implemented the following
         // should help with team-fooding Alt+tab on connected displays. Post multiple desktop,
         // further changes maybe required to support launching selected desktops.
-        if (enableAltTabKqsOnConnectedDisplays()) {
+        if (enableAltTabKqsOnConnectedDisplays.isTrue()) {
             mTasks = desktopTasks.stream()
                     .flatMap(t -> t.getTasks().stream())
                     .map(SingleTask::new)

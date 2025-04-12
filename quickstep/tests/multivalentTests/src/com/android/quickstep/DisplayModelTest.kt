@@ -31,6 +31,8 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class DisplayModelTest {
     private val context: Context = ApplicationProvider.getApplicationContext()
+    private val systemDecorationChangeObserver =
+        SystemDecorationChangeObserver.INSTANCE.get(context)
 
     class TestableResource : DisplayModel.DisplayResource() {
         var isCleanupCalled = false
@@ -45,7 +47,7 @@ class DisplayModelTest {
     }
 
     private val testableDisplayModel =
-        object : DisplayModel<TestableResource>(context) {
+        object : DisplayModel<TestableResource>(context, systemDecorationChangeObserver) {
             override fun createDisplayResource(display: Display): TestableResource {
                 return TestableResource()
             }

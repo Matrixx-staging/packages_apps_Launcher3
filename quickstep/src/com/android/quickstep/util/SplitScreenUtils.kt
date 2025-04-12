@@ -29,18 +29,6 @@ class SplitScreenUtils {
     companion object {
         private const val TAG = "SplitScreenUtils"
 
-        // TODO(b/254378592): Remove these methods when the two classes are reunited
-        /** Converts the shell version of SplitBounds to the launcher version */
-        @JvmStatic
-        fun convertShellSplitBoundsToLauncher(shellSplitBounds: SplitBounds) =
-            SplitConfigurationOptions.SplitBounds(
-                shellSplitBounds.leftTopBounds,
-                shellSplitBounds.rightBottomBounds,
-                shellSplitBounds.leftTopTaskId,
-                shellSplitBounds.rightBottomTaskId,
-                shellSplitBounds.snapPosition,
-            )
-
         /**
          * Given a TransitionInfo, generates the tree structure for those changes and extracts out
          * the top most root and it's two immediate children. Changes can be provided in any order.
