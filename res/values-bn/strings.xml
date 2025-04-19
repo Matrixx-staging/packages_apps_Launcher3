@@ -113,6 +113,10 @@
     <string name="gadget_complete_setup_text" msgid="309040266978007925">"সেটআপ সম্পূর্ণ করতে ট্যাপ করুন"</string>
     <string name="uninstall_system_app_text" msgid="4172046090762920660">"এটি একটি সিস্টেম অ্যাপ্লিকেশান এবং আনইনস্টল করা যাবে না৷"</string>
     <string name="folder_hint_text" msgid="5174843001373488816">"নাম এডিট করুন"</string>
+    <!-- no translation found for paginate_left (7915437358451360433) -->
+    <skip />
+    <!-- no translation found for paginate_right (6701038155201975878) -->
+    <skip />
     <string name="disabled_app_label" msgid="6673129024321402780">"<xliff:g id="APP_NAME">%1$s</xliff:g> অক্ষম করা হয়েছে"</string>
     <string name="dotted_app_label" msgid="1865617679843363410">"{count,plural, =1{{app_name}-এর #টি বিজ্ঞপ্তি আছে}one{{app_name}-এর #টি বিজ্ঞপ্তি আছে}other{{app_name}-এর #টি বিজ্ঞপ্তি আছে}}"</string>
     <string name="default_scroll_format" msgid="7475544710230993317">"%2$dটির মধ্যে %1$dটি পৃষ্ঠা"</string>

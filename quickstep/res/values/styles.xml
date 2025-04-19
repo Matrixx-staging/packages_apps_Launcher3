@@ -379,4 +379,24 @@
         <item name="android:textSize">16sp</item>
         <item name="android:minHeight">36dp</item>
     </style>
+
+    <style name="BlurStyle">
+        <item name="allAppsScrimColor">@androidprv:color/shade_panel_scrim_color</item>
+        <item name="groupHighlight">@androidprv:color/surface_effect_1</item>
+        <item name="allAppsSurfaceLow">@androidprv:color/surface_effect_0</item>
+        <item name="allAppsSurfaceHighest">@androidprv:color/surface_effect_2</item>
+        <item name="allAppsUnselectedTab">@androidprv:color/surface_effect_1</item>
+        <item name="allappsHeaderProtectionColor">@androidprv:color/surface_effect_0</item>
+        <item name="privateSpaceSettingsColor">@androidprv:color/surface_effect_2</item>
+    </style>
+
+    <style name="BlurFallbackStyle">
+        <item name="allAppsScrimColor">@color/widgets_picker_scrim</item>
+        <item name="groupHighlight">@color/materialColorSurfaceContainerHigh</item>
+        <item name="allAppsSurfaceLow">@color/materialColorSurfaceContainerLow</item>
+        <item name="allAppsSurfaceHighest">@color/materialColorSurfaceContainerHighest</item>
+        <item name="allAppsUnselectedTab">@color/materialColorSurfaceBright</item>
+        <item name="allappsHeaderProtectionColor">@color/materialColorPrimaryContainer</item>
+        <item name="privateSpaceSettingsColor">@color/materialColorSurfaceBright</item>
+    </style>
 </resources>

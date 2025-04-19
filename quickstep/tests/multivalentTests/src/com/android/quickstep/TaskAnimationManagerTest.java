@@ -85,7 +85,8 @@ public class TaskAnimationManagerTest {
         final ArgumentCaptor<ActivityOptions> optionsCaptor =
                 ArgumentCaptor.forClass(ActivityOptions.class);
         verify(mSystemUiProxy)
-                .startRecentsActivity(any(), optionsCaptor.capture(), any(), anyBoolean());
+                .startRecentsActivity(any(), optionsCaptor.capture(), any(), anyBoolean(),
+                        any());
         assertEquals(ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_ALWAYS,
                 optionsCaptor.getValue().getPendingIntentBackgroundActivityStartMode());
     }
@@ -117,7 +118,7 @@ public class TaskAnimationManagerTest {
 
         doReturn(mock(LauncherActivityInterface.class)).when(gestureState).getContainerInterface();
         when(mSystemUiProxy
-                .startRecentsActivity(any(), any(), listenerCaptor.capture(), anyBoolean()))
+                .startRecentsActivity(any(), any(), listenerCaptor.capture(), anyBoolean(), any()))
                 .thenReturn(true);
         when(gestureState.getRunningTaskIds(anyBoolean())).thenReturn(new int[0]);
 

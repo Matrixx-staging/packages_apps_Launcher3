@@ -91,7 +91,7 @@
     <string name="allset_hint" msgid="459504134589971527">"Ana ekrana gitmek için yukarı kaydırın"</string>
     <string name="allset_button_hint" msgid="2395219947744706291">"Ana ekranınıza gitmek için ana sayfa düğmesine dokunun"</string>
     <string name="allset_description_generic" msgid="5385500062202019855">"Artık <xliff:g id="DEVICE">%1$s</xliff:g> kullanılmak için hazır"</string>
-    <string name="default_device_name" msgid="6660656727127422487">"cihaz"</string>
+    <string name="allset_description_fallback" msgid="2488751930355201578">"Cihazınız kullanılmaya hazır"</string>
     <string name="allset_navigation_settings" msgid="4713404605961476027"><annotation id="link">"Sistem gezinme ayarları"</annotation></string>
     <string name="action_share" msgid="2648470652637092375">"Paylaş"</string>
     <string name="action_screenshot" msgid="8171125848358142917">"Ekran görüntüsü"</string>
@@ -109,16 +109,11 @@
     <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"İptal"</string>
     <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"Atla"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"Ekranı döndür"</string>
-    <!-- no translation found for taskbar_edu_swipe_animation_description (1690727240826006218) -->
-    <skip />
-    <!-- no translation found for taskbar_edu_pinning_animation_description (8148601093590683880) -->
-    <skip />
-    <!-- no translation found for taskbar_edu_split_screen_animation_description (371796444988899166) -->
-    <skip />
-    <!-- no translation found for taskbar_edu_suggested_app_animation_description (3443453246478079085) -->
-    <skip />
-    <!-- no translation found for taskbar_edu_suggested_search_animation_description (1874284242557104818) -->
-    <skip />
+    <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"Görev çubuğunun ekranın altından nasıl göründüğünü ve kullanılmadığında otomatik olarak nasıl gizlendiğini gösteren animasyon"</string>
+    <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"Görev çubuğunun, ekranın alt kısmında sürekli görünür olması için açma/kapatma düğmesini kullanarak görev çubuğunuzu nasıl sabitleyeceğinizi gösteren animasyon"</string>
+    <string name="taskbar_edu_split_screen_animation_description" msgid="371796444988899166">"Görev çubuğundaki bir uygulamayı, açık bir uygulamanın üzerine sürükleyip bırakarak nasıl bölünmüş ekran oluşturacağınızı gösteren animasyon"</string>
+    <string name="taskbar_edu_suggested_app_animation_description" msgid="3443453246478079085">"Cihazınızda önerilen uygulamalara nasıl erişeceğinizi gösteren animasyon"</string>
+    <string name="taskbar_edu_suggested_search_animation_description" msgid="1874284242557104818">"Eylem tuşuna dokunup basılı tutarak ve öğenin bulunduğu alanı seçerek ekranda nasıl öğe aranacağını gösteren animasyon"</string>
     <string name="taskbar_edu_a11y_title" msgid="5417986057866415355">"Görev çubuğu eğitimi"</string>
     <string name="taskbar_edu_splitscreen" msgid="5605512479258053350">"Aynı anda iki uygulama kullanmak için birini yana sürükleyin"</string>
     <string name="taskbar_edu_stashing" msgid="5645461372669217294">"Görev çubuğunun görünmesi için yukarı doğru yavaşça kaydırın"</string>

@@ -91,7 +91,7 @@
     <string name="allset_hint" msgid="459504134589971527">"ወደ መነሻ ለመሄድ በጣት ወደ ላይ ይጥረጉ"</string>
     <string name="allset_button_hint" msgid="2395219947744706291">"ወደ መነሻ ማያ ገጽዎ ለመሄድ የመነሻ አዝራሩን መታ ያድርጉ"</string>
     <string name="allset_description_generic" msgid="5385500062202019855">"የእርስዎን <xliff:g id="DEVICE">%1$s</xliff:g> መጠቀም ለመጀመር ዝግጁ ነዎት"</string>
-    <string name="default_device_name" msgid="6660656727127422487">"መሣሪያ"</string>
+    <string name="allset_description_fallback" msgid="2488751930355201578">"የእርስዎን መሣሪያ መጠቀም ለመጀመር ዝግጁ ነዎት"</string>
     <string name="allset_navigation_settings" msgid="4713404605961476027"><annotation id="link">"የስርዓት አሰሳ ቅንብሮች"</annotation></string>
     <string name="action_share" msgid="2648470652637092375">"አጋራ"</string>
     <string name="action_screenshot" msgid="8171125848358142917">"ቅጽበታዊ ገፅ ዕይታ"</string>

@@ -495,6 +495,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
 
     override fun onFullscreenProgressChanged(fullscreenProgress: Float) {
         backgroundView.alpha = 1 - fullscreenProgress
+        updateSettledProgressFullscreen(fullscreenProgress)
     }
 
     override fun updateFullscreenParams() {

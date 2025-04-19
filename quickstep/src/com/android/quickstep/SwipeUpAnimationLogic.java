@@ -17,7 +17,6 @@ package com.android.quickstep;
 
 import static com.android.app.animation.Interpolators.ACCELERATE_1_5;
 import static com.android.app.animation.Interpolators.LINEAR;
-import static com.android.launcher3.Flags.enableAdditionalHomeAnimations;
 import static com.android.launcher3.PagedView.INVALID_PAGE;
 
 import android.animation.Animator;
@@ -460,7 +459,7 @@ public abstract class SwipeUpAnimationLogic implements
             float alpha = mAnimationFactory.getWindowAlpha(progress);
 
             mHomeAnim.setPlayFraction(progress);
-            if (!enableAdditionalHomeAnimations() || mTargetTaskView == null) {
+            if (mTargetTaskView == null) {
                 mHomeToWindowPositionMap.mapRect(mWindowCurrentRect, currentRect);
                 mMatrix.setRectToRect(mCropRectF, mWindowCurrentRect, ScaleToFit.FILL);
                 mLocalTransformParams
@@ -480,10 +479,9 @@ public abstract class SwipeUpAnimationLogic implements
                     currentRect,
                     progress,
                     mMatrix.mapRadius(cornerRadius),
-                    !enableAdditionalHomeAnimations() || mTargetTaskView == null
-                            ? 0 : (int) (alpha * 255));
+                    mTargetTaskView == null ? 0 : (int) (alpha * 255));
 
-            if (!enableAdditionalHomeAnimations() || mTargetTaskView == null) {
+            if (mTargetTaskView == null) {
                 return;
             }
             if (mAnimationFactory.isAnimatingIntoIcon() && mAnimationFactory.isAnimationReady()) {
@@ -543,7 +541,7 @@ public abstract class SwipeUpAnimationLogic implements
         public void onAnimationStart(Animator animation) {
             setUp();
             mHomeAnim.dispatchOnStart();
-            if (!enableAdditionalHomeAnimations() || mTargetTaskView == null) {
+            if (mTargetTaskView == null) {
                 return;
             }
             Rect thumbnailBounds = new Rect();
@@ -558,7 +556,7 @@ public abstract class SwipeUpAnimationLogic implements
         }
 
         private void setUp() {
-            if (!enableAdditionalHomeAnimations() || mTargetTaskView == null) {
+            if (mTargetTaskView == null) {
                 return;
             }
             RecentsView recentsView = mTargetTaskView.getRecentsView();
@@ -579,7 +577,7 @@ public abstract class SwipeUpAnimationLogic implements
         }
 
         private void cleanUp() {
-            if (!enableAdditionalHomeAnimations() || mTargetTaskView == null) {
+            if (mTargetTaskView == null) {
                 return;
             }
             RecentsView recentsView = mTargetTaskView.getRecentsView();

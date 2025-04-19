@@ -113,6 +113,10 @@
     <string name="gadget_complete_setup_text" msgid="309040266978007925">"Tryk for at fuldføre konfigurationen"</string>
     <string name="uninstall_system_app_text" msgid="4172046090762920660">"Dette er en systemapp, som ikke kan afinstalleres."</string>
     <string name="folder_hint_text" msgid="5174843001373488816">"Rediger navn"</string>
+    <!-- no translation found for paginate_left (7915437358451360433) -->
+    <skip />
+    <!-- no translation found for paginate_right (6701038155201975878) -->
+    <skip />
     <string name="disabled_app_label" msgid="6673129024321402780">"<xliff:g id="APP_NAME">%1$s</xliff:g> er deaktiveret"</string>
     <string name="dotted_app_label" msgid="1865617679843363410">"{count,plural, =1{{app_name} har # notifikation}one{{app_name} har # notifikation}other{{app_name} har # notifikationer}}"</string>
     <string name="default_scroll_format" msgid="7475544710230993317">"Side %1$d ud af %2$d"</string>

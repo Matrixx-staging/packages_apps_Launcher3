@@ -17,15 +17,16 @@ package com.android.quickstep.util;
 
 import static android.app.WindowConfiguration.WINDOWING_MODE_FULLSCREEN;
 
-import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 import static com.android.launcher3.states.RotationHelper.deltaRotation;
 import static com.android.launcher3.touch.PagedOrientationHandler.MATRIX_POST_TRANSLATE;
+import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_TOP_OR_LEFT;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_UNDEFINED;
 import static com.android.launcher3.util.SplitConfigurationOptions.StagePosition;
 import static com.android.quickstep.util.RecentsOrientedState.postDisplayRotation;
 import static com.android.quickstep.util.RecentsOrientedState.preDisplayRotation;
+import static com.android.wm.shell.Flags.enableFlexibleTwoAppSplit;
 
 import android.animation.TimeInterpolator;
 import android.content.Context;
@@ -262,6 +263,9 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
         } else {
             mStagePosition = runningTarget.taskId == splitInfo.leftTopTaskId
                     ? STAGE_POSITION_TOP_OR_LEFT : STAGE_POSITION_BOTTOM_OR_RIGHT;
+            if (enableFlexibleTwoAppSplit()) {
+                mPositionHelper.setSplitBounds(mSplitBounds, mStagePosition);
+            }
         }
         calculateTaskSize();
     }

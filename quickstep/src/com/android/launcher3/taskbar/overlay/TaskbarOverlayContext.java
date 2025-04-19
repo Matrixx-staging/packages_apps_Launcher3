@@ -23,6 +23,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.launcher3.DeviceProfile;
+import com.android.launcher3.Flags;
 import com.android.launcher3.R;
 import com.android.launcher3.popup.PopupDataProvider;
 import com.android.launcher3.taskbar.BaseTaskbarContext;
@@ -64,6 +65,7 @@ public class TaskbarOverlayContext extends BaseTaskbarContext {
         mDragController.init(controllers);
         mDragLayer = new TaskbarOverlayDragLayer(this);
         mStashedTaskbarHeight = controllers.taskbarStashController.getStashedHeight();
+        updateBlurStyle();
 
         mUiController = controllers.uiController;
         onViewCreated();
@@ -120,6 +122,20 @@ public class TaskbarOverlayContext extends BaseTaskbarContext {
     @Override
     public TaskbarAllAppsContainerView getAppsView() {
         return mDragLayer.findViewById(R.id.apps_view);
+    }
+
+    @Override
+    public boolean isBackgroundBlurEnabled() {
+        return Flags.allAppsBlur() && mOverlayController != null
+                && mOverlayController.isBackgroundBlurEnabled();
+    }
+
+    /** Apply the blur or blur fallback style to the current theme. */
+    private void updateBlurStyle() {
+        if (!Flags.allAppsBlur()) {
+            return;
+        }
+        getTheme().applyStyle(getBlurStyleResId(), true);
     }
 
     @Override

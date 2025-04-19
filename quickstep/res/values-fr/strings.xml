@@ -91,7 +91,7 @@
     <string name="allset_hint" msgid="459504134589971527">"Balayez vers le haut pour revenir à l\'accueil"</string>
     <string name="allset_button_hint" msgid="2395219947744706291">"Appuyez sur le bouton d\'accueil pour accéder à votre écran d\'accueil"</string>
     <string name="allset_description_generic" msgid="5385500062202019855">"Vous pouvez maintenant utiliser votre <xliff:g id="DEVICE">%1$s</xliff:g>"</string>
-    <string name="default_device_name" msgid="6660656727127422487">"appareil"</string>
+    <string name="allset_description_fallback" msgid="2488751930355201578">"Vous pouvez maintenant utiliser votre appareil"</string>
     <string name="allset_navigation_settings" msgid="4713404605961476027"><annotation id="link">"Paramètres de navigation système"</annotation></string>
     <string name="action_share" msgid="2648470652637092375">"Partager"</string>
     <string name="action_screenshot" msgid="8171125848358142917">"Capture d\'écran"</string>
@@ -168,7 +168,7 @@
     <string name="header_close_icon_description" msgid="5400033616675911319">"Bouton \"Fermer\""</string>
     <string name="pin_to_taskbar" msgid="6607778046321626950">"Épingler à la barre"</string>
     <string name="unpin_from_taskbar" msgid="2178811773165572676">"Désépingler de la barre"</string>
-    <string name="nudge_a11y_title" msgid="2126529303123687912">"Décaler"</string>
+    <string name="nudge_a11y_title" msgid="2126529303123687912">"Rappel automatique"</string>
     <string name="nudge_a11y_close" msgid="4513937143817625570">"Fermer"</string>
-    <string name="nudge_a11y_image" msgid="117910310515857252">"Décaler l\'image"</string>
+    <string name="nudge_a11y_image" msgid="117910310515857252">"Image de rappel automatique"</string>
 </resources>

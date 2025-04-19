@@ -23,6 +23,7 @@ import com.android.launcher3.Item
 import com.android.launcher3.LauncherPrefChangeListener
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.LauncherPrefs.Companion.backedUpItem
+import com.android.launcher3.concurrent.annotations.Ui
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
@@ -33,9 +34,10 @@ import com.android.launcher3.shapes.IconShapeModel.Companion.DEFAULT_ICON_RADIUS
 import com.android.launcher3.shapes.ShapesProvider
 import com.android.launcher3.util.DaggerSingletonObject
 import com.android.launcher3.util.DaggerSingletonTracker
-import com.android.launcher3.util.Executors.MAIN_EXECUTOR
+import com.android.launcher3.util.LooperExecutor
 import com.android.launcher3.util.SimpleBroadcastReceiver
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.Executor
 import javax.inject.Inject
 
 /** Centralized class for managing Launcher icon theming */
@@ -44,6 +46,7 @@ class ThemeManager
 @Inject
 constructor(
     @ApplicationContext private val context: Context,
+    @Ui private val uiExecutor: LooperExecutor,
     private val prefs: LauncherPrefs,
     private val iconControllerFactory: IconControllerFactory,
     lifecycle: DaggerSingletonTracker,
@@ -72,7 +75,8 @@ constructor(
     private val listeners = CopyOnWriteArrayList<ThemeChangeListener>()
 
     init {
-        val receiver = SimpleBroadcastReceiver(context, MAIN_EXECUTOR) { verifyIconState() }
+        val receiver = SimpleBroadcastReceiver(
+            context, uiExecutor) { verifyIconState() }
         receiver.registerPkgActions("android", ACTION_OVERLAY_CHANGED)
 
         val keys = (iconControllerFactory.prefKeys + PREF_ICON_SHAPE)
@@ -177,6 +181,6 @@ constructor(
             Resources.getSystem().getIdentifier("config_icon_mask", "string", "android")
 
         // Use a constant to allow equality check in verifyIconState
-        private val MONO_THEME_CONTROLLER = MonoIconThemeController()
+        private val MONO_THEME_CONTROLLER = MonoIconThemeController(shouldForceThemeIcon = true)
     }
 }

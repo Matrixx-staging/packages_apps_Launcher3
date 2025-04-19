@@ -24,6 +24,7 @@ import com.android.quickstep.recents.data.RecentTasksRepository
 import com.android.quickstep.recents.data.TaskVisualsChangedDelegate
 import com.android.quickstep.recents.data.TaskVisualsChangedDelegateImpl
 import com.android.quickstep.recents.data.TasksRepository
+import com.android.quickstep.recents.domain.usecase.GetRemainingAppTimerDurationUseCase
 import com.android.quickstep.recents.domain.usecase.GetSysUiStatusNavFlagsUseCase
 import com.android.quickstep.recents.domain.usecase.GetTaskUseCase
 import com.android.quickstep.recents.domain.usecase.GetThumbnailPositionUseCase
@@ -195,7 +196,13 @@ private constructor(appContext: Context, dispatcherProvider: DispatcherProvider)
             when (modelClass) {
                 IsThumbnailValidUseCase::class.java ->
                     IsThumbnailValidUseCase(rotationStateRepository = inject(scopeId))
-                GetTaskUseCase::class.java -> GetTaskUseCase(repository = inject(scopeId))
+                GetRemainingAppTimerDurationUseCase::class.java ->
+                    GetRemainingAppTimerDurationUseCase(appTimersRepository = inject(scopeId))
+                GetTaskUseCase::class.java ->
+                    GetTaskUseCase(
+                        tasksRepository = inject(scopeId),
+                        getRemainingAppTimerDurationUseCase = inject(scopeId),
+                    )
                 GetSysUiStatusNavFlagsUseCase::class.java -> GetSysUiStatusNavFlagsUseCase()
                 GetThumbnailPositionUseCase::class.java ->
                     GetThumbnailPositionUseCase(

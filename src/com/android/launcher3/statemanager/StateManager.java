@@ -226,6 +226,13 @@ public class StateManager<S extends BaseState<S>, T extends StatefulContainer<S>
         }
     }
 
+    /** Handles back started in predictive back gesture by passing it to state handlers. */
+    public void onBackStarted(S toState) {
+        for (StateHandler<S> handler : getStateHandlers()) {
+            handler.onBackStarted(toState);
+        }
+    }
+
     /** Handles backProgress in predictive back gesture by passing it to state handlers. */
     public void onBackProgressed(
             S toState, @FloatRange(from = 0.0, to = 1.0) float backProgress) {
@@ -686,6 +693,9 @@ public class StateManager<S extends BaseState<S>, T extends StatefulContainer<S>
          */
         void setStateWithAnimation(
                 STATE_TYPE toState, StateAnimationConfig config, PendingAnimation animation);
+
+        /** Handles back started in predictive back gesture for target state. */
+        default void onBackStarted(STATE_TYPE toState) {}
 
         /** Handles backProgress in predictive back gesture for target state. */
         default void onBackProgressed(

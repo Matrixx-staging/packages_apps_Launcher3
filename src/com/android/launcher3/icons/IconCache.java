@@ -123,6 +123,7 @@ public class IconCache extends BaseIconCache {
             LauncherIconProvider iconProvider,
             InstallSessionHelper installSessionHelper,
             LauncherIcons.IconPool iconPool,
+            InstantAppResolver instantAppResolver,
             DaggerSingletonTracker lifecycle) {
         super(context, dbFileName, MODEL_EXECUTOR.getLooper(),
                 idp.fillResIconDpi, idp.iconBitmapSize, true /* inMemoryCache */, iconProvider);
@@ -131,7 +132,7 @@ public class IconCache extends BaseIconCache {
         mInstallSessionHelper = installSessionHelper;
         mIconPool = iconPool;
 
-        mInstantAppResolver = InstantAppResolver.newInstance(context);
+        mInstantAppResolver = instantAppResolver;
         mWidgetCategoryBitmapInfos = new SparseArray<>();
 
         mCancelledTask = new CancellableTask(() -> null, MAIN_EXECUTOR, c -> { });

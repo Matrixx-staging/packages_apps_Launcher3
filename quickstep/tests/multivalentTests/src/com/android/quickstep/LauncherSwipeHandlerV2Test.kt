@@ -60,6 +60,8 @@ class LauncherSwipeHandlerV2Test {
 
     @Mock(answer = RETURNS_DEEP_STUBS) private lateinit var systemUiProxy: SystemUiProxy
 
+    @Mock(answer = RETURNS_DEEP_STUBS) private lateinit var recentsModel: RecentsModel
+
     @Mock private lateinit var msdlPlayerWrapper: MSDLPlayerWrapper
 
     @Mock private lateinit var rotationTouchHelper: RotationTouchHelper
@@ -88,7 +90,9 @@ class LauncherSwipeHandlerV2Test {
         whenever(displayManager.displays).thenReturn(arrayOf(display))
 
         sandboxContext.initDaggerComponent(
-            DaggerTestComponent.builder().bindSystemUiProxy(systemUiProxy)
+            DaggerTestComponent.builder()
+                .bindSystemUiProxy(systemUiProxy)
+                .bindRecentsModel(recentsModel)
         )
         gestureState =
             spy(
@@ -135,7 +139,9 @@ class LauncherSwipeHandlerV2Test {
 interface TestComponent : LauncherAppComponent {
     @Component.Builder
     interface Builder : LauncherAppComponent.Builder {
-        @BindsInstance fun bindSystemUiProxy(proxy: SystemUiProxy): Builder
+        @BindsInstance fun bindSystemUiProxy(systemUiProxy: SystemUiProxy): Builder
+
+        @BindsInstance fun bindRecentsModel(recentsModel: RecentsModel): Builder
 
         override fun build(): TestComponent
     }

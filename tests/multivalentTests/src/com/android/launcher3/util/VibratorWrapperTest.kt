@@ -131,6 +131,6 @@ class VibratorWrapperTest {
     }
 
     private fun awaitTasksCompleted() {
-        Executors.UI_HELPER_EXECUTOR.submit<Any> { null }.get()
+        Executors.UI_HELPER_EXECUTOR.submit<Any?> { null }.get()
     }
 }

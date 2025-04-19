@@ -91,7 +91,7 @@
     <string name="allset_hint" msgid="459504134589971527">"Prevucite prema gore da odete na početni ekran"</string>
     <string name="allset_button_hint" msgid="2395219947744706291">"Dodirnite dugme za početni ekran da odete na početni ekran"</string>
     <string name="allset_description_generic" msgid="5385500062202019855">"Spremni ste da počnete koristiti <xliff:g id="DEVICE">%1$s</xliff:g>"</string>
-    <string name="default_device_name" msgid="6660656727127422487">"uređaj"</string>
+    <string name="allset_description_fallback" msgid="2488751930355201578">"Sve je spremno da počnete koristiti uređaj"</string>
     <string name="allset_navigation_settings" msgid="4713404605961476027"><annotation id="link">"Postavke navigacije sistemom"</annotation></string>
     <string name="action_share" msgid="2648470652637092375">"Dijeli"</string>
     <string name="action_screenshot" msgid="8171125848358142917">"Snimak ekrana"</string>
@@ -113,7 +113,7 @@
     <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"Animacija koja prikazuje kako zakačiti traku zadataka pomoću prekidača da traka zadataka trajno ostane vidljiva u donjem dijelu ekrana"</string>
     <string name="taskbar_edu_split_screen_animation_description" msgid="371796444988899166">"Animacija koja prikazuje kako kreirati podijeljeni ekran prevlačenjem i ispuštanjem aplikacije s trake zadataka iznad otvorene aplikacije"</string>
     <string name="taskbar_edu_suggested_app_animation_description" msgid="3443453246478079085">"Animacija koja prikazuje kako pristupiti predloženim aplikacijama na uređaju"</string>
-    <string name="taskbar_edu_suggested_search_animation_description" msgid="1874284242557104818">"Animacija koja prikazuje kako pretražiti stavku na ekranu dodirom i zadržavanjem tipke radnji i odabirom područja u kojoj je stavka"</string>
+    <string name="taskbar_edu_suggested_search_animation_description" msgid="1874284242557104818">"Animacija koja prikazuje kako pretražiti stavku na ekranu dodirom i zadržavanjem tipke radnji i odabirom područja u kojem se stavka nalazi"</string>
     <string name="taskbar_edu_a11y_title" msgid="5417986057866415355">"Edukacija o traci zadataka"</string>
     <string name="taskbar_edu_splitscreen" msgid="5605512479258053350">"Prevucite aplikaciju ustranu da odjednom koristite 2 aplikacije"</string>
     <string name="taskbar_edu_stashing" msgid="5645461372669217294">"Sporo prevucite nagore da vidite traku zadataka"</string>

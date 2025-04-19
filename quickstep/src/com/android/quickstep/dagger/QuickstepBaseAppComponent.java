@@ -22,6 +22,7 @@ import com.android.launcher3.dagger.LauncherAppComponent;
 import com.android.launcher3.dagger.LauncherBaseAppComponent;
 import com.android.launcher3.model.WellbeingModel;
 import com.android.launcher3.statehandlers.DesktopVisibilityController;
+import com.android.quickstep.FallbackWindowInterface;
 import com.android.quickstep.OverviewComponentObserver;
 import com.android.quickstep.RecentsAnimationDeviceState;
 import com.android.quickstep.RecentsModel;
@@ -31,7 +32,7 @@ import com.android.quickstep.SystemDecorationChangeObserver;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.TaskAnimationManager;
 import com.android.quickstep.TopTaskTracker;
-import com.android.quickstep.fallback.window.RecentsDisplayModel;
+import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.logging.SettingsChangeLogger;
 import com.android.quickstep.util.AsyncClockEventDelegate;
 import com.android.quickstep.util.ContextualSearchHapticManager;
@@ -53,8 +54,6 @@ public interface QuickstepBaseAppComponent extends LauncherBaseAppComponent {
 
     SystemUiProxy getSystemUiProxy();
 
-    RecentsDisplayModel getRecentsDisplayModel();
-
     OverviewComponentObserver getOverviewComponentObserver();
 
     DesktopVisibilityController getDesktopVisibilityController();
@@ -66,8 +65,14 @@ public interface QuickstepBaseAppComponent extends LauncherBaseAppComponent {
     ContextualSearchStateManager getContextualSearchStateManager();
 
     PerDisplayRepository<RecentsAnimationDeviceState> getRecentsAnimationDeviceStateRepository();
+
     PerDisplayRepository<TaskAnimationManager> getTaskAnimationManagerRepository();
+
     PerDisplayRepository<RotationTouchHelper> getRotationTouchHelperRepository();
+
+    PerDisplayRepository<RecentsWindowManager> getRecentsWindowManagerRepository();
+
+    PerDisplayRepository<FallbackWindowInterface> getFallbackWindowInterfaceRepository();
 
     RecentsModel getRecentsModel();
 

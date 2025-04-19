@@ -41,7 +41,6 @@ import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assume.assumeFalse
-import org.junit.Assume.assumeTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -81,11 +80,10 @@ class MonoIconThemeControllerTest {
     @EnableFlags(Flags.FLAG_FORCE_MONOCHROME_APP_ICONS)
     fun `createThemedBitmap when mono generation is enabled`() {
         ensureBitmapSerializationSupported()
-        // Make sure forced theme icon is enabled in BaseIconFactory
-        assumeTrue(iconFactory.shouldForceThemeIcon())
         val icon = AdaptiveIconDrawable(ColorDrawable(Color.BLACK), null, null)
         assertNotNull(
-            MonoIconThemeController().createThemedBitmap(icon, BitmapInfo.LOW_RES_INFO, iconFactory)
+            MonoIconThemeController(shouldForceThemeIcon = true)
+                .createThemedBitmap(icon, BitmapInfo.LOW_RES_INFO, iconFactory)
         )
     }
 

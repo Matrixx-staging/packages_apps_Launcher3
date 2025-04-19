@@ -105,7 +105,7 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
     private static StaticMessageReceiver sMessageReceiver = null;
 
     private FallbackHomeAnimationFactory mActiveAnimationFactory;
-    private final RecentsDisplayModel mRecentsDisplayModel;
+    private final RecentsWindowManager mRecentsWindowManager;
 
     private final boolean mRunningOverHome;
 
@@ -116,12 +116,13 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
 
     public RecentsWindowSwipeHandler(Context context, TaskAnimationManager taskAnimationManager,
             RecentsAnimationDeviceState deviceState, RotationTouchHelper rotationTouchHelper,
-            GestureState gestureState, long touchTimeMs, boolean continuingLastGesture,
-            InputConsumerController inputConsumer, MSDLPlayerWrapper msdlPlayerWrapper) {
+            RecentsWindowManager recentsWindowManager, GestureState gestureState, long touchTimeMs,
+            boolean continuingLastGesture,  InputConsumerController inputConsumer,
+            MSDLPlayerWrapper msdlPlayerWrapper) {
         super(context, taskAnimationManager, deviceState, rotationTouchHelper, gestureState,
                 touchTimeMs, continuingLastGesture, inputConsumer, msdlPlayerWrapper);
 
-        mRecentsDisplayModel = RecentsDisplayModel.getINSTANCE().get(context);
+        mRecentsWindowManager = recentsWindowManager;
         mRunningOverHome = mGestureState.getRunningTask() != null
                 && mGestureState.getRunningTask().isHomeTask();
 
@@ -167,11 +168,7 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
         boolean fromHomeToHome = mRunningOverHome
                 && endTarget == GestureState.GestureEndTarget.HOME;
         if (fromHomeToHome) {
-            RecentsWindowManager manager =
-                    mRecentsDisplayModel.getRecentsWindowManager(mGestureState.getDisplayId());
-            if (manager != null) {
-                manager.startHome(/* finishRecentsAnimation= */ false);
-            }
+            mRecentsWindowManager.startHome(/* finishRecentsAnimation= */ false);
         }
         super.animateGestureEnd(
                 startShift,
@@ -233,11 +230,7 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
             // the PiP task appearing.
             recentsCallback = () -> {
                 callback.run();
-                RecentsWindowManager manager =
-                        mRecentsDisplayModel.getRecentsWindowManager(mGestureState.getDisplayId());
-                if (manager != null) {
-                    manager.startHome();
-                }
+                mRecentsWindowManager.startHome();
             };
         } else {
             recentsCallback = callback;
@@ -276,7 +269,7 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
         public AnimatorPlaybackController createActivityAnimationToHome() {
             // copied from {@link LauncherSwipeHandlerV2.LauncherHomeAnimationFactory}
             long accuracy = 2 * Math.max(mDp.widthPx, mDp.heightPx);
-            return mRecentsDisplayModel.getRecentsWindowManager(mGestureState.getDisplayId())
+            return mRecentsWindowManager
                     .getStateManager()
                     .createAnimationToNewWorkspace(
                             RecentsState.HOME, accuracy, StateAnimationConfig.SKIP_ALL_ANIMATIONS);
@@ -333,7 +326,7 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
             pa.addListener(new AnimationSuccessListener() {
                 @Override
                 public void onAnimationSuccess(Animator animator) {
-                    mRecentsDisplayModel.getRecentsWindowManager(mGestureState.getDisplayId())
+                    mRecentsWindowManager
                             .getStateManager()
                             .goToState(RecentsState.HOME, false);
                 }

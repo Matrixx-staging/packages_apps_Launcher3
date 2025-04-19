@@ -1191,7 +1191,7 @@ public class BubbleBarView extends FrameLayout {
         mUpdateSelectedBubbleAfterCollapse = updateSelectedBubbleAfterCollapse;
     }
 
-    void setController(Controller controller) {
+    public void setController(Controller controller) {
         mController = controller;
     }
 
@@ -1320,6 +1320,7 @@ public class BubbleBarView extends FrameLayout {
             mWidthAnimator.start();
             updateBubbleAccessibilityStates();
             announceExpandedStateChange();
+            mController.onBubbleBarExpandedStateChanged(mIsBarExpanded);
         }
     }
 
@@ -1643,7 +1644,7 @@ public class BubbleBarView extends FrameLayout {
     }
 
     /** Interface for BubbleBarView to communicate with its controller. */
-    interface Controller {
+    public interface Controller {
 
         /** Returns the screen height. */
         int getScreenHeight();
@@ -1666,5 +1667,8 @@ public class BubbleBarView extends FrameLayout {
 
         /** Notifies the controller that bubble bar is being dragged */
         void setIsDragging(boolean dragging);
+
+        /** Notifies the controller that bubble bar expanded state changed */
+        void onBubbleBarExpandedStateChanged(boolean expanded);
     }
 }

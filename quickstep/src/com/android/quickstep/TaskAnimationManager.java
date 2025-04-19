@@ -49,7 +49,6 @@ import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.util.DaggerSingletonObject;
 import com.android.launcher3.util.DisplayController;
 import com.android.quickstep.dagger.QuickstepBaseAppComponent;
-import com.android.quickstep.fallback.window.RecentsDisplayModel;
 import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.util.ActiveGestureProtoLogProxy;
@@ -60,13 +59,13 @@ import com.android.systemui.shared.system.QuickStepContract;
 import com.android.systemui.shared.system.TaskStackChangeListener;
 import com.android.systemui.shared.system.TaskStackChangeListeners;
 
-import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.Locale;
-
 import dagger.assisted.Assisted;
 import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
+
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Locale;
 
 public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAnimationListener {
     public static final boolean SHELL_TRANSITIONS_ROTATION =
@@ -338,16 +337,15 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
             });
         }
 
-        if(containerInterface.getCreatedContainer() instanceof RecentsWindowManager
+        if (containerInterface.getCreatedContainer()
+                instanceof RecentsWindowManager recentsWindowManager
                 && RecentsWindowFlags.Companion.getEnableOverviewInWindow()) {
             mRecentsAnimationStartPending = getSystemUiProxy().startRecentsActivity(intent, options,
-                    mCallbacks, gestureState.useSyntheticRecentsTransition());
-            RecentsDisplayModel.getINSTANCE().get(mCtx)
-                    .getRecentsWindowManager(gestureState.getDisplayId())
-                    .startRecentsWindow(mCallbacks);
+                    mCallbacks, gestureState.useSyntheticRecentsTransition(), null);
+            recentsWindowManager.startRecentsWindow(mCallbacks);
         } else {
             mRecentsAnimationStartPending = getSystemUiProxy().startRecentsActivity(intent,
-                    options, mCallbacks, false /* useSyntheticRecentsTransition */);
+                    options, mCallbacks, false /* useSyntheticRecentsTransition */, null);
         }
         ActiveGestureProtoLogProxy.logSettingRecentsAnimationStartPending(
                 mRecentsAnimationStartPending);

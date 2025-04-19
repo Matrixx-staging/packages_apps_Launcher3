@@ -126,6 +126,14 @@ class TaskbarStashViaTouchController(val controllers: TaskbarControllers) : Touc
         if (ev.action == MotionEvent.ACTION_OUTSIDE) {
             controllers.taskbarStashController.updateAndAnimateTransientTaskbar(true)
         } else if (controllers.taskbarViewController.isEventOverAnyItem(screenCoordinatesEv)) {
+            // TODO (b/411155437) remove this once BubbleDragController implements TouchController
+            val bubbleBarDragInProgress =
+                controllers.bubbleControllers
+                    .map { it.bubbleDragController.isDragging }
+                    .orElse(false)
+            if (bubbleBarDragInProgress) {
+                return false
+            }
             swipeDownDetector.onTouchEvent(ev)
             if (swipeDownDetector.isDraggingState) {
                 return true

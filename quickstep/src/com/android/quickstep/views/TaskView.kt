@@ -1832,9 +1832,13 @@ constructor(
             }
             it.overlay.setFullscreenProgress(fullscreenProgress)
         }
+        updateSettledProgressFullscreen(fullscreenProgress)
+        updateFullscreenParams()
+    }
+
+    protected fun updateSettledProgressFullscreen(fullscreenProgress: Float) {
         settledProgressFullscreen =
             SETTLED_PROGRESS_FAST_OUT_INTERPOLATOR.getInterpolation(1 - fullscreenProgress)
-        updateFullscreenParams()
     }
 
     protected open fun updateFullscreenParams() {

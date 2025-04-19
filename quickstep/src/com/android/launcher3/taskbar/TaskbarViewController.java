@@ -162,6 +162,9 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     private final AnimatedFloat mTranslationXForBubbleBar = new AnimatedFloat(
             this::updateTranslationXForBubbleBar);
 
+    private final TransitionEndBoundsChangedNotifier mTransitionEndBoundsChangedNotifier =
+            new TransitionEndBoundsChangedNotifier();
+
     @Nullable
     private Animator mTaskbarShiftXAnim;
     @Nullable
@@ -887,6 +890,16 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
         as.play(reveal);
     }
 
+    void notifyIconLayoutBoundsChanged() {
+        final LayoutTransition layoutTransition = mTaskbarView.getLayoutTransition();
+        if (layoutTransition != null && layoutTransition.isRunning()) {
+            // Defers notify until after transitions finish.
+            mTransitionEndBoundsChangedNotifier.mIsCanceled = false;
+        } else {
+            mControllers.uiController.onIconLayoutBoundsChanged();
+        }
+    }
+
     /**
      * Sets the Taskbar icon alignment relative to Launcher hotseat icons
      * @param alignmentRatio [0, 1]
@@ -910,6 +923,12 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
             mIsHotseatIconOnTopWhenAligned = isHotseatIconOnTopWhenAligned;
             mIsIconAlignedWithHotseat = isIconAlignedWithHotseat;
             mIsStashed = isStashed;
+
+            final LayoutTransition layoutTransition = mTaskbarView.getLayoutTransition();
+            if (layoutTransition != null && layoutTransition.isRunning()) {
+                mTransitionEndBoundsChangedNotifier.mIsCanceled = true;
+                layoutTransition.cancel();
+            }
             mIconAlignControllerLazy = createIconAlignmentController(launcherDp);
         }
         mIconAlignControllerLazy.setPlayFraction(alignmentRatio);
@@ -1261,6 +1280,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
                 // Do nothing.
             }
         });
+        layoutTransition.addTransitionListener(mTransitionEndBoundsChangedNotifier);
 
         // Appearing.
         AnimatorSet appearingSet = new AnimatorSet();
@@ -1362,5 +1382,23 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
         animator.setDuration(FADE_IN_ANIM_ALPHA_DURATION_MS);
         animator.setInterpolator(EMPHASIZED);
         return animator;
+    }
+
+    private class TransitionEndBoundsChangedNotifier implements TransitionListener {
+        private boolean mIsCanceled;
+
+        @Override
+        public void startTransition(
+                LayoutTransition transition, ViewGroup container, View view, int type) {
+            // Do nothing.
+        }
+
+        @Override
+        public void endTransition(
+                LayoutTransition transition, ViewGroup container, View view, int type) {
+            if (!transition.isRunning() && !mIsCanceled) {
+                mControllers.uiController.onIconLayoutBoundsChanged();
+            }
+        }
     }
 }

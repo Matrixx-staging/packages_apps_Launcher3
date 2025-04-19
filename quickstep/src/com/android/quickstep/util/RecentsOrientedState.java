@@ -56,7 +56,7 @@ import com.android.launcher3.util.SettingsCache;
 import com.android.quickstep.BaseContainerInterface;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.TaskAnimationManager;
-import com.android.quickstep.fallback.window.RecentsDisplayModel;
+import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
 
 import java.lang.annotation.Retention;
@@ -601,7 +601,7 @@ public class RecentsOrientedState implements LauncherPrefChangeListener {
      */
     public DeviceProfile getLauncherDeviceProfile(int displayId) {
         if (enableOverviewOnConnectedDisplays()) {
-            return RecentsDisplayModel.getINSTANCE().get(mContext).getRecentsWindowManager(
+            return RecentsWindowManager.REPOSITORY_INSTANCE.get(mContext).get(
                     displayId).getDeviceProfile();
         } else {
             InvariantDeviceProfile idp = InvariantDeviceProfile.INSTANCE.get(mContext);

@@ -33,6 +33,7 @@ import com.android.quickstep.task.thumbnail.TaskThumbnailUiState.LiveTile
 import com.android.quickstep.task.thumbnail.TaskThumbnailUiState.Snapshot
 import com.android.systemui.shared.recents.model.ThumbnailData
 import com.google.common.truth.Truth.assertThat
+import java.time.Duration
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -191,6 +192,7 @@ class TaskUiStateMapperTest {
     private companion object {
         const val TASK_TITLE_DESCRIPTION = "Title Description 1"
         var TASK_ID = 1
+        var PACKAGE_NAME = "com.test"
         val TASK_ICON = ShapeDrawable()
         val TASK_THUMBNAIL = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
         val TASK_THUMBNAIL_DATA =
@@ -199,6 +201,7 @@ class TaskUiStateMapperTest {
         val TASK_DATA =
             TaskData.Data(
                 TASK_ID,
+                packageName = PACKAGE_NAME,
                 title = "Task 1",
                 titleDescription = TASK_TITLE_DESCRIPTION,
                 icon = TASK_ICON,
@@ -206,6 +209,7 @@ class TaskUiStateMapperTest {
                 backgroundColor = TASK_BACKGROUND_COLOR,
                 isLocked = false,
                 isLiveTile = false,
+                remainingAppTimerDuration = Duration.ofMillis(30),
             )
     }
 }

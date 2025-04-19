@@ -39,10 +39,14 @@
 
     <style name="LauncherTheme" parent="@style/DynamicColorsBaseLauncherTheme">
         <item name="android:textColorSecondary">#DE000000</item>
+        <item name="groupHighlight">@color/materialColorSurfaceContainerHigh</item>
         <item name="allAppsScrimColor">@color/materialColorSurfaceDim</item>
-        <item name="allAppsScrimColorOverBlur">#33000000</item>
         <item name="allappsHeaderProtectionColor">@color/materialColorSurfaceContainerHighest</item>
         <item name="allAppsNavBarScrimColor">#66FFFFFF</item>
+        <item name="allAppsSurfaceLow">@color/materialColorSurfaceContainerLow</item>
+        <item name="allAppsSurfaceHighest">@color/materialColorSurfaceContainerHighest</item>
+        <item name="allAppsUnselectedTab">@color/materialColorSurfaceBright</item>
+        <item name="privateSpaceSettingsColor">@color/materialColorSurfaceBright</item>
         <item name="popupColorPrimary">@color/popup_color_primary_light</item>
         <item name="popupColorSecondary">@color/popup_color_secondary_light</item>
         <item name="popupColorTertiary">@color/popup_color_tertiary_light</item>
@@ -60,6 +64,7 @@
         <item name="workspaceKeyShadowColor">#89000000</item>
         <item name="widgetsTheme">@style/WidgetContainerTheme</item>
         <item name="pageIndicatorDotColor">@color/page_indicator_dot_color_light</item>
+        <item name="pageIndicatorArrowBgColor">@color/page_indicator_arrow_bg_light</item>
         <item name="focusOutlineColor">@color/materialColorSecondaryFixed</item>
         <item name="focusInnerOutlineColor">@color/materialColorOnSecondaryFixedVariant</item>
         <item name="folderPreviewColor">@color/folder_preview_light</item>
@@ -116,7 +121,6 @@
         <item name="android:colorControlHighlight">#19FFFFFF</item>
         <item name="android:colorPrimary">#FF212121</item>
         <item name="allAppsScrimColor">@color/materialColorSurfaceDim</item>
-        <item name="allAppsScrimColorOverBlur">#52000000</item>
         <item name="allappsHeaderProtectionColor">@color/materialColorSurfaceContainerLow</item>
         <item name="allAppsNavBarScrimColor">#80000000</item>
         <item name="popupColorPrimary">@color/popup_color_primary_dark</item>
@@ -130,6 +134,7 @@
         <item name="notificationDotColor">@color/notification_dot_color_dark</item>
         <item name="widgetsTheme">@style/WidgetContainerTheme.Dark</item>
         <item name="pageIndicatorDotColor">@color/page_indicator_dot_color_dark</item>
+        <item name="pageIndicatorArrowBgColor">@color/page_indicator_arrow_bg_dark</item>
         <item name="folderPreviewColor">@color/folder_preview_dark</item>
         <item name="folderBackgroundColor">@color/folder_background_dark</item>
         <item name="folderIconBorderColor">?android:attr/colorPrimary</item>
@@ -170,6 +175,11 @@
     <style name="AppTheme.Dark" parent="@style/LauncherTheme.Dark" />
     <style name="AppTheme.Dark.DarkMainColor" parent="@style/LauncherTheme.Dark.DarkMainColor" />
     <style name="AppTheme.Dark.DarkText" parent="@style/LauncherTheme.Dark.DarkText" />
+
+    <!-- Theme overrides when blur is enabled. -->
+    <style name="BlurStyle" />
+    <!-- Theme overrides when blur is available but currently disabled. -->
+    <style name="BlurFallbackStyle" />
 
     <style name="HomeSettings.Theme" parent="@android:style/Theme.DeviceDefault.Settings">
         <item name="android:navigationBarColor">?android:colorPrimaryDark</item>

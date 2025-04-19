@@ -91,7 +91,7 @@
     <string name="allset_hint" msgid="459504134589971527">"Potiahnutím nahor prejdete na plochu"</string>
     <string name="allset_button_hint" msgid="2395219947744706291">"Na plochu prejdete klepnutím na tlačidlo plochy"</string>
     <string name="allset_description_generic" msgid="5385500062202019855">"Môžete <xliff:g id="DEVICE">%1$s</xliff:g> začať používať"</string>
-    <string name="default_device_name" msgid="6660656727127422487">"zariadenie"</string>
+    <string name="allset_description_fallback" msgid="2488751930355201578">"Zariadenie môžete začať používať"</string>
     <string name="allset_navigation_settings" msgid="4713404605961476027"><annotation id="link">"Nastavenia navigácie systémom"</annotation></string>
     <string name="action_share" msgid="2648470652637092375">"Zdieľať"</string>
     <string name="action_screenshot" msgid="8171125848358142917">"Snímka obrazovky"</string>
@@ -162,7 +162,7 @@
     <string name="bubble_bar_action_dismiss_all" msgid="3290722022983403060">"Zavrieť všetko"</string>
     <string name="bubble_bar_accessibility_announce_expand" msgid="1503192695527477102">"rozbaliť <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
     <string name="bubble_bar_accessibility_announce_collapse" msgid="928284600086798791">"zbaliť <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
-    <string name="search_gesture_feature_title" msgid="1294044108313175306">"Vyhľadávanie krúžením"</string>
+    <string name="search_gesture_feature_title" msgid="1294044108313175306">"Hľadanie krúžkovaním"</string>
     <string name="header_app_icon_description" msgid="2184625881433608027">"Ikona aplikácie"</string>
     <string name="header_default_app_title" msgid="8308052350689531566">"Názov aplikácie"</string>
     <string name="header_close_icon_description" msgid="5400033616675911319">"Tlačidlo Zavrieť"</string>

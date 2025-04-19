@@ -43,6 +43,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 
+import com.android.app.displaylib.PerDisplayRepository;
 import com.android.launcher3.R;
 import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.dagger.LauncherAppComponent;
@@ -50,7 +51,6 @@ import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.util.DaggerSingletonObject;
 import com.android.launcher3.util.DaggerSingletonTracker;
 import com.android.launcher3.util.SimpleBroadcastReceiver;
-import com.android.quickstep.fallback.window.RecentsDisplayModel;
 import com.android.quickstep.util.ActiveGestureProtoLogProxy;
 import com.android.systemui.shared.system.PackageManagerWrapper;
 
@@ -77,7 +77,7 @@ public final class OverviewComponentObserver {
     private final SimpleBroadcastReceiver mUserPreferenceChangeReceiver;
     private final SimpleBroadcastReceiver mOtherHomeAppUpdateReceiver;
 
-    private final RecentsDisplayModel mRecentsDisplayModel;
+    private final PerDisplayRepository<FallbackWindowInterface> mFallbackWindowInterfaceRepository;
 
     private final Intent mCurrentHomeIntent;
     private final Intent mMyHomeIntent;
@@ -98,13 +98,13 @@ public final class OverviewComponentObserver {
     @Inject
     public OverviewComponentObserver(
             @ApplicationContext Context context,
-            RecentsDisplayModel recentsDisplayModel,
+            PerDisplayRepository<FallbackWindowInterface> fallbackWindowInterfaceRepository,
             DaggerSingletonTracker lifecycleTracker) {
         mUserPreferenceChangeReceiver =
                 new SimpleBroadcastReceiver(context, MAIN_EXECUTOR, this::updateOverviewTargets);
         mOtherHomeAppUpdateReceiver =
                 new SimpleBroadcastReceiver(context, MAIN_EXECUTOR, this::updateOverviewTargets);
-        mRecentsDisplayModel = recentsDisplayModel;
+        mFallbackWindowInterfaceRepository = fallbackWindowInterfaceRepository;
         mCurrentHomeIntent = createHomeIntent();
         mMyHomeIntent = new Intent(mCurrentHomeIntent).setPackage(context.getPackageName());
         ResolveInfo info = context.getPackageManager().resolveActivity(mMyHomeIntent, 0);
@@ -197,7 +197,7 @@ public final class OverviewComponentObserver {
             // User default home is same as our home app. Use Overview integrated in Launcher.
             if (enableLauncherOverviewInWindow.isTrue()) {
                 mDefaultDisplayContainerInterface =
-                        mRecentsDisplayModel.getFallbackWindowInterface(DEFAULT_DISPLAY);
+                        mFallbackWindowInterfaceRepository.get(DEFAULT_DISPLAY);
             } else {
                 mDefaultDisplayContainerInterface = LauncherActivityInterface.INSTANCE;
             }
@@ -211,7 +211,7 @@ public final class OverviewComponentObserver {
             // The default home app is a different launcher. Use the fallback Overview instead.
             if (enableFallbackOverviewInWindow.isTrue()) {
                 mDefaultDisplayContainerInterface =
-                        mRecentsDisplayModel.getFallbackWindowInterface(DEFAULT_DISPLAY);
+                        mFallbackWindowInterfaceRepository.get(DEFAULT_DISPLAY);
             } else {
                 mDefaultDisplayContainerInterface = FallbackActivityInterface.INSTANCE;
             }
@@ -301,10 +301,6 @@ public final class OverviewComponentObserver {
         return mIsHomeAndOverviewSame;
     }
 
-    public boolean isHomeAndOverviewSameActivity() {
-        return isHomeAndOverviewSame() && !enableLauncherOverviewInWindow.isTrue();
-    }
-
     /**
      * Get the current control helper for managing interactions to the overview container for
      * the given displayId.
@@ -314,7 +310,7 @@ public final class OverviewComponentObserver {
      */
     public BaseContainerInterface<?, ?> getContainerInterface(int displayId) {
         return (enableOverviewOnConnectedDisplays() && displayId != DEFAULT_DISPLAY)
-                ? mRecentsDisplayModel.getFallbackWindowInterface(displayId)
+                ? mFallbackWindowInterfaceRepository.get(displayId)
                 : mDefaultDisplayContainerInterface;
     }
 

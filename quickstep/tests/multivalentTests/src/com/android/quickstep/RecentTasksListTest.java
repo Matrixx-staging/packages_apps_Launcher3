@@ -50,6 +50,7 @@ import androidx.test.filters.SmallTest;
 import com.android.internal.R;
 import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.util.DaggerSingletonTracker;
+import com.android.launcher3.util.Executors;
 import com.android.launcher3.util.LooperExecutor;
 import com.android.quickstep.util.DesktopTask;
 import com.android.quickstep.util.GroupTask;
@@ -94,7 +95,7 @@ public class RecentTasksListTest {
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        LooperExecutor mockMainThreadExecutor = mock(LooperExecutor.class);
+        LooperExecutor mainThreadExecutor = Executors.MAIN_EXECUTOR;
         KeyguardManager mockKeyguardManager = mock(KeyguardManager.class);
 
         // Set desktop mode supported
@@ -103,7 +104,7 @@ public class RecentTasksListTest {
         when(mResources.getBoolean(R.bool.config_canInternalDisplayHostDesktops))
                 .thenReturn(true);
 
-        mRecentTasksList = new RecentTasksList(mContext, mockMainThreadExecutor,
+        mRecentTasksList = new RecentTasksList(mContext, mainThreadExecutor,
                 mockKeyguardManager, mSystemUiProxy, mTopTaskTracker,
                 mock(DesktopVisibilityController.class),
                 mock(DaggerSingletonTracker.class));

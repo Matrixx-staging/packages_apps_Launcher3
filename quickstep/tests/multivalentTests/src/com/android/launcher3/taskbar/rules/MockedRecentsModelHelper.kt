@@ -42,7 +42,10 @@ class MockedRecentsModelHelper {
 
         on { thumbnailCache } doReturn mockThumbnailCache
 
-        on { unregisterRecentTasksChangedListener() } doAnswer { recentTasksChangedListener = null }
+        on { unregisterRecentTasksChangedListener(any()) } doAnswer
+            {
+                recentTasksChangedListener = null
+            }
 
         on { registerRecentTasksChangedListener(any<RecentTasksChangedListener>()) } doAnswer
             {

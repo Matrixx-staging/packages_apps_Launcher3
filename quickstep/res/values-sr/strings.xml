@@ -91,7 +91,7 @@
     <string name="allset_hint" msgid="459504134589971527">"Превуците нагоре да бисте отворили почетни екран"</string>
     <string name="allset_button_hint" msgid="2395219947744706291">"Додирните дугме Почетак да бисте отишли на почетни екран"</string>
     <string name="allset_description_generic" msgid="5385500062202019855">"Спремни сте да почнете да користите <xliff:g id="DEVICE">%1$s</xliff:g>"</string>
-    <string name="default_device_name" msgid="6660656727127422487">"уређај"</string>
+    <string name="allset_description_fallback" msgid="2488751930355201578">"Спремни сте да почнете да користите уређај"</string>
     <string name="allset_navigation_settings" msgid="4713404605961476027"><annotation id="link">"Подешавања кретања кроз систем"</annotation></string>
     <string name="action_share" msgid="2648470652637092375">"Дели"</string>
     <string name="action_screenshot" msgid="8171125848358142917">"Снимак екрана"</string>

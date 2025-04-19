@@ -20,13 +20,11 @@ import android.app.PendingIntent
 import android.hardware.input.InputManager
 import android.hardware.input.KeyGestureEvent
 import android.hardware.input.KeyGestureEvent.KEY_GESTURE_TYPE_ALL_APPS
-import android.os.Bundle
 import android.platform.test.annotations.DisableFlags
 import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
-import com.android.launcher3.taskbar.TaskbarManager.EXTRA_KEY_ALL_APPS_ACTION_DISPLAY_ID
 import com.android.launcher3.util.SandboxApplication
 import com.android.window.flags.Flags
 import com.google.common.truth.Truth.assertThat
@@ -55,7 +53,6 @@ class QuickstepKeyGestureEventsHandlerTest {
     private val keyGestureEventsManager = QuickstepKeyGestureEventsManager(context)
     private val allAppsPendingIntent: PendingIntent = mock()
     private val keyGestureEventsCaptor: KArgumentCaptor<List<Int>> = argumentCaptor()
-    private val bundleCaptor: KArgumentCaptor<Bundle> = argumentCaptor()
 
     @Before
     fun setup() {
@@ -105,7 +102,7 @@ class QuickstepKeyGestureEventsHandlerTest {
 
     @Test
     @EnableFlags(Flags.FLAG_ENABLE_KEY_GESTURE_HANDLER_FOR_RECENTS)
-    fun handleEvent_flagEnabled_allApps_toggleAllAppsSearchWithDisplayId() {
+    fun handleEvent_flagEnabled_allApps_toggleAllAppsSearch() {
         keyGestureEventsManager.registerAllAppsKeyGestureEvent(allAppsPendingIntent)
 
         keyGestureEventsManager.allAppsKeyGestureEventHandler.handleKeyGestureEvent(
@@ -116,9 +113,7 @@ class QuickstepKeyGestureEventsHandlerTest {
             /* focusedToken= */ null,
         )
 
-        verify(allAppsPendingIntent).send(bundleCaptor.capture())
-        assertThat(bundleCaptor.firstValue.getInt(EXTRA_KEY_ALL_APPS_ACTION_DISPLAY_ID))
-            .isEqualTo(TEST_DISPLAY_ID)
+        verify(allAppsPendingIntent).send()
     }
 
     @Test

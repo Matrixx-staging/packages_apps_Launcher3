@@ -189,6 +189,10 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
             return mActionsView;
         }
 
+        public TaskContainer getTaskContainer() {
+            return mTaskContainer;
+        }
+
         public TaskView getTaskView() {
             return mTaskContainer.getTaskView();
         }

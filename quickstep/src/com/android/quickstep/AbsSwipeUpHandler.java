@@ -30,7 +30,6 @@ import static com.android.launcher3.BaseActivity.EVENT_DESTROYED;
 import static com.android.launcher3.BaseActivity.EVENT_STARTED;
 import static com.android.launcher3.BaseActivity.INVISIBLE_BY_STATE_HANDLER;
 import static com.android.launcher3.BaseActivity.STATE_HANDLER_INVISIBILITY_FLAGS;
-import static com.android.launcher3.Flags.enableAdditionalHomeAnimations;
 import static com.android.launcher3.Flags.enableGestureNavHorizontalTouchSlop;
 import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.Flags.msdlFeedback;
@@ -176,8 +175,6 @@ import com.android.wm.shell.shared.startingsurface.SplashScreenExitAnimationUtil
 
 import com.google.android.msdl.data.model.MSDLToken;
 
-import kotlin.Unit;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -185,6 +182,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.function.Consumer;
+
+import kotlin.Unit;
 
 /**
  * Handles the navigation gestures when Launcher is the default home activity.
@@ -1691,10 +1690,9 @@ public abstract class AbsSwipeUpHandler<
                     isTranslucent,
                     appCanEnterPip,
                     runningTaskTarget,
-                    !enableAdditionalHomeAnimations()
-                            || mRecentsView == null
+                    mRecentsView == null
                             || mRecentsView.getCurrentPage() == mRecentsView.getRunningTaskIndex()
-                                    ? null : mRecentsView.getCurrentPageTaskView());
+                            ? null : mRecentsView.getCurrentPageTaskView());
             SwipePipToHomeAnimator swipePipToHomeAnimator = !mIsSwipeForSplit && appCanEnterPip
                     ? createWindowAnimationToPip(homeAnimFactory, runningTaskTarget, start)
                     : null;

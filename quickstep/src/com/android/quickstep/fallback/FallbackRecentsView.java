@@ -43,9 +43,9 @@ import com.android.launcher3.util.SplitConfigurationOptions;
 import com.android.launcher3.util.SplitConfigurationOptions.SplitSelectSource;
 import com.android.quickstep.BaseContainerInterface;
 import com.android.quickstep.FallbackActivityInterface;
+import com.android.quickstep.FallbackWindowInterface;
 import com.android.quickstep.GestureState;
 import com.android.quickstep.RemoteTargetGluer.RemoteTargetHandle;
-import com.android.quickstep.fallback.window.RecentsDisplayModel;
 import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.quickstep.util.GroupTask;
 import com.android.quickstep.util.SingleTask;
@@ -83,8 +83,7 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
     @Override
     public BaseContainerInterface<RecentsState, ?> getContainerInterface(int displayId) {
         return RecentsWindowFlags.Companion.getEnableOverviewInWindow()
-                ? RecentsDisplayModel.getINSTANCE().get(mContext)
-                        .getFallbackWindowInterface(displayId)
+                ? FallbackWindowInterface.REPOSITORY_INSTANCE.get(mContext).get(displayId)
                 : FallbackActivityInterface.INSTANCE;
     }
 

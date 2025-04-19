@@ -387,7 +387,7 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
 
     private int addPrivateSpaceApps(int position) {
         // Add Install Apps Button first.
-        if (Flags.privateSpaceAppInstallerButton() && !enableMovingContentIntoPrivateSpace()) {
+        if (!enableMovingContentIntoPrivateSpace()) {
             mPrivateProviderManager.addPrivateSpaceInstallAppButton(mAdapterItems);
             position++;
         }
@@ -468,7 +468,7 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
             if (hasPrivateApps) {
                 mAdapterItems.add(AdapterItem.asAppWithDecorationInfo(info,
                         new SectionDecorationInfo(mActivityContext,
-                                getRoundRegions(i, appList.size()), true /* decorateTogether */)));
+                                getRoundRegions(i, appList.size()))));
             } else {
                 mAdapterItems.add(AdapterItem.asApp(info));
             }

@@ -132,7 +132,7 @@ public class TaskbarViewCallbacks {
      * Notifies launcher to update icon alignment.
      */
     public void notifyIconLayoutBoundsChanged() {
-        mControllers.uiController.onIconLayoutBoundsChanged();
+        mControllers.taskbarViewController.notifyIconLayoutBoundsChanged();
     }
 
     /**

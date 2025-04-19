@@ -91,7 +91,7 @@
     <string name="allset_hint" msgid="459504134589971527">"Nach oben wischen, um den Startbildschirm aufzurufen"</string>
     <string name="allset_button_hint" msgid="2395219947744706291">"Startbildschirmtaste drücken, um zum Startbildschirm zu gehen"</string>
     <string name="allset_description_generic" msgid="5385500062202019855">"Du kannst dein <xliff:g id="DEVICE">%1$s</xliff:g> jetzt verwenden"</string>
-    <string name="default_device_name" msgid="6660656727127422487">"Gerät"</string>
+    <string name="allset_description_fallback" msgid="2488751930355201578">"Du kannst dein Gerät jetzt verwenden"</string>
     <string name="allset_navigation_settings" msgid="4713404605961476027"><annotation id="link">"Einstellungen für die Systemnavigation"</annotation></string>
     <string name="action_share" msgid="2648470652637092375">"Teilen"</string>
     <string name="action_screenshot" msgid="8171125848358142917">"Screenshot"</string>

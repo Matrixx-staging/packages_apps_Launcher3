@@ -18,7 +18,6 @@ package com.android.launcher3.util.rule;
 
 import static com.android.launcher3.util.TestUtil.grantWriteSecurePermission;
 
-import android.app.Instrumentation;
 import android.content.ContentResolver;
 import android.provider.Settings;
 import android.util.Log;
@@ -26,10 +25,16 @@ import android.view.ViewConfiguration;
 
 import androidx.test.InstrumentationRegistry;
 
+import com.android.launcher3.BuildConfig;
+
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+/**
+ * Increases the device's long-press timeout in remote tests to reduce flakiness in slow-running
+ * devices.
+ */
 public class ExtendedLongPressTimeoutRule implements TestRule {
 
     private static final String TAG = "ExtendedLongPressTimeoutRule";
@@ -38,6 +43,10 @@ public class ExtendedLongPressTimeoutRule implements TestRule {
 
     @Override
     public Statement apply(Statement base, Description description) {
+        if (BuildConfig.IS_STUDIO_BUILD) {
+            // Skip rule on studio builds since cancelling a test run will not run the finally block
+            return base;
+        }
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {

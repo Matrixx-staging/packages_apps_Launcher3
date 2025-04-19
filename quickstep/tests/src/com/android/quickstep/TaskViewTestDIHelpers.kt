@@ -22,6 +22,8 @@ import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.util.AllModulesMinusWMProxy
 import com.android.launcher3.util.TestDispatcherProvider
 import com.android.launcher3.util.coroutines.DispatcherProvider
+import com.android.quickstep.recents.data.AppTimersRepository
+import com.android.quickstep.recents.data.FakeAppTimersRepository
 import com.android.quickstep.recents.data.FakeRecentsDeviceProfileRepository
 import com.android.quickstep.recents.data.FakeRecentsRotationStateRepository
 import com.android.quickstep.recents.data.RecentsDeviceProfileRepository
@@ -59,6 +61,8 @@ object TaskViewTestDIHelpers {
         recentsDependencies
             .getScope(context)[RecentsDeviceProfileRepository::class.java.simpleName] =
             FakeRecentsDeviceProfileRepository()
+        recentsDependencies.getScope(context)[AppTimersRepository::class.java.simpleName] =
+            FakeAppTimersRepository()
     }
 
     @JvmStatic

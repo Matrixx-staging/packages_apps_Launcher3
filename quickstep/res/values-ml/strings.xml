@@ -91,7 +91,7 @@
     <string name="allset_hint" msgid="459504134589971527">"ഹോമിലേക്ക് പോകാൻ മുകളിലേക്ക് സ്വൈപ്പ് ചെയ്യുക"</string>
     <string name="allset_button_hint" msgid="2395219947744706291">"നിങ്ങളുടെ ഹോം സ്ക്രീനിലേക്ക് പോകാൻ ഹോം ബട്ടൺ ടാപ്പ് ചെയ്യുക"</string>
     <string name="allset_description_generic" msgid="5385500062202019855">"നിങ്ങൾക്ക് <xliff:g id="DEVICE">%1$s</xliff:g> ഉപയോഗിച്ചു തുടങ്ങാം"</string>
-    <string name="default_device_name" msgid="6660656727127422487">"ഉപകരണം"</string>
+    <string name="allset_description_fallback" msgid="2488751930355201578">"നിങ്ങളുടെ ഉപകരണം ഉപയോഗിച്ച് തുടങ്ങാൻ നിങ്ങൾ തയ്യാറാണ്"</string>
     <string name="allset_navigation_settings" msgid="4713404605961476027"><annotation id="link">"സിസ്‌റ്റം നാവിഗേഷൻ ക്രമീകരണം"</annotation></string>
     <string name="action_share" msgid="2648470652637092375">"പങ്കിടുക"</string>
     <string name="action_screenshot" msgid="8171125848358142917">"സ്ക്രീൻഷോട്ട്"</string>

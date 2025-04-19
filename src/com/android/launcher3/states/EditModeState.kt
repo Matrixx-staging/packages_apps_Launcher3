@@ -46,8 +46,6 @@ class EditModeState(id: Int) : LauncherState(id, StatsLogManager.LAUNCHER_STATE_
         }
     }
 
-    override fun shouldBlurWorkspace() = false
-
     override fun getWorkspaceScaleAndTranslation(launcher: Launcher): ScaleAndTranslation {
         val scale = launcher.deviceProfile.getWorkspaceSpringLoadScale(launcher)
         return ScaleAndTranslation(scale, 0f, 0f)

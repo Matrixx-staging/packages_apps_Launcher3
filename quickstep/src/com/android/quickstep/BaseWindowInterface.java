@@ -30,11 +30,11 @@ import static com.android.quickstep.views.RecentsView.TASK_SECONDARY_TRANSLATION
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
-import android.util.Log;
 import android.view.MotionEvent;
 
 import androidx.annotation.Nullable;
 
+import com.android.launcher3.Launcher;
 import com.android.launcher3.anim.AnimatorPlaybackController;
 import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.statehandlers.DepthController;
@@ -42,6 +42,7 @@ import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.NavigationMode;
 import com.android.quickstep.fallback.RecentsState;
+import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.util.AnimatorControllerWithResistance;
 import com.android.quickstep.views.RecentsView;
@@ -114,6 +115,16 @@ public abstract class BaseWindowInterface extends
             return;
         }
         recentsView.switchToScreenshot(thumbnailDatas, runnable);
+    }
+
+    @Override
+    public boolean isLauncherOverlayShowing() {
+        if (!RecentsWindowFlags.enableLauncherOverviewInWindow.isTrue()) {
+            return false;
+        }
+        Launcher launcher = Launcher.ACTIVITY_TRACKER.getCreatedContext();
+
+        return launcher != null && launcher.getWorkspace().isOverlayShown();
     }
 
     /**

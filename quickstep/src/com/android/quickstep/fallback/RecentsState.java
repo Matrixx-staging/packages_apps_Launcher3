@@ -16,7 +16,6 @@
 package com.android.quickstep.fallback;
 
 import static com.android.launcher3.Flags.enableDesktopExplodedView;
-import static com.android.launcher3.Flags.enableDesktopWindowingCarouselDetach;
 import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 import static com.android.launcher3.LauncherState.FLAG_CLOSE_POPUPS;
 import static com.android.launcher3.uioverrides.states.BackgroundAppState.getOverviewScaleAndOffsetForBackgroundState;
@@ -46,9 +45,8 @@ public class RecentsState implements BaseState<RecentsState> {
     private static final int FLAG_LIVE_TILE = BaseState.getFlag(6);
     private static final int FLAG_RECENTS_VIEW_VISIBLE = BaseState.getFlag(7);
     private static final int FLAG_TASK_THUMBNAIL_SPLASH = BaseState.getFlag(8);
-    private static final int FLAG_DETACH_DESKTOP_CAROUSEL = BaseState.getFlag(9);
-    private static final int FLAG_ADD_DESK_BUTTON = BaseState.getFlag(10);
-    private static final int FLAG_SHOW_EXPLODED_DESKTOP_VIEW = BaseState.getFlag(11);
+    private static final int FLAG_ADD_DESK_BUTTON = BaseState.getFlag(9);
+    private static final int FLAG_SHOW_EXPLODED_DESKTOP_VIEW = BaseState.getFlag(10);
 
     public static final int DEFAULT_STATE_ORDINAL = 0;
     public static final int MODAL_TASK_ORDINAL = 1;
@@ -69,8 +67,7 @@ public class RecentsState implements BaseState<RecentsState> {
                     | FLAG_SHOW_EXPLODED_DESKTOP_VIEW);
     public static final RecentsState BACKGROUND_APP = new BackgroundAppState(BACKGROUND_APP_ORDINAL,
             FLAG_DISABLE_RESTORE | FLAG_NON_INTERACTIVE | FLAG_FULL_SCREEN
-                    | FLAG_RECENTS_VIEW_VISIBLE | FLAG_TASK_THUMBNAIL_SPLASH
-                    | FLAG_DETACH_DESKTOP_CAROUSEL);
+                    | FLAG_RECENTS_VIEW_VISIBLE | FLAG_TASK_THUMBNAIL_SPLASH);
     public static final RecentsState HOME = new RecentsState(HOME_STATE_ORDINAL, 0);
     public static final RecentsState BG_LAUNCHER = new LauncherState(BG_LAUNCHER_ORDINAL, 0);
     public static final RecentsState OVERVIEW_SPLIT_SELECT = new RecentsState(
@@ -187,11 +184,6 @@ public class RecentsState implements BaseState<RecentsState> {
     @Override
     public boolean showTaskThumbnailSplash() {
         return hasFlag(FLAG_TASK_THUMBNAIL_SPLASH);
-    }
-
-    @Override
-    public boolean detachDesktopCarousel() {
-        return hasFlag(FLAG_DETACH_DESKTOP_CAROUSEL) && enableDesktopWindowingCarouselDetach();
     }
 
     @Override

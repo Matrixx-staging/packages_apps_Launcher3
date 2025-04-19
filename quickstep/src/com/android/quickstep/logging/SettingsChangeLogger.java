@@ -18,7 +18,6 @@ package com.android.quickstep.logging;
 
 import static com.android.launcher3.LauncherPrefs.getDevicePrefs;
 import static com.android.launcher3.LauncherPrefs.getPrefs;
-import static com.android.launcher3.graphics.ThemeManager.KEY_THEMED_ICONS;
 import static com.android.launcher3.graphics.ThemeManager.PREF_ICON_SHAPE;
 import static com.android.launcher3.graphics.ThemeManager.THEMED_ICONS;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_HOME_SCREEN_SUGGESTIONS_DISABLED;
@@ -32,7 +31,6 @@ import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCH
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_NOTIFICATION_DOT_ENABLED;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_THEMED_ICON_DISABLED;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_THEMED_ICON_ENABLED;
-import static com.android.launcher3.model.DeviceGridState.KEY_WORKSPACE_SIZE;
 import static com.android.launcher3.model.PredictionUpdateTask.LAST_PREDICTION_ENABLED;
 import static com.android.launcher3.shapes.ShapesProvider.ARCH_KEY;
 import static com.android.launcher3.shapes.ShapesProvider.CIRCLE_KEY;
@@ -50,6 +48,7 @@ import android.util.ArrayMap;
 import android.util.Log;
 import android.util.Xml;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.Flags;
@@ -98,9 +97,9 @@ public class SettingsChangeLogger implements
     private final ArrayMap<String, LoggablePref> mLoggablePrefs;
     private final StatsLogManager mStatsLogManager;
 
+    @NonNull
     private NavigationMode mNavMode;
     private LauncherEvent mNotificationDotsEvent;
-    private LauncherEvent mHomeScreenSuggestionEvent;
 
     private final SettingsCache.OnChangeListener mListener = this::onNotificationDotsChanged;
 
@@ -202,17 +201,20 @@ public class SettingsChangeLogger implements
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
-        if (LAST_PREDICTION_ENABLED.getSharedPrefKey().equals(key)
-                || KEY_WORKSPACE_SIZE.equals(key)
-                || KEY_THEMED_ICONS.equals(key)
-                || mLoggablePrefs.containsKey(key)) {
-
-            mHomeScreenSuggestionEvent = LauncherPrefs.get(mContext).get(LAST_PREDICTION_ENABLED)
-                    ? LAUNCHER_HOME_SCREEN_SUGGESTIONS_ENABLED
-                    : LAUNCHER_HOME_SCREEN_SUGGESTIONS_DISABLED;
-
-            mStatsLogManager.logger().log(mHomeScreenSuggestionEvent);
+        LoggablePref loggablePref;
+        if (LAST_PREDICTION_ENABLED.getSharedPrefKey().equals(key)) {
+            logHomeScreenSuggestionEvent(mStatsLogManager.logger());
+        } else if ((loggablePref = mLoggablePrefs.get(key)) != null) {
+            int eventId = prefs.getBoolean(key, loggablePref.defaultValue)
+                    ? loggablePref.eventIdOn : loggablePref.eventIdOff;
+            mStatsLogManager.logger().log(() -> eventId);
         }
+    }
+
+    private void logHomeScreenSuggestionEvent(StatsLogger logger) {
+        logger.log(LauncherPrefs.get(mContext).get(LAST_PREDICTION_ENABLED)
+                ? LAUNCHER_HOME_SCREEN_SUGGESTIONS_ENABLED
+                : LAUNCHER_HOME_SCREEN_SUGGESTIONS_DISABLED);
     }
 
     /**
@@ -222,8 +224,8 @@ public class SettingsChangeLogger implements
         StatsLogger logger = mStatsLogManager.logger().withInstanceId(snapshotInstanceId);
 
         Optional.ofNullable(mNotificationDotsEvent).ifPresent(logger::log);
-        Optional.ofNullable(mNavMode).map(mode -> mode.launcherEvent).ifPresent(logger::log);
-        Optional.ofNullable(mHomeScreenSuggestionEvent).ifPresent(logger::log);
+        logger.log(mNavMode.launcherEvent);
+        logHomeScreenSuggestionEvent(logger);
         Optional.ofNullable(new DeviceGridState(mContext).getWorkspaceSizeEvent()).ifPresent(
                 logger::log);
 

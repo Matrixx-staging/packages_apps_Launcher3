@@ -5,7 +5,6 @@ import android.os.Build
 import android.os.Trace
 import android.util.Log
 import androidx.annotation.UiThread
-import com.android.launcher3.Flags.enableSmartspaceRemovalToggle
 import com.android.launcher3.LauncherConstants.TraceEvents
 import com.android.launcher3.LauncherSettings.Favorites.containerBelongsToWorkspace
 import com.android.launcher3.Utilities.SHOULD_SHOW_FIRST_PAGE_WIDGET
@@ -38,9 +37,6 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
 
     var synchronouslyBoundPages = LIntSet()
     var pagesToBindSynchronously = LIntSet()
-
-    private var isFirstPagePinnedItemEnabled =
-        (BuildConfig.QSB_ON_FIRST_SCREEN && !enableSmartspaceRemovalToggle())
 
     var stringCache: StringCache? = null
 
@@ -308,15 +304,12 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         )
         val firstScreenPosition = 0
         if (
-            (isFirstPagePinnedItemEnabled && !SHOULD_SHOW_FIRST_PAGE_WIDGET) &&
+            !SHOULD_SHOW_FIRST_PAGE_WIDGET &&
                 orderedScreenIds.indexOf(FIRST_SCREEN_ID) != firstScreenPosition
         ) {
             orderedScreenIds.removeValue(FIRST_SCREEN_ID)
             orderedScreenIds.add(firstScreenPosition, FIRST_SCREEN_ID)
-        } else if (
-            (!isFirstPagePinnedItemEnabled || SHOULD_SHOW_FIRST_PAGE_WIDGET) &&
-                orderedScreenIds.isEmpty
-        ) {
+        } else if (SHOULD_SHOW_FIRST_PAGE_WIDGET && orderedScreenIds.isEmpty) {
             // If there are no screens, we need to have an empty screen
             launcher.workspace.addExtraEmptyScreens()
         }
@@ -371,9 +364,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         }
         orderedScreenIds
             .filterNot { screenId ->
-                isFirstPagePinnedItemEnabled &&
-                    !SHOULD_SHOW_FIRST_PAGE_WIDGET &&
-                    screenId == WorkspaceLayoutManager.FIRST_SCREEN_ID
+                !SHOULD_SHOW_FIRST_PAGE_WIDGET && screenId == WorkspaceLayoutManager.FIRST_SCREEN_ID
             }
             .forEach { screenId ->
                 launcher.workspace.insertNewWorkspaceScreenBeforeEmptyScreen(screenId)
@@ -398,17 +389,10 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         return screenIds.array
     }
 
-    override fun setIsFirstPagePinnedItemEnabled(isFirstPagePinnedItemEnabled: Boolean) {
-        this.isFirstPagePinnedItemEnabled = isFirstPagePinnedItemEnabled
-        launcher.workspace.bindAndInitFirstWorkspaceScreen()
-    }
-
     override fun bindStringCache(cache: StringCache) {
         stringCache = cache
         launcher.appsView.updateWorkUI()
     }
-
-    fun getIsFirstPagePinnedItemEnabled(): Boolean = isFirstPagePinnedItemEnabled
 
     override fun getItemInflater() = launcher.itemInflater
 }

@@ -122,9 +122,12 @@ public class LauncherAccessibilityDelegate extends BaseAccessibilityDelegate<Lau
             out.add(mActions.get(DEEP_SHORTCUTS));
         }
 
+        // Get all visible / non-visible drop targets so we can provide them as quick actions for
+        // users of accessibility services.
         for (ButtonDropTarget target : mContext.getDropTargetBar().getDropTargets()) {
-            if (target.supportsAccessibilityDrop(item, host)) {
-                out.add(mActions.get(target.getAccessibilityAction()));
+            int dropTargetAction = target.getSupportedAccessibilityAction(item, host);
+            if (dropTargetAction != INVALID) {
+                out.add(mActions.get(dropTargetAction));
             }
         }
 
@@ -229,9 +232,9 @@ public class LauncherAccessibilityDelegate extends BaseAccessibilityDelegate<Lau
             }
         } else {
             for (ButtonDropTarget dropTarget : mContext.getDropTargetBar().getDropTargets()) {
-                if (dropTarget.supportsAccessibilityDrop(item, host)
-                        && action == dropTarget.getAccessibilityAction()) {
-                    dropTarget.onAccessibilityDrop(host, item);
+                int dropTargetAction = dropTarget.getSupportedAccessibilityAction(item, host);
+                if (action == dropTargetAction) {
+                    dropTarget.onAccessibilityDrop(host, item, action);
                     return true;
                 }
             }

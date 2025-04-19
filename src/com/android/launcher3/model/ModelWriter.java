@@ -255,7 +255,7 @@ public class ModelWriter {
             mModel.getModelDbController().insert(writer.getValues(mContext));
             synchronized (mBgDataModel) {
                 checkItemInfoLocked(item.id, item, stackTrace);
-                mBgDataModel.addItem(mContext, item, true);
+                mBgDataModel.addItem(mContext, item, true, mOwner);
                 verifier.verifyModel();
             }
         }).executeOnModelThread();
@@ -292,9 +292,9 @@ public class ModelWriter {
         enqueueDeleteRunnable(newModelTask(() -> {
             for (ItemInfo item : items) {
                 mModel.getModelDbController().delete(itemIdMatch(item.id), null);
-                mBgDataModel.removeItem(mContext, item);
-                verifier.verifyModel();
             }
+            mBgDataModel.removeItem(mContext, items, mOwner);
+            verifier.verifyModel();
         }));
     }
 
@@ -308,12 +308,13 @@ public class ModelWriter {
         enqueueDeleteRunnable(newModelTask(() -> {
             mModel.getModelDbController().delete(
                     Favorites.CONTAINER + "=" + info.id, null);
-            mBgDataModel.removeItem(mContext, info.getContents());
-            info.getContents().clear();
 
             mModel.getModelDbController().delete(
                     Favorites._ID + "=" + info.id, null);
-            mBgDataModel.removeItem(mContext, info);
+
+            List<ItemInfo> itemsToDelete = new ArrayList<>(info.getContents());
+            itemsToDelete.add(info);
+            mBgDataModel.removeItem(mContext, itemsToDelete, mOwner);
             verifier.verifyModel();
         }));
     }
@@ -412,6 +413,7 @@ public class ModelWriter {
             mModel.getModelDbController().update(
                     mWriter.get().getValues(mContext), itemIdMatch(mItemId), null);
             updateItemArrays(mItem, mItemId);
+            mBgDataModel.updateItems(Collections.singletonList(mItem), mOwner);
         }
     }
 
@@ -436,6 +438,7 @@ public class ModelWriter {
                     updateItemArrays(item, itemId);
                 }
                 t.commit();
+                mBgDataModel.updateItems(mItems, mOwner);
             } catch (Exception e) {
                 e.printStackTrace();
             }

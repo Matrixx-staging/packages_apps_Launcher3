@@ -18,6 +18,7 @@ package com.android.quickstep.recents.ui.viewmodel
 
 import android.graphics.drawable.Drawable
 import com.android.systemui.shared.recents.model.ThumbnailData
+import java.time.Duration
 
 /**
  * This class represents the UI state to be consumed by TaskView, GroupTaskView and DesktopTaskView.
@@ -49,6 +50,7 @@ sealed class TaskData {
      * This class provides UI information related to a Task (App) to be displayed within a TaskView.
      *
      * @property taskId Identifier of the task
+     * @property packageName package name for the task
      * @property title App title
      * @property titleDescription App content description
      * @property icon App icon
@@ -56,9 +58,11 @@ sealed class TaskData {
      * @property backgroundColor The background color of the task.
      * @property isLocked Indicates whether the task is locked or not.
      * @property isLiveTile Indicates whether the task is shown with a live tile or not.
+     * @property remainingAppTimerDuration time remaining on the app timer for the application.
      */
     data class Data(
         override val taskId: Int,
+        val packageName: String,
         val title: String?,
         val titleDescription: String?,
         val icon: Drawable?,
@@ -66,5 +70,6 @@ sealed class TaskData {
         val backgroundColor: Int,
         val isLocked: Boolean,
         val isLiveTile: Boolean,
+        val remainingAppTimerDuration: Duration?,
     ) : TaskData()
 }

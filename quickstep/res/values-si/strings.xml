@@ -91,7 +91,7 @@
     <string name="allset_hint" msgid="459504134589971527">"මුල් පිටුවට යාමට ඉහළට ස්වයිප් කරන්න"</string>
     <string name="allset_button_hint" msgid="2395219947744706291">"ඔබේ මුල් තිරය වෙත යාමට මුල් පිටුව බොත්තම තට්ටු කරන්න"</string>
     <string name="allset_description_generic" msgid="5385500062202019855">"ඔබ ඔබේ <xliff:g id="DEVICE">%1$s</xliff:g> භාවිත කිරීම පටන් ගැනීමට සූදානම්"</string>
-    <string name="default_device_name" msgid="6660656727127422487">"උපාංගය"</string>
+    <string name="allset_description_fallback" msgid="2488751930355201578">"ඔබ ඔබේ උපාංගය භාවිත කිරීම පටන් ගැනීමට සූදානම්"</string>
     <string name="allset_navigation_settings" msgid="4713404605961476027"><annotation id="link">"පද්ධති සංචාලන සැකසීම්"</annotation></string>
     <string name="action_share" msgid="2648470652637092375">"බෙදා ගන්න"</string>
     <string name="action_screenshot" msgid="8171125848358142917">"තිර රුව"</string>
@@ -109,16 +109,11 @@
     <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"අවලංගු කරන්න"</string>
     <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"මඟ හරින්න"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"තිරය කරකවන්න"</string>
-    <!-- no translation found for taskbar_edu_swipe_animation_description (1690727240826006218) -->
-    <skip />
-    <!-- no translation found for taskbar_edu_pinning_animation_description (8148601093590683880) -->
-    <skip />
-    <!-- no translation found for taskbar_edu_split_screen_animation_description (371796444988899166) -->
-    <skip />
-    <!-- no translation found for taskbar_edu_suggested_app_animation_description (3443453246478079085) -->
-    <skip />
-    <!-- no translation found for taskbar_edu_suggested_search_animation_description (1874284242557104818) -->
-    <skip />
+    <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"තිරයේ පහළ සිට කාර්ය තීරුව දර්ශනය වන ආකාරය සහ භාවිතයේ නොමැති විට ස්වයංක්‍රීයව සැඟවෙන ආකාරය පෙන්වන සජීවීකරණය"</string>
+    <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"තිරයේ පහළින් කාර්ය තීරුව ස්ථිරවම දෘශ්‍යමානව පවතින පරිදි, ටොගලයක් භාවිතයෙන් ඔබේ කාර්ය තීරුව ඇමිණෙන ආකාරය පෙන්වන සජීවීකරණය"</string>
+    <string name="taskbar_edu_split_screen_animation_description" msgid="371796444988899166">"විවෘත යෙදුමකට ඉහළින් ඇති කාර්ය තීරුවෙන් යෙදුමක් ඇදගෙන යාමෙන්, බෙදීම් තිරයක් නිර්මාණය කරන ආකාරය පෙන්වන සජීවීකරණය"</string>
+    <string name="taskbar_edu_suggested_app_animation_description" msgid="3443453246478079085">"ඔබේ උපාංගයේ යෝජිත යෙදුම් වෙත ප්‍රවේශ වන ආකාරය පෙන්වන සජීවීකරණය"</string>
+    <string name="taskbar_edu_suggested_search_animation_description" msgid="1874284242557104818">"ක්‍රියා යතුර ස්පර්ශ කරගෙන අයිතමය ඇති ප්‍රදේශය තේරීමෙන් තිරය මත අයිතමයක් සොයන ආකාරය පෙන්වන සජීවීකරණය"</string>
     <string name="taskbar_edu_a11y_title" msgid="5417986057866415355">"කාර්ය තීරු අධ්‍යාපනය"</string>
     <string name="taskbar_edu_splitscreen" msgid="5605512479258053350">"එකවර යෙදුම් 2ක් භාවිතා කිරීමට යෙදුමක් පැත්තට අදින්න"</string>
     <string name="taskbar_edu_stashing" msgid="5645461372669217294">"කාර්ය තීරුව පෙන්වීමට ඉහළට සෙමින් ස්වයිප් කරන්න"</string>

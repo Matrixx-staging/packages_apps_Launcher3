@@ -53,8 +53,8 @@ import com.android.quickstep.HomeVisibilityState;
 import com.android.quickstep.LauncherActivityInterface;
 import com.android.quickstep.RecentsAnimationCallbacks;
 import com.android.quickstep.SystemUiProxy;
-import com.android.quickstep.fallback.window.RecentsDisplayModel;
 import com.android.quickstep.fallback.window.RecentsWindowFlags;
+import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.util.SplitTask;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
@@ -121,8 +121,8 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
                 mControllers.getSharedState().sysuiStateFlags);
         final TaskbarActivityContext taskbarContext = mControllers.taskbarActivityContext;
         if (RecentsWindowFlags.getEnableOverviewInWindow()) {
-            mRecentsViewContainer = RecentsDisplayModel.getINSTANCE()
-                    .get(taskbarContext).getRecentsWindowManager(taskbarContext.getDisplayId());
+            mRecentsViewContainer = RecentsWindowManager.REPOSITORY_INSTANCE.get(
+                    taskbarContext).get(taskbarContext.getDisplayId());
         }
         if (mRecentsViewContainer == null) {
             mRecentsViewContainer = mLauncher;
@@ -133,10 +133,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
         }
 
         mHomeState.addListener(mVisibilityChangeListener);
-        onLauncherVisibilityChanged(
-                Flags.useActivityOverlay()
-                        ? mHomeState.isHomeVisible() : mLauncher.hasBeenResumed(),
-                true /* fromInit */);
+        onLauncherVisibilityChanged(mHomeState.isHomeVisible(), true /* fromInit */);
 
         onStashedInAppChanged(mLauncher.getDeviceProfile());
         mLauncher.addOnDeviceProfileChangeListener(mOnDeviceProfileChangeListener);
@@ -295,8 +292,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
 
     @Override
     public void refreshResumedState() {
-        onLauncherVisibilityChanged(Flags.useActivityOverlay()
-                ? mHomeState.isHomeVisible() : mLauncher.hasBeenResumed());
+        onLauncherVisibilityChanged(mHomeState.isHomeVisible());
     }
 
     @Override

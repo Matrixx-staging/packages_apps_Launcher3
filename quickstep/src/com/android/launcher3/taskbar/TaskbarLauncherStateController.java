@@ -65,7 +65,6 @@ import com.android.launcher3.util.MultiPropertyFactory.MultiProperty;
 import com.android.quickstep.RecentsAnimationCallbacks;
 import com.android.quickstep.RecentsAnimationController;
 import com.android.quickstep.fallback.RecentsState;
-import com.android.quickstep.fallback.window.RecentsDisplayModel;
 import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.util.ScalingWorkspaceRevealAnim;
@@ -522,11 +521,22 @@ public class TaskbarLauncherStateController {
         stashController.updateStateForFlag(FLAG_IN_OVERVIEW,
                 mLauncherState == LauncherState.OVERVIEW);
 
+        // Update taskbar stash flag here since we are skipping the playStateTransitionAnim below
+        if (isPinnedTaskbar) {
+            stashController.updateStateForFlag(FLAG_IN_STASHED_LAUNCHER_STATE,
+                    mLauncherState.isTaskbarStashed(mLauncher));
+        }
+
         AnimatorSet animatorSet = new AnimatorSet();
 
         if (hasAnyFlag(changedFlags, FLAG_LAUNCHER_IN_STATE_TRANSITION)) {
             boolean launcherTransitionCompleted = !hasAnyFlag(FLAG_LAUNCHER_IN_STATE_TRANSITION);
-            playStateTransitionAnim(animatorSet, duration, launcherTransitionCompleted);
+
+            // We are skipping the taskbar stash animation for pinned taskbar, as we handle that now
+            // in setupPinnedTaskbarAnimation.
+            if (!isPinnedTaskbar) {
+                playStateTransitionAnim(animatorSet, duration, launcherTransitionCompleted);
+            }
 
             if (launcherTransitionCompleted
                     && mLauncherState == LauncherState.QUICK_SWITCH_FROM_HOME) {
@@ -614,7 +624,7 @@ public class TaskbarLauncherStateController {
         AnimatedFloat taskbarBgOffset =
                 mControllers.taskbarDragLayerController.getTaskbarBackgroundOffset();
         boolean showTaskbar = shouldShowTaskbar(mControllers.taskbarActivityContext, isInLauncher,
-                isInOverview);
+                isInOverview) && !mControllers.taskbarStashController.isInStashedLauncherState();
         float taskbarBgOffsetEnd = showTaskbar ? 0f : 1f;
         float taskbarBgOffsetStart = showTaskbar ? 1f : 0f;
 
@@ -763,6 +773,7 @@ public class TaskbarLauncherStateController {
         return !isInLauncher || isInOverview;
     }
 
+    // Used to stash/unstash pinned taskbar between home, overview, in app states.
     private void setupPinnedTaskbarAnimation(AnimatorSet animatorSet, boolean showTaskbar,
             AnimatedFloat taskbarBgOffset, float taskbarBgOffsetStart, float taskbarBgOffsetEnd,
             long duration, Animator taskbarBackgroundAlpha) {
@@ -1128,8 +1139,9 @@ public class TaskbarLauncherStateController {
     private void runForRecentsWindowManager(Consumer<RecentsWindowManager> callback) {
         if (RecentsWindowFlags.getEnableOverviewInWindow()) {
             final TaskbarActivityContext taskbarContext = mControllers.taskbarActivityContext;
-            RecentsWindowManager recentsWindowManager = RecentsDisplayModel.getINSTANCE()
-                    .get(taskbarContext).getRecentsWindowManager(taskbarContext.getDisplayId());
+            RecentsWindowManager recentsWindowManager =
+                    RecentsWindowManager.REPOSITORY_INSTANCE.get(taskbarContext).get(
+                            taskbarContext.getDisplayId());
             if (recentsWindowManager != null) {
                 callback.accept(recentsWindowManager);
             }

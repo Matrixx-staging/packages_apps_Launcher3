@@ -19,7 +19,6 @@ package com.android.launcher3.model
 import android.app.admin.DevicePolicyManager.ACTION_DEVICE_POLICY_RESOURCE_UPDATED
 import android.content.ComponentName
 import android.content.Context
-import android.content.SharedPreferences
 import android.content.pm.LauncherApps
 import android.content.pm.LauncherApps.ArchiveCompatibilityParams
 import com.android.launcher3.BuildConfig
@@ -27,7 +26,6 @@ import com.android.launcher3.Flags
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.InvariantDeviceProfile.OnIDPChangeListener
 import com.android.launcher3.LauncherModel
-import com.android.launcher3.LauncherPrefs.Companion.getPrefs
 import com.android.launcher3.Utilities
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.graphics.ThemeManager
@@ -135,18 +133,6 @@ constructor(
         notificationChanges.onSettingsChanged(settingsCache.getValue(NOTIFICATION_BADGING_URI))
         lifeCycle.addCloseable {
             settingsCache.unregister(NOTIFICATION_BADGING_URI, notificationChanges)
-        }
-
-        // removable smartspace
-        if (Flags.enableSmartspaceRemovalToggle()) {
-            val smartSpacePrefChanges =
-                SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-                    if (LoaderTask.SMARTSPACE_ON_HOME_SCREEN == key) model.forceReload()
-                }
-            getPrefs(context).registerOnSharedPreferenceChangeListener(smartSpacePrefChanges)
-            lifeCycle.addCloseable {
-                getPrefs(context).unregisterOnSharedPreferenceChangeListener(smartSpacePrefChanges)
-            }
         }
 
         // Custom widgets

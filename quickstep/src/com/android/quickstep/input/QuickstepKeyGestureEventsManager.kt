@@ -21,11 +21,9 @@ import android.content.Context
 import android.hardware.input.InputManager
 import android.hardware.input.InputManager.KeyGestureEventHandler
 import android.hardware.input.KeyGestureEvent
-import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
 import androidx.annotation.VisibleForTesting
-import com.android.launcher3.taskbar.TaskbarManager
 import com.android.window.flags.Flags
 
 /**
@@ -47,11 +45,9 @@ class QuickstepKeyGestureEventsManager(context: Context) {
                     return
                 }
 
-                allAppsPendingIntent?.send(
-                    Bundle().apply {
-                        putInt(TaskbarManager.EXTRA_KEY_ALL_APPS_ACTION_DISPLAY_ID, event.displayId)
-                    }
-                )
+                // Ignore the display ID from the KeyGestureEvent as we will use the focus display
+                // from the SysUi proxy as the source of truth.
+                allAppsPendingIntent?.send()
             }
         }
 

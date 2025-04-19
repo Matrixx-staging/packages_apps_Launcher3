@@ -21,6 +21,8 @@ import android.hardware.display.DisplayManager
 import android.os.Handler
 import android.util.Log
 import android.view.Display.DEFAULT_DISPLAY
+import android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+import com.android.app.displaylib.DefaultDisplayOnlyInstanceRepositoryImpl
 import com.android.app.displaylib.DisplayLibBackground
 import com.android.app.displaylib.DisplayLibComponent
 import com.android.app.displaylib.DisplayRepository
@@ -30,9 +32,12 @@ import com.android.app.displaylib.SingleInstanceRepositoryImpl
 import com.android.app.displaylib.createDisplayLibComponent
 import com.android.launcher3.Flags.enableOverviewOnConnectedDisplays
 import com.android.launcher3.util.coroutines.DispatcherProvider
+import com.android.quickstep.FallbackWindowInterface
 import com.android.quickstep.RecentsAnimationDeviceState
 import com.android.quickstep.RotationTouchHelper
 import com.android.quickstep.TaskAnimationManager
+import com.android.quickstep.fallback.window.RecentsWindowManager
+import com.android.quickstep.fallback.window.RecentsWindowManagerInstanceProvider
 import com.android.systemui.dagger.qualifiers.Background
 import dagger.Binds
 import dagger.Module
@@ -55,8 +60,8 @@ object PerDisplayRepositoriesModule {
     @LauncherAppSingleton
     fun provideRecentsAnimationDeviceStateRepo(
         repositoryFactory: PerDisplayInstanceRepositoryImpl.Factory<RecentsAnimationDeviceState>,
-        rotationTouchHelperRepository: PerDisplayRepository<RotationTouchHelper>,
         instanceFactory: RecentsAnimationDeviceState.Factory,
+        rotationTouchHelperRepository: PerDisplayRepository<RotationTouchHelper>,
     ): PerDisplayRepository<RecentsAnimationDeviceState> {
         return if (enableOverviewOnConnectedDisplays()) {
             repositoryFactory.create(
@@ -97,21 +102,56 @@ object PerDisplayRepositoriesModule {
     @LauncherAppSingleton
     fun provideRotationTouchHandlerRepo(
         repositoryFactory: PerDisplayInstanceRepositoryImpl.Factory<RotationTouchHelper>,
-        @DisplayContext displayContextRepository: PerDisplayRepository<Context>,
         instanceFactory: RotationTouchHelper.Factory,
+        @WindowContext windowContextRepository: PerDisplayRepository<Context>,
     ): PerDisplayRepository<RotationTouchHelper> {
         return if (enableOverviewOnConnectedDisplays()) {
             repositoryFactory.create(
                 "RotationTouchHelperRepo",
                 { displayId ->
-                    displayContextRepository[displayId]?.let { instanceFactory.create(it) }
+                    windowContextRepository[displayId]?.let { instanceFactory.create(it) }
                 },
             )
         } else {
             SingleInstanceRepositoryImpl(
                 "RotationTouchHelperRepo",
-                instanceFactory.create(displayContextRepository[DEFAULT_DISPLAY]),
+                instanceFactory.create(windowContextRepository[DEFAULT_DISPLAY]),
             )
+        }
+    }
+
+    @Provides
+    @LauncherAppSingleton
+    fun provideFallbackWindowInterfaceRepo(
+        repositoryFactory: PerDisplayInstanceRepositoryImpl.Factory<FallbackWindowInterface>,
+        instanceFactory: FallbackWindowInterface.Factory,
+        recentsWindowManagerRepository: PerDisplayRepository<RecentsWindowManager>,
+    ): PerDisplayRepository<FallbackWindowInterface> {
+        return if (enableOverviewOnConnectedDisplays()) {
+            repositoryFactory.create(
+                "FallbackWindowInterfaceRepo",
+                { displayId ->
+                    recentsWindowManagerRepository[displayId]?.let { instanceFactory.create(it) }
+                },
+            )
+        } else {
+            SingleInstanceRepositoryImpl(
+                "FallbackWindowInterfaceRepo",
+                instanceFactory.create(recentsWindowManagerRepository[DEFAULT_DISPLAY]),
+            )
+        }
+    }
+
+    @Provides
+    @LauncherAppSingleton
+    fun provideRecentsWindowManagerRepo(
+        repositoryFactory: PerDisplayInstanceRepositoryImpl.Factory<RecentsWindowManager>,
+        instanceProvider: RecentsWindowManagerInstanceProvider,
+    ): PerDisplayRepository<RecentsWindowManager> {
+        return if (enableOverviewOnConnectedDisplays()) {
+            repositoryFactory.create("RecentsWindowManagerRepo", instanceProvider)
+        } else {
+            DefaultDisplayOnlyInstanceRepositoryImpl("RecentsWindowManagerRepo", instanceProvider)
         }
     }
 
@@ -120,8 +160,8 @@ object PerDisplayRepositoriesModule {
     @DisplayContext
     fun provideDisplayContext(
         repositoryFactory: PerDisplayInstanceRepositoryImpl.Factory<Context>,
-        @ApplicationContext context: Context,
         displayRepository: DisplayRepository,
+        @ApplicationContext context: Context,
     ): PerDisplayRepository<Context> {
         return if (enableOverviewOnConnectedDisplays()) {
             repositoryFactory.create(
@@ -136,6 +176,39 @@ object PerDisplayRepositoriesModule {
             SingleInstanceRepositoryImpl(
                 "DisplayContextRepo",
                 context.createDisplayContext(displayRepository.getDisplay(DEFAULT_DISPLAY)!!),
+            )
+        }
+    }
+
+    @Provides
+    @LauncherAppSingleton
+    @WindowContext
+    fun provideWindowContext(
+        repositoryFactory: PerDisplayInstanceRepositoryImpl.Factory<Context>,
+        displayRepository: DisplayRepository,
+        @ApplicationContext context: Context,
+    ): PerDisplayRepository<Context> {
+        return if (enableOverviewOnConnectedDisplays()) {
+            repositoryFactory.create(
+                "DisplayContextRepo",
+                { displayId ->
+                    displayRepository.getDisplay(displayId)?.let {
+                        context.createWindowContext(
+                            it,
+                            TYPE_APPLICATION_OVERLAY,
+                            /* options=*/ null,
+                        )
+                    }
+                },
+            )
+        } else {
+            SingleInstanceRepositoryImpl(
+                "DisplayContextRepo",
+                context.createWindowContext(
+                    displayRepository.getDisplay(DEFAULT_DISPLAY)!!,
+                    TYPE_APPLICATION_OVERLAY,
+                    /* options=*/ null,
+                ),
             )
         }
     }

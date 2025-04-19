@@ -113,6 +113,10 @@
     <string name="gadget_complete_setup_text" msgid="309040266978007925">"सेट अप पूरा करने के लिए टैप करें"</string>
     <string name="uninstall_system_app_text" msgid="4172046090762920660">"यह एक सिस्टम ऐप्लिकेशन है और इसे अनइंस्टॉल नहीं किया जा सकता."</string>
     <string name="folder_hint_text" msgid="5174843001373488816">"नाम में बदलाव करें"</string>
+    <!-- no translation found for paginate_left (7915437358451360433) -->
+    <skip />
+    <!-- no translation found for paginate_right (6701038155201975878) -->
+    <skip />
     <string name="disabled_app_label" msgid="6673129024321402780">"<xliff:g id="APP_NAME">%1$s</xliff:g> अक्षम है"</string>
     <string name="dotted_app_label" msgid="1865617679843363410">"{count,plural, =1{{app_name} से जुड़ी # सूचना है}one{{app_name} से जुड़ी # सूचना है}other{{app_name} से जुड़ी # सूचनाएं हैं}}"</string>
     <string name="default_scroll_format" msgid="7475544710230993317">"पेज %2$d में से %1$d"</string>

@@ -16,26 +16,15 @@
 
 package com.android.quickstep;
 
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.when;
-
 import androidx.annotation.NonNull;
 import androidx.test.filters.SmallTest;
 
-import com.android.launcher3.dagger.LauncherAppComponent;
-import com.android.launcher3.dagger.LauncherAppSingleton;
-import com.android.launcher3.util.AllModulesForTest;
 import com.android.launcher3.util.LauncherMultivalentJUnit;
 import com.android.quickstep.fallback.FallbackRecentsView;
 import com.android.quickstep.fallback.RecentsState;
-import com.android.quickstep.fallback.window.RecentsDisplayModel;
 import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.fallback.window.RecentsWindowSwipeHandler;
 
-import dagger.BindsInstance;
-import dagger.Component;
-
-import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
@@ -48,18 +37,8 @@ public class RecentsWindowSwipeHandlerTestCase extends AbsSwipeUpHandlerTestCase
         RecentsWindowSwipeHandler,
         FallbackWindowInterface> {
 
-    @Mock private RecentsDisplayModel mRecentsDisplayModel;
     @Mock private FallbackRecentsView<RecentsWindowManager> mRecentsView;
     @Mock private RecentsWindowManager mRecentsWindowManager;
-
-    @Before
-    public void setRecentsDisplayModel() {
-        when(mRecentsDisplayModel.getRecentsWindowManager(anyInt()))
-                .thenReturn(mRecentsWindowManager);
-
-        mContext.initDaggerComponent(DaggerRecentsWindowSwipeHandlerTestCase_TestComponent.builder()
-                .bindRecentsDisplayModel(mRecentsDisplayModel));
-    }
 
     @NonNull
     @Override
@@ -70,6 +49,7 @@ public class RecentsWindowSwipeHandlerTestCase extends AbsSwipeUpHandlerTestCase
                 mTaskAnimationManager,
                 mDeviceState,
                 mRotationTouchHelper,
+                mRecentsWindowManager,
                 mGestureState,
                 touchTimeMs,
                 continuingLastGesture,
@@ -93,15 +73,5 @@ public class RecentsWindowSwipeHandlerTestCase extends AbsSwipeUpHandlerTestCase
     @Override
     protected RecentsState getBaseState() {
         return RecentsState.BG_LAUNCHER;
-    }
-
-    @LauncherAppSingleton
-    @Component(modules = {AllModulesForTest.class})
-    interface TestComponent extends LauncherAppComponent {
-        @Component.Builder
-        interface Builder extends LauncherAppComponent.Builder {
-            @BindsInstance Builder bindRecentsDisplayModel(RecentsDisplayModel model);
-            @Override LauncherAppComponent build();
-        }
     }
 }

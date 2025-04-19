@@ -36,6 +36,7 @@ import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.mock
 
 /** Unit tests for [QuickstepModelDelegate]. */
 @RunWith(AndroidJUnit4::class)
@@ -65,7 +66,13 @@ class QuickstepModelDelegateTest {
         underTest.mHotseatState.predictor = hotseatPredictor
         underTest.mWidgetsRecommendationState.predictor = widgetRecommendationPredictor
         underTest.mModel = LauncherAppState.getInstance(context).model
-        underTest.mDataModel = BgDataModel(WidgetsModel(context))
+        underTest.mDataModel =
+            BgDataModel(
+                WidgetsModel(context),
+                /* homeDataProvider */ { null },
+                /* dumpManager */ mock(),
+                /* DaggerSingletonTracker */ mock(),
+            )
     }
 
     @Test

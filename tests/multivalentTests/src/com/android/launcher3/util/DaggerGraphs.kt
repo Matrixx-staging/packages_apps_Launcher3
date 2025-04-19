@@ -18,6 +18,8 @@ package com.android.launcher3.util
 
 import com.android.launcher3.FakeLauncherPrefs
 import com.android.launcher3.LauncherPrefs
+import com.android.launcher3.concurrent.ExecutorsModule
+import com.android.launcher3.util.dagger.LauncherExecutorsModule
 import com.android.launcher3.dagger.ApiWrapperModule
 import com.android.launcher3.dagger.AppModule
 import com.android.launcher3.dagger.LauncherConcurrencyModule
@@ -43,6 +45,8 @@ abstract class FakePrefsModule {
             AppModule::class,
             PerDisplayModule::class,
             LauncherConcurrencyModule::class,
+            ExecutorsModule::class,
+            LauncherExecutorsModule::class,
         ]
 )
 class CommonModulesForTest

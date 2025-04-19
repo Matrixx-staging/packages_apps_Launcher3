@@ -51,6 +51,7 @@ import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.util.CellAndSpan
 import com.android.launcher3.util.ModelTestExtensions.clearModelDb
 import com.android.launcher3.util.rule.ScreenRecordRule
+import com.android.launcher3.util.rule.ScreenRecordRule.ScreenRecord
 import com.android.launcher3.util.rule.ShellCommandRule
 import com.android.launcher3.widget.LauncherAppWidgetHostView
 import kotlin.math.abs
@@ -296,18 +297,21 @@ class IntegrationReorderWidgetsTest {
         return true
     }
 
+    @ScreenRecord
     @Test
     fun simpleReorder() =
         runTest(timeout = TIMEOUT) {
             runTestCaseMap(getTestMap("ReorderWidgets/simple_reorder_case"), "simple_reorder_case")
         }
 
+    @ScreenRecord
     @Test
     fun pushTest() =
         runTest(timeout = TIMEOUT) {
             runTestCaseMap(getTestMap("ReorderWidgets/push_reorder_case"), "push_reorder_case")
         }
 
+    @ScreenRecord
     @Test
     fun moveOutReorder() =
         runTest(timeout = TIMEOUT) {

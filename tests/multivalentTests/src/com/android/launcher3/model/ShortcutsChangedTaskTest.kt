@@ -71,7 +71,7 @@ class ShortcutsChangedTaskTest {
     private val mockTaskController: ModelTaskController = mock()
     private val mockAllApps: AllAppsList = mock()
     private val mockIconCache: IconCache = mock()
-    private val bgDataModel = BgDataModel(mock())
+    private val bgDataModel = BgDataModel(mock(), mock(), mock(), mock())
 
     private val expectedWai =
         WorkspaceItemInfo().apply {

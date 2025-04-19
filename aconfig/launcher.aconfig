@@ -93,13 +93,6 @@ flag {
 }
 
 flag {
-    name: "enable_shortcut_dont_suggest_app"
-    namespace: "launcher"
-    description: "Enables don't suggest app shortcut for suggested apps"
-    bug: "319250810"
-}
-
-flag {
     name: "enable_support_for_archiving"
     namespace: "launcher"
     description: "Enables support for archived apps in Launcher3, such as empty progress bar etc."
@@ -174,13 +167,6 @@ flag {
 }
 
 flag {
-    name: "use_activity_overlay"
-    namespace: "launcher"
-    description: "Use an activity for home screen overlay"
-    bug: "273828110"
-}
-
-flag {
     name: "enable_grid_migration_fix"
     namespace: "launcher"
     description: "Keep items in place when migrating to a bigger grid"
@@ -228,23 +214,6 @@ flag {
     namespace: "launcher"
     description: "Enables smartspace as a widget"
     bug: "300140279"
-}
-
-flag {
-    name: "enable_smartspace_removal_toggle"
-    namespace: "launcher"
-    description: "Enables smartspace removal toggle"
-    bug: "303471576"
-}
-
-flag {
-  name: "enable_additional_home_animations"
-  namespace: "launcher"
-  description: "Enables custom home animations for non-running tasks"
-  bug: "237638627"
-  metadata {
-    purpose: PURPOSE_BUGFIX
-  }
 }
 
 flag {
@@ -665,6 +634,13 @@ flag {
 }
 
 flag {
+  name: "enable_taskbar_ui_thread"
+  namespace: "launcher"
+  description: "Enable per-window thread for taskbar"
+  bug: "404636836"
+}
+
+flag {
   name: "enable_expressive_folder_expansion"
   namespace: "launcher"
   description: "Enables expressive folder expansion motion"
@@ -672,4 +648,11 @@ flag {
   metadata {
     purpose: PURPOSE_BUGFIX
   }
+}
+
+flag {
+  name: "model_repository"
+  namespace: "launcher"
+  description: "Adds various data repositories for the model"
+  bug: "390572144"
 }

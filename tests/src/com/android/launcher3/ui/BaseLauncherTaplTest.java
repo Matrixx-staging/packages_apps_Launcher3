@@ -59,6 +59,7 @@ import com.android.launcher3.util.TestUtil;
 import com.android.launcher3.util.Wait;
 import com.android.launcher3.util.rule.ExtendedLongPressTimeoutRule;
 import com.android.launcher3.util.rule.FailureWatcher;
+import com.android.launcher3.util.rule.MutualExclusionRule;
 import com.android.launcher3.util.rule.SamplerRule;
 import com.android.launcher3.util.rule.ScreenRecordRule;
 import com.android.launcher3.util.rule.ShellCommandRule;
@@ -209,6 +210,9 @@ public abstract class BaseLauncherTaplTest {
 
     @Rule
     public LimitDevicesRule mlimitDevicesRule = new LimitDevicesRule();
+
+    @Rule(order = -1000) // This should be the outermost rule
+    public MutualExclusionRule mMutualExclusionRule = new MutualExclusionRule();
 
     protected void performInitialization() {
         reinitializeLauncherData();

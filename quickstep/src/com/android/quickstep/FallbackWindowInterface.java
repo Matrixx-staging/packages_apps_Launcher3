@@ -29,17 +29,24 @@ import android.view.RemoteAnimationTarget;
 
 import androidx.annotation.Nullable;
 
+import com.android.app.displaylib.PerDisplayRepository;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.statemanager.StateManager;
 import com.android.launcher3.taskbar.TaskbarUIController;
+import com.android.launcher3.util.DaggerSingletonObject;
 import com.android.launcher3.util.DisplayController;
 import com.android.quickstep.GestureState.GestureEndTarget;
+import com.android.quickstep.dagger.QuickstepBaseAppComponent;
 import com.android.quickstep.fallback.RecentsState;
 import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
 import com.android.quickstep.util.AnimatorControllerWithResistance;
 import com.android.quickstep.util.ContextInitListener;
 import com.android.quickstep.views.RecentsView;
+
+import dagger.assisted.Assisted;
+import dagger.assisted.AssistedFactory;
+import dagger.assisted.AssistedInject;
 
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -51,9 +58,14 @@ import java.util.function.Predicate;
  */
 public final class FallbackWindowInterface extends BaseWindowInterface{
 
+    public static final DaggerSingletonObject<PerDisplayRepository<FallbackWindowInterface>>
+            REPOSITORY_INSTANCE = new DaggerSingletonObject<>(
+            QuickstepBaseAppComponent::getFallbackWindowInterfaceRepository);
+
     private final RecentsWindowManager mRecentsWindowManager;
 
-    public FallbackWindowInterface(RecentsWindowManager recentsWindowManager) {
+    @AssistedInject
+    public FallbackWindowInterface(@Assisted RecentsWindowManager recentsWindowManager) {
         super(DEFAULT, BACKGROUND_APP);
         mRecentsWindowManager = recentsWindowManager;
     }
@@ -227,5 +239,11 @@ public final class FallbackWindowInterface extends BaseWindowInterface{
         AnimatorSet animatorSet = new AnimatorSet();
         animatorSet.playTogether(superAnimator, taskbarAnimator);
         return animatorSet;
+    }
+
+    @AssistedFactory
+    public interface Factory {
+        /** Creates a new instance of [FallbackWindowInterface] for a [RecentsWindowManager]. */
+        FallbackWindowInterface create(RecentsWindowManager recentsWindowManager);
     }
 }

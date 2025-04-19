@@ -153,6 +153,13 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
 
     public abstract void onExitOverview(Runnable exitRunnable);
 
+    /**
+     * @return {@code true} iff the launcher's -1 page is showing
+     */
+    public boolean isLauncherOverlayShowing() {
+        return false;
+    }
+
     /** Called when the animation to home has fully settled. */
     public void onSwipeUpToHomeComplete() {}
 

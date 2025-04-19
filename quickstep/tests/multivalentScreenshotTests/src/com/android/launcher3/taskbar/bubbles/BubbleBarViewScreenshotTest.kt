@@ -27,6 +27,7 @@ import androidx.activity.ComponentActivity
 import androidx.test.core.app.ApplicationProvider
 import com.android.launcher3.R
 import com.android.launcher3.taskbar.bubbles.testing.FakeBubbleViewFactory
+import com.android.wm.shell.shared.bubbles.BubbleBarLocation
 import com.google.android.apps.nexuslauncher.imagecomparison.goldenpathmanager.ViewScreenshotGoldenPathManager
 import org.junit.Rule
 import org.junit.Test
@@ -124,6 +125,25 @@ class BubbleBarViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
         val paddingTop =
             context.resources.getDimensionPixelSize(R.dimen.bubblebar_pointer_visible_size)
         bubbleBarView.setPadding(0, paddingTop, 0, 0)
+        bubbleBarView.setController(
+            object : BubbleBarView.Controller {
+                override fun getScreenHeight(): Int = 0
+
+                override fun getBubbleBarTranslationY(): Float = 0f
+
+                override fun onBubbleBarTouched() {}
+
+                override fun expandBubbleBar() {}
+
+                override fun dismissBubbleBar() {}
+
+                override fun updateBubbleBarLocation(location: BubbleBarLocation?, source: Int) {}
+
+                override fun setIsDragging(dragging: Boolean) {}
+
+                override fun onBubbleBarExpandedStateChanged(expanded: Boolean) {}
+            }
+        )
         bubbleBarView.visibility = View.VISIBLE
         bubbleBarView.alpha = 1f
     }

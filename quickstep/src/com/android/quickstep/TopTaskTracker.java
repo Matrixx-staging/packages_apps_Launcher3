@@ -566,8 +566,8 @@ public class TopTaskTracker extends ISplitScreenListener.Stub implements TaskSta
             return result;
         }
 
-        private boolean isDesktopTask(TaskInfo taskInfo) {
-            return canEnterDesktopMode(mContext)
+        private boolean isDesktopTask(@Nullable TaskInfo taskInfo) {
+            return taskInfo != null && canEnterDesktopMode(mContext)
                     && taskInfo.configuration.windowConfiguration.getWindowingMode()
                     == WindowConfiguration.WINDOWING_MODE_FREEFORM;
         }
@@ -581,7 +581,8 @@ public class TopTaskTracker extends ISplitScreenListener.Stub implements TaskSta
          * @param splitTaskIds provide if it is for split, which represents the task ids of the
          *                     paired tasks. Otherwise, provide null.
          */
-        public GroupedTaskInfo getPlaceholderGroupedTaskInfo(@Nullable int[] splitTaskIds) {
+        public @Nullable GroupedTaskInfo getPlaceholderGroupedTaskInfo(
+                @Nullable int[] splitTaskIds) {
             if (enableShellTopTaskTracking()) {
                 if (mVisibleTasks == null) {
                     return null;
@@ -612,7 +613,9 @@ public class TopTaskTracker extends ISplitScreenListener.Stub implements TaskSta
                                         baseTaskInfo), /* minimizedFreeformTaskIds = */
                                 Collections.emptySet());
                     }
-                    return GroupedTaskInfo.forFullscreenTasks(baseTaskInfo);
+                    return baseTaskInfo == null
+                            ? null
+                            : GroupedTaskInfo.forFullscreenTasks(baseTaskInfo);
                 }
             }
         }

@@ -113,6 +113,10 @@
     <string name="gadget_complete_setup_text" msgid="309040266978007925">"Palieskite, kad užbaigtumėte sąranką"</string>
     <string name="uninstall_system_app_text" msgid="4172046090762920660">"Tai sistemos programa ir jos negalima pašalinti."</string>
     <string name="folder_hint_text" msgid="5174843001373488816">"Pavadinimo redagavimas"</string>
+    <!-- no translation found for paginate_left (7915437358451360433) -->
+    <skip />
+    <!-- no translation found for paginate_right (6701038155201975878) -->
+    <skip />
     <string name="disabled_app_label" msgid="6673129024321402780">"„<xliff:g id="APP_NAME">%1$s</xliff:g>“ išjungta"</string>
     <string name="dotted_app_label" msgid="1865617679843363410">"{count,plural, =1{Programoje „{app_name}“ yra # pranešimas}one{Programoje „{app_name}“ yra # pranešimas}few{Programoje „{app_name}“ yra # pranešimai}many{Programoje „{app_name}“ yra # pranešimo}other{Programoje „{app_name}“ yra # pranešimų}}"</string>
     <string name="default_scroll_format" msgid="7475544710230993317">"%1$d psl. iš %2$d"</string>

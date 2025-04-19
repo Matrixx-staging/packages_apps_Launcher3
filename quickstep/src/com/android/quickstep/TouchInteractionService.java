@@ -79,6 +79,8 @@ import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.statemanager.StatefulActivity;
 import com.android.launcher3.taskbar.TaskbarActivityContext;
 import com.android.launcher3.taskbar.TaskbarManager;
+import com.android.launcher3.taskbar.TaskbarManagerImpl;
+import com.android.launcher3.taskbar.TaskbarManagerImplWrapper;
 import com.android.launcher3.taskbar.TaskbarNavButtonController.TaskbarNavButtonCallbacks;
 import com.android.launcher3.taskbar.bubbles.BubbleControllers;
 import com.android.launcher3.testing.TestLogging;
@@ -94,8 +96,9 @@ import com.android.launcher3.util.ScreenOnTracker;
 import com.android.launcher3.util.TraceHelper;
 import com.android.quickstep.OverviewCommandHelper.CommandType;
 import com.android.quickstep.OverviewComponentObserver.OverviewChangeListener;
-import com.android.quickstep.fallback.window.RecentsDisplayModel;
+import com.android.quickstep.actioncorner.ActionCornerHandler;
 import com.android.quickstep.fallback.window.RecentsWindowFlags;
+import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.fallback.window.RecentsWindowSwipeHandler;
 import com.android.quickstep.input.QuickstepKeyGestureEventsManager;
 import com.android.quickstep.inputconsumers.BubbleBarInputConsumer;
@@ -217,15 +220,15 @@ public class TouchInteractionService extends Service {
         public void onOverviewToggle() {
             TestLogging.recordEvent(TestProtocol.SEQUENCE_MAIN, "onOverviewToggle");
             executeForTouchInteractionService(tis -> {
-                // TODO: update for non-default displays.
+                int displayId = tis.focusedDisplayIdForOverviewOnConnectedDisplays();
                 RecentsAnimationDeviceState deviceState = tis.mDeviceStateRepository.get(
-                        DEFAULT_DISPLAY);
+                        displayId);
                 // If currently screen pinning, do not enter overview
                 if (deviceState != null && deviceState.isScreenPinningActive()) {
                     return;
                 }
                 TaskUtils.closeSystemWindowsAsync(CLOSE_SYSTEM_WINDOWS_REASON_RECENTS);
-                tis.mOverviewCommandHelper.addCommand(CommandType.TOGGLE, DEFAULT_DISPLAY);
+                tis.mOverviewCommandHelper.addCommand(CommandType.TOGGLE, displayId);
             });
         }
 
@@ -235,12 +238,11 @@ public class TouchInteractionService extends Service {
             executeForTouchInteractionService(tis -> {
                 if (triggeredFromAltTab) {
                     TaskUtils.closeSystemWindowsAsync(CLOSE_SYSTEM_WINDOWS_REASON_RECENTS);
-                    int displayId = enableAltTabKqsOnConnectedDisplays.isTrue()
-                            ? SystemUiProxy.INSTANCE.get(tis).getFocusState().getFocusedDisplayId()
-                            : DEFAULT_DISPLAY;
-                    tis.mOverviewCommandHelper.addCommand(CommandType.KEYBOARD_INPUT, displayId);
+                    tis.mOverviewCommandHelper.addCommand(CommandType.SHOW_ALT_TAB,
+                            tis.focusedDisplayIdForAltTabKqsOnConnectedDisplays());
                 } else {
-                    tis.mOverviewCommandHelper.addCommand(CommandType.SHOW);
+                    tis.mOverviewCommandHelper.addCommand(CommandType.SHOW_WITH_FOCUS,
+                            tis.focusedDisplayIdForOverviewOnConnectedDisplays());
                 }
             });
         }
@@ -251,10 +253,8 @@ public class TouchInteractionService extends Service {
             executeForTouchInteractionService(tis -> {
                 if (triggeredFromAltTab && !triggeredFromHomeKey) {
                     // onOverviewShownFromAltTab hides the overview and ends at the target app
-                    int displayId = enableAltTabKqsOnConnectedDisplays.isTrue()
-                            ? SystemUiProxy.INSTANCE.get(tis).getFocusState().getFocusedDisplayId()
-                            : DEFAULT_DISPLAY;
-                    tis.mOverviewCommandHelper.addCommand(CommandType.HIDE, displayId);
+                    int displayId = tis.focusedDisplayIdForAltTabKqsOnConnectedDisplays();
+                    tis.mOverviewCommandHelper.addCommand(CommandType.HIDE_ALT_TAB, displayId);
                 }
             });
         }
@@ -451,7 +451,13 @@ public class TouchInteractionService extends Service {
 
         @Override
         public void onActionCornerActivated(int action, int displayId) {
-            //TODO: b/409036363 - Handle Home and Overview action corner
+            MAIN_EXECUTOR.execute(() -> executeForTouchInteractionService(tis -> {
+                ActionCornerHandler actionCornerHandler = tis.mActionCornerHandler;
+                if (actionCornerHandler == null) {
+                    return;
+                }
+                actionCornerHandler.handleAction(action, displayId);
+            }));
         }
 
         private void executeForTouchInteractionService(
@@ -595,9 +601,9 @@ public class TouchInteractionService extends Service {
         @Override
         public void onHideOverview(int displayId) {
             if (enableOverviewOnConnectedDisplays()) {
-                mOverviewCommandHelper.addCommand(CommandType.HIDE, displayId);
+                mOverviewCommandHelper.addCommand(CommandType.HIDE_ALT_TAB, displayId);
             } else {
-                mOverviewCommandHelper.addCommand(CommandType.HIDE, DEFAULT_DISPLAY);
+                mOverviewCommandHelper.addCommand(CommandType.HIDE_ALT_TAB, DEFAULT_DISPLAY);
             }
         }
     };
@@ -620,6 +626,7 @@ public class TouchInteractionService extends Service {
     private InputEventReceiver mInputEventReceiver;
 
     private TaskbarManager mTaskbarManager;
+    private ActionCornerHandler mActionCornerHandler;
     private Function<GestureState, AnimatedFloat> mSwipeUpProxyProvider = i -> null;
     private AllAppsActionManager mAllAppsActionManager;
     private ActiveTrackpadList mTrackpadsConnected;
@@ -630,7 +637,7 @@ public class TouchInteractionService extends Service {
 
     private DisplayController.DisplayInfoChangeListener mDisplayInfoChangeListener;
 
-    private RecentsDisplayModel mRecentsDisplayModel;
+    PerDisplayRepository<RecentsWindowManager> mRecentsWindowManagerRepository;
 
     private SystemDecorationChangeObserver mSystemDecorationChangeObserver;
 
@@ -650,7 +657,7 @@ public class TouchInteractionService extends Service {
         mTaskAnimationManagerRepository = TaskAnimationManager.REPOSITORY_INSTANCE.get(this);
         mMainChoreographer = Choreographer.getInstance();
         mRotationTouchHelperRepository = RotationTouchHelper.REPOSITORY_INSTANCE.get(this);
-        mRecentsDisplayModel = RecentsDisplayModel.getINSTANCE().get(this);
+        mRecentsWindowManagerRepository = RecentsWindowManager.REPOSITORY_INSTANCE.get(this);
         mSystemDecorationChangeObserver = SystemDecorationChangeObserver.getINSTANCE().get(this);
         mQuickstepKeyGestureEventsHandler = new QuickstepKeyGestureEventsManager(this);
         mAllAppsActionManager = new AllAppsActionManager(this, UI_HELPER_EXECUTOR,
@@ -665,8 +672,9 @@ public class TouchInteractionService extends Service {
             initInputMonitor("onTrackpadConnected()");
         });
 
-        mTaskbarManager = new TaskbarManager(this, mAllAppsActionManager, mNavCallbacks,
-                mRecentsDisplayModel);
+        mTaskbarManager = new TaskbarManagerImplWrapper(
+            new TaskbarManagerImpl(this, mAllAppsActionManager, mNavCallbacks,
+                mRecentsWindowManagerRepository));
         mDesktopAppLaunchTransitionManager =
                 new DesktopAppLaunchTransitionManager(this, SystemUiProxy.INSTANCE.get(this));
         mDesktopAppLaunchTransitionManager.registerTransitions();
@@ -753,8 +761,9 @@ public class TouchInteractionService extends Service {
                 + " instance=" + System.identityHashCode(this));
         mOverviewComponentObserver = OverviewComponentObserver.INSTANCE.get(this);
         mOverviewCommandHelper = new OverviewCommandHelper(this,
-                mOverviewComponentObserver, mRecentsDisplayModel, mTaskbarManager,
+                mOverviewComponentObserver, mDisplayRepository, mTaskbarManager,
                 mTaskAnimationManagerRepository);
+        mActionCornerHandler = new ActionCornerHandler(mOverviewCommandHelper);
         mUserUnlocked = true;
         mInputConsumer.registerInputConsumer();
         mDeviceStateRepository.forEach(/* createIfAbsent= */ true, deviceState ->
@@ -1339,15 +1348,31 @@ public class TouchInteractionService extends Service {
         TaskAnimationManager taskAnimationManager = mTaskAnimationManagerRepository.get(displayId);
         RecentsAnimationDeviceState deviceState = mDeviceStateRepository.get(displayId);
         RotationTouchHelper rotationTouchHelper = mRotationTouchHelperRepository.get(displayId);
-        if (taskAnimationManager == null || deviceState == null || rotationTouchHelper == null) {
+        RecentsWindowManager recentsWindowManager = mRecentsWindowManagerRepository.get(displayId);
+        if (taskAnimationManager == null || deviceState == null || rotationTouchHelper == null
+                || recentsWindowManager == null) {
             Log.d(TAG, "displayId " + displayId + " not valid");
             return null;
         }
-        return new RecentsWindowSwipeHandler(this, taskAnimationManager, deviceState,
-                rotationTouchHelper, gestureState, touchTimeMs,
+        return new RecentsWindowSwipeHandler(recentsWindowManager,
+                taskAnimationManager, deviceState,
+                rotationTouchHelper, recentsWindowManager, gestureState, touchTimeMs,
                 taskAnimationManager.isRecentsAnimationRunning(),
                 mInputConsumer, MSDLPlayerWrapper.INSTANCE.get(this));
     }
+
+    private int focusedDisplayIdForOverviewOnConnectedDisplays() {
+        return enableOverviewOnConnectedDisplays()
+                ? SystemUiProxy.INSTANCE.get(this).getFocusState().getFocusedDisplayId()
+                : DEFAULT_DISPLAY;
+    }
+
+    private int focusedDisplayIdForAltTabKqsOnConnectedDisplays() {
+        return enableAltTabKqsOnConnectedDisplays.isTrue()
+                ? SystemUiProxy.INSTANCE.get(this).getFocusState().getFocusedDisplayId()
+                : DEFAULT_DISPLAY;
+    }
+
 
     /**
      * Helper class that keeps track of external displays and prepares input monitors for each.

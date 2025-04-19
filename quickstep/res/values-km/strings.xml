@@ -91,7 +91,7 @@
     <string name="allset_hint" msgid="459504134589971527">"អូស​ឡើង​លើ ​ដើម្បី​ចូលទៅកាន់អេក្រង់ដើម"</string>
     <string name="allset_button_hint" msgid="2395219947744706291">"ចុចប៊ូតុងដើម ដើម្បីចូលទៅកាន់អេក្រង់ដើមរបស់អ្នក"</string>
     <string name="allset_description_generic" msgid="5385500062202019855">"អ្នកអាចចាប់ផ្ដើមប្រើ<xliff:g id="DEVICE">%1$s</xliff:g>របស់អ្នកបានហើយ"</string>
-    <string name="default_device_name" msgid="6660656727127422487">"ឧបករណ៍"</string>
+    <string name="allset_description_fallback" msgid="2488751930355201578">"អ្នកអាចចាប់ផ្ដើមប្រើឧបករណ៍របស់អ្នកបានហើយ"</string>
     <string name="allset_navigation_settings" msgid="4713404605961476027"><annotation id="link">"ការកំណត់​ការរុករក​ប្រព័ន្ធ"</annotation></string>
     <string name="action_share" msgid="2648470652637092375">"ចែករំលែក"</string>
     <string name="action_screenshot" msgid="8171125848358142917">"រូបថតអេក្រង់"</string>

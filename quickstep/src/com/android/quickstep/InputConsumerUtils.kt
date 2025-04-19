@@ -74,7 +74,7 @@ object InputConsumerUtils {
         event: MotionEvent,
         rotationTouchHelper: RotationTouchHelper,
     ): InputConsumer where T : RecentsViewContainer, T : StatefulContainer<S> {
-        val tac = taskbarManager.currentActivityContext
+        val tac = taskbarManager.getCurrentActivityContext()
         val bubbleControllers = tac?.bubbleControllers
         if (bubbleControllers != null && BubbleBarInputConsumer.isEventOnBubbles(tac, event)) {
             val consumer: InputConsumer =
@@ -525,11 +525,10 @@ object InputConsumerUtils {
         reasonString.append("%skeyguard is not showing occluded", SUBSTRING_PREFIX)
 
         val runningTask = gestureState.runningTask
+        val container = gestureState.getContainerInterface<S, T>()
         // Use overview input consumer for sharesheets on top of home.
         val forceOverviewInputConsumer =
-            gestureState.getContainerInterface<S, T>().isStarted() &&
-                runningTask != null &&
-                runningTask.isRootChooseActivity
+            container.isStarted() && runningTask != null && runningTask.isRootChooseActivity
 
         if (!Flags.enableShellTopTaskTracking()) {
             // In the case where we are in an excluded, translucent overlay, ignore it and treat the
@@ -550,18 +549,16 @@ object InputConsumerUtils {
         // with shell-transitions, home is resumed during recents animation, so
         // explicitly check against recents animation too.
         val launcherResumedThroughShellTransition =
-            (gestureState.getContainerInterface<S, T>().isResumed() &&
-                !previousGestureState.isRecentsAnimationRunning)
+            container.isResumed() && !previousGestureState.isRecentsAnimationRunning
         // If a task fragment within Launcher is resumed
         val launcherChildActivityResumed =
-            (com.android.launcher3.Flags.useActivityOverlay() &&
-                runningTask != null &&
+            runningTask != null &&
                 runningTask.isHomeTask &&
-                overviewComponentObserver.isHomeAndOverviewSameActivity &&
-                !launcherResumedThroughShellTransition &&
-                !previousGestureState.isRecentsAnimationRunning)
+                !previousGestureState.isRecentsAnimationRunning &&
+                overviewComponentObserver.isHomeAndOverviewSame &&
+                container.isLauncherOverlayShowing
 
-        return if (gestureState.getContainerInterface<S, T>().isInLiveTileMode()) {
+        return if (container.isInLiveTileMode()) {
             createOverviewInputConsumer<S, T>(
                 userUnlocked,
                 taskAnimationManager,

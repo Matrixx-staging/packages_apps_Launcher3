@@ -25,6 +25,7 @@ import android.view.DisplayCutout;
 import android.view.Surface;
 import android.view.WindowManager;
 import android.view.WindowMetrics;
+import android.window.DesktopExperienceFlags;
 
 import com.android.internal.policy.SystemBarUtils;
 import com.android.launcher3.dagger.LauncherAppSingleton;
@@ -33,7 +34,6 @@ import com.android.launcher3.util.WindowBounds;
 import com.android.launcher3.util.window.CachedDisplayInfo;
 import com.android.launcher3.util.window.WindowManagerProxy;
 import com.android.quickstep.SystemUiProxy;
-import com.android.window.flags.Flags;
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
 
 import java.util.List;
@@ -103,7 +103,7 @@ public class SystemWindowManagerProxy extends WindowManagerProxy {
             return false;
         }
 
-        if (!Flags.enableDesktopTaskbarOnFreeformDisplays()) {
+        if (!DesktopExperienceFlags.ENABLE_DESKTOP_TASKBAR_ON_FREEFORM_DISPLAYS.isTrue()) {
             return false;
         }
 

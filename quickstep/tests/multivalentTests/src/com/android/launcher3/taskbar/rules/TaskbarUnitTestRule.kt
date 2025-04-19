@@ -26,7 +26,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.taskbar.TaskbarActivityContext
 import com.android.launcher3.taskbar.TaskbarControllers
-import com.android.launcher3.taskbar.TaskbarManager
+import com.android.launcher3.taskbar.TaskbarManagerImpl
 import com.android.launcher3.taskbar.TaskbarNavButtonController.TaskbarNavButtonCallbacks
 import com.android.launcher3.taskbar.TaskbarUIController
 import com.android.launcher3.taskbar.bubbles.BubbleControllers
@@ -34,7 +34,7 @@ import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.InjectController
 import com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR
 import com.android.launcher3.util.TestUtil
 import com.android.quickstep.AllAppsActionManager
-import com.android.quickstep.fallback.window.RecentsDisplayModel
+import com.android.quickstep.fallback.window.RecentsWindowManager
 import com.android.quickstep.input.QuickstepKeyGestureEventsManager
 import java.lang.reflect.Field
 import java.lang.reflect.ParameterizedType
@@ -79,7 +79,7 @@ class TaskbarUnitTestRule(
 
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
 
-    private lateinit var taskbarManager: TaskbarManager
+    private lateinit var taskbarManager: TaskbarManagerImpl
 
     val activityContext: TaskbarActivityContext
         get() {
@@ -107,7 +107,7 @@ class TaskbarUnitTestRule(
                 taskbarManager =
                     TestUtil.getOnUiThread {
                         object :
-                            TaskbarManager(
+                            TaskbarManagerImpl(
                                 context,
                                 AllAppsActionManager(
                                     context,
@@ -117,7 +117,7 @@ class TaskbarUnitTestRule(
                                     PendingIntent(IIntentSender.Default())
                                 },
                                 object : TaskbarNavButtonCallbacks {},
-                                RecentsDisplayModel.INSTANCE.get(context),
+                                RecentsWindowManager.REPOSITORY_INSTANCE.get(context),
                             ) {
                             override fun recreateTaskbars() {
                                 super.recreateTaskbars()

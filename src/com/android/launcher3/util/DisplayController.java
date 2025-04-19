@@ -208,7 +208,7 @@ public class DisplayController implements DesktopVisibilityListener {
      * Returns the current navigation mode
      */
     public static NavigationMode getNavigationMode(Context context) {
-        return INSTANCE.get(context).getInfo().getNavigationMode();
+        return getInfo(context).getNavigationMode();
     }
 
     /**
@@ -217,7 +217,7 @@ public class DisplayController implements DesktopVisibilityListener {
      * @return {@code true} if transient, {@code false} if persistent.
      */
     public static boolean isTransientTaskbar(Context context) {
-        return INSTANCE.get(context).getInfo().isTransientTaskbar();
+        return getInfo(context).isTransientTaskbar();
     }
 
     /**
@@ -240,21 +240,21 @@ public class DisplayController implements DesktopVisibilityListener {
      * Returns whether the taskbar is pinned in gesture navigation mode.
      */
     public static boolean isPinnedTaskbar(Context context) {
-        return INSTANCE.get(context).getInfo().isPinnedTaskbar();
+        return getInfo(context).isPinnedTaskbar();
     }
 
     /**
      * Returns whether the taskbar is pinned in gesture navigation mode.
      */
     public static boolean isInDesktopMode(Context context) {
-        return INSTANCE.get(context).getInfo().isInDesktopMode();
+        return getInfo(context).isInDesktopMode();
     }
 
     /**
      * Returns whether the taskbar is forced to be pinned when home is visible.
      */
     public static boolean showLockedTaskbarOnHome(Context context) {
-        return INSTANCE.get(context).getInfo().showLockedTaskbarOnHome();
+        return getInfo(context).showLockedTaskbarOnHome();
     }
 
     /**
@@ -262,7 +262,22 @@ public class DisplayController implements DesktopVisibilityListener {
      * on the display because the display is a freeform display.
      */
     public static boolean showDesktopTaskbarForFreeformDisplay(Context context) {
-        return INSTANCE.get(context).getInfo().showDesktopTaskbarForFreeformDisplay();
+        return getInfo(context).showDesktopTaskbarForFreeformDisplay();
+    }
+
+    // Gets the info for whatever display the context is associated with or the default display
+    // if it is not associated with a display.
+    private static Info getInfo(Context context) {
+        DisplayController controller = INSTANCE.get(context);
+        if (enableOverviewOnConnectedDisplays()) {
+            Display display = controller.mWMProxy.getDisplay(context);
+            int displayId = display.getDisplayId();
+            Info info = controller.getInfoForDisplay(displayId);
+            if (info != null) {
+                return info;
+            }
+        }
+        return controller.getInfo();
     }
 
     @Override

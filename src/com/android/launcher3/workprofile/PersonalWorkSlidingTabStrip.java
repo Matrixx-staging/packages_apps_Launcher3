@@ -26,11 +26,8 @@ import androidx.annotation.Nullable;
 
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.R;
-import com.android.launcher3.pageindicators.Direction;
 import com.android.launcher3.pageindicators.PageIndicator;
 import com.android.launcher3.views.ActivityContext;
-
-import java.util.function.Consumer;
 
 /**
  * Supports two indicator colors, dedicated for personal and work tabs.
@@ -49,6 +46,14 @@ public class PersonalWorkSlidingTabStrip extends LinearLayout implements PageInd
         typedArray.recycle();
     }
 
+    /** Update the buttons background to match the theme. */
+    public void updateTheme() {
+        for (int i = 0; i < getChildCount(); i++) {
+            Button tab = (Button) getChildAt(i);
+            tab.setBackground(getContext().getDrawable(R.drawable.all_apps_tabs_background));
+        }
+    }
+
     /**
      * Highlights tab with index pos
      */
@@ -60,8 +65,7 @@ public class PersonalWorkSlidingTabStrip extends LinearLayout implements PageInd
     }
 
     @Override
-    public void setScroll(int currentScroll, int totalScroll) {
-    }
+    public void setScroll(int currentScroll, int totalScroll) {}
 
     @Override
     public void setActiveMarker(int activePage) {
@@ -78,11 +82,6 @@ public class PersonalWorkSlidingTabStrip extends LinearLayout implements PageInd
 
     @Override
     public void setMarkersCount(int numMarkers) {
-    }
-
-    @Override
-    public void setArrowClickListener(Consumer<Direction> listener) {
-        // No-Op. All Apps doesn't need accessibility arrows for single click navigation.
     }
 
     @Override

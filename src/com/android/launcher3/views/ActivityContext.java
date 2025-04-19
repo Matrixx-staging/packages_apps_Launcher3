@@ -209,6 +209,16 @@ public interface ActivityContext extends SavedStateRegistryOwner {
         return null;
     }
 
+    /** @return {@code true} if background blur is enabled */
+    default boolean isBackgroundBlurEnabled() {
+        return false;
+    }
+
+    /** @return the resource id of the style to apply for the current blur state. */
+    default int getBlurStyleResId() {
+        return isBackgroundBlurEnabled() ? R.style.BlurStyle : R.style.BlurFallbackStyle;
+    }
+
     DeviceProfile getDeviceProfile();
 
     /** Registered {@link OnDeviceProfileChangeListener} instances. */

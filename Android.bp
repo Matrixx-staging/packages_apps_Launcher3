@@ -402,6 +402,9 @@ android_library {
         "dagger2",
         "jsr330",
         "com_android_systemui_shared_flags_lib",
+        "launcher-dagger-qualifiers",
+        "launcher-executor-qualifiers",
+        "launcher-executors-module"
     ],
     manifest: "AndroidManifest-common.xml",
     sdk_version: "current",
@@ -427,7 +430,7 @@ android_app {
     srcs: [
         ":launcher-src",
         ":launcher-src_no_quickstep",
-        ":launcher-build-config",
+        ":launcher-build-config"
     ],
 
     optimize: {

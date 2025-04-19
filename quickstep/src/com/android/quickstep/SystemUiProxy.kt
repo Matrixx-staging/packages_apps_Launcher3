@@ -44,6 +44,7 @@ import android.window.RemoteTransition
 import android.window.TaskSnapshot
 import android.window.TransitionFilter
 import android.window.TransitionInfo
+import android.window.WindowContainerTransaction
 import androidx.annotation.MainThread
 import androidx.annotation.VisibleForTesting
 import androidx.annotation.WorkerThread
@@ -1209,6 +1210,7 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
         options: ActivityOptions,
         listener: RecentsAnimationListener,
         useSyntheticRecentsTransition: Boolean,
+        wct: WindowContainerTransaction? = null,
     ): Boolean {
         executeWithErrorLog({ "Error starting recents via shell" }) {
             recentTasks?.startRecentsTransition(
@@ -1219,6 +1221,7 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
                         putBoolean("is_synthetic_recents_transition", true)
                     }
                 },
+                wct,
                 context.iApplicationThread,
                 RecentsAnimationListenerStub(listener),
             )

@@ -509,8 +509,16 @@ public class HotseatPredictionController implements DragController.DragListener,
     private class PinPrediction extends SystemShortcut<QuickstepLauncher> {
 
         private PinPrediction(QuickstepLauncher target, ItemInfo itemInfo, View originalView) {
-            super(R.drawable.ic_pin, R.string.pin_prediction, target,
+            super(getDrawableId(), R.string.pin_prediction, target,
                     itemInfo, originalView);
+        }
+
+        public static int getDrawableId() {
+            if (Flags.enableLauncherVisualRefresh()) {
+                return R.drawable.keep_24px;
+            } else {
+                return R.drawable.ic_pin;
+            }
         }
 
         @Override

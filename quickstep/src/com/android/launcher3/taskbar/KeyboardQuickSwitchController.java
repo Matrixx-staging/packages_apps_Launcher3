@@ -45,6 +45,7 @@ import com.android.systemui.shared.system.ActivityManagerWrapper;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -271,11 +272,21 @@ public final class KeyboardQuickSwitchController implements
                 .filter(task -> !shouldExcludeTask(task, taskIdsToExclude))
                 .toList();
 
-        // TODO(b/382769617): Sort tasks, including desktop and split, before limiting to max.
         mTasks = allTasks.stream()
+                .sorted(combinedTasksComparator())
                 .limit(MAX_TASKS)
                 .toList();
         mNumHiddenTasks = Math.max(0, allTasks.size() - MAX_TASKS);
+    }
+
+    private static Comparator<GroupTask> combinedTasksComparator() {
+        return Comparator.comparingLong((GroupTask groupTask) ->
+                        groupTask.getTasks().stream()
+                                .map(task -> task.key.lastActiveTime)
+                                .max(Comparator.naturalOrder())
+                                // Empty tasks list shouldn't be possible so return -1 in that case.
+                                .orElse(-1L))
+                .reversed();
     }
 
     private void processLoadedTasksOutsideDesktop(List<GroupTask> tasks,

@@ -113,6 +113,10 @@
     <string name="gadget_complete_setup_text" msgid="309040266978007925">"Appuyez pour terminer la configuration"</string>
     <string name="uninstall_system_app_text" msgid="4172046090762920660">"Impossible de désinstaller cette application, car il s\'agit d\'une application système."</string>
     <string name="folder_hint_text" msgid="5174843001373488816">"Modifier le nom"</string>
+    <!-- no translation found for paginate_left (7915437358451360433) -->
+    <skip />
+    <!-- no translation found for paginate_right (6701038155201975878) -->
+    <skip />
     <string name="disabled_app_label" msgid="6673129024321402780">"<xliff:g id="APP_NAME">%1$s</xliff:g> est désactivé."</string>
     <string name="dotted_app_label" msgid="1865617679843363410">"{count,plural, =1{{app_name} a # notification}one{{app_name} a # notification}other{{app_name} a # notifications}}"</string>
     <string name="default_scroll_format" msgid="7475544710230993317">"Page %1$d sur %2$d"</string>
@@ -138,7 +142,7 @@
     <string name="landscape_mode_title" msgid="5138814555934843926">"Mode Paysage"</string>
     <string name="landscape_mode_desc" msgid="7372569859592816793">"Paramétrer le téléphone en mode Paysage"</string>
     <string name="notification_dots_title" msgid="9062440428204120317">"Pastilles de notification"</string>
-    <string name="notification_dots_desc_on" msgid="1679848116452218908">"Activées"</string>
+    <string name="notification_dots_desc_on" msgid="1679848116452218908">"Activé"</string>
     <string name="notification_dots_desc_off" msgid="1760796511504341095">"Désactivées"</string>
     <string name="title_missing_notification_access" msgid="7503287056163941064">"Accès aux notifications requis"</string>
     <string name="msg_missing_notification_access" msgid="281113995110910548">"Pour afficher les pastilles de notification, activez les notifications de l\'application <xliff:g id="NAME">%1$s</xliff:g>"</string>

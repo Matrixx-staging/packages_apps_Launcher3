@@ -16,6 +16,9 @@
 
 package com.android.launcher3.dagger;
 
+import com.android.launcher3.concurrent.ExecutorsModule;
+import com.android.launcher3.util.dagger.LauncherExecutorsModule;
+
 import dagger.Module;
 
 @Module(includes = {
@@ -27,6 +30,8 @@ import dagger.Module;
         AppModule.class,
         PerDisplayModule.class,
         LauncherConcurrencyModule.class,
+        ExecutorsModule.class,
+        LauncherExecutorsModule.class,
 })
 public class LauncherAppModule {
 }

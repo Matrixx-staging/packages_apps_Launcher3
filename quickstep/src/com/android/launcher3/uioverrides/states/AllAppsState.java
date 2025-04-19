@@ -149,6 +149,11 @@ public class AllAppsState extends LauncherState {
     }
 
     @Override
+    public boolean shouldBlurWorkspace(LauncherState targetState) {
+        return targetState == ALL_APPS || targetState == NORMAL;
+    }
+
+    @Override
     public PageAlphaProvider getWorkspacePageAlphaProvider(Launcher launcher) {
         PageAlphaProvider superPageAlphaProvider = super.getWorkspacePageAlphaProvider(launcher);
         return new PageAlphaProvider(DECELERATE_2) {
@@ -198,19 +203,10 @@ public class AllAppsState extends LauncherState {
     }
 
     @Override
-    public LauncherState getHistoryForState(LauncherState previousState) {
-        return previousState == BACKGROUND_APP ? QUICK_SWITCH_FROM_HOME
-                : previousState == OVERVIEW ? OVERVIEW : NORMAL;
-    }
-
-    @Override
     public int getWorkspaceScrimColor(Launcher launcher) {
-        if (!launcher.getDeviceProfile().shouldShowAllAppsOnSheet()) {
-            return Themes.getAttrColor(launcher, R.attr.allAppsScrimColor);
+        if (launcher.getDeviceProfile().shouldShowAllAppsOnSheet() && !Flags.allAppsBlur()) {
+            return launcher.getResources().getColor(R.color.widgets_picker_scrim);
         }
-        if (Flags.allAppsBlur()) {
-            return Themes.getAttrColor(launcher, R.attr.allAppsScrimColorOverBlur);
-        }
-        return launcher.getResources().getColor(R.color.widgets_picker_scrim);
+        return Themes.getAttrColor(launcher, R.attr.allAppsScrimColor);
     }
 }

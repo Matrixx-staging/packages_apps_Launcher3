@@ -38,7 +38,6 @@ import com.android.launcher3.model.data.TaskItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.taskbar.TaskbarRecentAppsController.TaskState
 import com.android.launcher3.util.LauncherMultivalentJUnit
-import com.android.launcher3.util.SplitConfigurationOptions
 import com.android.quickstep.RecentsModel
 import com.android.quickstep.RecentsModel.RecentTasksChangedListener
 import com.android.quickstep.TaskIconCache
@@ -112,7 +111,7 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
         whenever(mockResources.getBoolean(R.bool.config_isDesktopModeSupported)).thenReturn(true)
 
         whenever(mockRecentsModel.iconCache).thenReturn(mockIconCache)
-        whenever(mockRecentsModel.unregisterRecentTasksChangedListener()).then {
+        whenever(mockRecentsModel.unregisterRecentTasksChangedListener(any())).then {
             recentTasksChangedListener = null
             it
         }
@@ -191,7 +190,11 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
     @Test
     fun getDesktopItemState_matchingVisibleTask_returnsVisible() {
         setInDesktopMode(true)
-        val visibleTask = createTask(id = 1, "visiblePackage", isVisible = true)
+        val visibleTask =
+            PerDisplayRunningApps(
+                listOf(createTask(id = 1, "visiblePackage", isVisible = true)),
+                DEFAULT_DISPLAY,
+            )
         updateRecentTasks(runningTasks = listOf(visibleTask), recentTaskPackages = emptyList())
 
         val taskState = recentAppsController.getDesktopItemState(createItemInfo("visiblePackage"))
@@ -200,9 +203,36 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
     }
 
     @Test
+    fun getDesktopItemState_matchingVisibleTaskOnSecondaryDisplay_returnsVisible() {
+        setInDesktopMode(true)
+        val visibleTask1 =
+            PerDisplayRunningApps(
+                listOf(createTask(id = 1, "visiblePackage1", isVisible = false)),
+                DEFAULT_DISPLAY,
+            )
+        val visibleTask2 =
+            PerDisplayRunningApps(
+                listOf(createTask(id = 2, "visiblePackage2", isVisible = true)),
+                DEFAULT_DISPLAY + 1,
+            )
+        updateRecentTasks(
+            runningTasks = listOf(visibleTask1, visibleTask2),
+            recentTaskPackages = emptyList(),
+        )
+
+        val taskState = recentAppsController.getDesktopItemState(createItemInfo("visiblePackage2"))
+
+        assertThat(taskState).isEqualTo(TaskState(RunningAppState.RUNNING, taskId = 2))
+    }
+
+    @Test
     fun getDesktopItemState_matchingMinimizedTask_returnsMinimized() {
         setInDesktopMode(true)
-        val minimizedTask = createTask(id = 1, "minimizedPackage", isVisible = false)
+        val minimizedTask =
+            PerDisplayRunningApps(
+                listOf(createTask(id = 1, "minimizedPackage", isVisible = false)),
+                DEFAULT_DISPLAY,
+            )
         updateRecentTasks(runningTasks = listOf(minimizedTask), recentTaskPackages = emptyList())
 
         val taskState = recentAppsController.getDesktopItemState(createItemInfo("minimizedPackage"))
@@ -211,13 +241,41 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
     }
 
     @Test
+    fun getDesktopItemState_matchingMinimizedTaskOnSecondaryDisplay_returnsVisible() {
+        setInDesktopMode(true)
+        val visibleTask1 =
+            PerDisplayRunningApps(
+                listOf(createTask(id = 1, "visiblePackage1", isVisible = false)),
+                DEFAULT_DISPLAY,
+            )
+        val visibleTask2 =
+            PerDisplayRunningApps(
+                listOf(createTask(id = 2, "visiblePackage2", isVisible = false)),
+                DEFAULT_DISPLAY + 1,
+            )
+        updateRecentTasks(
+            runningTasks = listOf(visibleTask1, visibleTask2),
+            recentTaskPackages = emptyList(),
+        )
+
+        val taskState = recentAppsController.getDesktopItemState(createItemInfo("visiblePackage2"))
+
+        assertThat(taskState).isEqualTo(TaskState(RunningAppState.MINIMIZED, taskId = 2))
+    }
+
+    @Test
     fun getDesktopItemState_matchingMinimizedAndRunningTask_returnsVisible() {
         setInDesktopMode(true)
         updateRecentTasks(
             runningTasks =
                 listOf(
-                    createTask(id = 1, "package", isVisible = false),
-                    createTask(id = 2, "package", isVisible = true),
+                    PerDisplayRunningApps(
+                        listOf(
+                            createTask(id = 1, "package", isVisible = false),
+                            createTask(id = 2, "package", isVisible = true),
+                        ),
+                        DEFAULT_DISPLAY,
+                    )
                 ),
             recentTaskPackages = emptyList(),
         )
@@ -233,8 +291,13 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
         updateRecentTasks(
             runningTasks =
                 listOf(
-                    createTask(id = 1, "package", isVisible = false, USER_HANDLE_1),
-                    createTask(id = 2, "package", isVisible = true, USER_HANDLE_1),
+                    PerDisplayRunningApps(
+                        listOf(
+                            createTask(id = 1, "package", isVisible = false, USER_HANDLE_1),
+                            createTask(id = 2, "package", isVisible = true, USER_HANDLE_1),
+                        ),
+                        DEFAULT_DISPLAY,
+                    )
                 ),
             recentTaskPackages = emptyList(),
         )
@@ -259,20 +322,50 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
         setInDesktopMode(true)
         val task1 = createTask(id = 1, packageName = RUNNING_APP_PACKAGE_1, isVisible = false)
         val task2 = createTask(id = 2, packageName = RUNNING_APP_PACKAGE_1, isVisible = true)
-        updateRecentTasks(runningTasks = listOf(task1, task2), recentTaskPackages = emptyList())
+        updateRecentTasks(
+            runningTasks = listOf(PerDisplayRunningApps(listOf(task1, task2), DEFAULT_DISPLAY)),
+            recentTaskPackages = emptyList(),
+        )
 
         assertThat(recentAppsController.getRunningAppState(taskId = 1))
             .isEqualTo(RunningAppState.MINIMIZED)
     }
 
     @Test
-    fun getRunningAppState_taskVisible_returnsRunning() {
+    fun getRunningAppState_taskNotVisible_returnsMinimizedForSecondaryDisplay() {
         setInDesktopMode(true)
         val task1 = createTask(id = 1, packageName = RUNNING_APP_PACKAGE_1, isVisible = false)
         val task2 = createTask(id = 2, packageName = RUNNING_APP_PACKAGE_1, isVisible = true)
-        updateRecentTasks(runningTasks = listOf(task1, task2), recentTaskPackages = emptyList())
+        val task3 = createTask(id = 3, packageName = RUNNING_APP_PACKAGE_3, isVisible = false)
+        updateRecentTasks(
+            runningTasks =
+                listOf(
+                    PerDisplayRunningApps(listOf(task1, task2), DEFAULT_DISPLAY),
+                    PerDisplayRunningApps(listOf(task3), DEFAULT_DISPLAY + 1),
+                ),
+            recentTaskPackages = emptyList(),
+        )
 
-        assertThat(recentAppsController.getRunningAppState(taskId = 2))
+        assertThat(recentAppsController.getRunningAppState(taskId = 3))
+            .isEqualTo(RunningAppState.MINIMIZED)
+    }
+
+    @Test
+    fun getRunningAppState_taskVisible_returnsRunningForSecondaryDisplay() {
+        setInDesktopMode(true)
+        val task1 = createTask(id = 1, packageName = RUNNING_APP_PACKAGE_1, isVisible = false)
+        val task2 = createTask(id = 2, packageName = RUNNING_APP_PACKAGE_1, isVisible = true)
+        val task3 = createTask(id = 3, packageName = RUNNING_APP_PACKAGE_3, isVisible = true)
+        updateRecentTasks(
+            runningTasks =
+                listOf(
+                    PerDisplayRunningApps(listOf(task1, task2), DEFAULT_DISPLAY),
+                    PerDisplayRunningApps(listOf(task3), DEFAULT_DISPLAY + 1),
+                ),
+            recentTaskPackages = emptyList(),
+        )
+
+        assertThat(recentAppsController.getRunningAppState(taskId = 3))
             .isEqualTo(RunningAppState.RUNNING)
     }
 
@@ -840,7 +933,7 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
         val hotseatPackageUser = PackageUser(HOTSEAT_PACKAGE_1, USER_HANDLE_2)
         val hotseatPackageUsers = listOf(hotseatPackageUser)
         val runningTask = createTask(id = 1, HOTSEAT_PACKAGE_1, localUserHandle = USER_HANDLE_1)
-        val runningTasks = listOf(runningTask)
+        val runningTasks = listOf(PerDisplayRunningApps(listOf(runningTask), DEFAULT_DISPLAY))
         prepareHotseatAndRunningAndRecentAppsInternal(
             hotseatPackageUsers = hotseatPackageUsers,
             runningTasks = runningTasks,
@@ -848,6 +941,90 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
         )
         assertThat(recentShownTasks).contains(runningTask)
         assertThat(recentAppsController.runningTaskIds).containsExactlyElementsIn(listOf(1))
+    }
+
+    @Test
+    fun onRecentTasksChanged_inDesktopMode_multipleDesktops() {
+        setInDesktopMode(true)
+        val hotseatPackageUsers = listOf(PackageUser(HOTSEAT_PACKAGE_1, USER_HANDLE_1))
+        val defaultDisplayRunningTask =
+            createTask(id = 1, HOTSEAT_PACKAGE_1, localUserHandle = USER_HANDLE_1)
+        val secondaryDisplayRunningTask =
+            createTask(id = 2, RUNNING_APP_PACKAGE_1, localUserHandle = USER_HANDLE_1)
+        val runningTasks =
+            listOf(
+                PerDisplayRunningApps(listOf(defaultDisplayRunningTask), DEFAULT_DISPLAY),
+                PerDisplayRunningApps(listOf(secondaryDisplayRunningTask), DEFAULT_DISPLAY + 1),
+            )
+        prepareHotseatAndRunningAndRecentAppsInternal(
+            hotseatPackageUsers = hotseatPackageUsers,
+            runningTasks = runningTasks,
+            recentTaskPackages = emptyList(),
+        )
+        assertThat(recentShownTasks).containsExactly(secondaryDisplayRunningTask)
+        assertThat(recentAppsController.runningTaskIds).containsExactlyElementsIn(listOf(1, 2))
+    }
+
+    @Test
+    fun onRecentTasksChanged_inDesktopMode_multipleDesktops_appsNotInHotseat() {
+        setInDesktopMode(true)
+        val hotseatPackageUsers = listOf(PackageUser(HOTSEAT_PACKAGE_1, USER_HANDLE_1))
+        val defaultDisplayRunningTask =
+            createTask(id = 1, RUNNING_APP_PACKAGE_1, localUserHandle = USER_HANDLE_1)
+        val secondaryDisplayRunningTask =
+            createTask(id = 2, RUNNING_APP_PACKAGE_2, localUserHandle = USER_HANDLE_1)
+        val runningTasks =
+            listOf(
+                PerDisplayRunningApps(listOf(defaultDisplayRunningTask), DEFAULT_DISPLAY),
+                PerDisplayRunningApps(listOf(secondaryDisplayRunningTask), DEFAULT_DISPLAY + 1),
+            )
+        prepareHotseatAndRunningAndRecentAppsInternal(
+            hotseatPackageUsers = hotseatPackageUsers,
+            runningTasks = runningTasks,
+            recentTaskPackages = emptyList(),
+        )
+        assertThat(recentShownTasks)
+            .containsExactly(defaultDisplayRunningTask, secondaryDisplayRunningTask)
+        assertThat(recentAppsController.runningTaskIds).containsExactlyElementsIn(listOf(1, 2))
+    }
+
+    @Test
+    fun onRecentTasksChanged_inDesktopMode_multipleDesktops_multipleAppInstances() {
+        setInDesktopMode(true)
+        val hotseatPackageUsers = listOf(PackageUser(HOTSEAT_PACKAGE_1, USER_HANDLE_1))
+        val defaultDisplayRunningTask1 =
+            createTask(id = 1, HOTSEAT_PACKAGE_1, localUserHandle = USER_HANDLE_1)
+        val defaultDisplayRunningTask2 =
+            createTask(id = 2, RUNNING_APP_PACKAGE_1, localUserHandle = USER_HANDLE_1)
+
+        val secondaryDisplayRunningTask1 =
+            createTask(id = 3, RUNNING_APP_PACKAGE_1, localUserHandle = USER_HANDLE_1)
+        val secondaryDisplayRunningTask2 =
+            createTask(id = 4, HOTSEAT_PACKAGE_1, localUserHandle = USER_HANDLE_1)
+
+        val runningTasks =
+            listOf(
+                PerDisplayRunningApps(
+                    listOf(defaultDisplayRunningTask1, defaultDisplayRunningTask2),
+                    DEFAULT_DISPLAY,
+                ),
+                PerDisplayRunningApps(
+                    listOf(secondaryDisplayRunningTask1, secondaryDisplayRunningTask2),
+                    DEFAULT_DISPLAY + 1,
+                ),
+            )
+        prepareHotseatAndRunningAndRecentAppsInternal(
+            hotseatPackageUsers = hotseatPackageUsers,
+            runningTasks = runningTasks,
+            recentTaskPackages = emptyList(),
+        )
+
+        assertThat(recentShownTasks).hasSize(1)
+        assertThat(recentShownTasks)
+            .containsAnyOf(defaultDisplayRunningTask2, secondaryDisplayRunningTask1)
+
+        assertThat(recentAppsController.runningTaskIds)
+            .containsExactlyElementsIn(listOf(1, 2, 3, 4))
     }
 
     private fun prepareHotseatAndRunningAndRecentApps(
@@ -858,14 +1035,14 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
         val hotseatPackageUsers = hotseatPackages.map { PackageUser(it, myUserHandle) }
         return prepareHotseatAndRunningAndRecentAppsInternal(
             hotseatPackageUsers,
-            runningTasks,
+            listOf(PerDisplayRunningApps(runningTasks, DEFAULT_DISPLAY)),
             recentTaskPackages,
         )
     }
 
     private fun prepareHotseatAndRunningAndRecentAppsInternal(
         hotseatPackageUsers: List<PackageUser>,
-        runningTasks: List<Task>,
+        runningTasks: List<PerDisplayRunningApps>,
         recentTaskPackages: List<String>,
     ): Array<ItemInfo?> {
         val hotseatItems = createHotseatItemsFromPackageUsers(hotseatPackageUsers)
@@ -874,12 +1051,15 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
         return recentAppsController.shownHotseatItems.toTypedArray()
     }
 
-    private fun updateRecentTasks(runningTasks: List<Task>, recentTaskPackages: List<String>) {
+    private fun updateRecentTasks(
+        runningTasks: List<PerDisplayRunningApps>,
+        recentTaskPackages: List<String>,
+    ) {
         val recentTasks = createRecentTasksFromPackageNames(recentTaskPackages)
         val allTasks =
             ArrayList<GroupTask>().apply {
-                if (!runningTasks.isEmpty()) {
-                    add(DesktopTask(deskId = 0, DEFAULT_DISPLAY, ArrayList(runningTasks)))
+                runningTasks.forEach {
+                    add(DesktopTask(deskId = 0, it.displayId, ArrayList(it.tasks)))
                 }
                 addAll(recentTasks)
             }
@@ -992,4 +1172,6 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
     }
 
     data class PackageUser(val packageName: String, val userHandle: UserHandle)
+
+    data class PerDisplayRunningApps(val tasks: List<Task>, val displayId: Int)
 }

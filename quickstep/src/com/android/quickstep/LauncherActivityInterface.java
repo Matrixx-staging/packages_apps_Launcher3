@@ -358,4 +358,11 @@ public final class LauncherActivityInterface extends
                 return NORMAL;
         }
     }
+
+    @Override
+    public boolean isLauncherOverlayShowing() {
+        Launcher launcher = Launcher.ACTIVITY_TRACKER.getCreatedContext();
+
+        return launcher != null && launcher.getWorkspace().isOverlayShown();
+    }
 }

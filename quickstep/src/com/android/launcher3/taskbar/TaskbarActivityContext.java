@@ -1139,7 +1139,8 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     }
 
     private void updateTaskbarSnapshot(AnimatorSet anim, boolean isExpanded) {
-        if (!ENABLE_TASKBAR_BEHIND_SHADE.isTrue()) {
+        if (!ENABLE_TASKBAR_BEHIND_SHADE.isTrue()
+                || isPhoneMode()) {
             return;
         }
         if (mTaskbarSnapshotView == null) {
@@ -1298,20 +1299,25 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     }
 
     /**
-     * Updates the TaskbarContainer size (pass {@link #getDefaultTaskbarWindowSize()} to reset).
+     * Updates the TaskbarContainer size, using the maximum of the provided {@code size}
+     * and the default size from {@link #getDefaultTaskbarWindowSize()}.
      */
     public void setTaskbarWindowSize(int size) {
         // In landscape phone button nav mode, we should set the task bar width instead of height
         // because this is the only case in which the nav bar is not on the display bottom.
+        int windowSize = size;
+        if (windowSize != MATCH_PARENT) {
+            windowSize = Math.max(size, getDefaultTaskbarWindowSize());
+        }
         boolean landscapePhoneButtonNav = isPhoneButtonNavMode() && mDeviceProfile.isLandscape;
         if ((landscapePhoneButtonNav ? mWindowLayoutParams.width : mWindowLayoutParams.height)
-                == size || mIsDestroyed) {
+                == windowSize || mIsDestroyed) {
             return;
         }
-        if (size == MATCH_PARENT) {
-            size = mDeviceProfile.heightPx;
+        if (windowSize == MATCH_PARENT) {
+            windowSize = mDeviceProfile.heightPx;
         } else {
-            mLastRequestedNonFullscreenSize = size;
+            mLastRequestedNonFullscreenSize = windowSize;
             if (mIsFullscreen || mIsTaskbarSizeFrozenForAnimatingBubble) {
                 // We either still need to be fullscreen or a bubble is still animating, so defer
                 // any change to our height until setTaskbarWindowFullscreen(false) is called or
@@ -1323,14 +1329,14 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             }
         }
         if (landscapePhoneButtonNav) {
-            mWindowLayoutParams.width = size;
+            mWindowLayoutParams.width = windowSize;
             for (int rot = Surface.ROTATION_0; rot <= Surface.ROTATION_270; rot++) {
-                mWindowLayoutParams.paramsForRotation[rot].width = size;
+                mWindowLayoutParams.paramsForRotation[rot].width = windowSize;
             }
         } else {
-            mWindowLayoutParams.height = size;
+            mWindowLayoutParams.height = windowSize;
             for (int rot = Surface.ROTATION_0; rot <= Surface.ROTATION_270; rot++) {
-                mWindowLayoutParams.paramsForRotation[rot].height = size;
+                mWindowLayoutParams.paramsForRotation[rot].height = windowSize;
             }
         }
         mControllers.runAfterInit(

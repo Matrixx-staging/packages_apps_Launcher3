@@ -35,8 +35,6 @@ import android.util.ArrayMap
 import android.widget.Toast
 import android.window.RemoteTransition
 import com.android.launcher3.Flags.enablePrivateSpace
-import com.android.launcher3.Flags.enablePrivateSpaceInstallShortcut
-import com.android.launcher3.Flags.privateSpaceAppInstallerButton
 import com.android.launcher3.Flags.privateSpaceSysAppsSeparation
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
@@ -96,11 +94,7 @@ open class SystemApiWrapper @Inject constructor(@ApplicationContext context: Con
         else ArrayList()
 
     override fun getAppMarketActivityIntent(packageName: String, user: UserHandle): Intent =
-        if (
-            allowPrivateProfile() &&
-                enablePrivateSpace() &&
-                (privateSpaceAppInstallerButton() || enablePrivateSpaceInstallShortcut())
-        )
+        if (allowPrivateProfile() && enablePrivateSpace())
             ProxyActivityStarter.getLaunchIntent(
                 mContext,
                 StartActivityParams(null as PendingIntent?, 0).apply {

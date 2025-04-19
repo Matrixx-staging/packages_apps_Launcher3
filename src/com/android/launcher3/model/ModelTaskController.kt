@@ -63,6 +63,8 @@ constructor(
         if (workspaceUpdates.isNotEmpty()) {
             scheduleCallbackTask { it.bindItemsUpdated(workspaceUpdates) }
         }
+        // TODO: Probably duplicate call, verify and remove?
+        dataModel.updateItems(allUpdates.toList(), null)
 
         // Bind extra items if any
         allUpdates

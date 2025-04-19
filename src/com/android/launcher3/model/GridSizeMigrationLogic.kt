@@ -23,7 +23,6 @@ import androidx.annotation.VisibleForTesting
 import com.android.launcher3.Flags
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.LauncherPrefs.Companion.get
-import com.android.launcher3.LauncherPrefs.Companion.getPrefs
 import com.android.launcher3.LauncherSettings
 import com.android.launcher3.LauncherSettings.Favorites.TABLE_NAME
 import com.android.launcher3.LauncherSettings.Favorites.TMP_TABLE
@@ -505,11 +504,7 @@ class GridSizeMigrationLogic {
         val next: Point =
             if (
                 screenId == 0 &&
-                    (FeatureFlags.QSB_ON_FIRST_SCREEN &&
-                        (!Flags.enableSmartspaceRemovalToggle() ||
-                            getPrefs(context)
-                                .getBoolean(LoaderTask.SMARTSPACE_ON_HOME_SCREEN, true)) &&
-                        !Utilities.SHOULD_SHOW_FIRST_PAGE_WIDGET)
+                    (FeatureFlags.QSB_ON_FIRST_SCREEN && !Utilities.SHOULD_SHOW_FIRST_PAGE_WIDGET)
             ) {
                 Point(0, 1 /* smartspace */)
             } else {

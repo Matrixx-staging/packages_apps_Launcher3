@@ -93,6 +93,17 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
 
     private final ConcurrentLinkedQueue<TaskVisualsChangeListener> mThumbnailChangeListeners =
             new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<RecentTasksChangedListener> mRecentTasksChangedListeners =
+            new ConcurrentLinkedQueue<>();
+    private final RecentTasksChangedListener mRecentTasksListObserver =
+            new RecentTasksChangedListener() {
+                @Override
+                public void onRecentTasksChanged() {
+                    mRecentTasksChangedListeners.forEach(
+                            RecentTasksChangedListener::onRecentTasksChanged);
+                }
+            };
+
     private final Context mContext;
     private final RecentTasksList mTaskList;
     private final TaskIconCache mIconCache;
@@ -153,6 +164,7 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
             DaggerSingletonTracker tracker) {
         mContext = context;
         mTaskList = taskList;
+        mTaskList.registerRecentTasksChangedListener(mRecentTasksListObserver);
         mIconCache = iconCache;
         mIconCache.registerTaskVisualsChangeListener(this);
         mThumbnailCache = thumbnailCache;
@@ -180,6 +192,7 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
 
         tracker.addCloseable(() -> {
             taskStackChangeListeners.unregisterTaskStackListener(this);
+            mTaskList.unregisterRecentTasksChangedListener();
             iconChangeCloseable.close();
             mIconCache.removeTaskVisualsChangeListener();
             if (lockedUserState.isUserUnlocked()) {
@@ -382,14 +395,14 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
      * Registers a listener for recent tasks
      */
     public void registerRecentTasksChangedListener(RecentTasksChangedListener listener) {
-        mTaskList.registerRecentTasksChangedListener(listener);
+        mRecentTasksChangedListeners.add(listener);
     }
 
     /**
      * Removes the previously registered running tasks listener
      */
-    public void unregisterRecentTasksChangedListener() {
-        mTaskList.unregisterRecentTasksChangedListener();
+    public void unregisterRecentTasksChangedListener(RecentTasksChangedListener listener) {
+        mRecentTasksChangedListeners.remove(listener);
     }
 
     /**

@@ -30,23 +30,6 @@ flag {
 }
 
 flag {
-    name: "enable_overview_command_helper_timeout"
-    namespace: "launcher_overview"
-    description: "Enables OverviewCommandHelper new version with a timeout to prevent the queue to be unresponsive."
-    bug: "351122926"
-    metadata {
-      purpose: PURPOSE_BUGFIX
-    }
-}
-
-flag {
-    name: "enable_desktop_windowing_carousel_detach"
-    namespace: "launcher_overview"
-    description: "Makes the desktop windowing task carousel detaches from fullscreen task carousel during quickswitch."
-    bug: "353947917"
-}
-
-flag {
     name: "enable_desktop_exploded_view"
     namespace: "launcher_overview"
     description: "Enables the non-overlapping layout for desktop windows in Overview mode."

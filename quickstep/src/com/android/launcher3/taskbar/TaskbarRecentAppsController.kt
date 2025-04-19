@@ -31,6 +31,7 @@ import com.android.quickstep.RecentsModel
 import com.android.quickstep.util.DesktopTask
 import com.android.quickstep.util.GroupTask
 import com.android.quickstep.util.SingleTask
+import com.android.systemui.shared.recents.model.Task
 import com.android.window.flags.Flags.enablePinningAppWithContextMenu
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus
 import java.io.PrintWriter
@@ -50,7 +51,7 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
         set(isEnabledFromTest) {
             field = isEnabledFromTest
             if (!field && !canShowRecentApps) {
-                recentsModel.unregisterRecentTasksChangedListener()
+                recentsModel.unregisterRecentTasksChangedListener(recentTasksChangedListener)
             }
         }
 
@@ -60,7 +61,7 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
         set(isEnabledFromTest) {
             field = isEnabledFromTest
             if (!field && !canShowRunningApps) {
-                recentsModel.unregisterRecentTasksChangedListener()
+                recentsModel.unregisterRecentTasksChangedListener(recentTasksChangedListener)
             }
         }
 
@@ -71,7 +72,7 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
         private set
 
     private var allRecentTasks: List<GroupTask> = emptyList()
-    private var desktopTask: DesktopTask? = null
+    private var desktopTasks: List<Task> = emptyList()
     // Keeps track of the order in which running tasks appear.
     private var orderedRunningTaskIds = emptyList<Int>()
     var shownTasks: List<GroupTask> = emptyList()
@@ -102,9 +103,11 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
     }
 
     private fun getDesktopTaskState(packageName: String, userId: Int): TaskState {
-        val tasks = desktopTask?.tasks ?: return TaskState(RunningAppState.NOT_RUNNING)
+        if (desktopTasks.isEmpty()) {
+            return TaskState(RunningAppState.NOT_RUNNING)
+        }
         val appTasks =
-            tasks.filter { task ->
+            desktopTasks.filter { task ->
                 packageName == task.key.packageName && task.key.userId == userId
             }
         val runningTask = appTasks.find { getRunningAppState(it.key.id) == RunningAppState.RUNNING }
@@ -141,8 +144,7 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
             ) {
                 return emptySet()
             }
-            val tasks = desktopTask?.tasks ?: return emptySet()
-            return tasks.map { task -> task.key.id }.toSet()
+            return desktopTasks.map { it.key.id }.toSet()
         }
 
     @VisibleForTesting
@@ -157,7 +159,6 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
             ) {
                 return emptySet()
             }
-            val desktopTasks = desktopTask?.tasks ?: return emptySet()
             return desktopTasks.filter { !it.isVisible }.map { task -> task.key.id }.toSet()
         }
 
@@ -191,7 +192,7 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
         if (shownTasks.isNotEmpty()) {
             controllers.sharedState?.recentTasksBeforeTaskbarRecreate?.addAll(shownTasks)
         }
-        recentsModel.unregisterRecentTasksChangedListener()
+        recentsModel.unregisterRecentTasksChangedListener(recentTasksChangedListener)
         iconLoadRequests.forEach { it.cancel() }
         iconLoadRequests.clear()
     }
@@ -230,10 +231,9 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
     }
 
     private fun getOrderedAndWrappedDesktopTasks(): List<SingleTask> {
-        val tasks = desktopTask?.tasks ?: emptyList()
         // We wrap each task in the Desktop as a `SingleTask`.
         val orderFromId = orderedRunningTaskIds.withIndex().associate { (index, id) -> id to index }
-        val sortedTasks = tasks.sortedWith(compareBy(nullsLast()) { orderFromId[it.key.id] })
+        val sortedTasks = desktopTasks.sortedWith(compareBy(nullsLast()) { orderFromId[it.key.id] })
         return sortedTasks.map { SingleTask(it) }
     }
 
@@ -246,7 +246,8 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
                         allRecentTasks = tasks
                         val oldRunningTaskdIds = runningTaskIds
                         val oldMinimizedTaskIds = minimizedTaskIds
-                        desktopTask = allRecentTasks.filterIsInstance<DesktopTask>().firstOrNull()
+                        desktopTasks =
+                            allRecentTasks.filterIsInstance<DesktopTask>().flatMap { it.tasks }
                         val runningTasksChanged = oldRunningTaskdIds != runningTaskIds
                         val minimizedTasksChanged = oldMinimizedTaskIds != minimizedTaskIds
                         if (
@@ -453,7 +454,7 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
         pw.println("$prefix\tcanShowRecentApps=$canShowRecentApps")
         pw.println("$prefix\tshownHotseatItems=${shownHotseatItems.map{item->item.targetPackage}}")
         pw.println("$prefix\tallRecentTasks=${allRecentTasks.map { it.packageNames }}")
-        pw.println("$prefix\tdesktopTask=${desktopTask?.packageNames}")
+        pw.println("$prefix\tdesktopTask=${desktopTasks.map {  it.key.packageName }}")
         pw.println("$prefix\tshownTasks=${shownTasks.map { it.packageNames }}")
         pw.println("$prefix\trunningTaskIds=$runningTaskIds")
         pw.println("$prefix\tminimizedTaskIds=$minimizedTaskIds")

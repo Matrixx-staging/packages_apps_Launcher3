@@ -119,7 +119,6 @@ class SettingsChangeLoggerTest {
             .isFalse()
         assertThat(systemUnderTest.loggingPrefs[ADD_ICON_PREFERENCE_KEY]!!.defaultValue).isTrue()
         assertThat(systemUnderTest.loggingPrefs[OVERVIEW_SUGGESTED_ACTIONS]!!.defaultValue).isTrue()
-        assertThat(systemUnderTest.loggingPrefs[SMARTSPACE_ON_HOME_SCREEN]!!.defaultValue).isTrue()
         assertThat(systemUnderTest.loggingPrefs[KEY_ENABLE_MINUS_ONE]!!.defaultValue).isTrue()
     }
 
@@ -168,7 +167,6 @@ class SettingsChangeLoggerTest {
     companion object {
         private const val KEY_ENABLE_MINUS_ONE = "pref_enable_minus_one"
         private const val OVERVIEW_SUGGESTED_ACTIONS = "pref_overview_action_suggestions"
-        private const val SMARTSPACE_ON_HOME_SCREEN = "pref_smartspace_home_screen"
 
         private const val LAUNCHER_GOOGLE_APP_SWIPE_LEFT_ENABLED = 617
     }

@@ -171,11 +171,6 @@ public class OverviewState extends LauncherState {
     }
 
     @Override
-    public boolean detachDesktopCarousel() {
-        return false;
-    }
-
-    @Override
     public boolean showExplodedDesktopView() {
         return enableDesktopExplodedView();
     }

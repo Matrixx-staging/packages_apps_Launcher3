@@ -28,7 +28,6 @@ import static com.android.launcher3.AbstractFloatingView.TYPE_ICON_SURFACE;
 import static com.android.launcher3.AbstractFloatingView.TYPE_REBIND_SAFE;
 import static com.android.launcher3.AbstractFloatingView.getTopOpenViewWithType;
 import static com.android.launcher3.Flags.enableAddAppWidgetViaConfigActivityV2;
-import static com.android.launcher3.Flags.enableSmartspaceRemovalToggle;
 import static com.android.launcher3.Flags.enableStrictMode;
 import static com.android.launcher3.Flags.enableWorkspaceInflation;
 import static com.android.launcher3.LauncherAnimUtils.HOTSEAT_SCALE_PROPERTY_FACTORY;
@@ -182,6 +181,7 @@ import com.android.launcher3.celllayout.CellPosMapper.CellPos;
 import com.android.launcher3.celllayout.CellPosMapper.TwoPanelCellPosMapper;
 import com.android.launcher3.compat.AccessibilityManagerCompat;
 import com.android.launcher3.config.FeatureFlags;
+import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.debug.TestEventEmitter;
 import com.android.launcher3.debug.TestEventEmitter.TestEvent;
 import com.android.launcher3.dragndrop.DragLayer;
@@ -236,7 +236,6 @@ import com.android.launcher3.util.ItemInflater;
 import com.android.launcher3.util.KeyboardShortcutsDelegate;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
 import com.android.launcher3.util.LockedUserState;
-import com.android.launcher3.util.MSDLPlayerWrapper;
 import com.android.launcher3.util.PackageUserKey;
 import com.android.launcher3.util.PendingRequestArgs;
 import com.android.launcher3.util.PluginManagerWrapper;
@@ -1392,9 +1391,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         // Until the workspace is bound, ensure that we keep the wallpaper offset locked to the
         // default state, otherwise we will update to the wrong offsets in RTL
         mWorkspace.lockWallpaperToDefaultPage();
-        if (!enableSmartspaceRemovalToggle()) {
-            mWorkspace.bindAndInitFirstWorkspaceScreen();
-        }
+        mWorkspace.bindAndInitFirstWorkspaceScreen();
         mDragController.addDragListener(mWorkspace);
 
         // Get the search/delete/uninstall bar
@@ -1687,6 +1684,9 @@ public class Launcher extends StatefulActivity<LauncherState>
     public void toggleAllApps(boolean focusSearch) {
         toggleAllApps(/* alreadyOnHome= */ true, focusSearch);
     }
+
+    /** Apply the blur or blur fallback style to the current theme. */
+    public void updateBlurStyle() {}
 
     private void toggleAllApps(boolean alreadyOnHome, boolean focusSearch) {
         if (getStateManager().isInStableState(ALL_APPS)) {
@@ -2210,11 +2210,6 @@ public class Launcher extends StatefulActivity<LauncherState>
     }
 
     @Override
-    public void setIsFirstPagePinnedItemEnabled(boolean isFirstPagePinnedItemEnabled) {
-        mModelCallbacks.setIsFirstPagePinnedItemEnabled(isFirstPagePinnedItemEnabled);
-    }
-
-    @Override
     public void bindScreens(IntArray orderedScreenIds) {
         mModelCallbacks.bindScreens(orderedScreenIds);
     }
@@ -2635,10 +2630,9 @@ public class Launcher extends StatefulActivity<LauncherState>
             // Ignore
         }
 
-        mModel.dumpState(prefix, fd, writer, args);
         mOverlayManager.dump(prefix, writer);
         ACTIVITY_TRACKER.dump(prefix, writer);
-        MSDLPlayerWrapper.INSTANCE.get(getApplicationContext()).dump(prefix, writer);
+        LauncherComponentProvider.get(this).getDumpManager().dump(prefix, writer, args);
     }
 
     /**
@@ -3048,10 +3042,6 @@ public class Launcher extends StatefulActivity<LauncherState>
      */
     public void launchAppPair(AppPairIcon appPairIcon) {
         // Overridden
-    }
-
-    public boolean getIsFirstPagePinnedItemEnabled() {
-        return mModelCallbacks.getIsFirstPagePinnedItemEnabled();
     }
 
     /**

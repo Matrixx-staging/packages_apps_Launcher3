@@ -318,6 +318,14 @@ public class BubbleBarViewController {
             public void setIsDragging(boolean dragging) {
                 mBubbleBarContainer.setElevation(dragging ? mDragElevation : 0);
             }
+
+            @Override
+            public void onBubbleBarExpandedStateChanged(boolean expanded) {
+                if (expanded && !mTaskbarStashController.isStashed()) {
+                    mTaskbarStashController.updateAndAnimateTransientTaskbar(true /* stash */,
+                            false /* shouldBubblesFollow */);
+                }
+            }
         });
 
         mBubbleViewController = new BubbleView.Controller() {
@@ -1252,8 +1260,6 @@ public class BubbleBarViewController {
                 mSystemUiProxy.collapseBubbles();
             } else {
                 mBubbleBarController.showSelectedBubble();
-                mTaskbarStashController.updateAndAnimateTransientTaskbar(true /* stash */,
-                        false /* shouldBubblesFollow */);
             }
         }
     }

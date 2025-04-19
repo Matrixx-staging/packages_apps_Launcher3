@@ -1938,8 +1938,12 @@ public class DeviceProfile {
         } else if (inv.isFixedLandscape) {
             // Center the QSB vertically with hotseat
             int hotseatBarBottomPadding = getHotseatBarBottomPadding();
-            int hotseatPlusQSBWidth = getHotseatRequiredWidth();
-            int qsbWidth = getAdditionalQsbSpace();
+            int hotseatPlusQSBWidth = getIconToIconWidthForColumns(inv.numColumns);
+
+            // This is needed because of b/235886078 since QSB needs to span to the icon borders
+            int iconExtraSpacePx = iconSizePx - getIconVisibleSizePx(iconSizePx);
+            int qsbWidth = getAdditionalQsbSpace() + iconExtraSpacePx / 2;
+
             int availableWidthPxForHotseat = availableWidthPx - Math.abs(workspacePadding.width())
                     - Math.abs(cellLayoutPaddingPx.width());
             int remainingSpaceOnSide = (availableWidthPxForHotseat - hotseatPlusQSBWidth) / 2;

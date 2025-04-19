@@ -342,7 +342,10 @@ public class DropTargetBar extends FrameLayout
         }
     }
 
+    /**
+     * Returns all possible drop targets (including ones that aren't visible)
+     */
     public ButtonDropTarget[] getDropTargets() {
-        return getVisibility() == View.VISIBLE ? mDropTargets : new ButtonDropTarget[0];
+        return mDropTargets;
     }
 }

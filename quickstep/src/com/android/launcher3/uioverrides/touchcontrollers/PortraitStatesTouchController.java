@@ -26,6 +26,7 @@ import android.view.MotionEvent;
 import com.android.app.animation.Interpolators;
 import com.android.internal.jank.Cuj;
 import com.android.launcher3.DeviceProfile;
+import com.android.launcher3.Flags;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.allapps.AllAppsTransitionController;
@@ -216,6 +217,10 @@ public class PortraitStatesTouchController extends AbstractStateChangeTouchContr
     @Override
     protected void onReinitToState(LauncherState newToState) {
         super.onReinitToState(newToState);
+        if (Flags.allAppsBlur() && mLauncher.isBackgroundBlurEnabled() && newToState == ALL_APPS) {
+            // About to start blurring during swipe to All Apps; prepare the renderer.
+            mLauncher.getRootView().getViewRootImpl().notifyRendererOfExpensiveFrame();
+        }
         if (newToState != ALL_APPS) {
             InteractionJankMonitorWrapper.cancel(Cuj.CUJ_LAUNCHER_OPEN_ALL_APPS);
         }

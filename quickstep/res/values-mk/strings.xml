@@ -91,7 +91,7 @@
     <string name="allset_hint" msgid="459504134589971527">"Повлечете нагоре за да го отворите почетниот екран"</string>
     <string name="allset_button_hint" msgid="2395219947744706291">"Допрете го копчето за почетен екран за да одите на почетниот екран"</string>
     <string name="allset_description_generic" msgid="5385500062202019855">"Подготвени сте да почнете да го користите вашиот <xliff:g id="DEVICE">%1$s</xliff:g>"</string>
-    <string name="default_device_name" msgid="6660656727127422487">"уред"</string>
+    <string name="allset_description_fallback" msgid="2488751930355201578">"Подготвени сте да започнете да го користите вашиот уред"</string>
     <string name="allset_navigation_settings" msgid="4713404605961476027"><annotation id="link">"Поставки за системска навигација"</annotation></string>
     <string name="action_share" msgid="2648470652637092375">"Сподели"</string>
     <string name="action_screenshot" msgid="8171125848358142917">"Слика од екранот"</string>
@@ -109,16 +109,11 @@
     <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"Откажи"</string>
     <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"Прескокни"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"Ротирајте го екранот"</string>
-    <!-- no translation found for taskbar_edu_swipe_animation_description (1690727240826006218) -->
-    <skip />
-    <!-- no translation found for taskbar_edu_pinning_animation_description (8148601093590683880) -->
-    <skip />
-    <!-- no translation found for taskbar_edu_split_screen_animation_description (371796444988899166) -->
-    <skip />
-    <!-- no translation found for taskbar_edu_suggested_app_animation_description (3443453246478079085) -->
-    <skip />
-    <!-- no translation found for taskbar_edu_suggested_search_animation_description (1874284242557104818) -->
-    <skip />
+    <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"Анимација што прикажува како „Лентата со задачи“ се појавува од дното на екранот и автоматски се крие кога не се користи"</string>
+    <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"Анимација што прикажува како да ја закачите „Лентата со задачи“ со прекинувач за да може „Лентата со задачи“ да остане трајно видлива на дното на екранот"</string>
+    <string name="taskbar_edu_split_screen_animation_description" msgid="371796444988899166">"Анимација што прикажува како да создадете поделен екран, со влечење и спуштање апликација од „Лентата со задачи“ над отворена апликација"</string>
+    <string name="taskbar_edu_suggested_app_animation_description" msgid="3443453246478079085">"Анимација што прикажува како да пристапите до предложените апликации на вашиот уред"</string>
+    <string name="taskbar_edu_suggested_search_animation_description" msgid="1874284242557104818">"Анимација што прикажува како да пребарате ставка на екранот, со допирање и задржување на копчето за дејство и избирање на областа во која се наоѓа ставката"</string>
     <string name="taskbar_edu_a11y_title" msgid="5417986057866415355">"Обука за лентата со задачи"</string>
     <string name="taskbar_edu_splitscreen" msgid="5605512479258053350">"Повлечете апликација настрана за да користите 2 апликации одеднаш"</string>
     <string name="taskbar_edu_stashing" msgid="5645461372669217294">"Полека повлечете нагоре за да се прикаже „Лентата со задачи“"</string>

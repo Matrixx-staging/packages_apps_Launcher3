@@ -113,6 +113,10 @@
     <string name="gadget_complete_setup_text" msgid="309040266978007925">"Тохируулгыг дуусгахын тулд товшино уу"</string>
     <string name="uninstall_system_app_text" msgid="4172046090762920660">"Энэ апп нь системийн апп ба устгах боломжгүй."</string>
     <string name="folder_hint_text" msgid="5174843001373488816">"Нэр засах"</string>
+    <!-- no translation found for paginate_left (7915437358451360433) -->
+    <skip />
+    <!-- no translation found for paginate_right (6701038155201975878) -->
+    <skip />
     <string name="disabled_app_label" msgid="6673129024321402780">"<xliff:g id="APP_NAME">%1$s</xliff:g>-г идэвхгүй болгосон"</string>
     <string name="dotted_app_label" msgid="1865617679843363410">"{count,plural, =1{{app_name} дээр # мэдэгдэл байна}other{{app_name} дээр # мэдэгдэл байна}}"</string>
     <string name="default_scroll_format" msgid="7475544710230993317">"%2$d-н %1$d хуудас"</string>

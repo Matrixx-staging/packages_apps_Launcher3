@@ -45,7 +45,6 @@ import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.icons.IconProvider;
 import com.android.launcher3.util.DaggerSingletonTracker;
 import com.android.launcher3.util.LockedUserState;
-import com.android.launcher3.util.SplitConfigurationOptions;
 import com.android.quickstep.util.GroupTask;
 import com.android.quickstep.util.SplitTask;
 import com.android.systemui.shared.recents.model.Task;
@@ -75,6 +74,7 @@ public class RecentsModelTest {
 
     @Mock
     private RecentTasksList mTasksList;
+    private RecentsModel.RecentTasksChangedListener mRegisteredTaskListListener = null;
 
     @Mock
     private HighResLoadingState mHighResLoadingState;
@@ -104,6 +104,20 @@ public class RecentsModelTest {
             callback.accept(mTaskResult);
             return null;
         }).when(mTasksList).getTaskKeys(anyInt(), any());
+        doAnswer(invocation -> {
+            mRegisteredTaskListListener = invocation.getArgument(0);
+            return null;
+        }).when(mTasksList).registerRecentTasksChangedListener(any());
+        doAnswer(invocation -> {
+            mRegisteredTaskListListener = null;
+            return null;
+        }).when(mTasksList).unregisterRecentTasksChangedListener();
+        doAnswer(invocation -> {
+            if (mRegisteredTaskListListener != null) {
+                mRegisteredTaskListListener.onRecentTasksChanged();
+            }
+            return null;
+        }).when(mTasksList).onRecentTasksChanged();
 
         when(mHighResLoadingState.isEnabled()).thenReturn(true);
         when(mThumbnailCache.getHighResLoadingState()).thenReturn(mHighResLoadingState);
@@ -185,6 +199,38 @@ public class RecentsModelTest {
 
         callbackCaptor.getAllValues().forEach(Runnable::run);
         verify(mThemeManager, times(1)).addChangeListener(any());
+    }
+
+    @Test
+    public void recentTaskListChangesNotiftListeners() {
+        RecentsModel.RecentTasksChangedListener listener1 = mock(
+                RecentsModel.RecentTasksChangedListener.class);
+        RecentsModel.RecentTasksChangedListener listener2 = mock(
+                RecentsModel.RecentTasksChangedListener.class);
+
+        mRecentsModel.registerRecentTasksChangedListener(listener1);
+
+        mTasksList.onRecentTasksChanged();
+        verify(listener1, times(1)).onRecentTasksChanged();
+        verify(listener2, times(0)).onRecentTasksChanged();
+
+        mRecentsModel.registerRecentTasksChangedListener(listener2);
+
+        mTasksList.onRecentTasksChanged();
+        verify(listener1, times(2)).onRecentTasksChanged();
+        verify(listener2, times(1)).onRecentTasksChanged();
+
+        mRecentsModel.unregisterRecentTasksChangedListener(listener1);
+
+        mTasksList.onRecentTasksChanged();
+        verify(listener1, times(2)).onRecentTasksChanged();
+        verify(listener2, times(2)).onRecentTasksChanged();
+
+        mRecentsModel.unregisterRecentTasksChangedListener(listener2);
+
+        mTasksList.onRecentTasksChanged();
+        verify(listener1, times(2)).onRecentTasksChanged();
+        verify(listener2, times(2)).onRecentTasksChanged();
     }
 
     private RecentTasksList.TaskLoadResult getTaskResult() {

@@ -125,9 +125,20 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
     };
 
     public static class Widgets<T extends ActivityContext> extends SystemShortcut<T> {
+
         public Widgets(T target, ItemInfo itemInfo, @NonNull View originalView) {
-            super(R.drawable.ic_widget, R.string.widget_button_text, target, itemInfo,
-                    originalView);
+            super(getDrawableId(), R.string.widget_button_text, target, itemInfo, originalView);
+        }
+
+        /**
+         * @return drawable for Widget shortcut icon
+         */
+        public static int getDrawableId() {
+            if (Flags.enableLauncherVisualRefresh()) {
+                return R.drawable.widgets_24px;
+            } else {
+                return R.drawable.ic_widget;
+            }
         }
 
         @Override
@@ -150,10 +161,20 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
         private SplitAccessibilityInfo mSplitA11yInfo;
 
         public AppInfo(T target, ItemInfo itemInfo, @NonNull View originalView) {
-            super(R.drawable.ic_info_no_shadow, R.string.app_info_drop_target_label, target,
+            super(getDrawableId(), R.string.app_info_drop_target_label, target,
                     itemInfo, originalView);
         }
 
+        /**
+         * @return drawable for App Info shortcut icon
+         */
+        public static int getDrawableId() {
+            if (Flags.enableLauncherVisualRefresh()) {
+                return R.drawable.info_24px;
+            } else {
+                return R.drawable.ic_info_no_shadow;
+            }
+        }
         /**
          * Constructor used by overview for staged split to provide custom A11y information.
          *
@@ -289,9 +310,7 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
                         && ((WorkspaceItemInfo) itemInfo).hasStatusFlag(
                         WorkspaceItemInfo.FLAG_SUPPORTS_WEB_UI);
                 boolean isInstantApp = false;
-                if (itemInfo instanceof com.android.launcher3.model.data.AppInfo) {
-                    com.android.launcher3.model.data.AppInfo
-                            appInfo = (com.android.launcher3.model.data.AppInfo) itemInfo;
+                if (itemInfo instanceof com.android.launcher3.model.data.AppInfo appInfo) {
                     isInstantApp = InstantAppResolver.newInstance(
                             originalView.getContext()).isInstantApp(appInfo);
                 }

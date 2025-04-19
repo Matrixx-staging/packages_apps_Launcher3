@@ -18,7 +18,6 @@ package com.android.launcher3;
 
 import static com.android.launcher3.AbstractFloatingView.TYPE_WIDGET_RESIZE_FRAME;
 import static com.android.launcher3.BubbleTextView.DISPLAY_FOLDER;
-import static com.android.launcher3.Flags.enableSmartspaceRemovalToggle;
 import static com.android.launcher3.LauncherAnimUtils.SPRING_LOADED_EXIT_DELAY;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION;
 import static com.android.launcher3.LauncherState.ALL_APPS;
@@ -620,9 +619,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
      * Initializes and binds the first page
      */
     public void bindAndInitFirstWorkspaceScreen() {
-        if ((!FeatureFlags.QSB_ON_FIRST_SCREEN
-                || !mLauncher.getIsFirstPagePinnedItemEnabled())
-                || SHOULD_SHOW_FIRST_PAGE_WIDGET) {
+        if (!FeatureFlags.QSB_ON_FIRST_SCREEN || SHOULD_SHOW_FIRST_PAGE_WIDGET) {
             mFirstPagePinnedItem = null;
             return;
         }
@@ -663,9 +660,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         mWorkspaceScreens.clear();
 
         // Ensure that the first page is always present
-        if (!enableSmartspaceRemovalToggle()) {
-            bindAndInitFirstWorkspaceScreen();
-        }
+        bindAndInitFirstWorkspaceScreen();
 
         // Re-enable the layout transitions
         enableLayoutTransitions();
@@ -826,12 +821,6 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         // and we store them as extra empty screens.
         for (int i = 0; i < finalScreens.size(); i++) {
             int screenId = finalScreens.keyAt(i);
-
-            // We don't want to remove the first screen even if it's empty because that's where
-            // first page pinned item would go if it gets turned back on.
-            if (enableSmartspaceRemovalToggle() && screenId == FIRST_SCREEN_ID) {
-                continue;
-            }
 
             CellLayout screen = finalScreens.get(screenId);
 
@@ -2815,11 +2804,15 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
      * to add an item to one of the workspace screens.
      */
     private void onDropExternal(final int[] touchXY, final CellLayout cellLayout, DragObject d) {
+        final int container = mLauncher.isHotseatLayout(cellLayout)
+                ? LauncherSettings.Favorites.CONTAINER_HOTSEAT
+                : LauncherSettings.Favorites.CONTAINER_DESKTOP;
         if (d.dragInfo instanceof PendingAddShortcutInfo) {
             WorkspaceItemInfo si = ((PendingAddShortcutInfo) d.dragInfo)
                     .getActivityInfo(mLauncher).createWorkspaceItemInfo();
             if (si != null) {
                 d.dragInfo = si;
+                si.container = container;
             }
         }
 
@@ -2830,10 +2823,6 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             spanX = mDragInfo.spanX;
             spanY = mDragInfo.spanY;
         }
-
-        final int container = mLauncher.isHotseatLayout(cellLayout)
-                ? LauncherSettings.Favorites.CONTAINER_HOTSEAT
-                : LauncherSettings.Favorites.CONTAINER_DESKTOP;
         final int screenId = getCellLayoutId(cellLayout);
         if (!mLauncher.isHotseatLayout(cellLayout)
                 && screenId != getScreenIdForPageIndex(mCurrentPage)

@@ -30,6 +30,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 
 /** Dagger Module for per-display thread handling. */
+// TODO(b/407594919) - Adapt this to use new concurrency module.
 @Module
 object LauncherConcurrencyModule {
     // Slow BG executor can potentially affect UI if UI is waiting for an updated state from this
