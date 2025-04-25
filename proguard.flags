@@ -24,11 +24,6 @@
     public <init>(...);
 }
 
-## Prevent obfuscating various overridable objects
--keep class ** implements com.android.launcher3.util.ResourceBasedOverride {
-    public <init>(...);
-}
-
 # Rules for internal proto classes
 # Prevent optimization or access modification of any referenced code that may
 # conflict with code in the bootclasspath.
