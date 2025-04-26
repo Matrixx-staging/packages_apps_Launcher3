@@ -189,7 +189,6 @@ import com.android.launcher3.dragndrop.DragView;
 import com.android.launcher3.dragndrop.LauncherDragController;
 import com.android.launcher3.folder.Folder;
 import com.android.launcher3.folder.FolderIcon;
-import com.android.launcher3.icons.IconCache;
 import com.android.launcher3.keyboard.ViewGroupFocusHelper;
 import com.android.launcher3.logger.LauncherAtom;
 import com.android.launcher3.logger.LauncherAtom.ContainerInfo;
@@ -202,6 +201,7 @@ import com.android.launcher3.logging.StartupLatencyLogger;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.logging.StatsLogManager.LauncherLatencyEvent;
 import com.android.launcher3.model.BgDataModel.Callbacks;
+import com.android.launcher3.model.BgDataModel.FixedContainerItems;
 import com.android.launcher3.model.ItemInstallQueue;
 import com.android.launcher3.model.ModelWriter;
 import com.android.launcher3.model.StringCache;
@@ -230,8 +230,8 @@ import com.android.launcher3.util.BackPressHandler;
 import com.android.launcher3.util.CannedAnimationCoordinator;
 import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.ContextTracker;
-import com.android.launcher3.util.IntArray;
 import com.android.launcher3.util.IntSet;
+import com.android.launcher3.util.IntSparseArrayMap;
 import com.android.launcher3.util.ItemInflater;
 import com.android.launcher3.util.KeyboardShortcutsDelegate;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
@@ -285,7 +285,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -372,7 +371,6 @@ public class Launcher extends StatefulActivity<LauncherState>
 
     private LauncherModel mModel;
     private ModelWriter mModelWriter;
-    private IconCache mIconCache;
     private LauncherAccessibilityDelegate mAccessibilityDelegate;
 
     private PopupDataProvider mPopupDataProvider;
@@ -525,7 +523,6 @@ public class Launcher extends StatefulActivity<LauncherState>
         initDeviceProfile(idp);
         idp.addOnChangeListener(this);
         mSharedPrefs = LauncherPrefs.getPrefs(this);
-        mIconCache = app.getIconCache();
         mAccessibilityDelegate = createAccessibilityDelegate();
 
         initDragController();
@@ -2200,60 +2197,21 @@ public class Launcher extends StatefulActivity<LauncherState>
     }
 
     @Override
-    public IntSet getPagesToBindSynchronously(IntArray orderedScreenIds) {
-        return mModelCallbacks.getPagesToBindSynchronously(orderedScreenIds);
+    public void bindCompleteModelAsync(IntSparseArrayMap<ItemInfo> itemIdMap,
+            List<FixedContainerItems> extraItems, StringCache stringCache, boolean isBindingSync) {
+        mModelCallbacks.bindCompleteModelAsync(itemIdMap, extraItems, stringCache, isBindingSync);
     }
 
     @Override
-    public void startBinding() {
-        mModelCallbacks.startBinding();
+    public void bindItemsAdded(@NonNull List<ItemInfo> items) {
+        mModelCallbacks.bindItemsAdded(items);
     }
 
-    @Override
-    public void bindScreens(IntArray orderedScreenIds) {
-        mModelCallbacks.bindScreens(orderedScreenIds);
-    }
-
-    /**
-     * Remove odd number because they are already included when isTwoPanels and add the pair screen
-     * if not present.
-     */
-    private IntArray filterTwoPanelScreenIds(IntArray orderedScreenIds) {
-        IntSet screenIds = IntSet.wrap(orderedScreenIds);
-        orderedScreenIds.forEach(screenId -> {
-            if (screenId % 2 == 1) {
-                screenIds.remove(screenId);
-                // In case the pair is not added, add it
-                if (!mWorkspace.containsScreenId(screenId - 1)) {
-                    screenIds.add(screenId - 1);
-                }
-            }
-        });
-        return screenIds.getArray();
-    }
-
-    @Override
-    public void bindAppsAdded(IntArray newScreens, ArrayList<ItemInfo> addNotAnimated,
-            ArrayList<ItemInfo> addAnimated) {
-        mModelCallbacks.bindAppsAdded(newScreens, addNotAnimated, addAnimated);
-    }
-
-    /**
-     * Bind the items start-end from the list.
-     *
-     * Implementation of the method from LauncherModel.Callbacks.
-     */
-    @Override
-    public void bindItems(final List<ItemInfo> items, final boolean forceAnimateIcons) {
-        bindInflatedItems(items.stream()
-                .map(i -> Pair.create(i, getItemInflater().inflateItem(i)))
-                .collect(Collectors.toList()),
-                forceAnimateIcons ? new AnimatorSet() : null);
-    }
-
-    @Override
-    public void bindInflatedItems(List<Pair<ItemInfo, View>> items) {
-        bindInflatedItems(items, null);
+    /** Inflates the binds the provided item using animation */
+    public void inflateAndBindItemWithAnimation(ItemInfo info) {
+        bindInflatedItems(
+                Collections.singletonList(Pair.create(info, getItemInflater().inflateItem(info))),
+                new AnimatorSet());
     }
 
     /**
@@ -2365,6 +2323,9 @@ public class Launcher extends StatefulActivity<LauncherState>
         return info;
     }
 
+    /** Called when a new LauncherModel data binding is starting */
+    public void startBinding() { }
+
     /**
      * Call back when ModelCallbacks finish binding the Launcher data.
      */
@@ -2379,19 +2340,11 @@ public class Launcher extends StatefulActivity<LauncherState>
                     .logCardinality(workspaceItemCount)
                     .logEnd(LauncherLatencyEvent.LAUNCHER_LATENCY_STARTUP_WORKSPACE_LOADER_ASYNC);
         }
-        MAIN_EXECUTOR.getHandler().postAtFrontOfQueue(() -> {
+        MAIN_EXECUTOR.getHandler().postAtFrontOfQueue(() ->
             mStartupLatencyLogger
                     .logEnd(LAUNCHER_LATENCY_STARTUP_TOTAL_DURATION)
                     .log()
-                    .reset();
-        });
-    }
-
-    @Override
-    public void onInitialBindComplete(IntSet boundPages, RunnableList pendingTasks,
-            RunnableList onCompleteSignal, int workspaceItemCount, boolean isBindSync) {
-        mModelCallbacks.onInitialBindComplete(boundPages, pendingTasks, onCompleteSignal,
-                workspaceItemCount, isBindSync);
+                    .reset());
         if (mIsColdStartupAfterReboot) {
             Trace.endAsyncSection(COLD_STARTUP_TRACE_METHOD_NAME,
                     COLD_STARTUP_TRACE_COOKIE);
@@ -2404,7 +2357,7 @@ public class Launcher extends StatefulActivity<LauncherState>
      * Implementation of the method from LauncherModel.Callbacks.
      */
     public void finishBindingItems(IntSet pagesBoundFirst) {
-        mModelCallbacks.finishBindingItems(pagesBoundFirst);
+        TestEventEmitter.sendEvent(TestEvent.WORKSPACE_FINISH_LOADING);
     }
 
     private boolean canAnimatePageChange() {
@@ -2524,11 +2477,6 @@ public class Launcher extends StatefulActivity<LauncherState>
     @Override
     public void bindWorkspaceComponentsRemoved(Predicate<ItemInfo> matcher) {
         mModelCallbacks.bindWorkspaceComponentsRemoved(matcher);
-    }
-
-    @Override
-    public void bindItemsModified(List<ItemInfo> items) {
-        mModelCallbacks.bindItemsModified(items);
     }
 
     /**
@@ -3061,7 +3009,6 @@ public class Launcher extends StatefulActivity<LauncherState>
         return super.getStatsLogManager().withDefaultInstanceId(mAllAppsSessionLogId);
     }
 
-    @Override
     @NonNull
     public ItemInflater<Launcher> getItemInflater() {
         return mItemInflater;

@@ -104,10 +104,6 @@
     <string name="toast_split_app_unsupported" msgid="2360229567007828914">"เลือกแอปอื่นเพื่อใช้การแยกหน้าจอ"</string>
     <string name="blocked_by_policy" msgid="2071401072261365546">"แอปหรือองค์กรของคุณไม่อนุญาตการดำเนินการนี้"</string>
     <string name="split_widgets_not_supported" msgid="1355743038053053866">"ยังไม่รองรับวิดเจ็ตในขณะนี้ โปรดเลือกแอปอื่น"</string>
-    <string name="skip_tutorial_dialog_title" msgid="2725643161260038458">"ข้ามบทแนะนำการนำทางไหม"</string>
-    <string name="skip_tutorial_dialog_subtitle" msgid="544063326241955662">"คุณดูบทแนะนำนี้ได้ภายหลังในแอป \"<xliff:g id="NAME">%1$s</xliff:g>\""</string>
-    <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"ยกเลิก"</string>
-    <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"ข้าม"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"หมุนหน้าจอ"</string>
     <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"ภาพเคลื่อนไหวแสดงวิธีทำให้แถบงานปรากฏจากด้านล่างของหน้าจอและซ่อนโดยอัตโนมัติเมื่อไม่ได้ใช้งาน"</string>
     <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"ภาพเคลื่อนไหวแสดงวิธีปักหมุดแถบงานโดยใช้ปุ่มเปิด/ปิด เพื่อให้แถบงานยังคงปรากฏอยู่ด้านล่างของหน้าจอตลอดเวลา"</string>

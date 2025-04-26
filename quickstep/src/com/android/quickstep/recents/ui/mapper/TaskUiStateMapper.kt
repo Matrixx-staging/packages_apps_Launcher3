@@ -18,7 +18,10 @@ package com.android.quickstep.recents.ui.mapper
 
 import android.view.View.OnClickListener
 import com.android.launcher3.Flags.enableDesktopExplodedView
+import com.android.launcher3.R
+import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT
 import com.android.quickstep.recents.ui.viewmodel.TaskData
+import com.android.quickstep.task.apptimer.TaskAppTimerUiState
 import com.android.quickstep.task.thumbnail.TaskHeaderUiState
 import com.android.quickstep.task.thumbnail.TaskThumbnailUiState
 import com.android.quickstep.task.thumbnail.TaskThumbnailUiState.BackgroundOnly
@@ -105,4 +108,37 @@ object TaskUiStateMapper {
             taskData.icon != null &&
             taskData.titleDescription != null &&
             clickCloseListener != null
+
+    /**
+     * Converts a [TaskData] object into a [TaskAppTimerUiState] for displaying an app timer toast
+     *
+     * @property taskData The [TaskData] to convert. Can be null or a specific sub-class.
+     * @property stagePosition the position of this task when shown as a group
+     * @return a [TaskAppTimerUiState] representing state for the information displayed in the app
+     *   timer toast.
+     */
+    fun toTaskAppTimerUiState(
+        canShowAppTimer: Boolean,
+        stagePosition: Int,
+        taskData: TaskData?,
+    ): TaskAppTimerUiState =
+        when {
+            taskData !is TaskData.Data -> TaskAppTimerUiState.Uninitialized
+
+            !canShowAppTimer || taskData.remainingAppTimerDuration == null ->
+                TaskAppTimerUiState.NoTimer(taskDescription = taskData.titleDescription)
+
+            else ->
+                TaskAppTimerUiState.Timer(
+                    taskDescription = taskData.titleDescription,
+                    timeRemaining = taskData.remainingAppTimerDuration,
+                    taskPackageName = taskData.packageName,
+                    accessibilityActionId =
+                        if (stagePosition == STAGE_POSITION_BOTTOM_OR_RIGHT) {
+                            R.id.action_digital_wellbeing_bottom_right
+                        } else {
+                            R.id.action_digital_wellbeing_top_left
+                        },
+                )
+        }
 }

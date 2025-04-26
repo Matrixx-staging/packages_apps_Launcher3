@@ -48,7 +48,6 @@ import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.shortcuts.ShortcutRequest
 import com.android.launcher3.util.DaggerSingletonTracker
-import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import com.android.launcher3.util.PackageUserKey
 import java.io.PrintWriter
@@ -281,9 +280,6 @@ constructor(
             val bindAllCallbacks = wasRunning || !bindDirectly || newCallbacks.isEmpty()
             val callbacksList = if (bindAllCallbacks) callbacks else newCallbacks
             if (callbacksList.isNotEmpty()) {
-                // Clear any pending bind-runnables from the synchronized load process.
-                callbacksList.forEach { MAIN_EXECUTOR.execute(it::clearPendingBinds) }
-
                 val launcherBinder = binderFactory.createBinder(callbacksList)
                 if (bindDirectly) {
                     // Divide the set of loaded items into those that we are binding synchronously,

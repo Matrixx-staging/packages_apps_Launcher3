@@ -20,13 +20,12 @@ import static android.app.WindowConfiguration.WINDOWING_MODE_FULLSCREEN;
 import static com.android.launcher3.states.RotationHelper.deltaRotation;
 import static com.android.launcher3.touch.PagedOrientationHandler.MATRIX_POST_TRANSLATE;
 import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
-import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT;
-import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_TOP_OR_LEFT;
-import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_UNDEFINED;
-import static com.android.launcher3.util.SplitConfigurationOptions.StagePosition;
 import static com.android.quickstep.util.RecentsOrientedState.postDisplayRotation;
 import static com.android.quickstep.util.RecentsOrientedState.preDisplayRotation;
 import static com.android.wm.shell.Flags.enableFlexibleTwoAppSplit;
+import static com.android.wm.shell.shared.split.SplitScreenConstants.SPLIT_POSITION_BOTTOM_OR_RIGHT;
+import static com.android.wm.shell.shared.split.SplitScreenConstants.SPLIT_POSITION_TOP_OR_LEFT;
+import static com.android.wm.shell.shared.split.SplitScreenConstants.SPLIT_POSITION_UNDEFINED;
 
 import android.animation.TimeInterpolator;
 import android.content.Context;
@@ -56,6 +55,7 @@ import com.android.quickstep.util.SurfaceTransaction.SurfaceProperties;
 import com.android.systemui.shared.recents.model.ThumbnailData;
 import com.android.systemui.shared.recents.utilities.PreviewPositionHelper;
 import com.android.wm.shell.shared.split.SplitBounds;
+import com.android.wm.shell.shared.split.SplitScreenConstants;
 
 /**
  * A utility class which emulates the layout behavior of TaskView and RecentsView
@@ -82,8 +82,8 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
     private PointF mPivotOverride = null;
     private final PointF mPivot = new PointF();
     private DeviceProfile mDp;
-    @StagePosition
-    private int mStagePosition = STAGE_POSITION_UNDEFINED;
+    @SplitScreenConstants.SplitPosition
+    private int mSplitPosition = SPLIT_POSITION_UNDEFINED;
 
     private final Matrix mMatrix = new Matrix();
     private final Matrix mMatrixTmp = new Matrix();
@@ -184,7 +184,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
             // sized task space bounds
             mTaskRect.set(mFullTaskSize);
             mOrientationState.getOrientationHandler()
-                    .setSplitTaskSwipeRect(mDp, mTaskRect, mSplitBounds, mStagePosition);
+                    .setSplitTaskSwipeRect(mDp, mTaskRect, mSplitBounds, mSplitPosition);
         } else if (mIsDesktopTask) {
             // For desktop, tasks can take up only part of the screen size.
             // Full task size represents the whole screen size, but scaled down to fit in recents.
@@ -259,12 +259,12 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
         setPreview(runningTarget);
         mSplitBounds = splitInfo;
         if (mSplitBounds == null) {
-            mStagePosition = STAGE_POSITION_UNDEFINED;
+            mSplitPosition = SPLIT_POSITION_UNDEFINED;
         } else {
-            mStagePosition = runningTarget.taskId == splitInfo.leftTopTaskId
-                    ? STAGE_POSITION_TOP_OR_LEFT : STAGE_POSITION_BOTTOM_OR_RIGHT;
+            mSplitPosition = runningTarget.taskId == splitInfo.leftTopTaskId
+                    ? SPLIT_POSITION_TOP_OR_LEFT : SPLIT_POSITION_BOTTOM_OR_RIGHT;
             if (enableFlexibleTwoAppSplit()) {
-                mPositionHelper.setSplitBounds(mSplitBounds, mStagePosition);
+                mPositionHelper.setSplitBounds(mSplitBounds, mSplitPosition);
             }
         }
         calculateTaskSize();

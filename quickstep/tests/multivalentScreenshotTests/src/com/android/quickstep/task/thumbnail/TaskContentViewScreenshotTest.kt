@@ -23,9 +23,11 @@ import android.view.LayoutInflater
 import com.android.launcher3.Flags
 import com.android.launcher3.R
 import com.android.launcher3.util.rule.setFlags
+import com.android.quickstep.task.apptimer.TaskAppTimerUiState
 import com.android.quickstep.task.thumbnail.SplashHelper.createSplash
 import com.android.quickstep.task.thumbnail.TaskThumbnailUiState.BackgroundOnly
 import com.google.android.apps.nexuslauncher.imagecomparison.goldenpathmanager.ViewScreenshotGoldenPathManager
+import java.time.Duration
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -56,17 +58,22 @@ class TaskContentViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
             true,
             Flags.FLAG_ENABLE_REFACTOR_TASK_THUMBNAIL,
             Flags.FLAG_ENABLE_REFACTOR_TASK_CONTENT_VIEW,
+            Flags.FLAG_ENABLE_REFACTOR_DIGITAL_WELLBEING_TOAST,
         )
     }
 
     @Test
     fun taskContentView_recyclesToUninitialized() {
-        screenshotRule.screenshotTest("taskContentView_uninitialized") { activity ->
+        screenshotRule.screenshotTest(
+            "taskContentView_uninitialized",
+            ViewScreenshotTestRule.Mode.MatchSize,
+        ) { activity ->
             activity.actionBar?.hide()
             val taskContentView = createTaskContentView(activity)
             taskContentView.setState(
                 TaskHeaderUiState.HideHeader,
                 BackgroundOnly(Color.YELLOW),
+                TIMER_UI_STATE,
                 null,
             )
             taskContentView.onRecycle()
@@ -76,7 +83,10 @@ class TaskContentViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
 
     @Test
     fun taskContentView_shows_thumbnail_and_header() {
-        screenshotRule.screenshotTest("taskContentView_shows_thumbnail_and_header") { activity ->
+        screenshotRule.screenshotTest(
+            "taskContentView_shows_thumbnail_and_header",
+            ViewScreenshotTestRule.Mode.MatchSize,
+        ) { activity ->
             activity.actionBar?.hide()
             createTaskContentView(activity).apply {
                 setState(
@@ -87,6 +97,7 @@ class TaskContentViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
                         ) {}
                     ),
                     BackgroundOnly(Color.YELLOW),
+                    NO_TIMER_UI_STATE,
                     null,
                 )
             }
@@ -95,12 +106,20 @@ class TaskContentViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
 
     @Test
     fun taskContentView_scaled_roundRoundedCorners() {
-        screenshotRule.screenshotTest("taskContentView_scaledRoundedCorners") { activity ->
+        screenshotRule.screenshotTest(
+            "taskContentView_scaledRoundedCorners",
+            ViewScreenshotTestRule.Mode.MatchSize,
+        ) { activity ->
             activity.actionBar?.hide()
             createTaskContentView(activity).apply {
                 scaleX = 0.75f
                 scaleY = 0.3f
-                setState(TaskHeaderUiState.HideHeader, BackgroundOnly(Color.YELLOW), null)
+                setState(
+                    TaskHeaderUiState.HideHeader,
+                    BackgroundOnly(Color.YELLOW),
+                    NO_TIMER_UI_STATE,
+                    null,
+                )
             }
         }
     }
@@ -124,5 +143,14 @@ class TaskContentViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
             )
 
         const val CORNER_RADIUS = 56f
+
+        private val TIMER_UI_STATE =
+            TaskAppTimerUiState.Timer(
+                timeRemaining = Duration.ofHours(2).plusMinutes(20L),
+                taskDescription = "test",
+                taskPackageName = "com.test",
+                accessibilityActionId = R.id.action_digital_wellbeing_top_left,
+            )
+        private val NO_TIMER_UI_STATE = TaskAppTimerUiState.NoTimer(taskDescription = "test")
     }
 }

@@ -522,11 +522,13 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
                 )) {
 
             if (isActionsViewVisible()) {
+                UiObject2 actionsButtons;
                 if (task.isGrouped()) {
-                    mLauncher.waitForOverviewObject("action_save_app_pair");
+                    actionsButtons = mLauncher.waitForOverviewObject("action_save_app_pair");
                 } else {
-                    mLauncher.waitForOverviewObject("action_buttons");
+                    actionsButtons = mLauncher.waitForOverviewObject("action_buttons");
                 }
+                mLauncher.assertTrue("Overview actions is disabled", actionsButtons.isEnabled());
             } else {
                 mLauncher.waitUntilOverviewObjectGone("action_buttons");
                 mLauncher.waitUntilOverviewObjectGone("action_save_app_pair");

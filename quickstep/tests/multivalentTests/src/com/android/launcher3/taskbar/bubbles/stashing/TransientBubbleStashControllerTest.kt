@@ -376,7 +376,7 @@ class TransientBubbleStashControllerTest {
             )
         }
 
-        verify(bubbleBarViewController).setExpanded(true, true)
+        verify(bubbleBarViewController).animateExpanded(true, true)
     }
 
     @Test
@@ -393,7 +393,7 @@ class TransientBubbleStashControllerTest {
             )
         }
 
-        verify(bubbleBarViewController).setExpanded(true, false)
+        verify(bubbleBarViewController).animateExpanded(true, false)
     }
 
     @Test
@@ -410,7 +410,7 @@ class TransientBubbleStashControllerTest {
             )
         }
 
-        verify(bubbleBarViewController, never()).setExpanded(any(), any())
+        verify(bubbleBarViewController, never()).animateExpanded(any(), any())
     }
 
     @Test

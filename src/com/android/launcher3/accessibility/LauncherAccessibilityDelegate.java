@@ -536,7 +536,7 @@ public class LauncherAccessibilityDelegate extends BaseAccessibilityDelegate<Lau
         // Bind the item in next frame so that if a new workspace page was created,
         // it will get laid out.
         new Handler().post(() -> {
-            mContext.bindItems(Collections.singletonList(item), true);
+            mContext.inflateAndBindItemWithAnimation(item);
             announceConfirmation(R.string.item_moved);
         });
         return true;

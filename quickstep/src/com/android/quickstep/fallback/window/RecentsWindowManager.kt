@@ -235,12 +235,15 @@ constructor(
 
     override fun destroy() {
         super.destroy()
-        Executors.MAIN_EXECUTOR.execute { onViewDestroyed() }
-        cleanupRecentsWindow()
-        callbacks?.removeListener(recentsAnimationListener)
-        homeVisibilityState.removeListener(homeVisibilityListener)
-        recentsWindowTracker.onContextDestroyed(this)
-        recentsView?.destroy()
+        Executors.MAIN_EXECUTOR.execute {
+            tisBindHelper.onDestroy()
+            onViewDestroyed()
+            cleanupRecentsWindow()
+            callbacks?.removeListener(recentsAnimationListener)
+            homeVisibilityState.removeListener(homeVisibilityListener)
+            recentsWindowTracker.onContextDestroyed(this)
+            recentsView?.destroy()
+        }
     }
 
     fun startRecentsWindow(callbacks: RecentsAnimationCallbacks? = null) {

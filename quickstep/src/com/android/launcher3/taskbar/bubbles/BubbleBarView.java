@@ -1309,9 +1309,9 @@ public class BubbleBarView extends FrameLayout {
     }
 
     /**
-     * Sets whether the bubble bar is expanded or collapsed.
+     * Update bubble bar expanded state with animation.
      */
-    public void setExpanded(boolean isBarExpanded) {
+    public void animateExpanded(boolean isBarExpanded) {
         if (mIsBarExpanded != isBarExpanded) {
             mIsBarExpanded = isBarExpanded;
             updateArrowForSelected(/* shouldAnimate= */ false);

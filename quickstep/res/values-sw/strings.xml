@@ -104,10 +104,6 @@
     <string name="toast_split_app_unsupported" msgid="2360229567007828914">"Chagua programu nyingine ili utumie hali ya kugawa skrini"</string>
     <string name="blocked_by_policy" msgid="2071401072261365546">"Kitendo hiki hakiruhusiwi na programu au shirika lako"</string>
     <string name="split_widgets_not_supported" msgid="1355743038053053866">"Wijeti hazitumiwi kwa sasa, tafadhali chagua programu nyingine"</string>
-    <string name="skip_tutorial_dialog_title" msgid="2725643161260038458">"Ungependa kuruka mafunzo ya usogezaji?"</string>
-    <string name="skip_tutorial_dialog_subtitle" msgid="544063326241955662">"Utapata mafunzo haya baadaye katika programu ya <xliff:g id="NAME">%1$s</xliff:g>"</string>
-    <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"Ghairi"</string>
-    <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"Ruka"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"Zungusha skrini"</string>
     <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"Uhuishaji unaoonyesha jinsi upauzana huonekana kutokea sehemu ya chini ya skrini na kufichwa kiotomatiki wakati hautumiki"</string>
     <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"Uhuishaji unaoonyesha jinsi ya kubandika upauzana wako kwa kutumia kipengele cha kuwasha/kuzima, ili upauzana uendelee kuonekana sehemu ya chini kabisa ya skrini"</string>

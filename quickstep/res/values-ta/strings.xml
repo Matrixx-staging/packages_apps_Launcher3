@@ -104,10 +104,6 @@
     <string name="toast_split_app_unsupported" msgid="2360229567007828914">"திரைப் பிரிப்பை பயன்படுத்த வேறு ஆப்ஸை தேர்வுசெய்க"</string>
     <string name="blocked_by_policy" msgid="2071401072261365546">"ஆப்ஸோ உங்கள் நிறுவனமோ இந்த செயலை அனுமதிப்பதில்லை"</string>
     <string name="split_widgets_not_supported" msgid="1355743038053053866">"விட்ஜெட்கள் தற்போது ஆதரிக்கப்படவில்லை, வேறு ஆப்ஸைத் தேர்ந்தெடுக்கவும்"</string>
-    <string name="skip_tutorial_dialog_title" msgid="2725643161260038458">"வழிகாட்டுதல் பயிற்சியைத் தவிர்க்கவா?"</string>
-    <string name="skip_tutorial_dialog_subtitle" msgid="544063326241955662">"<xliff:g id="NAME">%1$s</xliff:g> ஆப்ஸில் பிறகு இதைக் கண்டறியலாம்"</string>
-    <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"ரத்துசெய்"</string>
-    <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"தவிர்"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"திரையைச் சுழற்றும்"</string>
     <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"திரையின் அடிப்பகுதியில் இருந்து செயல் பட்டி எப்படிக் காட்டப்படுகிறது, பயன்பாட்டில் இல்லாதபோது தானாகவே மறைகிறது என்பதைக் காட்டும் அனிமேஷன்"</string>
     <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"நிலைமாற்றியைப் பயன்படுத்தி உங்கள் செயல் பட்டியை எப்படி பின் செய்வது என்பதைக் காட்டும் அனிமேஷன், இதனால் திரையின் அடிப்பகுதியில் செயல் பட்டி நிரந்தரமாகக் காட்டப்படும்"</string>

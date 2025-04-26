@@ -18,6 +18,7 @@ package com.android.launcher3.dagger
 
 import com.android.launcher3.icons.LauncherIconProvider
 import com.android.launcher3.icons.LauncherIconProviderImpl
+import com.android.launcher3.logging.StatsLogManager.StatsLogManagerFactory
 import com.android.launcher3.uioverrides.QuickstepWidgetHolder.QuickstepWidgetHolderFactory
 import com.android.launcher3.uioverrides.SystemApiWrapper
 import com.android.launcher3.uioverrides.plugins.PluginManagerWrapperImpl
@@ -28,6 +29,7 @@ import com.android.launcher3.util.window.RefreshRateTracker
 import com.android.launcher3.util.window.WindowManagerProxy
 import com.android.launcher3.widget.LauncherWidgetHolder.WidgetHolderFactory
 import com.android.quickstep.InstantAppResolverImpl
+import com.android.quickstep.logging.StatsLogCompatManager.StatsLogCompatManagerFactory
 import com.android.quickstep.util.ChoreographerFrameRateTracker
 import com.android.quickstep.util.GestureExclusionManager
 import com.android.quickstep.util.SystemWindowManagerProxy
@@ -44,6 +46,11 @@ abstract class WindowManagerProxyModule {
 
 @Module
 abstract class ApiWrapperModule {
+    @Binds
+    abstract fun bindStatsLogManagerFactory(
+        impl: StatsLogCompatManagerFactory
+    ): StatsLogManagerFactory
+
     @Binds abstract fun bindApiWrapper(systemApiWrapper: SystemApiWrapper): ApiWrapper
 
     @Binds

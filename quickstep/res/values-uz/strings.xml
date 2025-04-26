@@ -104,10 +104,6 @@
     <string name="toast_split_app_unsupported" msgid="2360229567007828914">"Ekranni ikkiga ajratish uchun boshqa ilovani tanlang"</string>
     <string name="blocked_by_policy" msgid="2071401072261365546">"Bu amal ilova yoki tashkilotingiz tomonidan taqiqlangan"</string>
     <string name="split_widgets_not_supported" msgid="1355743038053053866">"Vidjetlar ishlamaydi. Boshqa ilovani tanlang"</string>
-    <string name="skip_tutorial_dialog_title" msgid="2725643161260038458">"Navigatsiya darsi yopilsinmi?"</string>
-    <string name="skip_tutorial_dialog_subtitle" msgid="544063326241955662">"Bu darslar <xliff:g id="NAME">%1$s</xliff:g> ilovasida chiqadi"</string>
-    <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"Bekor qilish"</string>
-    <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"Tashlab ketish"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"Ekranni burish"</string>
     <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"Vazifalar paneli ekranning pastki qismidan qanday koʻrinishini va ishlatilmayotganda avtomatik berkitilishi aks etgan animatsiya"</string>
     <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"Vazifalar panelini almashinuv tugmasi yordamida qanday qadashni koʻrsatuvchi animatsiya, shu bois vazifalar paneli ekranning pastki qismida doimiy chiqib turadi"</string>

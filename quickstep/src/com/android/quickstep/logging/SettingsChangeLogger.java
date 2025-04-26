@@ -107,19 +107,10 @@ public class SettingsChangeLogger implements
     SettingsChangeLogger(@ApplicationContext Context context,
             DaggerSingletonTracker tracker,
             DisplayController displayController,
-            SettingsCache settingsCache) {
-        this(context, StatsLogManager.newInstance(context), tracker, displayController,
-                settingsCache);
-    }
-
-    @VisibleForTesting
-    SettingsChangeLogger(@ApplicationContext Context context,
-            StatsLogManager statsLogManager,
-            DaggerSingletonTracker tracker,
-            DisplayController displayController,
-            SettingsCache settingsCache) {
+            SettingsCache settingsCache,
+            StatsLogManager.StatsLogManagerFactory factory) {
         mContext = context;
-        mStatsLogManager = statsLogManager;
+        mStatsLogManager = factory.create(context);
         mLoggablePrefs = loadPrefKeys(context);
 
         displayController.addChangeListener(this);

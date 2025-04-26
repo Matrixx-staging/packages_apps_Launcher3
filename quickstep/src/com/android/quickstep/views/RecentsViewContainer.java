@@ -167,7 +167,7 @@ public interface RecentsViewContainer extends ActivityContext {
      * Enter staged split directly from the current running app.
      * @param leftOrTop if the staged split will be positioned left or top.
      */
-    default void enterStageSplitFromRunningApp(boolean leftOrTop){}
+    default void enterStageSplitFromRunningApp(boolean leftOrTop, int displayId) {}
 
     /**
      * Overwrites any logged item in Launcher that doesn't have a container with the

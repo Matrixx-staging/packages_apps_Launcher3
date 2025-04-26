@@ -16,8 +16,10 @@
 
 package com.android.launcher3.dagger
 
+import com.android.launcher3.backuprestore.LauncherRestoreEventLogger
 import com.android.launcher3.model.ModelDelegate
 import com.android.launcher3.model.QuickstepModelDelegate
+import com.android.quickstep.LauncherRestoreEventLoggerImpl
 import dagger.Binds
 import dagger.Module
 
@@ -29,4 +31,9 @@ import dagger.Module
 abstract class AppModule {
 
     @Binds abstract fun bindModelDelegate(impl: QuickstepModelDelegate): ModelDelegate
+
+    @Binds
+    abstract fun bindRestoreEventLogger(
+        impl: LauncherRestoreEventLoggerImpl
+    ): LauncherRestoreEventLogger
 }

@@ -113,10 +113,8 @@
     <string name="gadget_complete_setup_text" msgid="309040266978007925">"Touchez pour terminer la configuration"</string>
     <string name="uninstall_system_app_text" msgid="4172046090762920660">"Impossible de désinstaller cette appli, car il s\'agit d\'une appli système."</string>
     <string name="folder_hint_text" msgid="5174843001373488816">"Modifier le nom"</string>
-    <!-- no translation found for paginate_left (7915437358451360433) -->
-    <skip />
-    <!-- no translation found for paginate_right (6701038155201975878) -->
-    <skip />
+    <string name="paginate_left" msgid="7915437358451360433">"Paginer vers la gauche"</string>
+    <string name="paginate_right" msgid="6701038155201975878">"Paginer vers la droite"</string>
     <string name="disabled_app_label" msgid="6673129024321402780">"L\'appli <xliff:g id="APP_NAME">%1$s</xliff:g> est désactivée"</string>
     <string name="dotted_app_label" msgid="1865617679843363410">"{count,plural, =1{{app_name} a # notification}one{{app_name} a # notification}other{{app_name} a # notifications}}"</string>
     <string name="default_scroll_format" msgid="7475544710230993317">"Page %1$d sur %2$d"</string>
@@ -139,7 +137,7 @@
     <string name="msg_disabled_by_admin" msgid="6898038085516271325">"Cette fonction est désactivée par votre administrateur"</string>
     <string name="allow_rotation_title" msgid="7222049633713050106">"Autoriser la rotation de l\'écran d\'accueil"</string>
     <string name="allow_rotation_desc" msgid="8662546029078692509">"Lorsque vous faites pivoter le téléphone"</string>
-    <string name="landscape_mode_title" msgid="5138814555934843926">"Mode paysage"</string>
+    <string name="landscape_mode_title" msgid="5138814555934843926">"Mode Paysage"</string>
     <string name="landscape_mode_desc" msgid="7372569859592816793">"Configurez le téléphone en mode Paysage"</string>
     <string name="notification_dots_title" msgid="9062440428204120317">"Pastilles de notification"</string>
     <string name="notification_dots_desc_on" msgid="1679848116452218908">"Activées"</string>

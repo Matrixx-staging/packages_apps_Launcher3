@@ -24,9 +24,13 @@ import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.RemoveAnimationSettingsTracker;
+import com.android.launcher3.backuprestore.LauncherRestoreEventLogger;
+import com.android.launcher3.folder.FolderNameSuggestionLoader;
 import com.android.launcher3.graphics.GridCustomizationsProxy;
 import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.icons.LauncherIcons.IconPool;
+import com.android.launcher3.logging.DumpManager;
+import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.model.ItemInstallQueue;
 import com.android.launcher3.model.LoaderCursor.LoaderCursorFactory;
 import com.android.launcher3.pm.InstallSessionHelper;
@@ -34,7 +38,6 @@ import com.android.launcher3.pm.UserCache;
 import com.android.launcher3.util.ApiWrapper;
 import com.android.launcher3.util.DaggerSingletonTracker;
 import com.android.launcher3.util.DisplayController;
-import com.android.launcher3.logging.DumpManager;
 import com.android.launcher3.util.DynamicResource;
 import com.android.launcher3.util.InstantAppResolver;
 import com.android.launcher3.util.LockedUserState;
@@ -87,14 +90,16 @@ public interface LauncherBaseAppComponent {
     IconPool getIconPool();
     RemoveAnimationSettingsTracker getRemoveAnimationSettingsTracker();
     LauncherAppState getLauncherAppState();
-    GridCustomizationsProxy getGridCustomizationsProxy();
 
+    LauncherRestoreEventLogger getLauncherRestoreEventLogger();
+    GridCustomizationsProxy getGridCustomizationsProxy();
+    FolderNameSuggestionLoader getFolderNameSuggestionLoader();
     LoaderCursorFactory getLoaderCursorFactory();
     WidgetHolderFactory getWidgetHolderFactory();
     RefreshRateTracker getFrameRateProvider();
     InstantAppResolver getInstantAppResolver();
-
     DumpManager getDumpManager();
+    StatsLogManager.StatsLogManagerFactory getStatsLogManagerFactory();
 
     /** Builder for LauncherBaseAppComponent. */
     interface Builder {

@@ -104,10 +104,6 @@
     <string name="toast_split_app_unsupported" msgid="2360229567007828914">"स्प्लिट स्क्रिन प्रयोग गर्न अर्को एप रोज्नुहोस्"</string>
     <string name="blocked_by_policy" msgid="2071401072261365546">"यो एप वा तपाईंको सङ्गठनले यो कारबाही गर्ने अनुमति दिँदैन"</string>
     <string name="split_widgets_not_supported" msgid="1355743038053053866">"हाल विजेटहरू प्रयोग गर्न मिल्दैनन् कृपया अर्को एप चयन गर्नुहोस्"</string>
-    <string name="skip_tutorial_dialog_title" msgid="2725643161260038458">"नेभिगेसन ट्युटोरियल स्किप गर्ने हो?"</string>
-    <string name="skip_tutorial_dialog_subtitle" msgid="544063326241955662">"तपाईं पछि <xliff:g id="NAME">%1$s</xliff:g> नामक एपमा गई यो ट्युटोरियल भेट्टाउन सक्नुहुन्छ"</string>
-    <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"रद्द गर्नुहोस्"</string>
-    <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"स्किप गर्नुहोस्"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"स्क्रिन घुमाउनुहोस्"</string>
     <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"टास्कबार कसरी स्क्रिनको फेदबाट माथितिर निस्कन्छ र प्रयोग नगरिएका बेलामा कसरी स्वतः लुक्छ भन्ने कुरा देखाइएको एनिमेसन"</string>
     <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"टास्कबार स्क्रिनको फेदमा स्थायी रूपमा देखियोस् भन्नाका लागि टगल प्रयोग गरी आफ्नो टास्कबार पिन गर्ने तरिका देखाइएको एनिमेसन"</string>

@@ -113,10 +113,8 @@
     <string name="gadget_complete_setup_text" msgid="309040266978007925">"輕觸即可完成設定"</string>
     <string name="uninstall_system_app_text" msgid="4172046090762920660">"這是系統應用程式，不可解除安裝。"</string>
     <string name="folder_hint_text" msgid="5174843001373488816">"編輯名稱"</string>
-    <!-- no translation found for paginate_left (7915437358451360433) -->
-    <skip />
-    <!-- no translation found for paginate_right (6701038155201975878) -->
-    <skip />
+    <string name="paginate_left" msgid="7915437358451360433">"分頁靠左"</string>
+    <string name="paginate_right" msgid="6701038155201975878">"分頁靠右"</string>
     <string name="disabled_app_label" msgid="6673129024321402780">"已停用 <xliff:g id="APP_NAME">%1$s</xliff:g>"</string>
     <string name="dotted_app_label" msgid="1865617679843363410">"{count,plural, =1{「{app_name}」應用程式有 # 則通知}other{「{app_name}」應用程式有 # 則通知}}"</string>
     <string name="default_scroll_format" msgid="7475544710230993317">"第 %1$d 頁，共 %2$d 頁"</string>

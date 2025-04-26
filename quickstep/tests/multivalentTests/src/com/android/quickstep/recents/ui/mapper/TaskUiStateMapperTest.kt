@@ -26,7 +26,11 @@ import android.view.Surface
 import android.view.View
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.launcher3.Flags
+import com.android.launcher3.R
+import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT
+import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_TOP_OR_LEFT
 import com.android.quickstep.recents.ui.viewmodel.TaskData
+import com.android.quickstep.task.apptimer.TaskAppTimerUiState
 import com.android.quickstep.task.thumbnail.TaskHeaderUiState
 import com.android.quickstep.task.thumbnail.TaskThumbnailUiState
 import com.android.quickstep.task.thumbnail.TaskThumbnailUiState.LiveTile
@@ -189,6 +193,96 @@ class TaskUiStateMapperTest {
         assertThat(result).isEqualTo(expected)
     }
 
+    @Test
+    fun toTaskAppTimer_nullTaskData_returnsUninitialized() {
+        val result =
+            TaskUiStateMapper.toTaskAppTimerUiState(
+                canShowAppTimer = true,
+                stagePosition = STAGE_POSITION_DEFAULT,
+                taskData = null,
+            )
+
+        val expected = TaskAppTimerUiState.Uninitialized
+        assertThat(result).isEqualTo(expected)
+    }
+
+    @Test
+    fun toTaskAppTimer_noTaskData_returnsUninitialized() {
+        val result =
+            TaskUiStateMapper.toTaskAppTimerUiState(
+                canShowAppTimer = true,
+                stagePosition = STAGE_POSITION_DEFAULT,
+                taskData = TaskData.NoData(TASK_ID),
+            )
+
+        val expected = TaskAppTimerUiState.Uninitialized
+        assertThat(result).isEqualTo(expected)
+    }
+
+    @Test
+    fun toTaskAppTimer_canShowAppTimerFalse_returnsNoTimer() {
+        val result =
+            TaskUiStateMapper.toTaskAppTimerUiState(
+                canShowAppTimer = false,
+                stagePosition = STAGE_POSITION_DEFAULT,
+                taskData = TASK_DATA,
+            )
+
+        val expected = TaskAppTimerUiState.NoTimer(taskDescription = TASK_TITLE_DESCRIPTION)
+        assertThat(result).isEqualTo(expected)
+    }
+
+    @Test
+    fun toTaskAppTimer_timerNullAndCanShow_returnsNoTimer() {
+        val result =
+            TaskUiStateMapper.toTaskAppTimerUiState(
+                canShowAppTimer = false,
+                stagePosition = STAGE_POSITION_DEFAULT,
+                taskData = TASK_DATA.copy(remainingAppTimerDuration = null),
+            )
+
+        val expected = TaskAppTimerUiState.NoTimer(taskDescription = TASK_TITLE_DESCRIPTION)
+        assertThat(result).isEqualTo(expected)
+    }
+
+    @Test
+    fun toTaskAppTimer_timerPresentAndCanShow_returnsTimer() {
+        val result =
+            TaskUiStateMapper.toTaskAppTimerUiState(
+                canShowAppTimer = true,
+                stagePosition = STAGE_POSITION_DEFAULT,
+                taskData = TASK_DATA.copy(remainingAppTimerDuration = TASK_APP_TIMER_DURATION),
+            )
+
+        val expected =
+            TaskAppTimerUiState.Timer(
+                timeRemaining = TASK_APP_TIMER_DURATION,
+                taskDescription = TASK_DATA.titleDescription,
+                taskPackageName = TASK_DATA.packageName,
+                accessibilityActionId = R.id.action_digital_wellbeing_top_left,
+            )
+        assertThat(result).isEqualTo(expected)
+    }
+
+    @Test
+    fun toTaskAppTimer_stagePositionBottomOrRight_returnsTimerWithCorrectActionId() {
+        val result =
+            TaskUiStateMapper.toTaskAppTimerUiState(
+                canShowAppTimer = true,
+                stagePosition = STAGE_POSITION_BOTTOM_OR_RIGHT,
+                taskData = TASK_DATA.copy(remainingAppTimerDuration = TASK_APP_TIMER_DURATION),
+            )
+
+        val expected =
+            TaskAppTimerUiState.Timer(
+                timeRemaining = TASK_APP_TIMER_DURATION,
+                taskDescription = TASK_DATA.titleDescription,
+                taskPackageName = TASK_DATA.packageName,
+                accessibilityActionId = R.id.action_digital_wellbeing_bottom_right,
+            )
+        assertThat(result).isEqualTo(expected)
+    }
+
     private companion object {
         const val TASK_TITLE_DESCRIPTION = "Title Description 1"
         var TASK_ID = 1
@@ -198,6 +292,8 @@ class TaskUiStateMapperTest {
         val TASK_THUMBNAIL_DATA =
             ThumbnailData(thumbnail = TASK_THUMBNAIL, rotation = Surface.ROTATION_0)
         val TASK_BACKGROUND_COLOR = Color.rgb(1, 2, 3)
+        val TASK_APP_TIMER_DURATION: Duration = Duration.ofMillis(30)
+        val STAGE_POSITION_DEFAULT = STAGE_POSITION_TOP_OR_LEFT
         val TASK_DATA =
             TaskData.Data(
                 TASK_ID,
@@ -209,7 +305,7 @@ class TaskUiStateMapperTest {
                 backgroundColor = TASK_BACKGROUND_COLOR,
                 isLocked = false,
                 isLiveTile = false,
-                remainingAppTimerDuration = Duration.ofMillis(30),
+                remainingAppTimerDuration = TASK_APP_TIMER_DURATION,
             )
     }
 }

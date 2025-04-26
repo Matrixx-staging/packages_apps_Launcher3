@@ -229,10 +229,6 @@ public class GridCustomizationsProxy implements ProxyProvider {
         }
         switch (path) {
             case KEY_DEFAULT_GRID: {
-                if (Flags.newCustomizationPickerUi()) {
-                    mPrefs.put(PREF_ICON_SHAPE,
-                            requireNonNullElse(values.getAsString(KEY_SHAPE_KEY), ""));
-                }
                 String gridName = values.getAsString(KEY_NAME);
                 // Verify that this is a valid grid option
                 GridOption match = null;
@@ -247,8 +243,7 @@ public class GridCustomizationsProxy implements ProxyProvider {
                     return 0;
                 }
                 mIdp.setCurrentGrid(mContext, gridName);
-                boolean didGridChange = !mPrefs.get(LauncherPrefs.GRID_NAME).equals(gridName);
-                if (Flags.newCustomizationPickerUi() && didGridChange) {
+                if (Flags.newCustomizationPickerUi()) {
                     try {
                         // Wait for device profile to be fully reloaded and applied to the launcher
                         loadModelSync(mContext);

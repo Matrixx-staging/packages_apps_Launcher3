@@ -23,7 +23,6 @@ import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.view.Display.DEFAULT_DISPLAY
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.android.launcher3.util.SplitConfigurationOptions
 import com.android.launcher3.util.TestDispatcherProvider
 import com.android.quickstep.util.DesktopTask
 import com.android.quickstep.util.SingleTask
@@ -146,6 +145,28 @@ class TasksRepositoryTest {
 
             systemUnderTest.getAllTaskData(forceRefresh = true)
             assertThat(systemUnderTest.getThumbnailById(1).first()!!.thumbnail).isEqualTo(bitmap1)
+        }
+
+    @Test
+    fun getAllTaskData_copiesPreviouslyLoadedImagesForTasksStillPresent() =
+        testScope.runTest {
+            recentsModel.seedTasks(defaultTaskList)
+            systemUnderTest.getAllTaskData(forceRefresh = true)
+            systemUnderTest.setVisibleTasks(setOf(0, 1))
+
+            // Seed new task with same id
+            val newTask0 = SingleTask(createTaskWithId(0))
+            val newSeededTasks =
+                defaultTaskList.map {
+                    if (it is SingleTask && it.task.key.id == 0) newTask0 else it
+                }
+            recentsModel.seedTasks(newSeededTasks)
+            systemUnderTest.getAllTaskData(forceRefresh = true)
+
+            // Assert no additional loads, assert images present
+            assertThat(systemUnderTest.getThumbnailById(0).first()?.thumbnail)
+                .isEqualTo(taskThumbnailDataSource.taskIdToBitmap[0])
+            assertThat(taskThumbnailDataSource.getNumberOfGetThumbnailCalls(0)).isEqualTo(1)
         }
 
     @Test

@@ -64,8 +64,8 @@ import com.android.launcher3.provider.RestoreDbTask;
 import com.android.launcher3.util.IntArray;
 import com.android.launcher3.widget.LauncherWidgetHolder;
 
-import java.io.File;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -104,31 +104,16 @@ public class ModelDbController {
         mLayoutParserFactory = layoutParserFactory;
     }
 
-    private void printDBs(String prefix) {
-        try {
-            File directory = new File(mContext.getDatabasePath(mIdp.dbFile).getParent());
-            if (directory.exists()) {
-                for (File file : directory.listFiles()) {
-                    Log.d("b/353505773", prefix + "Database file: " + file.getName());
-                }
-            } else {
-                Log.d("b/353505773", prefix + "No files found in the database directory");
-            }
-        } catch (Exception e) {
-            Log.e("b/353505773", prefix + e.getMessage());
-        }
-    }
-
     private synchronized void createDbIfNotExists() {
         if (mOpenHelper == null) {
+            // Initialize the restore task before opening the DB
+            Consumer<ModelDbController> restoreTask = RestoreDbTask.createRestoreTask(mContext);
             String dbFile = mPrefs.get(DB_FILE);
             if (dbFile.isEmpty()) {
                 dbFile = mIdp.dbFile;
             }
             mOpenHelper = createDatabaseHelper(false /* forMigration */, dbFile);
-            printDBs("before: ");
-            RestoreDbTask.restoreIfNeeded(mContext, this);
-            printDBs("after: ");
+            restoreTask.accept(this);
         }
     }
 

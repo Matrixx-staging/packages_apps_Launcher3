@@ -104,10 +104,6 @@
     <string name="toast_split_app_unsupported" msgid="2360229567007828914">"Bölünmüş ekrandan istifadə üçün başqa tətbiq seçin"</string>
     <string name="blocked_by_policy" msgid="2071401072261365546">"Bu əməliyyata tətbiq və ya təşkilatınız tərəfindən icazə verilmir"</string>
     <string name="split_widgets_not_supported" msgid="1355743038053053866">"Vidcetlər dəstəklənmir, başqa tətbiq seçin"</string>
-    <string name="skip_tutorial_dialog_title" msgid="2725643161260038458">"Naviqasiya dərsliyi ötürülsün?"</string>
-    <string name="skip_tutorial_dialog_subtitle" msgid="544063326241955662">"Bunu sonra <xliff:g id="NAME">%1$s</xliff:g> tətbiqində tapa bilərsiniz"</string>
-    <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"Ləğv edin"</string>
-    <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"Ötürün"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"Ekranı fırladın"</string>
     <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"Tapşırıqlar panelinin ekranın aşağı hissəsindən necə göründüyünü və istifadə edilmədikdə avtomatik olaraq necə gizləndiyini göstərən animasiya"</string>
     <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"Tapşırıq panelinin ekranın aşağı hissəsində daimi olaraq görünməsi üçün keçirici vasitəsilə tapşırıq panelini bərkitməyi göstərən animasiya"</string>

@@ -18,6 +18,7 @@ package com.android.launcher3.taskbar;
 import static androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID;
 
 import static com.android.launcher3.taskbar.TaskbarDesktopExperienceFlags.enableAltTabKqsFlatenning;
+import static com.android.launcher3.taskbar.TaskbarDesktopExperienceFlags.enableAltTabKqsOnConnectedDisplays;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -54,6 +55,7 @@ import com.android.launcher3.Utilities;
 import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.TestProtocol;
+import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.util.DesktopTask;
 import com.android.quickstep.util.GroupTask;
 import com.android.quickstep.util.SingleTask;
@@ -450,6 +452,9 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
         // Unregister the back invoked callback after the view is closed and before the
         // mViewCallbacks is reset.
         unregisterOnBackInvokedCallback();
+        if (enableAltTabKqsOnConnectedDisplays.isTrue()) {
+            SystemUiProxy.INSTANCE.get(getContext()).getFocusState().removeListener(mViewCallbacks);
+        }
         mViewCallbacks = null;
     }
 
@@ -616,6 +621,10 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
                 displayedContent.setVisibility(VISIBLE);
                 setVisibility(VISIBLE);
                 requestFocus();
+                if (enableAltTabKqsOnConnectedDisplays.isTrue()) {
+                    SystemUiProxy.INSTANCE.get(getContext()).getFocusState().addListener(
+                            mViewCallbacks);
+                }
             }
 
             @Override

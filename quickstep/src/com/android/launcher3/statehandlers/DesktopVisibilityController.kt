@@ -677,7 +677,9 @@ constructor(
             }
         }
 
+        @Deprecated("Not needed by multi-desks")
         override fun onTasksVisibilityChanged(displayId: Int, visibleTasksCount: Int) {
+            if (enableMultipleDesktops(context)) return
             if (displayId != this.displayId) return
             MAIN_EXECUTOR.execute {
                 controller.get()?.apply {

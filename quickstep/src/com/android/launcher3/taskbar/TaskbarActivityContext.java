@@ -32,7 +32,6 @@ import static com.android.launcher3.AbstractFloatingView.TYPE_ON_BOARD_POPUP;
 import static com.android.launcher3.AbstractFloatingView.TYPE_REBIND_SAFE;
 import static com.android.launcher3.AbstractFloatingView.TYPE_TASKBAR_OVERLAY_PROXY;
 import static com.android.launcher3.Flags.enableCursorHoverStates;
-import static com.android.launcher3.Flags.removeExcludeFromScreenMagnificationFlagUsage;
 import static com.android.launcher3.Utilities.calculateTextHeight;
 import static com.android.launcher3.Utilities.isRunningInTestHarness;
 import static com.android.launcher3.config.FeatureFlags.ENABLE_TASKBAR_NAVBAR_UNIFICATION;
@@ -241,8 +240,6 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     private final boolean mIsNavBarKidsMode;
 
     private boolean mIsDestroyed = false;
-    // The flag to know if the window is excluded from magnification region computation.
-    private boolean mIsExcludeFromMagnificationRegion = false;
     private boolean mAddedWindow = false;
 
     // The bounds of the taskbar items relative to TaskbarDragLayer
@@ -1299,25 +1296,20 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     }
 
     /**
-     * Updates the TaskbarContainer size, using the maximum of the provided {@code size}
-     * and the default size from {@link #getDefaultTaskbarWindowSize()}.
+     * Updates the TaskbarContainer size (pass {@link #getDefaultTaskbarWindowSize()} to reset).
      */
     public void setTaskbarWindowSize(int size) {
         // In landscape phone button nav mode, we should set the task bar width instead of height
         // because this is the only case in which the nav bar is not on the display bottom.
-        int windowSize = size;
-        if (windowSize != MATCH_PARENT) {
-            windowSize = Math.max(size, getDefaultTaskbarWindowSize());
-        }
         boolean landscapePhoneButtonNav = isPhoneButtonNavMode() && mDeviceProfile.isLandscape;
         if ((landscapePhoneButtonNav ? mWindowLayoutParams.width : mWindowLayoutParams.height)
-                == windowSize || mIsDestroyed) {
+                == size || mIsDestroyed) {
             return;
         }
-        if (windowSize == MATCH_PARENT) {
-            windowSize = mDeviceProfile.heightPx;
+        if (size == MATCH_PARENT) {
+            size = mDeviceProfile.heightPx;
         } else {
-            mLastRequestedNonFullscreenSize = windowSize;
+            mLastRequestedNonFullscreenSize = size;
             if (mIsFullscreen || mIsTaskbarSizeFrozenForAnimatingBubble) {
                 // We either still need to be fullscreen or a bubble is still animating, so defer
                 // any change to our height until setTaskbarWindowFullscreen(false) is called or
@@ -1329,14 +1321,14 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             }
         }
         if (landscapePhoneButtonNav) {
-            mWindowLayoutParams.width = windowSize;
+            mWindowLayoutParams.width = size;
             for (int rot = Surface.ROTATION_0; rot <= Surface.ROTATION_270; rot++) {
-                mWindowLayoutParams.paramsForRotation[rot].width = windowSize;
+                mWindowLayoutParams.paramsForRotation[rot].width = size;
             }
         } else {
-            mWindowLayoutParams.height = windowSize;
+            mWindowLayoutParams.height = size;
             for (int rot = Surface.ROTATION_0; rot <= Surface.ROTATION_270; rot++) {
-                mWindowLayoutParams.paramsForRotation[rot].height = windowSize;
+                mWindowLayoutParams.paramsForRotation[rot].height = size;
             }
         }
         mControllers.runAfterInit(
@@ -2083,31 +2075,6 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         }
 
         return AnimatorPlaybackController.wrap(fullAnimation, duration);
-    }
-
-    /**
-     * Called when we determine the touchable region.
-     *
-     * @param exclude {@code true} then the magnification region computation will omit the window.
-     */
-    public void excludeFromMagnificationRegion(boolean exclude) {
-        if (mIsExcludeFromMagnificationRegion == exclude || isPhoneMode()) {
-            return;
-        }
-
-        if (removeExcludeFromScreenMagnificationFlagUsage()) {
-            return;
-        }
-
-        mIsExcludeFromMagnificationRegion = exclude;
-        if (exclude) {
-            mWindowLayoutParams.privateFlags |=
-                    WindowManager.LayoutParams.PRIVATE_FLAG_EXCLUDE_FROM_SCREEN_MAGNIFICATION;
-        } else {
-            mWindowLayoutParams.privateFlags &=
-                    ~WindowManager.LayoutParams.PRIVATE_FLAG_EXCLUDE_FROM_SCREEN_MAGNIFICATION;
-        }
-        notifyUpdateLayoutParams();
     }
 
     void notifyUpdateLayoutParams() {

@@ -46,6 +46,7 @@ import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.hardware.input.InputManager;
 import android.os.Looper;
 import android.text.InputType;
 import android.text.Selection;
@@ -56,6 +57,7 @@ import android.util.Pair;
 import android.util.TypedValue;
 import android.view.FocusFinder;
 import android.view.Gravity;
+import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -72,6 +74,7 @@ import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+import androidx.annotation.WorkerThread;
 import androidx.core.content.res.ResourcesCompat;
 
 import com.android.launcher3.AbstractFloatingView;
@@ -92,6 +95,7 @@ import com.android.launcher3.accessibility.FolderAccessibilityHelper;
 import com.android.launcher3.anim.KeyboardInsetAnimationCallback;
 import com.android.launcher3.compat.AccessibilityManagerCompat;
 import com.android.launcher3.config.FeatureFlags;
+import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.dragndrop.DragController.DragListener;
 import com.android.launcher3.dragndrop.DragOptions;
 import com.android.launcher3.graphics.ShapeDelegate;
@@ -338,22 +342,51 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         }
     }
 
-    /** If arrows are visible, replace the container padding with indicator padding */
+    /**
+     * If indicator is visible, set margin between folder title and indicator. Also properly show
+     * arrows if pointer is enabled and indicator is visible.
+     */
     public void onIndicatorVisibilityChanged() {
-        int sidePadding = getResources().getDimensionPixelSize(R.dimen.folder_footer_horiz_padding);
         if (mPageIndicator.getVisibility() == View.VISIBLE) {
-            // Replace the container padding with indicator padding for arrows
-            mFooter.setPadding(0, 0, 0, 0);
-            ((MarginLayoutParams) mFolderName.getLayoutParams())
-                    .setMarginStart(sidePadding);
-            mLeftArrow.setVisibility(View.VISIBLE);
-            mRightArrow.setVisibility(View.VISIBLE);
+            ((MarginLayoutParams) mFolderName.getLayoutParams()).setMarginEnd(
+                    getResources().getDimensionPixelSize(R.dimen.folder_footer_horiz_padding));
+            Context ctx = getContext(); // done here to avoid getting context on bg thread
+            Executors.UI_HELPER_EXECUTOR.execute(() -> {
+                // Only show arrows if a mouse or touchpad is connected to the device
+                int arrowVisibility = isPointerEnabled(ctx) ? View.VISIBLE : View.GONE;
+                mLeftArrow.setVisibility(arrowVisibility);
+                mRightArrow.setVisibility(arrowVisibility);
+
+                // If the arrows are visible, then their touch box will slightly overlap with the
+                // footer's padding by 8dp. Update it for proper alignment. PaddingEnd was always
+                // equal to paddingRight in both LTR & RTL mode, so isRtl is manually accounted for
+                int endPadding = getResources().getDimensionPixelSize(
+                        arrowVisibility == View.VISIBLE
+                                ? R.dimen.folder_footer_horiz_padding_minus_arrow_overlap
+                                : R.dimen.folder_footer_horiz_padding);
+                boolean isRtl = Utilities.isRtl(getResources());
+                mFooter.setPadding(
+                        isRtl ? endPadding : mFooter.getPaddingLeft(),
+                        mFooter.getPaddingTop(),
+                        isRtl ? mFooter.getPaddingRight() : endPadding,
+                        mFooter.getPaddingBottom()
+                );
+            });
         } else {
-            mFooter.setPadding(sidePadding, 0, sidePadding, 0);
-            ((MarginLayoutParams) mFolderName.getLayoutParams()).setMarginStart(0);
+            ((MarginLayoutParams) mFolderName.getLayoutParams()).setMarginEnd(0);
             mLeftArrow.setVisibility(View.GONE);
             mRightArrow.setVisibility(View.GONE);
         }
+    }
+
+    @WorkerThread
+    private boolean isPointerEnabled(Context context) {
+        InputManager im = context.getSystemService(InputManager.class);
+        return Arrays.stream(im.getInputDeviceIds())
+                .mapToObj(im::getInputDevice)
+                .anyMatch(device -> device.isEnabled()
+                        && (device.supportsSource(InputDevice.SOURCE_MOUSE)
+                        || device.supportsSource(InputDevice.SOURCE_TOUCHPAD)));
     }
 
     /**
@@ -1220,12 +1253,9 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
             mActivityContext.getModelWriter().moveItemsInDatabase(items, mInfo.id, 0);
         }
         if (!isBind && total > 1 /* no need to update if there's one icon */) {
-            Executors.MODEL_EXECUTOR.post(() -> {
-                FolderNameInfos nameInfos = new FolderNameInfos();
-                FolderNameProvider fnp = FolderNameProvider.newInstance(getContext());
-                fnp.getSuggestedFolderName(getContext(), mInfo.getAppContents(), nameInfos);
-                mInfo.suggestedFolderNames = nameInfos;
-            });
+            LauncherComponentProvider.get(getContext()).getFolderNameSuggestionLoader()
+                    .getSuggestedFolderName(mInfo.getAppContents(),
+                            folderNameInfos -> mInfo.suggestedFolderNames = folderNameInfos);
         }
     }
 
@@ -1341,7 +1371,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         super.onSizeChanged(w, h, oldw, oldh);
         int minTitleWidth = getResources().getDimensionPixelSize(R.dimen.folder_title_min_width);
         if (enableLauncherVisualRefresh() && mFolderName.getMeasuredWidth() < minTitleWidth) {
-            ((MarginLayoutParams) mFolderName.getLayoutParams()).setMarginStart(0);
+            ((MarginLayoutParams) mFolderName.getLayoutParams()).setMarginEnd(0);
             // The post is necessary for margins to be recalculated. RTL UI is shifted otherwise.
             mFolderName.post(() -> mFolderName.setVisibility(View.GONE));
             mFooter.setGravity(Gravity.END);
@@ -1596,6 +1626,11 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     @VisibleForTesting
     View getViewForInfo(final ItemInfo item) {
         return mContent.iterateOverItems((info, view) -> info == item);
+    }
+
+    @Override
+    public boolean isContainerSupported(int container) {
+        return container == mInfo.id;
     }
 
     /**

@@ -98,9 +98,6 @@
     <dimen name="task_icon_cache_default_icon_size">72dp</dimen>
     <item name="overview_modal_max_scale" format="float" type="dimen">1.1</item>
 
-    <!-- The space between the app chip menu expanded and the taskbar -->
-    <dimen name="overview_app_chip_menu_bottom_margin">0dp</dimen>
-
     <!-- Overrideable in overlay that provides the Overview Actions. -->
     <dimen name="overview_actions_top_margin">24dp</dimen>
     <dimen name="overview_actions_height">48dp</dimen>

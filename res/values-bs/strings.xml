@@ -113,10 +113,8 @@
     <string name="gadget_complete_setup_text" msgid="309040266978007925">"Dodirnite da završite postavljanje"</string>
     <string name="uninstall_system_app_text" msgid="4172046090762920660">"Ovo je sistemska aplikacija i ne može se deinstalirati."</string>
     <string name="folder_hint_text" msgid="5174843001373488816">"Uređivanje naziva"</string>
-    <!-- no translation found for paginate_left (7915437358451360433) -->
-    <skip />
-    <!-- no translation found for paginate_right (6701038155201975878) -->
-    <skip />
+    <string name="paginate_left" msgid="7915437358451360433">"Razdvajanje stranica ulijevo"</string>
+    <string name="paginate_right" msgid="6701038155201975878">"Razdvajanje stranica udesno"</string>
     <string name="disabled_app_label" msgid="6673129024321402780">"Aplikacija <xliff:g id="APP_NAME">%1$s</xliff:g> je onemogućena"</string>
     <string name="dotted_app_label" msgid="1865617679843363410">"{count,plural, =1{Aplikacija {app_name} ima # obavještenje}one{Aplikacija {app_name} ima # obavještenje}few{Aplikacija {app_name} ima # obavještenja}other{Aplikacija {app_name} ima # obavještenja}}"</string>
     <string name="default_scroll_format" msgid="7475544710230993317">"Strana %1$d od %2$d"</string>

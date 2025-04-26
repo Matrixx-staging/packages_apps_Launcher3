@@ -221,6 +221,7 @@ public class BubbleBarController extends IBubblesListener.Stub {
                     mBubbleBarViewController.getBubbleBarLocation());
             if (sBubbleBarEnabled) {
                 mSystemUiProxy.setBubblesListener(this);
+                mSystemUiProxy.setHasBubbleBar(true);
             }
         });
     }
@@ -326,6 +327,11 @@ public class BubbleBarController extends IBubblesListener.Stub {
     }
 
     private void applyViewChanges(BubbleBarViewUpdate update) {
+        if (update.initialState) {
+            // it is possible that we tried to notify shell too early with the bubble bar bounds,
+            // so force update shell about the bubble bar bounds in the initial handshake.
+            onBubbleBarBoundsChanged(/* forceUpdate= */ true);
+        }
         final boolean isCollapsed = (update.expandedChanged && !update.expanded)
                 || (!update.expandedChanged && !mBubbleBarViewController.isExpanded());
         final boolean isExpanding = update.expandedChanged && update.expanded;
@@ -352,9 +358,6 @@ public class BubbleBarController extends IBubblesListener.Stub {
                 BubbleBarBubble newlySelected = mBubbles.get(update.selectedBubbleKey);
                 if (newlySelected != null) {
                     bubbleToSelect = newlySelected;
-                } else {
-                    Log.w(TAG, "trying to select bubble that doesn't exist:"
-                            + update.selectedBubbleKey);
                 }
             }
         }
@@ -423,6 +426,9 @@ public class BubbleBarController extends IBubblesListener.Stub {
             for (int i = update.currentBubbles.size() - 1; i >= 0; i--) {
                 BubbleBarBubble bubble = update.currentBubbles.get(i);
                 if (bubble != null) {
+                    if (bubble.getKey().equals(update.selectedBubbleKey)) {
+                        bubbleToSelect = bubble;
+                    }
                     addBubbleInternally(bubble, isExpanding, suppressAnimation);
                     if (isCollapsed && bubbleToSelect == null) {
                         // If we're collapsed, the most recently added bubble will be selected.
@@ -620,8 +626,12 @@ public class BubbleBarController extends IBubblesListener.Stub {
     //
 
     private void onBubbleBarBoundsChanged() {
+        onBubbleBarBoundsChanged(/* forceUpdate= */ false);
+    }
+
+    private void onBubbleBarBoundsChanged(boolean forceUpdate) {
         int newTop = mBarView.getRestingTopPositionOnScreen();
-        if (newTop != mLastSentBubbleBarTop) {
+        if (newTop != mLastSentBubbleBarTop || forceUpdate) {
             mLastSentBubbleBarTop = newTop;
             mSystemUiProxy.updateBubbleBarTopOnScreen(newTop);
         }

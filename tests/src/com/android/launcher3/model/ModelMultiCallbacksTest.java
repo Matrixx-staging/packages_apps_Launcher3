@@ -32,14 +32,13 @@ import androidx.test.filters.SmallTest;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherModel;
 import com.android.launcher3.model.BgDataModel.Callbacks;
+import com.android.launcher3.model.BgDataModel.FixedContainerItems;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.util.Executors;
-import com.android.launcher3.util.IntArray;
-import com.android.launcher3.util.IntSet;
+import com.android.launcher3.util.IntSparseArrayMap;
 import com.android.launcher3.util.LauncherLayoutBuilder;
 import com.android.launcher3.util.PackageUserKey;
-import com.android.launcher3.util.RunnableList;
 import com.android.launcher3.util.SandboxApplication;
 import com.android.launcher3.util.TestUtil;
 import com.android.launcher3.util.rule.LayoutProviderRule;
@@ -49,7 +48,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -83,17 +81,16 @@ public class ModelMultiCallbacksTest {
         Executors.MAIN_EXECUTOR.execute(() -> getModel().addCallbacksAndLoad(cb1));
 
         waitForLoaderAndTempMainThread();
-        cb1.verifySynchronouslyBound(3);
+        cb1.verifyItemsBound(3);
 
         // Add a new callback
         cb1.reset();
         MyCallbacks cb2 = spy(MyCallbacks.class);
-        cb2.mPageToBindSync = IntSet.wrap(2);
         Executors.MAIN_EXECUTOR.execute(() -> getModel().addCallbacksAndLoad(cb2));
 
         waitForLoaderAndTempMainThread();
-        assertFalse(cb1.bindStarted);
-        cb2.verifySynchronouslyBound(3);
+        assertNull(cb1.mItems);
+        cb2.verifyItemsBound(3);
 
         // Remove callbacks
         cb1.reset();
@@ -102,14 +99,14 @@ public class ModelMultiCallbacksTest {
         // No effect on callbacks when removing an callback
         Executors.MAIN_EXECUTOR.execute(() -> getModel().removeCallbacks(cb2));
         waitForLoaderAndTempMainThread();
-        assertNull(cb1.mPendingTasks);
-        assertNull(cb2.mPendingTasks);
+        assertNull(cb1.mItems);
+        assertNull(cb2.mItems);
 
         // Reloading only loads registered callbacks
         getModel().startLoader();
         waitForLoaderAndTempMainThread();
-        cb1.verifySynchronouslyBound(3);
-        assertNull(cb2.mPendingTasks);
+        cb1.verifyItemsBound(3);
+        assertNull(cb2.mItems);
     }
 
     @Test
@@ -173,30 +170,16 @@ public class ModelMultiCallbacksTest {
 
     private abstract static class MyCallbacks implements Callbacks {
 
-        final List<ItemInfo> mItems = new ArrayList<>();
-        IntSet mPageToBindSync = IntSet.wrap(0);
-        IntSet mPageBoundSync = new IntSet();
-        RunnableList mPendingTasks;
+        List<ItemInfo> mItems = null;
         AppInfo[] mAppInfos;
-        boolean bindStarted;
 
         MyCallbacks() { }
 
         @Override
-        public void startBinding() {
-            bindStarted = true;
-        }
-
-        @Override
-        public void onInitialBindComplete(IntSet boundPages, RunnableList pendingTasks,
-                RunnableList onCompleteSignal, int workspaceItemCount, boolean isBindSync) {
-            mPageBoundSync = boundPages;
-            mPendingTasks = pendingTasks;
-        }
-
-        @Override
-        public void bindItems(List<ItemInfo> shortcuts, boolean forceAnimateIcons) {
-            mItems.addAll(shortcuts);
+        public void bindCompleteModel(IntSparseArrayMap<ItemInfo> itemIdMap,
+                List<FixedContainerItems> extraItems, StringCache stringCache,
+                boolean isBindingSync) {
+            mItems = itemIdMap.stream().toList();
         }
 
         @Override
@@ -205,29 +188,13 @@ public class ModelMultiCallbacksTest {
             mAppInfos = apps;
         }
 
-        @Override
-        public IntSet getPagesToBindSynchronously(IntArray orderedScreenIds) {
-            return mPageToBindSync;
-        }
-
         public void reset() {
-            mItems.clear();
-            mPageBoundSync = new IntSet();
-            mPendingTasks = null;
+            mItems = null;
             mAppInfos = null;
-            bindStarted = false;
         }
 
-        public void verifySynchronouslyBound(int totalItems) {
-            // Verify that the requested page is bound synchronously
-            assertTrue(bindStarted);
-            assertEquals(mPageToBindSync, mPageBoundSync);
-            assertEquals(mItems.size(), 1);
-            assertEquals(IntSet.wrap(mItems.get(0).screenId), mPageBoundSync);
-            assertNotNull(mPendingTasks);
-
-            // Verify that all other pages are bound properly
-            mPendingTasks.executeAllAndDestroy();
+        public void verifyItemsBound(int totalItems) {
+            assertNotNull(mItems);
             assertEquals(mItems.size(), totalItems);
         }
 
@@ -235,10 +202,6 @@ public class ModelMultiCallbacksTest {
             return Arrays.stream(mAppInfos)
                     .map(ai -> ai.getTargetComponent().getPackageName())
                     .collect(Collectors.toSet());
-        }
-
-        public void verifyApps(String... apps) {
-            assertTrue(allApps().containsAll(Arrays.asList(apps)));
         }
     }
 }

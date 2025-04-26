@@ -18,6 +18,7 @@ package com.android.quickstep;
 
 import static android.view.Display.DEFAULT_DISPLAY;
 
+import static com.android.launcher3.statehandlers.DesktopVisibilityController.INACTIVE_DESK_ID;
 import static com.android.quickstep.AbsSwipeUpHandler.STATE_HANDLER_INVALIDATED;
 import static com.android.wm.shell.shared.ShellSharedConstants.KEY_EXTRA_SHELL_CAN_HAND_OFF_ANIMATION;
 import static com.android.wm.shell.shared.split.SplitBounds.KEY_EXTRA_SPLIT_BOUNDS;
@@ -111,7 +112,8 @@ public abstract class AbsSwipeUpHandlerTestCase<
             new ActivityManager.RunningTaskInfo();
     protected final TopTaskTracker.CachedTaskInfo mCachedTaskInfo =
             new TopTaskTracker.CachedTaskInfo(
-                    Collections.singletonList(mRunningTaskInfo), mContext, DEFAULT_DISPLAY);
+                    Collections.singletonList(mRunningTaskInfo), mContext, DEFAULT_DISPLAY,
+                    INACTIVE_DESK_ID);
     protected final RemoteAnimationTarget mRemoteAnimationTarget = new RemoteAnimationTarget(
             /* taskId= */ 0,
             /* mode= */ RemoteAnimationTarget.MODE_CLOSING,

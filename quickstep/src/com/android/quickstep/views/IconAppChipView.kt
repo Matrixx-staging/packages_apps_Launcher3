@@ -60,6 +60,7 @@ constructor(
     private var iconView: IconView? = null
     private var iconArrowView: ImageView? = null
     private var menuAnchorView: View? = null
+
     // Two textview so we can ellipsize the collapsed view and crossfade on expand to the full name.
     private var appTitle: TextView? = null
     private var isLayoutNaturalToLauncher = true
@@ -82,7 +83,7 @@ constructor(
         resources.getDimensionPixelSize(R.dimen.task_thumbnail_icon_menu_expanded_gap)
 
     // Background dimensions
-    private val backgroundMarginTopStart: Int =
+    val backgroundMarginTopStart: Int =
         resources.getDimensionPixelSize(
             R.dimen.task_thumbnail_icon_menu_background_margin_top_start
         )
@@ -137,6 +138,11 @@ constructor(
     var status: AppChipStatus = AppChipStatus.Collapsed
         private set
 
+    val menuToCollapsedChipGap: Int =
+        getExpandedBackgroundLtrBounds().bottom -
+            getCollapsedBackgroundLtrBounds().bottom -
+            menuToChipGap
+
     override fun onFinishInflate() {
         super.onFinishInflate()
         iconView = findViewById(R.id.icon_view)
@@ -164,13 +170,20 @@ constructor(
         iconView?.setDrawableSize(iconWidth, iconHeight)
     }
 
+    override fun getMinimumWidth(): Int = min(maxWidth, collapsedMenuDefaultWidth)
+
     override fun setIconOrientation(orientationState: RecentsOrientedState, isGridTask: Boolean) {
         val orientationHandler = orientationState.orientationHandler
         isLayoutNaturalToLauncher = orientationHandler.isLayoutNaturalToLauncher
         // Layout params for anchor view
         val anchorLayoutParams = menuAnchorView!!.layoutParams as LayoutParams
-        anchorLayoutParams.gravity =
-            if (orientationHandler.isLayoutNaturalToLauncher) Gravity.START else Gravity.LEFT
+        if (orientationHandler.isLayoutNaturalToLauncher) {
+            anchorLayoutParams.gravity = Gravity.START
+            anchorLayoutParams.marginStart = backgroundMarginTopStart
+        } else {
+            anchorLayoutParams.gravity = Gravity.LEFT
+            anchorLayoutParams.marginStart = 0
+        }
         anchorLayoutParams.topMargin = expandedMenuDefaultHeight + menuToChipGap
         menuAnchorView!!.layoutParams = anchorLayoutParams
 
@@ -338,7 +351,7 @@ constructor(
     fun getMenuTranslationY(): MultiPropertyFactory<View>.MultiProperty =
         viewTranslationY[INDEX_MENU_TRANSLATION]
 
-    internal fun revealAnim(isRevealing: Boolean, animated: Boolean = true) {
+    internal fun revealAnim(isRevealing: Boolean, animated: Boolean = true): AnimatorSet {
         cancelInProgressAnimations()
         val collapsedBackgroundBounds = getCollapsedBackgroundLtrBounds()
         val expandedBackgroundBounds = getExpandedBackgroundLtrBounds()
@@ -434,7 +447,7 @@ constructor(
                 }
             },
         )
-        animator!!.start()
+        return animator!!
     }
 
     /**
@@ -467,8 +480,7 @@ constructor(
     }
 
     private fun getCollapsedBackgroundLtrBounds(): Rect {
-        val bounds =
-            Rect(0, 0, min(maxWidth, collapsedMenuDefaultWidth), collapsedMenuDefaultHeight)
+        val bounds = Rect(0, 0, minimumWidth, collapsedMenuDefaultHeight)
         bounds.offset(backgroundMarginTopStart, backgroundMarginTopStart)
         return bounds
     }

@@ -113,10 +113,8 @@
     <string name="gadget_complete_setup_text" msgid="309040266978007925">"צריך ללחוץ כדי לסיים את תהליך ההגדרה"</string>
     <string name="uninstall_system_app_text" msgid="4172046090762920660">"זוהי אפליקציית מערכת ולא ניתן להסיר את התקנתה."</string>
     <string name="folder_hint_text" msgid="5174843001373488816">"עריכת השם"</string>
-    <!-- no translation found for paginate_left (7915437358451360433) -->
-    <skip />
-    <!-- no translation found for paginate_right (6701038155201975878) -->
-    <skip />
+    <string name="paginate_left" msgid="7915437358451360433">"הגדרה של מעבר עמוד שמאלה"</string>
+    <string name="paginate_right" msgid="6701038155201975878">"הגדרה של מעבר עמוד ימינה"</string>
     <string name="disabled_app_label" msgid="6673129024321402780">"<xliff:g id="APP_NAME">%1$s</xliff:g> מושבתת"</string>
     <string name="dotted_app_label" msgid="1865617679843363410">"{count,plural, =1{לאפליקציה {app_name} יש התראה אחת}one{לאפליקציה {app_name} יש # התראות}two{לאפליקציה {app_name} יש # התראות}other{לאפליקציה {app_name} יש # התראות}}"</string>
     <string name="default_scroll_format" msgid="7475544710230993317">"‏דף %1$d מתוך %2$d"</string>
@@ -223,7 +221,7 @@
     <string name="ps_app_label_override" msgid="6876160706011676804">"הוספה"</string>
     <string name="ps_add_button_content_description" msgid="3254274107740952556">"התקנת אפליקציות במרחב הפרטי"</string>
     <string name="ps_app_content_description" msgid="1129133475892816226">"הוספת קבצים ופריטים נוספים למרחב הפרטי"</string>
-    <string name="circle_shape_title" msgid="3582075061179674565">"מעגל"</string>
+    <string name="circle_shape_title" msgid="3582075061179674565">"צורת עיגול"</string>
     <string name="square_shape_title" msgid="3085320803149569308">"ריבוע"</string>
     <string name="four_sided_cookie_shape_title" msgid="3275212586290522151">"עוגייה עם 4 צלעות"</string>
     <string name="seven_sided_cookie_shape_title" msgid="4862560582029671668">"עוגייה עם 7 צלעות"</string>

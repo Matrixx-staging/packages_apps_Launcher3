@@ -505,6 +505,10 @@ public class TaskbarLauncherStateController {
                     + ", toAlignment: " + toAlignment);
         }
         mControllers.bubbleControllers.ifPresent(controllers -> {
+            // Ignore state changes when taskbar is destroyed
+            if (mControllers.taskbarActivityContext.isDestroyed()) {
+                return;
+            }
             // Show the bubble bar when on launcher home (hotseat icons visible) or in overview
             boolean onOverview = isInLauncher && mLauncherState == LauncherState.OVERVIEW;
             boolean hotseatIconsVisible = isInLauncher && mLauncherState.areElementsVisible(

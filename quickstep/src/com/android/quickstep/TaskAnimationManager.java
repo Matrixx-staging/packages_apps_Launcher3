@@ -315,6 +315,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
                 ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_ALWAYS);
         options.setTransientLaunch();
         options.setSourceInfo(ActivityOptions.SourceInfo.TYPE_RECENTS_ANIMATION, eventTime);
+        options.setLaunchDisplayId(mDisplayId);
 
         // Notify taskbar that we should skip reacting to launcher visibility change to
         // avoid a jumping taskbar.
@@ -341,11 +342,12 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
                 instanceof RecentsWindowManager recentsWindowManager
                 && RecentsWindowFlags.Companion.getEnableOverviewInWindow()) {
             mRecentsAnimationStartPending = getSystemUiProxy().startRecentsActivity(intent, options,
-                    mCallbacks, gestureState.useSyntheticRecentsTransition(), null);
+                    mCallbacks, gestureState.useSyntheticRecentsTransition(), null, mDisplayId);
             recentsWindowManager.startRecentsWindow(mCallbacks);
         } else {
             mRecentsAnimationStartPending = getSystemUiProxy().startRecentsActivity(intent,
-                    options, mCallbacks, false /* useSyntheticRecentsTransition */, null);
+                    options, mCallbacks, false /* useSyntheticRecentsTransition */, null,
+                    mDisplayId);
         }
         ActiveGestureProtoLogProxy.logSettingRecentsAnimationStartPending(
                 mRecentsAnimationStartPending);

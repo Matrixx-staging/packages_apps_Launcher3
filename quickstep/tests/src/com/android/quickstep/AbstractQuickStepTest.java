@@ -32,12 +32,14 @@ import com.android.launcher3.ui.AbstractLauncherUiTest;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.TestUtil;
 import com.android.launcher3.util.Wait;
+import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.views.RecentsView;
 
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -57,6 +59,10 @@ public abstract class AbstractQuickStepTest extends AbstractLauncherUiTest<Quick
 
     @Override
     protected void onLauncherActivityClose(QuickstepLauncher launcher) {
+        if (RecentsWindowFlags.enableLauncherOverviewInWindow.isTrue()) {
+            executeOnRecentsWindow(RecentsWindowManager::cleanupRecentsWindow);
+            return;
+        }
         RecentsView recentsView = launcher.getOverviewPanel();
         if (recentsView != null) {
             recentsView.finishRecentsAnimation(false /* toRecents */, null);
@@ -84,6 +90,14 @@ public abstract class AbstractQuickStepTest extends AbstractLauncherUiTest<Quick
             RecentsWindowManager recentsWindowManager =
                     RecentsWindowManager.getRecentsWindowTracker().getCreatedContext();
             return recentsWindowManager != null ? f.apply(recentsWindowManager) : null;
+        });
+    }
+
+    protected void executeOnRecentsWindow(Consumer<RecentsWindowManager> f) {
+        if (!TestHelpers.isInLauncherProcess()) return;
+        getFromRecentsWindow(recentsWindowManager -> {
+            f.accept(recentsWindowManager);
+            return null;
         });
     }
 

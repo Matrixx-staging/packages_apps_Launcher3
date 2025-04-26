@@ -19,6 +19,7 @@ package com.android.quickstep;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -86,7 +87,7 @@ public class TaskAnimationManagerTest {
                 ArgumentCaptor.forClass(ActivityOptions.class);
         verify(mSystemUiProxy)
                 .startRecentsActivity(any(), optionsCaptor.capture(), any(), anyBoolean(),
-                        any());
+                        any(), anyInt());
         assertEquals(ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_ALWAYS,
                 optionsCaptor.getValue().getPendingIntentBackgroundActivityStartMode());
     }
@@ -118,7 +119,8 @@ public class TaskAnimationManagerTest {
 
         doReturn(mock(LauncherActivityInterface.class)).when(gestureState).getContainerInterface();
         when(mSystemUiProxy
-                .startRecentsActivity(any(), any(), listenerCaptor.capture(), anyBoolean(), any()))
+                .startRecentsActivity(any(), any(), listenerCaptor.capture(), anyBoolean(), any(),
+                        anyInt()))
                 .thenReturn(true);
         when(gestureState.getRunningTaskIds(anyBoolean())).thenReturn(new int[0]);
 

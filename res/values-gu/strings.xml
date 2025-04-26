@@ -89,7 +89,7 @@
     <string name="long_accessible_way_to_add_shortcut" msgid="2199537273817090740">"શૉર્ટકટ ખસેડવા બે વાર ટૅપ કરીને દબાવી રાખો અથવા કસ્ટમ ક્રિયાઓનો ઉપયોગ કરો."</string>
     <string name="out_of_space" msgid="6455557115204099579">"આ હોમ સ્ક્રીન પર વધુ જગ્યા નથી"</string>
     <string name="hotseat_out_of_space" msgid="7448809638125333693">"મનપસંદ ટ્રે પર વધુ જગ્યા નથી"</string>
-    <string name="all_apps_button_label" msgid="8130441508702294465">"ઍપ્લિકેશનોની સૂચિ"</string>
+    <string name="all_apps_button_label" msgid="8130441508702294465">"ઍપની સૂચિ"</string>
     <string name="all_apps_search_results" msgid="5889367432531296759">"શોધ પરિણામો"</string>
     <string name="all_apps_button_personal_label" msgid="1315764287305224468">"વ્યક્તિગત ઍપની સૂચિ"</string>
     <string name="all_apps_button_work_label" msgid="7270707118948892488">"કાર્યસ્થળની ઍપની સૂચિ"</string>
@@ -113,10 +113,8 @@
     <string name="gadget_complete_setup_text" msgid="309040266978007925">"સેટઅપ પૂર્ણ કરવા માટે ટૅપ કરો"</string>
     <string name="uninstall_system_app_text" msgid="4172046090762920660">"આ એક સિસ્ટમ ઍપ્લિકેશન છે અને અનઇન્સ્ટોલ કરી શકાતી નથી."</string>
     <string name="folder_hint_text" msgid="5174843001373488816">"નામમાં ફેરફાર કરો"</string>
-    <!-- no translation found for paginate_left (7915437358451360433) -->
-    <skip />
-    <!-- no translation found for paginate_right (6701038155201975878) -->
-    <skip />
+    <string name="paginate_left" msgid="7915437358451360433">"ડાબી બાજુએથી પાનાને ક્રમાંક આપો"</string>
+    <string name="paginate_right" msgid="6701038155201975878">"જમણી બાજુએથી પાનાને ક્રમાંક આપો"</string>
     <string name="disabled_app_label" msgid="6673129024321402780">"<xliff:g id="APP_NAME">%1$s</xliff:g> અક્ષમ કરી"</string>
     <string name="dotted_app_label" msgid="1865617679843363410">"{count,plural, =1{{app_name}ના # નોટિફિકેશન છે}one{{app_name}ના # નોટિફિકેશન છે}other{{app_name}ના # નોટિફિકેશન છે}}"</string>
     <string name="default_scroll_format" msgid="7475544710230993317">"%2$dમાંથી %1$d પેજ"</string>

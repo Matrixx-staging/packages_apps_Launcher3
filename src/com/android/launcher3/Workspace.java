@@ -19,7 +19,10 @@ package com.android.launcher3;
 import static com.android.launcher3.AbstractFloatingView.TYPE_WIDGET_RESIZE_FRAME;
 import static com.android.launcher3.BubbleTextView.DISPLAY_FOLDER;
 import static com.android.launcher3.LauncherAnimUtils.SPRING_LOADED_EXIT_DELAY;
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP;
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION;
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_PREDICTION;
 import static com.android.launcher3.LauncherState.ALL_APPS;
 import static com.android.launcher3.LauncherState.EDIT_MODE;
 import static com.android.launcher3.LauncherState.FLAG_MULTI_PAGE;
@@ -62,6 +65,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
 import android.widget.Toast;
@@ -2043,9 +2047,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                 // Move internally
                 boolean hasMovedLayouts = (getParentCellLayoutForView(cell) != dropTargetLayout);
                 boolean hasMovedIntoHotseat = mLauncher.isHotseatLayout(dropTargetLayout);
-                int container = hasMovedIntoHotseat ?
-                        LauncherSettings.Favorites.CONTAINER_HOTSEAT :
-                        LauncherSettings.Favorites.CONTAINER_DESKTOP;
+                int container = hasMovedIntoHotseat ? CONTAINER_HOTSEAT : CONTAINER_DESKTOP;
                 int screenId = (mTargetCell[0] < 0) ?
                         mDragInfo.screenId : getCellLayoutId(dropTargetLayout);
                 int spanX = mDragInfo != null ? mDragInfo.spanX : 1;
@@ -2148,8 +2150,8 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                     lp.cellVSpan = item.spanY;
                     lp.isLockedToGrid = true;
 
-                    if (container != LauncherSettings.Favorites.CONTAINER_HOTSEAT &&
-                            cell instanceof LauncherAppWidgetHostView) {
+                    if (container != CONTAINER_HOTSEAT
+                            && cell instanceof LauncherAppWidgetHostView) {
 
                         // We post this call so that the widget has a chance to be placed
                         // in its final location
@@ -2805,8 +2807,8 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
      */
     private void onDropExternal(final int[] touchXY, final CellLayout cellLayout, DragObject d) {
         final int container = mLauncher.isHotseatLayout(cellLayout)
-                ? LauncherSettings.Favorites.CONTAINER_HOTSEAT
-                : LauncherSettings.Favorites.CONTAINER_DESKTOP;
+                ? CONTAINER_HOTSEAT
+                : CONTAINER_DESKTOP;
         if (d.dragInfo instanceof PendingAddShortcutInfo) {
             WorkspaceItemInfo si = ((PendingAddShortcutInfo) d.dragInfo)
                     .getActivityInfo(mLauncher).createWorkspaceItemInfo();
@@ -3345,6 +3347,30 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         if (persistChanges) {
             stripEmptyScreens();
         }
+    }
+
+    @Nullable
+    @Override
+    public CellInfo getCellInfoForView(@NonNull View view) {
+        ViewParent parent = view.getParent();
+        if (parent != null
+                && parent.getParent() instanceof CellLayout cl
+                && view.getLayoutParams() instanceof CellLayoutLayoutParams lp) {
+            int container = mLauncher.isHotseatLayout(cl) ? CONTAINER_HOTSEAT : CONTAINER_DESKTOP;
+            CellPos pos = getCellPosMapper().mapPresenterToModel(
+                    lp.getCellX(), lp.getCellY(), getCellLayoutId(cl), container);
+            return new CellInfo(view,
+                    pos.screenId, container, pos.cellX, pos.cellY, lp.cellHSpan, lp.cellVSpan);
+        }
+        return null;
+    }
+
+    @Override
+    public boolean isContainerSupported(int container) {
+        return container == CONTAINER_DESKTOP
+                || container == CONTAINER_HOTSEAT
+                || container == CONTAINER_PREDICTION
+                || container == CONTAINER_HOTSEAT_PREDICTION;
     }
 
     @Override

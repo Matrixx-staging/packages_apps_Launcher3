@@ -60,6 +60,8 @@ class SettingsChangeLoggerTest {
 
     private lateinit var mSystemUnderTest: SettingsChangeLogger
 
+    @Mock private lateinit var mStatsLogFactory: StatsLogManager.StatsLogManagerFactory
+
     @Mock private lateinit var mStatsLogManager: StatsLogManager
 
     @Mock private lateinit var mMockLogger: StatsLogManager.StatsLogger
@@ -78,7 +80,7 @@ class SettingsChangeLoggerTest {
     @Before
     fun setUp() {
         MockitoAnnotations.initMocks(this)
-
+        whenever(mStatsLogFactory.create(mContext)).doReturn(mStatsLogManager)
         whenever(mStatsLogManager.logger()).doReturn(mMockLogger)
         whenever(mStatsLogManager.logger().withInstanceId(any())).doReturn(mMockLogger)
         mDefaultThemedIcons = themeManager.isMonoThemeEnabled
@@ -91,10 +93,10 @@ class SettingsChangeLoggerTest {
         mSystemUnderTest =
             SettingsChangeLogger(
                 mContext,
-                mStatsLogManager,
                 mTracker,
                 displayController,
                 settingsCache,
+                mStatsLogFactory,
             )
     }
 
@@ -109,10 +111,10 @@ class SettingsChangeLoggerTest {
         val systemUnderTest =
             SettingsChangeLogger(
                 mContext,
-                mStatsLogManager,
                 mTracker,
                 displayController,
                 settingsCache,
+                mStatsLogFactory,
             )
 
         assertThat(systemUnderTest.loggingPrefs[ALLOW_ROTATION_PREFERENCE_KEY]!!.defaultValue)
@@ -139,7 +141,7 @@ class SettingsChangeLoggerTest {
         LauncherPrefs.get(mContext).put(item = ALLOW_ROTATION, value = true)
 
         // This a new object so the values of mLoggablePrefs will be different
-        SettingsChangeLogger(mContext, mStatsLogManager, mTracker, displayController, settingsCache)
+        SettingsChangeLogger(mContext, mTracker, displayController, settingsCache, mStatsLogFactory)
             .logSnapshot(mInstanceId)
 
         verify(mMockLogger, atLeastOnce()).log(mEventCaptor.capture())

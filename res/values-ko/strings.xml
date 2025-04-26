@@ -113,10 +113,8 @@
     <string name="gadget_complete_setup_text" msgid="309040266978007925">"탭하여 설정을 완료하세요."</string>
     <string name="uninstall_system_app_text" msgid="4172046090762920660">"시스템 앱은 제거할 수 없습니다."</string>
     <string name="folder_hint_text" msgid="5174843001373488816">"이름 수정"</string>
-    <!-- no translation found for paginate_left (7915437358451360433) -->
-    <skip />
-    <!-- no translation found for paginate_right (6701038155201975878) -->
-    <skip />
+    <string name="paginate_left" msgid="7915437358451360433">"왼쪽 페이지로 나누기"</string>
+    <string name="paginate_right" msgid="6701038155201975878">"오른쪽 페이지로 나누기"</string>
     <string name="disabled_app_label" msgid="6673129024321402780">"<xliff:g id="APP_NAME">%1$s</xliff:g> 사용 안함"</string>
     <string name="dotted_app_label" msgid="1865617679843363410">"{count,plural, =1{{app_name} 알림 #개}other{{app_name} 알림 #개}}"</string>
     <string name="default_scroll_format" msgid="7475544710230993317">"페이지 %1$d/%2$d"</string>

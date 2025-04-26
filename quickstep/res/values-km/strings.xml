@@ -104,10 +104,6 @@
     <string name="toast_split_app_unsupported" msgid="2360229567007828914">"ជ្រើសរើសកម្មវិធីផ្សេងទៀត ដើម្បីប្រើមុខងារ​បំបែកអេក្រង់"</string>
     <string name="blocked_by_policy" msgid="2071401072261365546">"សកម្មភាពនេះ​មិនត្រូវបានអនុញ្ញាតដោយកម្មវិធី​ ឬ​ស្ថាប័ន​របស់អ្នកទេ"</string>
     <string name="split_widgets_not_supported" msgid="1355743038053053866">"បច្ចុប្បន្ន ធាតុ​ក្រាហ្វិកមិនអាចប្រើបានទេ សូមជ្រើសរើសកម្មវិធីផ្សេងទៀត"</string>
-    <string name="skip_tutorial_dialog_title" msgid="2725643161260038458">"រំលង​មេរៀន​អំពី​ការរុករក​ឬ?"</string>
-    <string name="skip_tutorial_dialog_subtitle" msgid="544063326241955662">"អ្នកអាចស្វែងរកមេរៀននេះនៅពេលក្រោយក្នុងកម្មវិធី <xliff:g id="NAME">%1$s</xliff:g>"</string>
-    <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"បោះបង់"</string>
-    <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"រំលង"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"បង្វិលអេក្រង់"</string>
     <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"រូបមានចលនាដែលបង្ហាញអំពីរបៀបដែលរបារកិច្ចការចូលទៅក្នុងទិដ្ឋភាពពីផ្នែកខាងក្រោមនៃអេក្រង់ និងលាក់ដោយស្វ័យប្រវត្តិ នៅពេលមិនកំពុងប្រើ"</string>
     <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"រូបមានចលនាដែលបង្ហាញអំពីរបៀបខ្ទាស់របារកិច្ចការរបស់អ្នកដោយប្រើប៊ូតុងបិទ/បើក ដូច្នេះរបារកិច្ចការនៅតែអាចមើលឃើញជាអចិន្ត្រៃយ៍នៅផ្នែកខាងក្រោមនៃអេក្រង់"</string>

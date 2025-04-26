@@ -104,10 +104,6 @@
     <string name="toast_split_app_unsupported" msgid="2360229567007828914">"Choose another app to use split screen"</string>
     <string name="blocked_by_policy" msgid="2071401072261365546">"This action isn\'t allowed by the app or your organisation"</string>
     <string name="split_widgets_not_supported" msgid="1355743038053053866">"Widgets not currently supported; please select another app"</string>
-    <string name="skip_tutorial_dialog_title" msgid="2725643161260038458">"Skip navigation tutorial?"</string>
-    <string name="skip_tutorial_dialog_subtitle" msgid="544063326241955662">"You can find this later in the <xliff:g id="NAME">%1$s</xliff:g> app"</string>
-    <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"Cancel"</string>
-    <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"Skip"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"Rotate screen"</string>
     <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"Animation showing how the taskbar comes into view from the bottom of the screen, and automatically hides when not in use"</string>
     <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"Animation showing how to pin your taskbar using a toggle, so that the taskbar remains permanently visible at the bottom of the screen"</string>

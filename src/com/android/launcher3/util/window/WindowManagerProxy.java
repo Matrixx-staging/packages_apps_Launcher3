@@ -55,6 +55,7 @@ import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.dagger.LauncherBaseAppComponent;
 import com.android.launcher3.testing.shared.ResourceUtils;
 import com.android.launcher3.util.DaggerSingletonObject;
+import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.NavigationMode;
 import com.android.launcher3.util.WindowBounds;
 
@@ -142,15 +143,29 @@ public class WindowManagerProxy {
         WindowMetrics windowMetrics = displayInfoContext.getSystemService(WindowManager.class)
                 .getMaximumWindowMetrics();
         Rect insets = new Rect();
-        normalizeWindowInsets(displayInfoContext, windowMetrics.getWindowInsets(), insets);
+        // NOTE: Unable to use `normalizeWindowInsets(Context, WidnowInsets, Rect)` because
+        // uses DisplayController instance to determine whether taskbar is shown on home, and this
+        // method gets called while initializing DisaplayController.
+        normalizeWindowInsets(displayInfoContext,
+                showLockedTaskbarOnHome(displayInfoContext) || showDesktopTaskbarForFreeformDisplay(
+                        displayInfoContext), windowMetrics.getWindowInsets(), insets);
         return new WindowBounds(windowMetrics.getBounds(), insets, info.rotation);
     }
 
     /**
      * Returns an updated insets, accounting for various Launcher UI specific overrides like taskbar
      */
-    public WindowInsets normalizeWindowInsets(Context context, WindowInsets oldInsets,
+    public WindowInsets normalizeWindowInsets(Context context,
+            WindowInsets oldInsets,
             Rect outInsets) {
+        return normalizeWindowInsets(context,
+                DisplayController.showLockedTaskbarOnHome(context)
+                        || DisplayController.showDesktopTaskbarForFreeformDisplay(context),
+                oldInsets, outInsets);
+    }
+
+    WindowInsets normalizeWindowInsets(Context context, boolean taskbarShownOnHome,
+            WindowInsets oldInsets, Rect outInsets) {
         if (!mTaskbarDrawnInProcess) {
             outInsets.set(oldInsets.getSystemWindowInsetLeft(), oldInsets.getSystemWindowInsetTop(),
                     oldInsets.getSystemWindowInsetRight(), oldInsets.getSystemWindowInsetBottom());
@@ -202,7 +217,7 @@ public class WindowManagerProxy {
 
         // Override the tappable insets to be 0 on the bottom for gesture nav (otherwise taskbar
         // would count towards it). This is used for the bottom protection in All Apps for example.
-        if (isGesture) {
+        if (isGesture && !taskbarShownOnHome) {
             Insets oldTappableInsets = oldInsets.getInsets(WindowInsets.Type.tappableElement());
             Insets newTappableInsets = Insets.of(oldTappableInsets.left, oldTappableInsets.top,
                     oldTappableInsets.right, 0);

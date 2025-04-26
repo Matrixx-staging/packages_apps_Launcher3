@@ -104,10 +104,6 @@
     <string name="toast_split_app_unsupported" msgid="2360229567007828914">"Scegli un\'altra app per usare lo schermo diviso"</string>
     <string name="blocked_by_policy" msgid="2071401072261365546">"Questa azione non è consentita dall\'app o dall\'organizzazione"</string>
     <string name="split_widgets_not_supported" msgid="1355743038053053866">"Attualmente i widget non sono supportati, seleziona un\'altra app"</string>
-    <string name="skip_tutorial_dialog_title" msgid="2725643161260038458">"Saltare il tutorial di navigazione?"</string>
-    <string name="skip_tutorial_dialog_subtitle" msgid="544063326241955662">"Puoi trovarlo in un secondo momento nell\'app <xliff:g id="NAME">%1$s</xliff:g>"</string>
-    <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"Annulla"</string>
-    <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"Salta"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"Ruota lo schermo"</string>
     <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"Animazione che mostra come la barra delle app appaia dalla parte inferiore dello schermo e si nasconda automaticamente quando non in uso"</string>
     <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"Animazione che mostra come fissare la barra delle app utilizzando un\'opzione di attivazione/disattivazione, in modo che rimanga visibile in modo permanente nella parte inferiore dello schermo"</string>

@@ -33,8 +33,6 @@
     <dimen name="overview_page_spacing">44dp</dimen>
     <!--  The space to the left and to the right of the "Clear all" button  -->
     <dimen name="overview_grid_side_margin">64dp</dimen>
-    <!-- The space between the app chip menu expanded and the taskbar -->
-    <dimen name="overview_app_chip_menu_bottom_margin">36dp</dimen>
 
     <!-- All Set page-->
     <dimen name="allset_page_allset_text_size">42sp</dimen>

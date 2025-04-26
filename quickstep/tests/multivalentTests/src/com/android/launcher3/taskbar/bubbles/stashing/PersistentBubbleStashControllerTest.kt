@@ -354,7 +354,7 @@ class PersistentBubbleStashControllerTest {
             bubbleBarGesture = true,
         )
 
-        verify(bubbleBarViewController).setExpanded(true, true)
+        verify(bubbleBarViewController).animateExpanded(true, true)
     }
 
     @Test
@@ -367,7 +367,7 @@ class PersistentBubbleStashControllerTest {
             bubbleBarGesture = false,
         )
 
-        verify(bubbleBarViewController).setExpanded(true, false)
+        verify(bubbleBarViewController).animateExpanded(true, false)
     }
 
     @Test
@@ -380,7 +380,7 @@ class PersistentBubbleStashControllerTest {
             bubbleBarGesture = true,
         )
 
-        verify(bubbleBarViewController, never()).setExpanded(any(), any())
+        verify(bubbleBarViewController, never()).animateExpanded(any(), any())
     }
 
     private fun advanceTimeBy(advanceMs: Long) {

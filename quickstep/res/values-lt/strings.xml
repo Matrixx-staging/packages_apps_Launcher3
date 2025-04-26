@@ -104,10 +104,6 @@
     <string name="toast_split_app_unsupported" msgid="2360229567007828914">"Išskaidyto ekrano režimą naudokite kita programa"</string>
     <string name="blocked_by_policy" msgid="2071401072261365546">"Jūsų organizacijoje arba naudojant šią programą neleidžiama atlikti šio veiksmo"</string>
     <string name="split_widgets_not_supported" msgid="1355743038053053866">"Valdikliai šiuo metu nepalaikomi, pasirinkite kitą programą"</string>
-    <string name="skip_tutorial_dialog_title" msgid="2725643161260038458">"Praleisti naršymo mokymo programą?"</string>
-    <string name="skip_tutorial_dialog_subtitle" msgid="544063326241955662">"Tai galėsite rasti vėliau programoje „<xliff:g id="NAME">%1$s</xliff:g>“"</string>
-    <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"Atšaukti"</string>
-    <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"Praleisti"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"Pasukti ekraną"</string>
     <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"Animacija, kaip užduočių juosta pasirodo iš ekrano apačios ir automatiškai paslepiama, kai ji nenaudojama"</string>
     <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"Animacija, kaip prisegti užduočių juostą naudojant jungiklį, kad užduočių juosta visada būtų matoma ekrano apačioje"</string>

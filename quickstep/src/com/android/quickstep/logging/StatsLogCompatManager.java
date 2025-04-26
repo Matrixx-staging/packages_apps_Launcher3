@@ -82,6 +82,8 @@ import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.inject.Inject;
+
 /**
  * This class calls StatsLog compile time generated methods.
  *
@@ -121,8 +123,25 @@ public class StatsLogCompatManager extends StatsLogManager {
     public static final CopyOnWriteArrayList<StatsLogConsumer> LOGS_CONSUMER =
             new CopyOnWriteArrayList<>();
 
-    public StatsLogCompatManager(Context context) {
+    private StatsLogCompatManager(Context context) {
         super(context);
+    }
+
+    /**
+     * This class is purely used to support dagger bindings to be overridden in launcher variants.
+     * Very similar to {@link dagger.assisted.AssistedFactory}. But
+     * {@link dagger.assisted.AssistedFactory} cannot be overridden and this makes dagger binding
+     * difficult.
+     */
+    public static class StatsLogCompatManagerFactory extends StatsLogManagerFactory {
+        @Inject
+        StatsLogCompatManagerFactory() {
+            super();
+        }
+
+        public StatsLogManager create(Context context) {
+            return new StatsLogCompatManager(context);
+        }
     }
 
     @Override

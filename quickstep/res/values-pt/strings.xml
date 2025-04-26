@@ -104,10 +104,6 @@
     <string name="toast_split_app_unsupported" msgid="2360229567007828914">"Escolha outro app para usar na tela dividida"</string>
     <string name="blocked_by_policy" msgid="2071401072261365546">"Essa ação não é permitida pelo app ou pela organização"</string>
     <string name="split_widgets_not_supported" msgid="1355743038053053866">"Atualmente, não há suporte para widgets. Selecione outro app"</string>
-    <string name="skip_tutorial_dialog_title" msgid="2725643161260038458">"Pular o tutorial de navegação?"</string>
-    <string name="skip_tutorial_dialog_subtitle" msgid="544063326241955662">"Veja o tutorial mais tarde no app <xliff:g id="NAME">%1$s</xliff:g>"</string>
-    <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"Cancelar"</string>
-    <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"Pular"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"Girar a tela"</string>
     <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"Animação mostrando como a barra de tarefas aparece na parte de baixo da tela e é ocultada automaticamente quando não está em uso"</string>
     <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"Animação mostrando como fixar a barra de tarefas usando um botão de ativar/desativar para que ela fique sempre visível na parte de baixo da tela"</string>

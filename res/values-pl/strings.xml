@@ -113,10 +113,8 @@
     <string name="gadget_complete_setup_text" msgid="309040266978007925">"Kliknij, aby dokończyć konfigurację"</string>
     <string name="uninstall_system_app_text" msgid="4172046090762920660">"To aplikacja systemowa i nie można jej odinstalować."</string>
     <string name="folder_hint_text" msgid="5174843001373488816">"Edytuj nazwę"</string>
-    <!-- no translation found for paginate_left (7915437358451360433) -->
-    <skip />
-    <!-- no translation found for paginate_right (6701038155201975878) -->
-    <skip />
+    <string name="paginate_left" msgid="7915437358451360433">"Podziel na strony po lewej"</string>
+    <string name="paginate_right" msgid="6701038155201975878">"Podziel na strony po prawej"</string>
     <string name="disabled_app_label" msgid="6673129024321402780">"Aplikacja <xliff:g id="APP_NAME">%1$s</xliff:g> jest wyłączona"</string>
     <string name="dotted_app_label" msgid="1865617679843363410">"{count,plural, =1{{app_name} – # powiadomienie}few{{app_name} – # powiadomienia}many{{app_name} – # powiadomień}other{{app_name} – # powiadomienia}}"</string>
     <string name="default_scroll_format" msgid="7475544710230993317">"Strona %1$d z %2$d"</string>

@@ -104,10 +104,6 @@
     <string name="toast_split_app_unsupported" msgid="2360229567007828914">"Zgjidh një aplikacion tjetër për të përdorur ekranin e ndarë"</string>
     <string name="blocked_by_policy" msgid="2071401072261365546">"Ky veprim nuk lejohet nga aplikacioni ose organizata jote"</string>
     <string name="split_widgets_not_supported" msgid="1355743038053053866">"Miniaplikacionet nuk mbështeten për momentin. Zgjidh një aplikacion tjetër"</string>
-    <string name="skip_tutorial_dialog_title" msgid="2725643161260038458">"Të kapërcehet udhëzuesi i navigimit?"</string>
-    <string name="skip_tutorial_dialog_subtitle" msgid="544063326241955662">"Këtë mund ta gjesh më vonë tek aplikacioni \"<xliff:g id="NAME">%1$s</xliff:g>\""</string>
-    <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"Anulo"</string>
-    <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"Kapërce"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"Rrotullo ekranin"</string>
     <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"Animacioni që tregon se si shfaqet shiriti i detyrave nga fundi i ekranit dhe si fshihet automatikisht kur nuk është në përdorim"</string>
     <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"Animacioni që tregon se si të gozhdosh shiritin e detyrave duke përdorur një çelës, në mënyrë që shiriti i detyrave të qëndrojë përgjithmonë i dukshëm në fund të ekranit"</string>

@@ -28,13 +28,15 @@ import androidx.annotation.Nullable;
 import androidx.slice.SliceItem;
 
 import com.android.launcher3.R;
+import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.logger.LauncherAtom;
 import com.android.launcher3.logger.LauncherAtom.ContainerInfo;
 import com.android.launcher3.logger.LauncherAtom.FromState;
 import com.android.launcher3.logger.LauncherAtom.ToState;
 import com.android.launcher3.model.data.ItemInfo;
-import com.android.launcher3.util.ResourceBasedOverride;
 import com.android.launcher3.views.ActivityContext;
+
+import javax.inject.Inject;
 
 /**
  * Handles the user event logging in R+.
@@ -45,7 +47,7 @@ import com.android.launcher3.views.ActivityContext;
  * Actual call happens only for Launcher variant that implements QuickStep.
  * </pre>
  */
-public class StatsLogManager implements ResourceBasedOverride {
+public class StatsLogManager {
 
     public static final int LAUNCHER_STATE_UNSPECIFIED = 0;
     public static final int LAUNCHER_STATE_BACKGROUND = 1;
@@ -62,9 +64,26 @@ public class StatsLogManager implements ResourceBasedOverride {
     private KeyboardStateManager mKeyboardStateManager;
     private InstanceId mInstanceId;
 
-    public StatsLogManager(@NonNull Context context) {
+
+    protected StatsLogManager(@NonNull Context context) {
         mContext = context;
         mActivityContext = ActivityContext.lookupContextNoThrow(context);
+    }
+
+    /**
+     * This class is purely used to support dagger bindings to be overridden in launcher variants.
+     * Very similar to {@link dagger.assisted.AssistedFactory}. But
+     * {@link dagger.assisted.AssistedFactory} cannot be overridden and this makes dagger binding
+     * difficult.
+     */
+    public static class StatsLogManagerFactory {
+        @Inject
+        public StatsLogManagerFactory() {
+        }
+
+        public StatsLogManager create(Context context) {
+            return new StatsLogManager(context);
+        }
     }
 
     /**
@@ -1356,7 +1375,6 @@ public class StatsLogManager implements ResourceBasedOverride {
      * Creates a new instance of {@link StatsLogManager} based on provided context.
      */
     public static StatsLogManager newInstance(Context context) {
-        return Overrides.getObject(
-                StatsLogManager.class, context, R.string.stats_log_manager_class);
+        return LauncherComponentProvider.get(context).getStatsLogManagerFactory().create(context);
     }
 }

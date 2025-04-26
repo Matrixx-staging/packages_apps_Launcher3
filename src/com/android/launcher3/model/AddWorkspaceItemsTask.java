@@ -28,12 +28,10 @@ import android.util.Pair;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.android.launcher3.LauncherModel.CallbackTask;
 import com.android.launcher3.LauncherModel.ModelUpdateTask;
 import com.android.launcher3.LauncherSettings;
 import com.android.launcher3.icons.IconCache;
 import com.android.launcher3.logging.FileLog;
-import com.android.launcher3.model.BgDataModel.Callbacks;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.CollectionInfo;
 import com.android.launcher3.model.data.ItemInfo;
@@ -207,26 +205,7 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
         }
 
         if (!addedItemsFinal.isEmpty()) {
-            taskController.scheduleCallbackTask(new CallbackTask() {
-                @Override
-                public void execute(@NonNull Callbacks callbacks) {
-                    final ArrayList<ItemInfo> addAnimated = new ArrayList<>();
-                    final ArrayList<ItemInfo> addNotAnimated = new ArrayList<>();
-                    if (!addedItemsFinal.isEmpty()) {
-                        ItemInfo info = addedItemsFinal.get(addedItemsFinal.size() - 1);
-                        int lastScreenId = info.screenId;
-                        for (ItemInfo i : addedItemsFinal) {
-                            if (i.screenId == lastScreenId) {
-                                addAnimated.add(i);
-                            } else {
-                                addNotAnimated.add(i);
-                            }
-                        }
-                    }
-                    callbacks.bindAppsAdded(addedWorkspaceScreensFinal,
-                            addNotAnimated, addAnimated);
-                }
-            });
+            taskController.scheduleCallbackTask(cb -> cb.bindItemsAdded(addedItemsFinal));
         }
     }
 

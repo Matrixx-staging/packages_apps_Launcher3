@@ -266,7 +266,7 @@ public class BubbleBarViewController {
         if (!mBubbleStashController.isTransientTaskBar()) {
             // TODO(b/380274085) for transient taskbar mode, the click is also handled by the input
             //  consumer. This check can be removed once b/380274085 is fixed.
-            mBarView.setOnClickListener(v -> setExpanded(!mBarView.isExpanded()));
+            mBarView.setOnClickListener(v -> animateExpanded(!mBarView.isExpanded()));
         }
         mBarView.addOnLayoutChangeListener(
                 (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
@@ -299,7 +299,7 @@ public class BubbleBarViewController {
 
             @Override
             public void expandBubbleBar() {
-                BubbleBarViewController.this.setExpanded(
+                BubbleBarViewController.this.animateExpanded(
                         /* isExpanded= */ true, /* maybeShowEdu*/ true);
             }
 
@@ -433,7 +433,7 @@ public class BubbleBarViewController {
             @Override
             public void flyoutClicked() {
                 interruptAnimationForTouch();
-                setExpanded(/* isExpanded= */ true, /* maybeShowEdu*/ true);
+                animateExpanded(/* isExpanded= */ true, /* maybeShowEdu*/ true);
             }
         };
     }
@@ -471,7 +471,7 @@ public class BubbleBarViewController {
     }
 
     private void collapseBubbleBar() {
-        setExpanded(false);
+        animateExpanded(false);
         mBubbleStashController.stashBubbleBar();
     }
 
@@ -816,7 +816,7 @@ public class BubbleBarViewController {
             if (hidden) {
                 mBarView.dismiss(() -> {
                     updateVisibilityForStateChange();
-                    mBarView.setExpanded(false);
+                    mBarView.animateExpanded(false);
                     adjustTaskbarAndHotseatToBubbleBarState(/* isBubbleBarExpanded= */ false);
                     mActivity.bubbleBarVisibilityChanged(/* isVisible= */ false);
                 });
@@ -1234,27 +1234,27 @@ public class BubbleBarViewController {
         mBarView.setSelectedBubble(newlySelected.getView());
     }
 
-    /** @see #setExpanded(boolean, boolean) */
-    public void setExpanded(boolean isExpanded) {
-        setExpanded(isExpanded, /* maybeShowEdu= */ false);
+    /** @see #animateExpanded(boolean, boolean) */
+    public void animateExpanded(boolean isExpanded) {
+        animateExpanded(isExpanded, /* maybeShowEdu= */ false);
     }
 
     /**
-     * Sets whether the bubble bar should be expanded (not unstashed, but have the contents
-     * within it expanded). This method notifies SystemUI that the bubble bar is expanded and
-     * showing a selected bubble. This method should ONLY be called from UI events originating
-     * from Launcher.
+     * Sets whether the bubble bar should be animated to expanded state (not unstashed, but have
+     * the contents within it expanded). This method notifies SystemUI that the bubble bar is
+     * expanded and showing a selected bubble. This method should ONLY be called from UI events
+     * originating from Launcher.
      *
      * @param isExpanded whether the bar should be expanded
      * @param maybeShowEdu whether we should show the edu view before expanding
      */
-    public void setExpanded(boolean isExpanded, boolean maybeShowEdu) {
+    public void animateExpanded(boolean isExpanded, boolean maybeShowEdu) {
         // if we're trying to expand try showing the edu view instead
         if (maybeShowEdu && isExpanded && !mBarView.isExpanded() && maybeShowEduView()) {
             return;
         }
         if (!mBubbleBarPinning.isAnimating() && isExpanded != mBarView.isExpanded()) {
-            mBarView.setExpanded(isExpanded);
+            mBarView.animateExpanded(isExpanded);
             adjustTaskbarAndHotseatToBubbleBarState(isExpanded);
             if (!isExpanded) {
                 mSystemUiProxy.collapseBubbles();

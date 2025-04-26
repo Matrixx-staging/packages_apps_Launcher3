@@ -166,7 +166,14 @@ class WorkspaceItemProcessor(
             // If the apk is present and the shortcut points to a specific component.
 
             // If the component is already present
-            if (launcherApps.isActivityEnabled(cn, c.user)) {
+            val isActivityEnabled =
+                try {
+                    launcherApps.isActivityEnabled(cn, c.user)
+                } catch (exception: Exception) {
+                    FileLog.w(TAG, "Error checking activity enabled for component:$cn", exception)
+                    false
+                }
+            if (isActivityEnabled) {
                 // no special handling necessary for this item
                 c.markRestored()
             } else {

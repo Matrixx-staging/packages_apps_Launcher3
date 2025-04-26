@@ -113,10 +113,8 @@
     <string name="gadget_complete_setup_text" msgid="309040266978007925">"Tik om opstelling te voltooi"</string>
     <string name="uninstall_system_app_text" msgid="4172046090762920660">"Dit is \'n stelselprogram en kan nie gedeïnstalleer word nie."</string>
     <string name="folder_hint_text" msgid="5174843001373488816">"Wysig naam"</string>
-    <!-- no translation found for paginate_left (7915437358451360433) -->
-    <skip />
-    <!-- no translation found for paginate_right (6701038155201975878) -->
-    <skip />
+    <string name="paginate_left" msgid="7915437358451360433">"Pagineer links"</string>
+    <string name="paginate_right" msgid="6701038155201975878">"Pagineer regs"</string>
     <string name="disabled_app_label" msgid="6673129024321402780">"Het <xliff:g id="APP_NAME">%1$s</xliff:g> gedeaktiveer"</string>
     <string name="dotted_app_label" msgid="1865617679843363410">"{count,plural, =1{{app_name} het # kennisgewing}other{{app_name} het # kennisgewings}}"</string>
     <string name="default_scroll_format" msgid="7475544710230993317">"Bladsy %1$d van %2$d"</string>

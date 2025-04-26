@@ -104,10 +104,6 @@
     <string name="toast_split_app_unsupported" msgid="2360229567007828914">"Na použitie rozd. obrazovky vyberte inú aplikáciu"</string>
     <string name="blocked_by_policy" msgid="2071401072261365546">"Aplikácia alebo vaša organizácia túto akciu nepovoľuje"</string>
     <string name="split_widgets_not_supported" msgid="1355743038053053866">"Miniaplikácie nie sú momentálne podporované, vyberte inú aplikáciu"</string>
-    <string name="skip_tutorial_dialog_title" msgid="2725643161260038458">"Chcete preskočiť návod na navigáciu?"</string>
-    <string name="skip_tutorial_dialog_subtitle" msgid="544063326241955662">"Tento návod nájdete v aplikácii <xliff:g id="NAME">%1$s</xliff:g>"</string>
-    <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"Zrušiť"</string>
-    <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"Preskočiť"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"Otočiť obrazovku"</string>
     <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"Animácia zobrazujúca, ako sa panel aplikácií zobrazí z dolnej časti obrazovky a automaticky skryje, keď ho nepoužívate"</string>
     <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"Animácia znázorňujúca, ako pripnúť panel aplikácií pomocou prepínača, aby bol stále viditeľný v dolnej časti obrazovky"</string>

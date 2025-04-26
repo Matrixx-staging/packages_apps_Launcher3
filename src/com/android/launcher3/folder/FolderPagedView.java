@@ -25,6 +25,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Path;
+import android.graphics.Point;
 import android.util.ArrayMap;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -262,12 +263,11 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
         icon.setOnFocusChangeListener(mFocusIndicatorHelper);
 
         CellLayoutLayoutParams lp = (CellLayoutLayoutParams) icon.getLayoutParams();
+        Point pos = mOrganizer.getPosForRank(item.rank);
         if (lp == null) {
-            icon.setLayoutParams(new CellLayoutLayoutParams(
-                    item.cellX, item.cellY, item.spanX, item.spanY));
+            icon.setLayoutParams(new CellLayoutLayoutParams(pos.x, pos.y, 1, 1));
         } else {
-            lp.setCellX(item.cellX);
-            lp.setCellY(item.cellY);
+            lp.setCellXY(pos);
             lp.cellHSpan = lp.cellVSpan = 1;
         }
 

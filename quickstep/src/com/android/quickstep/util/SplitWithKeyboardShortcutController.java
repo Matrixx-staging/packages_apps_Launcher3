@@ -72,7 +72,7 @@ public class SplitWithKeyboardShortcutController {
     }
 
     @BinderThread
-    public void enterStageSplit(boolean leftOrTop) {
+    public void enterStageSplit(boolean leftOrTop, int displayId) {
         if (TopTaskTracker.INSTANCE.get(mLauncher).getRunningSplitTaskIds().length == 2) {
             // Do not enter stage split from keyboard shortcuts if the user is already in split
             return;
@@ -94,7 +94,7 @@ public class SplitWithKeyboardShortcutController {
                 SystemUiProxy.INSTANCE.get(mLauncher.getApplicationContext())
                         .startRecentsActivity(mOverviewComponentObserver.getOverviewIntent(),
                                 ActivityOptions.makeBasic(), callbacks,
-                                false /* useSyntheticRecentsTransition */, null);
+                                false /* useSyntheticRecentsTransition */, null, displayId);
             });
         });
     }

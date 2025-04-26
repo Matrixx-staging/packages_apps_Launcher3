@@ -15,6 +15,9 @@
  */
 package com.android.quickstep.views
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Matrix
@@ -23,6 +26,7 @@ import android.graphics.Rect
 import android.graphics.Rect.intersects
 import android.graphics.RectF
 import android.util.AttributeSet
+import android.util.FloatProperty
 import android.util.Log
 import android.util.Size
 import android.view.Display.INVALID_DISPLAY
@@ -39,6 +43,7 @@ import com.android.launcher3.R
 import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.testing.TestLogging
 import com.android.launcher3.testing.shared.TestProtocol
+import com.android.launcher3.util.KFloatProperty
 import com.android.launcher3.util.OverviewReleaseFlags.enableOverviewIconMenu
 import com.android.launcher3.util.RunnableList
 import com.android.launcher3.util.SplitConfigurationOptions
@@ -128,6 +133,12 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
     private var fullscreenTaskPositions: List<DesktopTaskBoundsData> = emptyList()
 
     /**
+     * Holds the previous organized task positions. This is used to animate between two sets of
+     * organized task positions when a task is being dismissed.
+     */
+    private var previousOrganizedDesktopTaskPositions: List<DesktopTaskBoundsData>? = null
+
+    /**
      * When enableDesktopExplodedView is enabled, this controls the gradual transition from the
      * default positions to the organized non-overlapping positions.
      */
@@ -136,6 +147,18 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
             field = value
             positionTaskWindows()
         }
+
+    /**
+     * When enableDesktopExplodedView is enabled, and a task is removed, this controls the gradual
+     * transition from the previous organized task positions to the new.
+     */
+    private var taskRemoveProgress = 0.0f
+        set(value) {
+            field = value
+            positionTaskWindows()
+        }
+
+    private var taskRemoveAnimator: ObjectAnimator? = null
 
     var remoteTargetHandles: Array<RemoteTargetHandle>? = null
         set(value) {
@@ -215,7 +238,22 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
             val currentTaskBounds =
                 if (enableDesktopExplodedView()) {
                     TEMP_OVERVIEW_TASK_POSITION.apply {
-                        lerpRect(fullscreenTaskBounds, overviewTaskBounds, explodeProgress)
+                        // When removing a task, interpolate between its old organized bounds and
+                        // [overviewTaskBounds].
+                        val previousOrganizedTaskBounds =
+                            previousOrganizedDesktopTaskPositions
+                                ?.firstOrNull { it.taskId == taskId }
+                                ?.bounds
+                        if (previousOrganizedTaskBounds != null) {
+                            lerpRect(
+                                previousOrganizedTaskBounds,
+                                overviewTaskBounds,
+                                taskRemoveProgress,
+                            )
+                        } else {
+                            set(overviewTaskBounds)
+                        }
+                        lerpRect(fullscreenTaskBounds, this, explodeProgress)
                     }
                 } else {
                     fullscreenTaskBounds
@@ -393,6 +431,8 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
     override fun onRecycle() {
         super.onRecycle()
         explodeProgress = 0.0f
+        taskRemoveProgress = 0.0f
+        previousOrganizedDesktopTaskPositions = null
         viewModel = null
         visibility = VISIBLE
         taskContainers.forEach { removeAndRecycleThumbnailView(it) }
@@ -528,8 +568,31 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         if (taskContainers.isEmpty()) {
             recentsView?.dismissTaskView(this, animate, /* removeTask= */ true)
         } else {
-            // Otherwise, re-position the remaining task windows.
-            // TODO(b/353949276): Implement the re-layout animations.
+            // If this task has a live window, then hide it.
+            // TODO(b/413120214) The dismissed view should fade out.
+            getRemoteTargetHandle(taskId)?.let {
+                it.taskViewSimulator.setTaskRectTransform(Matrix().apply { postScale(0.0f, 0.0f) })
+                it.taskViewSimulator.apply(it.transformParams)
+            }
+
+            // TODO(b/413130378) Nicer handling of multiple quick task dismissals.
+            taskRemoveAnimator?.cancel()
+            taskRemoveAnimator =
+                ObjectAnimator.ofFloat(this, TASK_REMOVE_PROGRESS, 0f, 1f).apply {
+                    addListener(
+                        object : AnimatorListenerAdapter() {
+                            override fun onAnimationEnd(animator: Animator) {
+                                previousOrganizedDesktopTaskPositions = null
+                                taskRemoveAnimator = null
+                            }
+                        }
+                    )
+                    start()
+                }
+
+            // Store the current organized positions before computing new ones. This allows us to
+            // animate from the current layout to the new.
+            previousOrganizedDesktopTaskPositions = viewModel!!.organizedDesktopTaskPositions
             updateTaskPositions()
         }
     }
@@ -573,5 +636,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         private val TEMP_OVERVIEW_TASK_POSITION = Rect()
         private val TEMP_FROM_RECTF = RectF()
         private val TEMP_TO_RECTF = RectF()
+        private val TASK_REMOVE_PROGRESS: FloatProperty<DesktopTaskView> =
+            KFloatProperty(DesktopTaskView::taskRemoveProgress)
     }
 }

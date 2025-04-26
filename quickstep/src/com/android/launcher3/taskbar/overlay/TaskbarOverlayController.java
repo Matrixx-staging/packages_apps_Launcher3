@@ -18,6 +18,7 @@ package com.android.launcher3.taskbar.overlay;
 import static android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
 import static android.view.WindowManager.LayoutParams.PRIVATE_FLAG_CONSUME_IME_INSETS;
 import static android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+import static android.window.DesktopModeFlags.ENABLE_TASKBAR_OVERFLOW;
 
 import static com.android.launcher3.AbstractFloatingView.TYPE_ALL;
 import static com.android.launcher3.AbstractFloatingView.TYPE_REBIND_SAFE;
@@ -26,8 +27,6 @@ import static com.android.launcher3.LauncherState.ALL_APPS;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.PixelFormat;
-import android.gui.EarlyWakeupInfo;
-import android.os.Binder;
 import android.util.Log;
 import android.view.AttachedSurfaceControl;
 import android.view.CrossWindowBlurListeners;
@@ -101,10 +100,6 @@ public final class TaskbarOverlayController {
     private TaskbarControllers mControllers; // Initialized in init.
     // True if we have alerted surface flinger of an expensive call for blur.
     private boolean mInEarlyWakeUp;
-        /**
-     * Token for early wakeup requests to SurfaceFlinger.
-     */
-    private EarlyWakeupInfo mEarlyWakeupInfo = new EarlyWakeupInfo();
 
     public TaskbarOverlayController(
             TaskbarActivityContext taskbarContext, DeviceProfile launcherDeviceProfile) {
@@ -115,8 +110,6 @@ public final class TaskbarOverlayController {
         mLauncherDeviceProfile = launcherDeviceProfile;
         mMaxBlurRadius = mTaskbarContext.getResources().getDimensionPixelSize(
                 R.dimen.max_depth_blur_radius_enhanced);
-        mEarlyWakeupInfo.token = new Binder();
-        mEarlyWakeupInfo.trace = TaskbarOverlayController.class.getName();
     }
 
     /** Initialize the controller. */
@@ -274,14 +267,12 @@ public final class TaskbarOverlayController {
             // SurfaceFlinger will adjust its internal offsets to avoid jank.
             boolean wantsEarlyWakeUp = radius > 0 && radius < mMaxBlurRadius;
             if (wantsEarlyWakeUp && !mInEarlyWakeUp) {
-                Log.d(TAG, "setBackgroundBlurRadius: setting early wakeup with token "
-                                                    + mEarlyWakeupInfo);
-                transaction.setEarlyWakeupStart(mEarlyWakeupInfo);
+                Log.d(TAG, "setBackgroundBlurRadius: setting early wakeup with token ");
+                transaction.setEarlyWakeupStart();
                 mInEarlyWakeUp = true;
             } else if (!wantsEarlyWakeUp && mInEarlyWakeUp) {
-                Log.d(TAG, "setBackgroundBlurRadius: clearing early wakeup with token "
-                                                    + mEarlyWakeupInfo);
-                transaction.setEarlyWakeupEnd(mEarlyWakeupInfo);
+                Log.d(TAG, "setBackgroundBlurRadius: clearing early wakeup with token ");
+                transaction.setEarlyWakeupEnd();
                 mInEarlyWakeUp = false;
             }
 
@@ -315,7 +306,7 @@ public final class TaskbarOverlayController {
         @Override
         protected void handleClose(boolean animate) {
             if (!mIsOpen) return;
-            if (Flags.taskbarOverflow()) {
+            if (ENABLE_TASKBAR_OVERFLOW.isTrue()) {
                 // Mark the view closed before attempting to remove it, so the drag layer does not
                 // schedule another call to close. Needed for taskbar overflow in case the KQS
                 // view shown for taskbar overflow needs to be reshown - delayed close call would

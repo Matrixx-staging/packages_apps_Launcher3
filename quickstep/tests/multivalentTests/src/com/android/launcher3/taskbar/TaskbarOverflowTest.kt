@@ -23,17 +23,26 @@ import android.os.Process
 import android.platform.test.annotations.DisableFlags
 import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
-import android.view.Display.DEFAULT_DISPLAY
 import androidx.test.core.app.ApplicationProvider
+import com.android.launcher3.BubbleTextView
+import com.android.launcher3.Flags.FLAG_ENABLE_ALT_TAB_KQS_FLATENNING
 import com.android.launcher3.Flags.FLAG_ENABLE_MULTI_INSTANCE_MENU_TASKBAR
-import com.android.launcher3.Flags.FLAG_TASKBAR_OVERFLOW
 import com.android.launcher3.R
 import com.android.launcher3.dagger.LauncherAppSingleton
+import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
+import com.android.launcher3.model.BgDataModel
+import com.android.launcher3.model.BgDataModel.FixedContainerItems
+import com.android.launcher3.model.StringCache
 import com.android.launcher3.model.data.ItemInfo
+import com.android.launcher3.model.data.TaskItemInfo
+import com.android.launcher3.model.data.WorkspaceItemInfo
+import com.android.launcher3.popup.SystemShortcut
+import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.taskbar.TaskbarControllerTestUtil.runOnMainSync
 import com.android.launcher3.taskbar.TaskbarViewTestUtil.createHotseatItems
 import com.android.launcher3.taskbar.bubbles.BubbleBarViewController
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController
+import com.android.launcher3.taskbar.rules.DesktopVisibilityControllerModule
 import com.android.launcher3.taskbar.rules.DisplayControllerModule
 import com.android.launcher3.taskbar.rules.MockedRecentsModelHelper
 import com.android.launcher3.taskbar.rules.MockedRecentsModelTestRule
@@ -48,20 +57,28 @@ import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.InjectController
 import com.android.launcher3.taskbar.rules.TaskbarWindowSandboxContext
 import com.android.launcher3.util.AllModulesForTest
 import com.android.launcher3.util.FakePrefsModule
+import com.android.launcher3.util.IntSparseArrayMap
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.LauncherMultivalentJUnit.EmulatedDevices
+import com.android.launcher3.util.Preconditions.assertNotNull
 import com.android.launcher3.util.TestUtil.getOnUiThread
 import com.android.quickstep.RecentsModel
 import com.android.quickstep.SystemUiProxy
 import com.android.quickstep.util.DesktopTask
+import com.android.quickstep.util.GroupTask
+import com.android.quickstep.util.SingleTask
+import com.android.quickstep.util.SingleTask.Companion.createTaskItemInfo
 import com.android.systemui.shared.recents.model.Task
 import com.android.window.flags.Flags.FLAG_ENABLE_DESKTOP_WINDOWING_MODE
 import com.android.window.flags.Flags.FLAG_ENABLE_DESKTOP_WINDOWING_TASKBAR_RUNNING_APPS
+import com.android.window.flags.Flags.FLAG_ENABLE_PINNING_APP_WITH_CONTEXT_MENU
+import com.android.window.flags.Flags.FLAG_ENABLE_TASKBAR_OVERFLOW
 import com.android.wm.shell.Flags.FLAG_ENABLE_BUBBLE_BAR
 import com.android.wm.shell.desktopmode.IDesktopTaskListener
 import com.google.common.truth.Truth.assertThat
 import dagger.BindsInstance
 import dagger.Component
+import java.util.function.Predicate
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -74,10 +91,10 @@ import org.mockito.kotlin.whenever
 @RunWith(LauncherMultivalentJUnit::class)
 @EmulatedDevices(["pixelTablet2023"])
 @EnableFlags(
-    FLAG_TASKBAR_OVERFLOW,
     FLAG_ENABLE_DESKTOP_WINDOWING_TASKBAR_RUNNING_APPS,
     FLAG_ENABLE_DESKTOP_WINDOWING_MODE,
     FLAG_ENABLE_BUBBLE_BAR,
+    FLAG_ENABLE_TASKBAR_OVERFLOW,
 )
 @DisableFlags(FLAG_ENABLE_MULTI_INSTANCE_MENU_TASKBAR)
 class TaskbarOverflowTest {
@@ -116,7 +133,14 @@ class TaskbarOverflowTest {
     @InjectController lateinit var bubbleStashController: BubbleStashController
     @InjectController lateinit var keyboardQuickSwitchController: KeyboardQuickSwitchController
 
+    private val desktopVisibilityController: DesktopVisibilityController
+        get() = DesktopVisibilityController.INSTANCE[context]
+
     private var desktopTaskListener: IDesktopTaskListener? = null
+    private val modelCallback = ModelCallbacks()
+
+    private val taskbarContext: TaskbarActivityContext
+        get() = taskbarUnitTestRule.activityContext
 
     private var currentControllerInitCallback: () -> Unit = {}
         set(value) {
@@ -141,6 +165,7 @@ class TaskbarOverflowTest {
 
     @Before
     fun ensureRunningAppsShowing() {
+        whenever(desktopVisibilityController.isInDesktopMode(context.displayId)).thenReturn(true)
         runOnMainSync { recentsModel.resolvePendingTaskRequests() }
     }
 
@@ -338,6 +363,7 @@ class TaskbarOverflowTest {
 
     @Test
     @TaskbarMode(PINNED)
+    @DisableFlags(FLAG_ENABLE_ALT_TAB_KQS_FLATENNING)
     fun testPressingOverflowButtonOpensKeyboardQuickSwitch() {
         val maxNumIconViews = maxNumberOfTaskbarIcons
         // Assume there are at least all apps and divider icon, as they would appear once running
@@ -397,6 +423,7 @@ class TaskbarOverflowTest {
 
     @Test
     @TaskbarMode(PINNED)
+    @DisableFlags(FLAG_ENABLE_ALT_TAB_KQS_FLATENNING)
     fun testHotseatItemTasksNotShownInKQS() {
         val maxNumIconViews = maxNumberOfTaskbarIcons
         // Assume there are at least all apps and divider icon, as they would appear once running
@@ -431,6 +458,126 @@ class TaskbarOverflowTest {
             .containsExactlyElementsIn(listOf(0) + (2..<createdTasks).toList())
     }
 
+    @Test
+    @TaskbarMode(PINNED)
+    @EnableFlags(FLAG_ENABLE_PINNING_APP_WITH_CONTEXT_MENU)
+    fun pinToTaskbarShortcut_unpinPinnedItem() {
+        // Create two tasks and two pinned items.
+        createDesktopTask(2)
+        val hotseatItems = createHotseatItems(2)
+        var shortcut: SystemShortcut<*>? = null
+        var hotseatIcon: BubbleTextView? = null
+        runOnMainSync {
+            val taskbarView = setUpTaskbarAndModelCallback(hotseatItems)
+            hotseatIcon =
+                taskbarView.iconViews.filterIsInstance<BubbleTextView>().first {
+                    it.tag is WorkspaceItemInfo
+                }
+            shortcut =
+                taskbarContext.controllers.taskbarPopupController.createPinShortcut(
+                    taskbarContext,
+                    hotseatIcon!!.tag as ItemInfo,
+                    hotseatIcon,
+                ) as SystemShortcut<*>
+        }
+        assertNotNull(shortcut)
+        runOnMainSync { shortcut?.onClick(hotseatIcon) }
+        // After unpinning the first item, only the second app is left.
+        assertThat(modelCallback.hotseatItems.map { info -> info.title })
+            .isEqualTo(listOf("Test App 1"))
+        // The unpinned app doesn't have a task so the shown tasks won't change.
+        assertThat(recentAppsController.shownTasks.map { it.tasks[0].key.id })
+            .isEqualTo(listOf(0, 1))
+    }
+
+    @Test
+    @TaskbarMode(PINNED)
+    @EnableFlags(FLAG_ENABLE_PINNING_APP_WITH_CONTEXT_MENU)
+    fun pinToTaskbarShortcut_unpinPinnedItemWithTask() {
+        // Create two hotseat items with a task for both of them respectively.
+        var hotseatItems =
+            createHotseatItems(2).mapIndexed { idx, item -> TaskItemInfo(idx, item) }.toTypedArray()
+        createDesktopTaskWithTasksFromPackages(hotseatItems.mapNotNull { it.targetPackage })
+        var shortcut: SystemShortcut<*>? = null
+        var hotseatIcon: BubbleTextView? = null
+        runOnMainSync {
+            val taskbarView = setUpTaskbarAndModelCallback(hotseatItems.map { it }.toTypedArray())
+            hotseatIcon =
+                taskbarView.iconViews.filterIsInstance<BubbleTextView>().first {
+                    it.tag is WorkspaceItemInfo
+                }
+            shortcut =
+                taskbarContext.controllers.taskbarPopupController.createPinShortcut(
+                    taskbarContext,
+                    hotseatIcon!!.tag as ItemInfo,
+                    hotseatIcon,
+                ) as SystemShortcut<*>
+        }
+        // Before unpinning the app, both of the apps should be pinned and no shown task available.
+        assertThat(modelCallback.hotseatItems.map { info -> info.title })
+            .isEqualTo(listOf("Test App 0", "Test App 1"))
+        assertThat(recentAppsController.shownTasks.map { it.tasks[0].key.id })
+            .isEqualTo(emptyList<Int>())
+        assertNotNull(shortcut)
+        runOnMainSync { shortcut?.onClick(hotseatIcon) }
+        // After unpinning the app, app 0 is removed and its task is shown as a recent task.
+        assertThat(modelCallback.hotseatItems.map { info -> info.title })
+            .isEqualTo(listOf("Test App 1"))
+        assertThat(recentAppsController.shownTasks.map { it.tasks[0].key.id }).isEqualTo(listOf(0))
+    }
+
+    @Test
+    @TaskbarMode(PINNED)
+    @EnableFlags(FLAG_ENABLE_PINNING_APP_WITH_CONTEXT_MENU)
+    fun pinToTaskbarShortcut_pinRecentTask() {
+        // Create two tasks and two pinned items.
+        createDesktopTask(2)
+        val hotseatItems = createHotseatItems(2)
+
+        var shortcut: SystemShortcut<*>? = null
+        var recentTaskIcon: BubbleTextView? = null
+        runOnMainSync {
+            val taskbarView = setUpTaskbarAndModelCallback(hotseatItems)
+            // Get the first recent task icon
+            recentTaskIcon =
+                taskbarView.iconViews.filterIsInstance<BubbleTextView>().first {
+                    it.tag is GroupTask
+                }
+            val recentTaskInfo =
+                createTaskItemInfo(
+                    recentTaskIcon!!.tag as SingleTask,
+                    WorkspaceItemInfo().apply {
+                        title = "Test App 2"
+                        intent = Intent().apply { `package` = "fake" }
+                    },
+                )
+            shortcut =
+                taskbarContext.controllers.taskbarPopupController.createPinShortcut(
+                    taskbarContext,
+                    recentTaskInfo,
+                    recentTaskIcon,
+                ) as SystemShortcut<*>
+        }
+        assertNotNull(shortcut)
+        runOnMainSync { shortcut?.onClick(recentTaskIcon) }
+
+        // After pinning the recent task, it should be included in the hotseat items.
+        assertThat(modelCallback.hotseatItems.map { info -> info.title })
+            .isEqualTo(listOf("Test App 0", "Test App 1", "Test App 2"))
+        // As the task is pinned, the shown tasks should remove it from the list
+        assertThat(recentAppsController.shownTasks.map { it.tasks[0].key.id }).isEqualTo(listOf(1))
+    }
+
+    private fun setUpTaskbarAndModelCallback(hotseatItems: Array<WorkspaceItemInfo>): TaskbarView {
+        val taskbarView: TaskbarView =
+            taskbarUnitTestRule.activityContext.dragLayer.findViewById(R.id.taskbar_view)
+        taskbarView.updateItems(hotseatItems, recentAppsController.shownTasks)
+        modelCallback.recentAppsController = recentAppsController
+        context.baseContext.appComponent.launcherAppState.model.addCallbacksAndLoad(modelCallback)
+        modelCallback.bindItemsAdded(hotseatItems.toList())
+        return taskbarView
+    }
+
     private fun createDesktopTask(tasksToAdd: Int) {
         createDesktopTaskWithTasksFromPackages((0..<tasksToAdd).map { "fake" })
     }
@@ -450,12 +597,10 @@ class TaskbarOverflowTest {
                 )
             })
 
-        recentsModel.updateRecentTasks(listOf(DesktopTask(deskId = 0, DEFAULT_DISPLAY, tasks)))
+        val displayId = context.virtualDisplay.display.displayId
+        recentsModel.updateRecentTasks(listOf(DesktopTask(deskId = 0, displayId, tasks)))
         for (task in 1..tasks.size) {
-            desktopTaskListener?.onTasksVisibilityChanged(
-                context.virtualDisplay.display.displayId,
-                task,
-            )
+            desktopTaskListener?.onTasksVisibilityChanged(displayId, task)
         }
         runOnMainSync { recentsModel.resolvePendingTaskRequests() }
     }
@@ -547,12 +692,53 @@ class TaskbarOverflowTest {
         }
         return maxNumIconViews
     }
+
+    private class ModelCallbacks : BgDataModel.Callbacks {
+        var hotseatItems = mutableListOf<WorkspaceItemInfo>()
+        var recentAppsController: TaskbarRecentAppsController? = null
+
+        override fun bindCompleteModel(
+            itemIdMap: IntSparseArrayMap<ItemInfo>,
+            extraItems: MutableList<FixedContainerItems>,
+            stringCache: StringCache,
+            isBindingSync: Boolean,
+        ) = bindItemsAdded(itemIdMap.toList())
+
+        override fun bindItemsAdded(items: List<ItemInfo>) {
+            runOnMainSync {
+                items
+                    .filter { item ->
+                        item is WorkspaceItemInfo &&
+                            !hotseatItems.any { it.targetPackage == item.targetPackage }
+                    }
+                    .forEach { item -> hotseatItems.add(item as WorkspaceItemInfo) }
+                recentAppsController?.updateHotseatItemInfos(hotseatItems.toTypedArray())
+            }
+        }
+
+        override fun bindWorkspaceComponentsRemoved(matcher: Predicate<ItemInfo>) {
+            runOnMainSync {
+                for (i in hotseatItems.size - 1 downTo 0) {
+                    if (matcher.test(hotseatItems[i])) {
+                        hotseatItems.removeAt(i)
+                    }
+                }
+                recentAppsController?.updateHotseatItemInfos(hotseatItems.toTypedArray())
+            }
+        }
+    }
 }
 
 /** TaskbarOverflowComponent used to bind the RecentsModel. */
 @LauncherAppSingleton
 @Component(
-    modules = [AllModulesForTest::class, FakePrefsModule::class, DisplayControllerModule::class]
+    modules =
+        [
+            AllModulesForTest::class,
+            FakePrefsModule::class,
+            DisplayControllerModule::class,
+            DesktopVisibilityControllerModule::class,
+        ]
 )
 interface TaskbarOverflowComponent : TaskbarSandboxComponent {
 

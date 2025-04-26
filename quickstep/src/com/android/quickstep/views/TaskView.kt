@@ -33,6 +33,7 @@ import android.util.Log
 import android.view.Display
 import android.view.MotionEvent
 import android.view.View
+import android.view.View.OnClickListener
 import android.view.ViewGroup
 import android.view.ViewStub
 import android.view.accessibility.AccessibilityNodeInfo
@@ -47,6 +48,7 @@ import com.android.launcher3.AbstractFloatingView
 import com.android.launcher3.Flags.enableCursorHoverStates
 import com.android.launcher3.Flags.enableDesktopExplodedView
 import com.android.launcher3.Flags.enableLargeDesktopWindowingTile
+import com.android.launcher3.Flags.enableRefactorDigitalWellbeingToast
 import com.android.launcher3.Flags.enableRefactorTaskContentView
 import com.android.launcher3.Flags.enableRefactorTaskThumbnail
 import com.android.launcher3.R
@@ -735,7 +737,14 @@ constructor(
 
                 // Add DWB accessibility action at the end of the list
                 taskContainers.forEach {
-                    it.digitalWellBeingToast?.getDWBAccessibilityAction()?.let(::addAction)
+                    if (
+                        enableRefactorDigitalWellbeingToast() &&
+                            it.taskContentView is TaskContentView
+                    ) {
+                        it.taskContentView.getSupportedAccessibilityActions().forEach(::addAction)
+                    } else {
+                        it.digitalWellBeingToast?.getDWBAccessibilityAction()?.let(::addAction)
+                    }
                 }
             }
 
@@ -755,8 +764,14 @@ constructor(
     override fun performAccessibilityAction(action: Int, arguments: Bundle?): Boolean {
         // TODO(b/343708271): Add support for multiple tasks per action.
         taskContainers.forEach {
-            if (it.digitalWellBeingToast?.handleAccessibilityAction(action) == true) {
-                return true
+            if (enableRefactorDigitalWellbeingToast() && it.taskContentView is TaskContentView) {
+                if (it.taskContentView.handleAccessibilityAction(action)) {
+                    return true
+                }
+            } else {
+                if (it.digitalWellBeingToast?.handleAccessibilityAction(action) == true) {
+                    return true
+                }
             }
 
             TaskOverlayFactory.getEnabledShortcuts(this, it).forEach { shortcut ->
@@ -797,9 +812,11 @@ constructor(
             }
             ?.inflate()
 
-        findViewById<ViewStub>(R.id.digital_wellbeing_toast)
-            ?.apply { layoutResource = R.layout.digital_wellbeing_toast }
-            ?.inflate()
+        if (!enableRefactorDigitalWellbeingToast()) {
+            findViewById<ViewStub>(R.id.digital_wellbeing_toast)
+                ?.apply { layoutResource = R.layout.digital_wellbeing_toast }
+                ?.inflate()
+        }
     }
 
     override fun onAttachedToWindow() =
@@ -826,9 +843,12 @@ constructor(
                 val taskId = container.task.key.id
                 val containerState = mapOfTasks[taskId]
                 val shouldHaveHeader = (type == TaskViewType.DESKTOP) && enableDesktopExplodedView()
+                val shouldShowAppTimer =
+                    (type == TaskViewType.SINGLE || type == TaskViewType.GROUPED)
                 container.setState(
                     state = containerState,
                     hasHeader = shouldHaveHeader,
+                    canShowAppTimer = shouldShowAppTimer,
                     clickCloseListener =
                         if (shouldHaveHeader) {
                             {
@@ -1024,6 +1044,13 @@ constructor(
             val snapshotView =
                 if (enableRefactorTaskContentView()) taskContentView.findViewById(thumbnailViewId)
                 else taskContentView
+
+            val digitalWellBeingToast: DigitalWellBeingToast? =
+                if (enableRefactorDigitalWellbeingToast()) {
+                    null
+                } else {
+                    findViewById(digitalWellbeingBannerId)!!
+                }
             return TaskContainer(
                 this,
                 task,
@@ -1032,7 +1059,7 @@ constructor(
                 iconView,
                 TransformingTouchDelegate(iconView.asView()),
                 stagePosition,
-                findViewById(digitalWellbeingBannerId)!!,
+                digitalWellBeingToast,
                 findViewById(showWindowViewId)!!,
                 taskOverlayFactory,
             )
@@ -1603,12 +1630,7 @@ constructor(
             if (menuContainer.iconView.status == AppChipStatus.Expanded) {
                 closeTaskMenu()
             } else {
-                menuContainer.iconView.revealAnim(/* isRevealing= */ true)
-                TaskMenuView.showForTask(menuContainer) {
-                    val isAnimated = !recentsView.isSplitSelectionActive
-                    menuContainer.iconView.revealAnim(/* isRevealing= */ false, isAnimated)
-                    recentsView.setTaskBorderEnabled(true)
-                }
+                TaskMenuView.showForTask(menuContainer) { recentsView.setTaskBorderEnabled(true) }
             }
         } else if (container.deviceProfile.isTablet) {
             val alignedOptionIndex =
@@ -1718,7 +1740,11 @@ constructor(
     private fun onSettledProgressUpdated(settledProgress: Float) {
         taskContainers.forEach {
             it.iconView.setContentAlpha(settledProgress)
-            it.digitalWellBeingToast?.bannerOffsetPercentage = 1f - settledProgress
+            if (enableRefactorDigitalWellbeingToast() && it.taskContentView is TaskContentView) {
+                it.taskContentView.onParentAnimationProgress(settledProgress)
+            } else {
+                it.digitalWellBeingToast?.bannerOffsetPercentage = 1f - settledProgress
+            }
         }
     }
 
@@ -1864,7 +1890,11 @@ constructor(
         isClickable = modalness == 0f
         taskContainers.forEach {
             it.iconView.setModalAlpha(1f - modalness)
-            it.digitalWellBeingToast?.bannerOffsetPercentage = modalness
+            if (enableRefactorDigitalWellbeingToast() && it.taskContentView is TaskContentView) {
+                it.taskContentView.onParentAnimationProgress(1f - modalness)
+            } else {
+                it.digitalWellBeingToast?.bannerOffsetPercentage = modalness
+            }
         }
         if (enableGridOnlyOverview()) {
             modalAlpha = if (isSelectedTask) 1f else (1f - modalness)

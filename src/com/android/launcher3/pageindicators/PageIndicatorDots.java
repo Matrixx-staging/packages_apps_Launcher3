@@ -427,7 +427,10 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
         // Add extra spacing of mDotRadius on all sides so than entry animation could be run
         int width = MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.EXACTLY ?
                 MeasureSpec.getSize(widthMeasureSpec)
-                : (int) ((mNumPages * WIDTH_MULTIPLIER + 2) * mDotRadius);
+                : enableLauncherVisualRefresh()
+                        // #ofGaps*gap_size + (#ofDots + 1 for double size dot)*dot_size
+                        ? (int) (((mNumPages - 1) * mGapWidth) + ((1 + mNumPages) * mDotRadius * 2))
+                        : (int) ((mNumPages * WIDTH_MULTIPLIER + 2) * mDotRadius);
         int height = MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.EXACTLY
                 ? MeasureSpec.getSize(heightMeasureSpec)
                 : (int) (HEIGHT_MULTIPLIER * mDotRadius);

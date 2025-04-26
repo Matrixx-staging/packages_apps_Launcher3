@@ -21,6 +21,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Bitmap.createBitmap
 import android.os.Process
+import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
 import com.android.launcher3.icons.BitmapInfo
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.AppPairInfo
@@ -50,16 +51,17 @@ object TaskbarViewTestUtil {
     }
 
     /** Creates an array of fake hotseat items. */
-    fun createHotseatItems(size: Int): Array<ItemInfo> {
+    fun createHotseatItems(size: Int): Array<WorkspaceItemInfo> {
         return Array(size) { createHotseatWorkspaceItem(it) }
     }
 
     fun createHotseatWorkspaceItem(id: Int = 0): WorkspaceItemInfo {
         return WorkspaceItemInfo(
-                AppInfo(TEST_COMPONENT, "Test App $id", Process.myUserHandle(), Intent())
+                AppInfo(testComponent(id), "Test App $id", Process.myUserHandle(), testIntent(id))
             )
             .apply {
                 this.id = id
+                container = CONTAINER_HOTSEAT
                 // Create a placeholder icon so that the test  doesn't try to load a high-res icon.
                 this.bitmap = BitmapInfo.fromBitmap(createBitmap(1, 1, Bitmap.Config.ALPHA_8))
             }
@@ -93,8 +95,8 @@ object TaskbarViewTestUtil {
                     TaskKey(
                         id,
                         5,
-                        TEST_INTENT,
-                        TEST_COMPONENT,
+                        testIntent(id),
+                        testComponent(id),
                         Process.myUserHandle().identifier,
                         System.currentTimeMillis(),
                     )
@@ -149,8 +151,10 @@ enum class TaskbarIconType {
 }
 
 private const val TEST_PACKAGE = "com.android.launcher3.taskbar"
-private val TEST_COMPONENT = ComponentName(TEST_PACKAGE, "Activity")
-private val TEST_INTENT = Intent().apply {
-    `package` = TEST_PACKAGE
-    component = TEST_COMPONENT
+private val testComponent = { i: Int -> ComponentName(TEST_PACKAGE, "Activity $i") }
+private val testIntent = { i: Int ->
+    Intent().apply {
+        `package` = TEST_PACKAGE
+        component = testComponent(i)
+    }
 }

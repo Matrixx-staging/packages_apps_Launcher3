@@ -16,6 +16,7 @@
 package com.android.quickstep;
 
 import static android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS;
+import static android.view.Display.DEFAULT_DISPLAY;
 
 import static androidx.test.InstrumentationRegistry.getInstrumentation;
 
@@ -344,7 +345,7 @@ public class FallbackRecentsTest {
             Context ctx = getInstrumentation().getTargetContext();
             mObserver = OverviewComponentObserver.INSTANCE.get(ctx);
             mChangeCounter = new CountDownLatch(1);
-            if (mObserver.getHomeIntent().getComponent()
+            if (mObserver.getHomeIntent(DEFAULT_DISPLAY).getComponent()
                     .getPackageName().equals(mOtherLauncherActivity.packageName)) {
                 // Home already same
                 mChangeCounter.countDown();

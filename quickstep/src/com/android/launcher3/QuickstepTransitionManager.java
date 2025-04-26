@@ -182,7 +182,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map.Entry;
 
 /**
  * Manages the opening and closing app transitions from Launcher
@@ -602,13 +601,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
             endListener = composeViewContentAnimator(launcherAnimator, alphas, scales);
         } else {
             List<View> viewsToAnimate = new ArrayList<>();
-            Workspace<?> workspace = mLauncher.getWorkspace();
-            if (Flags.coordinateWorkspaceScale()) {
-                viewsToAnimate.add(workspace);
-            } else {
-                workspace.forEachVisiblePage(
-                        view -> viewsToAnimate.add(((CellLayout) view).getShortcutsAndWidgets()));
-            }
+            viewsToAnimate.add(mLauncher.getWorkspace());
 
             Hotseat hotseat = mLauncher.getHotseat();
             // Do not scale hotseat as a whole when taskbar is present, and scale QSB only if it's
@@ -624,22 +617,19 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
             viewsToAnimate.forEach(view -> {
                 view.setLayerType(View.LAYER_TYPE_HARDWARE, null);
 
-                float[] scale = scales;
-                if (Flags.coordinateWorkspaceScale()) {
-                    // Start the animation from the current value, instead of assuming the views are
-                    // in their resting state, so interrupted animations merge seamlessly.
-                    // TODO(b/367591368): ideally these animations would be refactored to be
-                    //  controlled centrally so each instances doesn't need to care about this
-                    //  coordination.
-                    scale = new float[]{view.getScaleX(), scales[1]};
+                // Start the animation from the current value, instead of assuming the views are
+                // in their resting state, so interrupted animations merge seamlessly.
+                // TODO(b/367591368): ideally these animations would be refactored to be
+                //  controlled centrally so each instances doesn't need to care about this
+                //  coordination.
+                float[] scale = new float[]{view.getScaleX(), scales[1]};
 
-                    // Cancel any ongoing animations. This is necessary to avoid a conflict between
-                    // e.g. the unfinished animation triggered when closing an app back to Home and
-                    // this animation caused by a launch.
-                    Animations.Companion.cancelOngoingAnimation(view);
-                    // Make sure to cache the current animation, so it can be properly interrupted.
-                    Animations.Companion.setOngoingAnimation(view, launcherAnimator);
-                }
+                // Cancel any ongoing animations. This is necessary to avoid a conflict between
+                // e.g. the unfinished animation triggered when closing an app back to Home and
+                // this animation caused by a launch.
+                Animations.Companion.cancelOngoingAnimation(view);
+                // Make sure to cache the current animation, so it can be properly interrupted.
+                Animations.Companion.setOngoingAnimation(view, launcherAnimator);
 
                 ObjectAnimator scaleAnim = ObjectAnimator.ofFloat(view, SCALE_PROPERTY, scale)
                         .setDuration(CONTENT_SCALE_DURATION);
@@ -652,10 +642,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                     SCALE_PROPERTY.set(view, 1f);
                     view.setLayerType(View.LAYER_TYPE_NONE, null);
 
-                    if (Flags.coordinateWorkspaceScale()) {
-                        // Reset the cached animation.
-                        Animations.Companion.setOngoingAnimation(view, null /* animation */);
-                    }
+                    // Reset the cached animation.
+                    Animations.Companion.setOngoingAnimation(view, null /* animation */);
                 });
                 mLauncher.resumeExpensiveViewUpdates();
             };

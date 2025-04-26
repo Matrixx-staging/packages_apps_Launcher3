@@ -23,13 +23,13 @@ import android.util.Log
 import android.view.View
 import android.view.ViewStub
 import com.android.internal.jank.Cuj
+import com.android.launcher3.Flags.enableRefactorDigitalWellbeingToast
 import com.android.launcher3.Flags.enableRefactorTaskContentView
 import com.android.launcher3.Flags.enableRefactorTaskThumbnail
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.launcher3.util.OverviewReleaseFlags.enableOverviewIconMenu
 import com.android.launcher3.util.RunnableList
-import com.android.launcher3.util.SplitConfigurationOptions
 import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT
 import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_TOP_OR_LEFT
 import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_UNDEFINED
@@ -117,9 +117,11 @@ class GroupedTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                     else R.layout.icon_view
             }
             ?.inflate()
-        findViewById<ViewStub>(R.id.bottomRight_digital_wellbeing_toast)
-            ?.apply { layoutResource = R.layout.digital_wellbeing_toast }
-            ?.inflate()
+        if (!enableRefactorDigitalWellbeingToast()) {
+            findViewById<ViewStub>(R.id.bottomRight_digital_wellbeing_toast)
+                ?.apply { layoutResource = R.layout.digital_wellbeing_toast }
+                ?.inflate()
+        }
     }
 
     override fun onRecycle() {

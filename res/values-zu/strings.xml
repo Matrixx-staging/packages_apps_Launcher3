@@ -113,10 +113,8 @@
     <string name="gadget_complete_setup_text" msgid="309040266978007925">"Thepha ukuze uqede ukusetha"</string>
     <string name="uninstall_system_app_text" msgid="4172046090762920660">"Lolu uhlelo lokusebenza lwesistimu futhi alikwazi ukukhishwa."</string>
     <string name="folder_hint_text" msgid="5174843001373488816">"Hlela igama"</string>
-    <!-- no translation found for paginate_left (7915437358451360433) -->
-    <skip />
-    <!-- no translation found for paginate_right (6701038155201975878) -->
-    <skip />
+    <string name="paginate_left" msgid="7915437358451360433">"Hlukanisa ngamakhasi kwesokunxele"</string>
+    <string name="paginate_right" msgid="6701038155201975878">"Hlukanisa ngamakhasi kwesokudla"</string>
     <string name="disabled_app_label" msgid="6673129024321402780">"Kukhutshaziwe <xliff:g id="APP_NAME">%1$s</xliff:g>"</string>
     <string name="dotted_app_label" msgid="1865617679843363410">"{count,plural, =1{I-{app_name} inesaziso esi-#}one{I-{app_name} inezaziso ezingu-#}other{I-{app_name} inezaziso ezingu-#}}"</string>
     <string name="default_scroll_format" msgid="7475544710230993317">"Ikhasi elingu-%1$d kwangu-%2$d"</string>

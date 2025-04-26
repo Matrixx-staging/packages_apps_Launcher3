@@ -25,6 +25,7 @@ import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_DEEP_SH
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_FOLDER;
 import static com.android.launcher3.Utilities.SHOULD_SHOW_FIRST_PAGE_WIDGET;
 import static com.android.launcher3.shortcuts.ShortcutRequest.PINNED;
+import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
@@ -35,9 +36,8 @@ import android.content.pm.ShortcutInfo;
 import android.os.UserHandle;
 import android.text.TextUtils;
 import android.util.Log;
-import android.util.Pair;
-import android.view.View;
 
+import androidx.annotation.AnyThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -46,6 +46,8 @@ import com.android.launcher3.Flags;
 import com.android.launcher3.Workspace;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.dagger.LauncherAppSingleton;
+import com.android.launcher3.logging.DumpManager;
+import com.android.launcher3.logging.DumpManager.LauncherDumpable;
 import com.android.launcher3.logging.FileLog;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.CollectionInfo;
@@ -61,14 +63,10 @@ import com.android.launcher3.shortcuts.ShortcutRequest;
 import com.android.launcher3.shortcuts.ShortcutRequest.QueryResult;
 import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.DaggerSingletonTracker;
-import com.android.launcher3.logging.DumpManager;
-import com.android.launcher3.logging.DumpManager.LauncherDumpable;
 import com.android.launcher3.util.IntArray;
 import com.android.launcher3.util.IntSet;
 import com.android.launcher3.util.IntSparseArrayMap;
-import com.android.launcher3.util.ItemInflater;
 import com.android.launcher3.util.PackageUserKey;
-import com.android.launcher3.util.RunnableList;
 import com.android.launcher3.widget.model.WidgetsListBaseEntry;
 
 import java.io.PrintWriter;
@@ -439,45 +437,30 @@ public class BgDataModel implements LauncherDumpable {
         int FLAG_PRIVATE_PROFILE_QUIET_MODE_ENABLED = 1 << 4;
 
         /**
-         * Returns an IntSet of page ids to bind first, synchronously if possible
-         * or an empty IntSet
-         * @param orderedScreenIds All the page ids to be bound
+         * Does a complete model rebind. The callback can be called on any thread and it is up to
+         * the client to move the executor to appropriate thread
          */
-        @NonNull
-        default IntSet getPagesToBindSynchronously(IntArray orderedScreenIds) {
-            return new IntSet();
+        @AnyThread
+        default void bindCompleteModelAsync(IntSparseArrayMap<ItemInfo> itemIdMap,
+                List<FixedContainerItems> extraItems, StringCache stringCache,
+                boolean isBindingSync) {
+            MAIN_EXECUTOR.execute(
+                    () -> bindCompleteModel(itemIdMap, extraItems, stringCache, isBindingSync));
         }
 
-        default void clearPendingBinds() { }
-        default void startBinding() { }
+        default void bindCompleteModel(IntSparseArrayMap<ItemInfo> itemIdMap,
+                List<FixedContainerItems> extraItems, StringCache stringCache,
+                boolean isBindingSync) { }
 
-        @Nullable
-        default ItemInflater getItemInflater() {
-            return null;
-        }
-
-        default void bindItems(@NonNull List<ItemInfo> shortcuts, boolean forceAnimateIcons) { }
-        /** Alternate method to bind preinflated views */
-        default void bindInflatedItems(@NonNull List<Pair<ItemInfo, View>> items) { }
-
-        default void bindScreens(IntArray orderedScreenIds) { }
-        default void finishBindingItems(IntSet pagesBoundFirst) { }
-        default void bindAppsAdded(IntArray newScreens,
-                ArrayList<ItemInfo> addNotAnimated, ArrayList<ItemInfo> addAnimated) { }
-
-        /**
-         * Called when some persistent property of an item is modified
-         */
-        default void bindItemsModified(List<ItemInfo> items) { }
+        default void bindItemsAdded(@NonNull List<ItemInfo> items) { }
+        /** Called when a runtime property of the ItemInfo is updated due to some system event */
+        default void bindItemsUpdated(Set<ItemInfo> updates) { }
+        default void bindWorkspaceComponentsRemoved(Predicate<ItemInfo> matcher) { }
 
         /**
          * Binds updated incremental download progress
          */
         default void bindIncrementalDownloadProgressUpdated(AppInfo app) { }
-
-        /** Called when a runtime property of the ItemInfo is updated due to some system event */
-        default void bindItemsUpdated(Set<ItemInfo> updates) { }
-        default void bindWorkspaceComponentsRemoved(Predicate<ItemInfo> matcher) { }
 
         /**
          * Binds the app widgets to the providers that share widgets with the UI.
@@ -485,14 +468,6 @@ public class BgDataModel implements LauncherDumpable {
         default void bindAllWidgets(@NonNull List<WidgetsListBaseEntry> widgets) { }
 
         default void bindSmartspaceWidget() { }
-
-        /** Called when workspace has been bound. */
-        default void onInitialBindComplete(@NonNull IntSet boundPages,
-                @NonNull RunnableList pendingTasks,
-                @NonNull RunnableList onCompleteSignal,
-                int workspaceItemCount, boolean isBindSync) {
-            pendingTasks.executeAllAndDestroy();
-        }
 
         default void bindDeepShortcutMap(HashMap<ComponentKey, Integer> deepShortcutMap) { }
 

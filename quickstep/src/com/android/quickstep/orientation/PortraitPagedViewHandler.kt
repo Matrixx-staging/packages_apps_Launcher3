@@ -136,12 +136,16 @@ class PortraitPagedViewHandler : DefaultPagedViewHandler(), RecentsPagedOrientat
         taskInsetMargin: Float,
         taskViewIcon: View,
     ): Float =
-        if (deviceProfile.isLandscape) {
-            (x +
-                taskInsetMargin +
-                (thumbnailView.measuredWidth - thumbnailView.measuredHeight) / 2f)
+        if (enableOverviewIconMenu()) {
+            x
         } else {
-            x + taskInsetMargin
+            if (deviceProfile.isLandscape) {
+                (x +
+                    taskInsetMargin +
+                    (thumbnailView.measuredWidth - thumbnailView.measuredHeight) / 2f)
+            } else {
+                x + taskInsetMargin
+            }
         }
 
     override fun getTaskMenuY(
@@ -151,7 +155,19 @@ class PortraitPagedViewHandler : DefaultPagedViewHandler(), RecentsPagedOrientat
         taskMenuView: View,
         taskInsetMargin: Float,
         taskViewIcon: View,
-    ): Float = y + taskInsetMargin
+    ): Float =
+        if (enableOverviewIconMenu()) {
+            taskViewIcon as IconAppChipView
+            y - taskViewIcon.menuToCollapsedChipGap
+        } else {
+            y + taskInsetMargin
+        }
+
+    override fun getAppChipMenuMarginX(appChipView: IconAppChipView, isRtl: Boolean): Int =
+        if (isRtl) -appChipView.backgroundMarginTopStart else appChipView.backgroundMarginTopStart
+
+    override fun getAppChipMenuMarginY(appChipView: IconAppChipView, isRtl: Boolean): Int =
+        appChipView.menuToCollapsedChipGap
 
     override fun getTaskMenuWidth(
         thumbnailView: View,

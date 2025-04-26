@@ -198,6 +198,10 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
             case TestProtocol.REQUEST_EJECT_FAKE_TRACKPAD:
                 runOnTISBinder(tisBinder -> tisBinder.ejectFakeTrackpadForTesting());
                 return response;
+            case TestProtocol.REQUEST_TASKBAR_PRIMARY_DISPLAY_ID: {
+                return getTISBinderUIProperty(Bundle::putInt, tisBinder ->
+                        tisBinder.getTaskbarManager().getPrimaryDisplayId());
+            }
         }
 
         return super.call(method, arg, extras);

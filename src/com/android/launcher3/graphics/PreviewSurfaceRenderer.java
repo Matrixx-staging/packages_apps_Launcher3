@@ -76,8 +76,6 @@ import com.android.launcher3.util.Themes;
 import com.android.launcher3.widget.LocalColorExtractor;
 import com.android.systemui.shared.Flags;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -124,6 +122,8 @@ public class PreviewSurfaceRenderer {
     private final SurfaceControlViewHost mSurfaceControlViewHost;
 
     private LauncherPreviewRenderer mCurrentRenderer;
+
+    @Nullable private SurfaceControlViewHost.SurfacePackage mSurfacePackage;
 
     public PreviewSurfaceRenderer(Context context, RunnableList lifecycleTracker, Bundle bundle,
             int callingPid) throws Exception {
@@ -176,7 +176,10 @@ public class PreviewSurfaceRenderer {
     }
 
     public SurfacePackage getSurfacePackage() {
-        return mSurfaceControlViewHost.getSurfacePackage();
+        if (mSurfacePackage == null) {
+            mSurfacePackage = mSurfaceControlViewHost.getSurfacePackage();
+        }
+        return mSurfacePackage;
     }
 
     private void setCurrentRenderer(LauncherPreviewRenderer renderer) {
@@ -188,6 +191,11 @@ public class PreviewSurfaceRenderer {
 
     private void destroy() {
         mDestroyed = true;
+        if (mSurfacePackage != null) {
+            mSurfacePackage.release();
+            mSurfacePackage = null;
+        }
+        mSurfaceControlViewHost.release();
         setCurrentRenderer(null);
     }
 

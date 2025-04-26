@@ -15,6 +15,8 @@
  */
 package com.android.launcher3.taskbar;
 
+import static android.window.DesktopModeFlags.ENABLE_TASKBAR_OVERFLOW;
+
 import static com.android.launcher3.desktop.DesktopAppLaunchTransition.AppLaunchType.UNMINIMIZE;
 import static com.android.launcher3.taskbar.TaskbarDesktopExperienceFlags.enableAltTabKqsFlatenning;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
@@ -35,7 +37,6 @@ import androidx.annotation.Nullable;
 
 import com.android.internal.jank.Cuj;
 import com.android.launcher3.DeviceProfile;
-import com.android.launcher3.Flags;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.anim.AnimatorListeners;
@@ -43,6 +44,7 @@ import com.android.launcher3.desktop.DesktopAppLaunchTransition;
 import com.android.launcher3.taskbar.overlay.TaskbarOverlayContext;
 import com.android.launcher3.taskbar.overlay.TaskbarOverlayDragLayer;
 import com.android.launcher3.views.BaseDragLayer;
+import com.android.quickstep.FocusState;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.util.DesktopTask;
 import com.android.quickstep.util.GroupTask;
@@ -123,7 +125,7 @@ public class KeyboardQuickSwitchViewController {
         mWasDesktopTaskFilteredOut = wasDesktopTaskFilteredOut;
         mWasOpenedFromTaskbar = wasOpenedFromTaskbar;
 
-        if (Flags.taskbarOverflow() && wasOpenedFromTaskbar) {
+        if (ENABLE_TASKBAR_OVERFLOW.isTrue() && wasOpenedFromTaskbar) {
             mKeyboardQuickSwitchView.enableScrollArrowSupport();
         }
 
@@ -313,11 +315,11 @@ public class KeyboardQuickSwitchViewController {
         // All DesktopTasks, irrespective of whether desktop mode is active, are launched here as
         // the class DesktopTask is used in a special way by KQS view for showing thumbnails of
         // freeform tasks.
-        if (task instanceof DesktopTask) {
+        if (task instanceof DesktopTask desktopTask) {
             boolean canUnminimizeDesktopTask = context.canUnminimizeDesktopTask(taskId);
-            runOnUiWithJankMonitoring(() -> {
+            UI_HELPER_EXECUTOR.execute(() -> {
                 if (!mOnDesktop) {
-                    systemUiProxy.showDesktopApps(context.getDisplayId(), slideInTransition);
+                    systemUiProxy.activateDesk(desktopTask.getDeskId(), slideInTransition);
                 }
 
                 systemUiProxy.showDesktopApp(taskId,
@@ -327,7 +329,7 @@ public class KeyboardQuickSwitchViewController {
             return true;
         } else if (mOnDesktop && task instanceof SingleTask) {
             // Use the special API if user wants to switch to a fullscreen app while in desktop.
-            runOnUiWithJankMonitoring(
+            UI_HELPER_EXECUTOR.execute(
                     () -> systemUiProxy.moveToFullscreen(taskId,
                             DesktopModeTransitionSource.KEYBOARD_SHORTCUT, slideInTransition));
             return true;
@@ -335,18 +337,6 @@ public class KeyboardQuickSwitchViewController {
 
         // For all other cases, let TaskbarActivityContext handle launching the task.
         return false;
-    }
-
-    private void runOnUiWithJankMonitoring(Runnable runnable) {
-        Runnable onStartCallback = () -> InteractionJankMonitorWrapper.begin(
-                mKeyboardQuickSwitchView, Cuj.CUJ_LAUNCHER_KEYBOARD_QUICK_SWITCH_APP_LAUNCH);
-        Runnable onFinishCallback = () -> InteractionJankMonitorWrapper.end(
-                Cuj.CUJ_LAUNCHER_KEYBOARD_QUICK_SWITCH_APP_LAUNCH);
-        UI_HELPER_EXECUTOR.execute(() -> {
-            onStartCallback.run();
-            runnable.run();
-            onFinishCallback.run();
-        });
     }
 
     private RemoteTransition getUnminimizeTransition() {
@@ -394,7 +384,7 @@ public class KeyboardQuickSwitchViewController {
         return dl.isEventOverView(mKeyboardQuickSwitchView, ev);
     }
 
-    class ViewCallbacks {
+    class ViewCallbacks implements FocusState.FocusChangeListener {
         public final OnBackInvokedCallback onBackInvokedCallback = () -> closeQuickSwitchView(true);
 
         boolean onKeyUp(int keyCode, KeyEvent event, boolean isRTL, boolean allowTraversal) {
@@ -464,6 +454,13 @@ public class KeyboardQuickSwitchViewController {
             mDetachingFromWindow = true;
             closeQuickSwitchView(false);
             mDetachingFromWindow = false;
+        }
+
+        @Override
+        public void onFocusedDisplayChanged(int displayId) {
+            if (mControllers.taskbarActivityContext.getDisplayId() != displayId) {
+                closeQuickSwitchView(/* animate= */ true);
+            }
         }
     }
 }

@@ -266,6 +266,10 @@ interface RecentsPagedOrientationHandler : PagedOrientationHandler {
         taskViewIcon: View,
     ): Float
 
+    fun getAppChipMenuMarginX(appChipView: IconAppChipView, isRtl: Boolean): Int
+
+    fun getAppChipMenuMarginY(appChipView: IconAppChipView, isRtl: Boolean): Int
+
     fun getTaskMenuWidth(
         thumbnailView: View,
         deviceProfile: DeviceProfile,

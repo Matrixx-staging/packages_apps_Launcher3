@@ -67,8 +67,8 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    fun setUpCallbacks(callbacks: TaskbarViewCallbacks) {
-        setOnLongClickListener(callbacks.taskbarDividerLongClickListener)
-        setOnTouchListener(callbacks.taskbarDividerRightClickListener)
+    fun setUpCallbacks(callbacks: TaskbarViewCallbacks?) {
+        setOnLongClickListener(callbacks?.taskbarDividerLongClickListener)
+        setOnTouchListener(callbacks?.taskbarDividerRightClickListener)
     }
 }

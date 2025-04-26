@@ -29,7 +29,6 @@ import androidx.core.graphics.transform
 import com.android.app.animation.Animations
 import com.android.app.animation.Interpolators
 import com.android.app.animation.Interpolators.LINEAR
-import com.android.launcher3.Flags
 import com.android.launcher3.LauncherAnimUtils.HOTSEAT_SCALE_PROPERTY_FACTORY
 import com.android.launcher3.LauncherAnimUtils.SCALE_INDEX_WORKSPACE_STATE
 import com.android.launcher3.LauncherAnimUtils.WORKSPACE_SCALE_PROPERTY_FACTORY
@@ -101,17 +100,13 @@ class ScalingWorkspaceRevealAnim(
         val workspace = launcher.workspace
         val hotseat = launcher.hotseat
 
-        var fromSize =
-            if (Flags.coordinateWorkspaceScale()) {
-                // Interrupt the current animation, if any.
-                Animations.cancelOngoingAnimation(workspace)
-                Animations.cancelOngoingAnimation(hotseat)
+        // Interrupt the current animation, if any.
+        Animations.cancelOngoingAnimation(workspace)
+        Animations.cancelOngoingAnimation(hotseat)
 
-                if (workspace.scaleX != MAX_SIZE) {
-                    workspace.scaleX
-                } else {
-                    MIN_SIZE
-                }
+        val fromSize =
+            if (workspace.scaleX != MAX_SIZE) {
+                workspace.scaleX
             } else {
                 MIN_SIZE
             }
@@ -228,11 +223,9 @@ class ScalingWorkspaceRevealAnim(
                     workspace.setLayerType(View.LAYER_TYPE_NONE, null)
                     hotseat.setLayerType(View.LAYER_TYPE_NONE, null)
 
-                    if (Flags.coordinateWorkspaceScale()) {
-                        // Reset the cached animations.
-                        Animations.setOngoingAnimation(workspace, animation = null)
-                        Animations.setOngoingAnimation(hotseat, animation = null)
-                    }
+                    // Reset the cached animations.
+                    Animations.setOngoingAnimation(workspace, animation = null)
+                    Animations.setOngoingAnimation(hotseat, animation = null)
 
                     Log.d(TAG, "alpha of workspace at the end of animation: ${workspace.alpha}")
                 }
@@ -246,13 +239,11 @@ class ScalingWorkspaceRevealAnim(
 
     fun start() {
         val animators = getAnimators()
-        if (Flags.coordinateWorkspaceScale()) {
-            // Make sure to cache the current animation, so it can be properly interrupted.
-            // TODO(b/367591368): ideally these animations would be refactored to be controlled
-            //  centrally so each instances doesn't need to care about this coordination.
-            Animations.setOngoingAnimation(launcher.workspace, animators)
-            Animations.setOngoingAnimation(launcher.hotseat, animators)
-        }
+        // Make sure to cache the current animation, so it can be properly interrupted.
+        // TODO(b/367591368): ideally these animations would be refactored to be controlled
+        //  centrally so each instances doesn't need to care about this coordination.
+        Animations.setOngoingAnimation(launcher.workspace, animators)
+        Animations.setOngoingAnimation(launcher.hotseat, animators)
         launcher.stateManager.setCurrentAnimation(animators, LauncherState.NORMAL)
         animators.start()
     }

@@ -413,29 +413,17 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
     @Override
     public RunnableList startActivitySafely(View v, Intent intent, ItemInfo item) {
-        // Only pause is taskbar controller is not present until the transition (if it exists) ends
-        mHotseatPredictionController.setPauseUIUpdate(getTaskbarUIController() == null);
         PredictionRowView<?> predictionRowView =
                 getAppsView().getFloatingHeaderView().findFixedRowByType(PredictionRowView.class);
         // Pause the prediction row updates until the transition (if it exists) ends.
         predictionRowView.setPredictionUiUpdatePaused(true);
         RunnableList result = super.startActivitySafely(v, intent, item);
         if (result == null) {
-            mHotseatPredictionController.setPauseUIUpdate(false);
             predictionRowView.setPredictionUiUpdatePaused(false);
         } else {
-            result.add(() -> {
-                mHotseatPredictionController.setPauseUIUpdate(false);
-                predictionRowView.setPredictionUiUpdatePaused(false);
-            });
+            result.add(() -> predictionRowView.setPredictionUiUpdatePaused(false));
         }
         return result;
-    }
-
-    @Override
-    public void startBinding() {
-        super.startBinding();
-        mHotseatPredictionController.verifyUIUpdateNotPaused();
     }
 
     @Override
@@ -1293,8 +1281,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
     @Override
     @BinderThread
-    public void enterStageSplitFromRunningApp(boolean leftOrTop) {
-        mSplitWithKeyboardShortcutController.enterStageSplit(leftOrTop);
+    public void enterStageSplitFromRunningApp(boolean leftOrTop, int displayId) {
+        mSplitWithKeyboardShortcutController.enterStageSplit(leftOrTop, displayId);
     }
 
     @Override

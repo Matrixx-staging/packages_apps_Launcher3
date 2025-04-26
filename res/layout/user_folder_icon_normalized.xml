@@ -61,6 +61,7 @@
             android:layout_gravity="center_vertical"
             android:foregroundGravity="center"
             android:contentDescription="@string/paginate_left"
+            android:visibility="gone"
             android:elevation="1dp"/>
 
         <com.android.launcher3.pageindicators.PageIndicatorDots
@@ -80,6 +81,7 @@
             android:rotation="180"
             android:contentDescription="@string/paginate_right"
             android:foregroundGravity="center"
+            android:visibility="gone"
             android:elevation="1dp"/>
     </LinearLayout>
 

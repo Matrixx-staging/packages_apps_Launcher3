@@ -32,6 +32,7 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import com.android.internal.logging.InstanceId;
 import com.android.launcher3.AbstractFloatingView;
@@ -222,7 +223,8 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
     }
 
     @Nullable
-    private SystemShortcut createPinShortcut(BaseTaskbarContext target, ItemInfo itemInfo,
+    @VisibleForTesting
+    SystemShortcut createPinShortcut(BaseTaskbarContext target, ItemInfo itemInfo,
             BubbleTextView originalView) {
         // Predicted items use {@code HotseatPredictionController.PinPrediction} shortcut to pin.
         if (itemInfo.isPredictedItem()) {

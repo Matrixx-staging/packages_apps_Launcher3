@@ -92,6 +92,12 @@ CONTAINER : RecentsViewContainer {
                 false
             }
 
+            // Do not allow dismiss while recents is scrolling.
+            !recentsView.scroller.isFinished -> {
+                debugLog(TAG, "Not intercepting touch, recents scrolling.")
+                false
+            }
+
             else ->
                 taskViewRecentsTouchContext.isRecentsInteractive.also { isRecentsInteractive ->
                     if (!isRecentsInteractive) {
@@ -101,6 +107,9 @@ CONTAINER : RecentsViewContainer {
         }
 
     override fun onControllerInterceptTouchEvent(ev: MotionEvent): Boolean {
+        if (isBlockedDuringDismissal) {
+            return true
+        }
         if ((ev.action == MotionEvent.ACTION_UP || ev.action == MotionEvent.ACTION_CANCEL)) {
             clearState()
         }
@@ -252,7 +261,6 @@ CONTAINER : RecentsViewContainer {
                 taskBeingDragged,
                 velocity,
                 isDismissing,
-                dismissLength,
                 dismissThreshold,
                 finalPosition,
                 /* shouldRemoveTaskView= */ isDismissing,

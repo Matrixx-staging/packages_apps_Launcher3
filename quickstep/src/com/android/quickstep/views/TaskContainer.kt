@@ -181,12 +181,18 @@ class TaskContainer(
         overlay.addChildForAccessibility(outChildren)
     }
 
-    fun setState(state: TaskData?, hasHeader: Boolean, clickCloseListener: OnClickListener?) =
+    fun setState(
+        state: TaskData?,
+        hasHeader: Boolean,
+        canShowAppTimer: Boolean,
+        clickCloseListener: OnClickListener?,
+    ) =
         traceSection("TaskContainer.setState") {
             if (enableRefactorTaskContentView()) {
                 (taskContentView as TaskContentView).setState(
                     TaskUiStateMapper.toTaskHeaderState(state, hasHeader, clickCloseListener),
                     TaskUiStateMapper.toTaskThumbnailUiState(state),
+                    TaskUiStateMapper.toTaskAppTimerUiState(canShowAppTimer, stagePosition, state),
                     state?.taskId,
                 )
             } else {

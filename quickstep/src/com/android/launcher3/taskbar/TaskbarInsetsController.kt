@@ -355,7 +355,6 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
         val bubbleBarVisible =
             controllers.bubbleControllers.isPresent &&
                 controllers.bubbleControllers.get().bubbleBarViewController.isBubbleBarVisible()
-        var insetsIsTouchableRegion = true
         // Prevents the taskbar from taking touches and conflicting with setup wizard
         if (
             context.isPhoneButtonNavMode &&
@@ -364,7 +363,6 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
                     !controllers.navbarButtonsViewController.isImeRenderingNavButtons)
         ) {
             insetsInfo.setTouchableInsets(TOUCHABLE_INSETS_FRAME)
-            insetsIsTouchableRegion = false
             debugTouchableRegion.lastSetTouchableReason =
                 "Phone button nav mode: Fullscreen touchable, IME not affecting nav buttons"
         } else if (context.dragLayer.alpha < AlphaUpdateListener.ALPHA_CUTOFF_THRESHOLD) {
@@ -389,7 +387,6 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
         } else if (context.isTaskbarWindowFullscreen) {
             // Intercept entire fullscreen window.
             insetsInfo.setTouchableInsets(TOUCHABLE_INSETS_FRAME)
-            insetsIsTouchableRegion = false
             debugTouchableRegion.lastSetTouchableReason = "Taskbar is fullscreen"
             context.dragLayer.getBoundsInWindow(debugTouchableRegion.lastSetTouchableBounds, false)
         } else if (
@@ -425,7 +422,6 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
                 debugTouchableRegion.lastSetTouchableBounds.set(defaultTouchableRegion.bounds)
             }
             insetsInfo.setTouchableInsets(TOUCHABLE_INSETS_REGION)
-            insetsIsTouchableRegion = false
         } else {
             insetsInfo.setTouchableInsets(TOUCHABLE_INSETS_REGION)
             debugTouchableRegion.lastSetTouchableReason =
@@ -437,7 +433,6 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
             insetsInfo.touchableRegion,
         )
         debugTouchableRegion.lastSetTouchableBounds.set(insetsInfo.touchableRegion.bounds)
-        context.excludeFromMagnificationRegion(insetsIsTouchableRegion)
     }
 
     /** Draws the last set touchableRegion as a red rectangle onto the given Canvas. */

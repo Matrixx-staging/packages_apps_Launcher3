@@ -238,7 +238,7 @@ class PersistentBubbleStashController(
         }
         if (bubbleBarViewController.isExpanded != expand) {
             val maybeShowEdu = expand && bubbleBarGesture
-            bubbleBarViewController.setExpanded(expand, maybeShowEdu)
+            bubbleBarViewController.animateExpanded(expand, maybeShowEdu)
         }
     }
 

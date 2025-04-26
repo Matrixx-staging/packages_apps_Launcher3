@@ -468,7 +468,7 @@ class TaskbarStashControllerTest {
     fun testUpdateAndAnimateTransientTaskbar_bubbleBarExpandedBeforeTimeout_expandedAfterwards() {
         getInstrumentation().runOnMainSync {
             bubbleBarViewController.setHiddenForBubbles(false)
-            bubbleBarViewController.isExpanded = true
+            bubbleBarViewController.animateExpanded(true)
             stashController.updateAndAnimateTransientTaskbar(false)
             animatorTestRule.advanceTimeBy(stashController.stashDuration)
         }

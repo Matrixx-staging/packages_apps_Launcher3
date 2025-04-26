@@ -104,10 +104,6 @@
     <string name="toast_split_app_unsupported" msgid="2360229567007828914">"Chọn một ứng dụng khác để dùng chế độ chia đôi màn hình"</string>
     <string name="blocked_by_policy" msgid="2071401072261365546">"Ứng dụng hoặc tổ chức của bạn không cho phép thực hiện hành động này"</string>
     <string name="split_widgets_not_supported" msgid="1355743038053053866">"Các tiện ích hiện không được hỗ trợ, vui lòng chọn một ứng dụng khác"</string>
-    <string name="skip_tutorial_dialog_title" msgid="2725643161260038458">"Bỏ qua phần hướng dẫn thao tác?"</string>
-    <string name="skip_tutorial_dialog_subtitle" msgid="544063326241955662">"Bạn có thể tìm lại phần hướng dẫn này trong ứng dụng <xliff:g id="NAME">%1$s</xliff:g>"</string>
-    <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"Hủy"</string>
-    <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"Bỏ qua"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"Xoay màn hình"</string>
     <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"Ảnh động minh hoạ cách thanh tác vụ xuất hiện từ cuối màn hình và tự động ẩn khi người dùng không sử dụng"</string>
     <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"Ảnh động minh hoạ cách ghim thanh tác vụ bằng nút bật/tắt để thanh tác vụ luôn hiển thị ở cuối màn hình"</string>

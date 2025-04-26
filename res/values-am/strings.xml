@@ -113,10 +113,8 @@
     <string name="gadget_complete_setup_text" msgid="309040266978007925">"ማዋቀርን ለመጨረስ መታ ያድርጉ"</string>
     <string name="uninstall_system_app_text" msgid="4172046090762920660">"ይህ የስርዓት መተግበሪያ ነው እና ማራገፍ አይቻልም።"</string>
     <string name="folder_hint_text" msgid="5174843001373488816">"ስም ያርትዑ"</string>
-    <!-- no translation found for paginate_left (7915437358451360433) -->
-    <skip />
-    <!-- no translation found for paginate_right (6701038155201975878) -->
-    <skip />
+    <string name="paginate_left" msgid="7915437358451360433">"ወደ ግራ ገፅ ይስጡ"</string>
+    <string name="paginate_right" msgid="6701038155201975878">"ወደ ቀኝ ገፅ ይስጡ"</string>
     <string name="disabled_app_label" msgid="6673129024321402780">"<xliff:g id="APP_NAME">%1$s</xliff:g> ተሰናክሏል"</string>
     <string name="dotted_app_label" msgid="1865617679843363410">"{count,plural, =1{{app_name}፣ # ማሳወቂያ አለው}one{{app_name}፣ # ማሳወቂያዎች አሉት}other{{app_name}፣ # ማሳወቂያዎች አሉት}}"</string>
     <string name="default_scroll_format" msgid="7475544710230993317">"ገፅ %1$d ከ%2$d"</string>

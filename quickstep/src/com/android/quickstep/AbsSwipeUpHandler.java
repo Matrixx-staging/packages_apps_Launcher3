@@ -175,6 +175,8 @@ import com.android.wm.shell.shared.startingsurface.SplashScreenExitAnimationUtil
 
 import com.google.android.msdl.data.model.MSDLToken;
 
+import kotlin.Unit;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -182,8 +184,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.function.Consumer;
-
-import kotlin.Unit;
 
 /**
  * Handles the navigation gestures when Launcher is the default home activity.

@@ -79,8 +79,9 @@ public final class OverviewComponentObserver {
 
     private final PerDisplayRepository<FallbackWindowInterface> mFallbackWindowInterfaceRepository;
 
-    private final Intent mCurrentHomeIntent;
-    private final Intent mMyHomeIntent;
+    private final Intent mCurrentPrimaryHomeIntent;
+    private final Intent mSecondaryHomeIntent;
+    private final Intent mMyPrimaryHomeIntent;
     private final Intent mFallbackIntent;
     private final SparseIntArray mConfigChangesMap = new SparseIntArray();
     private final String mSetupWizardPkg;
@@ -105,12 +106,23 @@ public final class OverviewComponentObserver {
         mOtherHomeAppUpdateReceiver =
                 new SimpleBroadcastReceiver(context, MAIN_EXECUTOR, this::updateOverviewTargets);
         mFallbackWindowInterfaceRepository = fallbackWindowInterfaceRepository;
-        mCurrentHomeIntent = createHomeIntent();
-        mMyHomeIntent = new Intent(mCurrentHomeIntent).setPackage(context.getPackageName());
-        ResolveInfo info = context.getPackageManager().resolveActivity(mMyHomeIntent, 0);
+        // Set up primary intents
+        mCurrentPrimaryHomeIntent = createHomeIntent();
+        mMyPrimaryHomeIntent = new Intent(mCurrentPrimaryHomeIntent).setPackage(
+                context.getPackageName());
+        ResolveInfo info = context.getPackageManager().resolveActivity(mMyPrimaryHomeIntent, 0);
         ComponentName myHomeComponent =
                 new ComponentName(context.getPackageName(), info.activityInfo.name);
-        mMyHomeIntent.setComponent(myHomeComponent);
+        mMyPrimaryHomeIntent.setComponent(myHomeComponent);
+        // Set up secondary home intent
+        mSecondaryHomeIntent = createSecondaryHomeIntent().setPackage(
+                context.getPackageName());
+        ResolveInfo secondaryInfo = context.getPackageManager().resolveActivity(
+                mSecondaryHomeIntent, 0);
+        ComponentName secondaryComponent = new ComponentName(context,
+                secondaryInfo.activityInfo.name);
+        mSecondaryHomeIntent.setComponent(secondaryComponent);
+
         mConfigChangesMap.append(myHomeComponent.hashCode(), info.activityInfo.configChanges);
         mSetupWizardPkg = context.getString(R.string.setup_wizard_pkg);
 
@@ -172,7 +184,7 @@ public final class OverviewComponentObserver {
             defaultHome = null;
         }
 
-        mIsDefaultHome = Objects.equals(mMyHomeIntent.getComponent(), defaultHome);
+        mIsDefaultHome = Objects.equals(mMyPrimaryHomeIntent.getComponent(), defaultHome);
 
         // Set assistant visibility to 0 from launcher's perspective, ensures any elements that
         // launcher made invisible become visible again before the new activity control helper
@@ -184,7 +196,7 @@ public final class OverviewComponentObserver {
         if (SEPARATE_RECENTS_ACTIVITY.get()) {
             mIsDefaultHome = false;
             if (defaultHome == null) {
-                defaultHome = mMyHomeIntent.getComponent();
+                defaultHome = mMyPrimaryHomeIntent.getComponent();
             }
         }
 
@@ -202,8 +214,8 @@ public final class OverviewComponentObserver {
                 mDefaultDisplayContainerInterface = LauncherActivityInterface.INSTANCE;
             }
             mIsHomeAndOverviewSame = true;
-            mOverviewIntent = mMyHomeIntent;
-            mCurrentHomeIntent.setComponent(mMyHomeIntent.getComponent());
+            mOverviewIntent = mMyPrimaryHomeIntent;
+            mCurrentPrimaryHomeIntent.setComponent(mMyPrimaryHomeIntent.getComponent());
 
             // Remove any update listener as we don't care about other packages.
             unregisterOtherHomeAppUpdateReceiver();
@@ -217,7 +229,7 @@ public final class OverviewComponentObserver {
             }
             mIsHomeAndOverviewSame = false;
             mOverviewIntent = mFallbackIntent;
-            mCurrentHomeIntent.setComponent(defaultHome);
+            mCurrentPrimaryHomeIntent.setComponent(defaultHome);
 
             // User's default home app can change as a result of package updates of this app (such
             // as uninstalling the app or removing the "Launcher" feature in an update).
@@ -275,7 +287,7 @@ public final class OverviewComponentObserver {
      * @return the overview intent
      */
     public Intent getOverviewIntentIgnoreSysUiState() {
-        return mIsDefaultHome ? mMyHomeIntent : mOverviewIntent;
+        return mIsDefaultHome ? mMyPrimaryHomeIntent : mOverviewIntent;
     }
 
     /**
@@ -290,8 +302,12 @@ public final class OverviewComponentObserver {
     /**
      * Get the current intent for going to the home activity.
      */
-    public Intent getHomeIntent() {
-        return mCurrentHomeIntent;
+    public Intent getHomeIntent(int displayId) {
+        if (displayId == DEFAULT_DISPLAY) {
+            return mCurrentPrimaryHomeIntent;
+        } else {
+            return mSecondaryHomeIntent;
+        }
     }
 
     /**
@@ -320,7 +336,8 @@ public final class OverviewComponentObserver {
         pw.println("  isHomeDisabled=" + mIsHomeDisabled);
         pw.println("  homeAndOverviewSame=" + mIsHomeAndOverviewSame);
         pw.println("  overviewIntent=" + mOverviewIntent);
-        pw.println("  homeIntent=" + mCurrentHomeIntent);
+        pw.println("  homeIntent=" + mCurrentPrimaryHomeIntent);
+        pw.println("  secondaryHomeIntent=" + mSecondaryHomeIntent);
     }
 
     /**
@@ -328,7 +345,8 @@ public final class OverviewComponentObserver {
      */
     public static void startHomeIntentSafely(@NonNull Context context, @Nullable Bundle options,
             @NonNull String reason) {
-        Intent intent = OverviewComponentObserver.INSTANCE.get(context).getHomeIntent();
+        Intent intent = OverviewComponentObserver.INSTANCE.get(context).getHomeIntent(
+                DEFAULT_DISPLAY);
         startHomeIntentSafely(context, intent, options, reason);
     }
 
@@ -362,6 +380,11 @@ public final class OverviewComponentObserver {
     private static Intent createHomeIntent() {
         return new Intent(Intent.ACTION_MAIN)
                 .addCategory(Intent.CATEGORY_HOME)
+                .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    }
+    private static Intent createSecondaryHomeIntent() {
+        return new Intent(Intent.ACTION_MAIN)
+                .addCategory(Intent.CATEGORY_SECONDARY_HOME)
                 .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
     }
 }

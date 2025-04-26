@@ -59,15 +59,15 @@ import com.android.quickstep.views.RecentsView
 import com.android.quickstep.views.TaskView
 import com.android.systemui.shared.recents.model.ThumbnailData
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper
+import java.io.PrintWriter
+import java.util.concurrent.ConcurrentLinkedDeque
+import kotlin.coroutines.resume
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
-import java.io.PrintWriter
-import java.util.concurrent.ConcurrentLinkedDeque
-import kotlin.coroutines.resume
 
 /** Helper class to handle various atomic commands for switching between Overview. */
 class OverviewCommandHelper
@@ -365,7 +365,9 @@ constructor(
                 // we should still call it on main thread because launcher is waiting for
                 // ActivityTaskManager to resume it. Also calling startActivity() on bg thread
                 // could potentially delay resuming launcher. See b/348668521 for more details.
-                touchInteractionService.startActivity(overviewComponentObserver.homeIntent)
+                touchInteractionService.startActivity(
+                    overviewComponentObserver.getHomeIntent(command.displayId)
+                )
                 return true
             }
 
@@ -573,7 +575,13 @@ constructor(
         recentsView.viewRootImpl.touchModeChanged(false)
         // Ensure that recents view has focus so that it receives the followup key inputs
         // Stops requesting focused after first view gets focused.
-        recentsView.getTaskViewAt(keyboardTaskFocusIndex).requestFocus() ||
+        recentsView
+            .getTaskViewAt(
+                recentsView.indexOfChild(
+                    recentsView.taskViews.elementAtOrNull(keyboardTaskFocusIndex)
+                )
+            )
+            .requestFocus() ||
             recentsView.nextTaskView.requestFocus() ||
             recentsView.firstTaskView.requestFocus() ||
             recentsView.requestFocus()
@@ -585,7 +593,8 @@ constructor(
             return
         }
         recentsView.setKeyboardTaskFocusIndex(PagedView.INVALID_PAGE)
-        recentsView.currentPage = keyboardTaskFocusIndex
+        recentsView.currentPage =
+            recentsView.indexOfChild(recentsView.taskViews.elementAtOrNull(keyboardTaskFocusIndex))
         keyboardTaskFocusIndex = PagedView.INVALID_PAGE
     }
 

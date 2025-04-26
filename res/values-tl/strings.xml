@@ -113,10 +113,8 @@
     <string name="gadget_complete_setup_text" msgid="309040266978007925">"I-tap para tapusin ang pag-set up"</string>
     <string name="uninstall_system_app_text" msgid="4172046090762920660">"Isa itong app ng system at hindi maaaring i-uninstall."</string>
     <string name="folder_hint_text" msgid="5174843001373488816">"I-edit ang Pangalan"</string>
-    <!-- no translation found for paginate_left (7915437358451360433) -->
-    <skip />
-    <!-- no translation found for paginate_right (6701038155201975878) -->
-    <skip />
+    <string name="paginate_left" msgid="7915437358451360433">"Mag-paginate pakaliwa"</string>
+    <string name="paginate_right" msgid="6701038155201975878">"Mag-paginate pakanan"</string>
     <string name="disabled_app_label" msgid="6673129024321402780">"Naka-disable ang <xliff:g id="APP_NAME">%1$s</xliff:g>"</string>
     <string name="dotted_app_label" msgid="1865617679843363410">"{count,plural, =1{May # notification ang {app_name}}one{May # notification ang {app_name}}other{May # na notification ang {app_name}}}"</string>
     <string name="default_scroll_format" msgid="7475544710230993317">"Pahina %1$d ng %2$d"</string>

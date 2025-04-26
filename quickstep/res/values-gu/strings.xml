@@ -104,10 +104,6 @@
     <string name="toast_split_app_unsupported" msgid="2360229567007828914">"સ્ક્રીન વિભાજનનો ઉપયોગ કરવા કોઈ અન્ય ઍપ પસંદ કરો"</string>
     <string name="blocked_by_policy" msgid="2071401072261365546">"ઍપ કે તમારી સંસ્થા દ્વારા આ ક્રિયા કરવાની મંજૂરી નથી"</string>
     <string name="split_widgets_not_supported" msgid="1355743038053053866">"વિજેટ હાલમાં સપોર્ટેડ નથી, કૃપા કરીને કોઈ બીજી ઍપ પસંદ કરો"</string>
-    <string name="skip_tutorial_dialog_title" msgid="2725643161260038458">"નૅવિગેશન ટ્યૂટૉરિઅલ છોડી દઈએ?"</string>
-    <string name="skip_tutorial_dialog_subtitle" msgid="544063326241955662">"તમે આને પછીથી <xliff:g id="NAME">%1$s</xliff:g> ઍપમાં જોઈ શકો છો"</string>
-    <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"રદ કરો"</string>
-    <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"છોડો"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"સ્ક્રીન ફેરવો"</string>
     <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"ઍનિમેશન બતાવે છે કે કેવી રીતે ટાસ્કબાર સ્ક્રીનના તળિયેથી દૃશ્યમાં આવે છે અને ઉપયોગમાં ન હોય ત્યારે ઑટોમૅટિક રીતે છુપાઇ જાય છે"</string>
     <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"ઍનિમેશન બતાવે છે કે કેવી રીતે ટૉગલ કરો બટનનો ઉપયોગ કરીને તમારા ટાસ્કબારને પિન કરવું, જેથી કરીને સ્ક્રીનના તળિયે ટાસ્કબાર કાયમી રીતે દેખાતું રહે"</string>

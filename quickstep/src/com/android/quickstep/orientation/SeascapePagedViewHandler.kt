@@ -29,6 +29,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.core.util.component1
 import androidx.core.util.component2
+import androidx.core.view.marginStart
 import androidx.core.view.updateLayoutParams
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.R
@@ -72,7 +73,13 @@ class SeascapePagedViewHandler : LandscapePagedViewHandler() {
         deviceProfile: DeviceProfile,
         taskInsetMargin: Float,
         taskViewIcon: View,
-    ): Float = x + taskInsetMargin
+    ): Float =
+        if (enableOverviewIconMenu()) {
+            taskViewIcon as IconAppChipView
+            x - taskViewIcon.menuToCollapsedChipGap
+        } else {
+            x + taskInsetMargin
+        }
 
     override fun getTaskMenuY(
         y: Float,
@@ -83,7 +90,8 @@ class SeascapePagedViewHandler : LandscapePagedViewHandler() {
         taskViewIcon: View,
     ): Float {
         if (enableOverviewIconMenu()) {
-            return y
+            val marginStart = (taskViewIcon as IconAppChipView).backgroundMarginTopStart
+            return if (taskMenuView.isLayoutRtl) y + marginStart else y - marginStart
         }
         val lp = taskMenuView.layoutParams as BaseDragLayer.LayoutParams
         val taskMenuWidth = lp.width
@@ -93,6 +101,12 @@ class SeascapePagedViewHandler : LandscapePagedViewHandler() {
             y + taskMenuWidth + taskInsetMargin
         }
     }
+
+    override fun getAppChipMenuMarginX(appChipView: IconAppChipView, isRtl: Boolean): Int =
+        -appChipView.menuToCollapsedChipGap
+
+    override fun getAppChipMenuMarginY(appChipView: IconAppChipView, isRtl: Boolean): Int =
+        if (isRtl) -appChipView.backgroundMarginTopStart else appChipView.backgroundMarginTopStart
 
     override fun getTaskMenuHeight(
         taskInsetMargin: Float,

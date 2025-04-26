@@ -15,6 +15,8 @@
  */
 package com.android.launcher3.taskbar;
 
+import static android.window.DesktopModeFlags.ENABLE_TASKBAR_OVERFLOW;
+
 import static com.android.launcher3.taskbar.TaskbarDesktopExperienceFlags.enableAltTabKqsFlatenning;
 import static com.android.launcher3.taskbar.TaskbarDesktopExperienceFlags.enableAltTabKqsOnConnectedDisplays;
 
@@ -27,7 +29,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
-import com.android.launcher3.Flags;
 import com.android.launcher3.R;
 import com.android.launcher3.taskbar.overlay.TaskbarOverlayContext;
 import com.android.launcher3.taskbar.overlay.TaskbarOverlayDragLayer;
@@ -187,7 +188,7 @@ public final class KeyboardQuickSwitchController implements
         }
 
         mOverlayContext = mControllers.taskbarOverlayController.requestWindow();
-        if (Flags.taskbarOverflow()) {
+        if (ENABLE_TASKBAR_OVERFLOW.isTrue()) {
             mOverlayContext.getDragLayer().addTouchController(this);
         }
         KeyboardQuickSwitchView keyboardQuickSwitchView =
@@ -239,8 +240,8 @@ public final class KeyboardQuickSwitchController implements
     }
 
     private boolean shouldExcludeTask(GroupTask task, Set<Integer> taskIdsToExclude) {
-        return Flags.taskbarOverflow() && task.getTasks().stream().anyMatch(
-                t -> taskIdsToExclude.contains(t.key.id));
+        return ENABLE_TASKBAR_OVERFLOW.isTrue()
+                && task.getTasks().stream().anyMatch(t -> taskIdsToExclude.contains(t.key.id));
     }
 
     private void processLoadedTasks(List<GroupTask> tasks, Set<Integer> taskIdsToExclude) {
@@ -376,7 +377,7 @@ public final class KeyboardQuickSwitchController implements
     public boolean onControllerInterceptTouchEvent(MotionEvent ev) {
         if (mQuickSwitchViewController == null
                 || mOverlayContext == null
-                || !Flags.taskbarOverflow()) {
+                || !ENABLE_TASKBAR_OVERFLOW.isTrue()) {
             return false;
         }
 
@@ -472,7 +473,7 @@ public final class KeyboardQuickSwitchController implements
         }
 
         void onCloseComplete() {
-            if (Flags.taskbarOverflow() && mOverlayContext != null) {
+            if (ENABLE_TASKBAR_OVERFLOW.isTrue() && mOverlayContext != null) {
                 mOverlayContext.getDragLayer()
                         .removeTouchController(KeyboardQuickSwitchController.this);
             }

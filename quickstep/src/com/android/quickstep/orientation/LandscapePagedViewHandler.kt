@@ -37,6 +37,7 @@ import android.widget.LinearLayout
 import androidx.annotation.VisibleForTesting
 import androidx.core.util.component1
 import androidx.core.util.component2
+import androidx.core.view.marginStart
 import androidx.core.view.updateLayoutParams
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.LauncherAnimUtils
@@ -182,7 +183,12 @@ open class LandscapePagedViewHandler : RecentsPagedOrientationHandler {
         deviceProfile: DeviceProfile,
         taskInsetMargin: Float,
         taskViewIcon: View,
-    ): Float = thumbnailView.measuredWidth + x - taskInsetMargin
+    ): Float =
+        if (enableOverviewIconMenu()) {
+            x + (taskViewIcon as IconAppChipView).menuToCollapsedChipGap
+        } else {
+            thumbnailView.measuredWidth + x - taskInsetMargin
+        }
 
     override fun getTaskMenuY(
         y: Float,
@@ -192,6 +198,11 @@ open class LandscapePagedViewHandler : RecentsPagedOrientationHandler {
         taskInsetMargin: Float,
         taskViewIcon: View,
     ): Float {
+        if (enableOverviewIconMenu()) {
+            val marginStart = (taskViewIcon as IconAppChipView).backgroundMarginTopStart
+            return if (taskMenuView.isLayoutRtl) y - marginStart else y + marginStart
+        }
+
         val layoutParams = taskMenuView.layoutParams as BaseDragLayer.LayoutParams
         var taskMenuY = y + taskInsetMargin
 
@@ -201,6 +212,12 @@ open class LandscapePagedViewHandler : RecentsPagedOrientationHandler {
 
         return taskMenuY
     }
+
+    override fun getAppChipMenuMarginX(appChipView: IconAppChipView, isRtl: Boolean): Int =
+        appChipView.menuToCollapsedChipGap
+
+    override fun getAppChipMenuMarginY(appChipView: IconAppChipView, isRtl: Boolean): Int =
+        if (isRtl) appChipView.backgroundMarginTopStart else -appChipView.backgroundMarginTopStart
 
     override fun getTaskMenuWidth(
         thumbnailView: View,

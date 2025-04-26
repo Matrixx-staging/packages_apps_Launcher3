@@ -930,7 +930,8 @@ public class SplitSelectStateController {
                             .startRecentsActivity(
                                     mOverviewComponentObserver.getOverviewIntent(), options,
                                     callbacks, false /* useSyntheticRecentsTransition */,
-                                    withRecentsWct);
+                                    withRecentsWct,
+                                    ExternalDisplaysKt.getSafeDisplayId(taskInfo));
                 });
             } else {
                 animation.start(updateTaskbarRunnable);

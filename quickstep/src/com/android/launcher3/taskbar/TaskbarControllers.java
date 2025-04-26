@@ -248,6 +248,7 @@ public class TaskbarControllers {
         }, () -> uiController.onBubbleBarLocationUpdated(null));
         // Notify that the ui controller has changed
         navbarButtonsViewController.onUiControllerChanged();
+        taskbarViewController.onUiControllerChanged();
     }
 
     @Nullable

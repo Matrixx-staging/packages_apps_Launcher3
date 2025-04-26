@@ -235,11 +235,6 @@ public class SecondaryDisplayLauncher extends BaseActivity
     }
 
     @Override
-    public void startBinding() {
-        mDragController.cancelDrag();
-    }
-
-    @Override
     public void bindDeepShortcutMap(HashMap<ComponentKey, Integer> deepShortcutMap) {
         mPopupDataProvider.setDeepShortcutMap(deepShortcutMap);
     }

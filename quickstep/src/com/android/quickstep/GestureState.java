@@ -194,7 +194,7 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
 
     public GestureState(OverviewComponentObserver componentObserver, int displayId, int gestureId) {
         mDisplayId = displayId;
-        mHomeIntent = componentObserver.getHomeIntent();
+        mHomeIntent = componentObserver.getHomeIntent(displayId);
         mOverviewIntent = componentObserver.getOverviewIntent();
         mContainerInterface = componentObserver.getContainerInterface(displayId);
         mStateCallback = new MultiStateCallback(

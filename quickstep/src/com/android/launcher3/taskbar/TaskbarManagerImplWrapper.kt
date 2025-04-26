@@ -261,6 +261,11 @@ class TaskbarManagerImplWrapper(private val impl: TaskbarManagerImpl) : TaskbarM
         )
     }
 
+    override fun getPrimaryDisplayId(): Int {
+        // Thread safe
+        return impl.getPrimaryDisplayId()
+    }
+
     override fun dumpLogs(prefix: String, pw: PrintWriter) {
         // Stay on caller thread because PrinterWriter is not thread safe.
         impl.dumpLogs(prefix, pw)

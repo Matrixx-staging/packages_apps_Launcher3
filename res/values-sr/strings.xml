@@ -113,10 +113,8 @@
     <string name="gadget_complete_setup_text" msgid="309040266978007925">"Додирните да бисте довршили подешавање"</string>
     <string name="uninstall_system_app_text" msgid="4172046090762920660">"Ово је системска апликација и не може да се деинсталира."</string>
     <string name="folder_hint_text" msgid="5174843001373488816">"Измените назив"</string>
-    <!-- no translation found for paginate_left (7915437358451360433) -->
-    <skip />
-    <!-- no translation found for paginate_right (6701038155201975878) -->
-    <skip />
+    <string name="paginate_left" msgid="7915437358451360433">"Нумериши странице лево"</string>
+    <string name="paginate_right" msgid="6701038155201975878">"Нумериши странице десно"</string>
     <string name="disabled_app_label" msgid="6673129024321402780">"Апликација <xliff:g id="APP_NAME">%1$s</xliff:g> је онемогућена"</string>
     <string name="dotted_app_label" msgid="1865617679843363410">"{count,plural, =1{{app_name}, има # обавештење}one{{app_name}, има # обавештење}few{{app_name}, има # обавештења}other{{app_name}, има # обавештења}}"</string>
     <string name="default_scroll_format" msgid="7475544710230993317">"%1$d. страница од %2$d"</string>

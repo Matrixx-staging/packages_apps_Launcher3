@@ -16,6 +16,7 @@
 package com.android.launcher3.taskbar;
 
 import static android.view.accessibility.AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED;
+import static android.window.DesktopModeFlags.ENABLE_TASKBAR_OVERFLOW;
 import static android.window.DesktopModeFlags.ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION;
 
 import static com.android.launcher3.BubbleTextView.DISPLAY_TASKBAR;
@@ -38,6 +39,7 @@ import android.view.InputDevice;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import androidx.annotation.LayoutRes;
@@ -51,6 +53,7 @@ import com.android.launcher3.Insettable;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.apppairs.AppPairIcon;
+import com.android.launcher3.celllayout.CellInfo;
 import com.android.launcher3.folder.FolderIcon;
 import com.android.launcher3.folder.PreviewBackground;
 import com.android.launcher3.model.data.AppPairInfo;
@@ -191,7 +194,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             mTaskbarDividerContainer = new TaskbarDividerContainer(context);
         }
 
-        if (Flags.taskbarOverflow()) {
+        if (ENABLE_TASKBAR_OVERFLOW.isTrue()) {
             mTaskbarOverflowView = TaskbarOverflowView.inflateIcon(
                     R.layout.taskbar_overflow_view, this,
                     mIconTouchSize, mItemPadding);
@@ -259,7 +262,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
      * that should be shown in the taskbar.
      */
     boolean updateMaxNumIcons() {
-        if (!Flags.taskbarOverflow()) {
+        if (!ENABLE_TASKBAR_OVERFLOW.isTrue()) {
             return false;
         }
         int oldMaxNumIcons = mMaxNumIcons;
@@ -350,23 +353,29 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         mIconLongClickListener = mControllerCallbacks.getIconOnLongClickListener();
 
         mAllAppsButtonContainer.setUpCallbacks(callbacks);
-        if (mTaskbarDividerContainer != null
-                && mActivityContext.getTaskbarFeatureEvaluator().getSupportsPinningPopup()) {
-            mTaskbarDividerContainer.setUpCallbacks(callbacks);
-        }
         if (mTaskbarOverflowView != null) {
             mTaskbarOverflowView.setOnClickListener(
                     mControllerCallbacks.getOverflowOnClickListener());
             mTaskbarOverflowView.setOnLongClickListener(
                     mControllerCallbacks.getOverflowOnLongClickListener());
         }
-        if (Flags.showTaskbarPinningPopupFromAnywhere()
-                && mActivityContext.getTaskbarFeatureEvaluator().getSupportsPinningPopup()) {
-            setOnTouchListener(mControllerCallbacks.getTaskbarTouchListener());
+
+        if (ENABLE_TASKBAR_OVERFLOW.isTrue()) {
+            mMaxNumIcons = calculateMaxNumIcons();
+        }
+    }
+
+    void updatePinningPopupEventHandlers() {
+        boolean supportsPinningPopup =
+                mActivityContext.getTaskbarFeatureEvaluator().getSupportsPinningPopup();
+        if (mTaskbarDividerContainer != null) {
+            mTaskbarDividerContainer.setUpCallbacks(
+                    supportsPinningPopup ? mControllerCallbacks : null);
         }
 
-        if (Flags.taskbarOverflow()) {
-            mMaxNumIcons = calculateMaxNumIcons();
+        if (Flags.showTaskbarPinningPopupFromAnywhere()) {
+            setOnTouchListener(
+                    supportsPinningPopup ? mControllerCallbacks.getTaskbarTouchListener() : null);
         }
     }
 
@@ -570,12 +579,19 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                 } else {
                     hotseatView = inflate(expectedLayoutResId);
                 }
-                LayoutParams lp = new LayoutParams(mIconTouchSize, mIconTouchSize);
+                LayoutParams lp = new TaskbarLayoutParams(mIconTouchSize, mIconTouchSize);
                 hotseatView.setPadding(mItemPadding, mItemPadding, mItemPadding, mItemPadding);
                 addView(hotseatView, mNextViewIndex, lp);
             } else if (hotseatView instanceof FolderIcon fi) {
                 fi.onItemsChanged(false);
                 fi.getFolder().reapplyItemInfo();
+            }
+
+            if (hotseatView.getLayoutParams() instanceof TaskbarLayoutParams tlp) {
+                tlp.bindInfo = new CellInfo(hotseatView,
+                        hotseatItemInfo.screenId, hotseatItemInfo.container,
+                        hotseatItemInfo.cellX, hotseatItemInfo.cellY,
+                        hotseatItemInfo.spanX, hotseatItemInfo.spanY);
             }
 
             // Apply the Hotseat ItemInfos, or hide the view if there is none for a given index.
@@ -602,7 +618,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     }
 
     private void updateRecents(List<GroupTask> recentTasks, int hotseatSize) {
-        boolean supportsOverflow = Flags.taskbarOverflow() && recentTasks.size() > 1;
+        boolean supportsOverflow = ENABLE_TASKBAR_OVERFLOW.isTrue() && recentTasks.size() > 1;
         int overflowSize = 0;
         boolean hasOverflow = false;
         if (supportsOverflow && mTaskbarOverflowView != null) {
@@ -696,7 +712,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             if (recentIcon == null) {
                 // TODO(b/343289567 and b/316004172): support app pairs and desktop mode.
                 recentIcon = inflate(expectedLayoutResId);
-                LayoutParams lp = new LayoutParams(mIconTouchSize, mIconTouchSize);
+                LayoutParams lp = new TaskbarLayoutParams(mIconTouchSize, mIconTouchSize);
                 recentIcon.setPadding(mItemPadding, mItemPadding, mItemPadding, mItemPadding);
                 addView(recentIcon, mNextViewIndex, lp);
             }
@@ -1128,6 +1144,38 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             return getWidth() - navSpaceNeeded;
         } else {
             return navSpaceNeeded + getIconLayoutWidth();
+        }
+    }
+
+    @Override
+    protected ViewGroup.LayoutParams generateLayoutParams(ViewGroup.LayoutParams lp) {
+        return new TaskbarLayoutParams(lp);
+    }
+
+    @Override
+    public LayoutParams generateLayoutParams(AttributeSet attrs) {
+        return new TaskbarLayoutParams(getContext(), attrs);
+    }
+
+    @Override
+    protected boolean checkLayoutParams(ViewGroup.LayoutParams p) {
+        return p instanceof TaskbarLayoutParams;
+    }
+
+    public static class TaskbarLayoutParams extends FrameLayout.LayoutParams {
+
+        @Nullable public CellInfo bindInfo;
+
+        public TaskbarLayoutParams(Context context, AttributeSet attrs) {
+            super(context, attrs);
+        }
+
+        public TaskbarLayoutParams(ViewGroup.LayoutParams source) {
+            super(source);
+        }
+
+        public TaskbarLayoutParams(int width, int height) {
+            super(width, height);
         }
     }
 }

@@ -113,7 +113,7 @@ class BubbleBarViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
             val lp = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
             container.layoutParams = lp
             container.addView(bubbleBarView)
-            bubbleBarView.isExpanded = true
+            bubbleBarView.animateExpanded(true)
             container
         }
     }

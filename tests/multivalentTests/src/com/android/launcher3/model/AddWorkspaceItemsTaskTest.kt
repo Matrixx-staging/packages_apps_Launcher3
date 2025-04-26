@@ -61,8 +61,7 @@ class AddWorkspaceItemsTaskTest : AbstractWorkspaceModelTest() {
         val addedItems = testAddItems(nonEmptyScreenIds, itemToAdd)
 
         assertThat(addedItems.size).isEqualTo(1)
-        assertThat(addedItems.first().itemInfo.screenId).isEqualTo(1)
-        assertThat(addedItems.first().isAnimated).isTrue()
+        assertThat(addedItems.first().screenId).isEqualTo(1)
         verifyItemSpaceFinderCall(nonEmptyScreenIds, numberOfExpectedCall = 1)
     }
 
@@ -75,8 +74,7 @@ class AddWorkspaceItemsTaskTest : AbstractWorkspaceModelTest() {
         val addedItems = testAddItems(nonEmptyScreenIds, *itemsToAdd)
 
         assertThat(addedItems.size).isEqualTo(1)
-        assertThat(addedItems.first().itemInfo.screenId).isEqualTo(1)
-        assertThat(addedItems.first().isAnimated).isTrue()
+        assertThat(addedItems.first().screenId).isEqualTo(1)
         verifyItemSpaceFinderCall(nonEmptyScreenIds, numberOfExpectedCall = 1)
     }
 
@@ -102,8 +100,7 @@ class AddWorkspaceItemsTaskTest : AbstractWorkspaceModelTest() {
         val addedItems = testAddItems(nonEmptyScreenIds, itemToAdd)
 
         assertThat(addedItems.size).isEqualTo(1)
-        assertThat(addedItems.first().itemInfo.screenId).isEqualTo(2)
-        assertThat(addedItems.first().isAnimated).isTrue()
+        assertThat(addedItems.first().screenId).isEqualTo(2)
         verifyItemSpaceFinderCall(nonEmptyScreenIds, numberOfExpectedCall = 1)
     }
 
@@ -120,14 +117,12 @@ class AddWorkspaceItemsTaskTest : AbstractWorkspaceModelTest() {
         assertThat(addedItems.size).isEqualTo(3)
 
         // Items that are added to the first screen should not be animated
-        val itemsAddedToFirstScreen = addedItems.filter { it.itemInfo.screenId == 1 }
+        val itemsAddedToFirstScreen = addedItems.filter { it.screenId == 1 }
         assertThat(itemsAddedToFirstScreen.size).isEqualTo(1)
-        assertThat(itemsAddedToFirstScreen.first().isAnimated).isFalse()
 
         // Items that are added to the second screen should be animated
-        val itemsAddedToSecondScreen = addedItems.filter { it.itemInfo.screenId == 2 }
+        val itemsAddedToSecondScreen = addedItems.filter { it.screenId == 2 }
         assertThat(itemsAddedToSecondScreen.size).isEqualTo(2)
-        itemsAddedToSecondScreen.forEach { assertThat(it.isAnimated).isTrue() }
         verifyItemSpaceFinderCall(nonEmptyScreenIds, numberOfExpectedCall = 3)
     }
 
@@ -160,11 +155,11 @@ class AddWorkspaceItemsTaskTest : AbstractWorkspaceModelTest() {
     private fun testAddItems(
         nonEmptyScreenIds: List<Int>,
         vararg itemsToAdd: WorkspaceItemInfo,
-    ): List<AddedItem> {
+    ): List<ItemInfo> {
         setupWorkspaces(nonEmptyScreenIds)
         val task = newTask(*itemsToAdd)
 
-        val addedItems = mutableListOf<AddedItem>()
+        val addedItems = mutableListOf<ItemInfo>()
 
         runOnExecutorSync(Executors.MODEL_EXECUTOR) {
             mDataModelCallbacks.addedItems.clear()
@@ -187,18 +182,11 @@ class AddWorkspaceItemsTaskTest : AbstractWorkspaceModelTest() {
             .let { AddWorkspaceItemsTask(it, mWorkspaceItemSpaceFinder) }
 }
 
-private data class AddedItem(val itemInfo: ItemInfo, val isAnimated: Boolean)
-
 private class MyCallbacks : BgDataModel.Callbacks {
 
-    val addedItems = mutableListOf<AddedItem>()
+    val addedItems = mutableListOf<ItemInfo>()
 
-    override fun bindAppsAdded(
-        newScreens: IntArray?,
-        addNotAnimated: ArrayList<ItemInfo>,
-        addAnimated: ArrayList<ItemInfo>,
-    ) {
-        addedItems.addAll(addAnimated.map { AddedItem(it, true) })
-        addedItems.addAll(addNotAnimated.map { AddedItem(it, false) })
+    override fun bindItemsAdded(items: List<ItemInfo>) {
+        addedItems.addAll(items)
     }
 }

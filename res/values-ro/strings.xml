@@ -113,10 +113,8 @@
     <string name="gadget_complete_setup_text" msgid="309040266978007925">"Atinge pentru a finaliza configurarea"</string>
     <string name="uninstall_system_app_text" msgid="4172046090762920660">"Aceasta este o aplicație de sistem și nu poate fi dezinstalată."</string>
     <string name="folder_hint_text" msgid="5174843001373488816">"Modifică numele"</string>
-    <!-- no translation found for paginate_left (7915437358451360433) -->
-    <skip />
-    <!-- no translation found for paginate_right (6701038155201975878) -->
-    <skip />
+    <string name="paginate_left" msgid="7915437358451360433">"Paginare la stânga"</string>
+    <string name="paginate_right" msgid="6701038155201975878">"Paginare la dreapta"</string>
     <string name="disabled_app_label" msgid="6673129024321402780">"S-a dezactivat <xliff:g id="APP_NAME">%1$s</xliff:g>"</string>
     <string name="dotted_app_label" msgid="1865617679843363410">"{count,plural, =1{{app_name} are # notificare}few{{app_name} are # notificări}other{{app_name} are # de notificări}}"</string>
     <string name="default_scroll_format" msgid="7475544710230993317">"Pagina %1$d din %2$d"</string>

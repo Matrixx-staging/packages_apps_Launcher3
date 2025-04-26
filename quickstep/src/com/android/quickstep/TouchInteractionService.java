@@ -322,13 +322,12 @@ public class TouchInteractionService extends Service {
 
         @BinderThread
         @Override
-        public void enterStageSplitFromRunningApp(boolean leftOrTop) {
+        public void enterStageSplitFromRunningApp(int displayId, boolean leftOrTop) {
             executeForTouchInteractionService(tis -> {
-                // TODO (b/397942185): support external displays
                 RecentsViewContainer container = tis.mOverviewComponentObserver
-                        .getContainerInterface(DEFAULT_DISPLAY).getCreatedContainer();
+                        .getContainerInterface(displayId).getCreatedContainer();
                 if (container != null) {
-                    container.enterStageSplitFromRunningApp(leftOrTop);
+                    container.enterStageSplitFromRunningApp(leftOrTop, displayId);
                 }
             });
         }

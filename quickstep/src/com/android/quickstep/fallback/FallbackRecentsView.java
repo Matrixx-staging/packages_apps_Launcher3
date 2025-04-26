@@ -146,7 +146,7 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
                 PendingAnimation pendingAnimation = new PendingAnimation(TASK_DISMISS_DURATION);
                 createTaskDismissAnimation(pendingAnimation, homeTaskView, true, false,
                         TASK_DISMISS_DURATION, false /* dismissingForSplitSelection*/,
-                        false /* isExpressiveDismiss */, null /* gridEndData */);
+                        null /* gridEndData */);
                 pendingAnimation.addEndListener(e -> setCurrentTask(-1));
                 AnimatorPlaybackController controller = pendingAnimation.createPlaybackController();
                 controller.dispatchOnStart();

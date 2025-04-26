@@ -468,7 +468,7 @@ class TransientBubbleStashController(
                     // reset stash translation
                     translationYDuringStash.updateValue(0f)
                     bubbleBarBubbleTranslationY.updateValue(0f)
-                    bubbleBarViewController.isExpanded = false
+                    bubbleBarViewController.animateExpanded(false)
                 }
                 taskbarInsetsController.onTaskbarOrBubblebarWindowHeightOrInsetsChanged()
             }
@@ -578,7 +578,7 @@ class TransientBubbleStashController(
         }
         if (bubbleBarViewController.isExpanded != expand) {
             val maybeShowEdu = expand && bubbleBarGesture
-            bubbleBarViewController.setExpanded(expand, maybeShowEdu)
+            bubbleBarViewController.animateExpanded(expand, maybeShowEdu)
         }
     }
 

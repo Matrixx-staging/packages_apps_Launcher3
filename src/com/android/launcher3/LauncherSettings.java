@@ -197,17 +197,6 @@ public class LauncherSettings {
 
         public static final int CONTAINER_UNKNOWN = -1;
 
-
-        /**
-         * Function to know if a container belongs to the Workspace.
-         */
-        public static boolean containerBelongsToWorkspace(int container) {
-            return container == CONTAINER_DESKTOP
-                    || container == CONTAINER_HOTSEAT
-                    || container == CONTAINER_PREDICTION
-                    || container == CONTAINER_HOTSEAT_PREDICTION;
-        }
-
         public static final String containerToString(int container) {
             switch (container) {
                 case CONTAINER_DESKTOP: return "desktop";

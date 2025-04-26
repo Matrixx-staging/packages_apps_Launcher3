@@ -120,6 +120,7 @@ import java.util.Set;
 import java.util.concurrent.CancellationException;
 
 import javax.inject.Named;
+import javax.inject.Provider;
 
 /**
  * Runnable for the thread that loads the contents of the launcher:
@@ -169,6 +170,8 @@ public class LoaderTask implements Runnable {
     private final Set<PackageUserKey> mPendingPackages = new HashSet<>();
     private boolean mItemsDeleted = false;
     private String mDbName;
+    private final Provider<FolderNameProvider> mFolderNameProviderFactory;
+    private final Provider<LauncherRestoreEventLogger> mRestoreEventLoggerProvider;
 
     @AssistedInject
     LoaderTask(
@@ -182,9 +185,11 @@ public class LoaderTask implements Runnable {
             AllAppsList bgAllAppsList,
             BgDataModel bgModel,
             LoaderCursorFactory loaderCursorFactory,
+            Provider<FolderNameProvider> folderNameProviderFactory,
             @Named("SAFE_MODE") boolean isSafeModeEnabled,
             @Assisted @NonNull BaseLauncherBinder launcherBinder,
-            @Assisted UserManagerState userManagerState) {
+            @Assisted UserManagerState userManagerState,
+            Provider<LauncherRestoreEventLogger> restoreEventLoggerFactory) {
         mContext = context;
         mIDP = idp;
         mModel = model;
@@ -202,6 +207,8 @@ public class LoaderTask implements Runnable {
         mIconCache = iconCache;
         mUserManagerState = userManagerState;
         mInstallingPkgsCached = null;
+        mFolderNameProviderFactory = folderNameProviderFactory;
+        mRestoreEventLoggerProvider = restoreEventLoggerFactory;
     }
 
     protected synchronized void waitForIdle() {
@@ -268,7 +275,7 @@ public class LoaderTask implements Runnable {
                 LauncherPrefs.get(mContext).get(IS_FIRST_LOAD_AFTER_RESTORE);
         LauncherRestoreEventLogger restoreEventLogger = null;
         if (enableLauncherBrMetricsFixed()) {
-            restoreEventLogger = LauncherRestoreEventLogger.Companion.newInstance(mContext);
+            restoreEventLogger = mRestoreEventLoggerProvider.get();
         }
         try (LauncherModel.LoaderTransaction transaction = mModel.beginLoader(this)) {
             List<CacheableShortcutInfo> allShortcuts = new ArrayList<>();
@@ -879,8 +886,9 @@ public class LoaderTask implements Runnable {
     }
 
     private void loadFolderNames() {
-        FolderNameProvider provider = FolderNameProvider.newInstance(mContext,
-                mBgAllAppsList.data, FolderNameProvider.getCollectionForSuggestions(mBgDataModel));
+        FolderNameProvider provider = mFolderNameProviderFactory.get();
+        provider.load(mBgAllAppsList.data,
+                FolderNameProvider.getCollectionForSuggestions(mBgDataModel));
 
         synchronized (mBgDataModel) {
             mBgDataModel.itemsIdMap.stream()

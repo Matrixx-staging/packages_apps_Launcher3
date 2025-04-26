@@ -21,14 +21,14 @@ import android.graphics.Rect;
 import android.view.View;
 
 import com.android.launcher3.accessibility.DragViewStateAnnouncer;
+import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.dragndrop.DragOptions;
 import com.android.launcher3.dragndrop.DragView;
 import com.android.launcher3.dragndrop.DraggableView;
-import com.android.launcher3.folder.FolderNameProvider;
+import com.android.launcher3.folder.FolderNameSuggestionLoader;
 import com.android.launcher3.logging.InstanceId;
 import com.android.launcher3.logging.InstanceIdSequence;
 import com.android.launcher3.model.data.ItemInfo;
-import com.android.launcher3.util.Executors;
 
 /**
  * Interface defining an object that can receive a drag.
@@ -72,7 +72,7 @@ public interface DropTarget {
 
         public DragViewStateAnnouncer stateAnnouncer;
 
-        public FolderNameProvider folderNameProvider;
+        public FolderNameSuggestionLoader folderNameSuggestionLoader;
 
         /** The source view (ie. icon, widget etc.) that is being dragged and which the
          * DragView represents. May be an actual View class or a virtual stand-in */
@@ -82,8 +82,8 @@ public interface DropTarget {
         public final InstanceId logInstanceId = new InstanceIdSequence().newInstanceId();
 
         public DragObject(Context context) {
-            Executors.MODEL_EXECUTOR.post(() ->
-                    folderNameProvider = FolderNameProvider.newInstance(context));
+            folderNameSuggestionLoader = LauncherComponentProvider.get(context)
+                    .getFolderNameSuggestionLoader();
         }
 
         /**

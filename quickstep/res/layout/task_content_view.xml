@@ -14,21 +14,43 @@
   ~ limitations under the License.
   -->
 <com.android.quickstep.task.thumbnail.TaskContentView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/task_content_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:importantForAccessibility="no">
 
     <ViewStub
         android:id="@+id/task_header_view"
+        android:inflatedId="@+id/task_header_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
 
     <ViewStub
         android:id="@+id/snapshot"
+        android:inflatedId="@+id/snapshot"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        />
 
+    <ViewStub
+        android:id="@+id/task_app_timer_toast"
+        android:inflatedId="@+id/task_app_timer_toast"
+        android:importantForAccessibility="noHideDescendants"
+        android:contentDescription="@null"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/digital_wellbeing_toast_height"
+        android:layout_gravity="bottom"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/snapshot"
+        />
 </com.android.quickstep.task.thumbnail.TaskContentView>

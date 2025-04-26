@@ -113,10 +113,8 @@
     <string name="gadget_complete_setup_text" msgid="309040266978007925">"సెటప్‌ను ముగించడానికి ట్యాప్ చేయండి"</string>
     <string name="uninstall_system_app_text" msgid="4172046090762920660">"ఇది సిస్టమ్ యాప్ మరియు దీన్ని అన్‌ఇన్‌స్టాల్ చేయడం సాధ్యపడదు."</string>
     <string name="folder_hint_text" msgid="5174843001373488816">"పేరును ఎడిట్ చేయండి"</string>
-    <!-- no translation found for paginate_left (7915437358451360433) -->
-    <skip />
-    <!-- no translation found for paginate_right (6701038155201975878) -->
-    <skip />
+    <string name="paginate_left" msgid="7915437358451360433">"పేజీని ఎడమ వైపునకు స్క్రోల్ చేయండి"</string>
+    <string name="paginate_right" msgid="6701038155201975878">"పేజీని కుడి వైపునకు స్క్రోల్ చేయండి"</string>
     <string name="disabled_app_label" msgid="6673129024321402780">"<xliff:g id="APP_NAME">%1$s</xliff:g> నిలిపివేయబడింది"</string>
     <string name="dotted_app_label" msgid="1865617679843363410">"{count,plural, =1{{app_name}లో # నోటిఫికేషన్ ఉంది}other{{app_name}లో # నోటిఫికేషన్‌లు ఉన్నాయి}}"</string>
     <string name="default_scroll_format" msgid="7475544710230993317">"%2$dలో %1$dవ పేజీ"</string>

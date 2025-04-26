@@ -104,10 +104,6 @@
     <string name="toast_split_app_unsupported" msgid="2360229567007828914">"স্প্লিট স্ক্রিন ব্যবহার করতে অন্য অ্যাপ বেছে নিন"</string>
     <string name="blocked_by_policy" msgid="2071401072261365546">"এই অ্যাপ বা আপনার প্রতিষ্ঠান এই অ্যাকশনটি পারফর্ম করার অনুমতি দেয়নি"</string>
     <string name="split_widgets_not_supported" msgid="1355743038053053866">"উইজেট বর্তমানে ব্যবহার করা যাচ্ছে না, অন্য একটি অ্যাপ বেছে নিন"</string>
-    <string name="skip_tutorial_dialog_title" msgid="2725643161260038458">"নেভিগেশন টিউটোরিয়াল এড়িয়ে যেতে চান?"</string>
-    <string name="skip_tutorial_dialog_subtitle" msgid="544063326241955662">"আপনি <xliff:g id="NAME">%1$s</xliff:g> অ্যাপে পরে এটি খুঁজে পাবেন"</string>
-    <string name="gesture_tutorial_action_button_label_cancel" msgid="3809842569351264108">"বাতিল করুন"</string>
-    <string name="gesture_tutorial_action_button_label_skip" msgid="394452764989751960">"এড়িয়ে যান"</string>
     <string name="accessibility_rotate_button" msgid="4771825231336502943">"স্ক্রিন ঘোরান"</string>
     <string name="taskbar_edu_swipe_animation_description" msgid="1690727240826006218">"অ্যানিমেশন যেখানে দেখানো হচ্ছে, কীভাবে টাস্কবারটি স্ক্রিনের নিচ থেকে দেখা যায় এবং ব্যবহার করা না হলে অটোমেটিক লুকানো হয়"</string>
     <string name="taskbar_edu_pinning_animation_description" msgid="8148601093590683880">"অ্যানিমেশন যেখানে দেখানো হচ্ছে, টগল ব্যবহার করে কীভাবে আপনার টাস্কবার পিন করতে হয়, যাতে স্ক্রিনের নিচে টাস্কবার স্থায়ীভাবে দেখা যায়"</string>
