@@ -88,7 +88,7 @@ public class TaskbarModelCallbacks implements
         for (FixedContainerItems item: extraItems) {
             if (item.containerId == Favorites.CONTAINER_HOTSEAT_PREDICTION) {
                 mPredictedItems = item.items;
-            } else if (item.containerId == Favorites.CONTAINER_PREDICTION) {
+            } else if (item.containerId == Favorites.CONTAINER_ALL_APPS_PREDICTION) {
                 mControllers.taskbarAllAppsController.setPredictedApps(item.items);
             }
         }
@@ -170,7 +170,7 @@ public class TaskbarModelCallbacks implements
         if (item.containerId == Favorites.CONTAINER_HOTSEAT_PREDICTION) {
             mPredictedItems = item.items;
             commitItemsToUI();
-        } else if (item.containerId == Favorites.CONTAINER_PREDICTION) {
+        } else if (item.containerId == Favorites.CONTAINER_ALL_APPS_PREDICTION) {
             mControllers.taskbarAllAppsController.setPredictedApps(item.items);
         }
     }

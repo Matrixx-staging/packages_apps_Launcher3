@@ -1405,6 +1405,9 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
                     Log.d("Quickswitch", "isFling=false vel=" + velocity
                             + " threshold=" + mEasyFlingThresholdVelocity);
                 }
+                if (isFling && Flags.enableLauncherVisualRefresh() && mPageIndicator != null) {
+                    mPageIndicator.onFling(isDeltaLeft);
+                }
 
                 if (!mFreeScroll) {
                     // In the case that the page is moved far to one direction and then is flung

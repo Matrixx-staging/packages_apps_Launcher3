@@ -43,7 +43,6 @@ import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.graphics.ThemeManager.ThemeChangeListener;
 import com.android.launcher3.icons.IconProvider;
-import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.util.DaggerSingletonObject;
 import com.android.launcher3.util.DaggerSingletonTracker;
 import com.android.launcher3.util.DisplayController;
@@ -116,14 +115,12 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
             DisplayController displayController,
             LockedUserState lockedUserState,
             Lazy<ThemeManager> themeManagerLazy,
-            DesktopVisibilityController desktopVisibilityController,
             DaggerSingletonTracker tracker
             ) {
         // Lazily inject the ThemeManager and access themeManager once the device is
         // unlocked. See b/393248495 for details.
         this(context, new IconProvider(context), systemUiProxy, topTaskTracker,
-                displayController, lockedUserState, themeManagerLazy, desktopVisibilityController,
-                tracker);
+                displayController, lockedUserState, themeManagerLazy, tracker);
     }
 
     @SuppressLint("VisibleForTests")
@@ -134,7 +131,6 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
             DisplayController displayController,
             LockedUserState lockedUserState,
             Lazy<ThemeManager> themeManagerLazy,
-            DesktopVisibilityController desktopVisibilityController,
             DaggerSingletonTracker tracker) {
         this(context,
                 new RecentTasksList(
@@ -142,7 +138,7 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
                         MAIN_EXECUTOR,
                         context.getSystemService(KeyguardManager.class),
                         systemUiProxy,
-                        topTaskTracker, desktopVisibilityController, tracker),
+                        topTaskTracker, tracker),
                 new TaskIconCache(context, RECENTS_MODEL_EXECUTOR, iconProvider, displayController),
                 new TaskThumbnailCache(context, RECENTS_MODEL_EXECUTOR),
                 iconProvider,

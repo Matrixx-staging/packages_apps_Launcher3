@@ -153,8 +153,7 @@ public class BaseDepthController {
     }
 
     protected final void onBlurChange() {
-        boolean hasOpaqueBg = mLauncher.getScrimView().isFullyOpaque();
-        boolean blursEnabled = mCrossWindowBlursEnabled && !hasOpaqueBg && !mPauseBlurs;
+        boolean blursEnabled = mCrossWindowBlursEnabled && !mPauseBlurs;
         if (mBlursEnabled == blursEnabled) {
             return;
         }
@@ -216,7 +215,7 @@ public class BaseDepthController {
         } else {
             blurAmount = depth;
         }
-        mCurrentBlur = mBlursEnabled ? (int) (blurAmount * mMaxBlurRadius) : 0;
+        mCurrentBlur = mBlursEnabled && !hasOpaqueBg ? (int) (blurAmount * mMaxBlurRadius) : 0;
 
         SurfaceControl blurSurface =
                 enableOverviewBackgroundWallpaperBlur() && mBlurSurface != null ? mBlurSurface

@@ -163,6 +163,13 @@ public class TaskbarUIController implements BubbleBarController.BubbleBarLocatio
     }
 
     /**
+     * @return if we should allow taskbar to auto stash
+     */
+    public boolean shouldAllowTaskbarToAutoStash() {
+        return mControllers.taskbarActivityContext.shouldAllowTaskbarToAutoStash();
+    }
+
+    /**
      * @param ev MotionEvent in screen coordinates.
      * @return Whether any Taskbar item could handle the given MotionEvent if given the chance.
      */

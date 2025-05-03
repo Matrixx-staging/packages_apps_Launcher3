@@ -17,6 +17,8 @@ package com.android.launcher3.taskbar;
 
 import static android.view.Display.DEFAULT_DISPLAY;
 
+import static com.android.launcher3.EncryptionType.ENCRYPTED;
+import static com.android.launcher3.LauncherPrefs.nonRestorableItem;
 import static com.android.launcher3.taskbar.Utilities.getShapedTaskbarRadius;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_NAV_BAR_HIDDEN;
 
@@ -24,13 +26,13 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Outline;
 import android.graphics.Rect;
 import android.view.View;
 import android.view.ViewOutlineProvider;
 
+import com.android.launcher3.ConstantItem;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Flags;
 import com.android.launcher3.LauncherPrefs;
@@ -69,8 +71,11 @@ public class StashedHandleViewController implements TaskbarControllers.LoggableT
     private static final String SHARED_PREFS_STASHED_HANDLE_REGION_DARK_KEY =
             "stashed_handle_region_is_dark";
 
+    private static final ConstantItem<Boolean> STASHED_HANDLE_REGION_IS_DARK =
+            nonRestorableItem(SHARED_PREFS_STASHED_HANDLE_REGION_DARK_KEY, false, ENCRYPTED);
+
     private final TaskbarActivityContext mActivity;
-    private final SharedPreferences mPrefs;
+    private final LauncherPrefs mPrefs;
     private final StashedHandleView mStashedHandleView;
     private int mStashedHandleWidth;
     private final int mStashedHandleHeight;
@@ -104,13 +109,12 @@ public class StashedHandleViewController implements TaskbarControllers.LoggableT
     public StashedHandleViewController(TaskbarActivityContext activity,
             StashedHandleView stashedHandleView) {
         mActivity = activity;
-        mPrefs = LauncherPrefs.getPrefs(mActivity);
+        mPrefs = LauncherPrefs.get(mActivity);
         mStashedHandleView = stashedHandleView;
         mTaskbarStashedHandleAlpha = new MultiValueAlpha(mStashedHandleView, NUM_ALPHA_CHANNELS);
         mTaskbarStashedHandleAlpha.setUpdateVisibility(true);
         mStashedHandleView.updateHandleColor(
-                mPrefs.getBoolean(SHARED_PREFS_STASHED_HANDLE_REGION_DARK_KEY, false),
-                false /* animate */);
+                mPrefs.get(STASHED_HANDLE_REGION_IS_DARK), false /* animate */);
         final Resources resources = mActivity.getResources();
         mStashedHandleHeight = resources.getDimensionPixelSize(
                 R.dimen.taskbar_stashed_handle_height);
@@ -184,8 +188,7 @@ public class StashedHandleViewController implements TaskbarControllers.LoggableT
                     @Override
                     public void onRegionDarknessChanged(boolean isRegionDark) {
                         mStashedHandleView.updateHandleColor(isRegionDark, true /* animate */);
-                        mPrefs.edit().putBoolean(SHARED_PREFS_STASHED_HANDLE_REGION_DARK_KEY,
-                                isRegionDark).apply();
+                        mPrefs.put(STASHED_HANDLE_REGION_IS_DARK, isRegionDark);
                     }
 
                     @Override

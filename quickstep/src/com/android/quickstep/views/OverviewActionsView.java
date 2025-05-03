@@ -16,7 +16,6 @@
 
 package com.android.quickstep.views;
 
-import static com.android.launcher3.Flags.enableOverviewBackgroundWallpaperBlur;
 import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 
 import android.content.Context;
@@ -24,7 +23,6 @@ import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -33,6 +31,7 @@ import android.widget.LinearLayout;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
+import androidx.core.view.ViewGroupKt;
 
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Insettable;
@@ -43,9 +42,11 @@ import com.android.launcher3.util.MultiValueAlpha;
 import com.android.launcher3.util.NavigationMode;
 import com.android.quickstep.TaskOverlayFactory.OverlayUICallbacks;
 import com.android.quickstep.util.LayoutUtils;
-import com.android.systemui.shared.system.BlurUtils;
 import com.android.wm.shell.shared.TypefaceUtils;
 import com.android.wm.shell.shared.TypefaceUtils.FontFamily;
+
+import kotlin.Unit;
+import kotlin.sequences.SequencesKt;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -152,10 +153,7 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
     }
 
     public OverviewActionsView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
-        super(new ContextThemeWrapper(context,
-                enableOverviewBackgroundWallpaperBlur() && BlurUtils.supportsBlursOnWindows()
-                        ? R.style.OverviewActionsContainerBlur
-                        : R.style.OverviewActionsContainer), attrs, defStyleAttr, 0);
+        super(context, attrs, defStyleAttr, 0);
     }
 
     @Override
@@ -420,5 +418,23 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
                 : R.drawable.ic_save_app_pair_up_down;
         mSaveAppPairButton.setCompoundDrawablesRelativeWithIntrinsicBounds(
                 appPairIconRes, 0, 0, 0);
+    }
+
+    /**
+     * Change the background when blur is enabled/disabled
+     */
+    public void updateBlurStyle(Boolean isBackgroundBlurEnabled) {
+        updateChildrenBackground(isBackgroundBlurEnabled
+                ? R.drawable.overview_action_button_background_blur :
+                R.drawable.overview_action_button_background);
+    }
+
+    private void updateChildrenBackground(int drawableId) {
+        SequencesKt.forEach(ViewGroupKt.getDescendants(this), view -> {
+            if (view instanceof Button) {
+                view.setBackgroundResource(drawableId);
+            }
+            return Unit.INSTANCE;
+        });
     }
 }

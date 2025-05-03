@@ -65,6 +65,7 @@ class RecentsDismissUtils(private val recentsView: RecentsView<*, *>) {
                     draggedTaskView,
                     velocity = 0f,
                     isDismissing = true,
+                    dismissLength = 0,
                     dismissThreshold = 0,
                     finalPosition = 0f,
                     shouldRemoveTaskView,
@@ -88,6 +89,7 @@ class RecentsDismissUtils(private val recentsView: RecentsView<*, *>) {
                 draggedTaskView,
                 velocity,
                 isDismissing = true,
+                dismissLength,
                 dismissThreshold,
                 finalPosition,
                 shouldRemoveTaskView,
@@ -107,6 +109,7 @@ class RecentsDismissUtils(private val recentsView: RecentsView<*, *>) {
         draggedTaskView: TaskView?,
         velocity: Float,
         isDismissing: Boolean,
+        dismissLength: Int,
         dismissThreshold: Int,
         finalPosition: Float,
         shouldRemoveTaskView: Boolean,
@@ -160,7 +163,7 @@ class RecentsDismissUtils(private val recentsView: RecentsView<*, *>) {
             SpringAnimation(draggedTaskView, taskDismissFloatProperty)
                 .setSpring(createExpressiveDismissSpringForce())
                 .setStartVelocity(startVelocity)
-                .addUpdateListener { _, currentDisplacement, _ ->
+                .addUpdateListener { animation, currentDisplacement, _ ->
                     // Play haptic as task crosses dismiss threshold from above or below.
                     val previousBeyondThreshold = abs(previousDisplacement) >= abs(dismissThreshold)
                     val currentBeyondThreshold = abs(currentDisplacement) >= abs(dismissThreshold)
@@ -185,8 +188,16 @@ class RecentsDismissUtils(private val recentsView: RecentsView<*, *>) {
                     ) {
                         toRunOnEnd()
                     }
+                    // End dismissed task animation once beyond the screen so next animations play.
+                    if (isDismissing && abs(currentDisplacement) >= abs(dismissLength)) {
+                        (animation as SpringAnimation).skipToEnd()
+                    }
                 }
-                .addEndListener { _, _, _, _ -> toRunOnEnd() }
+                .addEndListener { _, canceled, value, _ ->
+                    // Do not run animations if dismissed task animation is canceled, unless it has
+                    // already animated off screen.
+                    if (!canceled || abs(value) >= abs(dismissLength)) toRunOnEnd()
+                }
         if (!isDismissing) {
             addNeighborSettlingSpringAnimations(
                 draggedTaskView,
@@ -1035,7 +1046,7 @@ class RecentsDismissUtils(private val recentsView: RecentsView<*, *>) {
                     pageToSnapTo = indexOfChild(clearAllButton)
                 } else if (isClearAllHidden) {
                     // Snap to focused task if clear all is hidden.
-                    pageToSnapTo = indexOfChild(firstTaskView)
+                    pageToSnapTo = firstTaskViewIndex
                 }
             } else {
                 val snappedTaskView = currentPageTaskView

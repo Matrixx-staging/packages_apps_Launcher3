@@ -1398,8 +1398,6 @@ class BubbleBarViewAnimatorTest {
         bubbleBarView = BubbleBarView(context)
         bubbleBarView.setController(
             object : BubbleBarView.Controller {
-                override fun getScreenHeight(): Int = 0
-
                 override fun getBubbleBarTranslationY(): Float = 0f
 
                 override fun onBubbleBarTouched() {}

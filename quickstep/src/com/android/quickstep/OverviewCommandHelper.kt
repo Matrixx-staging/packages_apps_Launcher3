@@ -33,7 +33,6 @@ import com.android.app.displaylib.PerDisplayRepository
 import com.android.app.tracing.traceSection
 import com.android.internal.jank.Cuj
 import com.android.launcher3.DeviceProfile
-import com.android.launcher3.Flags.enableLargeDesktopWindowingTile
 import com.android.launcher3.PagedView
 import com.android.launcher3.logger.LauncherAtom
 import com.android.launcher3.logging.StatsLogManager
@@ -42,6 +41,7 @@ import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_OVER
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_OVERVIEW_SHOW_OVERVIEW_FROM_KEYBOARD_SHORTCUT
 import com.android.launcher3.taskbar.TaskbarManager
 import com.android.launcher3.taskbar.TaskbarUIController
+import com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview
 import com.android.launcher3.util.RunnableList
 import com.android.launcher3.util.coroutines.DispatcherProvider
 import com.android.launcher3.util.coroutines.ProductionDispatchers
@@ -52,7 +52,7 @@ import com.android.quickstep.OverviewCommandHelper.CommandType.SHOW_ALT_TAB
 import com.android.quickstep.OverviewCommandHelper.CommandType.SHOW_WITH_FOCUS
 import com.android.quickstep.OverviewCommandHelper.CommandType.TOGGLE
 import com.android.quickstep.OverviewCommandHelper.CommandType.TOGGLE_OVERVIEW_PREVIOUS
-import com.android.quickstep.fallback.window.RecentsWindowFlags.Companion.enableOverviewInWindow
+import com.android.quickstep.fallback.window.RecentsWindowManager
 import com.android.quickstep.util.ActiveGestureLog
 import com.android.quickstep.util.ActiveGestureProtoLogProxy
 import com.android.quickstep.views.RecentsView
@@ -61,6 +61,7 @@ import com.android.systemui.shared.recents.model.ThumbnailData
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper
 import java.io.PrintWriter
 import java.util.concurrent.ConcurrentLinkedDeque
+import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -79,6 +80,7 @@ constructor(
     private val displayRepository: DisplayRepository,
     private val taskbarManager: TaskbarManager,
     private val taskAnimationManagerRepository: PerDisplayRepository<TaskAnimationManager>,
+    private val elapsedRealtime: () -> Long = SystemClock::elapsedRealtime,
 ) {
     private val coroutineScope = CoroutineScope(SupervisorJob() + dispatcherProvider.background)
 
@@ -90,6 +92,8 @@ constructor(
      * same command
      */
     private var keyboardTaskFocusIndex = -1
+
+    private val lastToggleInfo = mutableMapOf<Int, ToggleInfo>()
 
     private fun getContainerInterface(displayId: Int) =
         overviewComponentObserver.getContainerInterface(displayId)
@@ -117,7 +121,13 @@ constructor(
             return null
         }
 
-        val command = CommandInfo(type, displayId = displayId, isLastOfBatch = isLastOfBatch)
+        val command =
+            CommandInfo(
+                type,
+                displayId = displayId,
+                createTime = elapsedRealtime(),
+                isLastOfBatch = isLastOfBatch,
+            )
         commandQueue.add(command)
         Log.d(TAG, "command added: $command")
 
@@ -249,12 +259,18 @@ constructor(
             }
 
             TOGGLE -> {
+                val runningTaskId = recentsView.runningTaskView?.taskIdSet
                 launchTask(
                     recentsView,
-                    getNextToggledTaskView(recentsView),
+                    getNextToggledTaskView(recentsView, command.displayId),
                     command,
-                    onCallbackResult,
-                )
+                ) {
+                    if (enableGridOnlyOverview() && runningTaskId != null) {
+                        lastToggleInfo[command.displayId] =
+                            ToggleInfo(command.createTime, runningTaskId)
+                    }
+                    onCallbackResult()
+                }
             }
             TOGGLE_OVERVIEW_PREVIOUS -> {
                 val taskView = recentsView.runningTaskView
@@ -271,24 +287,27 @@ constructor(
             }
         }
 
-    private fun getNextToggledTaskView(recentsView: RecentsView<*, *>): TaskView? {
-        // When running task view is null we return last large taskView - typically focusView when
-        // grid only is not enabled else last desktop task view.
-        return if (recentsView.runningTaskView == null) {
-            recentsView.lastLargeTaskView ?: recentsView.getFirstTaskView()
-        } else {
+    private fun getNextToggledTaskView(recentsView: RecentsView<*, *>, displayId: Int): TaskView? {
+        val lastToggleInfo = lastToggleInfo[displayId]
+        val lastToggleTaskView =
             if (
-                enableLargeDesktopWindowingTile() &&
-                    recentsView.getTaskViewCount() == recentsView.largeTilesCount &&
-                    recentsView.runningTaskView === recentsView.lastLargeTaskView
+                enableGridOnlyOverview() &&
+                    lastToggleInfo != null &&
+                    elapsedRealtime() - lastToggleInfo.createTime < TOGGLE_PREVIOUS_TIMEOUT_MS
             ) {
-                // Enables the toggle when only large tiles are in recents view.
-                // We return previous because unlike small tiles, large tiles are always
-                // on the right hand side.
-                recentsView.previousTaskView ?: recentsView.runningTaskView
-            } else {
-                recentsView.nextTaskView ?: recentsView.runningTaskView
-            }
+                recentsView.getTaskViewByTaskIds(lastToggleInfo.taskIds.toIntArray())
+            } else null
+        val runningTaskView = recentsView.runningTaskView
+        return when {
+            runningTaskView == null && !enableGridOnlyOverview() ->
+                // When running task view is null we return last large taskView - typically
+                // focusView or last desktop task view.
+                recentsView.lastLargeTaskView ?: recentsView.firstTaskView
+            runningTaskView == null ->
+                recentsView.firstNonDesktopTaskView ?: recentsView.lastDesktopTaskView
+            lastToggleTaskView != null && lastToggleTaskView != runningTaskView ->
+                lastToggleTaskView
+            else -> recentsView.nextTaskView ?: recentsView.previousTaskView ?: runningTaskView
         }
     }
 
@@ -326,10 +345,12 @@ constructor(
         val recentsView: RecentsView<*, *>? = recentsViewContainer?.getOverviewPanel()
         val deviceProfile = recentsViewContainer?.getDeviceProfile()
         val taskbarUIController: TaskbarUIController? =
-            if (command.displayId != DEFAULT_DISPLAY && !enableOverviewInWindow) {
-                // When enableOverviewInWindow is false, getContainerInterface can only return
-                // BaseContainerInterface of DEFAULT_DISPLAY. Getting TaskbarUiController from
-                // TaskbarManager as a workaround.
+            if (
+                command.displayId != DEFAULT_DISPLAY &&
+                    recentsViewContainer !is RecentsWindowManager
+            ) {
+                // When recentsViewContainer is not RecentsWindowManager, get TaskbarUiController
+                // from TaskbarManager as a workaround.
                 taskbarManager.getUIControllerForDisplay(command.displayId)
             } else {
                 containerInterface.getTaskbarController()
@@ -413,8 +434,8 @@ constructor(
         // If we get here then launcher is not the top visible task, so we should animate
         // that task.
 
-        if (!enableOverviewInWindow) {
-            containerInterface.getCreatedContainer()?.rootView?.let { view ->
+        if (recentsViewContainer !is RecentsWindowManager) {
+            recentsViewContainer?.rootView?.let { view ->
                 InteractionJankMonitorWrapper.begin(view, Cuj.CUJ_LAUNCHER_QUICK_SWITCH)
             }
         }
@@ -449,8 +470,8 @@ constructor(
                     transitionInfo: TransitionInfo?,
                 ) {
                     Log.d(TAG, "recents animation started: $command")
-                    if (enableOverviewInWindow) {
-                        containerInterface.getCreatedContainer()?.rootView?.let { view ->
+                    if (recentsViewContainer is RecentsWindowManager) {
+                        recentsViewContainer.rootView?.let { view ->
                             InteractionJankMonitorWrapper.begin(view, Cuj.CUJ_LAUNCHER_QUICK_SWITCH)
                         }
                     }
@@ -642,7 +663,7 @@ constructor(
     data class CommandInfo(
         val type: CommandType,
         var status: CommandStatus = CommandStatus.IDLE,
-        val createTime: Long = SystemClock.elapsedRealtime(),
+        val createTime: Long,
         private var animationCallbacks: RecentsAnimationCallbacks? = null,
         val displayId: Int = DEFAULT_DISPLAY,
         val isLastOfBatch: Boolean = true,
@@ -681,6 +702,8 @@ constructor(
         TOGGLE_OVERVIEW_PREVIOUS,
     }
 
+    data class ToggleInfo(val createTime: Long, val taskIds: Set<Int>)
+
     companion object {
         private const val TAG = "OverviewCommandHelper"
         private const val TRANSITION_NAME = "Transition:toOverview"
@@ -691,5 +714,6 @@ constructor(
          */
         private const val MAX_QUEUE_SIZE = 3
         private const val QUEUE_WAIT_DURATION_IN_MS = 5000L
+        @VisibleForTesting val TOGGLE_PREVIOUS_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(5)
     }
 }

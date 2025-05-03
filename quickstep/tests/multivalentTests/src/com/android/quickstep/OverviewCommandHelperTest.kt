@@ -24,10 +24,12 @@ import com.android.launcher3.statemanager.StateManager
 import com.android.launcher3.statemanager.StatefulActivity
 import com.android.launcher3.uioverrides.QuickstepLauncher
 import com.android.launcher3.util.LauncherMultivalentJUnit
+import com.android.launcher3.util.RunnableList
 import com.android.launcher3.util.TestDispatcherProvider
 import com.android.quickstep.OverviewCommandHelper.CommandInfo
 import com.android.quickstep.OverviewCommandHelper.CommandInfo.CommandStatus
 import com.android.quickstep.OverviewCommandHelper.CommandType
+import com.android.quickstep.OverviewCommandHelper.Companion.TOGGLE_PREVIOUS_TIMEOUT_MS
 import com.android.quickstep.views.RecentsView
 import com.android.quickstep.views.TaskView
 import com.google.common.truth.Truth.assertThat
@@ -67,6 +69,7 @@ class OverviewCommandHelperTest {
     private val recentView: RecentsView<*, *> = mock()
     private val stateManager: StateManager<LauncherState, StatefulActivity<LauncherState>> = mock()
     private val containerInterface: BaseActivityInterface<LauncherState, QuickstepLauncher> = mock()
+    private var elapsedRealtime = 100L
 
     private fun setupDefaultDisplay() {
         whenever(displayRepository.displayIds).thenReturn(MutableStateFlow(setOf(DEFAULT_DISPLAY)))
@@ -97,6 +100,7 @@ class OverviewCommandHelperTest {
                     displayRepository = displayRepository,
                     taskbarManager = mock(),
                     taskAnimationManagerRepository = mock(),
+                    elapsedRealtime = ::elapsedRealtime,
                 )
             )
     }
@@ -297,6 +301,109 @@ class OverviewCommandHelperTest {
             runCurrent()
 
             verify(mockTask).launchWithAnimation()
+        }
+
+    @Test
+    fun recentViewVisible_hasRunningTask_toggle() =
+        testScope.runTest {
+            val callbackList = RunnableList()
+
+            fun getMockTask(vararg elements: Int) =
+                mock<TaskView>().apply {
+                    whenever(taskIdSet).thenReturn(elements.toSet())
+                    whenever(recentView.getTaskViewByTaskIds(elements)).thenReturn(this)
+                    whenever(launchWithAnimation()).thenReturn(callbackList)
+                }
+            val mockTask1 = getMockTask(1, 2, 3)
+            val mockTask2 = getMockTask(4, 5)
+            val mockTask3 = getMockTask(6, 7)
+
+            // TOGGLE with a runningTaskView should go to nextTaskView
+            whenever(containerInterface.getVisibleRecentsView<RecentsView<*, *>>())
+                .thenReturn(recentView)
+            whenever(recentView.runningTaskView).thenReturn(mockTask1)
+            whenever(recentView.nextTaskView).thenReturn(mockTask2)
+            sut.addCommand(CommandType.TOGGLE)
+            runCurrent()
+            verify(mockTask2).launchWithAnimation()
+            callbackList.executeAllAndDestroy()
+
+            // Next TOGGLE with runningTaskView will return to previous runningTaskView
+            whenever(recentView.runningTaskView).thenReturn(mockTask2)
+            whenever(recentView.nextTaskView).thenReturn(mockTask3)
+            sut.addCommand(CommandType.TOGGLE)
+            runCurrent()
+            verify(mockTask1).launchWithAnimation()
+            callbackList.executeAllAndDestroy()
+
+            // After TOGGLE_PREVIOUS_TIMEOUT_MS has passed, subsequent TOGGLE will go to
+            // nextTaskView again.
+            whenever(recentView.runningTaskView).thenReturn(mockTask1)
+            whenever(recentView.nextTaskView).thenReturn(mockTask3)
+            sut.addCommand(CommandType.TOGGLE)
+            elapsedRealtime += TOGGLE_PREVIOUS_TIMEOUT_MS
+            runCurrent()
+            verify(mockTask3).launchWithAnimation()
+        }
+
+    @Test
+    fun recentViewVisible_noRunningTask_toggle_goToFirstNonDesktopTaskView() =
+        testScope.runTest {
+            val firstNonDesktopTaskView = mock<TaskView>()
+            val lastDesktopTaskView = mock<TaskView>()
+            val previousTaskView = mock<TaskView>()
+            val nextTaskView = mock<TaskView>()
+
+            whenever(containerInterface.getVisibleRecentsView<RecentsView<*, *>>())
+                .thenReturn(recentView)
+            whenever(recentView.runningTaskView).thenReturn(null)
+            whenever(recentView.firstNonDesktopTaskView).thenReturn(firstNonDesktopTaskView)
+            whenever(recentView.lastDesktopTaskView).thenReturn(lastDesktopTaskView)
+            whenever(recentView.previousTaskView).thenReturn(previousTaskView)
+            whenever(recentView.nextTaskView).thenReturn(nextTaskView)
+            sut.addCommand(CommandType.TOGGLE)
+            runCurrent()
+            verify(firstNonDesktopTaskView).launchWithAnimation()
+        }
+
+    @Test
+    fun recentViewVisible_noRunningTask_toggle_goToLastDesktopTaskView() =
+        testScope.runTest {
+            val firstNonDesktopTaskView = mock<TaskView>()
+            val lastDesktopTaskView = mock<TaskView>()
+            val firstTaskView = mock<TaskView>()
+            val previousTaskView = mock<TaskView>()
+            val nextTaskView = mock<TaskView>()
+
+            whenever(containerInterface.getVisibleRecentsView<RecentsView<*, *>>())
+                .thenReturn(recentView)
+            whenever(recentView.runningTaskView).thenReturn(null)
+            whenever(recentView.firstNonDesktopTaskView).thenReturn(null)
+            whenever(recentView.lastDesktopTaskView).thenReturn(lastDesktopTaskView)
+            whenever(recentView.firstTaskView).thenReturn(firstTaskView)
+            whenever(recentView.previousTaskView).thenReturn(previousTaskView)
+            whenever(recentView.nextTaskView).thenReturn(nextTaskView)
+            sut.addCommand(CommandType.TOGGLE)
+            runCurrent()
+            verify(lastDesktopTaskView).launchWithAnimation()
+        }
+
+    @Test
+    fun recentViewVisible_hasRunningTask_toggle_goToPreviousTaskView() =
+        testScope.runTest {
+            val runningTaskView = mock<TaskView>()
+            val firstTaskView = mock<TaskView>()
+            val previousTaskView = mock<TaskView>()
+
+            whenever(containerInterface.getVisibleRecentsView<RecentsView<*, *>>())
+                .thenReturn(recentView)
+            whenever(recentView.runningTaskView).thenReturn(runningTaskView)
+            whenever(recentView.firstTaskView).thenReturn(firstTaskView)
+            whenever(recentView.previousTaskView).thenReturn(previousTaskView)
+            whenever(recentView.nextTaskView).thenReturn(null)
+            sut.addCommand(CommandType.TOGGLE)
+            runCurrent()
+            verify(previousTaskView).launchWithAnimation()
         }
 
     private companion object {

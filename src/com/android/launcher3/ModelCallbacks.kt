@@ -184,9 +184,9 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
 
     @UiThread
     override fun bindAllApplications(
-        apps: Array<AppInfo?>?,
+        apps: Array<AppInfo>,
         flags: Int,
-        packageUserKeytoUidMap: Map<PackageUserKey?, Int?>?,
+        packageUserKeytoUidMap: Map<PackageUserKey, Int>,
     ) {
         Preconditions.assertUIThread()
         val hadWorkApps = launcher.appsView.shouldShowTabs()
@@ -204,11 +204,11 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
      * Copies LauncherModel's map of activities to shortcut counts to Launcher's. This is necessary
      * because LauncherModel's map is updated in the background, while Launcher runs on the UI.
      */
-    override fun bindDeepShortcutMap(deepShortcutMapCopy: HashMap<ComponentKey?, Int?>?) {
+    override fun bindDeepShortcutMap(deepShortcutMapCopy: HashMap<ComponentKey, Int>) {
         launcher.popupDataProvider.setDeepShortcutMap(deepShortcutMapCopy)
     }
 
-    override fun bindIncrementalDownloadProgressUpdated(app: AppInfo?) {
+    override fun bindIncrementalDownloadProgressUpdated(app: AppInfo) {
         launcher.appsView.appsStore.updateProgressBar(app)
     }
 
@@ -436,7 +436,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
     @AnyThread
     override fun bindCompleteModelAsync(
         itemIdMap: IntSparseArrayMap<ItemInfo>,
-        extraItems: List<FixedContainerItems?>,
+        extraItems: List<FixedContainerItems>,
         stringCache: StringCache,
         isBindingSync: Boolean,
     ) {

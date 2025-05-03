@@ -1924,8 +1924,12 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         mControllers.uiController.onSwipeToUnstashTaskbar();
 
         boolean wasStashed = mControllers.taskbarStashController.isStashed();
-        mControllers.taskbarStashController.updateAndAnimateTransientTaskbar(/* stash= */ false,
-                SHOULD_BUBBLES_FOLLOW_DEFAULT_VALUE, delayTaskbarBackground);
+        if (isTransientTaskbar()) {
+            mControllers.taskbarStashController.updateAndAnimateTransientTaskbar(/* stash= */ false,
+                    SHOULD_BUBBLES_FOLLOW_DEFAULT_VALUE, delayTaskbarBackground);
+        } else if (shouldAllowTaskbarToAutoStash()) {
+            mControllers.taskbarStashController.updateAndAnimatePinnedTaskbar(false);
+        }
         boolean isStashed = mControllers.taskbarStashController.isStashed();
         if (isStashed != wasStashed) {
             VibratorWrapper.INSTANCE.get(this).vibrateForTaskbarUnstash();
@@ -1978,6 +1982,13 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
      */
     public void startTaskbarUnstashHint(boolean animateForward) {
         mControllers.taskbarStashController.startUnstashHint(animateForward);
+    }
+
+    /**
+     * @return if we should allow taskbar to auto stash
+     */
+    public boolean shouldAllowTaskbarToAutoStash() {
+        return mControllers.taskbarStashController.shouldAllowTaskbarToAutoStash();
     }
 
     /**

@@ -15,8 +15,6 @@
   -->
 
 <resources>
-    <color name="blur_shade_panel_fg">#66152E60</color>
-
     <color name="material_color_surface_container_lowest">#0D0E11</color>
     <color name="material_color_on_surface">#E3E2E6</color>
 

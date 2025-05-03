@@ -514,6 +514,7 @@ public class Launcher extends StatefulActivity<LauncherState>
 
         super.onCreate(savedInstanceState);
         setWallpaperDependentTheme(this);
+        getTheme().applyStyle(getBlurStyleResId(), true);
 
         LauncherAppState app = LauncherAppState.getInstance(this);
         mModel = app.getModel();

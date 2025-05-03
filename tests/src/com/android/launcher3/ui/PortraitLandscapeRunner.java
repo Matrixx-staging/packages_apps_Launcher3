@@ -4,6 +4,7 @@ import static com.android.launcher3.LauncherPrefs.FIXED_LANDSCAPE_MODE;
 
 import android.util.Log;
 import android.view.Surface;
+import android.view.View;
 
 import com.android.launcher3.Flags;
 import com.android.launcher3.Launcher;
@@ -22,9 +23,10 @@ import java.lang.annotation.Target;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-public class PortraitLandscapeRunner<LAUNCHER_TYPE extends Launcher> implements TestRule {
+public class PortraitLandscapeRunner<LAUNCHER_TYPE extends Launcher, OVERVIEW_TYPE extends View>
+        implements TestRule {
     private static final String TAG = "PortraitLandscapeRunner";
-    private AbstractLauncherUiTest<LAUNCHER_TYPE> mTest;
+    private AbstractLauncherUiTest<LAUNCHER_TYPE, OVERVIEW_TYPE> mTest;
 
     // Annotation for tests that need to be run in portrait and landscape modes.
     @Retention(RetentionPolicy.RUNTIME)
@@ -32,7 +34,7 @@ public class PortraitLandscapeRunner<LAUNCHER_TYPE extends Launcher> implements 
     public @interface PortraitLandscape {
     }
 
-    public PortraitLandscapeRunner(AbstractLauncherUiTest<LAUNCHER_TYPE> test) {
+    public PortraitLandscapeRunner(AbstractLauncherUiTest<LAUNCHER_TYPE, OVERVIEW_TYPE> test) {
         mTest = test;
     }
 

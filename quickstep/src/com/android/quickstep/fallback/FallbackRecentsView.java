@@ -42,11 +42,10 @@ import com.android.launcher3.statemanager.StatefulContainer;
 import com.android.launcher3.util.SplitConfigurationOptions;
 import com.android.launcher3.util.SplitConfigurationOptions.SplitSelectSource;
 import com.android.quickstep.BaseContainerInterface;
-import com.android.quickstep.FallbackActivityInterface;
-import com.android.quickstep.FallbackWindowInterface;
 import com.android.quickstep.GestureState;
+import com.android.quickstep.OverviewComponentObserver;
 import com.android.quickstep.RemoteTargetGluer.RemoteTargetHandle;
-import com.android.quickstep.fallback.window.RecentsWindowFlags;
+import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.util.GroupTask;
 import com.android.quickstep.util.SingleTask;
 import com.android.quickstep.util.SplitSelectStateController;
@@ -82,16 +81,15 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
 
     @Override
     public BaseContainerInterface<RecentsState, ?> getContainerInterface(int displayId) {
-        return RecentsWindowFlags.Companion.getEnableOverviewInWindow()
-                ? FallbackWindowInterface.REPOSITORY_INSTANCE.get(mContext).get(displayId)
-                : FallbackActivityInterface.INSTANCE;
+        return (BaseContainerInterface<RecentsState, ?>) OverviewComponentObserver.INSTANCE.get(
+                mContext).getContainerInterface(displayId);
     }
 
     @Override
     public void init(OverviewActionsView actionsView, SplitSelectStateController splitController,
             @Nullable DesktopRecentsTransitionController desktopRecentsTransitionController) {
         super.init(actionsView, splitController, desktopRecentsTransitionController);
-        if (RecentsWindowFlags.getEnableOverviewInWindow()) {
+        if (mContainer instanceof RecentsWindowManager) {
             // These will be set during the state transition to DEFAULT
             return;
         }
@@ -309,7 +307,7 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
         }
 
         // disabling this so app icons aren't drawn on top of recent tasks.
-        if (isOverlayEnabled && !RecentsWindowFlags.Companion.getEnableOverviewInWindow()) {
+        if (isOverlayEnabled && !(mContainer instanceof RecentsWindowManager)) {
             mBlurUtils.setDrawLiveTileBelowRecents(true);
         }
     }

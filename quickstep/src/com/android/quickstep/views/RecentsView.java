@@ -109,6 +109,7 @@ import android.os.VibrationEffect;
 import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
+import android.util.ArraySet;
 import android.util.AttributeSet;
 import android.util.FloatProperty;
 import android.util.Log;
@@ -142,6 +143,7 @@ import androidx.dynamicanimation.animation.SpringAnimation;
 import com.android.internal.jank.Cuj;
 import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.BaseActivity.MultiWindowModeChangedListener;
+import com.android.launcher3.BuildConfig;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Insettable;
 import com.android.launcher3.PagedView;
@@ -199,7 +201,6 @@ import com.android.quickstep.TaskOverlayFactory;
 import com.android.quickstep.TaskViewUtils;
 import com.android.quickstep.TopTaskTracker;
 import com.android.quickstep.ViewUtils;
-import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
 import com.android.quickstep.recents.data.AppTimersRepository;
@@ -546,7 +547,7 @@ public abstract class RecentsView<
     private final PointF mTempPointF = new PointF();
     private final Matrix mTempMatrix = new Matrix();
     private final float[] mTempFloat = new float[1];
-    private final List<OnScrollChangedListener> mScrollListeners = new ArrayList<>();
+    private final ArraySet<OnScrollChangedListener> mScrollListeners = new ArraySet<>();
 
     // The threshold at which we update the SystemUI flags when animating from the task into the app
     public static final float UPDATE_SYSUI_FLAGS_THRESHOLD = 0.85f;
@@ -875,6 +876,10 @@ public abstract class RecentsView<
     @Nullable
     public TaskView getFirstTaskView() {
         return mUtils.getFirstTaskView();
+    }
+
+    public int getFirstTaskViewIndex() {
+        return indexOfChild(getFirstTaskView());
     }
 
     public RecentsView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
@@ -1284,6 +1289,7 @@ public abstract class RecentsView<
         if (mDesktopVisibilityController != null) {
             mDesktopVisibilityController.unregisterDesktopVisibilityListener(mUtils);
         }
+        mOnTaskLaunchCancelledRunnable = null;
         reset();
     }
 
@@ -4077,7 +4083,7 @@ public abstract class RecentsView<
                                 pageToSnapTo = indexOfChild(mClearAllButton);
                             } else if (isClearAllHidden) {
                                 // Snap to focused task if clear all is hidden.
-                                pageToSnapTo = indexOfChild(getFirstTaskView());
+                                pageToSnapTo = getFirstTaskViewIndex();
                             }
                         } else {
                             // Get the id of the task view we will snap to based on the current
@@ -4095,7 +4101,7 @@ public abstract class RecentsView<
                                     } else {
                                         // Won't focus next task in split select, so snap to the
                                         // first task.
-                                        pageToSnapTo = indexOfChild(getFirstTaskView());
+                                        pageToSnapTo = getFirstTaskViewIndex();
                                         calculateScrollDiff = false;
                                     }
                                 } else {
@@ -4748,12 +4754,18 @@ public abstract class RecentsView<
     }
 
     @Nullable
-    public TaskView getLastLargeTaskView() {
-        return mUtils.getLastLargeTaskView();
+    public TaskView getFirstNonDesktopTaskView() {
+        return mUtils.getFirstNonDesktopTaskView();
     }
 
-    public int getLargeTilesCount() {
-        return mUtils.getLargeTileCount();
+    @Nullable
+    public TaskView getLastDesktopTaskView() {
+        return mUtils.getLastDesktopTaskView();
+    }
+
+    @Nullable
+    public TaskView getLastLargeTaskView() {
+        return mUtils.getLastLargeTaskView();
     }
 
     @Nullable
@@ -5503,11 +5515,9 @@ public abstract class RecentsView<
             mSplitHiddenTaskView = null;
         }
 
-        if (RecentsWindowFlags.getEnableOverviewInWindow()) {
-            // Recents doesn't receive activity callback, so we cleanup manually
-            if (mContainer instanceof RecentsWindowManager manager) {
-                manager.cleanupRecentsWindow();
-            }
+        // Recents doesn't receive activity callback, so we cleanup manually
+        if (mContainer instanceof RecentsWindowManager manager) {
+            manager.cleanupRecentsWindow();
         }
     }
 
@@ -5962,7 +5972,7 @@ public abstract class RecentsView<
         // mSyncTransactionApplier doesn't get transferred over
         runActionOnRemoteHandles(remoteTargetHandle -> {
             final TransformParams params = remoteTargetHandle.getTransformParams();
-            if (RecentsWindowFlags.Companion.getEnableOverviewInWindow()) {
+            if (mContainer instanceof RecentsWindowManager manager) {
                 params.setHomeBuilderProxy((builder, app, transformParams) -> {
                     mTmpMatrix.setScale(
                             1f, 1f, app.localBounds.exactCenterX(), app.localBounds.exactCenterY());
@@ -6711,6 +6721,14 @@ public abstract class RecentsView<
      * Adds a listener for scroll changes
      */
     public void addOnScrollChangedListener(OnScrollChangedListener listener) {
+        if (mScrollListeners.contains(listener)) {
+            if (BuildConfig.IS_STUDIO_BUILD) {
+                throw new IllegalStateException(
+                        "Should not add duplicated OnScrollChangedListener");
+            } else {
+                mScrollListeners.remove(listener);
+            }
+        }
         mScrollListeners.add(listener);
     }
 
@@ -6845,7 +6863,7 @@ public abstract class RecentsView<
         runActionOnRemoteHandles(remoteTargetHandle ->
                 remoteTargetHandle.getTaskViewSimulator().setScroll(getScrollOffset()));
         for (int i = mScrollListeners.size() - 1; i >= 0; i--) {
-            mScrollListeners.get(i).onScrollChanged();
+            mScrollListeners.valueAt(i).onScrollChanged();
         }
     }
 
@@ -7003,11 +7021,11 @@ public abstract class RecentsView<
      * spring in response to the perceived impact of the settling task.
      */
     public SpringAnimation runTaskDismissSettlingSpringAnimation(TaskView draggedTaskView,
-            float velocity, boolean isDismissing, int dismissThreshold, float finalPosition,
-            boolean shouldRemoveTaskView, boolean isSplitSelection,
+            float velocity, boolean isDismissing, int dismissLength, int dismissThreshold,
+            float finalPosition, boolean shouldRemoveTaskView, boolean isSplitSelection,
             @NonNull Function0<Unit> onEndRunnable) {
         return mDismissUtils.createTaskDismissSettlingSpringAnimation(draggedTaskView, velocity,
-                isDismissing, dismissThreshold, finalPosition, shouldRemoveTaskView,
+                isDismissing, dismissLength, dismissThreshold, finalPosition, shouldRemoveTaskView,
                 isSplitSelection, onEndRunnable);
     }
 
@@ -7029,5 +7047,13 @@ public abstract class RecentsView<
      */
     public void setDrawAboveRecents(RemoteTargetHandle[] remoteTargetHandles) {
         mBlurUtils.setDrawAboveRecents(remoteTargetHandles);
+    }
+
+    /**
+     * Updates the overview components in battery saver mode
+     */
+    public void updateBlurStyle(boolean isBackgroundBlurEnabled) {
+        mActionsView.updateBlurStyle(isBackgroundBlurEnabled);
+        mClearAllButton.updateBlurStyle(isBackgroundBlurEnabled);
     }
 }

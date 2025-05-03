@@ -26,6 +26,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
+import android.view.View;
+
 import androidx.test.filters.LargeTest;
 import androidx.test.runner.AndroidJUnit4;
 
@@ -54,7 +56,7 @@ import java.util.stream.Collectors;
  */
 @LargeTest
 @RunWith(AndroidJUnit4.class)
-public class TaplTwoPanelWorkspaceTest extends AbstractLauncherUiTest<Launcher> {
+public class TaplTwoPanelWorkspaceTest extends AbstractLauncherUiTest<Launcher, View> {
 
     private AutoCloseable mLauncherLayout;
 

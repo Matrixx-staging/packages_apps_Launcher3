@@ -116,6 +116,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
     private int mOrientationStateId;
     private SplitBounds mSplitBounds;
     private Boolean mDrawsBelowRecents = null;
+    private Boolean mDrawAboveOtherApps = null;
     private boolean mIsGridTask;
     private final boolean mIsDesktopTask;
     private boolean mIsAnimatingToCarousel = false;
@@ -302,6 +303,15 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
      */
     public void setIsGridTask(boolean isGridTask) {
         mIsGridTask = isGridTask;
+    }
+
+    /**
+     * Sets whether drawing this app above other apps during animation. It's currently used when
+     * activating an app window from the exploded desktop view which will launch the desktop tile
+     * and exit Overview.
+     */
+    public void setDrawsAboveOtherApps(boolean drawsAboveOtherApps) {
+        mDrawAboveOtherApps = drawsAboveOtherApps;
     }
 
     /**
@@ -544,15 +554,22 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
                 .setWindowCrop(mTmpCropRect)
                 .setCornerRadius(getCurrentCornerRadius());
 
-        // If mDrawsBelowRecents is unset, no reordering will be enforced.
-        if (mDrawsBelowRecents != null) {
-            // In shell transitions, the animation leashes are reparented to an animation container
-            // so we can bump layers as needed.
-            builder.setLayer(mDrawsBelowRecents
-                    // 1000 is an arbitrary number to give room for multiple layers.
-                    ? Integer.MIN_VALUE + 1000 + app.prefixOrderIndex - mDesktopTaskIndex
-                    : Integer.MAX_VALUE - 1000 + app.prefixOrderIndex - mDesktopTaskIndex);
+        if (mDrawsBelowRecents == null && mDrawAboveOtherApps == null) {
+            // No reordering will be enforced.
+            return;
         }
+
+        // In shell transitions, the animation leashes are reparented to an animation container
+        // so we can bump layers as needed.
+        int baseLayer = app.prefixOrderIndex - mDesktopTaskIndex;
+        // 1000/2000 are arbitrary numbers to give room for multiple layers.
+        if (mDrawsBelowRecents != null) {
+            baseLayer += mDrawsBelowRecents ? Integer.MIN_VALUE + 2000 :  Integer.MAX_VALUE - 2000;
+        }
+        if (mDrawAboveOtherApps != null && mDrawAboveOtherApps) {
+            baseLayer += 1000;
+        }
+        builder.setLayer(baseLayer);
     }
 
     /**

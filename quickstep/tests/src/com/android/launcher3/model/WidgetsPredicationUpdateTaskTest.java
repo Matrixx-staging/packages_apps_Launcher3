@@ -55,7 +55,6 @@ import com.android.launcher3.Flags;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherModel;
 import com.android.launcher3.model.BgDataModel.FixedContainerItems;
-import com.android.launcher3.model.QuickstepModelDelegate.PredictorState;
 import com.android.launcher3.util.LauncherLayoutBuilder;
 import com.android.launcher3.util.ModelTestExtensions;
 import com.android.launcher3.util.SandboxApplication;

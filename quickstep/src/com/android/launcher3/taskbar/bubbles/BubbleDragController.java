@@ -674,7 +674,7 @@ public class BubbleDragController {
         }
 
         @Override
-        public void onInitialDragZoneSet(@NonNull DragZone dragZone) {
+        public void onInitialDragZoneSet(@Nullable DragZone dragZone) {
             mDragZone = dragZone;
             if (dragZone instanceof DragZone.Bubble.Left) {
                 mBubbleBarLocation = BubbleBarLocation.LEFT;
@@ -684,8 +684,8 @@ public class BubbleDragController {
         }
 
         @Override
-        public void onDragZoneChanged(@NonNull DraggedObject draggedObject, @NonNull DragZone from,
-                @NonNull DragZone to) {
+        public void onDragZoneChanged(@NonNull DraggedObject draggedObject, @Nullable DragZone from,
+                @Nullable DragZone to) {
             mDragZone = to;
             if (to instanceof DragZone.Bubble.Left
                     && mBubbleBarLocation != BubbleBarLocation.LEFT) {
@@ -703,6 +703,6 @@ public class BubbleDragController {
         }
 
         @Override
-        public void onDragEnded(@NonNull DragZone zone) {}
+        public void onDragEnded(@Nullable DragZone zone) {}
     }
 }

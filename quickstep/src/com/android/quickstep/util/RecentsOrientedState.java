@@ -16,13 +16,13 @@
 
 package com.android.quickstep.util;
 
+import static android.view.Display.DEFAULT_DISPLAY;
 import static android.view.OrientationEventListener.ORIENTATION_UNKNOWN;
 import static android.view.Surface.ROTATION_0;
 import static android.view.Surface.ROTATION_180;
 import static android.view.Surface.ROTATION_270;
 import static android.view.Surface.ROTATION_90;
 
-import static com.android.launcher3.Flags.enableOverviewOnConnectedDisplays;
 import static com.android.launcher3.LauncherPrefs.ALLOW_ROTATION;
 import static com.android.launcher3.LauncherPrefs.FIXED_LANDSCAPE_MODE;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
@@ -56,7 +56,6 @@ import com.android.launcher3.util.SettingsCache;
 import com.android.quickstep.BaseContainerInterface;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.TaskAnimationManager;
-import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
 
 import java.lang.annotation.Retention;
@@ -600,9 +599,8 @@ public class RecentsOrientedState implements LauncherPrefChangeListener {
      * Returns the device profile based on expected launcher rotation
      */
     public DeviceProfile getLauncherDeviceProfile(int displayId) {
-        if (enableOverviewOnConnectedDisplays()) {
-            return RecentsWindowManager.REPOSITORY_INSTANCE.get(mContext).get(
-                    displayId).getDeviceProfile();
+        if (displayId != DEFAULT_DISPLAY) {
+            return mContainerInterface.getCreatedContainer().getDeviceProfile();
         } else {
             InvariantDeviceProfile idp = InvariantDeviceProfile.INSTANCE.get(mContext);
             Point currentSize = DisplayController.INSTANCE.get(mContext).getInfo().currentSize;

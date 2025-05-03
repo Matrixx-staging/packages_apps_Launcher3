@@ -312,6 +312,8 @@ android_library {
     srcs: [
         "tests/tapl/**/*.java",
         "tests/tapl/**/*.kt",
+        "tests/src_tapl_build_config/**/*.java",
+        "tests/src_tapl_build_config/**/*.kt",
     ],
     resource_dirs: [],
     manifest: "tests/tapl/AndroidManifest.xml",
@@ -388,6 +390,7 @@ android_library {
         "//frameworks/libs/systemui:view_capture",
         "//frameworks/libs/systemui:animationlib",
         "//frameworks/libs/systemui:contextualeducationlib",
+        "//frameworks/libs/systemui:mechanics",
         "//frameworks/libs/systemui:msdl",
         "SystemUI-statsd",
         "WindowManager-Shell-shared-AOSP",
@@ -404,7 +407,7 @@ android_library {
         "com_android_systemui_shared_flags_lib",
         "launcher-dagger-qualifiers",
         "launcher-executor-qualifiers",
-        "launcher-executors-module"
+        "launcher-executors-module",
     ],
     manifest: "AndroidManifest-common.xml",
     sdk_version: "current",
@@ -430,7 +433,7 @@ android_app {
     srcs: [
         ":launcher-src",
         ":launcher-src_no_quickstep",
-        ":launcher-build-config"
+        ":launcher-build-config",
     ],
 
     optimize: {

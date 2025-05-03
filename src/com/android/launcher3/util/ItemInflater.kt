@@ -66,7 +66,7 @@ class ItemInflater<T>(
                         is WorkspaceItemInfo -> item
                         else -> return null
                     }
-                if (info.container == Favorites.CONTAINER_PREDICTION) {
+                if (info.container == Favorites.CONTAINER_ALL_APPS_PREDICTION) {
                     // Came from all apps prediction row -- make a copy
                     info = WorkspaceItemInfo(info)
                 }

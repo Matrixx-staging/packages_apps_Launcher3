@@ -48,13 +48,13 @@ import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.MultiPropertyFactory;
 import com.android.launcher3.util.OnboardingPrefs;
+import com.android.quickstep.BaseContainerInterface;
 import com.android.quickstep.GestureState;
 import com.android.quickstep.HomeVisibilityState;
 import com.android.quickstep.LauncherActivityInterface;
+import com.android.quickstep.OverviewComponentObserver;
 import com.android.quickstep.RecentsAnimationCallbacks;
 import com.android.quickstep.SystemUiProxy;
-import com.android.quickstep.fallback.window.RecentsWindowFlags;
-import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.util.SplitTask;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
@@ -120,9 +120,11 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
         mTaskbarLauncherStateController.init(mControllers, mLauncher,
                 mControllers.getSharedState().sysuiStateFlags);
         final TaskbarActivityContext taskbarContext = mControllers.taskbarActivityContext;
-        if (RecentsWindowFlags.getEnableOverviewInWindow()) {
-            mRecentsViewContainer = RecentsWindowManager.REPOSITORY_INSTANCE.get(
-                    taskbarContext).get(taskbarContext.getDisplayId());
+        int displayId = taskbarContext.getDisplayId();
+        BaseContainerInterface<?, ?> containerInterface = OverviewComponentObserver.INSTANCE.get(
+                taskbarContext).getContainerInterface(displayId);
+        if (containerInterface != null) {
+            mRecentsViewContainer = containerInterface.getCreatedContainer();
         }
         if (mRecentsViewContainer == null) {
             mRecentsViewContainer = mLauncher;

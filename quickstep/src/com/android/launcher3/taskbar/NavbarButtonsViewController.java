@@ -425,6 +425,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         mSeparateWindowParent = new BaseDragLayer<>(mContext, null, 0) {
             @Override
             public void recreateControllers() {
+                super.recreateControllers();
                 mControllers = new TouchController[0];
             }
 

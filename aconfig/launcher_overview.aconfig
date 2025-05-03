@@ -19,7 +19,7 @@ flag {
     name: "enable_refactor_task_thumbnail"
     namespace: "launcher_overview"
     description: "Enables rewritten version of TaskThumbnailViews in Overview"
-    bug: "331753115"
+    bug: "331754864"
 }
 
 flag {
@@ -54,7 +54,7 @@ flag {
     name: "enable_overview_background_wallpaper_blur"
     namespace: "launcher_overview"
     description: "Enable wallpaper blur in overview."
-    bug: "369975912"
+    bug: "360297985"
 }
 
 flag {

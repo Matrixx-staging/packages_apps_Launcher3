@@ -99,7 +99,9 @@ constructor(
 
         // Device profile policy changes
         val dpUpdateReceiver =
-            SimpleBroadcastReceiver(context, UI_HELPER_EXECUTOR) { model.reloadStringCache() }
+            SimpleBroadcastReceiver(context, UI_HELPER_EXECUTOR) {
+                model.enqueueModelUpdateTask(ReloadStringCacheTask())
+            }
         dpUpdateReceiver.register(ACTION_DEVICE_POLICY_RESOURCE_UPDATED)
         lifeCycle.addCloseable { dpUpdateReceiver.unregisterReceiverSafely() }
 

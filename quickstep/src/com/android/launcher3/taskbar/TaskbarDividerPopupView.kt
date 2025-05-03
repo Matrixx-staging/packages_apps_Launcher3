@@ -33,6 +33,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.postDelayed
 import com.android.app.animation.Interpolators.EMPHASIZED_ACCELERATE
 import com.android.launcher3.Flags
+import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.R
 import com.android.launcher3.popup.ArrowPopup
 import com.android.launcher3.popup.RoundedArrowDrawable
@@ -81,8 +82,13 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     private val minPaddingFromScreenEdge =
         resources.getDimension(R.dimen.taskbar_pinning_popup_menu_min_padding_from_screen_edge)
 
-    // TODO: add test for isTransientTaskbar & long presses divider and ensures the popup shows up.
-    private var alwaysShowTaskbarOn = !taskbarActivityContext.isTransientTaskbar
+    private var alwaysShowTaskbarOn =
+        if (taskbarActivityContext.isInDesktopMode) {
+            LauncherPrefs.TASKBAR_PINNING_IN_DESKTOP_MODE.get(context)
+        } else {
+            !taskbarActivityContext.isTransientTaskbar
+        }
+
     private var didPreferenceChange = false
     private var verticalOffsetForPopupView =
         resources.getDimensionPixelSize(R.dimen.taskbar_pinning_popup_menu_vertical_margin)

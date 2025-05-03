@@ -118,6 +118,14 @@ class TaskbarPinningControllerTest : TaskbarBaseTestCase() {
     }
 
     @Test
+    fun testOnCloseCallback_whenLauncherPreferenceChanged_shouldNotAnimateToTaskbarInDesktopMode() {
+        isInDesktopMode = true
+        whenever(launcherPrefs.get(TASKBAR_PINNING_IN_DESKTOP_MODE)).thenReturn(false)
+        pinningController.onCloseCallback(true)
+        verify(pinningController, never()).animateTaskbarPinning(any())
+    }
+
+    @Test
     fun testOnCloseCallback_whenLauncherPreferenceChanged_shouldAnimateToTransientTaskbar() {
         whenever(launcherPrefs.get(TASKBAR_PINNING)).thenReturn(true)
         doNothing().whenever(pinningController).animateTaskbarPinning(any())
@@ -210,14 +218,5 @@ class TaskbarPinningControllerTest : TaskbarBaseTestCase() {
         verify(taskbarDragLayer, times(1)).setAnimatingTaskbarPinning(false)
         assertThat(pinningController.isAnimatingTaskbarPinning).isFalse()
         verify(launcherPrefs, times(1)).put(TASKBAR_PINNING, true)
-    }
-
-    @Test
-    fun testRecreateTaskbarAndUpdatePinningValue_whenAnimationEnds_shouldUpdateTaskbarPinningDesktopModePref() {
-        isInDesktopMode = true
-        pinningController.recreateTaskbarAndUpdatePinningValue()
-        verify(taskbarDragLayer, times(1)).setAnimatingTaskbarPinning(false)
-        assertThat(pinningController.isAnimatingTaskbarPinning).isFalse()
-        verify(launcherPrefs, times(1)).put(TASKBAR_PINNING_IN_DESKTOP_MODE, true)
     }
 }

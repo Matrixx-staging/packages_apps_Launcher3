@@ -699,7 +699,7 @@ class TaskbarOverflowTest {
 
         override fun bindCompleteModel(
             itemIdMap: IntSparseArrayMap<ItemInfo>,
-            extraItems: MutableList<FixedContainerItems>,
+            extraItems: List<FixedContainerItems>,
             stringCache: StringCache,
             isBindingSync: Boolean,
         ) = bindItemsAdded(itemIdMap.toList())
@@ -716,7 +716,7 @@ class TaskbarOverflowTest {
             }
         }
 
-        override fun bindWorkspaceComponentsRemoved(matcher: Predicate<ItemInfo>) {
+        override fun bindWorkspaceComponentsRemoved(matcher: Predicate<ItemInfo?>) {
             runOnMainSync {
                 for (i in hotseatItems.size - 1 downTo 0) {
                     if (matcher.test(hotseatItems[i])) {

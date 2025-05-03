@@ -402,6 +402,14 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                     } else {
                         taskContentView
                     }
+                if (enableDesktopExplodedView() && !enableMultipleDesktops(context)) {
+                    // Note, currently there are some issues with launching an individual app window
+                    // with multi-desks enabled, see b/413378320. Will enable this functionality
+                    // after b/413378320 is fixed.
+                    snapshotView.setOnClickListener {
+                        launchTaskWithDesktopController(animated = true, task.key.id)
+                    }
+                }
 
                 TaskContainer(
                     this,
@@ -436,6 +444,9 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         viewModel = null
         visibility = VISIBLE
         taskContainers.forEach { removeAndRecycleThumbnailView(it) }
+        if (enableOverviewIconMenu()) {
+            (iconView as IconAppChipView).reset()
+        }
     }
 
     override fun setOrientationState(orientationState: RecentsOrientedState) {
@@ -481,7 +492,15 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         }
     }
 
-    private fun launchTaskWithDesktopController(animated: Boolean): RunnableList? {
+    /**
+     * Launches the desktop task and activate the task with [taskIdToReorderToFront] if it's
+     * provided and already on the desktop. It will exit Overview to desktop and activate the
+     * according new task afterwards if applicable.
+     */
+    private fun launchTaskWithDesktopController(
+        animated: Boolean,
+        taskIdToReorderToFront: Int? = null,
+    ): RunnableList? {
         val recentsView = recentsView ?: return null
         TestLogging.recordEvent(
             TestProtocol.SEQUENCE_MAIN,
@@ -492,8 +511,17 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         val desktopController = recentsView.desktopRecentsController
         checkNotNull(desktopController) { "recentsController is null" }
 
+        if (taskIdToReorderToFront != null) {
+            // The to-be-activated window should animate on top of other apps during shell
+            // transition.
+            val remoteTargetHandle = getRemoteTargetHandle(taskIdToReorderToFront)
+            // The layer swapping is only applied after [createRecentsWindowAnimator] starts, which
+            // will bring the [remoteTargetHandles] above Recents, therefore this call won't affect
+            // the base surface in [DepthController].
+            remoteTargetHandle?.taskViewSimulator?.setDrawsAboveOtherApps(true)
+        }
         val launchDesktopFromRecents = {
-            desktopController.launchDesktopFromRecents(this, animated) {
+            desktopController.launchDesktopFromRecents(this, animated, taskIdToReorderToFront) {
                 endCallback.executeAllAndDestroy()
             }
         }

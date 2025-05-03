@@ -22,6 +22,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import android.view.View;
+
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.tapl.HomeAppIcon;
@@ -37,7 +39,7 @@ import org.junit.Test;
 /**
  * Test the basic interactions of the Workspace, adding pages, moving the pages and removing pages.
  */
-public class TaplWorkspaceTest extends AbstractLauncherUiTest<Launcher> {
+public class TaplWorkspaceTest extends AbstractLauncherUiTest<Launcher, View> {
 
     private AutoCloseable mLauncherLayout;
 

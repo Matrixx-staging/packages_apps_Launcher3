@@ -78,7 +78,7 @@ public class SplitWithKeyboardShortcutController {
             return;
         }
         RecentsAnimationCallbacks callbacks = new RecentsAnimationCallbacks(
-                SystemUiProxy.INSTANCE.get(mLauncher.getApplicationContext()));
+                mOverviewComponentObserver.getContainerInterface(displayId).getCreatedContainer());
         SplitWithKeyboardShortcutRecentsAnimationListener listener =
                 new SplitWithKeyboardShortcutRecentsAnimationListener(leftOrTop);
 

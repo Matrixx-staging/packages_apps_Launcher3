@@ -89,11 +89,11 @@ import com.android.launcher3.util.LooperExecutor;
 import com.android.launcher3.util.SettingsCache;
 import com.android.launcher3.util.SimpleBroadcastReceiver;
 import com.android.quickstep.AllAppsActionManager;
+import com.android.quickstep.OverviewComponentObserver;
 import com.android.quickstep.RecentsActivity;
 import com.android.quickstep.SystemDecorationChangeObserver;
 import com.android.quickstep.SystemDecorationChangeObserver.DisplayDecorationListener;
 import com.android.quickstep.SystemUiProxy;
-import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.util.ContextualSearchInvoker;
 import com.android.quickstep.util.GroupTask;
@@ -729,12 +729,11 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
 
     /** Creates a {@link TaskbarUIController} to use with non default displays. */
     private TaskbarUIController createTaskbarUIControllerForNonDefaultDisplay(int displayId) {
-        debugPrimaryTaskbar("createTaskbarUIControllerForNonDefaultDisplay");
-        if (RecentsWindowFlags.Companion.getEnableOverviewInWindow()) {
-            RecentsViewContainer rvc = mRecentsWindowManagerRepository.get(displayId);
-            if (rvc != null) {
-                return createTaskbarUIControllerForRecentsViewContainer(rvc);
-            }
+        debugTaskbarManager("createTaskbarUIControllerForNonDefaultDisplay", displayId);
+        RecentsViewContainer rvc = OverviewComponentObserver.INSTANCE.get(
+                mBaseContext).getContainerInterface(displayId).getCreatedContainer();
+        if (rvc instanceof RecentsWindowManager) {
+            return createTaskbarUIControllerForRecentsViewContainer(rvc);
         }
 
         return new TaskbarUIController();

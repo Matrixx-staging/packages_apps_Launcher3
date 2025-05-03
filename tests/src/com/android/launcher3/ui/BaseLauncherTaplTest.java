@@ -40,6 +40,7 @@ import android.os.RemoteException;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.platform.test.flag.junit.SetFlagsRule;
+import android.platform.test.rule.ExtendedLongPressTimeoutRule;
 import android.platform.test.rule.LimitDevicesRule;
 import android.util.Log;
 
@@ -57,7 +58,6 @@ import com.android.launcher3.tapl.LauncherInstrumentation;
 import com.android.launcher3.tapl.TestHelpers;
 import com.android.launcher3.util.TestUtil;
 import com.android.launcher3.util.Wait;
-import com.android.launcher3.util.rule.ExtendedLongPressTimeoutRule;
 import com.android.launcher3.util.rule.FailureWatcher;
 import com.android.launcher3.util.rule.MutualExclusionRule;
 import com.android.launcher3.util.rule.SamplerRule;

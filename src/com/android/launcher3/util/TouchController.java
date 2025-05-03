@@ -33,4 +33,7 @@ public interface TouchController {
     boolean onControllerInterceptTouchEvent(MotionEvent ev);
 
     default void dump(String prefix, PrintWriter writer) { }
+
+    /** Called when touch controllers are destroyed during recreation. */
+    default void onTouchControllerDestroyed() { }
 }

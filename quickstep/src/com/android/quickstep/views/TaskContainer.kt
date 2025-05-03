@@ -134,7 +134,7 @@ class TaskContainer(
                 thumbnailViewDeprecated.setShowSplashForSplitSelection(false)
             }
 
-            if (enableOverviewIconMenu()) {
+            if (enableOverviewIconMenu() && taskView.type != TaskViewType.DESKTOP) {
                 (iconView as IconAppChipView).reset()
             }
         }

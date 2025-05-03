@@ -21,11 +21,11 @@ import static android.content.Intent.ACTION_PACKAGE_CHANGED;
 import static android.content.Intent.ACTION_PACKAGE_REMOVED;
 import static android.view.Display.DEFAULT_DISPLAY;
 
-import static com.android.launcher3.Flags.enableOverviewOnConnectedDisplays;
 import static com.android.launcher3.config.FeatureFlags.SEPARATE_RECENTS_ACTIVITY;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.quickstep.fallback.window.RecentsWindowFlags.enableFallbackOverviewInWindow;
 import static com.android.quickstep.fallback.window.RecentsWindowFlags.enableLauncherOverviewInWindow;
+import static com.android.quickstep.fallback.window.RecentsWindowFlags.enableOverviewOnConnectedDisplays;
 import static com.android.systemui.shared.system.PackageManagerWrapper.ACTION_PREFERRED_ACTIVITY_CHANGED;
 
 import android.content.ActivityNotFoundException;

@@ -62,10 +62,11 @@ import com.android.launcher3.statemanager.StateManager;
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController.BubbleLauncherState;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.MultiPropertyFactory.MultiProperty;
+import com.android.quickstep.BaseContainerInterface;
+import com.android.quickstep.OverviewComponentObserver;
 import com.android.quickstep.RecentsAnimationCallbacks;
 import com.android.quickstep.RecentsAnimationController;
 import com.android.quickstep.fallback.RecentsState;
-import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.util.ScalingWorkspaceRevealAnim;
 import com.android.quickstep.util.SystemUiFlagUtils;
@@ -628,7 +629,7 @@ public class TaskbarLauncherStateController {
         AnimatedFloat taskbarBgOffset =
                 mControllers.taskbarDragLayerController.getTaskbarBackgroundOffset();
         boolean showTaskbar = shouldShowTaskbar(mControllers.taskbarActivityContext, isInLauncher,
-                isInOverview) && !mControllers.taskbarStashController.isInStashedLauncherState();
+                isInOverview) && !mControllers.taskbarStashController.isStashed();
         float taskbarBgOffsetEnd = showTaskbar ? 0f : 1f;
         float taskbarBgOffsetStart = showTaskbar ? 1f : 0f;
 
@@ -1141,14 +1142,14 @@ public class TaskbarLauncherStateController {
      * Helper function to run a callback on the RecentsWindowManager (if it exists).
      */
     private void runForRecentsWindowManager(Consumer<RecentsWindowManager> callback) {
-        if (RecentsWindowFlags.getEnableOverviewInWindow()) {
-            final TaskbarActivityContext taskbarContext = mControllers.taskbarActivityContext;
-            RecentsWindowManager recentsWindowManager =
-                    RecentsWindowManager.REPOSITORY_INSTANCE.get(taskbarContext).get(
-                            taskbarContext.getDisplayId());
-            if (recentsWindowManager != null) {
-                callback.accept(recentsWindowManager);
-            }
+        final TaskbarActivityContext taskbarContext = mControllers.taskbarActivityContext;
+        int displayId = taskbarContext.getDisplayId();
+        BaseContainerInterface<?, ?> containerInterface = OverviewComponentObserver.INSTANCE.get(
+                taskbarContext).getContainerInterface(displayId);
+        if (containerInterface != null
+                && containerInterface.getCreatedContainer() instanceof RecentsWindowManager
+                recentsWindowManager) {
+            callback.accept(recentsWindowManager);
         }
     }
 

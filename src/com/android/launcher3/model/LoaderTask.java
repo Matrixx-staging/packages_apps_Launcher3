@@ -509,11 +509,10 @@ public class LoaderTask implements Runnable {
                 IOUtils.closeSilently(c);
             }
 
-            mModelDelegate.loadAndBindWorkspaceItems(mUserManagerState,
-                    mLauncherBinder.mCallbacksList, mShortcutKeyToPinnedShortcuts);
-            mModelDelegate.loadAndBindAllAppsItems(mUserManagerState,
-                    mLauncherBinder.mCallbacksList, mShortcutKeyToPinnedShortcuts);
-            mModelDelegate.loadAndBindOtherItems(mLauncherBinder.mCallbacksList);
+            mModelDelegate.loadAndBindWorkspaceItems();
+            mModelDelegate.loadAndBindAllAppsItems();
+            mModelDelegate.loadAndBindOtherItems();
+            mBgDataModel.stringCache.loadStrings(mContext);
             mModelDelegate.markActive();
 
             // Break early if we've stopped loading

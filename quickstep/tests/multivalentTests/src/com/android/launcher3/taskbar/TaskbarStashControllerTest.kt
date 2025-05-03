@@ -20,9 +20,12 @@ import android.animation.AnimatorTestRule
 import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
+import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.LauncherPrefs.Companion.TASKBAR_PINNING
+import com.android.launcher3.LauncherPrefs.Companion.TASKBAR_PINNING_IN_DESKTOP_MODE
 import com.android.launcher3.QuickstepTransitionManager.PINNED_TASKBAR_TRANSITION_DURATION
 import com.android.launcher3.R
+import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.taskbar.StashedHandleViewController.ALPHA_INDEX_STASHED
 import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_EDU_OPEN
 import com.android.launcher3.taskbar.TaskbarControllerTestUtil.asProperty
@@ -61,6 +64,7 @@ import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.kotlin.whenever
 
 @RunWith(LauncherMultivalentJUnit::class)
 @EnableFlags(FLAG_ENABLE_BUBBLE_BAR)
@@ -79,6 +83,9 @@ class TaskbarStashControllerTest {
     @InjectController lateinit var autohideSuspendController: TaskbarAutohideSuspendController
     @InjectController lateinit var bubbleBarViewController: BubbleBarViewController
     @InjectController lateinit var bubbleStashController: BubbleStashController
+
+    private val desktopVisibilityController: DesktopVisibilityController
+        get() = DesktopVisibilityController.INSTANCE[context]
 
     private val activityContext by taskbarUnitTestRule::activityContext
 
@@ -385,6 +392,24 @@ class TaskbarStashControllerTest {
             animatorTestRule.advanceTimeBy(stashController.stashDuration)
         }
         assertThat(stashController.timeoutAlarm.alarmPending()).isTrue()
+    }
+
+    @Test
+    @TaskbarMode(PINNED)
+    fun testUpdateTaskbarTimeout_unPinnedTaskbarInDesktopMode_startsTaskbarTimeout() {
+        LauncherPrefs.get(context).put(TASKBAR_PINNING_IN_DESKTOP_MODE, false)
+        whenever(desktopVisibilityController.isInDesktopMode(context.displayId)).thenReturn(true)
+        stashController.updateTaskbarTimeout(false)
+        assertThat(stashController.timeoutAlarm.alarmPending()).isTrue()
+    }
+
+    @Test
+    @TaskbarMode(PINNED)
+    fun testUpdateTaskbarTimeout_pinnedTaskbarInDesktopMode_shouldNotStartsTaskbarTimeout() {
+        LauncherPrefs.get(context).put(TASKBAR_PINNING_IN_DESKTOP_MODE, true)
+        whenever(desktopVisibilityController.isInDesktopMode(context.displayId)).thenReturn(true)
+        stashController.updateTaskbarTimeout(false)
+        assertThat(stashController.timeoutAlarm.alarmPending()).isFalse()
     }
 
     @Test

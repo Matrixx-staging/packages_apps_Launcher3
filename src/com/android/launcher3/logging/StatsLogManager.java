@@ -933,6 +933,12 @@ public class StatsLogManager {
         @UiEvent(doc = "Do row shift migration when upgrading to one grid")
         LAUNCHER_ROW_SHIFT_ONE_GRID_MIGRATION(2206),
 
+        @UiEvent(doc = "User has pinned taskbar in desktop mode using taskbar divider menu")
+        LAUNCHER_DESKTOP_MODE_TASKBAR_PINNED(2241),
+
+        @UiEvent(doc = "User has unpinned taskbar in desktop mode using taskbar divider menu")
+        LAUNCHER_DESKTOP_MODE_TASKBAR_UNPINNED(2242),
+
         // ADD MORE
         ;
 

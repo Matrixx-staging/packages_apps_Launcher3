@@ -251,7 +251,7 @@ public class SecondaryDisplayLauncher extends BaseActivity
 
     @Override
     public void bindExtraContainerItems(BgDataModel.FixedContainerItems item) {
-        if (item.containerId == LauncherSettings.Favorites.CONTAINER_PREDICTION) {
+        if (item.containerId == LauncherSettings.Favorites.CONTAINER_ALL_APPS_PREDICTION) {
             mSecondaryDisplayQuickstepDelegate.setPredictedApps(item);
         }
     }

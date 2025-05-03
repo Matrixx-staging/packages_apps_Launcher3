@@ -32,7 +32,6 @@ import androidx.annotation.NonNull;
 import com.android.launcher3.LauncherModel.ModelUpdateTask;
 import com.android.launcher3.R;
 import com.android.launcher3.model.BgDataModel.FixedContainerItems;
-import com.android.launcher3.model.QuickstepModelDelegate.PredictorState;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.widget.PendingAddWidgetInfo;

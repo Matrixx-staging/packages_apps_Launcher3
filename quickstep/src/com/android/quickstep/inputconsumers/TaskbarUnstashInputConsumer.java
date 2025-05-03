@@ -98,18 +98,24 @@ public class TaskbarUnstashInputConsumer extends DelegateInputConsumer {
             GestureState gestureState) {
         super(gestureState.getDisplayId(), delegate, inputMonitor);
         mTaskbarActivityContext = taskbarActivityContext;
+        mIsTransientTaskbar = DisplayController.isTransientTaskbar(context);
         mOverviewCommandHelper = overviewCommandHelper;
         mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
 
         Resources res = context.getResources();
         mUnstashArea = res.getDimensionPixelSize(R.dimen.taskbar_unstash_input_area);
-        mTaskbarNavThreshold = TaskbarThresholdUtils.getFromNavThreshold(res,
-                taskbarActivityContext.getDeviceProfile());
+
+        boolean pinnedTaskbarWithAutoStashing =
+                mTaskbarActivityContext.shouldAllowTaskbarToAutoStash() && !mIsTransientTaskbar;
+
+        mTaskbarNavThreshold =
+                pinnedTaskbarWithAutoStashing ? 0 : TaskbarThresholdUtils.getFromNavThreshold(res,
+                        taskbarActivityContext.getDeviceProfile());
+
         mTaskbarNavThresholdY = taskbarActivityContext.getDeviceProfile().heightPx
                 - mTaskbarNavThreshold;
         mIsTaskbarAllAppsOpen = mTaskbarActivityContext.isTaskbarAllAppsOpen();
 
-        mIsTransientTaskbar = DisplayController.isTransientTaskbar(context);
         mTaskbarSlowVelocityYThreshold =
                 res.getDimensionPixelSize(R.dimen.taskbar_slow_velocity_y_threshold);
 
@@ -181,16 +187,16 @@ public class TaskbarUnstashInputConsumer extends DelegateInputConsumer {
                         float dX = mLastPos.x - mDownPos.x;
                         float dY = mLastPos.y - mDownPos.y;
 
-                        if (mIsTransientTaskbar) {
+                        if (mTaskbarActivityContext.shouldAllowTaskbarToAutoStash()) {
                             boolean passedTaskbarNavThreshold = dY < 0
                                     && Math.abs(dY) >= mTaskbarNavThreshold;
 
+                            // we only care about nav thresholds when we are transient taskbar
                             if (!mHasPassedTaskbarNavThreshold && passedTaskbarNavThreshold
                                     && !mGestureState.isInExtendedSlopRegion()) {
                                 mHasPassedTaskbarNavThreshold = true;
                                 mTaskbarActivityContext.onSwipeToUnstashTaskbar(true);
                             }
-
                             if (dY < 0) {
                                 dY = -OverScroll.dampedScroll(-dY, mTaskbarNavThresholdY);
                                 if (mTransitionCallback != null && !mIsTaskbarAllAppsOpen) {

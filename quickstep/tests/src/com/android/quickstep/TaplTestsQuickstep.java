@@ -16,7 +16,6 @@
 
 package com.android.quickstep;
 
-import static com.android.launcher3.Flags.enableLauncherOverviewInWindow;
 import static com.android.quickstep.TaskbarModeSwitchRule.Mode.TRANSIENT;
 
 import static org.junit.Assert.assertEquals;
@@ -64,8 +63,6 @@ import org.junit.runner.RunWith;
 
 import java.util.Comparator;
 import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
@@ -79,15 +76,14 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
     @Before
     public void setUp() throws Exception {
         super.setUp();
-        runOnRecentsView(recentsView ->
+        executeOnOverview(recentsView ->
                 recentsView.getPagedViewOrientedState().forceAllowRotationForTesting(true));
     }
 
     @After
     public void tearDown() {
-        runOnRecentsView(recentsView ->
-                recentsView.getPagedViewOrientedState().forceAllowRotationForTesting(false),
-                /* forTearDown= */ true);
+        executeOnOverview(/* forTearDown= */ true, recentsView ->
+                recentsView.getPagedViewOrientedState().forceAllowRotationForTesting(false));
     }
 
     public static void startTestApps() throws Exception {
@@ -114,25 +110,25 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
         Overview overview = mLauncher.goHome().switchToOverview();
         assertIsInState(
                 "Launcher internal state didn't switch to Overview", LauncherState.OVERVIEW);
-        runOnRecentsView(recentsView -> assertTrue("Don't have at least 3 tasks",
+        executeOnOverview(recentsView -> assertTrue("Don't have at least 3 tasks",
                 recentsView.getTaskViewCount() >= 3));
 
         // Test flinging forward and backward.
-        runOnRecentsView(recentsView -> assertEquals("Current task in Overview is not first",
+        executeOnOverview(recentsView -> assertEquals("Current task in Overview is not first",
                 recentsView.indexOfChild(recentsView.getFirstTaskView()),
                 recentsView.getCurrentPage()));
 
         overview.flingForward();
         assertIsInState("Launcher internal state is not Overview", LauncherState.OVERVIEW);
         final Integer currentTaskAfterFlingForward =
-                getFromRecentsView(RecentsView::getCurrentPage);
-        runOnRecentsView(recentsView -> assertTrue("Current task in Overview is still 0",
+                getFromOverview(RecentsView::getCurrentPage);
+        executeOnOverview(recentsView -> assertTrue("Current task in Overview is still 0",
                 currentTaskAfterFlingForward > recentsView.indexOfChild(
                         recentsView.getFirstTaskView())));
 
         overview.flingBackward();
         assertIsInState("Launcher internal state is not Overview", LauncherState.OVERVIEW);
-        runOnRecentsView(recentsView -> assertTrue("Flinging back in Overview did nothing",
+        executeOnOverview(recentsView -> assertTrue("Flinging back in Overview did nothing",
                 recentsView.getCurrentPage() < currentTaskAfterFlingForward));
 
         // Test opening a task.
@@ -148,18 +144,18 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
         overview = mLauncher.goHome().switchToOverview();
         assertIsInState("Launcher internal state didn't switch to Overview",
                 LauncherState.OVERVIEW);
-        final Integer numTasks = getFromRecentsView(RecentsView::getTaskViewCount);
+        final Integer numTasks = getFromOverview(RecentsView::getTaskViewCount);
         task = overview.getCurrentTask();
         assertNotNull("overview.getCurrentTask() returned null (2)", task);
         task.dismiss();
-        runOnRecentsView(recentsView -> assertEquals(
+        executeOnOverview(recentsView -> assertEquals(
                 "Dismissing a task didn't remove 1 task from Overview",
                 numTasks - 1, recentsView.getTaskViewCount()));
 
         // Test dismissing all tasks.
         mLauncher.goHome().switchToOverview().dismissAllTasks();
         assertIsInState("Launcher internal state is not Home", LauncherState.NORMAL);
-        runOnRecentsView(recentsView -> assertEquals("Still have tasks after dismissing all",
+        executeOnOverview(recentsView -> assertEquals("Still have tasks after dismissing all",
                 0, recentsView.getTaskViewCount()));
     }
 
@@ -383,13 +379,13 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
         }
 
         Overview overview = mLauncher.goHome().switchToOverview();
-        runOnRecentsView(recentsView -> assertTrue("Don't have at least 13 tasks",
+        executeOnOverview(recentsView -> assertTrue("Don't have at least 13 tasks",
                 recentsView.getTaskViewCount() >= 13));
 
         // Test scroll the first task off screen
         overview.scrollCurrentTaskOffScreen();
         assertIsInState("Launcher internal state is not Overview", LauncherState.OVERVIEW);
-        runOnRecentsView(recentsView -> assertTrue("Current task in Overview is still first",
+        executeOnOverview(recentsView -> assertTrue("Current task in Overview is still first",
                 recentsView.getCurrentPage() > recentsView.indexOfChild(
                         recentsView.getFirstTaskView())));
 
@@ -406,17 +402,17 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
         overview.scrollCurrentTaskOffScreen();
         assertIsInState(
                 "Launcher internal state is not Overview", LauncherState.OVERVIEW);
-        runOnRecentsView(recentsView -> assertTrue("Current task in Overview is still first",
+        executeOnOverview(recentsView -> assertTrue("Current task in Overview is still first",
                 recentsView.getCurrentPage() > recentsView.indexOfChild(
                         recentsView.getFirstTaskView())));
 
         // Test dismissing the later task.
-        final Integer numTasks = getFromRecentsView(RecentsView::getTaskViewCount);
+        final Integer numTasks = getFromOverview(RecentsView::getTaskViewCount);
         overview.getCurrentTask().dismiss();
-        runOnRecentsView(recentsView -> assertEquals(
+        executeOnOverview(recentsView -> assertEquals(
                 "Dismissing a task didn't remove 1 task from Overview",
                 numTasks - 1, recentsView.getTaskViewCount()));
-        runOnRecentsView(recentsView -> assertTrue("Grid did not rebalance after dismissal",
+        executeOnOverview(recentsView -> assertTrue("Grid did not rebalance after dismissal",
                 (Math.abs(recentsView.getTopRowTaskCountForTablet()
                         - recentsView.getBottomRowTaskCountForTablet()) <= 1)));
 
@@ -427,7 +423,7 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
         assertIsInState(
                 "Launcher internal state didn't remain in Overview", LauncherState.OVERVIEW);
         overview.getCurrentTask().dismiss();
-        runOnRecentsView(recentsView -> assertTrue(
+        executeOnOverview(recentsView -> assertTrue(
                 "Grid did not rebalance after multiple dismissals",
                 (Math.abs(recentsView.getTopRowTaskCountForTablet()
                         - recentsView.getBottomRowTaskCountForTablet()) <= 1)));
@@ -435,7 +431,7 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
         // Test dismissing all tasks.
         mLauncher.goHome().switchToOverview().dismissAllTasks();
         assertIsInState("Launcher internal state is not Home", LauncherState.NORMAL);
-        runOnRecentsView(recentsView -> assertEquals("Still have tasks after dismissing all",
+        executeOnOverview(recentsView -> assertEquals("Still have tasks after dismissing all",
                 0, recentsView.getTaskViewCount()));
     }
 
@@ -446,7 +442,7 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
 
         Overview overview = mLauncher.goHome().switchToOverview();
         assertIsInState("Launcher internal state should be Overview", LauncherState.OVERVIEW);
-        runOnRecentsView(recentsView -> assertTrue("Should have at least 3 tasks",
+        executeOnOverview(recentsView -> assertTrue("Should have at least 3 tasks",
                 recentsView.getTaskViewCount() >= 3));
 
         // It should not dismiss overview when tapping between tasks
@@ -469,7 +465,7 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
 
         Overview overview = mLauncher.goHome().switchToOverview();
         assertIsInState("Launcher internal state should be Overview", LauncherState.OVERVIEW);
-        runOnRecentsView(recentsView -> assertTrue("Should have at least 3 tasks",
+        executeOnOverview(recentsView -> assertTrue("Should have at least 3 tasks",
                 recentsView.getTaskViewCount() >= 3));
 
         if (mLauncher.isTransientTaskbar()) {
@@ -530,19 +526,19 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
 
     @Test
     @PortraitLandscape
-    @ScreenRecordRule.ScreenRecord // TODO(b/396447643): Remove screen record.
+    @ScreenRecordRule.ScreenRecord // TODO(b/412766455): Remove screen record.
     public void testDismissCancel() throws Exception {
         startTestAppsWithCheck();
         Overview overview = mLauncher.goHome().switchToOverview();
         assertIsInState("Launcher internal state didn't switch to Overview",
                 LauncherState.OVERVIEW);
-        final Integer numTasks = getFromRecentsView(RecentsView::getTaskViewCount);
+        final Integer numTasks = getFromOverview(RecentsView::getTaskViewCount);
         OverviewTask task = overview.getCurrentTask();
         assertNotNull("overview.getCurrentTask() returned null (2)", task);
 
         task.dismissCancel();
 
-        runOnRecentsView(recentsView -> assertEquals(
+        executeOnOverview(recentsView -> assertEquals(
                 "Canceling dismissing a task removed a task from Overview",
                 numTasks == null ? 0 : numTasks, recentsView.getTaskViewCount()));
     }
@@ -552,19 +548,19 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
     @EnableFlags(value = Flags.FLAG_ENABLE_GRID_ONLY_OVERVIEW)
     public void testDismissBottomRow() throws Exception {
         assumeTrue(mLauncher.isTablet());
-        mLauncher.goHome().switchToOverview().dismissAllTasks();
+        clearAllRecentTasks();
         startTestAppsWithCheck();
 
         Overview overview = mLauncher.goHome().switchToOverview();
         assertIsInState("Launcher internal state didn't switch to Overview",
                 LauncherState.OVERVIEW);
-        final Integer numTasks = getFromRecentsView(RecentsView::getTaskViewCount);
+        final Integer numTasks = getFromOverview(RecentsView::getTaskViewCount);
         Optional<OverviewTask> bottomTask = overview.getCurrentTasksForTablet().stream().max(
                 Comparator.comparingInt(OverviewTask::getTaskCenterY));
         assertTrue("bottomTask null", bottomTask.isPresent());
 
         bottomTask.get().dismiss();
-        runOnRecentsView(recentsView -> assertEquals(
+        executeOnOverview(recentsView -> assertEquals(
                 "Dismissing a bottomTask didn't remove 1 bottomTask from Overview",
                 numTasks - 1, recentsView.getTaskViewCount()));
     }
@@ -574,11 +570,11 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
     @EnableFlags(value = Flags.FLAG_ENABLE_GRID_ONLY_OVERVIEW)
     public void testDismissLastGridRow() throws Exception {
         assumeTrue(mLauncher.isTablet());
-        mLauncher.goHome().switchToOverview().dismissAllTasks();
+        clearAllRecentTasks();
         startTestAppsWithCheck();
         startTestActivity(3);
         startTestActivity(4);
-        runOnRecentsView(recentsView -> assertNotEquals(
+        executeOnOverview(recentsView -> assertNotEquals(
                 "Grid overview should have unequal row counts",
                 recentsView.getTopRowTaskCountForTablet(),
                 recentsView.getBottomRowTaskCountForTablet()));
@@ -588,13 +584,13 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
 
         overview.flingForwardUntilClearAllVisible();
         assertTrue("Clear All not visible.", overview.isClearAllVisible());
-        final Integer numTasks = getFromRecentsView(RecentsView::getTaskViewCount);
+        final Integer numTasks = getFromOverview(RecentsView::getTaskViewCount);
         Optional<OverviewTask> lastGridTask = overview.getCurrentTasksForTablet().stream().min(
                 Comparator.comparingInt(OverviewTask::getTaskCenterX));
         assertTrue("lastGridTask null.", lastGridTask.isPresent());
 
         lastGridTask.get().dismiss();
-        runOnRecentsView(recentsView -> {
+        executeOnOverview(recentsView -> {
             assertEquals(
                     "Dismissing a lastGridTask didn't remove 1 lastGridTask from Overview",
                     numTasks - 1, recentsView.getTaskViewCount());
@@ -631,18 +627,12 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
 
     private void assertIsInState(
             @NonNull String failureMessage, @NonNull LauncherState expectedState) {
-        assertTrue(failureMessage, enableLauncherOverviewInWindow()
-                ? isInRecentsWindowState(() -> expectedState)
-                : isInState(() -> expectedState));
+        assertTrue(failureMessage, isInState(() -> expectedState));
     }
 
     private void waitForState(
             @NonNull String failureMessage, @NonNull LauncherState expectedState) {
-        if (enableLauncherOverviewInWindow()) {
-            waitForRecentsWindowState(failureMessage, () -> expectedState);
-        } else {
-            waitForState(failureMessage, () -> expectedState);
-        }
+        waitForState(failureMessage, () -> expectedState);
     }
 
     private void expectLaunchedAppState() {
@@ -650,34 +640,5 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
                 "Launcher activity is the top activity; expecting another activity to be the top "
                         + "one",
                 isInLaunchedApp(launcher)));
-    }
-
-    private <T> T getFromRecentsView(Function<RecentsView, T> f) {
-        return getFromRecentsView(f, false);
-    }
-
-    private <T> T getFromRecentsView(Function<RecentsView, T> f, boolean forTearDown) {
-        if (enableLauncherOverviewInWindow()) {
-            return getFromRecentsWindow(recentsWindowManager ->
-                    (forTearDown && recentsWindowManager == null)
-                            ? null :  f.apply(recentsWindowManager.getOverviewPanel()));
-        } else {
-            return getFromLauncher(launcher -> (forTearDown && launcher == null)
-                    ? null : f.apply(launcher.getOverviewPanel()));
-        }
-    }
-
-    private void runOnRecentsView(Consumer<RecentsView> f) {
-        runOnRecentsView(f, false);
-    }
-
-    private void runOnRecentsView(Consumer<RecentsView> f, boolean forTearDown) {
-        getFromRecentsView(recentsView -> {
-            if (forTearDown && recentsView == null) {
-                return null;
-            }
-            f.accept(recentsView);
-            return null;
-        }, forTearDown);
     }
 }

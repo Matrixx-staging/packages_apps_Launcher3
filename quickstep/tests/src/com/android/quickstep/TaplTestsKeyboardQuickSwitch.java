@@ -152,7 +152,7 @@ public class TaplTestsKeyboardQuickSwitch extends AbstractQuickStepTest {
 
     @Test
     public void testLaunchSingleRecentTask() {
-        mLauncher.getLaunchedAppState().switchToOverview().dismissAllTasks();
+        clearAllRecentTasks();
         startAppFast(CALCULATOR_APP_PACKAGE);
         mLauncher.goHome().showQuickSwitchView().launchFocusedAppTask(CALCULATOR_APP_PACKAGE);
     }

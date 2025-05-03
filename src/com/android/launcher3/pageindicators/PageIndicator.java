@@ -63,4 +63,11 @@ public interface PageIndicator {
     default void setPaintColor(int color) {
         // No-op by default
     }
+
+    /**
+     * Allows the page indicator to perform actions or animations upon a fling event.
+     */
+    default void onFling(boolean isLeftFling) {
+        // No-op by default
+    }
 }

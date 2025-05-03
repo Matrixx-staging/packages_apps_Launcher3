@@ -281,11 +281,6 @@ public class BubbleBarViewController {
         mBubbleBarPinning.updateValue(pinningValue);
         mBarView.setController(new BubbleBarView.Controller() {
             @Override
-            public int getScreenHeight() {
-                return mActivity.getScreenSize().y;
-            }
-
-            @Override
             public float getBubbleBarTranslationY() {
                 return mBubbleStashController.getBubbleBarTranslationY();
             }
@@ -741,7 +736,8 @@ public class BubbleBarViewController {
     public boolean isEventOverBubbleBar(MotionEvent event) {
         if (!isBubbleBarVisible()) return false;
         final Rect bounds = getBubbleBarBounds();
-        final int bubbleBarTopOnScreen = mBarView.getRestingTopPositionOnScreen();
+        final int bubbleBarTopOnScreen =
+                mActivity.getScreenSize().y - mBarView.getTopToScreenBottom();
         final float x = event.getX();
         return event.getRawY() >= bubbleBarTopOnScreen && x >= bounds.left && x <= bounds.right;
     }
@@ -1110,7 +1106,7 @@ public class BubbleBarViewController {
         if (mOverflowAdded == showOverflow) return;
         mOverflowAdded = showOverflow;
         if (mOverflowAdded) {
-            mBarView.addBubble(mOverflowBubble.getView());
+            mBarView.addBubble(mOverflowBubble.getView(), /* suppressAnimation= */ true);
             mOverflowBubble.getView().setOnClickListener(mBubbleClickListener);
             mOverflowBubble.getView().setController(mBubbleViewController);
         } else {
@@ -1157,10 +1153,7 @@ public class BubbleBarViewController {
         if (b != null) {
             BubbleView bubbleToSelectView =
                     bubbleToSelect == null ? null : bubbleToSelect.getView();
-            mBarView.addBubble(b.getView(), bubbleToSelectView);
-            b.getView().setOnClickListener(mBubbleClickListener);
-            mBubbleDragController.setupBubbleView(b.getView());
-            b.getView().setController(mBubbleViewController);
+            addBubbleView(b.getView(), suppressAnimation, bubbleToSelectView);
 
             if (suppressAnimation || !(b instanceof BubbleBarBubble bubble)) {
                 // the bubble bar and handle are initialized as part of the first bubble animation.
@@ -1168,7 +1161,8 @@ public class BubbleBarViewController {
                 // ensure they've been initialized.
                 if (mTaskbarStashController.isInApp()
                         && mBubbleStashController.isTransientTaskBar()
-                        && mTaskbarStashController.isStashed()) {
+                        && mTaskbarStashController.isStashed()
+                        && !isExpanded()) {
                     mBubbleStashController.stashBubbleBarImmediate();
                 } else {
                     mBubbleStashController.showBubbleBarImmediate();
@@ -1179,6 +1173,21 @@ public class BubbleBarViewController {
         } else {
             Log.w(TAG, "addBubble, bubble was null!");
         }
+    }
+
+    private void addBubbleView(BubbleView bubbleView, boolean suppressAnimation,
+            BubbleView selectedBubbleView) {
+        mBarView.addBubble(bubbleView, selectedBubbleView, suppressAnimation);
+        bubbleView.setOnClickListener(mBubbleClickListener);
+        mBubbleDragController.setupBubbleView(bubbleView);
+        bubbleView.setController(mBubbleViewController);
+    }
+
+    /**
+     * Restore a previous bubble that is stored in {@link TaskbarSharedState}.
+     */
+    public void restoreBubble(BubbleBarItem b) {
+        addBubbleView(b.getView(), /* suppressAnimation= */ true, /* bubbleToSelectView= */ null);
     }
 
     /** Animates the bubble bar to notify the user about a bubble change. */
@@ -1298,15 +1307,25 @@ public class BubbleBarViewController {
      * Sets whether the bubble bar should be expanded. This method is used in response to UI events
      * from SystemUI.
      */
-    public void setExpandedFromSysui(boolean isExpanded) {
+    public void setExpandedFromSysui(boolean isExpanded, boolean animate) {
         if (isNewBubbleAnimationRunningOrPending() && isExpanded) {
             mBubbleBarViewAnimator.expandedWhileAnimating();
             return;
         }
-        if (!isExpanded) {
-            mBubbleStashController.stashBubbleBar();
+        if (animate) {
+            if (!isExpanded) {
+                mBubbleStashController.stashBubbleBar();
+            } else {
+                mBubbleStashController.showBubbleBar(true /* expand the bubbles */);
+            }
         } else {
-            mBubbleStashController.showBubbleBar(true /* expand the bubbles */);
+            if (!isExpanded) {
+                mBubbleStashController.stashBubbleBarImmediate();
+            } else {
+                mBubbleStashController.showBubbleBarImmediate();
+                mBarView.setExpanded(true);
+                adjustTaskbarAndHotseatToBubbleBarState(true);
+            }
         }
     }
 
@@ -1336,7 +1355,7 @@ public class BubbleBarViewController {
      * Notifies SystemUI to expand the selected bubble when the bubble is released.
      */
     public void onBubbleDragRelease(BubbleBarLocation location) {
-        mSystemUiProxy.stopBubbleDrag(location, mBarView.getRestingTopPositionOnScreen());
+        mSystemUiProxy.stopBubbleDrag(location, mBarView.getTopToScreenBottom());
     }
 
     /** Handle given bubble being dismissed */

@@ -374,7 +374,7 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setWallpaperDependentTheme(this);
-
+        getTheme().applyStyle(getBlurStyleResId(), true);
         mStateManager = new StateManager<>(this, RecentsState.BG_LAUNCHER);
 
         initDeviceProfile();
@@ -561,5 +561,10 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
     @Override
     public void onIdpChanged(boolean modelPropertiesChanged) {
         onHandleConfigurationChanged();
+    }
+
+    @Override
+    public int getBlurStyleResId() {
+        return R.style.BlurFallbackStyle;
     }
 }

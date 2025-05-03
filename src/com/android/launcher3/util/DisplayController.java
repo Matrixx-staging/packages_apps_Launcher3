@@ -23,7 +23,6 @@ import static com.android.launcher3.InvariantDeviceProfile.TYPE_MULTI_DISPLAY;
 import static com.android.launcher3.InvariantDeviceProfile.TYPE_PHONE;
 import static com.android.launcher3.InvariantDeviceProfile.TYPE_TABLET;
 import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING;
-import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING_DESKTOP_MODE_KEY;
 import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING_IN_DESKTOP_MODE;
 import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING_KEY;
 import static com.android.launcher3.Utilities.dpiFromPx;
@@ -141,11 +140,7 @@ public class DisplayController implements DesktopVisibilityListener {
                 Info info = getInfo();
                 boolean isTaskbarPinningChanged = TASKBAR_PINNING_KEY.equals(key)
                         && info.mIsTaskbarPinned != prefs.get(TASKBAR_PINNING);
-                boolean isTaskbarPinningDesktopModeChanged =
-                        TASKBAR_PINNING_DESKTOP_MODE_KEY.equals(key)
-                                && info.mIsTaskbarPinnedInDesktopMode != prefs.get(
-                                TASKBAR_PINNING_IN_DESKTOP_MODE);
-                if (isTaskbarPinningChanged || isTaskbarPinningDesktopModeChanged) {
+                if (isTaskbarPinningChanged) {
                     notifyConfigChange(DEFAULT_DISPLAY);
                 }
             };
@@ -407,8 +402,6 @@ public class DisplayController implements DesktopVisibilityListener {
                     "(CHANGE_SUPPORTED_BOUNDS) perDisplayBounds: " + newInfo.mPerDisplayBounds);
         }
         if ((newInfo.mIsTaskbarPinned != oldInfo.mIsTaskbarPinned)
-                || (newInfo.mIsTaskbarPinnedInDesktopMode
-                != oldInfo.mIsTaskbarPinnedInDesktopMode)
                 || newInfo.isPinnedTaskbar() != oldInfo.isPinnedTaskbar()) {
             change |= CHANGE_TASKBAR_PINNING;
         }
@@ -507,7 +500,6 @@ public class DisplayController implements DesktopVisibilityListener {
                 new ArrayMap<>();
 
         private final boolean mIsTaskbarPinned;
-        private final boolean mIsTaskbarPinnedInDesktopMode;
 
         private final boolean mIsInDesktopMode;
 
@@ -574,8 +566,6 @@ public class DisplayController implements DesktopVisibilityListener {
             }
 
             mIsTaskbarPinned = LauncherPrefs.get(displayInfoContext).get(TASKBAR_PINNING);
-            mIsTaskbarPinnedInDesktopMode = LauncherPrefs.get(displayInfoContext).get(
-                    TASKBAR_PINNING_IN_DESKTOP_MODE);
             mIsInDesktopMode = wmProxy.isInDesktopMode(DEFAULT_DISPLAY);
             mShowLockedTaskbarOnHome = wmProxy.showLockedTaskbarOnHome(displayInfoContext);
             mShowDesktopTaskbarForFreeformDisplay = wmProxy.showDesktopTaskbarForFreeformDisplay(
@@ -607,7 +597,7 @@ public class DisplayController implements DesktopVisibilityListener {
                     return false;
                 }
                 if (mIsInDesktopMode) {
-                    return !mIsTaskbarPinnedInDesktopMode;
+                    return false;
                 }
                 return !mIsTaskbarPinned;
             }
@@ -733,7 +723,6 @@ public class DisplayController implements DesktopVisibilityListener {
             pw.println("  densityDpi=" + info.densityDpi);
             pw.println("  navigationMode=" + info.getNavigationMode().name());
             pw.println("  isTaskbarPinned=" + info.mIsTaskbarPinned);
-            pw.println("  isTaskbarPinnedInDesktopMode=" + info.mIsTaskbarPinnedInDesktopMode);
             pw.println("  isInDesktopMode=" + info.mIsInDesktopMode);
             pw.println("  showLockedTaskbarOnHome=" + info.showLockedTaskbarOnHome());
             pw.println("  currentSize=" + info.currentSize);

@@ -15,6 +15,7 @@
  */
 package com.android.launcher3.allapps;
 
+import android.view.ContextThemeWrapper;
 import android.view.View;
 
 /**
@@ -60,4 +61,7 @@ public interface FloatingHeaderRow {
     default boolean isVisible() {
         return shouldDraw();
     }
+
+    /** Update colors using the provided theme wrapper. */
+    default void updateTheme(ContextThemeWrapper contextThemeWrapper) {}
 }

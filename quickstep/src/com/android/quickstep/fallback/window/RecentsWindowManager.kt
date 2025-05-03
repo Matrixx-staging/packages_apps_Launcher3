@@ -343,6 +343,7 @@ constructor(
         }
         stateManager.moveToRestState()
         callbacks?.removeListener(recentsAnimationListener)
+        callbacks = null
     }
 
     private fun isShowing(): Boolean {

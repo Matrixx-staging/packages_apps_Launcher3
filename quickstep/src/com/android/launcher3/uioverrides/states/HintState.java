@@ -15,20 +15,17 @@
  */
 package com.android.launcher3.uioverrides.states;
 
-import static com.android.launcher3.Flags.enableOverviewBackgroundWallpaperBlur;
 import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_HOME;
 
 import android.content.Context;
+import android.graphics.Color;
 
 import androidx.core.graphics.ColorUtils;
 
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
-import com.android.launcher3.R;
-import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
-import com.android.systemui.shared.system.BlurUtils;
 
 /**
  * Scale down workspace/hotseat to hint at going to either overview (on pause) or first home screen.
@@ -64,10 +61,9 @@ public class HintState extends LauncherState {
 
     @Override
     public int getWorkspaceScrimColor(Launcher launcher) {
-        return enableOverviewBackgroundWallpaperBlur() && BlurUtils.supportsBlursOnWindows()
-                ? Themes.getAttrColor(launcher, R.attr.overviewScrimColorOverBlur)
-                : ColorUtils.setAlphaComponent(
-                        Themes.getAttrColor(launcher, R.attr.overviewScrimColor), 100);
+        int overviewStateColor = OVERVIEW.getWorkspaceScrimColor(launcher);
+        return ColorUtils.setAlphaComponent(overviewStateColor,
+                Math.round(Color.valueOf(overviewStateColor).alpha() * 100));
     }
 
     @Override

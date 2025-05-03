@@ -15,7 +15,6 @@
  */
 package com.android.launcher3.touch;
 
-import static com.android.app.animation.Interpolators.DECELERATED_EASE;
 import static com.android.app.animation.Interpolators.EMPHASIZED;
 import static com.android.app.animation.Interpolators.EMPHASIZED_ACCELERATE;
 import static com.android.app.animation.Interpolators.EMPHASIZED_DECELERATE;
@@ -34,8 +33,10 @@ import static com.android.launcher3.states.StateAnimationConfig.ANIM_VERTICAL_PR
 import static com.android.launcher3.states.StateAnimationConfig.ANIM_WORKSPACE_FADE;
 import static com.android.launcher3.states.StateAnimationConfig.ANIM_WORKSPACE_SCALE;
 
+import android.graphics.Path;
 import android.view.MotionEvent;
 import android.view.animation.Interpolator;
+import android.view.animation.PathInterpolator;
 
 import com.android.app.animation.Interpolators;
 import com.android.launcher3.AbstractFloatingView;
@@ -64,7 +65,9 @@ public class AllAppsSwipeController extends AbstractStateChangeTouchController {
                     1 - ALL_APPS_CONTENT_FADE_MIN_CLAMPING_THRESHOLD);
 
     // Depth to apply behind All Apps when it's presented on a sheet.
-    private static final Interpolator ALL_APPS_SHEET_DEPTH = DECELERATED_EASE;
+    private static final Interpolator ALL_APPS_SHEET_DEPTH = createAllAppsSheetDepthInterpolator();
+    // Scale to apply behind All Apps when it's presented on a sheet.
+    private static final Interpolator ALL_APPS_SHEET_SCALE = createAllAppsSheetScaleInterpolator();
 
     // ---- Custom interpolators for NORMAL -> ALL_APPS on phones only. ----
 
@@ -203,15 +206,15 @@ public class AllAppsSwipeController extends AbstractStateChangeTouchController {
      */
     public static void applyAllAppsToNormalConfig(Launcher launcher, StateAnimationConfig config) {
         if (launcher.getDeviceProfile().shouldShowAllAppsOnSheet()) {
-            config.setInterpolator(ANIM_SCRIM_FADE,
-                    Interpolators.reverse(ALL_APPS_SCRIM_RESPONDER));
             config.setInterpolator(ANIM_ALL_APPS_FADE, FINAL_FRAME);
             if (!config.isUserControlled()) {
                 config.setInterpolator(ANIM_VERTICAL_PROGRESS, EMPHASIZED);
             }
-            config.setInterpolator(ANIM_WORKSPACE_SCALE, ALL_APPS_SHEET_DEPTH);
-            config.setInterpolator(ANIM_HOTSEAT_SCALE, ALL_APPS_SHEET_DEPTH);
-            config.setInterpolator(ANIM_DEPTH, ALL_APPS_SHEET_DEPTH);
+            config.setInterpolator(
+                    ANIM_WORKSPACE_SCALE, Interpolators.reverse(ALL_APPS_SHEET_SCALE));
+            config.setInterpolator(ANIM_HOTSEAT_SCALE, Interpolators.reverse(ALL_APPS_SHEET_SCALE));
+            config.setInterpolator(ANIM_DEPTH, Interpolators.reverse(ALL_APPS_SHEET_DEPTH));
+            config.setInterpolator(ANIM_SCRIM_FADE, Interpolators.reverse(ALL_APPS_SHEET_DEPTH));
             if (!Flags.allAppsBlur() && launcher.getDeviceProfile().isPhone) {
                 // On phones without blur, reveal the workspace and hotseat when leaving All Apps.
                 config.setInterpolator(ANIM_WORKSPACE_FADE, INSTANT);
@@ -253,13 +256,13 @@ public class AllAppsSwipeController extends AbstractStateChangeTouchController {
             Launcher launcher, StateAnimationConfig config) {
         if (launcher.getDeviceProfile().shouldShowAllAppsOnSheet()) {
             config.setInterpolator(ANIM_ALL_APPS_FADE, INSTANT);
-            config.setInterpolator(ANIM_SCRIM_FADE, ALL_APPS_SCRIM_RESPONDER);
             if (!config.isUserControlled()) {
                 config.setInterpolator(ANIM_VERTICAL_PROGRESS, EMPHASIZED);
             }
-            config.setInterpolator(ANIM_WORKSPACE_SCALE, ALL_APPS_SHEET_DEPTH);
-            config.setInterpolator(ANIM_HOTSEAT_SCALE, ALL_APPS_SHEET_DEPTH);
+            config.setInterpolator(ANIM_WORKSPACE_SCALE, ALL_APPS_SHEET_SCALE);
+            config.setInterpolator(ANIM_HOTSEAT_SCALE, ALL_APPS_SHEET_SCALE);
             config.setInterpolator(ANIM_DEPTH, ALL_APPS_SHEET_DEPTH);
+            config.setInterpolator(ANIM_SCRIM_FADE, ALL_APPS_SHEET_DEPTH);
             if (!Flags.allAppsBlur() && launcher.getDeviceProfile().isPhone) {
                 // On phones without blur, hide the workspace and hotseat when entering All Apps.
                 config.setInterpolator(ANIM_WORKSPACE_FADE, FINAL_FRAME);
@@ -290,6 +293,24 @@ public class AllAppsSwipeController extends AbstractStateChangeTouchController {
                             ? ALL_APPS_VERTICAL_PROGRESS_MANUAL
                             : ALL_APPS_VERTICAL_PROGRESS_ATOMIC);
         }
+    }
+
+    private static Interpolator createAllAppsSheetDepthInterpolator() {
+        Path path = new Path();
+        path.moveTo(0f, 0f);
+        path.cubicTo(0.016f, 0f, 0.04f, 0.1f, 0.08f, 0.1f);
+        path.cubicTo(0.218f, 0.1f, 0.218f, 1f, 1f, 1f);
+
+        return Interpolators.clampToProgress(new PathInterpolator(path), 0f, 0.83f);
+    }
+
+    private static Interpolator createAllAppsSheetScaleInterpolator() {
+        Path path = new Path();
+        path.moveTo(0f, 0f);
+        path.cubicTo(0.025f, 0f, 0.0625f, 0.2f, 0.125f, 0.2f);
+        path.cubicTo(0.3875f, 0.2f, 0.125f, 1f, 1f, 1f);
+
+        return Interpolators.clampToProgress(new PathInterpolator(path), 0f, 0.53f);
     }
 
     /** Creates an interpolator that is 0 until the threshold, then follows given interpolator. */

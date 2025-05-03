@@ -20,8 +20,8 @@ import android.app.prediction.AppTarget
 import android.app.prediction.AppTargetEvent
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.launcher3.LauncherAppState
+import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS_PREDICTION
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION
-import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_PREDICTION
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_WALLPAPERS
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_WIDGETS_PREDICTION
 import com.android.launcher3.util.SandboxApplication
@@ -51,6 +51,7 @@ class QuickstepModelDelegateTest {
     @Mock private lateinit var allAppsPredictor: AppPredictor
     @Mock private lateinit var hotseatPredictor: AppPredictor
     @Mock private lateinit var widgetRecommendationPredictor: AppPredictor
+    @Mock private lateinit var itemParserFactory: PredictedItemFactory.Factory
 
     @Before
     fun setUp() {
@@ -59,11 +60,12 @@ class QuickstepModelDelegateTest {
             QuickstepModelDelegate(
                 context,
                 context.appComponent.idp,
-                context.appComponent.packageManagerHelper,
+                context.appComponent.userCache,
+                itemParserFactory,
                 "", /* dbFileName */
             )
-        underTest.mAllAppsState.predictor = allAppsPredictor
-        underTest.mHotseatState.predictor = hotseatPredictor
+        underTest.mAllPredictionAppsState.predictor = allAppsPredictor
+        underTest.mHotseatPredictionState.predictor = hotseatPredictor
         underTest.mWidgetsRecommendationState.predictor = widgetRecommendationPredictor
         underTest.mModel = LauncherAppState.getInstance(context).model
         underTest.mDataModel =
@@ -77,7 +79,7 @@ class QuickstepModelDelegateTest {
 
     @Test
     fun onAppTargetEvent_notifyTarget() {
-        underTest.onAppTargetEvent(mockedAppTargetEvent, CONTAINER_PREDICTION)
+        underTest.onAppTargetEvent(mockedAppTargetEvent, CONTAINER_ALL_APPS_PREDICTION)
 
         verify(allAppsPredictor).notifyAppTargetEvent(mockedAppTargetEvent)
         verifyNoMoreInteractions(hotseatPredictor)
@@ -113,38 +115,38 @@ class QuickstepModelDelegateTest {
 
     @Test
     fun hotseatActionPin_recreateHotSeat() {
-        assertSame(underTest.mHotseatState.predictor, hotseatPredictor)
+        assertSame(underTest.mHotseatPredictionState.predictor, hotseatPredictor)
         val appTargetEvent = AppTargetEvent.Builder(target, AppTargetEvent.ACTION_PIN).build()
         underTest.markActive()
 
         underTest.onAppTargetEvent(appTargetEvent, CONTAINER_HOTSEAT_PREDICTION)
 
         verify(hotseatPredictor).destroy()
-        assertNotSame(underTest.mHotseatState.predictor, hotseatPredictor)
+        assertNotSame(underTest.mHotseatPredictionState.predictor, hotseatPredictor)
     }
 
     @Test
     fun hotseatActionUnpin_recreateHotSeat() {
-        assertSame(underTest.mHotseatState.predictor, hotseatPredictor)
+        assertSame(underTest.mHotseatPredictionState.predictor, hotseatPredictor)
         underTest.markActive()
         val appTargetEvent = AppTargetEvent.Builder(target, AppTargetEvent.ACTION_UNPIN).build()
 
         underTest.onAppTargetEvent(appTargetEvent, CONTAINER_HOTSEAT_PREDICTION)
 
         verify(hotseatPredictor).destroy()
-        assertNotSame(underTest.mHotseatState.predictor, hotseatPredictor)
+        assertNotSame(underTest.mHotseatPredictionState.predictor, hotseatPredictor)
     }
 
     @Test
     fun container_actionPin_notRecreateHotSeat() {
-        assertSame(underTest.mHotseatState.predictor, hotseatPredictor)
+        assertSame(underTest.mHotseatPredictionState.predictor, hotseatPredictor)
         val appTargetEvent = AppTargetEvent.Builder(target, AppTargetEvent.ACTION_UNPIN).build()
         underTest.markActive()
 
-        underTest.onAppTargetEvent(appTargetEvent, CONTAINER_PREDICTION)
+        underTest.onAppTargetEvent(appTargetEvent, CONTAINER_ALL_APPS_PREDICTION)
 
         verify(allAppsPredictor, never()).destroy()
         verify(hotseatPredictor, never()).destroy()
-        assertSame(underTest.mHotseatState.predictor, hotseatPredictor)
+        assertSame(underTest.mHotseatPredictionState.predictor, hotseatPredictor)
     }
 }

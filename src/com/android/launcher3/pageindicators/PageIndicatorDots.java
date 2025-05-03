@@ -175,6 +175,23 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
         mIsRtl = Utilities.isRtl(getResources());
     }
 
+    /**
+     * Performs a move-bounce animation upon fling. Flings happen in between 2 positions. Either we
+     * are coming from the right one, and going to the left, or vice versa. Ex. 3.7 current pos with
+     * left swipe means last=3, target=4. Slow scroll page-changes also update mLastPosition.
+     */
+    @Override
+    public void onFling(boolean isLeftFling) {
+        mLastPosition = (int) mCurrentPosition;
+        float target = mLastPosition;
+        if (isLeftFling) {
+            target++;
+        } else {
+            mLastPosition++;
+        }
+        animateToPosition(target);
+    }
+
     @Override
     public void setScroll(int currentScroll, int totalScroll) {
         if (currentScroll == 0 && totalScroll == 0) {
@@ -204,7 +221,16 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
         if (enableLauncherVisualRefresh()) {
             float scrollPerPage = (float) totalScroll / (mNumPages - 1);
             float position = currentScroll / scrollPerPage;
-            animateToPosition(Math.round(position));
+
+            if (mAnimator == null) {
+                // mLastPosition is used to determine which dots should be growing / shrinking.
+                // Update it when the scroll moves pages. Fling animations also update mLastPosition
+                if ((int) position != (int) mCurrentPosition) {
+                    mLastPosition = Math.round(position);
+                }
+                // Just show current position if slow scroll. Otherwise, fling animation is going
+                CURRENT_POSITION.set(this, position);
+            }
 
             float delta = Math.abs((int) position - position);
             if (mShouldAutoHide && (delta < 0.1 || delta > 0.9)) {
@@ -321,7 +347,10 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
             mAnimator.addListener(new AnimationCycleListener());
             mAnimator.setDuration(ANIMATION_DURATION);
             if (enableLauncherVisualRefresh()) {
-                mLastPosition = (int) mCurrentPosition;
+                // If user performs fling with only 11% of the distance to go, we don't want the
+                // animation to be 150 ms long so we tether it to the scroll distance remaining.
+                float remainingScroll = Math.abs(position - mCurrentPosition);
+                mAnimator.setDuration((long) (ANIMATION_DURATION * remainingScroll));
                 mAnimator.setInterpolator(new OvershootInterpolator());
             }
             mAnimator.start();

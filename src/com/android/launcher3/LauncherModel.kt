@@ -40,7 +40,6 @@ import com.android.launcher3.model.ModelLauncherCallbacks
 import com.android.launcher3.model.ModelTaskController
 import com.android.launcher3.model.ModelWriter
 import com.android.launcher3.model.PackageUpdatedTask
-import com.android.launcher3.model.ReloadStringCacheTask
 import com.android.launcher3.model.ShortcutsChangedTask
 import com.android.launcher3.model.UserLockStateChangedTask
 import com.android.launcher3.model.UserManagerState
@@ -155,10 +154,6 @@ constructor(
     fun destroy() {
         mModelDestroyed = true
         MODEL_EXECUTOR.execute { modelDelegate.destroy() }
-    }
-
-    fun reloadStringCache() {
-        enqueueModelUpdateTask(ReloadStringCacheTask(this.modelDelegate))
     }
 
     /**

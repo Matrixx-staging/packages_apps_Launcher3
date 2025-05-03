@@ -18,16 +18,12 @@ package com.android.launcher3.model;
 import static com.android.launcher3.util.PackageManagerHelper.hasShortcutsPermission;
 
 import android.content.Context;
-import android.content.pm.ShortcutInfo;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 
 import com.android.launcher3.LauncherModel;
 import com.android.launcher3.dagger.ApplicationContext;
-import com.android.launcher3.shortcuts.ShortcutKey;
-
-import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -65,32 +61,18 @@ public class ModelDelegate {
 
     /** Load workspace items (for example, those in the hot seat) if any in the data model */
     @WorkerThread
-    public void loadAndBindWorkspaceItems(@NonNull UserManagerState ums,
-            @NonNull BgDataModel.Callbacks[] callbacks,
-            @NonNull Map<ShortcutKey, ShortcutInfo> pinnedShortcuts) { }
+    public void loadAndBindWorkspaceItems() { }
 
     /** Load all apps items if any in the data model */
     @WorkerThread
-    public void loadAndBindAllAppsItems(@NonNull UserManagerState ums,
-            @NonNull BgDataModel.Callbacks[] callbacks,
-            @NonNull Map<ShortcutKey, ShortcutInfo> pinnedShortcuts) { }
+    public void loadAndBindAllAppsItems() { }
 
     /** Load other items like widget recommendations if any in the data model */
     @WorkerThread
-    public void loadAndBindOtherItems(@NonNull BgDataModel.Callbacks[] callbacks) { }
-
-    /** binds everything not bound by launcherBinder */
-    @WorkerThread
-    public void bindAllModelExtras(@NonNull BgDataModel.Callbacks[] callbacks) { }
+    public void loadAndBindOtherItems() { }
 
     /** Marks the ModelDelegate as active */
     public void markActive() { }
-
-    /** Load String cache */
-    @WorkerThread
-    public void loadStringCache(@NonNull StringCache cache) {
-        cache.loadStrings(mContext);
-    }
 
     /**
      * Called during loader after workspace loading is complete

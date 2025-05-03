@@ -22,7 +22,7 @@ import static android.app.prediction.AppTargetEvent.ACTION_UNDISMISS;
 import static android.app.prediction.AppTargetEvent.ACTION_UNPIN;
 
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION;
-import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_PREDICTION;
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS_PREDICTION;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_WIDGETS_PREDICTION;
 import static com.android.launcher3.logger.LauncherAtomExtensions.ExtendedContainers.ContainerCase.DEVICE_SEARCH_RESULT_CONTAINER;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_APP_LAUNCH_DRAGDROP;
@@ -135,10 +135,10 @@ public class AppEventProducer implements StatsLogConsumer {
                 || event == LAUNCHER_QUICKSWITCH_RIGHT
                 || event == LAUNCHER_QUICKSWITCH_LEFT
                 || event == LAUNCHER_APP_LAUNCH_DRAGDROP) {
-            sendEvent(atomInfo, ACTION_LAUNCH, CONTAINER_PREDICTION);
+            sendEvent(atomInfo, ACTION_LAUNCH, CONTAINER_ALL_APPS_PREDICTION);
         } else if (event == LAUNCHER_ITEM_DROPPED_ON_DONT_SUGGEST
                 || event == LAUNCHER_SYSTEM_SHORTCUT_DONT_SUGGEST_APP_TAP) {
-            sendEvent(atomInfo, ACTION_DISMISS, CONTAINER_PREDICTION);
+            sendEvent(atomInfo, ACTION_DISMISS, CONTAINER_ALL_APPS_PREDICTION);
         } else if (event == LAUNCHER_ITEM_DRAG_STARTED) {
             mLastDragItem = atomInfo;
         } else if (event == LAUNCHER_ITEM_DROP_COMPLETED) {
@@ -182,7 +182,7 @@ public class AppEventProducer implements StatsLogConsumer {
             AppTarget target = new AppTarget.Builder(new AppTargetId("launcher:launcher"),
                     mContext.getPackageName(), Process.myUserHandle())
                     .build();
-            sendEvent(target, atomInfo, ACTION_LAUNCH, CONTAINER_PREDICTION);
+            sendEvent(target, atomInfo, ACTION_LAUNCH, CONTAINER_ALL_APPS_PREDICTION);
         } else if (event == LAUNCHER_DISMISS_PREDICTION_UNDO) {
             sendEvent(atomInfo, ACTION_UNDISMISS, CONTAINER_HOTSEAT_PREDICTION);
         } else if (event == LAUNCHER_WIDGET_ADD_BUTTON_TAP) {

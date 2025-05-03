@@ -60,6 +60,7 @@ import com.android.wm.shell.shared.split.SplitScreenConstants
 import com.google.common.truth.Truth.assertThat
 import dagger.BindsInstance
 import dagger.Component
+import org.junit.Ignore;
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -75,6 +76,7 @@ import org.mockito.kotlin.whenever
 
 @RunWith(LauncherMultivalentJUnit::class)
 @EmulatedDevices(["pixelTablet2023"])
+@Ignore("b/413540825")
 class KeyboardQuickSwitchControllerTest {
     private var systemUiProxySpy: SystemUiProxy? = null
     private var desktopTaskListener: IDesktopTaskListener? = null

@@ -20,7 +20,6 @@ import static android.view.View.MeasureSpec.EXACTLY;
 import static android.view.View.MeasureSpec.makeMeasureSpec;
 import static android.view.View.VISIBLE;
 
-import static com.android.launcher3.DeviceProfile.DEFAULT_SCALE;
 import static com.android.launcher3.Flags.extendibleThemeManager;
 import static com.android.launcher3.Hotseat.ALPHA_CHANNEL_PREVIEW_RENDERER;
 import static com.android.launcher3.LauncherPrefs.FIXED_LANDSCAPE_MODE;
@@ -40,7 +39,6 @@ import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
-import android.graphics.PointF;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Looper;
@@ -93,7 +91,6 @@ import com.android.launcher3.model.LayoutParserFactory;
 import com.android.launcher3.model.LayoutParserFactory.XmlLayoutParserFactory;
 import com.android.launcher3.model.LoaderTask.LoaderTaskFactory;
 import com.android.launcher3.model.data.ItemInfo;
-import com.android.launcher3.model.data.LauncherAppWidgetInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.util.BaseContext;
 import com.android.launcher3.util.DisplayController;
@@ -108,7 +105,6 @@ import com.android.launcher3.views.BaseDragLayer;
 import com.android.launcher3.widget.LauncherWidgetHolder;
 import com.android.launcher3.widget.LauncherWidgetHolder.WidgetHolderFactory;
 import com.android.launcher3.widget.LocalColorExtractor;
-import com.android.launcher3.widget.util.WidgetSizes;
 import com.android.systemui.shared.Flags;
 
 import dagger.BindsInstance;
@@ -232,8 +228,7 @@ public class LauncherPreviewRenderer extends BaseContext
         super(context, Themes.getActivityThemeRes(context));
         mUiHandler = new Handler(Looper.getMainLooper());
         mIdp = idp;
-        mDp = getDeviceProfileForPreview(context).toBuilder(context).setViewScaleProvider(
-                this::getAppWidgetScale).build();
+        mDp = getDeviceProfileForPreview(context).toBuilder(context).build();
         if (context instanceof PreviewContext) {
             Context tempContext = ((PreviewContext) context).getBaseContext();
             mDpOrig = InvariantDeviceProfile.INSTANCE.get(tempContext)
@@ -439,22 +434,6 @@ public class LauncherPreviewRenderer extends BaseContext
     @Override
     public CellPosMapper getCellPosMapper() {
         return CellPosMapper.DEFAULT;
-    }
-
-    @NonNull
-    private PointF getAppWidgetScale(@Nullable ItemInfo itemInfo) {
-        if (!(itemInfo instanceof LauncherAppWidgetInfo info)) {
-            return DEFAULT_SCALE;
-        }
-        final Size launcherWidgetSize = mLauncherWidgetSpanInfo.get(info.appWidgetId);
-        if (launcherWidgetSize == null) {
-            return DEFAULT_SCALE;
-        }
-        final Size origSize = WidgetSizes.getWidgetSizePx(mDpOrig,
-                launcherWidgetSize.getWidth(), launcherWidgetSize.getHeight());
-        final Size newSize = WidgetSizes.getWidgetSizePx(mDp, info.spanX, info.spanY);
-        return new PointF((float) newSize.getWidth() / origSize.getWidth(),
-                (float) newSize.getHeight() / origSize.getHeight());
     }
 
     private void dispatchVisibilityAggregated(View view, boolean isVisible) {

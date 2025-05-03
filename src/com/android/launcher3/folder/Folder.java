@@ -205,7 +205,6 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     // use mActivityContext.
     protected LauncherDelegate mLauncherDelegate;
     protected final ActivityContext mActivityContext;
-    protected FolderAnimationCreator mOpenCloseAnimationManager;
 
     public FolderInfo mInfo;
     private CharSequence mFromTitle;
@@ -606,17 +605,6 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
                 replaceFolderWithFinalItem();
             }
         });
-        boolean shouldUseSpringMotion = Flags.enableLauncherIconShapes()
-                && Flags.enableExpressiveFolderExpansion();
-        if (shouldUseSpringMotion) {
-            ShapeDelegate shapeDelegate =
-                    ThemeManager.INSTANCE.get(mActivityContext.asContext()).getFolderShape();
-            mOpenCloseAnimationManager = new FolderAnimationSpringBuilderManager(
-                    this, shapeDelegate, mLauncherDelegate
-            );
-        } else {
-            mOpenCloseAnimationManager = new FolderAnimationManager(this);
-        }
     }
 
     public void reapplyItemInfo() {
@@ -802,7 +790,8 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         Log.d("b/383526431", "animateOpen: content child count after cancelling"
                 + " animation: " + mContent.getTotalChildCount());
 
-        AnimatorSet animatorSet = mOpenCloseAnimationManager.createAnimatorSet(true);
+        AnimatorSet animatorSet = getFolderAnimationManager()
+                .createAnimatorSet(/* isOpening */ true);
 
         animatorSet.addListener(new AnimatorListenerAdapter() {
             @Override
@@ -888,6 +877,20 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         return true;
     }
 
+    private FolderAnimationCreator getFolderAnimationManager() {
+        boolean shouldUseSpringMotion = Flags.enableLauncherIconShapes()
+                && Flags.enableExpressiveFolderExpansion();
+        if (shouldUseSpringMotion) {
+            ShapeDelegate shapeDelegate =
+                    ThemeManager.INSTANCE.get(mActivityContext.asContext()).getFolderShape();
+            return new FolderAnimationSpringBuilderManager(
+                    this, shapeDelegate, mLauncherDelegate
+            );
+        } else {
+            return new FolderAnimationManager(this);
+        }
+    }
+
     /**
      * If there's a folder already open, we want to close it before opening another one.
      */
@@ -959,7 +962,8 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         mContent.snapToPageImmediately(mContent.getDestinationPage());
 
         cancelRunningAnimations();
-        AnimatorSet animatorSet = mOpenCloseAnimationManager.createAnimatorSet(false);
+        AnimatorSet animatorSet = getFolderAnimationManager()
+                .createAnimatorSet(/* isOpening */ false);
 
         animatorSet.addListener(new AnimatorListenerAdapter() {
             @Override

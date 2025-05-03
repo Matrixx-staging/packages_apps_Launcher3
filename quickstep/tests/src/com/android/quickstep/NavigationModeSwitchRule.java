@@ -205,12 +205,16 @@ public class NavigationModeSwitchRule implements TestRule {
 
     private static void assertTrue(LauncherInstrumentation launcher, String message,
             boolean condition, Description description) {
-        launcher.checkForAnomaly(true, true);
-        if (!condition) {
+        try {
+            launcher.checkForAnomaly(true, true);
+            if (!condition) {
+                throw new AssertionError(message);
+            }
+        } catch (Throwable e) {
             if (description != null) {
                 FailureWatcher.onError(launcher, description);
             }
-            throw new AssertionError(message);
+            throw e;
         }
     }
 }

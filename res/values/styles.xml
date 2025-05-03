@@ -47,6 +47,8 @@
         <item name="allAppsSurfaceHighest">@color/materialColorSurfaceContainerHighest</item>
         <item name="allAppsUnselectedTab">@color/materialColorSurfaceBright</item>
         <item name="privateSpaceSettingsColor">@color/materialColorSurfaceBright</item>
+        <item name="privateSpaceDividerColor">@color/materialColorOutlineVariant</item>
+        <item name="bottomSheetDragHandleColor">@color/materialColorOutlineVariant</item>
         <item name="popupColorPrimary">@color/popup_color_primary_light</item>
         <item name="popupColorSecondary">@color/popup_color_secondary_light</item>
         <item name="popupColorTertiary">@color/popup_color_tertiary_light</item>
@@ -81,8 +83,8 @@
         <item name="workspaceSurfaceColor">@color/workspace_surface_color</item>
         <item name="dropTargetHoverTextColor">@color/drop_target_hover_text_color_light</item>
         <item name="dropTargetHoverButtonColor">@color/drop_target_hover_button_color_light</item>
-        <item name="overviewScrimColor">@color/overview_scrim</item>
-        <item name="overviewScrimColorOverBlur">#33000000</item>
+        <item name="overviewScrimColorFallback">@color/overview_scrim</item>
+        <item name="overviewScrimColorBlur">#33000000</item>
         <item name="preloadIconAccentColor">@color/preload_icon_accent_color_light</item>
         <item name="preloadIconBackgroundColor">@color/preload_icon_background_color_light</item>
         <item name="android:windowTranslucentStatus">false</item>
@@ -146,8 +148,8 @@
         <item name="loadingIconColor">#99FFFFFF</item>
         <item name="iconOnlyShortcutColor">#B3FFFFFF</item>
         <item name="eduHalfSheetBGColor">#DD000000</item>
-        <item name="overviewScrimColor">@color/overview_scrim_dark</item>
-        <item name="overviewScrimColorOverBlur">#52000000</item>
+        <item name="overviewScrimColorFallback">@color/overview_scrim_dark</item>
+        <item name="overviewScrimColorBlur">#52000000</item>
         <item name="preloadIconAccentColor">@color/preload_icon_accent_color_dark</item>
         <item name="preloadIconBackgroundColor">@color/preload_icon_background_color_dark</item>
     </style>

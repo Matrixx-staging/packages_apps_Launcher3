@@ -115,7 +115,16 @@ class TransientBubbleStashController(
             }
             // Only stash if we're in an app, otherwise we're in home or overview where we should
             // be un-stashed
-            updateStashedAndExpandedState(field == BubbleLauncherState.IN_APP, expand = false)
+            val stash = field == BubbleLauncherState.IN_APP
+            val expand =
+                if (stash) {
+                    // Always collapse when we are stashing
+                    false
+                } else {
+                    // If unstashing, keep the current state
+                    bubbleBarViewController.isExpanded
+                }
+            updateStashedAndExpandedState(stash, expand)
         }
 
     override var isSysuiLocked: Boolean = false

@@ -20,17 +20,14 @@ import android.graphics.Canvas
 import android.graphics.Rect
 import android.util.AttributeSet
 import android.util.FloatProperty
-import android.view.ContextThemeWrapper
 import android.widget.Button
 import com.android.launcher3.Flags.enableFocusOutline
-import com.android.launcher3.Flags.enableOverviewBackgroundWallpaperBlur
 import com.android.launcher3.R
 import com.android.launcher3.util.KFloatProperty
 import com.android.launcher3.util.MultiPropertyDelegate
 import com.android.launcher3.util.MultiValueAlpha
 import com.android.quickstep.util.BorderAnimator
 import com.android.quickstep.util.BorderAnimator.Companion.createSimpleBorderAnimator
-import com.android.systemui.shared.system.BlurUtils.supportsBlursOnWindows
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -41,18 +38,7 @@ constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
     defStyleRes: Int = 0,
-) :
-    Button(
-        ContextThemeWrapper(
-            context,
-            if (enableOverviewBackgroundWallpaperBlur() && supportsBlursOnWindows())
-                R.style.OverviewActionButton_Blur
-            else R.style.OverviewActionButton,
-        ),
-        attrs,
-        defStyleAttr,
-        defStyleRes,
-    ) {
+) : Button(context, attrs, defStyleAttr, defStyleRes) {
 
     private val clearAllButtonAlpha =
         object : MultiValueAlpha(this, Alpha.entries.size) {
@@ -249,6 +235,14 @@ constructor(
         if (fullscreenProgress > 0) endTranslation else 0f
 
     private fun getGridTrans(endTranslation: Float) = if (gridProgress > 0) endTranslation else 0f
+
+    /** Change the background when blur is enabled/disabled */
+    fun updateBlurStyle(isBackgroundBlurEnabled: Boolean) {
+        setBackgroundResource(
+            if (isBackgroundBlurEnabled) R.drawable.overview_action_button_background_blur
+            else R.drawable.overview_action_button_background
+        )
+    }
 
     companion object {
         private enum class Alpha {

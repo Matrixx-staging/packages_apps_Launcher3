@@ -64,6 +64,7 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
 
     @Override
     public void recreateControllers() {
+        super.recreateControllers();
         mControllers = new TouchController[]{new CloseAllAppsTouchController(),
                 mContainer.getDragController()};
     }

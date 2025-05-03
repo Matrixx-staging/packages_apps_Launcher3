@@ -37,6 +37,7 @@ import androidx.annotation.NonNull;
 import androidx.test.uiautomator.Condition;
 import androidx.test.uiautomator.UiDevice;
 
+import com.android.launcher3.tapl.Taskbar.TaskbarLocation;
 import com.android.launcher3.testing.shared.ResourceUtils;
 import com.android.launcher3.testing.shared.TestProtocol;
 
@@ -46,7 +47,7 @@ import com.android.launcher3.testing.shared.TestProtocol;
 public final class LaunchedAppState extends Background {
 
     // More drag steps than Launchables to give the window manager time to register the drag.
-    private static final int DEFAULT_DRAG_STEPS = 35;
+    static final int DEFAULT_DRAG_STEPS = 35;
 
     // UNSTASHED_TASKBAR_HANDLE_HINT_SCALE value from TaskbarStashController.
     private static final float UNSTASHED_TASKBAR_HANDLE_HINT_SCALE = 1.1f;
@@ -98,7 +99,18 @@ public final class LaunchedAppState extends Background {
     public Taskbar getTaskbar() {
         try (LauncherInstrumentation.Closable c = mLauncher.addContextLayer(
                 "want to get the taskbar")) {
-            return new Taskbar(mLauncher);
+            return new Taskbar(mLauncher, TaskbarLocation.LAUNCHED_APP);
+        }
+    }
+
+    /**
+     * Returns the bubble bar.
+     * The bubble bar must already be visible when calling this method.
+     */
+    public BubbleBar getBubbleBar() {
+        try (LauncherInstrumentation.Closable c = mLauncher.addContextLayer(
+                "want to get the bubble bar")) {
+            return new BubbleBar(mLauncher);
         }
     }
 
@@ -152,7 +164,7 @@ public final class LaunchedAppState extends Background {
                     "swiping");
             LauncherInstrumentation.log("swipeUpToUnstashTaskbar: sent linear swipe up gesture");
 
-            return new Taskbar(mLauncher);
+            return new Taskbar(mLauncher, TaskbarLocation.LAUNCHED_APP);
         } finally {
             mLauncher.getTestInfo(REQUEST_DISABLE_BLOCK_TIMEOUT);
         }
@@ -247,7 +259,7 @@ public final class LaunchedAppState extends Background {
                     new Point(taskbarUnstashArea.x, taskbarUnstashArea.y), null,
                     InputDevice.SOURCE_MOUSE);
 
-            return new Taskbar(mLauncher);
+            return new Taskbar(mLauncher, TaskbarLocation.LAUNCHED_APP);
         }
     }
 
@@ -278,7 +290,7 @@ public final class LaunchedAppState extends Background {
                         InputDevice.SOURCE_MOUSE);
 
                 mLauncher.waitForSystemLauncherObject(TASKBAR_RES_ID);
-                return new Taskbar(mLauncher);
+                return new Taskbar(mLauncher, TaskbarLocation.LAUNCHED_APP);
             }
         }
     }

@@ -688,7 +688,9 @@ public final class TaskViewUtils {
                             // that launcher is still visible.
                             TaskbarUIController controller = recentsView.getSizeStrategy()
                                     .getTaskbarController();
-                            if (controller != null) {
+                            // If we're launching the desktop tile in Overview, no need to change
+                            // the launcher visibility and taskbar visibility below.
+                            if (controller != null && !(v instanceof DesktopTaskView)) {
                                 boolean launcherVisible = true;
                                 for (RemoteAnimationTarget target : appTargets) {
                                     launcherVisible &= target.isTranslucent;

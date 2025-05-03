@@ -24,7 +24,7 @@ import static android.view.MotionEvent.ACTION_POINTER_UP;
 import static android.view.MotionEvent.ACTION_UP;
 
 import static com.android.launcher3.Flags.enableCursorHoverStates;
-import static com.android.launcher3.Flags.enableOverviewOnConnectedDisplays;
+import static com.android.quickstep.fallback.window.RecentsWindowFlags.enableOverviewOnConnectedDisplays;
 import static com.android.launcher3.LauncherPrefs.backedUpItem;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMotionEvent;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMultiFingerSwipe;
@@ -58,7 +58,7 @@ import android.view.Display;
 import android.view.InputDevice;
 import android.view.InputEvent;
 import android.view.MotionEvent;
-import android.window.DesktopModeFlags;
+import android.window.DesktopExperienceFlags.DesktopExperienceFlag;
 
 import androidx.annotation.BinderThread;
 import androidx.annotation.NonNull;
@@ -101,6 +101,7 @@ import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.fallback.window.RecentsWindowSwipeHandler;
 import com.android.quickstep.input.QuickstepKeyGestureEventsManager;
+import com.android.quickstep.input.QuickstepKeyGestureEventsManager.OverviewGestureHandler;
 import com.android.quickstep.inputconsumers.BubbleBarInputConsumer;
 import com.android.quickstep.inputconsumers.OneHandedModeInputConsumer;
 import com.android.quickstep.util.ActiveGestureLog;
@@ -150,8 +151,9 @@ public class TouchInteractionService extends Service {
     private static final ConstantItem<Boolean> HAS_ENABLED_QUICKSTEP_ONCE = backedUpItem(
             "launcher.has_enabled_quickstep_once", false, EncryptionType.ENCRYPTED);
 
-    private static final DesktopModeFlags.DesktopModeFlag ENABLE_GESTURE_NAV_ON_CONNECTED_DISPLAYS =
-            new DesktopModeFlags.DesktopModeFlag(Flags::enableGestureNavOnConnectedDisplays, false);
+    private static final DesktopExperienceFlag ENABLE_GESTURE_NAV_ON_CONNECTED_DISPLAYS =
+            new DesktopExperienceFlag(Flags::enableGestureNavOnConnectedDisplays, true,
+                Flags.FLAG_ENABLE_GESTURE_NAV_ON_CONNECTED_DISPLAYS);
 
     private final TISBinder mTISBinder = new TISBinder(this);
 
@@ -781,6 +783,8 @@ public class TouchInteractionService extends Service {
         onOverviewTargetChanged(mOverviewComponentObserver.isHomeAndOverviewSame());
 
         mTaskbarManager.onUserUnlocked();
+        mQuickstepKeyGestureEventsHandler.registerOverviewKeyGestureEvent(
+                createOverviewGestureHandler());
     }
 
     public OverviewCommandHelper getOverviewCommandHelper() {
@@ -857,6 +861,7 @@ public class TouchInteractionService extends Service {
                 + " instance=" + System.identityHashCode(this));
         if (LockedUserState.get(this).isUserUnlocked()) {
             mInputConsumer.unregisterInputConsumer();
+            mQuickstepKeyGestureEventsHandler.onDestroy();
             mOverviewComponentObserver.setHomeDisabled(false);
             mOverviewComponentObserver.removeOverviewChangeListener(mOverviewChangeListener);
         }
@@ -1372,6 +1377,22 @@ public class TouchInteractionService extends Service {
                 : DEFAULT_DISPLAY;
     }
 
+
+    private OverviewGestureHandler createOverviewGestureHandler() {
+        return new OverviewGestureHandler() {
+            @Override
+            public void showOverview(@NonNull OverviewType type) {
+                mTISBinder.onOverviewShown(/* triggeredFromAltTab= */ type == OverviewType.ALT_TAB);
+            }
+
+            @Override
+            public void hideOverview(@NonNull OverviewType type) {
+                mTISBinder.onOverviewHidden(
+                        /* triggeredFromAltTab= */ type == OverviewType.ALT_TAB,
+                        /* triggeredFromHomeKey= */ type == OverviewType.HOME);
+            }
+        };
+    }
 
     /**
      * Helper class that keeps track of external displays and prepares input monitors for each.

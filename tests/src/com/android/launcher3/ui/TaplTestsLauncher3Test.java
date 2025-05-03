@@ -18,6 +18,8 @@ package com.android.launcher3.ui;
 
 import static org.junit.Assert.assertNotNull;
 
+import android.view.View;
+
 import androidx.test.filters.LargeTest;
 import androidx.test.runner.AndroidJUnit4;
 
@@ -28,7 +30,7 @@ import org.junit.runner.RunWith;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
-public class TaplTestsLauncher3Test extends AbstractLauncherUiTest<Launcher> {
+public class TaplTestsLauncher3Test extends AbstractLauncherUiTest<Launcher, View> {
 
     @Test
     public void testDevicePressMenu() {

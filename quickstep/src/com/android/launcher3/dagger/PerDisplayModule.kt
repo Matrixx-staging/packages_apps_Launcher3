@@ -30,12 +30,12 @@ import com.android.app.displaylib.PerDisplayInstanceRepositoryImpl
 import com.android.app.displaylib.PerDisplayRepository
 import com.android.app.displaylib.SingleInstanceRepositoryImpl
 import com.android.app.displaylib.createDisplayLibComponent
-import com.android.launcher3.Flags.enableOverviewOnConnectedDisplays
 import com.android.launcher3.util.coroutines.DispatcherProvider
 import com.android.quickstep.FallbackWindowInterface
 import com.android.quickstep.RecentsAnimationDeviceState
 import com.android.quickstep.RotationTouchHelper
 import com.android.quickstep.TaskAnimationManager
+import com.android.quickstep.fallback.window.RecentsWindowFlags.enableOverviewOnConnectedDisplays
 import com.android.quickstep.fallback.window.RecentsWindowManager
 import com.android.quickstep.fallback.window.RecentsWindowManagerInstanceProvider
 import com.android.systemui.dagger.qualifiers.Background

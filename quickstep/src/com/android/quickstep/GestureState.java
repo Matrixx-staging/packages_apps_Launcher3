@@ -41,7 +41,7 @@ import androidx.annotation.Nullable;
 import com.android.launcher3.statemanager.BaseState;
 import com.android.launcher3.statemanager.StatefulContainer;
 import com.android.quickstep.TopTaskTracker.CachedTaskInfo;
-import com.android.quickstep.fallback.window.RecentsWindowFlags;
+import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.util.ActiveGestureErrorDetector;
 import com.android.quickstep.util.ActiveGestureLog;
 import com.android.quickstep.util.ActiveGestureProtoLogProxy;
@@ -323,7 +323,7 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
      */
     public boolean useSyntheticRecentsTransition() {
         return mRunningTask.isHomeTask()
-                && RecentsWindowFlags.Companion.getEnableOverviewInWindow();
+                && mContainerInterface.getCreatedContainer() instanceof RecentsWindowManager;
     }
 
     /**

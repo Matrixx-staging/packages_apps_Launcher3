@@ -48,7 +48,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 
 import com.android.internal.R;
-import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.util.DaggerSingletonTracker;
 import com.android.launcher3.util.Executors;
 import com.android.launcher3.util.LooperExecutor;
@@ -106,7 +105,6 @@ public class RecentTasksListTest {
 
         mRecentTasksList = new RecentTasksList(mContext, mainThreadExecutor,
                 mockKeyguardManager, mSystemUiProxy, mTopTaskTracker,
-                mock(DesktopVisibilityController.class),
                 mock(DaggerSingletonTracker.class));
     }
 

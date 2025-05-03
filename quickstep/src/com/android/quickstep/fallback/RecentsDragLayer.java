@@ -55,6 +55,7 @@ public class RecentsDragLayer<T extends Context & RecentsViewContainer
 
     @Override
     public void recreateControllers() {
+        super.recreateControllers();
         mControllers = enableExpressiveDismissTaskMotion()
                 ? new TouchController[]{
                         new TaskViewLaunchTouchController<>(mContainer,

@@ -18,6 +18,7 @@ package com.android.launcher3.workprofile;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
+import android.view.ContextThemeWrapper;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
@@ -47,10 +48,10 @@ public class PersonalWorkSlidingTabStrip extends LinearLayout implements PageInd
     }
 
     /** Update the buttons background to match the theme. */
-    public void updateTheme() {
+    public void updateTheme(ContextThemeWrapper contextThemeWrapper) {
         for (int i = 0; i < getChildCount(); i++) {
             Button tab = (Button) getChildAt(i);
-            tab.setBackground(getContext().getDrawable(R.drawable.all_apps_tabs_background));
+            tab.setBackground(contextThemeWrapper.getDrawable(R.drawable.all_apps_tabs_background));
         }
     }
 

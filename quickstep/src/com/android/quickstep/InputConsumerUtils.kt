@@ -23,7 +23,7 @@ import com.android.launcher3.statemanager.BaseState
 import com.android.launcher3.statemanager.StatefulContainer
 import com.android.launcher3.taskbar.TaskbarManager
 import com.android.launcher3.util.LockedUserState.Companion.get
-import com.android.quickstep.fallback.window.RecentsWindowFlags
+import com.android.quickstep.fallback.window.RecentsWindowManager
 import com.android.quickstep.inputconsumers.AccessibilityInputConsumer
 import com.android.quickstep.inputconsumers.AssistantInputConsumer
 import com.android.quickstep.inputconsumers.BubbleBarInputConsumer
@@ -47,6 +47,7 @@ import com.android.quickstep.views.RecentsViewContainer
 import com.android.systemui.shared.system.InputChannelCompat
 import com.android.systemui.shared.system.InputMonitorCompat
 import com.android.wm.shell.Flags
+import com.android.wm.shell.shared.desktopmode.DesktopState
 import java.util.function.Consumer
 import java.util.function.Function
 
@@ -548,8 +549,12 @@ object InputConsumerUtils {
                 deviceState.isPredictiveBackToHomeInProgress)
         // with shell-transitions, home is resumed during recents animation, so
         // explicitly check against recents animation too.
+        // Home is always running and isn't resumed when home shows behind desktop.
         val launcherResumedThroughShellTransition =
-            container.isResumed() && !previousGestureState.isRecentsAnimationRunning
+            container.isResumed() &&
+                !previousGestureState.isRecentsAnimationRunning &&
+                !DesktopState.fromContext(context).shouldShowHomeBehindDesktop
+
         // If a task fragment within Launcher is resumed
         val launcherChildActivityResumed =
             runningTask != null &&
@@ -801,14 +806,13 @@ object InputConsumerUtils {
         isHomeTask: Boolean,
         rotationTouchHelper: RotationTouchHelper,
     ): InputConsumer where T : RecentsViewContainer, T : StatefulContainer<S> {
+        val containerInterface = gestureState.getContainerInterface<S, T>()
         val shouldDefer =
             (!overviewComponentObserver.isHomeAndOverviewSame ||
-                gestureState
-                    .getContainerInterface<S, T>()
-                    .deferStartingActivity(deviceState, event))
+                containerInterface.deferStartingActivity(deviceState, event))
         val disableHorizontalSwipe =
             deviceState.isInExclusionRegion(event) &&
-                (!RecentsWindowFlags.enableOverviewInWindow || !isHomeTask)
+                (containerInterface.getCreatedContainer() !is RecentsWindowManager || !isHomeTask)
         return OtherActivityInputConsumer(
             /* base= */ context,
             deviceState,

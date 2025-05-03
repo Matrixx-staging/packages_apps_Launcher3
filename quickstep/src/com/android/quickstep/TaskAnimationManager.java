@@ -49,7 +49,6 @@ import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.util.DaggerSingletonObject;
 import com.android.launcher3.util.DisplayController;
 import com.android.quickstep.dagger.QuickstepBaseAppComponent;
-import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.util.ActiveGestureProtoLogProxy;
 import com.android.quickstep.util.SystemUiFlagUtils;
@@ -176,7 +175,8 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
 
         final BaseContainerInterface containerInterface = gestureState.getContainerInterface();
         mLastGestureState = gestureState;
-        RecentsAnimationCallbacks newCallbacks = new RecentsAnimationCallbacks(getSystemUiProxy());
+        RecentsAnimationCallbacks newCallbacks = new RecentsAnimationCallbacks(
+                containerInterface.getCreatedContainer());
         mCallbacks = newCallbacks;
         mCallbacks.addListener(new RecentsAnimationCallbacks.RecentsAnimationListener() {
             @Override
@@ -339,8 +339,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
         }
 
         if (containerInterface.getCreatedContainer()
-                instanceof RecentsWindowManager recentsWindowManager
-                && RecentsWindowFlags.Companion.getEnableOverviewInWindow()) {
+                instanceof RecentsWindowManager recentsWindowManager) {
             mRecentsAnimationStartPending = getSystemUiProxy().startRecentsActivity(intent, options,
                     mCallbacks, gestureState.useSyntheticRecentsTransition(), null, mDisplayId);
             recentsWindowManager.startRecentsWindow(mCallbacks);

@@ -1137,9 +1137,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         return animatorSet;
     }
 
-    /**
-     * Returns animator that controls depth/blur of the background.
-     */
+    /** Returns animator that controls depth/blur of the background during app/widget opening. */
     private ObjectAnimator getBackgroundAnimator() {
         // When launching an app from overview that doesn't map to a task, we still want to just
         // blur the wallpaper instead of the launcher surface as well
@@ -1847,7 +1845,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                     }
                 });
             } else if (playWorkspaceReveal) {
-                    anim.play(new WorkspaceRevealAnim(mLauncher, false).getAnimators());
+                anim.play(new WorkspaceRevealAnim(mLauncher, false).getAnimators());
             }
         }
 

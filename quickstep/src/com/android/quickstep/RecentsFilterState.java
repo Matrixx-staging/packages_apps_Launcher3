@@ -16,7 +16,7 @@
 
 package com.android.quickstep;
 
-import static com.android.launcher3.Flags.enableOverviewOnConnectedDisplays;
+import static com.android.quickstep.fallback.window.RecentsWindowFlags.enableOverviewOnConnectedDisplays;
 
 import androidx.annotation.Nullable;
 

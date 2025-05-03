@@ -28,6 +28,7 @@ import android.graphics.Point;
 import android.platform.test.annotations.PlatinumTest;
 import android.platform.test.rule.ScreenRecordRule;
 import android.util.Log;
+import android.view.View;
 
 import com.android.launcher3.Launcher;
 import com.android.launcher3.tapl.HomeAllApps;
@@ -47,7 +48,7 @@ import java.util.Arrays;
  * Test runs in Out of process (Oop) and In process (Ipc)
  * Test the behaviour of uninstalling and removing apps both from AllApps, Workspace and Hotseat.
  */
-public class TaplUninstallRemoveTest extends AbstractLauncherUiTest<Launcher> {
+public class TaplUninstallRemoveTest extends AbstractLauncherUiTest<Launcher, View> {
 
     /**
      * Deletes app both built-in and user-installed from the Workspace and makes sure it's no longer

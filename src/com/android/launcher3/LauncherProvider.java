@@ -94,9 +94,15 @@ public class LauncherProvider extends ContentProvider {
     @Override
     public Uri insert(Uri uri, ContentValues values) {
         int rowId = executeControllerTask(controller -> {
-            // 1. Ensure that externally added items have a valid item id
-            int id = controller.generateNewItemId();
-            values.put(LauncherSettings.Favorites._ID, id);
+            // 1. Ensure that externally added items have a valid item id. Don't update Folder ids
+            // because items inside the folder need to reference the original ID as their container
+            // id, or else be deleted.
+            if (Flags.externalDataAccess() && values.containsKey(Favorites._ID)
+                    && Favorites.ITEM_TYPE_FOLDER != values.getAsInteger(Favorites.ITEM_TYPE)
+                    && Favorites.ITEM_TYPE_APP_PAIR != values.getAsInteger(Favorites.ITEM_TYPE)) {
+                int id = controller.generateNewItemId();
+                values.put(LauncherSettings.Favorites._ID, id);
+            }
 
             // 2. In the case of an app widget, and if no app widget id is specified, we
             // attempt allocate and bind the widget.

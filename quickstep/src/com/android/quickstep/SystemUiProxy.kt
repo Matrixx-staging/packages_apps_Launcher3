@@ -18,6 +18,7 @@ package com.android.quickstep
 import android.app.ActivityManager
 import android.app.ActivityManager.RunningTaskInfo
 import android.app.ActivityOptions
+import android.app.ActivityTaskManager.INVALID_TASK_ID
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
@@ -143,6 +144,10 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
     private var desktopTaskListener: IDesktopTaskListener? = null
     private val remoteTransitions = LinkedHashMap<RemoteTransition, TransitionFilter>()
 
+    // Save bubble bar state in case service is not bound yet when it is updated. SysUI relies on
+    // this to suppress the floating bubbles UI.
+    private var hasBubbleBar = false
+
     private val stateChangeCallbacks: MutableList<Runnable> = ArrayList()
 
     private var originalTransactionToken: IBinder? = null
@@ -264,6 +269,7 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
         this.unfoldAnimation = if (Flags.enableUnfoldStateAnimation()) null else unfoldAnimation
         this.dragAndDrop = dragAndDrop
         linkToDeath()
+        setHasBubbleBar(hasBubbleBar)
         // re-attach the listeners once missing due to setProxy has not been initialized yet.
         setPipAnimationListener(pipAnimationListener)
         setBubblesListener(bubblesListener)
@@ -559,6 +565,14 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
     //
     // Bubbles
     //
+    /** Tells SysUI whether bubble bar is used or not. */
+    fun setHasBubbleBar(hasBubbleBar: Boolean) {
+        executeWithErrorLog({ "Failed call setHasBubbleBar" }) {
+            bubbles?.setHasBubbleBar(hasBubbleBar)
+        }
+        this.hasBubbleBar = hasBubbleBar
+    }
+
     /** Sets the listener to be notified of bubble state changes. */
     fun setBubblesListener(listener: IBubblesListener?) {
         executeWithErrorLog({ "Failed call registerBubblesListener" }) {
@@ -574,10 +588,13 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
      * Tells SysUI to show the bubble with the provided key.
      *
      * @param key the key of the bubble to show.
-     * @param top top coordinate of bubble bar on screen
+     * @param bubbleBarTopToScreenBottom distance between the top coordinate of bubble bar and the
+     *   bottom of the screen
      */
-    fun showBubble(key: String?, top: Int) =
-        executeWithErrorLog({ "Failed call showBubble" }) { bubbles?.showBubble(key, top) }
+    fun showBubble(key: String?, bubbleBarTopToScreenBottom: Int) =
+        executeWithErrorLog({ "Failed call showBubble" }) {
+            bubbles?.showBubble(key, bubbleBarTopToScreenBottom)
+        }
 
     /** Tells SysUI to remove all bubbles. */
     fun removeAllBubbles() =
@@ -603,11 +620,12 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
      * expanded.
      *
      * @param location location of the bubble bar
-     * @param top new top coordinate for bubble bar on screen
+     * @param bubbleBarTopToScreenBottom distance between the new top coordinate for bubble bar and
+     *   the bottom of the screen
      */
-    fun stopBubbleDrag(location: BubbleBarLocation?, top: Int) =
+    fun stopBubbleDrag(location: BubbleBarLocation?, bubbleBarTopToScreenBottom: Int) =
         executeWithErrorLog({ "Failed call stopBubbleDrag" }) {
-            bubbles?.stopBubbleDrag(location, top)
+            bubbles?.stopBubbleDrag(location, bubbleBarTopToScreenBottom)
         }
 
     /**
@@ -643,13 +661,12 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
         }
 
     /**
-     * Tells SysUI the top coordinate of bubble bar on screen
-     *
-     * @param topOnScreen top coordinate for bubble bar on screen
+     * Tells SysUI the distance between the top coordinate of the bubble bar and the bottom of the
+     * screen
      */
-    fun updateBubbleBarTopOnScreen(topOnScreen: Int) =
-        executeWithErrorLog({ "Failed call updateBubbleBarTopOnScreen" }) {
-            bubbles?.updateBubbleBarTopOnScreen(topOnScreen)
+    fun updateBubbleBarTopToScreenBottom(bubbleBarTopToScreenBottom: Int) =
+        executeWithErrorLog({ "Failed call updateBubbleBarTopToScreenBottom" }) {
+            bubbles?.updateBubbleBarTopToScreenBottom(bubbleBarTopToScreenBottom)
         }
 
     /**
@@ -695,13 +712,6 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
     fun moveDraggedBubbleToFullscreen(key: String, dropLocation: Point) {
         executeWithErrorLog({ "Failed to call moveDraggedBubbleToFullscreen" }) {
             bubbles?.moveDraggedBubbleToFullscreen(key, dropLocation)
-        }
-    }
-
-    /** Tells SysUI whether bubble bar is used or not. */
-    fun setHasBubbleBar(hasBubbleBar: Boolean) {
-        executeWithErrorLog({ "Failed call setHasBubbleBar" }) {
-            bubbles?.setHasBubbleBar(hasBubbleBar)
         }
     }
 
@@ -1109,11 +1119,18 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
 
     /**
      * Calls shell to activate the desk whose ID is `deskId` on whatever display it exists on. This
-     * will bring all tasks on this desk to the front.
+     * will show all tasks on this desk and bring [taskIdToReorderToFront] to the front if it's
+     * provided and already on the given desk. If the provided [taskIdToReorderToFront]'s value is
+     * null, do not change the windows' activation on the desk.
      */
-    fun activateDesk(deskId: Int, transition: RemoteTransition?) =
+    @JvmOverloads
+    fun activateDesk(
+        deskId: Int,
+        transition: RemoteTransition?,
+        taskIdToReorderToFront: Int? = null,
+    ) =
         executeWithErrorLog({ "Failed call activateDesk" }) {
-            desktopMode?.activateDesk(deskId, transition)
+            desktopMode?.activateDesk(deskId, transition, taskIdToReorderToFront ?: INVALID_TASK_ID)
         }
 
     /** Calls shell to remove the desk whose ID is `deskId`. */
@@ -1124,10 +1141,23 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
     fun removeAllDesks() =
         executeWithErrorLog({ "Failed call removeAllDesks" }) { desktopMode?.removeAllDesks() }
 
-    /** Call shell to show all apps active on the desktop */
-    fun showDesktopApps(displayId: Int, transition: RemoteTransition?) =
+    /**
+     * Call shell to show all apps active on the desktop and bring [taskIdToReorderToFront] to front
+     * if it's valid on the default desk on the given display. If the provided
+     * [taskIdToReorderToFront]'s value is null, do not change the windows' activation on the desk.
+     */
+    @JvmOverloads
+    fun showDesktopApps(
+        displayId: Int,
+        transition: RemoteTransition? = null,
+        taskIdToReorderToFront: Int? = null,
+    ) =
         executeWithErrorLog({ "Failed call showDesktopApps" }) {
-            desktopMode?.showDesktopApps(displayId, transition)
+            desktopMode?.showDesktopApps(
+                displayId,
+                transition,
+                taskIdToReorderToFront ?: INVALID_TASK_ID,
+            )
         }
 
     /** If task with the given id is on the desktop, bring it to front */

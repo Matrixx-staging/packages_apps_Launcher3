@@ -26,7 +26,9 @@ import android.content.Intent;
 import android.os.Process;
 import android.system.OsConstants;
 import android.util.Log;
+import android.view.View;
 
+import androidx.annotation.Nullable;
 import androidx.test.uiautomator.By;
 import androidx.test.uiautomator.BySelector;
 import androidx.test.uiautomator.Until;
@@ -59,7 +61,8 @@ import java.util.function.Supplier;
 /**
  * Base class for all instrumentation tests providing various utility methods.
  */
-public abstract class AbstractLauncherUiTest<LAUNCHER_TYPE extends Launcher>
+public abstract class AbstractLauncherUiTest<LAUNCHER_TYPE extends Launcher,
+        OVERVIEW_TYPE extends View>
         extends BaseLauncherTaplTest {
 
     private static final String TAG = "AbstractLauncherUiTest";
@@ -91,7 +94,9 @@ public abstract class AbstractLauncherUiTest<LAUNCHER_TYPE extends Launcher>
         mLauncher.getWorkspace();
 
         waitForLauncherCondition("Launcher didn't start", Objects::nonNull);
-        waitForState("Launcher internal state didn't switch to Home",
+        waitForState(
+                /* forInitialization= */ true,
+                /* message= */ "Launcher internal state didn't switch to Home",
                 () -> LauncherState.NORMAL);
         waitForResumed("Launcher internal state is still Background");
 
@@ -150,9 +155,44 @@ public abstract class AbstractLauncherUiTest<LAUNCHER_TYPE extends Launcher>
         });
     }
 
+    protected void executeOnOverview(Consumer<OVERVIEW_TYPE> f) {
+        executeOnOverview(false, f);
+    }
+
+    protected void executeOnOverview(boolean forTearDown, Consumer<OVERVIEW_TYPE> f) {
+        if (!TestHelpers.isInLauncherProcess()) return;
+        getFromOverview(overview -> {
+            if (overview != null || (!forTearDown && useNullOverview())) {
+                f.accept(overview);
+            }
+            return null;
+        });
+    }
+
+    protected <T> T getFromOverview(Function<OVERVIEW_TYPE, T> f) {
+        if (!TestHelpers.isInLauncherProcess()) return null;
+        return getOnUiThread(() -> f.apply(getOverviewPanel()));
+    }
+
+    @Nullable
+    protected OVERVIEW_TYPE getOverviewPanel() {
+        return getFromLauncher(Launcher::getOverviewPanel);
+    }
+
+    protected boolean useNullOverview() {
+        return true;
+    }
+
     // Cannot be used in TaplTests between a Tapl call injecting a gesture and a tapl call
     // expecting the results of that gesture because the wait can hide flakeness.
     protected void waitForState(String message, Supplier<LauncherState> state) {
+        waitForState(/* forInitialization= */ false, message, state);
+    }
+
+    // Cannot be used in TaplTests between a Tapl call injecting a gesture and a tapl call
+    // expecting the results of that gesture because the wait can hide flakeness.
+    protected void waitForState(
+            boolean forInitialization, String message, Supplier<LauncherState> state) {
         waitForLauncherCondition(message,
                 launcher -> launcher.getStateManager().getCurrentStableState() == state.get());
     }

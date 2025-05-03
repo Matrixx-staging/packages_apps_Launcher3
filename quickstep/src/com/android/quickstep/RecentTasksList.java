@@ -38,8 +38,6 @@ import androidx.annotation.VisibleForTesting;
 import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.util.DaggerSingletonTracker;
 import com.android.launcher3.util.LooperExecutor;
-import com.android.launcher3.util.SplitConfigurationOptions;
-import com.android.launcher3.util.window.WindowManagerProxy;
 import com.android.quickstep.util.DesktopTask;
 import com.android.quickstep.util.ExternalDisplaysKt;
 import com.android.quickstep.util.GroupTask;
@@ -50,7 +48,6 @@ import com.android.wm.shell.Flags;
 import com.android.wm.shell.recents.IRecentTasksListener;
 import com.android.wm.shell.shared.GroupedTaskInfo;
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
-import com.android.wm.shell.shared.split.SplitBounds;
 
 import kotlin.collections.ArraysKt;
 import kotlin.collections.CollectionsKt;
@@ -71,10 +68,7 @@ import java.util.stream.Collectors;
 /**
  * Manages the recent task list from the system, caching it as necessary.
  */
-// TODO: b/401602554 - Consider letting [DesktopTasksController] notify [RecentTasksController] of
-//  desk changes to trigger [IRecentTasksListener.onRecentTasksChanged()], instead of implementing
-//  [DesktopVisibilityListener].
-public class RecentTasksList implements WindowManagerProxy.DesktopVisibilityListener {
+public class RecentTasksList {
 
     private static final TaskLoadResult INVALID_RESULT = new TaskLoadResult(-1, false, 0);
 
@@ -82,7 +76,6 @@ public class RecentTasksList implements WindowManagerProxy.DesktopVisibilityList
     private final KeyguardManager mKeyguardManager;
     private final LooperExecutor mMainThreadExecutor;
     private final SystemUiProxy mSysUiProxy;
-    private final DesktopVisibilityController mDesktopVisibilityController;
 
     // The list change id, increments as the task list changes in the system
     private int mChangeId;
@@ -101,14 +94,12 @@ public class RecentTasksList implements WindowManagerProxy.DesktopVisibilityList
     public RecentTasksList(Context context, LooperExecutor mainThreadExecutor,
             KeyguardManager keyguardManager, SystemUiProxy sysUiProxy,
             TopTaskTracker topTaskTracker,
-            DesktopVisibilityController desktopVisibilityController,
             DaggerSingletonTracker tracker) {
         mContext = context;
         mMainThreadExecutor = mainThreadExecutor;
         mKeyguardManager = keyguardManager;
         mChangeId = 1;
         mSysUiProxy = sysUiProxy;
-        mDesktopVisibilityController = desktopVisibilityController;
         final IRecentTasksListener recentTasksListener = new IRecentTasksListener.Stub() {
             @Override
             public void onRecentTasksChanged() throws RemoteException {
@@ -160,13 +151,6 @@ public class RecentTasksList implements WindowManagerProxy.DesktopVisibilityList
         mSysUiProxy.registerRecentTasksListener(recentTasksListener);
         tracker.addCloseable(
                 () -> mSysUiProxy.unregisterRecentTasksListener(recentTasksListener));
-
-        if (DesktopModeStatus.enableMultipleDesktops(mContext)) {
-            mDesktopVisibilityController.registerDesktopVisibilityListener(
-                    this);
-            tracker.addCloseable(
-                    () -> mDesktopVisibilityController.unregisterDesktopVisibilityListener(this));
-        }
 
         // We may receive onRunningTaskAppeared events later for tasks which have already been
         // included in the list returned by mSysUiProxy.getRunningTasks(), or may receive
@@ -304,27 +288,6 @@ public class RecentTasksList implements WindowManagerProxy.DesktopVisibilityList
      */
     public ArrayList<RunningTaskInfo> getRunningTasks() {
         return mRunningTasks;
-    }
-
-    @Override
-    public void onDeskAdded(int displayId, int deskId) {
-        onRecentTasksChanged();
-    }
-
-    @Override
-    public void onDeskRemoved(int displayId, int deskId) {
-        onRecentTasksChanged();
-    }
-
-    @Override
-    public void onActiveDeskChanged(int displayId, int newActiveDesk, int oldActiveDesk) {
-        // Should desk activation changes lead to the invalidation of the loaded tasks? The cases
-        // are:
-        // - Switching from one active desk to another.
-        // - Switching from out of a desk session into an active desk.
-        // - Switching from an active desk to a non-desk session.
-        // These changes don't affect the list of desks, nor their contents, so let's ignore them
-        // for now.
     }
 
     private void onRunningTaskAppeared(RunningTaskInfo taskInfo) {

@@ -281,13 +281,15 @@ public class KeyboardQuickSwitchViewController {
         if (task == null) {
             return mOnDesktop ? 1 : Math.max(0, index);
         }
-        if (mControllerCallbacks.isTaskRunning(task)) {
-            // Ignore attempts to run the selected task if it is already running.
-            return -1;
-        }
 
         if (enableAltTabKqsFlatenning.isTrue()
                 && tryLaunchingCombinedTask(task, slideInTransition, systemUiProxy)) {
+            return -1;
+        }
+
+        // TODO b/414410702: move this check to before tryLaunchingCombinedTask() call.
+        if (mControllerCallbacks.isTaskRunning(task)) {
+            // Ignore attempts to run the selected task if it is already running.
             return -1;
         }
 

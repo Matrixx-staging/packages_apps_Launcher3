@@ -100,6 +100,7 @@ public class PreviewSurfaceRenderer {
     private final Context mContext;
     private SparseIntArray mPreviewColorOverride;
     private String mGridName;
+    private String mLastSelectedGridName;
     private String mShapeKey;
     private String mLayoutXml;
     private boolean mIsMonoThemeEnabled;
@@ -138,6 +139,7 @@ public class PreviewSurfaceRenderer {
         if (Objects.equals(mGridName, FIXED_LANDSCAPE_GRID)) {
             mGridName = LauncherPrefs.get(context).get(NON_FIXED_LANDSCAPE_GRID_NAME);
         }
+        mLastSelectedGridName = mGridName;
         mShapeKey = LauncherPrefs.get(context).get(PREF_ICON_SHAPE);
         mIsMonoThemeEnabled = LauncherPrefs.get(context).get(THEMED_ICONS);
         mWallpaperColors = bundle.getParcelable(KEY_COLORS);
@@ -367,8 +369,10 @@ public class PreviewSurfaceRenderer {
     }
 
     private boolean shouldReloadModelData() {
+        // When changing the grid, we reload the model data as the widgets would have been bound
+        // with last selected grid.
         return InvariantDeviceProfile.INSTANCE.get(mContext).isFixedLandscape
-                || !mGridName.equals(LauncherPrefs.INSTANCE.get(mContext).get(GRID_NAME))
+                || !mGridName.equals(mLastSelectedGridName)
                 || !mShapeKey.equals(LauncherPrefs.INSTANCE.get(mContext).get(PREF_ICON_SHAPE))
                 || mIsMonoThemeEnabled != LauncherPrefs.INSTANCE.get(mContext).get(THEMED_ICONS)
                 || !TextUtils.isEmpty(mLayoutXml);
@@ -378,7 +382,6 @@ public class PreviewSurfaceRenderer {
     private void loadModelData() {
         final Context inflationContext = getPreviewContext();
         if (shouldReloadModelData()) {
-
             boolean isCustomLayout = extendibleThemeManager() &&  !TextUtils.isEmpty(mLayoutXml);
             int widgetHostId = isCustomLayout ? APPWIDGET_HOST_ID + mCallingPid : APPWIDGET_HOST_ID;
 
@@ -425,6 +428,7 @@ public class PreviewSurfaceRenderer {
                 }
             });
         }
+        mLastSelectedGridName = mGridName;
     }
 
     @UiThread

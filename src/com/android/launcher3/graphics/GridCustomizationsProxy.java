@@ -16,6 +16,7 @@
 package com.android.launcher3.graphics;
 
 
+import static com.android.launcher3.Flags.enableLauncherIconShapes;
 import static com.android.launcher3.graphics.ThemeManager.PREF_ICON_SHAPE;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
@@ -56,6 +57,7 @@ import com.android.launcher3.util.RunnableList;
 import com.android.systemui.shared.Flags;
 
 import java.lang.ref.WeakReference;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -169,18 +171,28 @@ public class GridCustomizationsProxy implements ProxyProvider {
                 if (Flags.newCustomizationPickerUi()) {
                     MatrixCursor cursor = new MatrixCursor(new String[]{
                             KEY_SHAPE_KEY, KEY_SHAPE_TITLE, KEY_PATH, KEY_IS_DEFAULT});
-                    String currentShape = mPrefs.get(PREF_ICON_SHAPE);
-                    if (TextUtils.isEmpty(currentShape)) {
-                        // Handle default for when there is no current shape.
-                        currentShape = ShapesProvider.INSTANCE.getIconShapes()[0].getKey();
+                    final String currentShape = mPrefs.get(PREF_ICON_SHAPE);
+                    IconShapeModel[] availableShapes = ShapesProvider.INSTANCE.getIconShapes();
+
+                    if (availableShapes.length == 0) {
+                        // This is unexpected as we should always provide at least 1 default shape.
+                        Log.e(TAG, "No icon shape options are available, returning null.");
+                        return null;
                     }
 
-                    for (IconShapeModel shape : ShapesProvider.INSTANCE.getIconShapes()) {
+                    // Assign first available shape as default if current shape doesn't exist.
+                    boolean doesCurrentShapeExist = Arrays.stream(availableShapes)
+                            .anyMatch(shape -> shape.getKey().equals(currentShape));
+                    String selectedShape = !TextUtils.isEmpty(currentShape) && doesCurrentShapeExist
+                            ? currentShape
+                            : availableShapes[0].getKey();
+
+                    for (IconShapeModel shape : availableShapes) {
                         cursor.newRow()
                                 .add(KEY_SHAPE_KEY, shape.getKey())
                                 .add(KEY_SHAPE_TITLE, mContext.getString(shape.getTitleId()))
                                 .add(KEY_PATH, shape.getPathString())
-                                .add(KEY_IS_DEFAULT, shape.getKey().equals(currentShape));
+                                .add(KEY_IS_DEFAULT, shape.getKey().equals(selectedShape));
                     }
                     return cursor;
                 } else  {
@@ -362,7 +374,7 @@ public class GridCustomizationsProxy implements ProxyProvider {
                     break;
                 case MESSAGE_ID_UPDATE_SHAPE:
                     if (Flags.newCustomizationPickerUi()
-                            && com.android.launcher3.Flags.enableLauncherIconShapes()) {
+                            && enableLauncherIconShapes()) {
                         String shapeKey = message.getData().getString(KEY_SHAPE_KEY);
                         if (!TextUtils.isEmpty(shapeKey)) {
                             renderer.updateShape(shapeKey);

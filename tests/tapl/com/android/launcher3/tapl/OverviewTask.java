@@ -214,7 +214,7 @@ public final class OverviewTask {
 
             final Rect taskBounds = mLauncher.getVisibleBounds(mTask);
             final int centerX = taskBounds.centerX();
-            final int centerY = taskBounds.bottom - 1;
+            final int centerY = taskBounds.centerY();
             final int endCenterY = centerY - (taskBounds.height() / 4);
             mLauncher.executeAndWaitForLauncherEvent(
                     // Set slowDown to true so we do not fling the task at the end of the drag, as

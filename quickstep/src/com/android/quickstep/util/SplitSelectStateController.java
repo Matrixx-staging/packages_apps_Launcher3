@@ -905,8 +905,7 @@ public class SplitSelectStateController {
                 }
             };
             if (startRecents) {
-                RecentsAnimationCallbacks callbacks = new RecentsAnimationCallbacks(
-                        SystemUiProxy.INSTANCE.get(mLauncher.getApplicationContext()));
+                RecentsAnimationCallbacks callbacks = new RecentsAnimationCallbacks(mContainer);
                 callbacks.addListener(new RecentsAnimationCallbacks.RecentsAnimationListener() {
                     @Override
                     public void onRecentsAnimationStart(RecentsAnimationController controller,

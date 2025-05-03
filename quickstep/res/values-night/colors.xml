@@ -23,10 +23,6 @@
 
     <color name="all_set_page_background">@android:color/system_neutral1_900</color>
 
-    <!-- Redefined to override non-quickstep dark theme. Should match light theme. -->
-    <color name="blur_shade_panel_fg">@androidprv:color/shade_panel_fg</color>
-    <color name="blur_shade_panel_bg">@androidprv:color/shade_panel_bg</color>
-
     <!-- Turn on work apps button -->
     <color name="work_turn_on_stroke">@color/materialColorPrimary</color>
 </resources>
