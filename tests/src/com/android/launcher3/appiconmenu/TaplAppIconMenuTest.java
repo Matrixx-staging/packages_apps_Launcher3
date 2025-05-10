@@ -29,8 +29,8 @@ import com.android.launcher3.tapl.AllApps;
 import com.android.launcher3.tapl.AppIconMenu;
 import com.android.launcher3.tapl.AppIconMenuItem;
 import com.android.launcher3.tapl.HomeAllApps;
-import com.android.launcher3.ui.AbstractLauncherUiTest;
-import com.android.launcher3.ui.PortraitLandscapeRunner.PortraitLandscape;
+import com.android.launcher3.util.ui.AbstractLauncherUiTest;
+import com.android.launcher3.util.ui.PortraitLandscapeRunner.PortraitLandscape;
 
 import org.junit.Test;
 

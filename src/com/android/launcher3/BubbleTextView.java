@@ -523,8 +523,9 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     }
 
     private void setNonPendingIcon(ItemInfoWithIcon info) {
+        boolean isPrivateSpaceIcon = Objects.equals(info.getTargetPackage(), PRIVATE_SPACE_PACKAGE);
         // Set nonPendingIcon acts as a restart which should refresh the flag state when applicable.
-        int flags = Objects.equals(info.getTargetPackage(), PRIVATE_SPACE_PACKAGE)
+        int flags = isPrivateSpaceIcon
                 ? info.bitmap.creationFlags : shouldUseTheme() ? FLAG_THEMED : 0;
         // Remove badge on icons smaller than 48dp.
         if (mHideBadge || mDisplay == DISPLAY_SEARCH_RESULT_SMALL) {
@@ -536,6 +537,9 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         FastBitmapDrawable iconDrawable = info.newIcon(getContext(), flags);
         mDotParams.appColor = iconDrawable.getIconColor();
         mDotParams.dotColor = Themes.getAttrColor(getContext(), R.attr.notificationDotColor);
+        if (isPrivateSpaceIcon) {
+            iconDrawable.setAnimationEnabled(false);
+        }
         setIcon(iconDrawable);
     }
 

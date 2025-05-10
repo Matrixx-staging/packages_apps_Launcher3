@@ -16,20 +16,13 @@
 
 package com.android.launcher3.model.repository
 
+import android.util.SparseArray
 import com.android.launcher3.dagger.LauncherAppSingleton
-import com.android.launcher3.model.BgDataModel
-import com.android.launcher3.model.data.ItemInfo
-import com.android.launcher3.model.repository.HomeScreenRepository.WorkspaceData.ChangeEvent
-import com.android.launcher3.util.Executors
-import com.android.launcher3.util.IntSparseArrayMap
-import java.util.concurrent.CopyOnWriteArrayList
-import java.util.function.Consumer
+import com.android.launcher3.model.data.WorkspaceData
+import com.android.launcher3.model.data.WorkspaceData.ImmutableWorkspaceData
 import javax.inject.Inject
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * Repository for the home screen data.
@@ -40,74 +33,14 @@ import kotlinx.coroutines.flow.callbackFlow
 @LauncherAppSingleton
 class HomeScreenRepository @Inject constructor() {
 
-    /**
-     * Represents the current home screen data model. There are two ways this can change:
-     * 1) The model can be replaced completely with a new data, which can be observed using the
-     *    state flow.
-     * 2) Changes can be made to the existing data, the diff can be observed using
-     *    [WorkspaceData.updates]
-     */
-    val workspaceStateFlow = MutableStateFlow(WorkspaceData(IntSparseArrayMap()))
+    private val mutableStateFlow: MutableStateFlow<WorkspaceData> =
+        MutableStateFlow(ImmutableWorkspaceData(0, 0, SparseArray()))
 
-    class WorkspaceData(var itemsIdMap: IntSparseArrayMap<ItemInfo>) {
+    /** Represents the current home screen data model. There are two ways this can change: */
+    val workspaceStateFlow = mutableStateFlow.asStateFlow()
 
-        val scope = MainScope()
-
-        internal val updateListeners = CopyOnWriteArrayList<Consumer<ChangeEvent>>()
-
-        val updates =
-            callbackFlow<ChangeEvent> {
-                val listener = Consumer<ChangeEvent> { trySend(it) }
-                updateListeners.add(listener)
-                awaitClose { updateListeners.remove(listener) }
-            }
-
-        /** Represents a change being made to the existing workspace data */
-        sealed interface ChangeEvent {
-            // The items being changed
-            val items: List<ItemInfo>
-
-            // The source of the change. If its user driven, it will point to the UI component where
-            // the user is interacting or null if the change was made as a result of some system
-            // event. Clients can use this to exclude self-made changes.
-            val owner: Any?
-
-            /** New items were added to the model */
-            data class AddEvent(override val items: List<ItemInfo>, override val owner: Any?) :
-                ChangeEvent
-
-            /** Some properties of existing items changed */
-            data class UpdateEvent(override val items: List<ItemInfo>, override val owner: Any?) :
-                ChangeEvent
-
-            /** Some items were removed from the model */
-            data class RemoveEvent(override val items: List<ItemInfo>, override val owner: Any?) :
-                ChangeEvent
-        }
-    }
-
-    /**
-     * Used to notify that the model data was completely replaced. This is only meant to be used by
-     * the model, clients should just rely on the events provided by the StateFlow
-     */
-    fun onNewBind(model: BgDataModel) {
-        val items = model.itemsIdMap.clone()
-
-        Executors.MAIN_EXECUTOR.execute {
-            workspaceStateFlow.value.scope.cancel()
-            workspaceStateFlow.value = WorkspaceData(items)
-        }
-    }
-
-    /**
-     * Used to notify a particular change to the workspace data. This is only meant to be used by
-     * the model, clients should just rely on the events provided by the StateFlow
-     */
-    fun dispatchChange(model: BgDataModel, event: ChangeEvent) {
-        val items = model.itemsIdMap.clone()
-        Executors.MAIN_EXECUTOR.execute {
-            workspaceStateFlow.value.itemsIdMap = items
-            workspaceStateFlow.value.updateListeners.forEach { it.accept(event) }
-        }
+    /** sets a new value to [workspaceStateFlow] */
+    fun dispatchChange(workspaceData: WorkspaceData) {
+        mutableStateFlow.value = workspaceData
     }
 }

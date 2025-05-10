@@ -74,6 +74,7 @@ class TaskThumbnailViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
         screenshotRule.screenshotTest("taskThumbnailView_uninitialized") { activity ->
             activity.actionBar?.hide()
             val taskThumbnailView = createTaskThumbnailView(activity)
+            taskThumbnailView.setState(BackgroundOnly(Color.YELLOW))
             taskThumbnailView.setState(Uninitialized)
             taskThumbnailView
         }

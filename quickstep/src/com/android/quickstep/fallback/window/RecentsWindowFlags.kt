@@ -40,7 +40,7 @@ object RecentsWindowFlags {
     val enableOverviewOnConnectedDisplays: DesktopExperienceFlag =
         DesktopExperienceFlag(
             Flags::enableOverviewOnConnectedDisplays,
-            false,
+            true,
             Flags.FLAG_ENABLE_OVERVIEW_ON_CONNECTED_DISPLAYS,
         )
 

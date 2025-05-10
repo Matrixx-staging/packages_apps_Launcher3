@@ -29,9 +29,8 @@ import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.model.BgDataModel.Callbacks;
 import com.android.launcher3.model.BgDataModel.FixedContainerItems;
 import com.android.launcher3.model.data.AppInfo;
-import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.model.data.WorkspaceData;
 import com.android.launcher3.util.ComponentKey;
-import com.android.launcher3.util.IntSparseArrayMap;
 import com.android.launcher3.util.LooperExecutor;
 import com.android.launcher3.util.LooperIdleLock;
 import com.android.launcher3.util.PackageUserKey;
@@ -90,12 +89,12 @@ public class BaseLauncherBinder {
         Trace.beginSection("BaseLauncherBinder#bindWorkspace");
         try {
             // Save a copy of all the bg-thread collections
-            IntSparseArrayMap<ItemInfo> itemsIdMap;
+            WorkspaceData itemsIdMap;
             ArrayList<FixedContainerItems> extraItems = new ArrayList<>();
             StringCache stringCache;
 
             synchronized (mBgDataModel) {
-                itemsIdMap = mBgDataModel.itemsIdMap.clone();
+                itemsIdMap = mBgDataModel.itemsIdMap.copy();
                 mBgDataModel.extraItems.forEach(extraItems::add);
                 if (incrementBindId) {
                     mBgDataModel.lastBindId++;
@@ -106,7 +105,12 @@ public class BaseLauncherBinder {
             }
 
             for (Callbacks cb : mCallbacksList) {
-                cb.bindCompleteModelAsync(itemsIdMap, extraItems, stringCache, isBindSync);
+                cb.bindCompleteModelAsync(itemsIdMap, isBindSync);
+            }
+
+            executeCallbacksTask(c -> c.bindStringCache(stringCache), mUiExecutor);
+            for (FixedContainerItems extraItem: extraItems) {
+                executeCallbacksTask(c -> c.bindExtraContainerItems(extraItem), mUiExecutor);
             }
         } finally {
             Trace.endSection();
@@ -152,16 +156,6 @@ public class BaseLauncherBinder {
         List<WidgetsListBaseEntry> widgets = new WidgetsListBaseEntriesBuilder(mContext)
                 .build(mBgDataModel.widgetsModel.getWidgetsByPackageItemForPicker());
         executeCallbacksTask(c -> c.bindAllWidgets(widgets), mUiExecutor);
-    }
-
-    /**
-     * bindWidgets is abstract because it is a no-op for the go launcher.
-     */
-    public void bindSmartspaceWidget() {
-        if (!WIDGETS_ENABLED) {
-            return;
-        }
-        executeCallbacksTask(c -> c.bindSmartspaceWidget(), mUiExecutor);
     }
 
     protected void executeCallbacksTask(CallbackTask task, Executor executor) {

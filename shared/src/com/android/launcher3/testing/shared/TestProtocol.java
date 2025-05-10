@@ -186,6 +186,9 @@ public final class TestProtocol {
 
     public static final String REQUEST_TASKBAR_PRIMARY_DISPLAY_ID = "taskbar-primary-display-id";
 
+    public static final String REQUEST_DISMISS_MAGNETIC_DETACH_THRESHOLD =
+            "dismiss-magnetic-detach-threshold";
+
     /** Logs {@link Log#d(String, String)} if {@link #sDebugTracing} is true. */
     public static void testLogD(String tag, String message) {
         if (!sDebugTracing) {

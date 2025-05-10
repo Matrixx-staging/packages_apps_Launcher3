@@ -24,6 +24,7 @@ import android.os.Trace
 import android.util.Log
 import android.view.Display.DEFAULT_DISPLAY
 import android.view.View
+import android.window.DesktopExperienceFlags
 import android.window.TransitionInfo
 import androidx.annotation.BinderThread
 import androidx.annotation.UiThread
@@ -82,7 +83,8 @@ constructor(
     private val taskAnimationManagerRepository: PerDisplayRepository<TaskAnimationManager>,
     private val elapsedRealtime: () -> Long = SystemClock::elapsedRealtime,
 ) {
-    private val coroutineScope = CoroutineScope(SupervisorJob() + dispatcherProvider.background)
+    private val coroutineScope =
+        CoroutineScope(SupervisorJob() + dispatcherProvider.lightweightBackground)
 
     private val commandQueue = ConcurrentLinkedDeque<CommandInfo>()
 
@@ -356,6 +358,15 @@ constructor(
                 containerInterface.getTaskbarController()
             }
 
+        val taskAnimationManager = taskAnimationManagerRepository[command.displayId]
+        if (taskAnimationManager == null) {
+            Log.e(TAG, "No TaskAnimationManager found for display ${command.displayId}")
+            ActiveGestureProtoLogProxy.logOnTaskAnimationManagerNotAvailable(
+                command.displayId
+            )
+            return false
+        }
+
         when (command.type) {
             HIDE_ALT_TAB -> {
                 if (
@@ -382,13 +393,15 @@ constructor(
 
             HOME -> {
                 ActiveGestureProtoLogProxy.logExecuteHomeCommand()
-                // Although IActivityTaskManager$Stub$Proxy.startActivity is a slow binder call,
-                // we should still call it on main thread because launcher is waiting for
-                // ActivityTaskManager to resume it. Also calling startActivity() on bg thread
-                // could potentially delay resuming launcher. See b/348668521 for more details.
-                touchInteractionService.startActivity(
-                    overviewComponentObserver.getHomeIntent(command.displayId)
-                )
+                taskAnimationManager.maybeStartHomeAction {
+                    // Although IActivityTaskManager$Stub$Proxy.startActivity is a slow binder call,
+                    // we should still call it on main thread because launcher is waiting for
+                    // ActivityTaskManager to resume it. Also calling startActivity() on bg thread
+                    // could potentially delay resuming launcher. See b/348668521 for more details.
+                    touchInteractionService.startActivity(
+                        overviewComponentObserver.getHomeIntent(command.displayId)
+                    )
+                }
                 return true
             }
 
@@ -501,15 +514,6 @@ constructor(
                 }
             }
 
-        val taskAnimationManager =
-            taskAnimationManagerRepository.get(command.displayId)
-                ?: run {
-                    Log.e(TAG, "No TaskAnimationManager found for display ${command.displayId}")
-                    ActiveGestureProtoLogProxy.logOnTaskAnimationManagerNotAvailable(
-                        command.displayId
-                    )
-                    return false
-                }
         if (taskAnimationManager.isRecentsAnimationRunning) {
             command.setAnimationCallbacks(
                 taskAnimationManager.continueRecentsAnimation(gestureState)

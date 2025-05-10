@@ -1108,6 +1108,7 @@ public class TaskbarLauncherStateController {
             RecentsView recentsView = mControllers.uiController.getRecentsView();
             if (recentsView != null) {
                 recentsView.setTaskLaunchListener(null);
+                recentsView.setTaskLaunchCancelledRunnable(null);
             }
 
             if (mSkipNextRecentsAnimEnd && !canceled) {

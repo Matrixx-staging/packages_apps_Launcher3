@@ -27,6 +27,7 @@ import static com.android.launcher3.AbstractFloatingView.TYPE_FOLDER;
 import static com.android.launcher3.AbstractFloatingView.TYPE_ICON_SURFACE;
 import static com.android.launcher3.AbstractFloatingView.TYPE_REBIND_SAFE;
 import static com.android.launcher3.AbstractFloatingView.getTopOpenViewWithType;
+import static com.android.launcher3.Flags.allAppsBlur;
 import static com.android.launcher3.Flags.enableAddAppWidgetViaConfigActivityV2;
 import static com.android.launcher3.Flags.enableStrictMode;
 import static com.android.launcher3.Flags.enableWorkspaceInflation;
@@ -201,7 +202,6 @@ import com.android.launcher3.logging.StartupLatencyLogger;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.logging.StatsLogManager.LauncherLatencyEvent;
 import com.android.launcher3.model.BgDataModel.Callbacks;
-import com.android.launcher3.model.BgDataModel.FixedContainerItems;
 import com.android.launcher3.model.ItemInstallQueue;
 import com.android.launcher3.model.ModelWriter;
 import com.android.launcher3.model.StringCache;
@@ -210,6 +210,8 @@ import com.android.launcher3.model.data.CollectionInfo;
 import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.LauncherAppWidgetInfo;
+import com.android.launcher3.model.data.PredictedContainerInfo;
+import com.android.launcher3.model.data.WorkspaceData;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.notification.NotificationListener;
 import com.android.launcher3.pm.PinRequestHelper;
@@ -231,7 +233,6 @@ import com.android.launcher3.util.CannedAnimationCoordinator;
 import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.ContextTracker;
 import com.android.launcher3.util.IntSet;
-import com.android.launcher3.util.IntSparseArrayMap;
 import com.android.launcher3.util.ItemInflater;
 import com.android.launcher3.util.KeyboardShortcutsDelegate;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
@@ -514,7 +515,6 @@ public class Launcher extends StatefulActivity<LauncherState>
 
         super.onCreate(savedInstanceState);
         setWallpaperDependentTheme(this);
-        getTheme().applyStyle(getBlurStyleResId(), true);
 
         LauncherAppState app = LauncherAppState.getInstance(this);
         mModel = app.getModel();
@@ -807,7 +807,7 @@ public class Launcher extends StatefulActivity<LauncherState>
     }
 
     public void onAssistantVisibilityChanged(float visibility) {
-        mHotseat.getQsb().setAlpha(1f - visibility);
+        mHotseat.setQsbAlpha(1f - visibility, Hotseat.ALPHA_CHANNEL_ASSISTANT_VISIBILITY);
     }
 
     /**
@@ -1370,6 +1370,9 @@ public class Launcher extends StatefulActivity<LauncherState>
      * Finds all the views we need and configure them properly.
      */
     protected void setupViews() {
+        if (allAppsBlur()) {
+            getTheme().applyStyle(getAllAppsBlurStyleResId(), true);
+        }
         mStartupLatencyLogger.logStart(LAUNCHER_LATENCY_STARTUP_VIEW_INFLATION);
         inflateRootView(R.layout.launcher);
         mStartupLatencyLogger.logEnd(LAUNCHER_LATENCY_STARTUP_VIEW_INFLATION);
@@ -2198,9 +2201,8 @@ public class Launcher extends StatefulActivity<LauncherState>
     }
 
     @Override
-    public void bindCompleteModelAsync(IntSparseArrayMap<ItemInfo> itemIdMap,
-            List<FixedContainerItems> extraItems, StringCache stringCache, boolean isBindingSync) {
-        mModelCallbacks.bindCompleteModelAsync(itemIdMap, extraItems, stringCache, isBindingSync);
+    public void bindCompleteModelAsync(WorkspaceData itemIdMap, boolean isBindingSync) {
+        mModelCallbacks.bindCompleteModelAsync(itemIdMap, isBindingSync);
     }
 
     @Override
@@ -2489,14 +2491,12 @@ public class Launcher extends StatefulActivity<LauncherState>
     }
 
     @Override
-    public void bindSmartspaceWidget() {
-        mModelCallbacks.bindSmartspaceWidget();
-    }
-
-    @Override
     public void bindStringCache(StringCache cache) {
         mModelCallbacks.bindStringCache(cache);
     }
+
+    /** Called to updated any prediction info by the {@link #mModelCallbacks} */
+    public void bindPredictedContainerInfo(PredictedContainerInfo info) { }
 
     /**
      * @param packageUser if null, refreshes all widgets and shortcuts, otherwise only

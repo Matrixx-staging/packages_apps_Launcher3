@@ -59,7 +59,7 @@ class QuickstepKeyGestureEventsManager(context: Context) {
     val allAppsKeyGestureEventHandler =
         object : KeyGestureEventHandler {
             override fun handleKeyGestureEvent(event: KeyGestureEvent, focusedToken: IBinder?) {
-                if (!Flags.enableKeyGestureHandlerForRecents()) {
+                if (!Flags.grantManageKeyGesturesToRecents()) {
                     return
                 }
                 if (!isUserSetupCompleted) {
@@ -80,7 +80,7 @@ class QuickstepKeyGestureEventsManager(context: Context) {
     val overviewKeyGestureEventHandler =
         object : KeyGestureEventHandler {
             override fun handleKeyGestureEvent(event: KeyGestureEvent, focusedToken: IBinder?) {
-                if (!Flags.enableKeyGestureHandlerForRecents()) {
+                if (!Flags.grantManageKeyGesturesToRecents()) {
                     return
                 }
                 if (!isUserSetupCompleted) {
@@ -114,7 +114,7 @@ class QuickstepKeyGestureEventsManager(context: Context) {
 
     /** Registers the all apps key gesture events. */
     fun registerAllAppsKeyGestureEvent(allAppsPendingIntent: PendingIntent) {
-        if (Flags.enableKeyGestureHandlerForRecents()) {
+        if (Flags.grantManageKeyGesturesToRecents()) {
             this.allAppsPendingIntent = allAppsPendingIntent
             inputManager.registerKeyGestureEventHandler(
                 listOf(KEY_GESTURE_TYPE_ALL_APPS),
@@ -125,14 +125,14 @@ class QuickstepKeyGestureEventsManager(context: Context) {
 
     /** Unregisters the all apps key gesture events. */
     fun unregisterAllAppsKeyGestureEvent() {
-        if (Flags.enableKeyGestureHandlerForRecents()) {
+        if (Flags.grantManageKeyGesturesToRecents()) {
             inputManager.unregisterKeyGestureEventHandler(allAppsKeyGestureEventHandler)
         }
     }
 
     /** Registers the overview key gesture events. */
     fun registerOverviewKeyGestureEvent(overviewGestureHandler: OverviewGestureHandler) {
-        if (Flags.enableKeyGestureHandlerForRecents()) {
+        if (Flags.grantManageKeyGesturesToRecents()) {
             this.overviewGestureHandler = overviewGestureHandler
             inputManager.registerKeyGestureEventHandler(
                 listOf(KEY_GESTURE_TYPE_RECENT_APPS, KEY_GESTURE_TYPE_RECENT_APPS_SWITCHER),
@@ -143,7 +143,7 @@ class QuickstepKeyGestureEventsManager(context: Context) {
 
     /** Unregisters the overview key gesture events. */
     fun unregisterOverviewKeyGestureEvent() {
-        if (Flags.enableKeyGestureHandlerForRecents()) {
+        if (Flags.grantManageKeyGesturesToRecents()) {
             inputManager.unregisterKeyGestureEventHandler(overviewKeyGestureEventHandler)
         }
     }

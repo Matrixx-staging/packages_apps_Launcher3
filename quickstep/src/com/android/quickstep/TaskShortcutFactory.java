@@ -18,11 +18,9 @@ package com.android.quickstep;
 
 import static android.app.WindowConfiguration.WINDOWING_MODE_FREEFORM;
 import static android.content.Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS;
-import static android.view.Surface.ROTATION_0;
 
 import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 import static com.android.launcher3.Flags.enableRefactorTaskThumbnail;
-import static com.android.launcher3.Flags.enableShowEnabledShortcutsInAccessibilityMenu;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SYSTEM_SHORTCUT_CLOSE_APP_TAP;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SYSTEM_SHORTCUT_FREE_FORM_TAP;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT;
@@ -54,7 +52,6 @@ import com.android.launcher3.util.SplitConfigurationOptions;
 import com.android.launcher3.util.SplitConfigurationOptions.SplitPositionOption;
 import com.android.launcher3.views.ActivityContext;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
-import com.android.quickstep.util.RecentsOrientedState;
 import com.android.quickstep.views.GroupedTaskView;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
@@ -351,15 +348,6 @@ public interface TaskShortcutFactory {
                 return null;
             }
 
-            if (!enableShowEnabledShortcutsInAccessibilityMenu()) {
-                boolean isLargeTile = deviceProfile.isTablet && taskView.isLargeTile();
-                boolean isTaskInExpectedScrollPosition =
-                        recentsView.isTaskInExpectedScrollPosition(taskView);
-                if (isLargeTile && isTaskInExpectedScrollPosition) {
-                    return null;
-                }
-            }
-
             return orientationHandler.getSplitPositionOptions(deviceProfile)
                     .stream()
                     .map((Function<SplitPositionOption, SystemShortcut>) option ->
@@ -506,23 +494,8 @@ public interface TaskShortcutFactory {
         @Override
         public List<SystemShortcut> getShortcuts(RecentsViewContainer container,
                 TaskContainer taskContainer) {
-            if (enableShowEnabledShortcutsInAccessibilityMenu()) {
-                if (!taskContainer.getOverlay().isRealSnapshot()) {
-                    return null;
-                }
-            } else {
-                boolean isTablet = container.getDeviceProfile().isTablet;
-                boolean isGridOnlyOverview = isTablet && enableGridOnlyOverview();
-                // Extra conditions if it's not grid-only overview
-                if (!isGridOnlyOverview) {
-                    RecentsOrientedState orientedState = taskContainer.getTaskView()
-                            .getOrientedState();
-                    boolean isFakeLandscape = !orientedState.isRecentsActivityRotationAllowed()
-                            && orientedState.getTouchRotation() != ROTATION_0;
-                    if (!isFakeLandscape) {
-                        return null;
-                    }
-                }
+            if (!taskContainer.getOverlay().isRealSnapshot()) {
+                return null;
             }
 
             SystemShortcut screenshotShortcut = taskContainer.getOverlay().getScreenshotShortcut(
@@ -540,39 +513,31 @@ public interface TaskShortcutFactory {
         @Override
         public List<SystemShortcut> getShortcuts(RecentsViewContainer container,
                 TaskContainer taskContainer) {
-            if (enableShowEnabledShortcutsInAccessibilityMenu()) {
-                if (!taskContainer.getOverlay().isRealSnapshot()) {
-                    return null;
-                }
+            if (!taskContainer.getOverlay().isRealSnapshot()) {
+                return null;
+            }
 
-                // Modal only works with grid size tiles with enableGridOnlyOverview enabled on
-                // tablets / foldables. With enableGridOnlyOverview off, for large tiles it works,
-                // but the tile needs to be in the center of Recents / Overview.
-                boolean isTablet = container.getDeviceProfile().isTablet;
-                RecentsView recentsView = container.getOverviewPanel();
-                boolean isLargeTileInCenterOfOverview = taskContainer.getTaskView().isLargeTile()
-                        && recentsView.isFocusedTaskInExpectedScrollPosition();
-                if (isTablet
-                        && !isLargeTileInCenterOfOverview
-                        && !enableGridOnlyOverview()) {
-                    return null;
-                }
+            // Modal only works with grid size tiles with enableGridOnlyOverview enabled on
+            // tablets / foldables. With enableGridOnlyOverview off, for large tiles it works,
+            // but the tile needs to be in the center of Recents / Overview.
+            boolean isTablet = container.getDeviceProfile().isTablet;
+            RecentsView recentsView = container.getOverviewPanel();
+            boolean isLargeTileInCenterOfOverview = taskContainer.getTaskView().isLargeTile()
+                    && recentsView.isFocusedTaskInExpectedScrollPosition();
+            if (isTablet
+                    && !isLargeTileInCenterOfOverview
+                    && !enableGridOnlyOverview()) {
+                return null;
+            }
 
-                boolean isFakeLandscape = !taskContainer.getTaskView().getPagedOrientationHandler()
-                        .isLayoutNaturalToLauncher();
-                if (isFakeLandscape) {
-                    return null;
-                }
+            boolean isFakeLandscape = !taskContainer.getTaskView().getPagedOrientationHandler()
+                    .isLayoutNaturalToLauncher();
+            if (isFakeLandscape) {
+                return null;
+            }
 
-                if (taskContainer.getOverlay().isThumbnailRotationDifferentFromTask()) {
-                    return null;
-                }
-            } else {
-                boolean isTablet = container.getDeviceProfile().isTablet;
-                boolean isGridOnlyOverview = isTablet && enableGridOnlyOverview();
-                if (!isGridOnlyOverview) {
-                    return null;
-                }
+            if (taskContainer.getOverlay().isThumbnailRotationDifferentFromTask()) {
+                return null;
             }
 
             SystemShortcut modalStateSystemShortcut =

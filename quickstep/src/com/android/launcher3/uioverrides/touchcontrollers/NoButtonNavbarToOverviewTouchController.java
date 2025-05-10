@@ -62,6 +62,8 @@ import java.util.function.BiConsumer;
  * first home screen instead of to Overview.
  */
 public class NoButtonNavbarToOverviewTouchController extends PortraitStatesTouchController {
+
+    public static final String TAG = "NoButtonNavbarToOverviewTouchController";
     private static final float ONE_HANDED_ACTIVATED_SLOP_MULTIPLIER = 2.5f;
 
     // How much of the movement to use for translating overview after swipe and hold.
@@ -170,6 +172,11 @@ public class NoButtonNavbarToOverviewTouchController extends PortraitStatesTouch
         mStartedOverview = false;
         mReachedOverview = false;
         mOverviewResistYAnim = null;
+    }
+
+    @Override
+    public String dump() {
+        return TAG;
     }
 
     @Override

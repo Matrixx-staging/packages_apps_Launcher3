@@ -16,9 +16,11 @@
 
 package com.android.quickstep
 
+import android.content.Intent
 import android.view.Display.DEFAULT_DISPLAY
 import androidx.test.filters.SmallTest
 import com.android.app.displaylib.DisplayRepository
+import com.android.app.displaylib.PerDisplayRepository
 import com.android.launcher3.LauncherState
 import com.android.launcher3.statemanager.StateManager
 import com.android.launcher3.statemanager.StatefulActivity
@@ -49,6 +51,7 @@ import org.junit.runner.RunWith
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.spy
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -69,6 +72,8 @@ class OverviewCommandHelperTest {
     private val recentView: RecentsView<*, *> = mock()
     private val stateManager: StateManager<LauncherState, StatefulActivity<LauncherState>> = mock()
     private val containerInterface: BaseActivityInterface<LauncherState, QuickstepLauncher> = mock()
+    private val taskAnimationManager: TaskAnimationManager = mock()
+    private val touchInteractionService: TouchInteractionService = mock()
     private var elapsedRealtime = 100L
 
     private fun setupDefaultDisplay() {
@@ -88,18 +93,24 @@ class OverviewCommandHelperTest {
         val overviewComponentObserver = mock<OverviewComponentObserver>()
         whenever(overviewComponentObserver.getContainerInterface(any()))
             .thenReturn(containerInterface)
+        whenever(overviewComponentObserver.getHomeIntent(any())).thenReturn(mock<Intent>())
         whenever(recentView.getStateManager()).thenReturn(stateManager)
         whenever(containerInterface.switchToRecentsIfVisible(any())).thenReturn(true)
+        val taskAnimationManagerRepository = mock<PerDisplayRepository<TaskAnimationManager>>()
+        whenever(taskAnimationManagerRepository.get(any())).thenReturn(taskAnimationManager)
+        whenever(taskAnimationManager.maybeStartHomeAction(any())).thenAnswer { invocation ->
+            invocation.getArgument<Runnable>(0).run()
+        }
 
         sut =
             spy(
                 OverviewCommandHelper(
-                    touchInteractionService = mock(),
+                    touchInteractionService = touchInteractionService,
                     overviewComponentObserver = overviewComponentObserver,
                     dispatcherProvider = TestDispatcherProvider(dispatcher),
                     displayRepository = displayRepository,
                     taskbarManager = mock(),
-                    taskAnimationManagerRepository = mock(),
+                    taskAnimationManagerRepository = taskAnimationManagerRepository,
                     elapsedRealtime = ::elapsedRealtime,
                 )
             )
@@ -404,6 +415,15 @@ class OverviewCommandHelperTest {
             sut.addCommand(CommandType.TOGGLE)
             runCurrent()
             verify(previousTaskView).launchWithAnimation()
+        }
+
+    @Test
+    fun whenHomeCommandIsAdded_executeHomeAction() =
+        testScope.runTest {
+            sut.addCommand(CommandType.HOME)
+            runCurrent()
+            verify(taskAnimationManager).maybeStartHomeAction(any())
+            verify(touchInteractionService).startActivity(any())
         }
 
     private companion object {

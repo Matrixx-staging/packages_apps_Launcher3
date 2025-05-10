@@ -34,12 +34,13 @@ import com.android.launcher3.ConstantItem;
 import com.android.launcher3.LauncherModel.ModelUpdateTask;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.icons.IconCache;
-import com.android.launcher3.model.BgDataModel.FixedContainerItems;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.model.data.PredictedContainerInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -70,7 +71,7 @@ public class PredictionUpdateTask implements ModelUpdateTask {
         LauncherPrefs.get(context).put(LAST_PREDICTION_ENABLED, !mTargets.isEmpty());
 
         Set<UserHandle> usersForChangedShortcuts =
-                dataModel.extraItems.get(mPredictorState.containerId).items.stream()
+                dataModel.itemsIdMap.getPredictedContents(mPredictorState.containerId).stream()
                         .filter(info -> info.itemType == ITEM_TYPE_DEEP_SHORTCUT)
                         .map(info -> info.user)
                         .collect(Collectors.toSet());
@@ -118,12 +119,12 @@ public class PredictionUpdateTask implements ModelUpdateTask {
             items.add(itemInfo);
         }
 
-        FixedContainerItems fci = new FixedContainerItems(mPredictorState.containerId, items);
-        dataModel.extraItems.put(fci.containerId, fci);
-        taskController.bindExtraContainerItems(fci);
+        PredictedContainerInfo pci = new PredictedContainerInfo(mPredictorState.containerId, items);
+        dataModel.updateAndDispatchItem(pci /* item */, null /* owner */);
+        taskController.bindUpdatedWorkspaceItems(Collections.singleton(pci));
         usersForChangedShortcuts.forEach(u -> dataModel.updateShortcutPinnedState(context, u));
 
         // Save to disk
-        mPredictorState.storage.write(context, fci.items);
+        mPredictorState.storage.write(context, pci.getContents());
     }
 }

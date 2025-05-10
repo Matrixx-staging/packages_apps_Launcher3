@@ -229,8 +229,8 @@ public final class TaskViewUtils {
         boolean showAsGrid = dp.isTablet;
         boolean parallaxCenterAndAdjacentTask =
                 !showAsGrid && taskIndex != recentsView.getCurrentPage();
-        int taskRectTranslationPrimary = recentsView.getScrollOffset(taskIndex);
-        int taskRectTranslationSecondary = showAsGrid ? (int) taskView.getGridTranslationY() : 0;
+        int scrollOffset = recentsView.getScrollOffset(taskIndex);
+        int gridTranslationY = showAsGrid ? (int) taskView.getGridTranslationY() : 0;
 
         RemoteTargetHandle[] topMostSimulators = null;
 
@@ -244,15 +244,15 @@ public final class TaskViewUtils {
                 // be stale. Use the display value instead.
                 int displayRotation = DisplayController.INSTANCE.get(context).getInfo().rotation;
                 tvsLocal.getOrientationState().update(displayRotation, displayRotation);
+                tvsLocal.calculateTaskSize();
 
                 tvsLocal.fullScreenProgress.value = 0;
                 tvsLocal.recentsViewScale.value = 1;
                 if (!enableGridOnlyOverview()) {
                     tvsLocal.setIsGridTask(taskView.isGridTask());
                 }
-                tvsLocal.getOrientationState().getOrientationHandler().set(tvsLocal,
-                        TaskViewSimulator::setTaskRectTranslation, taskRectTranslationPrimary,
-                        taskRectTranslationSecondary);
+                tvsLocal.recentsViewScroll.value = scrollOffset;
+                tvsLocal.taskSecondaryTranslation.value = gridTranslationY;
 
                 if (taskView instanceof DesktopTaskView) {
                     targetHandle.getTransformParams().setTargetAlpha(1f);

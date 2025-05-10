@@ -158,7 +158,7 @@
     <string name="bubble_bar_action_dismiss_all" msgid="3290722022983403060">"Hunsa allt"</string>
     <string name="bubble_bar_accessibility_announce_expand" msgid="1503192695527477102">"stækka <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
     <string name="bubble_bar_accessibility_announce_collapse" msgid="928284600086798791">"minnka <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
-    <string name="search_gesture_feature_title" msgid="1294044108313175306">"Circle to Search"</string>
+    <string name="search_gesture_feature_title" msgid="1294044108313175306">"Draga hring til að leita"</string>
     <string name="header_app_icon_description" msgid="2184625881433608027">"Forritstákn"</string>
     <string name="header_default_app_title" msgid="8308052350689531566">"Titil forrits"</string>
     <string name="header_close_icon_description" msgid="5400033616675911319">"Hnappur til að loka"</string>

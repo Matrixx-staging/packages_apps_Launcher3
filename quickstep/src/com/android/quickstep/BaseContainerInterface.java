@@ -231,30 +231,24 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
      */
     public void onTransitionCancelled(boolean activityVisible,
             @Nullable GestureState.GestureEndTarget endTarget) {
-        RecentsViewContainer container = getCreatedContainer();
+        CONTAINER_TYPE container = getCreatedContainer();
         if (container == null) {
             return;
         }
-        RecentsView recentsView = container.getOverviewPanel();
-        BaseState startState = recentsView.getStateManager().getRestState();
+        STATE_TYPE startState = container.getStateManager().getRestState();
+        final var context = container.asContext();
+        if (DesktopVisibilityController.INSTANCE.get(context).isInDesktopModeAndNotInOverview(
+                context.getDisplayId()) && endTarget == null) {
+            // When tapping on the Taskbar in Desktop mode, reset to BackgroundApp to avoid the
+            // home screen icons flickering. Technically we could probably be do this for
+            // non-desktop as well, but limiting to this use case to reduce risk.
+            endTarget = LAST_TASK;
+        }
         if (endTarget != null) {
             // We were on our way to this state when we got canceled, end there instead.
             startState = stateFromGestureEndTarget(endTarget);
-            final var context = recentsView.getContext();
-            if (DesktopVisibilityController.INSTANCE.get(context)
-                    .isInDesktopModeAndNotInOverview(context.getDisplayId())
-                    && endTarget == LAST_TASK) {
-                // When we are cancelling the transition and going back to last task, move to
-                // rest state instead when desktop tasks are visible.
-                // If a fullscreen task is visible, launcher goes to normal state when the
-                // activity is stopped. This does not happen when desktop tasks are visible
-                // on top of launcher. Force the launcher state to rest state here.
-                startState = recentsView.getStateManager().getRestState();
-                // Do not animate the transition
-                activityVisible = false;
-            }
         }
-        recentsView.getStateManager().goToState(startState, activityVisible);
+        container.getStateManager().goToState(startState, activityVisible);
     }
 
     public final void calculateTaskSize(Context context, DeviceProfile dp, Rect outRect,

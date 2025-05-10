@@ -245,6 +245,7 @@ import com.android.wm.shell.common.pip.IPipAnimationListener;
 import com.android.wm.shell.shared.GroupedTaskInfo;
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
 import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource;
+import com.android.wm.shell.shared.pip.PipFlags;
 import com.android.wm.shell.shared.split.SplitBounds;
 
 import kotlin.Unit;
@@ -656,7 +657,10 @@ public abstract class RecentsView<
                 return;
             }
 
-            reloadIfNeeded();
+            // If PiP2 is enabled, we will trigger the reload only after the Transition is finished.
+            if (!PipFlags.isPip2ExperimentEnabled()) {
+                reloadIfNeeded();
+            }
             enableLayoutTransitions();
         }
 
@@ -941,6 +945,9 @@ public abstract class RecentsView<
             mAddDesktopButton.setOnClickListener(this::createDesk);
 
             mDesktopVisibilityController = DesktopVisibilityController.INSTANCE.get(mContext);
+            // Update its visibility based on whether we can create a desk or not.
+            mUtils.onCanCreateDesksChanged(
+                    mDesktopVisibilityController.getCanCreateDesks());
         }
 
         mTaskViewPool = new ViewPool<>(context, this, R.layout.task, 20 /* max size */,
@@ -1289,6 +1296,7 @@ public abstract class RecentsView<
         if (mDesktopVisibilityController != null) {
             mDesktopVisibilityController.unregisterDesktopVisibilityListener(mUtils);
         }
+        mTaskLaunchListener = null;
         mOnTaskLaunchCancelledRunnable = null;
         reset();
     }
@@ -1732,15 +1740,6 @@ public abstract class RecentsView<
 
         return absoluteDelta
                 > deviceProfile.availableWidthPx * SIGNIFICANT_MOVE_SCREEN_WIDTH_PERCENTAGE;
-    }
-
-    @Override
-    public boolean onInterceptTouchEvent(MotionEvent ev) {
-        boolean intercept = super.onInterceptTouchEvent(ev);
-        if (ev.getActionMasked() == MotionEvent.ACTION_DOWN) {
-            Log.d("b/318590728", "onInterceptTouchEvent: " + ev);
-        }
-        return intercept;
     }
 
     @Override
@@ -4969,7 +4968,7 @@ public abstract class RecentsView<
             float modalTranslation = i == modalMidpoint
                     ? modalMidpointOffsetSize
                     : showAsGrid
-                            ? gridOffsetSize
+                            ? mIsRtl ? gridOffsetSize : -gridOffsetSize
                             : i < modalMidpoint ? modalLeftOffsetSize : modalRightOffsetSize;
             boolean skipTranslationOffset =
                     i == getRunningTaskIndex() && child instanceof DesktopTaskView;
@@ -6038,7 +6037,7 @@ public abstract class RecentsView<
         }
 
         final boolean sendUserLeaveHint = toRecents && shouldPip;
-        if (sendUserLeaveHint && !com.android.wm.shell.Flags.enablePip2()) {
+        if (sendUserLeaveHint && !PipFlags.isPip2ExperimentEnabled()) {
             // Notify the SysUI to use fade-in animation when entering PiP from live tile.
             // Note: PiP2 handles entering differently, so skip if enable_pip2=true.
             final SystemUiProxy systemUiProxy = SystemUiProxy.INSTANCE.get(getContext());
@@ -6446,6 +6445,13 @@ public abstract class RecentsView<
         return showAsGrid()
                 && !mTopRowIdSet.contains(taskView.getTaskViewId())
                 && !taskView.isLargeTile();
+    }
+
+    /**
+     * @return true if the task in on the top of the grid
+     */
+    public boolean isOnGridTopRow(TaskView taskView) {
+        return showAsGrid() && mTopRowIdSet.contains(taskView.getTaskViewId());
     }
 
     public Consumer<MotionEvent> getEventDispatcher(float navbarRotation) {
@@ -6909,6 +6915,16 @@ public abstract class RecentsView<
                 // Hide the task bar when leaving PiP to prevent it from flickering once
                 // the app settles in full-screen mode.
                 mRecentsView.mSizeStrategy.getTaskbarController().onExpandPip();
+            });
+        }
+
+        @Override
+        public void onExitPip() {
+            MAIN_EXECUTOR.execute(() -> {
+                if (mRecentsView == null || !PipFlags.isPip2ExperimentEnabled()) {
+                    return;
+                }
+                mRecentsView.reloadIfNeeded();
             });
         }
     }

@@ -200,8 +200,7 @@ class WorkspaceItemProcessorExtraTest {
             )
             .commit()
         val widgetInfoCaptor = ArgumentCaptor.forClass(LauncherAppWidgetInfo::class.java)
-        verify(mockCursor)
-            .checkAndAddItem(widgetInfoCaptor.capture(), eq(mockBgDataModel), anyOrNull())
+        verify(mockCursor).checkAndAddItem(widgetInfoCaptor.capture(), any(), anyOrNull())
         val actualWidgetInfo = widgetInfoCaptor.value
         with(actualWidgetInfo) {
             assertThat(providerName).isEqualTo(expectedWidgetInfo.providerName)
@@ -262,7 +261,6 @@ class WorkspaceItemProcessorExtraTest {
         launcherApps: LauncherApps = mockLauncherApps,
         shortcutKeyToPinnedShortcuts: Map<ShortcutKey, ShortcutInfo> = mKeyToPinnedShortcutsMap,
         context: Context = mockContext,
-        bgDataModel: BgDataModel = mockBgDataModel,
         widgetInflater: WidgetInflater = mockWidgetInflater,
         pmHelper: PackageManagerHelper = mockPmHelper,
         iconRequestInfos: MutableList<IconRequestInfo<WorkspaceItemInfo>> = mIconRequestInfos,
@@ -279,7 +277,6 @@ class WorkspaceItemProcessorExtraTest {
             userCache = userCache,
             userManagerState = userManagerState,
             launcherApps = launcherApps,
-            bgDataModel = bgDataModel,
             widgetInflater = widgetInflater,
             pmHelper = pmHelper,
             unlockedUsers = unlockedUsers,

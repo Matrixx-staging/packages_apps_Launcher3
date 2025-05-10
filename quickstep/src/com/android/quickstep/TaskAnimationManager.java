@@ -26,6 +26,7 @@ import static com.android.quickstep.GestureState.STATE_RECENTS_ANIMATION_INITIAL
 import static com.android.quickstep.GestureState.STATE_RECENTS_ANIMATION_STARTED;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_NOTIFICATION_PANEL_EXPANDED;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_QUICK_SETTINGS_EXPANDED;
+import static android.view.Display.DEFAULT_DISPLAY;
 
 import android.app.ActivityManager;
 import android.app.ActivityOptions;
@@ -34,6 +35,7 @@ import android.content.Intent;
 import android.os.SystemProperties;
 import android.util.Log;
 import android.view.RemoteAnimationTarget;
+import android.window.DesktopExperienceFlags;
 import android.window.TransitionInfo;
 
 import androidx.annotation.NonNull;
@@ -352,6 +354,27 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
                 mRecentsAnimationStartPending);
         gestureState.setState(STATE_RECENTS_ANIMATION_INITIALIZED);
         return mCallbacks;
+    }
+
+    /**
+     * Executes the provided {@code homeAction} lambda if this TaskAnimationManager is associated
+     * with the default display. This prevents navigating to a home activity that is pinned to a
+     * different display.
+     *
+     * @param homeAction The lambda to execute for the standard home action on the default display.
+     */
+    public void maybeStartHomeAction(Runnable homeAction) {
+        if (!DesktopExperienceFlags.ENABLE_REJECT_HOME_TRANSITION.isTrue()) {
+          homeAction.run();
+          return;
+        }
+
+        if (mDisplayId == DEFAULT_DISPLAY) {
+            homeAction.run();
+        } else {
+            // TODO: b/378443899 - Implement the reject home transition.
+            // For now, simply suppress the transition.
+        }
     }
 
     /**

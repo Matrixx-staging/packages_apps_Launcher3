@@ -34,6 +34,7 @@ import com.android.launcher3.states.StateAnimationConfig;
 import com.android.launcher3.touch.AbstractStateChangeTouchController;
 import com.android.launcher3.touch.AllAppsSwipeController;
 import com.android.launcher3.touch.SingleAxisSwipeDetector;
+import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.uioverrides.states.OverviewState;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.util.LayoutUtils;
@@ -217,9 +218,10 @@ public class PortraitStatesTouchController extends AbstractStateChangeTouchContr
     @Override
     protected void onReinitToState(LauncherState newToState) {
         super.onReinitToState(newToState);
-        if (Flags.allAppsBlur() && mLauncher.isBackgroundBlurEnabled() && newToState == ALL_APPS) {
+        if (Flags.allAppsBlur() && mLauncher.isAllAppsBackgroundBlurEnabled()
+                && newToState == ALL_APPS) {
             // About to start blurring during swipe to All Apps; prepare the renderer.
-            mLauncher.getRootView().getViewRootImpl().notifyRendererOfExpensiveFrame();
+            ((QuickstepLauncher) mLauncher).getDepthController().setEarlyWakeup(true);
         }
         if (newToState != ALL_APPS) {
             InteractionJankMonitorWrapper.cancel(Cuj.CUJ_LAUNCHER_OPEN_ALL_APPS);

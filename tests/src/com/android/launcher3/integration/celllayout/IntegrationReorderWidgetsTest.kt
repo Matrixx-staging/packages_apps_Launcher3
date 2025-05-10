@@ -33,7 +33,6 @@ import com.android.launcher3.celllayout.CellLayoutTestCaseReader
 import com.android.launcher3.celllayout.CellLayoutTestCaseReader.Board
 import com.android.launcher3.celllayout.CellLayoutTestCaseReader.TestSection
 import com.android.launcher3.celllayout.CellLayoutTestUtils
-import com.android.launcher3.celllayout.FavoriteItemsTransaction
 import com.android.launcher3.celllayout.ReorderTestCase
 import com.android.launcher3.celllayout.board.CellLayoutBoard
 import com.android.launcher3.celllayout.board.TestWorkspaceBuilder
@@ -53,6 +52,7 @@ import com.android.launcher3.util.ModelTestExtensions.clearModelDb
 import com.android.launcher3.util.rule.ScreenRecordRule
 import com.android.launcher3.util.rule.ScreenRecordRule.ScreenRecord
 import com.android.launcher3.util.rule.ShellCommandRule
+import com.android.launcher3.util.workspace.FavoriteItemsTransaction
 import com.android.launcher3.widget.LauncherAppWidgetHostView
 import kotlin.math.abs
 import kotlin.math.roundToInt

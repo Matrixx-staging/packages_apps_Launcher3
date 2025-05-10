@@ -47,17 +47,16 @@ import com.android.launcher3.tapl.OverviewActions;
 import com.android.launcher3.tapl.OverviewTask;
 import com.android.launcher3.tapl.SelectModeButtons;
 import com.android.launcher3.tapl.Workspace;
-import com.android.launcher3.ui.PortraitLandscapeRunner.PortraitLandscape;
 import com.android.launcher3.util.TestUtil;
 import com.android.launcher3.util.Wait;
 import com.android.launcher3.util.rule.ScreenRecordRule;
+import com.android.launcher3.util.ui.PortraitLandscapeRunner.PortraitLandscape;
 import com.android.quickstep.NavigationModeSwitchRule.NavigationModeSwitch;
 import com.android.quickstep.TaskbarModeSwitchRule.TaskbarModeSwitch;
 import com.android.quickstep.views.RecentsView;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -104,6 +103,7 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
 
     @Test
     @PortraitLandscape
+    @ScreenRecordRule.ScreenRecord // TODO(b/415773066): Remove screen record.
     public void testOverview() throws Exception {
         startTestAppsWithCheck();
         // mLauncher.pressHome() also tests an important case of pressing home while in background.
@@ -369,74 +369,6 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
 
     @Test
     @PortraitLandscape
-    @TaskbarModeSwitch()
-    @Ignore("b/315376057")
-    public void testOverviewForTablet() throws Exception {
-        assumeTrue(mLauncher.isTablet());
-
-        for (int i = 2; i <= 14; i++) {
-            startTestActivity(i);
-        }
-
-        Overview overview = mLauncher.goHome().switchToOverview();
-        executeOnOverview(recentsView -> assertTrue("Don't have at least 13 tasks",
-                recentsView.getTaskViewCount() >= 13));
-
-        // Test scroll the first task off screen
-        overview.scrollCurrentTaskOffScreen();
-        assertIsInState("Launcher internal state is not Overview", LauncherState.OVERVIEW);
-        executeOnOverview(recentsView -> assertTrue("Current task in Overview is still first",
-                recentsView.getCurrentPage() > recentsView.indexOfChild(
-                        recentsView.getFirstTaskView())));
-
-        // Test opening the task.
-        overview.getCurrentTask().open();
-        assertTrue("Test activity didn't open from Overview",
-                mDevice.wait(Until.hasObject(By.pkg(getAppPackageName()).text(
-                                mLauncher.isGridOnlyOverviewEnabled() ? "TestActivity12"
-                                        : "TestActivity13")),
-                        TestUtil.DEFAULT_UI_TIMEOUT));
-
-        // Scroll the task offscreen as it is now first
-        overview = mLauncher.goHome().switchToOverview();
-        overview.scrollCurrentTaskOffScreen();
-        assertIsInState(
-                "Launcher internal state is not Overview", LauncherState.OVERVIEW);
-        executeOnOverview(recentsView -> assertTrue("Current task in Overview is still first",
-                recentsView.getCurrentPage() > recentsView.indexOfChild(
-                        recentsView.getFirstTaskView())));
-
-        // Test dismissing the later task.
-        final Integer numTasks = getFromOverview(RecentsView::getTaskViewCount);
-        overview.getCurrentTask().dismiss();
-        executeOnOverview(recentsView -> assertEquals(
-                "Dismissing a task didn't remove 1 task from Overview",
-                numTasks - 1, recentsView.getTaskViewCount()));
-        executeOnOverview(recentsView -> assertTrue("Grid did not rebalance after dismissal",
-                (Math.abs(recentsView.getTopRowTaskCountForTablet()
-                        - recentsView.getBottomRowTaskCountForTablet()) <= 1)));
-
-        // Test dismissing more tasks.
-        assertIsInState(
-                "Launcher internal state didn't remain in Overview", LauncherState.OVERVIEW);
-        overview.getCurrentTask().dismiss();
-        assertIsInState(
-                "Launcher internal state didn't remain in Overview", LauncherState.OVERVIEW);
-        overview.getCurrentTask().dismiss();
-        executeOnOverview(recentsView -> assertTrue(
-                "Grid did not rebalance after multiple dismissals",
-                (Math.abs(recentsView.getTopRowTaskCountForTablet()
-                        - recentsView.getBottomRowTaskCountForTablet()) <= 1)));
-
-        // Test dismissing all tasks.
-        mLauncher.goHome().switchToOverview().dismissAllTasks();
-        assertIsInState("Launcher internal state is not Home", LauncherState.NORMAL);
-        executeOnOverview(recentsView -> assertEquals("Still have tasks after dismissing all",
-                0, recentsView.getTaskViewCount()));
-    }
-
-    @Test
-    @PortraitLandscape
     public void testOverviewDeadzones() throws Exception {
         startTestAppsWithCheck();
 
@@ -600,6 +532,84 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
                     recentsView.getBottomRowTaskCountForTablet());
         });
         assertTrue("Clear All not visible.", overview.isClearAllVisible());
+    }
+
+    @Test
+    @PortraitLandscape
+    @EnableFlags(value = Flags.FLAG_ENABLE_GRID_ONLY_OVERVIEW)
+    // When dismissing multiple apps, the apps off screen should "re-balance" i.e. re-arrange
+    // themselves evenly across both top and bottom rows.
+    public void gridRebalancesOffScreenAfterDismissingMultipleApps() throws Exception {
+        assumeTrue(mLauncher.isTablet());
+        clearAllRecentTasks();
+        // Launch enough apps so some are offscreen.
+        for (int i = 2; i <= 12; i++) {
+            startTestActivity(i);
+        }
+        Overview overview = mLauncher.goHome().switchToOverview();
+        executeOnOverview(recentsView -> assertTrue("11 tasks should be open",
+                recentsView.getTaskViewCount() >= 11));
+
+        // Dismiss 2 tasks from the top row.
+        assertIsInState(
+                "Launcher internal state didn't remain in Overview", LauncherState.OVERVIEW);
+        overview.getCurrentTask().dismiss();
+        assertIsInState(
+                "Launcher internal state didn't remain in Overview", LauncherState.OVERVIEW);
+        overview.getCurrentTask().dismiss();
+
+        // Assert that the two row counts are no more than 1 apart, therefore were re-balanced.
+        executeOnOverview(recentsView -> assertTrue(
+                "Grid did not re-balance after multiple dismissals",
+                (Math.abs(recentsView.getTopRowTaskCountForTablet()
+                        - recentsView.getBottomRowTaskCountForTablet()) <= 1)));
+    }
+
+    @Test
+    @PortraitLandscape
+    @EnableFlags(value = Flags.FLAG_ENABLE_GRID_ONLY_OVERVIEW)
+    // When dismissing multiple apps, the apps on screen should not "re-balance" i.e. dismissing
+    // 2 apps from the top row, will move the top row along 2 and so it will not be balanced
+    // across the bottom row.
+    public void gridDoesNotRebalanceOnScreenAfterDismissingMultipleApps() throws Exception {
+        assumeTrue(mLauncher.isTablet());
+        clearAllRecentTasks();
+        // Launch 6 apps so 3 are in each row.
+        int appsInBothRowsCount = 6;
+        int appsInEachRowCount = appsInBothRowsCount / 2;
+        for (int i = 2; i <= appsInBothRowsCount + 1; i++) {
+            startTestActivity(i);
+        }
+        Overview overview = mLauncher.goHome().switchToOverview();
+        executeOnOverview(recentsView -> {
+            assertEquals(appsInBothRowsCount + " tasks should be open",
+                    appsInBothRowsCount, recentsView.getTaskViewCount());
+            assertEquals("Grid should have " + appsInEachRowCount + " tasks on the top row",
+                    appsInEachRowCount,
+                    recentsView.getTopRowTaskCountForTablet());
+            assertEquals("Grid should have " + appsInEachRowCount + " tasks on the bottom row",
+                    appsInEachRowCount,
+                    recentsView.getBottomRowTaskCountForTablet());
+        });
+
+        // Dismiss 2 tasks from the top row.
+        assertIsInState("Launcher internal state didn't remain in Overview",
+                LauncherState.OVERVIEW);
+        overview.getCurrentTask().dismiss();
+        assertIsInState("Launcher internal state didn't remain in Overview",
+                LauncherState.OVERVIEW);
+        overview.getCurrentTask().dismiss();
+
+        executeOnOverview(recentsView -> {
+            int expectedTopRowCount = appsInEachRowCount - 2;
+            assertEquals(
+                    "Grid should have " + expectedTopRowCount + " tasks on the top row",
+                    expectedTopRowCount,
+                    recentsView.getTopRowTaskCountForTablet());
+            assertEquals("Grid should have " + appsInEachRowCount + " tasks on the bottom row",
+                    appsInEachRowCount,
+                    recentsView.getBottomRowTaskCountForTablet());
+        });
     }
 
     private void startTestAppsWithCheck() throws Exception {

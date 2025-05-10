@@ -57,11 +57,12 @@ public class Hotseat extends CellLayout implements Insettable {
     public static final int ALPHA_CHANNEL_TASKBAR_ALIGNMENT = 0;
     public static final int ALPHA_CHANNEL_PREVIEW_RENDERER = 1;
     public static final int ALPHA_CHANNEL_TASKBAR_STASH = 2;
-    public static final int ALPHA_CHANNEL_CHANNELS_COUNT = 3;
+    public static final int ALPHA_CHANNEL_ASSISTANT_VISIBILITY = 3;
+    public static final int ALPHA_CHANNEL_CHANNELS_COUNT = 4;
 
     @Retention(RetentionPolicy.RUNTIME)
     @IntDef({ALPHA_CHANNEL_TASKBAR_ALIGNMENT, ALPHA_CHANNEL_PREVIEW_RENDERER,
-            ALPHA_CHANNEL_TASKBAR_STASH})
+            ALPHA_CHANNEL_TASKBAR_STASH, ALPHA_CHANNEL_ASSISTANT_VISIBILITY})
     public @interface HotseatQsbAlphaId {
     }
 

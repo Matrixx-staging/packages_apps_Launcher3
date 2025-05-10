@@ -846,7 +846,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         if (!Flags.allAppsBlur()) {
             return mBottomSheetBackgroundColorLegacy;
         }
-        if (!mActivityContext.isBackgroundBlurEnabled()) {
+        if (!mActivityContext.isAllAppsBackgroundBlurEnabled()) {
             // Don't apply any alpha if the blur is disabled.
             return mBottomSheetBackgroundColorBlurFallback;
         }
@@ -854,7 +854,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     }
 
     boolean isBackgroundBlurEnabled() {
-        return Flags.allAppsBlur() && mActivityContext.isBackgroundBlurEnabled();
+        return Flags.allAppsBlur() && mActivityContext.isAllAppsBackgroundBlurEnabled();
     }
 
     /** Refresh the UI according to the current theme. */

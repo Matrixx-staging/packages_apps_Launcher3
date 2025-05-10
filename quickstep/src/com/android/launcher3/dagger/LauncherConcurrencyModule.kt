@@ -68,6 +68,6 @@ object LauncherConcurrencyModule {
     @Background
     fun provideBgCoroutineScope(dispatcherProvider: DispatcherProvider) =
         CoroutineScope(
-            SupervisorJob() + dispatcherProvider.background + CoroutineName("LauncherBg")
+            SupervisorJob() + dispatcherProvider.ioBackground + CoroutineName("LauncherBg")
         )
 }

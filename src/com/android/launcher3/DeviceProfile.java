@@ -22,6 +22,7 @@ import static com.android.launcher3.InvariantDeviceProfile.INDEX_DEFAULT;
 import static com.android.launcher3.InvariantDeviceProfile.INDEX_LANDSCAPE;
 import static com.android.launcher3.InvariantDeviceProfile.INDEX_TWO_PANEL_LANDSCAPE;
 import static com.android.launcher3.InvariantDeviceProfile.INDEX_TWO_PANEL_PORTRAIT;
+import static com.android.launcher3.InvariantDeviceProfile.createDisplayOptionSpec;
 import static com.android.launcher3.Utilities.dpiFromPx;
 import static com.android.launcher3.Utilities.pxFromSp;
 import static com.android.launcher3.folder.ClippedFolderIconLayoutRule.ICON_OVERLAP_FACTOR;
@@ -54,6 +55,7 @@ import androidx.core.content.res.ResourcesCompat;
 
 import com.android.launcher3.CellLayout.ContainerType;
 import com.android.launcher3.DevicePaddings.DevicePadding;
+import com.android.launcher3.InvariantDeviceProfile.DisplayOptionSpec;
 import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.icons.DotRenderer;
 import com.android.launcher3.model.data.ItemInfo;
@@ -94,6 +96,7 @@ public class DeviceProfile {
     };
 
     public final InvariantDeviceProfile inv;
+    private final DisplayOptionSpec mDisplayOptionSpec;
     private final Info mInfo;
     private final DisplayMetrics mMetrics;
     private final IconSizeSteps mIconSizeSteps;
@@ -322,6 +325,7 @@ public class DeviceProfile {
     @VisibleForTesting
     public DeviceProfile() {
         inv = null;
+        mDisplayOptionSpec = null;
         mInfo = null;
         mMetrics = null;
         mIconSizeSteps = null;
@@ -392,7 +396,7 @@ public class DeviceProfile {
             boolean transposeLayoutWithOrientation, boolean isMultiDisplay, boolean isGestureMode,
             @NonNull final ViewScaleProvider viewScaleProvider,
             @NonNull final Consumer<DeviceProfile> dimensionOverrideProvider,
-            boolean isTransientTaskbar) {
+            boolean isTransientTaskbar, DisplayOptionSpec displayOptionSpec) {
 
         this.inv = inv;
         this.isLandscape = windowBounds.isLandscape();
@@ -404,6 +408,7 @@ public class DeviceProfile {
         windowY = windowBounds.bounds.top;
         this.rotationHint = windowBounds.rotationHint;
         mInsets.set(windowBounds.insets);
+        this.mDisplayOptionSpec = displayOptionSpec;
 
         // TODO(b/241386436): shouldn't change any launcher behaviour
         mIsResponsiveGrid = inv.workspaceSpecsId != INVALID_RESOURCE_HANDLE
@@ -443,19 +448,7 @@ public class DeviceProfile {
         availableHeightPx = windowBounds.availableSize.y;
 
         aspectRatio = ((float) Math.max(widthPx, heightPx)) / Math.min(widthPx, heightPx);
-        if (isTwoPanels) {
-            if (isLandscape) {
-                mTypeIndex = INDEX_TWO_PANEL_LANDSCAPE;
-            } else {
-                mTypeIndex = INDEX_TWO_PANEL_PORTRAIT;
-            }
-        } else {
-            if (isLandscape) {
-                mTypeIndex = INDEX_LANDSCAPE;
-            } else {
-                mTypeIndex = INDEX_DEFAULT;
-            }
-        }
+        mTypeIndex = displayOptionSpec.typeIndex;
 
         this.isTransientTaskbar = isTransientTaskbar;
         int transientTaskbarIconSize = pxFromDp(inv.transientTaskbarIconSize[mTypeIndex], mMetrics);
@@ -482,7 +475,7 @@ public class DeviceProfile {
             taskbarHeight = res.getDimensionPixelSize(R.dimen.taskbar_size);
             stashedTaskbarHeight = res.getDimensionPixelSize(R.dimen.taskbar_stashed_size);
             taskbarBottomMargin = 0;
-            startAlignTaskbar = inv.startAlignTaskbar[mTypeIndex];
+            startAlignTaskbar = displayOptionSpec.startAlignTaskbar;
         }
 
         edgeMarginPx = res.getDimensionPixelSize(R.dimen.dynamic_grid_edge_margin);
@@ -615,19 +608,13 @@ public class DeviceProfile {
         hotseatQsbVisualHeight = hotseatQsbHeight - 2 * hotseatQsbShadowHeight;
 
         // Whether QSB might be inline in appropriate orientation (e.g. landscape).
-        boolean canQsbInline = (isTwoPanels ? inv.inlineQsb[INDEX_TWO_PANEL_PORTRAIT]
-                || inv.inlineQsb[INDEX_TWO_PANEL_LANDSCAPE]
-                : inv.inlineQsb[INDEX_DEFAULT] || inv.inlineQsb[INDEX_LANDSCAPE])
-                && hotseatQsbHeight > 0;
         isQsbInline = isQsbInline(inv);
 
         areNavButtonsInline = isTaskbarPresent && !isGestureMode;
-        numShownHotseatIcons =
-                isTwoPanels ? inv.numDatabaseHotseatIcons : inv.numShownHotseatIcons;
+        numShownHotseatIcons = displayOptionSpec.numShownHotseatIcons;
         mHotseatColumnSpan = inv.numColumns;
 
-        numShownAllAppsColumns =
-                isTwoPanels ? inv.numDatabaseAllAppsColumns : inv.numAllAppsColumns;
+        numShownAllAppsColumns = displayOptionSpec.numAllAppsColumns;
 
         int hotseatBarBottomSpace;
         int minQsbMargin = res.getDimensionPixelSize(R.dimen.min_qsb_margin);
@@ -636,7 +623,7 @@ public class DeviceProfile {
             float responsiveAspectRatio = (float) widthPx / heightPx;
             HotseatSpecsProvider hotseatSpecsProvider =
                     HotseatSpecsProvider.create(new ResourceHelper(context,
-                            isTwoPanels ? inv.hotseatSpecsTwoPanelId : inv.hotseatSpecsId));
+                            displayOptionSpec.hotseatSpecsId));
             mResponsiveHotseatSpec =
                     isVerticalBarLayout() ? hotseatSpecsProvider.getCalculatedSpec(
                             responsiveAspectRatio, DimensionType.WIDTH, widthPx)
@@ -650,9 +637,7 @@ public class DeviceProfile {
             mHotseatBarWorkspaceSpacePx = 0;
 
             ResponsiveCellSpecsProvider workspaceCellSpecs = ResponsiveCellSpecsProvider.create(
-                    new ResourceHelper(context,
-                            isTwoPanels ? inv.workspaceCellSpecsTwoPanelId
-                                    : inv.workspaceCellSpecsId));
+                    new ResourceHelper(context, displayOptionSpec.workspaceCellSpecsId));
             mResponsiveWorkspaceCellSpec = workspaceCellSpecs.getCalculatedSpec(
                     responsiveAspectRatio, heightPx);
         } else {
@@ -722,8 +707,7 @@ public class DeviceProfile {
             float responsiveAspectRatio = (float) widthPx / heightPx;
 
             ResponsiveSpecsProvider workspaceSpecs = ResponsiveSpecsProvider.create(
-                    new ResourceHelper(context,
-                            isTwoPanels ? inv.workspaceSpecsTwoPanelId : inv.workspaceSpecsId),
+                    new ResourceHelper(context, displayOptionSpec.workspaceSpecsId),
                     ResponsiveSpecType.Workspace);
             mResponsiveWorkspaceWidthSpec = workspaceSpecs.getCalculatedSpec(responsiveAspectRatio,
                     DimensionType.WIDTH, numWorkspaceColumns, availableResponsiveWidth);
@@ -731,8 +715,7 @@ public class DeviceProfile {
                     DimensionType.HEIGHT, inv.numRows, availableResponsiveHeight);
 
             ResponsiveSpecsProvider allAppsSpecs = ResponsiveSpecsProvider.create(
-                    new ResourceHelper(context,
-                            isTwoPanels ? inv.allAppsSpecsTwoPanelId : inv.allAppsSpecsId),
+                    new ResourceHelper(context, displayOptionSpec.allAppsSpecsId),
                     ResponsiveSpecType.AllApps);
             mResponsiveAllAppsWidthSpec = allAppsSpecs.getCalculatedSpec(responsiveAspectRatio,
                     DimensionType.WIDTH, numShownAllAppsColumns, availableWidthPx,
@@ -742,8 +725,7 @@ public class DeviceProfile {
                     heightPx - mInsets.top, mResponsiveWorkspaceHeightSpec);
 
             ResponsiveSpecsProvider folderSpecs = ResponsiveSpecsProvider.create(
-                    new ResourceHelper(context,
-                            isTwoPanels ? inv.folderSpecsTwoPanelId : inv.folderSpecsId),
+                    new ResourceHelper(context, displayOptionSpec.folderSpecsId),
                     ResponsiveSpecType.Folder);
             mResponsiveFolderWidthSpec = folderSpecs.getCalculatedSpec(responsiveAspectRatio,
                     DimensionType.WIDTH, numFolderColumns,
@@ -755,9 +737,7 @@ public class DeviceProfile {
                     mResponsiveWorkspaceHeightSpec);
 
             ResponsiveCellSpecsProvider allAppsCellSpecs = ResponsiveCellSpecsProvider.create(
-                    new ResourceHelper(context,
-                            isTwoPanels ? inv.allAppsCellSpecsTwoPanelId
-                                    : inv.allAppsCellSpecsId));
+                    new ResourceHelper(context, displayOptionSpec.allAppsCellSpecsId));
             mResponsiveAllAppsCellSpec = allAppsCellSpecs.getCalculatedSpec(
                     responsiveAspectRatio,
                     mResponsiveAllAppsHeightSpec.getAvailableSpace(),
@@ -1095,7 +1075,8 @@ public class DeviceProfile {
                 .setIsMultiDisplay(isMultiDisplay)
                 .setMultiWindowMode(isMultiWindowMode)
                 .setDotRendererCache(dotRendererCache)
-                .setGestureMode(isGestureMode);
+                .setGestureMode(isGestureMode)
+                .setDisplayOptionSpec(mDisplayOptionSpec);
     }
 
     public DeviceProfile copy(Context context) {
@@ -2519,6 +2500,7 @@ public class DeviceProfile {
         private Consumer<DeviceProfile> mOverrideProvider;
 
         private boolean mIsTransientTaskbar;
+        private DisplayOptionSpec mDisplayOptionSpec;
 
         public Builder(Context context, InvariantDeviceProfile inv, Info info,
                 WindowManagerProxy wmProxy, ThemeManager themeManager) {
@@ -2587,6 +2569,21 @@ public class DeviceProfile {
             return this;
         }
 
+        /**
+         * Set the displayOptionSpec for the builder for secondary displays
+         * @return This Builder
+         */
+        public Builder setSecondaryDisplayOptionSpec() {
+            mDisplayOptionSpec = createDisplayOptionSpec(mContext, mInfo,
+                    mWindowBounds.isLandscape());
+            return this;
+        }
+
+        private Builder setDisplayOptionSpec(DisplayOptionSpec displayOptionSpec) {
+            mDisplayOptionSpec = displayOptionSpec;
+            return this;
+        }
+
         public DeviceProfile build() {
             if (mWindowBounds == null) {
                 throw new IllegalArgumentException("Window bounds not set");
@@ -2607,10 +2604,23 @@ public class DeviceProfile {
             if (mOverrideProvider == null) {
                 mOverrideProvider = DEFAULT_DIMENSION_PROVIDER;
             }
+            if (mDisplayOptionSpec == null) {
+                mDisplayOptionSpec = createDefaultDisplayOptionSpec(mInfo, mWindowBounds,
+                        mIsMultiDisplay, mInv);
+            }
             return new DeviceProfile(mContext, mInv, mInfo, mWMProxy, mThemeManager,
                     mWindowBounds, mDotRendererCache,
                     mIsMultiWindowMode, mTransposeLayoutWithOrientation, mIsMultiDisplay,
-                    mIsGestureMode, mViewScaleProvider, mOverrideProvider, mIsTransientTaskbar);
+                    mIsGestureMode, mViewScaleProvider, mOverrideProvider, mIsTransientTaskbar,
+                    mDisplayOptionSpec);
+        }
+
+        @VisibleForTesting
+        static DisplayOptionSpec createDefaultDisplayOptionSpec(DisplayController.Info info,
+                WindowBounds windowBounds, boolean isMultiDisplay, InvariantDeviceProfile inv) {
+            boolean isTwoPanels = info.isTablet(windowBounds) && isMultiDisplay;
+            boolean isLandscape = windowBounds.isLandscape();
+            return new DisplayOptionSpec(inv, isTwoPanels, isLandscape);
         }
     }
 }

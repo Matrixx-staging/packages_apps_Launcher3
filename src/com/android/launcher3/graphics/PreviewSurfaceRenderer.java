@@ -24,7 +24,6 @@ import static com.android.launcher3.Flags.extendibleThemeManager;
 import static com.android.launcher3.LauncherPrefs.GRID_NAME;
 import static com.android.launcher3.LauncherPrefs.NON_FIXED_LANDSCAPE_GRID_NAME;
 import static com.android.launcher3.WorkspaceLayoutManager.FIRST_SCREEN_ID;
-import static com.android.launcher3.WorkspaceLayoutManager.SECOND_SCREEN_ID;
 import static com.android.launcher3.graphics.ThemeManager.PREF_ICON_SHAPE;
 import static com.android.launcher3.graphics.ThemeManager.THEMED_ICONS;
 import static com.android.launcher3.provider.LauncherDbUtils.selectionForWorkspaceScreen;
@@ -48,7 +47,6 @@ import android.util.SparseIntArray;
 import android.view.ContextThemeWrapper;
 import android.view.Display;
 import android.view.SurfaceControlViewHost;
-import android.view.SurfaceControlViewHost.SurfacePackage;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.FrameLayout;
@@ -77,6 +75,7 @@ import com.android.launcher3.widget.LocalColorExtractor;
 import com.android.systemui.shared.Flags;
 
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 /** Render preview using surface view. */
@@ -84,17 +83,21 @@ import java.util.concurrent.TimeUnit;
 public class PreviewSurfaceRenderer {
 
     private static final String TAG = "PreviewSurfaceRenderer";
-    private static final int FADE_IN_ANIMATION_DURATION = 200;
-    private static final String KEY_HOST_TOKEN = "host_token";
-    private static final String KEY_VIEW_WIDTH = "width";
-    private static final String KEY_VIEW_HEIGHT = "height";
-    private static final String KEY_DISPLAY_ID = "display_id";
-    private static final String KEY_COLORS = "wallpaper_colors";
-    private static final String KEY_COLOR_RESOURCE_IDS = "color_resource_ids";
-    private static final String KEY_COLOR_VALUES = "color_values";
-    private static final String KEY_DARK_MODE = "use_dark_mode";
-    private static final String KEY_LAYOUT_XML = "layout_xml";
-    public static final String KEY_SKIP_ANIMATIONS = "skip_animations";
+    public static final int FADE_IN_ANIMATION_DURATION = 200;
+    public static final String KEY_HOST_TOKEN = "host_token";
+    public static final String KEY_VIEW_WIDTH = "width";
+    public static final String KEY_VIEW_HEIGHT = "height";
+    public static final String KEY_DISPLAY_ID = "display_id";
+    public static final String KEY_COLORS = "wallpaper_colors";
+    public static final String KEY_COLOR_RESOURCE_IDS = "color_resource_ids";
+    public static final String KEY_COLOR_VALUES = "color_values";
+    public static final String KEY_DARK_MODE = "use_dark_mode";
+    public static final String KEY_LAYOUT_XML = "layout_xml";
+    public static final String KEY_BITMAP_GENERATION_DELAY_MS = "bitmap_delay_ms";
+    // Wait for some time before capturing screenshot to allow the surface to be laid out
+    public static final long MIN_BITMAP_GENERATION_DELAY_MS = 100L;
+
+    public static final String KEY_WORKSPACE_PAGE_ID = "workspace_page_id";
     public static final String FIXED_LANDSCAPE_GRID = "fixed_landscape_mode";
 
     private final Context mContext;
@@ -103,6 +106,7 @@ public class PreviewSurfaceRenderer {
     private String mLastSelectedGridName;
     private String mShapeKey;
     private String mLayoutXml;
+    private int mWorkspacePageId;
     private boolean mIsMonoThemeEnabled;
 
     @Nullable private Boolean mDarkMode;
@@ -127,7 +131,7 @@ public class PreviewSurfaceRenderer {
     @Nullable private SurfaceControlViewHost.SurfacePackage mSurfacePackage;
 
     public PreviewSurfaceRenderer(Context context, RunnableList lifecycleTracker, Bundle bundle,
-            int callingPid) throws Exception {
+            int callingPid, boolean skipAnimations) throws Exception {
         mContext = context;
         mLifeCycleTracker = lifecycleTracker;
         mCallingPid = callingPid;
@@ -151,11 +155,12 @@ public class PreviewSurfaceRenderer {
         mHostToken = bundle.getBinder(KEY_HOST_TOKEN);
         mWidth = bundle.getInt(KEY_VIEW_WIDTH);
         mHeight = bundle.getInt(KEY_VIEW_HEIGHT);
-        mSkipAnimations = bundle.getBoolean(KEY_SKIP_ANIMATIONS, false);
+        mSkipAnimations = skipAnimations;
         mDisplayId = bundle.getInt(KEY_DISPLAY_ID);
         mDisplay = context.getSystemService(DisplayManager.class)
                 .getDisplay(mDisplayId);
         mLayoutXml = bundle.getString(KEY_LAYOUT_XML);
+        mWorkspacePageId = bundle.getInt(KEY_WORKSPACE_PAGE_ID, FIRST_SCREEN_ID);
         if (mDisplay == null) {
             throw new IllegalArgumentException("Display ID does not match any displays.");
         }
@@ -177,11 +182,8 @@ public class PreviewSurfaceRenderer {
         return mHostToken;
     }
 
-    public SurfacePackage getSurfacePackage() {
-        if (mSurfacePackage == null) {
-            mSurfacePackage = mSurfaceControlViewHost.getSurfacePackage();
-        }
-        return mSurfacePackage;
+    public SurfaceControlViewHost getHost() {
+        return mSurfaceControlViewHost;
     }
 
     private void setCurrentRenderer(LauncherPreviewRenderer renderer) {
@@ -241,10 +243,12 @@ public class PreviewSurfaceRenderer {
     }
 
     /**
-     * Generates the preview in background
+     * Generates the preview in background and returns the generated view
      */
-    public void loadAsync() {
-        MODEL_EXECUTOR.execute(this::loadModelData);
+    public CompletableFuture<View> loadAsync() {
+        CompletableFuture<View> result = new CompletableFuture<>();
+        MODEL_EXECUTOR.execute(() -> loadModelData(result));
+        return result;
     }
 
     /**
@@ -379,7 +383,7 @@ public class PreviewSurfaceRenderer {
     }
 
     @WorkerThread
-    private void loadModelData() {
+    private void loadModelData(CompletableFuture<View> onCompleteCallback) {
         final Context inflationContext = getPreviewContext();
         if (shouldReloadModelData()) {
             boolean isCustomLayout = extendibleThemeManager() &&  !TextUtils.isEmpty(mLayoutXml);
@@ -409,21 +413,26 @@ public class PreviewSurfaceRenderer {
 
             InvariantDeviceProfile idp = appComponent.getIDP();
             DeviceProfile deviceProfile = idp.getDeviceProfile(previewContext);
+
+            int closestEvenPageId = mWorkspacePageId - (mWorkspacePageId % 2);
             String query = deviceProfile.isTwoPanels
-                    ? selectionForWorkspaceScreen(FIRST_SCREEN_ID, SECOND_SCREEN_ID)
-                    : selectionForWorkspaceScreen(FIRST_SCREEN_ID);
+                    ? selectionForWorkspaceScreen(closestEvenPageId, closestEvenPageId + 1)
+                    : selectionForWorkspaceScreen(mWorkspacePageId);
             task.loadWorkspaceForPreview(query);
             final SparseArray<Size> spanInfo = getLoadedLauncherWidgetInfo();
             MAIN_EXECUTOR.execute(() -> {
-                renderView(previewContext, appComponent.getDataModel(), spanInfo, idp);
+                renderView(previewContext, appComponent.getDataModel(), spanInfo, idp,
+                        onCompleteCallback);
                 mLifeCycleTracker.add(previewContext::onDestroy);
             });
         } else {
             LauncherAppState.getInstance(inflationContext).getModel().loadAsync(dataModel -> {
                 if (dataModel != null) {
                     MAIN_EXECUTOR.execute(() -> renderView(inflationContext, dataModel,
-                            null, LauncherAppState.getIDP(inflationContext)));
+                            null, LauncherAppState.getIDP(inflationContext), onCompleteCallback));
                 } else {
+                    onCompleteCallback.completeExceptionally(
+                            new RuntimeException("Model loading failed"));
                     Log.e(TAG, "Model loading failed");
                 }
             });
@@ -433,17 +442,19 @@ public class PreviewSurfaceRenderer {
 
     @UiThread
     private void renderView(Context inflationContext, BgDataModel dataModel,
-            @Nullable final SparseArray<Size> launcherWidgetSpanInfo, InvariantDeviceProfile idp) {
+            @Nullable final SparseArray<Size> launcherWidgetSpanInfo, InvariantDeviceProfile idp,
+            CompletableFuture<View> onCompleteCallback) {
         if (mDestroyed) {
+            onCompleteCallback.completeExceptionally(new RuntimeException("Renderer destroyed"));
             return;
         }
         LauncherPreviewRenderer renderer;
         if (Flags.newCustomizationPickerUi()) {
-            renderer = new LauncherPreviewRenderer(inflationContext, idp,
-                    mPreviewColorOverride, mWallpaperColors, launcherWidgetSpanInfo);
+            renderer = new LauncherPreviewRenderer(inflationContext, idp, mPreviewColorOverride,
+                    mWallpaperColors, mWorkspacePageId, launcherWidgetSpanInfo);
         } else {
             renderer = new LauncherPreviewRenderer(inflationContext, idp,
-                    mWallpaperColors, launcherWidgetSpanInfo);
+                    mWallpaperColors, mWorkspacePageId, launcherWidgetSpanInfo);
         }
         renderer.hideBottomRow(mHideQsb);
         renderer.populate(dataModel);
@@ -472,6 +483,7 @@ public class PreviewSurfaceRenderer {
                     view.getMeasuredWidth(),
                     view.getMeasuredHeight()
             );
+            onCompleteCallback.complete(view);
             return;
         }
 
@@ -497,6 +509,7 @@ public class PreviewSurfaceRenderer {
             mViewRoot.removeAllViews();
             mViewRoot.addView(view);
         }
+        onCompleteCallback.complete(view);
     }
 
     private static class MySurfaceControlViewHost extends SurfaceControlViewHost {

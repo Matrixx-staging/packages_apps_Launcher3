@@ -185,8 +185,17 @@ public final class OverviewTask {
         final Rect taskBounds = mLauncher.getVisibleBounds(mTask);
         final int centerX = taskBounds.centerX();
         final int centerY = taskBounds.centerY();
+        // Magnetic detach interpolates during the attached region with y = 0.3x. We must account
+        // for this in the dismiss length to ensure the task is dragged far enough to dismiss.
+        int magneticDetachLength = mLauncher.getMagneticDetachThreshold();
+        int lengthTaskWillTravel =
+                (int) ((magneticDetachLength * 0.3f) + (centerY - magneticDetachLength));
+        int minimumDismissLength = taskBounds.bottom / 2;
+        int extraDismissLength = Math.max(minimumDismissLength - lengthTaskWillTravel, 0);
+        // Bound touch to a max of the bottom of the task, account for extra required dismiss length
+        final int startY = Math.min(centerY + extraDismissLength, taskBounds.bottom);
         mLauncher.executeAndWaitForLauncherEvent(
-                () -> mLauncher.linearGesture(centerX, centerY, centerX, 0, 10, false,
+                () -> mLauncher.linearGesture(centerX, startY, centerX, 0, 10, false,
                         LauncherInstrumentation.GestureScope.DONT_EXPECT_PILFER),
                 event -> TestProtocol.DISMISS_ANIMATION_ENDS_MESSAGE.equals(event.getClassName()),
                 () -> "Didn't receive a dismiss animation ends message: " + centerX + ", "

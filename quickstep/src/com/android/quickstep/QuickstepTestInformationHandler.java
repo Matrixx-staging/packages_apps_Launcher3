@@ -219,6 +219,13 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
                 return getTISBinderUIProperty(Bundle::putInt, tisBinder ->
                         tisBinder.getTaskbarManager().getPrimaryDisplayId());
             }
+
+            case TestProtocol.REQUEST_DISMISS_MAGNETIC_DETACH_THRESHOLD: {
+                final Resources resources = mContext.getResources();
+                response.putInt(TestProtocol.TEST_INFO_RESPONSE_FIELD,
+                        resources.getDimensionPixelSize(R.dimen.task_dismiss_detach_threshold));
+                return response;
+            }
         }
 
         return super.call(method, arg, extras);

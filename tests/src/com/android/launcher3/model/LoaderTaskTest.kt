@@ -39,7 +39,6 @@ import com.android.launcher3.model.data.IconRequestInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.provider.RestoreDbTask
-import com.android.launcher3.ui.TestViewHelpers
 import com.android.launcher3.util.AllModulesForTest
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import com.android.launcher3.util.LooperIdleLock
@@ -47,6 +46,7 @@ import com.android.launcher3.util.ModelTestExtensions
 import com.android.launcher3.util.SandboxApplication
 import com.android.launcher3.util.TestUtil
 import com.android.launcher3.util.UserIconInfo
+import com.android.launcher3.util.ui.TestViewHelpers
 import com.google.common.truth.Truth.assertThat
 import dagger.BindsInstance
 import dagger.Component
@@ -206,7 +206,7 @@ class LoaderTaskTest {
                         .size
                 )
                 .isAtLeast(8)
-            assertThat(itemsIdMap.size()).isAtLeast(40)
+            assertThat(itemsIdMap.count()).isAtLeast(40)
         }
 
     @Test
@@ -218,12 +218,11 @@ class LoaderTaskTest {
 
         verify(launcherBinder).bindWorkspace(true, false)
         verify(modelDelegate).workspaceLoadComplete()
-        verify(modelDelegate).loadAndBindAllAppsItems()
+        verify(modelDelegate).loadAndAddExtraModelItems(any())
         verify(launcherBinder).bindAllApps()
         verify(iconCacheUpdateHandler, times(4)).updateIcons(any(), any<CachingLogic<Any>>(), any())
         verify(launcherBinder).bindDeepShortcuts()
         verify(launcherBinder).bindWidgets()
-        verify(modelDelegate).loadAndBindOtherItems()
         verify(iconCacheUpdateHandler).finish()
         verify(modelDelegate).modelLoadComplete()
         verify(transaction).commit()

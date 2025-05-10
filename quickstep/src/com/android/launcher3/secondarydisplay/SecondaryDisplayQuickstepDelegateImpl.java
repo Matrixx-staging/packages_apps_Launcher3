@@ -22,7 +22,7 @@ import android.window.DesktopExperienceFlags;
 
 import com.android.launcher3.appprediction.AppsDividerView;
 import com.android.launcher3.appprediction.PredictionRowView;
-import com.android.launcher3.model.BgDataModel;
+import com.android.launcher3.model.data.PredictedContainerInfo;
 import com.android.launcher3.views.ActivityContext;
 
 /**
@@ -48,10 +48,10 @@ public final class SecondaryDisplayQuickstepDelegateImpl extends SecondaryDispla
     }
 
     @Override
-    public void setPredictedApps(BgDataModel.FixedContainerItems item) {
+    public void setPredictedApps(PredictedContainerInfo info) {
         mActivityContext.getAppsView().getFloatingHeaderView()
                 .findFixedRowByType(PredictionRowView.class)
-                .setPredictedApps(item.items);
+                .setPredictedApps(info.getContents());
     }
 
     @Override

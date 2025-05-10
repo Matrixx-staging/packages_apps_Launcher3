@@ -20,29 +20,23 @@ import static android.text.format.DateUtils.formatElapsedTime;
 
 import static com.android.launcher3.EncryptionType.ENCRYPTED;
 import static com.android.launcher3.LauncherPrefs.nonRestorableItem;
-import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS_PREDICTION;
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_WIDGETS_PREDICTION;
 import static com.android.launcher3.LauncherSettings.Favorites.DESKTOP_ICON_FLAG;
-import static com.android.launcher3.hybridhotseat.HotseatPredictionModel.convertDataModelToAppTargetBundle;
 import static com.android.launcher3.icons.cache.CacheLookupFlag.DEFAULT_LOOKUP_FLAG;
-import static com.android.launcher3.model.PredictionHelper.getAppTargetFromItemInfo;
-import static com.android.launcher3.model.PredictionHelper.wrapAppTargetWithItemLocation;
+import static com.android.launcher3.model.PredictionHelper.getBundleForHotseatPredictions;
+import static com.android.launcher3.model.PredictionHelper.getBundleForWidgetPredictions;
 import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
-
-import static java.util.stream.Collectors.toCollection;
 
 import android.app.StatsManager;
 import android.app.prediction.AppPredictionContext;
-import android.app.prediction.AppTarget;
 import android.app.prediction.AppTargetEvent;
 import android.content.Context;
-import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.StatsEvent;
 
-import androidx.annotation.CallSuper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
@@ -55,9 +49,10 @@ import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.logger.LauncherAtom;
 import com.android.launcher3.logging.InstanceId;
 import com.android.launcher3.logging.InstanceIdSequence;
-import com.android.launcher3.model.BgDataModel.FixedContainerItems;
 import com.android.launcher3.model.data.CollectionInfo;
 import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.model.data.PredictedContainerInfo;
+import com.android.launcher3.model.data.WorkspaceData;
 import com.android.launcher3.pm.UserCache;
 import com.android.launcher3.util.IntSparseArrayMap;
 import com.android.quickstep.logging.SettingsChangeLogger;
@@ -66,7 +61,6 @@ import com.android.quickstep.util.ContextualSearchStateManager;
 import com.android.systemui.shared.system.SysUiStatsLog;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -76,7 +70,6 @@ import javax.inject.Named;
  */
 public class QuickstepModelDelegate extends ModelDelegate {
 
-    private static final String BUNDLE_KEY_ADDED_APP_WIDGETS = "added_app_widgets";
     private static final int NUM_OF_RECOMMENDED_WIDGETS_PREDICATION = 20;
 
     private static final boolean IS_DEBUG = false;
@@ -126,34 +119,26 @@ public class QuickstepModelDelegate extends ModelDelegate {
                 ? null : context.getSystemService(StatsManager.class);
     }
 
-    @CallSuper
     @Override
-    public void loadAndBindWorkspaceItems() {
-        loadAndBindPredictedItems(mIDP.numDatabaseHotseatIcons, mHotseatPredictionState);
-    }
+    public void loadAndAddExtraModelItems(@NonNull IntSparseArrayMap<ItemInfo> outLoadedItems) {
+        loadAndBindPredictedItems(
+                mIDP.numDatabaseHotseatIcons, mHotseatPredictionState, outLoadedItems);
+        loadAndBindPredictedItems(mIDP.numDatabaseAllAppsColumns, mAllPredictionAppsState,
+                outLoadedItems);
 
-    @CallSuper
-    @Override
-    public void loadAndBindAllAppsItems() {
-        loadAndBindPredictedItems(mIDP.numDatabaseAllAppsColumns, mAllPredictionAppsState);
+        // Widgets prediction isn't used frequently. And thus, it is not persisted on disk.
+        PredictedContainerInfo widgetPredictionFCI = new PredictedContainerInfo(
+                mWidgetsRecommendationState.containerId, new ArrayList<>());
+        outLoadedItems.put(mWidgetsRecommendationState.containerId, widgetPredictionFCI);
     }
 
     @WorkerThread
-    private void loadAndBindPredictedItems(
-            int numColumns, @NonNull PredictorState state) {
+    private void loadAndBindPredictedItems(int numColumns,
+            @NonNull PredictorState state, @NonNull IntSparseArrayMap<ItemInfo> outLoadedItems) {
         PredictedItemFactory parser = mItemParserFactory.newParser(numColumns, state);
-        FixedContainerItems fci = new FixedContainerItems(state.containerId,
+        PredictedContainerInfo fci = new PredictedContainerInfo(state.containerId,
                 state.storage.read(mContext, parser, mUserCache::getUserForSerialNumber));
-        mDataModel.extraItems.put(state.containerId, fci);
-    }
-
-    @CallSuper
-    @Override
-    public void loadAndBindOtherItems() {
-        FixedContainerItems widgetPredictionFCI = new FixedContainerItems(
-                mWidgetsRecommendationState.containerId, new ArrayList<>());
-        // Widgets prediction isn't used frequently. And thus, it is not persisted on disk.
-        mDataModel.extraItems.put(mWidgetsRecommendationState.containerId, widgetPredictionFCI);
+        outLoadedItems.put(state.containerId, fci);
     }
 
     public void markActive() {
@@ -188,9 +173,9 @@ public class QuickstepModelDelegate extends ModelDelegate {
                         elapsedTime));
             }
         } else {
-            IntSparseArrayMap<ItemInfo> itemsIdMap;
+            WorkspaceData itemsIdMap;
             synchronized (mDataModel) {
-                itemsIdMap = mDataModel.itemsIdMap.clone();
+                itemsIdMap = mDataModel.itemsIdMap.copy();
             }
             InstanceId instanceId = new InstanceIdSequence().newInstanceId();
             for (ItemInfo info : itemsIdMap) {
@@ -221,9 +206,9 @@ public class QuickstepModelDelegate extends ModelDelegate {
                     MODEL_EXECUTOR,
                     (i, eventList) -> {
                         InstanceId instanceId = new InstanceIdSequence().newInstanceId();
-                        IntSparseArrayMap<ItemInfo> itemsIdMap;
+                        WorkspaceData itemsIdMap;
                         synchronized (mDataModel) {
-                            itemsIdMap = mDataModel.itemsIdMap.clone();
+                            itemsIdMap = mDataModel.itemsIdMap.copy();
                         }
 
                         for (ItemInfo info : itemsIdMap) {
@@ -237,7 +222,7 @@ public class QuickstepModelDelegate extends ModelDelegate {
                         Log.d(TAG,
                                 String.format(
                                         "Successfully logged %d workspace items with instanceId=%d",
-                                        itemsIdMap.size(), instanceId.getId()));
+                                        eventList.size(), instanceId.getId()));
                         additionalSnapshotEvents(instanceId);
                         SettingsChangeLogger.INSTANCE.get(mContext).logSnapshot(instanceId);
                         return StatsManager.PULL_SUCCESS;
@@ -251,7 +236,7 @@ public class QuickstepModelDelegate extends ModelDelegate {
     }
 
     private static CollectionInfo getContainer(
-            ItemInfo info, IntSparseArrayMap<ItemInfo> itemsIdMap) {
+            ItemInfo info, WorkspaceData itemsIdMap) {
         if (info.container > 0) {
             ItemInfo containerInfo = itemsIdMap.get(info.container);
 
@@ -318,7 +303,7 @@ public class QuickstepModelDelegate extends ModelDelegate {
         mWidgetsRecommendationState.registerPredictor(mContext,
                 new AppPredictionContext.Builder(mContext)
                     .setUiSurface("widgets")
-                    .setExtras(getBundleForWidgetsOnWorkspace(mContext, mDataModel))
+                    .setExtras(getBundleForWidgetPredictions(mContext, mDataModel))
                     .setPredictedTargetCount(NUM_OF_RECOMMENDED_WIDGETS_PREDICATION)
                     .build(),
                 mModel,
@@ -338,7 +323,7 @@ public class QuickstepModelDelegate extends ModelDelegate {
                 new AppPredictionContext.Builder(context)
                     .setUiSurface("hotseat")
                     .setPredictedTargetCount(mIDP.numDatabaseHotseatIcons)
-                    .setExtras(convertDataModelToAppTargetBundle(context, mDataModel))
+                    .setExtras(getBundleForHotseatPredictions(context, mDataModel))
                     .build(),
                 mModel, PredictionUpdateTask::new);
     }
@@ -369,22 +354,5 @@ public class QuickstepModelDelegate extends ModelDelegate {
             // unpin app icons.
             recreateHotseatPredictor();
         }
-    }
-
-    private Bundle getBundleForWidgetsOnWorkspace(Context context, BgDataModel dataModel) {
-        Bundle bundle = new Bundle();
-        ArrayList<AppTargetEvent> widgetEvents =
-                dataModel.itemsIdMap.stream()
-                        .filter(PredictionHelper::isTrackedForWidgetPrediction)
-                        .map(item -> {
-                            AppTarget target = getAppTargetFromItemInfo(context, item);
-                            if (target == null) return null;
-                            return wrapAppTargetWithItemLocation(
-                                    target, AppTargetEvent.ACTION_PIN, item);
-                        })
-                        .filter(Objects::nonNull)
-                        .collect(toCollection(ArrayList::new));
-        bundle.putParcelableArrayList(BUNDLE_KEY_ADDED_APP_WIDGETS, widgetEvents);
-        return bundle;
     }
 }

@@ -27,7 +27,6 @@ import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.PackageUserKey
 import com.android.launcher3.widget.model.WidgetsListBaseEntriesBuilder
-import java.util.Objects
 import java.util.function.Predicate
 import javax.inject.Inject
 
@@ -63,17 +62,7 @@ constructor(
         if (workspaceUpdates.isNotEmpty()) {
             scheduleCallbackTask { it.bindItemsUpdated(workspaceUpdates) }
         }
-        // TODO: Probably duplicate call, verify and remove?
         dataModel.updateItems(allUpdates.toList(), null)
-
-        // Bind extra items if any
-        allUpdates
-            .stream()
-            .mapToInt { it.container }
-            .distinct()
-            .mapToObj { dataModel.extraItems.get(it) }
-            .filter { Objects.nonNull(it) }
-            .forEach { bindExtraContainerItems(it) }
     }
 
     fun bindExtraContainerItems(item: FixedContainerItems) {

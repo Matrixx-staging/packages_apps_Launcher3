@@ -28,6 +28,7 @@ import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.popup.SystemShortcut
 import com.android.launcher3.views.ActivityContext
+import com.android.window.flags.Flags.enablePinningAppWithContextMenu
 
 /**
  * A single menu item shortcut to allow users to pin an item to the taskbar and unpin an item from
@@ -87,5 +88,11 @@ class PinToTaskbarShortcut<T>(
         val cellY = if (dp.isVerticalBarLayout()) (dp.numShownHotseatIcons - (targetIdx + 1)) else 0
 
         writer.addItemToDatabase(newInfo, CONTAINER_HOTSEAT, mItemInfo.screenId, cellX, cellY)
+    }
+
+    companion object {
+        fun isPinningAppWithContextMenuEnabled(context: TaskbarActivityContext): Boolean {
+            return enablePinningAppWithContextMenu() && context.isTaskbarShowingDesktopTasks
+        }
     }
 }

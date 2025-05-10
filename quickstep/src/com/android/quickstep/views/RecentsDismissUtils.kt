@@ -339,6 +339,7 @@ class RecentsDismissUtils(private val recentsView: RecentsView<*, *>) {
         } else {
             val taskViewList = recentsView.mUtils.taskViews.toList()
             val draggedTaskViewIndex = taskViewList.indexOf(draggedTaskView)
+            if (taskViewList.isEmpty() || draggedTaskViewIndex == -1) return emptySequence()
 
             return if (towardsStart) {
                 taskViewList
@@ -477,93 +478,15 @@ class RecentsDismissUtils(private val recentsView: RecentsView<*, *>) {
         }
         val springEndManager = SpringEndManager(runOnFinalSpringEnd)
 
-        var tasksToReflow: List<TaskView>
-        // Build the chains of Spring Animations
-        when {
-            !recentsView.showAsGrid() -> {
-                tasksToReflow =
-                    getTasksToReflow(
-                        recentsView.mUtils.taskViews.toList(),
-                        dismissedTaskView,
-                        towardsStart,
-                    )
-                buildDismissReflowSpringAnimationChain(
-                    tasksToReflow,
-                    dismissedTaskGap,
-                    previousSpring = springAnimationDriver,
-                    springEndManager,
-                )
-            }
-            dismissedTaskView == null || dismissedTaskView.isLargeTile -> {
-                tasksToReflow =
-                    getTasksToReflow(
-                        recentsView.mUtils.getLargeTaskViews(),
-                        dismissedTaskView,
-                        towardsStart,
-                    )
-                val lastSpringAnimation =
-                    buildDismissReflowSpringAnimationChain(
-                        tasksToReflow,
-                        dismissedTaskGap,
-                        previousSpring = springAnimationDriver,
-                        springEndManager,
-                    )
-                // Add all top and bottom grid tasks when animating towards the end of the grid.
-                if (!towardsStart) {
-                    tasksToReflow += recentsView.mUtils.getTopRowTaskViews()
-                    tasksToReflow += recentsView.mUtils.getBottomRowTaskViews()
-                    if (isSplitSelection && recentsView.currentPageTaskView is DesktopTaskView) {
-                        startOffset =
-                            dismissedTaskGap +
-                                (if (recentsView.isRtl) -recentsView.mLastComputedTaskSize.right
-                                else recentsView.mLastComputedTaskSize.right)
-                    }
-                    buildDismissReflowSpringAnimationChain(
-                        recentsView.mUtils.getTopRowTaskViews(),
-                        dismissedTaskGap,
-                        previousSpring = lastSpringAnimation,
-                        springEndManager,
-                        startOffset,
-                    )
-                    buildDismissReflowSpringAnimationChain(
-                        recentsView.mUtils.getBottomRowTaskViews(),
-                        dismissedTaskGap,
-                        previousSpring = lastSpringAnimation,
-                        springEndManager,
-                        startOffset,
-                    )
-                }
-            }
-            recentsView.isOnGridBottomRow(dismissedTaskView) -> {
-                tasksToReflow =
-                    getTasksToReflow(
-                        recentsView.mUtils.getBottomRowTaskViews(),
-                        dismissedTaskView,
-                        towardsStart,
-                    )
-                buildDismissReflowSpringAnimationChain(
-                    tasksToReflow,
-                    dismissedTaskGap,
-                    previousSpring = springAnimationDriver,
-                    springEndManager,
-                )
-            }
-            else -> {
-                tasksToReflow =
-                    getTasksToReflow(
-                        recentsView.mUtils.getTopRowTaskViews(),
-                        dismissedTaskView,
-                        towardsStart,
-                    )
-                buildDismissReflowSpringAnimationChain(
-                    tasksToReflow,
-                    dismissedTaskGap,
-                    previousSpring = springAnimationDriver,
-                    springEndManager,
-                )
-            }
-        }
+        val tasksWithOffsetsToReflow = getTasksToReflow(dismissedTaskView, towardsStart)
+        buildDismissReflowSpringAnimationChain(
+            tasksWithOffsetsToReflow,
+            dismissedTaskGap,
+            previousSpring = springAnimationDriver,
+            springEndManager,
+        )
 
+        val tasksToReflow = tasksWithOffsetsToReflow.map { (taskView, _) -> taskView }
         val runImmediately = tasksToReflow.isEmpty()
         if (runImmediately) {
             runOnFinalSpringEnd()
@@ -623,19 +546,21 @@ class RecentsDismissUtils(private val recentsView: RecentsView<*, *>) {
     }
 
     private fun getTasksToReflow(
-        taskViews: List<TaskView>,
         dismissedTaskView: TaskView?,
         towardsStart: Boolean,
-    ): List<TaskView> {
-        val dismissedTaskViewIndex = taskViews.indexOf(dismissedTaskView)
-        if (dismissedTaskViewIndex == -1) {
-            return emptyList()
-        }
-        return if (towardsStart) {
-            taskViews.take(dismissedTaskViewIndex).reversed()
-        } else {
-            taskViews.takeLast(taskViews.size - dismissedTaskViewIndex - 1)
-        }
+    ): List<Pair<TaskView, Int>> {
+        if (dismissedTaskView == null) return emptyList()
+        val isDismissedTaskViewOnTopRow = recentsView.isOnGridTopRow(dismissedTaskView)
+        val isDismissedTaskViewOnBottomRow = recentsView.isOnGridBottomRow(dismissedTaskView)
+        return getTasksOffsetPairAdjacentToDraggedTask(dismissedTaskView, towardsStart)
+            .filter { (taskView, _) ->
+                when {
+                    isDismissedTaskViewOnBottomRow -> recentsView.isOnGridBottomRow(taskView)
+                    isDismissedTaskViewOnTopRow -> recentsView.isOnGridTopRow(taskView)
+                    else -> true
+                }
+            }
+            .toList()
     }
 
     private fun willTaskBeVisibleAfterDismiss(taskView: TaskView, taskTranslation: Int): Boolean {
@@ -652,18 +577,21 @@ class RecentsDismissUtils(private val recentsView: RecentsView<*, *>) {
 
     /** Builds a chain of spring animations for task reflow after dismissal */
     private fun buildDismissReflowSpringAnimationChain(
-        taskViews: Iterable<TaskView>,
+        taskViewOffsetPairs: List<Pair<TaskView, Int>>,
         dismissedTaskGap: Float,
         previousSpring: SpringAnimation,
         springEndManager: SpringEndManager,
         startOffset: Float = 0f,
     ): SpringAnimation {
+        if (taskViewOffsetPairs.isEmpty()) return previousSpring
         var lastTaskViewSpring = previousSpring
-        taskViews
-            .filter { taskView ->
+        var previousColumnDriverSpring = previousSpring
+        var lastColumnOffset = taskViewOffsetPairs.first().second
+        taskViewOffsetPairs
+            .filter { (taskView, _) ->
                 willTaskBeVisibleAfterDismiss(taskView, dismissedTaskGap.roundToInt())
             }
-            .forEach { taskView ->
+            .forEach { (taskView, column) ->
                 val startValue = if (recentsView.isTaskViewVisible(taskView)) 0f else startOffset
                 val taskViewSpringAnimation =
                     SpringAnimation(
@@ -684,12 +612,18 @@ class RecentsDismissUtils(private val recentsView: RecentsView<*, *>) {
                         recentsView.redrawLiveTile()
                     }
                 }
-                lastTaskViewSpring.addUpdateListener { _, value, _ ->
+                // For grid overview, if we are animating tasks in the same column offset, they
+                // should both be pulled by the previous spring at the same time.
+                if (column != lastColumnOffset) {
+                    previousColumnDriverSpring = lastTaskViewSpring
+                    lastColumnOffset = column
+                }
+                previousColumnDriverSpring.addUpdateListener { _, value, _ ->
                     taskViewSpringAnimation.animateToFinalPosition(value)
                 }
+                lastTaskViewSpring = taskViewSpringAnimation
                 // Only run the final runnable once the last spring has ended.
                 springEndManager.addSpring(taskViewSpringAnimation, dismissedTaskGap)
-                lastTaskViewSpring = taskViewSpringAnimation
                 recentsView.mTaskViewsDismissPrimaryTranslations[taskView] =
                     dismissedTaskGap.toInt()
             }

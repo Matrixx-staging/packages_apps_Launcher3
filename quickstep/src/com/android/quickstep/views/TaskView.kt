@@ -81,6 +81,7 @@ import com.android.quickstep.RemoteAnimationTargets
 import com.android.quickstep.RemoteTargetGluer.RemoteTargetHandle
 import com.android.quickstep.TaskOverlayFactory
 import com.android.quickstep.TaskViewUtils
+import com.android.quickstep.fallback.window.RecentsWindowFlags.enableOverviewOnConnectedDisplays
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler
 import com.android.quickstep.recents.di.RecentsDependencies
 import com.android.quickstep.recents.di.get
@@ -171,7 +172,7 @@ constructor(
         get() =
             this == recentsView?.focusedTaskView ||
                 (enableLargeDesktopWindowingTile() && type == TaskViewType.DESKTOP) ||
-                isExternalDisplay
+                (isExternalDisplay && !enableOverviewOnConnectedDisplays())
 
     val recentsView: RecentsView<*, *>?
         get() = parent as? RecentsView<*, *>
@@ -345,7 +346,7 @@ constructor(
      * The modalness of this view is how it should be displayed when it is shown on its own in the
      * modal state of overview. 0 being in context with other tasks, 1 being shown on its own.
      */
-    protected var modalness = 0f
+    var modalness = 0f
         set(value) {
             if (field == value) {
                 return
@@ -944,7 +945,7 @@ constructor(
                 // onAttach or another moment in the lifecycle.
                 val coroutineJobsToCancel = coroutineJobs.toList()
                 coroutineJobs.clear()
-                coroutineScope.launch(dispatcherProvider.background) {
+                coroutineScope.launch(dispatcherProvider.lightweightBackground) {
                     traceSection("TaskView.onDetachedFromWindow.cancellingJobs") {
                         coroutineJobsToCancel.forEach {
                             it.cancel("TaskView detaching from window")

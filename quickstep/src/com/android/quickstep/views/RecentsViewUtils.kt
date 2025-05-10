@@ -525,6 +525,14 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
                 )
             val modalPivot = PointF()
             getPivotsForScalingRectToRect(modalTaskBounds, selectedTaskBounds, modalPivot)
+            Log.d(
+                "b/407815700",
+                "onSelectedTaskViewUpdated\n" +
+                    "modalTaskBounds: $modalTaskBounds\n" +
+                    "selectedTaskBounds: $selectedTaskBounds\n" +
+                    "modalScale: $modalScale\n" +
+                    "modalPivot: $modalPivot",
+            )
 
             newSelectedTaskView.modalScale = modalScale
             newSelectedTaskView.modalPivot = modalPivot

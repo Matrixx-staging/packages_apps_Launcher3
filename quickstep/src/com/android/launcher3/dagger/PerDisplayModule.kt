@@ -232,7 +232,7 @@ object DisplayLibModule {
             displayManager,
             bgHandler,
             bgApplicationScope,
-            coroutineDispatcherProvider.background,
+            coroutineDispatcherProvider.ioBackground,
         )
     }
 

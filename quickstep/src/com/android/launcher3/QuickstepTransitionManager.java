@@ -99,7 +99,6 @@ import android.provider.Settings;
 import android.util.Log;
 import android.util.Pair;
 import android.util.Size;
-import android.view.CrossWindowBlurListeners;
 import android.view.IRemoteAnimationFinishedCallback;
 import android.view.RemoteAnimationAdapter;
 import android.view.RemoteAnimationDefinition;
@@ -133,7 +132,6 @@ import com.android.launcher3.dragndrop.DragLayer;
 import com.android.launcher3.icons.FastBitmapDrawable;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.shortcuts.DeepShortcutView;
-import com.android.launcher3.statehandlers.DepthController;
 import com.android.launcher3.taskbar.LauncherTaskbarUIController;
 import com.android.launcher3.testing.shared.ResourceUtils;
 import com.android.launcher3.touch.PagedOrientationHandler;
@@ -1138,16 +1136,25 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
     }
 
     /** Returns animator that controls depth/blur of the background during app/widget opening. */
-    private ObjectAnimator getBackgroundAnimator() {
+    private Animator getBackgroundAnimator() {
+        LauncherState launcherState = mLauncher.getStateManager().getState();
+        boolean currentlyBlurringAllApps = Flags.allAppsBlur() && launcherState == ALL_APPS
+                && mLauncher.isAllAppsBackgroundBlurEnabled();
+        if (currentlyBlurringAllApps) {
+            // Don't additionally animate/blur the background for this launch (All Apps content
+            // already scales slightly to simulate depth).
+            return new AnimatorSet();
+        }
+
         // When launching an app from overview that doesn't map to a task, we still want to just
         // blur the wallpaper instead of the launcher surface as well
-        boolean allowBlurringLauncher = mLauncher.getStateManager().getState() != OVERVIEW
-                && BlurUtils.supportsBlursOnWindows();
+        boolean allowBlurringLauncher =
+                launcherState != OVERVIEW && BlurUtils.supportsBlursOnWindows();
 
-        LaunchDepthController depthController = new LaunchDepthController(mLauncher);
-        ObjectAnimator backgroundRadiusAnim = ObjectAnimator.ofFloat(depthController.stateDepth,
-                        MULTI_PROPERTY_VALUE, BACKGROUND_APP.getDepth(mLauncher))
-                        .setDuration(APP_LAUNCH_DURATION);
+        ObjectAnimator backgroundRadiusAnim = ObjectAnimator.ofFloat(
+                        mLauncher.getDepthController().stateDepth, MULTI_PROPERTY_VALUE,
+                        BACKGROUND_APP.getDepth(mLauncher))
+                .setDuration(APP_LAUNCH_DURATION);
 
         if (allowBlurringLauncher) {
             // Create a temporary effect layer, that lives on top of launcher, so we can apply
@@ -1168,17 +1175,13 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                     .setEffectLayer()
                     .build();
 
-            backgroundRadiusAnim.addListener(AnimatorListeners.forEndCallback(() ->
-                    new SurfaceControl.Transaction().remove(dimLayer).apply()));
+            backgroundRadiusAnim.addListener(AnimatorListeners.forEndCallback(() -> {
+                // Use try-with-resources to ensure the transaction gets closed.
+                try (SurfaceControl.Transaction transaction = new SurfaceControl.Transaction()) {
+                    transaction.remove(dimLayer).apply();
+                }
+            }));
         }
-
-        backgroundRadiusAnim.addListener(
-                AnimatorListeners.forEndCallback(() -> {
-                    // reset the depth to match the main depth controller's depth
-                    depthController.stateDepth
-                            .setValue(mLauncher.getDepthController().stateDepth.getValue());
-                    depthController.dispose();
-                }));
 
         return backgroundRadiusAnim;
     }
@@ -1756,12 +1759,6 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 } else {
                     anim.play(new StaggeredWorkspaceAnim(mLauncher, velocity.y,
                             true /* animateOverviewScrim */, launcherView).getAnimators());
-                }
-
-                if (!areAllTargetsTranslucent(appTargets)) {
-                    anim.play(ObjectAnimator.ofFloat(mLauncher.getDepthController().stateDepth,
-                            MULTI_PROPERTY_VALUE,
-                            BACKGROUND_APP.getDepth(mLauncher), NORMAL.getDepth(mLauncher)));
                 }
 
                 // We play StaggeredWorkspaceAnim as a part of the closing window animation.
@@ -2394,17 +2391,6 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 return 0f;
             }
             return Utilities.mapToRange(progress, start, end, 1, 0, ACCELERATE_1_5);
-        }
-    }
-
-    private static class LaunchDepthController extends DepthController {
-        LaunchDepthController(QuickstepLauncher launcher) {
-            super(launcher);
-            setCrossWindowBlursEnabled(
-                    CrossWindowBlurListeners.getInstance().isCrossWindowBlurEnabled());
-            // Make sure that the starting value matches the current depth set by the main
-            // controller.
-            stateDepth.setValue(launcher.getDepthController().stateDepth.getValue());
         }
     }
 }

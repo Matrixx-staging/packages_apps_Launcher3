@@ -35,7 +35,7 @@ class AppTimersRepositoryImpl(
         packageName: String,
         userHandle: UserHandle,
     ): Duration? =
-        withContext(dispatcherProvider.background) {
+        withContext(dispatcherProvider.ioBackground) {
             val appUsageLimit =
                 dataSource.getAppUsageLimit(packageName, userHandle) ?: return@withContext null
 

@@ -40,6 +40,7 @@ import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_A
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_A11Y_BUTTON_LONG_CLICKABLE;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_BACK_DISABLED;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_BACK_DISMISS_IME;
+import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_DISABLE_GESTURE_SPLIT_INVOCATION;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_HOME_DISABLED;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_IME_SWITCHER_BUTTON_VISIBLE;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_IME_VISIBLE;
@@ -562,7 +563,8 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
                 (sysUiStateFlags & SYSUI_STATE_VOICE_INTERACTION_WINDOW_SHOWING) != 0;
         boolean isKeyboardShortcutHelperShowing =
                 (sysUiStateFlags & SYSUI_STATE_SHORTCUT_HELPER_SHOWING) != 0;
-
+        boolean splitAnimationRunning =
+                (sysUiStateFlags & SYSUI_STATE_DISABLE_GESTURE_SPLIT_INVOCATION) != 0;
         updateStateForFlag(FLAG_IME_SWITCHER_BUTTON_VISIBLE, isImeSwitcherButtonVisible);
         updateStateForFlag(FLAG_IME_VISIBLE, isImeVisible);
         updateStateForFlag(FLAG_BACK_DISMISS_IME, isBackDismissIme);
@@ -581,6 +583,12 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
                     (sysUiStateFlags & SYSUI_STATE_A11Y_BUTTON_LONG_CLICKABLE) != 0;
             mA11yButton.setLongClickable(a11yLongClickable);
             updateButtonLayoutSpacing();
+        }
+
+        if (mNavButtonContainer.getChildCount() > 0) {
+            for (int i = 0; i < mNavButtonContainer.getChildCount(); i++) {
+                mNavButtonContainer.getChildAt(i).setEnabled(!splitAnimationRunning);
+            }
         }
     }
 

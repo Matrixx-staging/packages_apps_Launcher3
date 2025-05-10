@@ -15,6 +15,7 @@
  */
 package com.android.launcher3.taskbar;
 
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS_PREDICTION;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION;
 
@@ -28,13 +29,12 @@ import androidx.annotation.UiThread;
 import com.android.launcher3.LauncherSettings.Favorites;
 import com.android.launcher3.celllayout.CellInfo;
 import com.android.launcher3.model.BgDataModel;
-import com.android.launcher3.model.BgDataModel.FixedContainerItems;
-import com.android.launcher3.model.StringCache;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.model.data.PredictedContainerInfo;
+import com.android.launcher3.model.data.WorkspaceData;
 import com.android.launcher3.taskbar.TaskbarView.TaskbarLayoutParams;
 import com.android.launcher3.util.ComponentKey;
-import com.android.launcher3.util.IntSparseArrayMap;
 import com.android.launcher3.util.ItemInfoMatcher;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
 import com.android.launcher3.util.PackageUserKey;
@@ -79,18 +79,13 @@ public class TaskbarModelCallbacks implements
     }
 
     @Override
-    public void bindCompleteModel(IntSparseArrayMap<ItemInfo> itemIdMap,
-            List<FixedContainerItems> extraItems, StringCache stringCache, boolean isBindingSync) {
+    public void bindCompleteModel(WorkspaceData itemIdMap, boolean isBindingSync) {
         mHotseatItems.clear();
-        mPredictedItems = Collections.emptyList();
+        mPredictedItems = itemIdMap.getPredictedContents(CONTAINER_HOTSEAT_PREDICTION);
         handleItemsAdded(itemIdMap);
 
-        for (FixedContainerItems item: extraItems) {
-            if (item.containerId == Favorites.CONTAINER_HOTSEAT_PREDICTION) {
-                mPredictedItems = item.items;
-            } else if (item.containerId == Favorites.CONTAINER_ALL_APPS_PREDICTION) {
-                mControllers.taskbarAllAppsController.setPredictedApps(item.items);
-            }
+        if (itemIdMap.get(CONTAINER_ALL_APPS_PREDICTION) instanceof PredictedContainerInfo pci) {
+            mControllers.taskbarAllAppsController.setPredictedApps(pci.getContents());
         }
         commitItemsToUI();
     }
@@ -114,12 +109,23 @@ public class TaskbarModelCallbacks implements
     }
 
     @Override
-    public void bindItemsUpdated(Set<ItemInfo> updates) {
+    public void bindItemsUpdated(@NonNull Set<ItemInfo> updates) {
         Set<ItemInfo> itemsToRebind = updateContainerItems(updates, mContext);
-
         boolean removed = handleItemsRemoved(ItemInfoMatcher.ofItems(itemsToRebind));
         boolean added = handleItemsAdded(itemsToRebind);
-        if (removed || added) {
+
+        boolean predictionsUpdated = false;
+        for (ItemInfo update: updates) {
+            if (update instanceof PredictedContainerInfo pci) {
+                if (pci.id == Favorites.CONTAINER_HOTSEAT_PREDICTION) {
+                    mPredictedItems = pci.getContents();
+                    predictionsUpdated = true;
+                } else if (pci.id == CONTAINER_ALL_APPS_PREDICTION) {
+                    mControllers.taskbarAllAppsController.setPredictedApps(pci.getContents());
+                }
+            }
+        }
+        if (removed || added || predictionsUpdated) {
             commitItemsToUI();
         }
     }
@@ -163,16 +169,6 @@ public class TaskbarModelCallbacks implements
             }
         }
         return modified;
-    }
-
-    @Override
-    public void bindExtraContainerItems(FixedContainerItems item) {
-        if (item.containerId == Favorites.CONTAINER_HOTSEAT_PREDICTION) {
-            mPredictedItems = item.items;
-            commitItemsToUI();
-        } else if (item.containerId == Favorites.CONTAINER_ALL_APPS_PREDICTION) {
-            mControllers.taskbarAllAppsController.setPredictedApps(item.items);
-        }
     }
 
     private void commitItemsToUI() {

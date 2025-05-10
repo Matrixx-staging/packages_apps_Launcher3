@@ -19,7 +19,6 @@ import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APP
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT;
 import static com.android.launcher3.model.data.AppInfo.COMPONENT_KEY_COMPARATOR;
 import static com.android.launcher3.util.SplitConfigurationOptions.getLogEventForPosition;
-import static com.android.window.flags.Flags.enablePinningAppWithContextMenu;
 
 import android.content.Intent;
 import android.content.pm.LauncherApps;
@@ -149,7 +148,7 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
         ItemInfo itemInfo = null;
         if (icon.getTag() instanceof ItemInfo item && ShortcutUtil.supportsShortcuts(item)) {
             itemInfo = item;
-        } else if (enablePinningAppWithContextMenu()
+        } else if (PinToTaskbarShortcut.Companion.isPinningAppWithContextMenuEnabled(mContext)
                 && icon.getTag() instanceof SingleTask task) {
             Task.TaskKey key = task.getTask().getKey();
             AppInfo appInfo = getApp(
@@ -174,7 +173,7 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
                 .collect(Collectors.toList());
 
         // TODO(b/375648361): Revisit to see if this can be implemented within getSystemShortcuts().
-        if (enablePinningAppWithContextMenu()) {
+        if (PinToTaskbarShortcut.Companion.isPinningAppWithContextMenuEnabled(mContext)) {
             SystemShortcut shortcut = createPinShortcut(context, itemInfo, icon);
             if (shortcut != null) {
                 systemShortcuts.add(0, shortcut);

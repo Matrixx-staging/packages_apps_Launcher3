@@ -51,6 +51,7 @@ import com.android.quickstep.util.AnimatorControllerWithResistance;
 import com.android.quickstep.util.LayoutUtils;
 import com.android.quickstep.views.RecentsView;
 import com.android.systemui.plugins.shared.LauncherOverlayManager;
+import com.android.wm.shell.shared.desktopmode.DesktopState;
 
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -209,6 +210,12 @@ public final class LauncherActivityInterface extends
     public boolean switchToRecentsIfVisible(Animator.AnimatorListener animatorListener) {
         QuickstepLauncher launcher = getVisibleLauncher();
         if (launcher == null) {
+            return false;
+        }
+        if (DesktopState.fromContext(launcher.asContext()).getShouldShowHomeBehindDesktop()
+                && !launcher.hasWindowFocus()) {
+            // Home is always shown behind desktop, but it is currently not the top task, so treat
+            // it as if it is not visible.
             return false;
         }
         if (isInLiveTileMode()) {

@@ -85,7 +85,7 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
         final Context context = taskController.getContext();
 
         synchronized (dataModel) {
-            IntArray workspaceScreens = dataModel.collectWorkspaceScreens();
+            IntArray workspaceScreens = dataModel.itemsIdMap.collectWorkspaceScreens();
 
             List<ItemInfo> filteredItems = new ArrayList<>();
             for (Pair<ItemInfo, Object> entry : mItemList) {

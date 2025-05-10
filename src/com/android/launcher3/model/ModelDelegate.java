@@ -24,6 +24,8 @@ import androidx.annotation.WorkerThread;
 
 import com.android.launcher3.LauncherModel;
 import com.android.launcher3.dagger.ApplicationContext;
+import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.util.IntSparseArrayMap;
 
 import javax.inject.Inject;
 
@@ -61,15 +63,7 @@ public class ModelDelegate {
 
     /** Load workspace items (for example, those in the hot seat) if any in the data model */
     @WorkerThread
-    public void loadAndBindWorkspaceItems() { }
-
-    /** Load all apps items if any in the data model */
-    @WorkerThread
-    public void loadAndBindAllAppsItems() { }
-
-    /** Load other items like widget recommendations if any in the data model */
-    @WorkerThread
-    public void loadAndBindOtherItems() { }
+    public void loadAndAddExtraModelItems(@NonNull IntSparseArrayMap<ItemInfo> outLoadedItems) { }
 
     /** Marks the ModelDelegate as active */
     public void markActive() { }

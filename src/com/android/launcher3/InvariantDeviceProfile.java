@@ -857,6 +857,7 @@ public class InvariantDeviceProfile {
                 .setWindowBounds(mWMProxy.getRealBounds(
                         displayContext, mWMProxy.getDisplayInfo(displayContext)))
                 .setTransposeLayoutWithOrientation(false)
+                .setSecondaryDisplayOptionSpec()
                 .build();
     }
 
@@ -932,6 +933,73 @@ public class InvariantDeviceProfile {
         void onIdpChanged(boolean modelPropertiesChanged);
     }
 
+    /** Returns {@link DisplayOptionSpec} for the provided displayInfo. */
+    static DisplayOptionSpec createDisplayOptionSpec(Context context, Info displayInfo,
+            boolean isLandscape) {
+        // Get predefined profiles for provided displayInfo without using any main device's pref.
+        List<DisplayOption> allOptions = getPredefinedDeviceProfiles(context,
+                /* gridName= */ null, displayInfo, /* allowDisabledGrid= */ false,
+                /* isFixedLandscapeMode= */ false);
+
+        return new DisplayOptionSpec(
+                invDistWeightedInterpolate(displayInfo, new ArrayList<>(allOptions),
+                        displayInfo.getDeviceType()), isLandscape);
+    }
+
+    /** Class to expose properties required for external displays to {@link DeviceProfile} */
+    public static final class DisplayOptionSpec {
+        public final int typeIndex;
+        public final int numShownHotseatIcons;
+        public final int numAllAppsColumns;
+        @XmlRes public final int hotseatSpecsId;
+        @XmlRes public final int workspaceCellSpecsId;
+        @XmlRes public final int workspaceSpecsId;
+        @XmlRes public final int allAppsSpecsId;
+        @XmlRes public final int folderSpecsId;
+        @XmlRes public final int allAppsCellSpecsId;
+        public final boolean startAlignTaskbar;
+
+        DisplayOptionSpec(DisplayOption displayOption, boolean isLandscape) {
+            typeIndex = isLandscape ? INDEX_LANDSCAPE : INDEX_DEFAULT;
+            numShownHotseatIcons = displayOption.grid.numHotseatIcons;
+            numAllAppsColumns = displayOption.grid.numAllAppsColumns;
+            hotseatSpecsId = displayOption.grid.mHotseatSpecsId;
+            workspaceCellSpecsId = displayOption.grid.mWorkspaceCellSpecsId;
+            workspaceSpecsId = displayOption.grid.mWorkspaceSpecsId;
+            allAppsSpecsId = displayOption.grid.mAllAppsSpecsId;
+            folderSpecsId = displayOption.grid.mFolderSpecsId;
+            allAppsCellSpecsId = displayOption.grid.mAllAppsCellSpecsId;
+            startAlignTaskbar = displayOption.startAlignTaskbar[typeIndex];
+        }
+
+        DisplayOptionSpec(InvariantDeviceProfile inv, boolean isTwoPanels, boolean isLandscape) {
+            if (isTwoPanels) {
+                if (isLandscape) {
+                    typeIndex = INDEX_TWO_PANEL_LANDSCAPE;
+                } else {
+                    typeIndex = INDEX_TWO_PANEL_PORTRAIT;
+                }
+            } else {
+                if (isLandscape) {
+                    typeIndex = INDEX_LANDSCAPE;
+                } else {
+                    typeIndex = INDEX_DEFAULT;
+                }
+            }
+            numShownHotseatIcons =
+                    isTwoPanels ? inv.numDatabaseHotseatIcons : inv.numShownHotseatIcons;
+            numAllAppsColumns = isTwoPanels ? inv.numDatabaseAllAppsColumns : inv.numAllAppsColumns;
+            hotseatSpecsId = isTwoPanels ? inv.hotseatSpecsTwoPanelId : inv.hotseatSpecsId;
+            workspaceCellSpecsId = isTwoPanels ? inv.workspaceCellSpecsTwoPanelId
+                    : inv.workspaceCellSpecsId;
+            workspaceSpecsId = isTwoPanels ? inv.workspaceSpecsTwoPanelId : inv.workspaceSpecsId;
+            allAppsSpecsId = isTwoPanels ? inv.allAppsSpecsTwoPanelId : inv.allAppsSpecsId;
+            folderSpecsId = isTwoPanels ? inv.folderSpecsTwoPanelId : inv.folderSpecsId;
+            allAppsCellSpecsId =
+                    isTwoPanels ? inv.allAppsCellSpecsTwoPanelId : inv.allAppsCellSpecsId;
+            startAlignTaskbar = inv.startAlignTaskbar[typeIndex];
+        }
+    }
 
     public static final class GridOption {
 
@@ -1209,8 +1277,8 @@ public class InvariantDeviceProfile {
 
             mNumRows = (int) a.getFloat(R.styleable.GridSize_numGridRows, 0);
             mNumColumns = (int) a.getFloat(R.styleable.GridSize_numGridColumns, 0);
-            mMinDeviceWidthPx = a.getFloat(R.styleable.GridSize_minDeviceWidthPx, 0);
-            mMinDeviceHeightPx = a.getFloat(R.styleable.GridSize_minDeviceHeightPx, 0);
+            mMinDeviceWidthPx = a.getDimensionPixelSize(R.styleable.GridSize_minDeviceWidth, 0);
+            mMinDeviceHeightPx = a.getDimensionPixelSize(R.styleable.GridSize_minDeviceHeight, 0);
             mDbFile = a.getString(R.styleable.GridSize_dbFile);
             mDefaultLayoutId = a.getResourceId(
                     R.styleable.GridSize_defaultLayoutId, 0);

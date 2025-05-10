@@ -15,6 +15,8 @@
  */
 package com.android.quickstep.util;
 
+import static android.os.Trace.TRACE_TAG_APP;
+
 import static com.android.launcher3.Flags.enableOverviewBackgroundWallpaperBlur;
 import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 
@@ -22,11 +24,13 @@ import android.app.WallpaperManager;
 import android.graphics.RenderEffect;
 import android.graphics.Shader;
 import android.os.IBinder;
+import android.os.Trace;
 import android.util.FloatProperty;
 import android.util.Log;
 import android.view.AttachedSurfaceControl;
 import android.view.SurfaceControl;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
@@ -176,7 +180,20 @@ public class BaseDepthController {
         applyDepthAndBlur(null, /* applyImmediately */ false);
     }
 
+    /**
+     * Applies depth and blur to the launcher.
+     *
+     * @param transaction      optional Surface to apply to the blur to.
+     * @param applyImmediately whether to apply the blur immediately or defer to the next frame.
+     */
     protected void applyDepthAndBlur(SurfaceControl.Transaction transaction,
+            boolean applyImmediately) {
+        try (transaction) {
+            applyDepthAndBlurInternal(transaction, applyImmediately);
+        }
+    }
+
+    private void applyDepthAndBlurInternal(SurfaceControl.Transaction transaction,
             boolean applyImmediately) {
         float depth = mDepth;
         IBinder windowToken = mLauncher.getRootView().getWindowToken();
@@ -215,15 +232,25 @@ public class BaseDepthController {
         } else {
             blurAmount = depth;
         }
-        mCurrentBlur = mBlursEnabled && !hasOpaqueBg ? (int) (blurAmount * mMaxBlurRadius) : 0;
-
         SurfaceControl blurSurface =
                 enableOverviewBackgroundWallpaperBlur() && mBlurSurface != null ? mBlurSurface
                         : mBaseSurface;
-        if (transaction == null) {
-            transaction = createTransaction();
+
+        int previousBlur = mCurrentBlur;
+        int newBlur = mBlursEnabled && !hasOpaqueBg ? (int) (blurAmount * mMaxBlurRadius) : 0;
+        int delta = Math.abs(newBlur - previousBlur);
+        // Don't skip blur if a transaction is provided.
+        boolean skipSimilarBlur = transaction == null;
+        if (skipSimilarBlur && delta < Utilities.dpToPx(1) && newBlur != 0 && previousBlur != 0) {
+            Log.d(TAG, "Skipping small blur delta. newBlur: " + newBlur + " previousBlur: "
+                    + previousBlur + " delta: " + delta + " surface: " + blurSurface);
+            return;
         }
-        final SurfaceControl.Transaction finalTransaction = transaction;
+        mCurrentBlur = newBlur;
+        Log.v(TAG, "Applying blur: " + mCurrentBlur + " to " + blurSurface);
+
+        final SurfaceControl.Transaction finalTransaction =
+                transaction == null ? createTransaction() : transaction;
         try (finalTransaction) {
             finalTransaction.setBackgroundBlurRadius(blurSurface, mCurrentBlur)
                     .setOpaque(blurSurface, isSurfaceOpaque);
@@ -232,11 +259,9 @@ public class BaseDepthController {
             // SurfaceFlinger will adjust its internal offsets to avoid jank.
             boolean wantsEarlyWakeUp = depth > 0 && depth < 1;
             if (wantsEarlyWakeUp && !mInEarlyWakeUp) {
-                finalTransaction.setEarlyWakeupStart();
-                mInEarlyWakeUp = true;
+                setEarlyWakeup(finalTransaction, true);
             } else if (!wantsEarlyWakeUp && mInEarlyWakeUp) {
-                finalTransaction.setEarlyWakeupEnd();
-                mInEarlyWakeUp = false;
+                setEarlyWakeup(finalTransaction, false);
             }
 
             if (applyImmediately) {
@@ -251,6 +276,41 @@ public class BaseDepthController {
         }
 
         blurWorkspaceDepthTargets();
+    }
+
+    /**
+     * Sets the early wakeup state.
+     *
+     * @param inEarlyWakeUp whether SurfaceFlinger's early wakeup timing should be active.
+     */
+    public void setEarlyWakeup(boolean inEarlyWakeUp) {
+        if (mInEarlyWakeUp == inEarlyWakeUp) {
+            return;
+        }
+        try (SurfaceControl.Transaction transaction = createTransaction()) {
+            setEarlyWakeup(transaction, inEarlyWakeUp);
+            transaction.apply();
+        }
+    }
+
+    /**
+     * Sets the early wakeup state.
+     *
+     * @param transaction transaction to apply to.
+     * @param start whether to start or end the early wakeup.
+     */
+    protected void setEarlyWakeup(@NonNull SurfaceControl.Transaction transaction, boolean start) {
+        if (mInEarlyWakeUp == start) {
+            return;
+        }
+        if (start) {
+            Trace.instantForTrack(TRACE_TAG_APP, TAG, "notifyRendererForGpuLoadUp");
+            mLauncher.getRootView().getViewRootImpl().notifyRendererForGpuLoadUp("applyBlur");
+            transaction.setEarlyWakeupStart();
+        } else {
+            transaction.setEarlyWakeupEnd();
+        }
+        mInEarlyWakeUp = start;
     }
 
     /** @return {@code true} if the workspace should be blurred. */
@@ -287,14 +347,13 @@ public class BaseDepthController {
      * Sets the lowest surface that should not be blurred.
      * <p>
      * Blur is applied to below {@link #mBaseSurfaceOverride}. When set to {@code null}, blur is
-     * applied
-     * to below {@link #mBaseSurface}.
+     * applied to below {@link #mBaseSurface}.
      * </p>
      */
     public void setBaseSurfaceOverride(@Nullable SurfaceControl baseSurfaceOverride) {
         if (mBaseSurfaceOverride != baseSurfaceOverride) {
             boolean applyImmediately = mBaseSurfaceOverride != null && baseSurfaceOverride == null;
-            this.mBaseSurfaceOverride = baseSurfaceOverride;
+            mBaseSurfaceOverride = baseSurfaceOverride;
             Log.d(TAG, "setBaseSurfaceOverride: applying blur behind leash " + baseSurfaceOverride);
             SurfaceControl.Transaction transaction = setupBlurSurface();
             applyDepthAndBlur(transaction, applyImmediately);
@@ -319,12 +378,10 @@ public class BaseDepthController {
             }
             transaction.setRelativeLayer(mBlurSurface, mBaseSurfaceOverride, -1);
             Log.d(TAG, "setupBlurSurface: relayering to leash " + mBaseSurfaceOverride);
-        } else {
-            if (mBlurSurface != null) {
-                Log.d(TAG, "setupBlurSurface: removing blur surface " + mBlurSurface);
-                transaction = createTransaction().remove(mBlurSurface);
-                mBlurSurface = null;
-            }
+        } else if (mBlurSurface != null) {
+            Log.d(TAG, "setupBlurSurface: removing blur surface " + mBlurSurface);
+            transaction = createTransaction().remove(mBlurSurface);
+            mBlurSurface = null;
         }
         return transaction;
     }

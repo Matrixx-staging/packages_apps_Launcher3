@@ -23,6 +23,7 @@ import static com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY2;
 import static com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY3;
 import static com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE;
 import static com.android.launcher3.util.ModelTestExtensions.getBgDataModel;
+import static com.android.launcher3.util.ModelTestExtensions.nonPredictedItemCount;
 import static com.android.launcher3.util.TestUtil.runOnExecutorSync;
 
 import static org.junit.Assert.assertEquals;
@@ -100,7 +101,8 @@ public class CacheDataUpdatedTaskTest {
                 .build();
         mLayoutProvider.setupDefaultLayoutProvider(builder);
         ModelTestExtensions.INSTANCE.loadModelSync(getModel());
-        assertEquals(10, getBgDataModel(getModel()).itemsIdMap.size());
+        // Items on homescreen and folders:
+        assertEquals(10, nonPredictedItemCount(getBgDataModel(getModel()).itemsIdMap));
     }
 
     private CacheDataUpdatedTask newTask(int op, String... pkg) {

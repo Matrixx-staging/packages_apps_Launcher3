@@ -15,6 +15,7 @@
  */
 package com.android.launcher3.secondarydisplay;
 
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS_PREDICTION;
 import static com.android.launcher3.util.WallpaperThemeManager.setWallpaperDependentTheme;
 
 import android.animation.Animator;
@@ -39,7 +40,6 @@ import com.android.launcher3.DropTarget;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherModel;
-import com.android.launcher3.LauncherSettings;
 import com.android.launcher3.R;
 import com.android.launcher3.allapps.ActivityAllAppsContainerView;
 import com.android.launcher3.allapps.AllAppsStore;
@@ -53,6 +53,8 @@ import com.android.launcher3.model.StringCache;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
+import com.android.launcher3.model.data.PredictedContainerInfo;
+import com.android.launcher3.model.data.WorkspaceData;
 import com.android.launcher3.popup.PopupContainerWithArrow;
 import com.android.launcher3.popup.PopupDataProvider;
 import com.android.launcher3.touch.ItemClickHandler.ItemClickProxy;
@@ -64,6 +66,7 @@ import com.android.launcher3.views.BaseDragLayer;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Launcher activity for secondary displays
@@ -250,9 +253,20 @@ public class SecondaryDisplayLauncher extends BaseActivity
     }
 
     @Override
-    public void bindExtraContainerItems(BgDataModel.FixedContainerItems item) {
-        if (item.containerId == LauncherSettings.Favorites.CONTAINER_ALL_APPS_PREDICTION) {
-            mSecondaryDisplayQuickstepDelegate.setPredictedApps(item);
+    public void bindCompleteModel(
+            @NonNull WorkspaceData itemIdMap, boolean isBindingSync) {
+        if (itemIdMap.get(CONTAINER_ALL_APPS_PREDICTION) instanceof PredictedContainerInfo pci) {
+            mSecondaryDisplayQuickstepDelegate.setPredictedApps(pci);
+        }
+    }
+
+    @Override
+    public void bindItemsUpdated(@NonNull Set<ItemInfo> updates) {
+        for (ItemInfo updatedItem: updates) {
+            if (updatedItem.container == CONTAINER_ALL_APPS_PREDICTION
+                    && updatedItem instanceof PredictedContainerInfo pci) {
+                mSecondaryDisplayQuickstepDelegate.setPredictedApps(pci);
+            }
         }
     }
 

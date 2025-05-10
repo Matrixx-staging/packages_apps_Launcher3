@@ -472,6 +472,14 @@ public class WindowManagerProxy {
                 DEFAULT_DISPLAY);
     }
 
+    private int getDisplayId(Context displayInfoContext) {
+        try {
+            return displayInfoContext.getDisplay().getDisplayId();
+        } catch (UnsupportedOperationException e) {
+            return DEFAULT_DISPLAY;
+        }
+    }
+
     /**
      * Returns a DisplayCutout which represents a rotated version of the original
      */
@@ -483,11 +491,18 @@ public class WindowManagerProxy {
     }
 
     /**
-     * Returns the current navigation mode from resource.
+     * Returns the current navigation mode from resource if the context is for the default or a non-
+     * display context. Otherwise, return NavigationMode.THREE_BUTTONS.
      */
-    public NavigationMode getNavigationMode(Context context) {
+    public NavigationMode getNavigationMode(Context displayInfoContext) {
+        // Always assume 3-button nav for external displays
+        int displayId = getDisplayId(displayInfoContext);
+        if (displayId != DEFAULT_DISPLAY) {
+            return NavigationMode.THREE_BUTTONS;
+        }
+        // Otherwise get from Resource
         int modeInt = ResourceUtils.getIntegerByName(NAV_BAR_INTERACTION_MODE_RES_NAME,
-                context.getResources(), INVALID_RESOURCE_HANDLE);
+                displayInfoContext.getResources(), INVALID_RESOURCE_HANDLE);
 
         if (modeInt == INVALID_RESOURCE_HANDLE) {
             Log.e(TAG, "Failed to get system resource ID. Incompatible framework version?");

@@ -16,12 +16,8 @@
 
 package com.android.launcher3.model;
 
-import static com.android.launcher3.BuildConfig.WIDGET_ON_FIRST_SCREEN;
 import static com.android.launcher3.Flags.enableLauncherBrMetricsFixed;
-import static com.android.launcher3.Flags.enableSmartspaceAsAWidget;
 import static com.android.launcher3.LauncherPrefs.IS_FIRST_LOAD_AFTER_RESTORE;
-import static com.android.launcher3.LauncherPrefs.SHOULD_SHOW_SMARTSPACE;
-import static com.android.launcher3.LauncherSettings.Favorites.DESKTOP_ICON_FLAG;
 import static com.android.launcher3.icons.CacheableShortcutInfo.convertShortcutsToCacheableShortcuts;
 import static com.android.launcher3.icons.cache.CacheLookupFlag.DEFAULT_LOOKUP_FLAG;
 import static com.android.launcher3.model.BgDataModel.Callbacks.FLAG_HAS_SHORTCUT_PERMISSION;
@@ -63,13 +59,10 @@ import com.android.launcher3.Flags;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherModel;
 import com.android.launcher3.LauncherPrefs;
-import com.android.launcher3.LauncherSettings.Favorites;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.backuprestore.LauncherRestoreEventLogger;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.dagger.ApplicationContext;
-import com.android.launcher3.folder.Folder;
-import com.android.launcher3.folder.FolderGridOrganizer;
 import com.android.launcher3.folder.FolderNameInfos;
 import com.android.launcher3.folder.FolderNameProvider;
 import com.android.launcher3.icons.CacheableShortcutCachingLogic;
@@ -82,7 +75,6 @@ import com.android.launcher3.icons.cache.LauncherActivityCachingLogic;
 import com.android.launcher3.logging.FileLog;
 import com.android.launcher3.model.LoaderCursor.LoaderCursorFactory;
 import com.android.launcher3.model.data.AppInfo;
-import com.android.launcher3.model.data.AppPairInfo;
 import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.model.data.IconRequestInfo;
 import com.android.launcher3.model.data.ItemInfo;
@@ -168,7 +160,6 @@ public class LoaderTask implements Runnable {
     private boolean mStopped;
 
     private final Set<PackageUserKey> mPendingPackages = new HashSet<>();
-    private boolean mItemsDeleted = false;
     private String mDbName;
     private final Provider<FolderNameProvider> mFolderNameProviderFactory;
     private final Provider<LauncherRestoreEventLogger> mRestoreEventLoggerProvider;
@@ -229,7 +220,7 @@ public class LoaderTask implements Runnable {
 
     private void sendFirstScreenActiveInstallsBroadcast() {
         // Screen set is never empty
-        IntArray allScreens = mBgDataModel.collectWorkspaceScreens();
+        IntArray allScreens = mBgDataModel.itemsIdMap.collectWorkspaceScreens();
         final int firstScreen = allScreens.get(0);
         IntSet firstScreens = IntSet.wrap(firstScreen);
 
@@ -290,8 +281,6 @@ public class LoaderTask implements Runnable {
             //  after a simulated restore.
             if (Objects.equals(mIDP.dbFile, mDbName)) {
                 verifyNotStopped();
-                sanitizeFolders(mItemsDeleted);
-                sanitizeAppPairs();
                 sanitizeWidgetsShortcutsAndPackages();
                 logASplit("sanitizeData finished");
             }
@@ -370,19 +359,6 @@ public class LoaderTask implements Runnable {
             mLauncherBinder.bindWidgets();
             logASplit("bindWidgets finished");
             verifyNotStopped();
-            LauncherPrefs prefs = LauncherPrefs.get(mContext);
-
-            if (enableSmartspaceAsAWidget() && prefs.get(SHOULD_SHOW_SMARTSPACE)) {
-                mLauncherBinder.bindSmartspaceWidget();
-                // Turn off pref.
-                prefs.putSync(SHOULD_SHOW_SMARTSPACE.to(false));
-                logASplit("bindSmartspaceWidget finished");
-                verifyNotStopped();
-            } else if (!enableSmartspaceAsAWidget() && WIDGET_ON_FIRST_SCREEN
-                    && !prefs.get(LauncherPrefs.SHOULD_SHOW_SMARTSPACE)) {
-                // Turn on pref.
-                prefs.putSync(SHOULD_SHOW_SMARTSPACE.to(true));
-            }
 
             logASplit("saving all widgets in icon cache");
             updateHandler.updateIcons(allWidgetsList,
@@ -485,17 +461,17 @@ public class LoaderTask implements Runnable {
                     mIsRestoreFromBackup ? restoreEventLogger : null);
             final Bundle extras = c.getExtras();
             mDbName = extras == null ? null : extras.getString(ModelDbController.EXTRA_DB_NAME);
+            WorkspaceItemProcessor itemProcessor;
             try {
                 final LongSparseArray<Boolean> unlockedUsers = new LongSparseArray<>();
                 queryPinnedShortcutsForUnlockedUsers(mContext, unlockedUsers);
 
                 mWorkspaceIconRequestInfos = new ArrayList<>();
-                WorkspaceItemProcessor itemProcessor = new WorkspaceItemProcessor(c, memoryLogger,
+                itemProcessor = new WorkspaceItemProcessor(c, memoryLogger,
                         mUserCache, mUserManagerState, mLauncherApps, mPendingPackages,
                         mShortcutKeyToPinnedShortcuts, mContext, mIDP, mIconCache,
-                        mIsSafeModeEnabled, mBgDataModel,
-                        installingPkgs, isSdCardReady, widgetInflater, mPmHelper,
-                        mWorkspaceIconRequestInfos, unlockedUsers, allDeepShortcuts);
+                        mIsSafeModeEnabled, installingPkgs, isSdCardReady, widgetInflater,
+                        mPmHelper, mWorkspaceIconRequestInfos, unlockedUsers, allDeepShortcuts);
 
                 if (mStopped) {
                     Log.w(TAG, "loadWorkspaceImpl: Loader stopped, skipping item processing");
@@ -509,42 +485,16 @@ public class LoaderTask implements Runnable {
                 IOUtils.closeSilently(c);
             }
 
-            mModelDelegate.loadAndBindWorkspaceItems();
-            mModelDelegate.loadAndBindAllAppsItems();
-            mModelDelegate.loadAndBindOtherItems();
-            mBgDataModel.stringCache.loadStrings(mContext);
-            mModelDelegate.markActive();
-
             // Break early if we've stopped loading
             if (mStopped) {
                 mBgDataModel.clear();
                 return;
             }
 
-            // Remove dead items
-            mItemsDeleted = c.commitDeleted();
-
-            processFolderItems();
-            processAppPairItems();
-
-            c.commitRestoredItems();
-
-            mBgDataModel.dataLoadComplete();
+            mBgDataModel.stringCache.loadStrings(mContext);
+            mBgDataModel.dataLoadComplete(
+                    itemProcessor.finalizeData(mModelDelegate, mModel.getModelDbController()));
         }
-    }
-
-    /**
-     * After all items have been processed and added to the BgDataModel, this method sorts and
-     * requests high-res icons for the items that are part of an app pair.
-     */
-    private void processAppPairItems() {
-        mBgDataModel.itemsIdMap.stream()
-                .filter(item -> item instanceof AppPairInfo)
-                .forEach(item -> {
-                    AppPairInfo appPair = (AppPairInfo) item;
-                    appPair.getContents().sort(Folder.ITEM_POS_COMPARATOR);
-                    appPair.fetchHiResIconsIfNeeded(mIconCache);
-                });
     }
 
     /**
@@ -590,44 +540,6 @@ public class LoaderTask implements Runnable {
 
     }
 
-    /**
-     * After all items have been processed and added to the BgDataModel, this method can correctly
-     * rank items inside folders and load the correct miniature preview icons to be shown when the
-     * folder is collapsed.
-     */
-    @WorkerThread
-    private void processFolderItems() {
-        // Sort the folder items, update ranks, and make sure all preview items are high res.
-        List<FolderGridOrganizer> verifiers = mIDP.supportedProfiles
-                .stream().map(FolderGridOrganizer::createFolderGridOrganizer).toList();
-        for (ItemInfo itemInfo : mBgDataModel.itemsIdMap) {
-            if (!(itemInfo instanceof FolderInfo folder)) {
-                continue;
-            }
-
-            folder.getContents().sort(Folder.ITEM_POS_COMPARATOR);
-            verifiers.forEach(verifier -> verifier.setFolderInfo(folder));
-            int size = folder.getContents().size();
-
-            // Update ranks here to ensure there are no gaps caused by removed folder items.
-            // Ranks are the source of truth for folder items, so cellX and cellY can be
-            // ignored for now. Database will be updated once user manually modifies folder.
-            for (int rank = 0; rank < size; ++rank) {
-                ItemInfo info = folder.getContents().get(rank);
-                info.rank = rank;
-
-                if (info instanceof WorkspaceItemInfo wii
-                        && wii.getMatchingLookupFlag().isVisuallyLessThan(DESKTOP_ICON_FLAG)
-                        && wii.itemType == Favorites.ITEM_TYPE_APPLICATION
-                        && verifiers.stream().anyMatch(it -> it.isItemInPreview(info.rank))) {
-                    mIconCache.getTitleAndIcon(wii, DESKTOP_ICON_FLAG);
-                } else if (info instanceof AppPairInfo api) {
-                    api.fetchHiResIconsIfNeeded(mIconCache);
-                }
-            }
-        }
-    }
-
     private void tryLoadWorkspaceIconsInBulk(
             List<IconRequestInfo<WorkspaceItemInfo>> iconRequestInfos) {
         Trace.beginSection("LoadWorkspaceIconsInBulk");
@@ -650,14 +562,12 @@ public class LoaderTask implements Runnable {
         // Ignore packages which have a promise icon.
         synchronized (mBgDataModel) {
             for (ItemInfo info : mBgDataModel.itemsIdMap) {
-                if (info instanceof WorkspaceItemInfo) {
-                    WorkspaceItemInfo si = (WorkspaceItemInfo) info;
+                if (info instanceof WorkspaceItemInfo si) {
                     if (si.isPromise() && si.getTargetComponent() != null) {
                         updateHandler.addPackagesToIgnore(
                                 si.user, si.getTargetComponent().getPackageName());
                     }
-                } else if (info instanceof LauncherAppWidgetInfo) {
-                    LauncherAppWidgetInfo lawi = (LauncherAppWidgetInfo) info;
+                } else if (info instanceof LauncherAppWidgetInfo lawi) {
                     if (lawi.hasRestoreFlag(LauncherAppWidgetInfo.FLAG_PROVIDER_NOT_READY)) {
                         updateHandler.addPackagesToIgnore(
                                 lawi.user, lawi.providerName.getPackageName());
@@ -667,33 +577,6 @@ public class LoaderTask implements Runnable {
         }
     }
 
-    private void sanitizeFolders(boolean itemsDeleted) {
-        if (itemsDeleted) {
-            // Remove any empty folder
-            IntArray deletedFolderIds = mModel.getModelDbController().deleteEmptyFolders();
-            synchronized (mBgDataModel) {
-                for (int folderId : deletedFolderIds) {
-                    mBgDataModel.itemsIdMap.remove(folderId);
-                }
-            }
-        }
-    }
-
-    /** Cleans up app pairs if they don't have the right number of member apps (2). */
-    private void sanitizeAppPairs() {
-        IntArray deletedAppPairIds = mModel.getModelDbController().deleteBadAppPairs();
-        IntArray deletedAppIds = mModel.getModelDbController().deleteUnparentedApps();
-
-        IntArray deleted = new IntArray();
-        deleted.addAll(deletedAppPairIds);
-        deleted.addAll(deletedAppIds);
-
-        synchronized (mBgDataModel) {
-            for (int id : deleted) {
-                mBgDataModel.itemsIdMap.remove(id);
-            }
-        }
-    }
 
     private void sanitizeWidgetsShortcutsAndPackages() {
         // Remove any ghost widgets

@@ -256,7 +256,7 @@ public class ModelWriter {
             mModel.getModelDbController().insert(writer.getValues(mContext));
             synchronized (mBgDataModel) {
                 checkItemInfoLocked(item.id, item, stackTrace);
-                mBgDataModel.addItem(mContext, item, true, mOwner);
+                mBgDataModel.addItem(mContext, item, mOwner);
                 verifier.verifyModel();
             }
         }).executeOnModelThread();

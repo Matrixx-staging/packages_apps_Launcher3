@@ -114,7 +114,7 @@ class TasksRepository(
         taskRequests[taskId] =
             Pair(
                 task.key,
-                recentsCoroutineScope.launch(dispatcherProvider.background) {
+                recentsCoroutineScope.launch(dispatcherProvider.lightweightBackground) {
                     val thumbnailFetchDeferred = async { fetchThumbnail(task) }
                     val iconFetchDeferred = async { fetchIcon(task) }
                     awaitAll(thumbnailFetchDeferred, iconFetchDeferred)
@@ -154,7 +154,7 @@ class TasksRepository(
             task.key,
             object : TaskIconChangedCallback {
                 override fun onTaskIconChanged() {
-                    recentsCoroutineScope.launch(dispatcherProvider.background) {
+                    recentsCoroutineScope.launch(dispatcherProvider.lightweightBackground) {
                         updateIcon(task.key.id, getIconFromDataSource(task))
                     }
                 }
@@ -182,7 +182,7 @@ class TasksRepository(
                             (isCurrentThumbnailLowRes && highResEnabled)
                     if (!isRequestedResHigherThanCurrent) return
 
-                    recentsCoroutineScope.launch(dispatcherProvider.background) {
+                    recentsCoroutineScope.launch(dispatcherProvider.lightweightBackground) {
                         updateThumbnail(task.key.id, getThumbnailFromDataSource(task))
                     }
                 }
@@ -209,10 +209,12 @@ class TasksRepository(
     }
 
     private suspend fun getThumbnailFromDataSource(task: Task) =
-        withContext(dispatcherProvider.background) { taskThumbnailDataSource.getThumbnail(task) }
+        withContext(dispatcherProvider.lightweightBackground) {
+            taskThumbnailDataSource.getThumbnail(task)
+        }
 
     private suspend fun getIconFromDataSource(task: Task) =
-        withContext(dispatcherProvider.background) {
+        withContext(dispatcherProvider.lightweightBackground) {
             val iconCacheEntry = taskIconDataSource.getIcon(task)
             IconData(iconCacheEntry.icon, iconCacheEntry.contentDescription, iconCacheEntry.title)
         }

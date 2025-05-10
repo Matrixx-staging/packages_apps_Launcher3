@@ -25,6 +25,7 @@ import android.widget.FrameLayout.LayoutParams.MATCH_PARENT
 import android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
 import androidx.activity.ComponentActivity
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.filters.FlakyTest
 import com.android.launcher3.R
 import com.android.launcher3.taskbar.bubbles.testing.FakeBubbleViewFactory
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation
@@ -79,6 +80,7 @@ class BubbleBarViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
         }
     }
 
+    @FlakyTest(bugId = 416207075)
     @Test
     fun bubbleBarView_collapsed_twoBubbles() {
         screenshotRule.screenshotTest("bubbleBarView_collapsed_twoBubbles") { activity ->

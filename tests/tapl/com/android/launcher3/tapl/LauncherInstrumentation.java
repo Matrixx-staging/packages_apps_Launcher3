@@ -16,6 +16,8 @@
 
 package com.android.launcher3.tapl;
 
+import static android.app.UiModeManager.MODE_NIGHT_NO;
+import static android.app.UiModeManager.MODE_NIGHT_YES;
 import static android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED;
 import static android.content.pm.PackageManager.DONT_KILL_APP;
 import static android.content.pm.PackageManager.MATCH_ALL;
@@ -191,6 +193,7 @@ public final class LauncherInstrumentation {
 
     private final UiDevice mDevice;
     private final Instrumentation mInstrumentation;
+    private final UiModeManager mUiModeManager;
     private Integer mExpectedRotation = null;
     private boolean mExpectedRotationCheckEnabled = true;
     private final Uri mTestProviderUri;
@@ -252,6 +255,8 @@ public final class LauncherInstrumentation {
     public LauncherInstrumentation(Instrumentation instrumentation, boolean isLauncherTest) {
         mInstrumentation = instrumentation;
         mDevice = UiDevice.getInstance(instrumentation);
+        mUiModeManager = (UiModeManager) mInstrumentation.getContext()
+                        .getSystemService(Context.UI_MODE_SERVICE);
 
         // Launcher should run in test harness so that custom accessibility protocol between
         // Launcher and TAPL is enabled. In-process tests enable this protocol with a direct call
@@ -460,6 +465,25 @@ public final class LauncherInstrumentation {
     public int getOverviewFirstTaskViewIndex() {
         return getTestInfo(TestProtocol.REQUEST_GET_OVERVIEW_FIRST_TASKVIEW_INDEX).getInt(
                 TEST_INFO_RESPONSE_FIELD);
+    }
+
+    /**
+     * Toggle night mode and returns the {@link UiModeManager.NightMode} that this method is
+     * switching into.
+     */
+    @UiModeManager.NightMode
+    public int toggleNightMode() throws IOException {
+        int currentNightMode = getNightMode();
+        int targetNightMode = currentNightMode == MODE_NIGHT_NO ? MODE_NIGHT_YES : MODE_NIGHT_NO;
+        mDevice.executeShellCommand("cmd uimode night "
+                + (targetNightMode == MODE_NIGHT_NO ? "no" : "yes"));
+        return targetNightMode;
+    }
+
+    /** Return the current {@link UiModeManager.NightMode}. */
+    @UiModeManager.NightMode
+    public int getNightMode() {
+        return mUiModeManager.getNightMode();
     }
 
     float getExactScreenCenterX() {
@@ -1475,9 +1499,7 @@ public final class LauncherInstrumentation {
 
     @NonNull
     private UiObject2 getHomeButton() {
-        UiModeManager uiManager =
-                (UiModeManager) getContext().getSystemService(Context.UI_MODE_SERVICE);
-        if (uiManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_CAR) {
+        if (mUiModeManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_CAR) {
             return waitForAssistantHomeButton();
         } else {
             return waitForNavigationUiObject("home");
@@ -2712,5 +2734,11 @@ public final class LauncherInstrumentation {
                         .equals(event.getClassName().toString()),
                 () -> "Didn't detect finishing wallpaper-open animation",
                 actionName);
+    }
+
+    /** Returns the magnetic detach threshold when dismissing a task view. */
+    public int getMagneticDetachThreshold() {
+        return getTestInfo(TestProtocol.REQUEST_DISMISS_MAGNETIC_DETACH_THRESHOLD).getInt(
+                TestProtocol.TEST_INFO_RESPONSE_FIELD);
     }
 }

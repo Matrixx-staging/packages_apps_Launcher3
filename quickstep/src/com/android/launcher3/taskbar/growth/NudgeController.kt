@@ -95,9 +95,6 @@ class NudgeController(context: Context) : LoggableTaskbarController {
             fun updateImage(image: Image?) {
                 val imageView = requireViewById<ImageView>(R.id.image_view)
                 when (image) {
-                    is Image.Url -> {
-                        // TODO: b/396166097 - Load image from URL.
-                    }
                     is Image.ResourceId -> {
                         imageView.setImageDrawable(context.getDrawable(image.resId))
                     }

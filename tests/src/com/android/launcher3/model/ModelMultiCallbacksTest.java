@@ -16,6 +16,7 @@
 package com.android.launcher3.model;
 
 import static com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE;
+import static com.android.launcher3.util.ModelTestExtensions.nonPredictedItemCount;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -32,11 +33,10 @@ import androidx.test.filters.SmallTest;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherModel;
 import com.android.launcher3.model.BgDataModel.Callbacks;
-import com.android.launcher3.model.BgDataModel.FixedContainerItems;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.model.data.WorkspaceData;
 import com.android.launcher3.util.Executors;
-import com.android.launcher3.util.IntSparseArrayMap;
 import com.android.launcher3.util.LauncherLayoutBuilder;
 import com.android.launcher3.util.PackageUserKey;
 import com.android.launcher3.util.SandboxApplication;
@@ -176,9 +176,7 @@ public class ModelMultiCallbacksTest {
         MyCallbacks() { }
 
         @Override
-        public void bindCompleteModel(IntSparseArrayMap<ItemInfo> itemIdMap,
-                List<FixedContainerItems> extraItems, StringCache stringCache,
-                boolean isBindingSync) {
+        public void bindCompleteModel(WorkspaceData itemIdMap, boolean isBindingSync) {
             mItems = itemIdMap.stream().toList();
         }
 
@@ -195,7 +193,7 @@ public class ModelMultiCallbacksTest {
 
         public void verifyItemsBound(int totalItems) {
             assertNotNull(mItems);
-            assertEquals(mItems.size(), totalItems);
+            assertEquals(totalItems, nonPredictedItemCount(mItems));
         }
 
         public Set<String> allApps() {

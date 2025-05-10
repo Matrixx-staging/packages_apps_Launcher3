@@ -51,6 +51,8 @@ import com.android.launcher3.widget.util.WidgetDragScaleUtils;
  */
 public class LauncherDragController extends DragController<Launcher> {
 
+    public static final String TAG = "LauncherDragController";
+
     private static final boolean PROFILE_DRAWING_DURING_DRAG = false;
     private final FlingToDeleteHelper mFlingToDeleteHelper;
 
@@ -233,6 +235,11 @@ public class LauncherDragController extends DragController<Launcher> {
 
         return WidgetDragScaleUtils.getWidgetDragScalePx(mActivity, mActivity.getDeviceProfile(),
                 draggedViewWidthPx, draggedViewHeightPx, dragInfo);
+    }
+
+    @Override
+    public String dump() {
+        return TAG;
     }
 
     @Override

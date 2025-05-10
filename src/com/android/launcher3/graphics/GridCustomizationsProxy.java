@@ -15,18 +15,25 @@
  */
 package com.android.launcher3.graphics;
 
-
+import static com.android.launcher3.BuildConfig.IS_DEBUG_DEVICE;
 import static com.android.launcher3.Flags.enableLauncherIconShapes;
+import static com.android.launcher3.graphics.PreviewSurfaceRenderer.KEY_BITMAP_GENERATION_DELAY_MS;
+import static com.android.launcher3.graphics.PreviewSurfaceRenderer.KEY_VIEW_HEIGHT;
+import static com.android.launcher3.graphics.PreviewSurfaceRenderer.KEY_VIEW_WIDTH;
+import static com.android.launcher3.graphics.PreviewSurfaceRenderer.MIN_BITMAP_GENERATION_DELAY_MS;
 import static com.android.launcher3.graphics.ThemeManager.PREF_ICON_SHAPE;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 
 import static java.util.Objects.requireNonNullElse;
+import static java.util.concurrent.CompletableFuture.delayedExecutor;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.MatrixCursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Bundle;
@@ -49,6 +56,7 @@ import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.model.BgDataModel;
 import com.android.launcher3.shapes.IconShapeModel;
 import com.android.launcher3.shapes.ShapesProvider;
+import com.android.launcher3.util.ApiWrapper;
 import com.android.launcher3.util.ContentProviderProxy.ProxyProvider;
 import com.android.launcher3.util.DaggerSingletonTracker;
 import com.android.launcher3.util.Executors;
@@ -117,6 +125,7 @@ public class GridCustomizationsProxy implements ProxyProvider {
     private static final String SET_SHAPE = "/shape";
 
     private static final String METHOD_GET_PREVIEW = "get_preview";
+    public static final String METHOD_GET_PREVIEW_BITMAP = "get_preview_bitmap";
 
     private static final String GET_ICON_THEMED = "/get_icon_themed";
     private static final String SET_ICON_THEMED = "/set_icon_themed";
@@ -127,6 +136,7 @@ public class GridCustomizationsProxy implements ProxyProvider {
     private static final String KEY_CALLBACK = "callback";
     public static final String KEY_HIDE_BOTTOM_ROW = "hide_bottom_row";
     public static final String KEY_GRID_NAME = "grid_name";
+    public static final String KEY_IMAGE = "image";
 
     private static final int MESSAGE_ID_UPDATE_PREVIEW = 1337;
     private static final int MESSAGE_ID_UPDATE_SHAPE = 2586;
@@ -162,6 +172,9 @@ public class GridCustomizationsProxy implements ProxyProvider {
     public Cursor query(Uri uri, String[] projection, String selection,
             String[] selectionArgs, String sortOrder) {
         String path = uri.getPath();
+        if (IS_DEBUG_DEVICE) {
+            Log.d(TAG, "query: path=" + path);
+        }
         if (path == null) {
             return null;
         }
@@ -196,6 +209,7 @@ public class GridCustomizationsProxy implements ProxyProvider {
                     }
                     return cursor;
                 } else  {
+                    Log.w(TAG, "Shape options queried outside of flag, returning null.");
                     return null;
                 }
             }
@@ -228,8 +242,10 @@ public class GridCustomizationsProxy implements ProxyProvider {
                 cursor.newRow().add(BOOLEAN_VALUE, mThemeManager.isMonoThemeEnabled() ? 1 : 0);
                 return cursor;
             }
-            default:
+            default: {
+                Log.d(TAG, "Invalid Query Path, returning null.");
                 return null;
+            }
         }
     }
 
@@ -302,18 +318,45 @@ public class GridCustomizationsProxy implements ProxyProvider {
 
     @Override
     public Bundle call(@NonNull String method, String arg, Bundle extras) {
-        if (METHOD_GET_PREVIEW.equals(method)) {
-            return getPreview(extras);
-        } else {
-            return null;
+        return switch (method) {
+            case METHOD_GET_PREVIEW -> getPreview(extras);
+            case METHOD_GET_PREVIEW_BITMAP -> getPreviewBitmap(extras);
+            default -> null;
+        };
+    }
+
+    private Bundle getPreviewBitmap(Bundle request) {
+        RunnableList lifeCycleTracker = new RunnableList();
+        try {
+            int width = request.getInt(KEY_VIEW_WIDTH);
+            int height = request.getInt(KEY_VIEW_HEIGHT);
+            long previewDelay = Math.max(request.getLong(KEY_BITMAP_GENERATION_DELAY_MS, 0),
+                    MIN_BITMAP_GENERATION_DELAY_MS);
+
+            PreviewSurfaceRenderer renderer = new PreviewSurfaceRenderer(
+                    mContext, lifeCycleTracker, request, Binder.getCallingPid(),
+                    true /* skip animations */);
+            renderer.loadAsync().thenRunAsync(
+                    () -> { }, delayedExecutor(previewDelay, MILLISECONDS, MAIN_EXECUTOR)).get();
+            Bitmap previewBitmap = ApiWrapper.INSTANCE.get(mContext)
+                    .captureSnapshot(renderer.getHost(), width, height);
+
+            Bundle result = new Bundle();
+            result.putParcelable(KEY_IMAGE, previewBitmap);
+            return result;
+        } catch (Exception e) {
+            Log.e(TAG, "Unable to generate preview", e);
         }
+        MAIN_EXECUTOR.execute(lifeCycleTracker::executeAllAndDestroy);
+        return null;
     }
 
     private synchronized Bundle getPreview(Bundle request) {
         RunnableList lifeCycleTracker = new RunnableList();
         try {
             PreviewSurfaceRenderer renderer = new PreviewSurfaceRenderer(
-                    mContext, lifeCycleTracker, request, Binder.getCallingPid());
+                    mContext, lifeCycleTracker, request, Binder.getCallingPid(),
+                    false /* skip animations */);
             PreviewLifecycleObserver observer =
                     new PreviewLifecycleObserver(lifeCycleTracker, renderer);
 
@@ -326,7 +369,7 @@ public class GridCustomizationsProxy implements ProxyProvider {
             renderer.getHostToken().linkToDeath(observer, 0);
 
             Bundle result = new Bundle();
-            result.putParcelable(KEY_SURFACE_PACKAGE, renderer.getSurfacePackage());
+            result.putParcelable(KEY_SURFACE_PACKAGE, renderer.getHost().getSurfacePackage());
 
             mActivePreviews.add(observer);
             lifeCycleTracker.add(() -> mActivePreviews.remove(observer));

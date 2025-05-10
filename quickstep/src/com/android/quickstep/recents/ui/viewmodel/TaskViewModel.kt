@@ -55,7 +55,7 @@ class TaskViewModel(
     private val getThumbnailPositionUseCase: GetThumbnailPositionUseCase,
     dispatcherProvider: DispatcherProvider,
 ) {
-    private var taskIds = MutableStateFlow(emptySet<Int>())
+    private val taskIds = MutableStateFlow(emptySet<Int>())
 
     private val isLiveTile =
         combine(
@@ -107,7 +107,7 @@ class TaskViewModel(
                     0
                 }
             }
-            .flowOn(dispatcherProvider.background)
+            .flowOn(dispatcherProvider.lightweightBackground)
 
     fun bind(vararg taskId: TaskId) {
         taskIds.value = taskId.toSet().also { Log.d(TAG, "bind: $it") }

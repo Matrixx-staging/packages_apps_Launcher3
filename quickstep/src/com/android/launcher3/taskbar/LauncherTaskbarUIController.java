@@ -55,6 +55,7 @@ import com.android.quickstep.LauncherActivityInterface;
 import com.android.quickstep.OverviewComponentObserver;
 import com.android.quickstep.RecentsAnimationCallbacks;
 import com.android.quickstep.SystemUiProxy;
+import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.util.SplitTask;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
@@ -123,16 +124,15 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
         int displayId = taskbarContext.getDisplayId();
         BaseContainerInterface<?, ?> containerInterface = OverviewComponentObserver.INSTANCE.get(
                 taskbarContext).getContainerInterface(displayId);
-        if (containerInterface != null) {
-            mRecentsViewContainer = containerInterface.getCreatedContainer();
-        }
-        if (mRecentsViewContainer == null) {
+        if (containerInterface != null
+                && containerInterface.getCreatedContainer()
+                instanceof RecentsWindowManager recentsWindowManager) {
+            mRecentsViewContainer = recentsWindowManager;
+            mRecentsViewContainer.setTaskbarUIController(this);
+        } else {
             mRecentsViewContainer = mLauncher;
         }
         mLauncher.setTaskbarUIController(this);
-        if (mRecentsViewContainer != mLauncher) {
-            mRecentsViewContainer.setTaskbarUIController(this);
-        }
 
         mHomeState.addListener(mVisibilityChangeListener);
         onLauncherVisibilityChanged(mHomeState.isHomeVisible(), true /* fromInit */);

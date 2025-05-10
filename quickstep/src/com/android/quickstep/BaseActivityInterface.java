@@ -20,7 +20,6 @@ import static com.android.app.animation.Interpolators.INSTANT;
 import static com.android.app.animation.Interpolators.LINEAR;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMultiFingerSwipe;
 import static com.android.quickstep.AbsSwipeUpHandler.RECENTS_ATTACH_DURATION;
-import static com.android.quickstep.GestureState.GestureEndTarget.LAST_TASK;
 import static com.android.quickstep.util.RecentsAtomicAnimationFactory.INDEX_RECENTS_ATTACHED_ALPHA_ANIM;
 import static com.android.quickstep.util.RecentsAtomicAnimationFactory.INDEX_RECENTS_FADE_ANIM;
 import static com.android.quickstep.util.RecentsAtomicAnimationFactory.INDEX_RECENTS_TRANSLATE_X_ANIM;
@@ -40,7 +39,6 @@ import androidx.annotation.Nullable;
 import com.android.launcher3.anim.AnimatorPlaybackController;
 import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.statehandlers.DepthController;
-import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.statemanager.BaseState;
 import com.android.launcher3.statemanager.StatefulActivity;
 import com.android.launcher3.taskbar.TaskbarUIController;
@@ -69,37 +67,6 @@ public abstract class BaseActivityInterface<STATE_TYPE extends BaseState<STATE_T
         super(backgroundState);
         this.rotationSupportedByActivity = rotationSupportedByActivity;
         mTargetState = overviewState;
-    }
-
-    /**
-     * Called when the current gesture transition is cancelled.
-     * @param activityVisible Whether the user can see the changes we make here, so try to animate.
-     * @param endTarget If the gesture ended before we got cancelled, where we were headed.
-     */
-    public void onTransitionCancelled(boolean activityVisible,
-            @Nullable GestureState.GestureEndTarget endTarget) {
-        ACTIVITY_TYPE activity = getCreatedContainer();
-        if (activity == null) {
-            return;
-        }
-        STATE_TYPE startState = activity.getStateManager().getRestState();
-        if (endTarget != null) {
-            // We were on our way to this state when we got canceled, end there instead.
-            startState = stateFromGestureEndTarget(endTarget);
-            if (DesktopVisibilityController.INSTANCE.get(activity)
-                    .isInDesktopModeAndNotInOverview(activity.getDisplayId())
-                    && endTarget == LAST_TASK) {
-                // When we are cancelling the transition and going back to last task, move to
-                // rest state instead when desktop tasks are visible.
-                // If a fullscreen task is visible, launcher goes to normal state when the
-                // activity is stopped. This does not happen when desktop tasks are visible
-                // on top of launcher. Force the launcher state to rest state here.
-                startState = activity.getStateManager().getRestState();
-                // Do not animate the transition
-                activityVisible = false;
-            }
-        }
-        activity.getStateManager().goToState(startState, activityVisible);
     }
 
     @Nullable

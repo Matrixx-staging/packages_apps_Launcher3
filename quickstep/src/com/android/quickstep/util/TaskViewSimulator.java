@@ -120,9 +120,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
     private boolean mIsGridTask;
     private final boolean mIsDesktopTask;
     private boolean mIsAnimatingToCarousel = false;
-    private int mTaskRectTranslationX;
-    private int mTaskRectTranslationY;
-    private int mDesktopTaskIndex = 0;
+    private final int mDesktopTaskIndex;
 
     @Nullable
     private Matrix mTaskRectTransform = null;
@@ -159,7 +157,10 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
         calculateTaskSize();
     }
 
-    private void calculateTaskSize() {
+    /**
+     * Updates the task size.
+     */
+    public void calculateTaskSize() {
         if (mDp == null) {
             return;
         }
@@ -211,7 +212,6 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
         } else {
             mTaskRect.set(mFullTaskSize);
         }
-        mTaskRect.offset(mTaskRectTranslationX, mTaskRectTranslationY);
     }
 
     /**
@@ -229,11 +229,8 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
         if (mDp == null) {
             return 1;
         }
-        // Copy mFullTaskSize instead of updating it directly so it could be reused next time
-        // without recalculating
-        Rect scaleRect = new Rect(mIsAnimatingToCarousel ? mCarouselTaskSize : mFullTaskSize);
-        scaleRect.offset(mTaskRectTranslationX, mTaskRectTranslationY);
-        float scale = mOrientationState.getFullScreenScaleAndPivot(scaleRect, mDp, mPivot);
+        float scale = mOrientationState.getFullScreenScaleAndPivot(
+                mIsAnimatingToCarousel ? mCarouselTaskSize : mFullTaskSize, mDp, mPivot);
         if (mPivotOverride != null) {
             mPivot.set(mPivotOverride);
         }
@@ -312,16 +309,6 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
      */
     public void setDrawsAboveOtherApps(boolean drawsAboveOtherApps) {
         mDrawAboveOtherApps = drawsAboveOtherApps;
-    }
-
-    /**
-     * Apply translations on TaskRect's starting location.
-     */
-    public void setTaskRectTranslation(int taskRectTranslationX, int taskRectTranslationY) {
-        mTaskRectTranslationX = taskRectTranslationX;
-        mTaskRectTranslationY = taskRectTranslationY;
-        // Re-calculate task size after changing translation
-        calculateTaskSize();
     }
 
     /**

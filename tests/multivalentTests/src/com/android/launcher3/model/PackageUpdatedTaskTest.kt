@@ -124,7 +124,7 @@ class PackageUpdatedTaskTest {
         // Given
         val taskUnderTest = PackageUpdatedTask(OP_ADD, mUser, expectedPackage)
         // When
-        mDataModel.addItem(mContext, expectedWorkspaceItem, true)
+        mDataModel.addItem(mContext, expectedWorkspaceItem)
         TestUtil.runOnExecutorSync(Executors.MODEL_EXECUTOR) {
             taskUnderTest.execute(mockTaskController, mDataModel, mAllAppsList)
         }
@@ -142,7 +142,7 @@ class PackageUpdatedTaskTest {
         // Given
         val taskUnderTest = PackageUpdatedTask(OP_UPDATE, mUser, expectedPackage)
         // When
-        mDataModel.addItem(mContext, expectedWorkspaceItem, true)
+        mDataModel.addItem(mContext, expectedWorkspaceItem)
         TestUtil.runOnExecutorSync(Executors.MODEL_EXECUTOR) {
             taskUnderTest.execute(mockTaskController, mDataModel, mAllAppsList)
         }
@@ -159,7 +159,7 @@ class PackageUpdatedTaskTest {
         // Given
         val taskUnderTest = PackageUpdatedTask(OP_REMOVE, mUser, expectedPackage)
         // When
-        mDataModel.addItem(mContext, expectedWorkspaceItem, true)
+        mDataModel.addItem(mContext, expectedWorkspaceItem)
         TestUtil.runOnExecutorSync(Executors.MODEL_EXECUTOR) {
             taskUnderTest.execute(mockTaskController, mDataModel, mAllAppsList)
         }
@@ -175,7 +175,7 @@ class PackageUpdatedTaskTest {
         // Given
         val taskUnderTest = PackageUpdatedTask(OP_UNAVAILABLE, mUser, expectedPackage)
         // When
-        mDataModel.addItem(mContext, expectedWorkspaceItem, true)
+        mDataModel.addItem(mContext, expectedWorkspaceItem)
         TestUtil.runOnExecutorSync(Executors.MODEL_EXECUTOR) {
             taskUnderTest.execute(mockTaskController, mDataModel, mAllAppsList)
         }
@@ -190,7 +190,7 @@ class PackageUpdatedTaskTest {
         // Given
         val taskUnderTest = PackageUpdatedTask(OP_SUSPEND, mUser, expectedPackage)
         // When
-        mDataModel.addItem(mContext, expectedWorkspaceItem, true)
+        mDataModel.addItem(mContext, expectedWorkspaceItem)
         mAllAppsList.add(AppInfo(mContext, expectedActivityInfo, mUser), expectedActivityInfo)
         mAllAppsList.getAndResetChangeFlag()
         doAnswer {}.whenever(mockTaskController).bindApplicationsIfNeeded()
@@ -208,7 +208,7 @@ class PackageUpdatedTaskTest {
         // Given
         val taskUnderTest = PackageUpdatedTask(OP_UNSUSPEND, mUser, expectedPackage)
         // When
-        mDataModel.addItem(mContext, expectedWorkspaceItem, true)
+        mDataModel.addItem(mContext, expectedWorkspaceItem)
         mAllAppsList.getAndResetChangeFlag()
         doAnswer {}.whenever(mockTaskController).bindApplicationsIfNeeded()
         TestUtil.runOnExecutorSync(Executors.MODEL_EXECUTOR) {
@@ -226,7 +226,7 @@ class PackageUpdatedTaskTest {
         // Given
         val taskUnderTest = PackageUpdatedTask(OP_USER_AVAILABILITY_CHANGE, mUser, expectedPackage)
         // When
-        mDataModel.addItem(mContext, expectedWorkspaceItem, true)
+        mDataModel.addItem(mContext, expectedWorkspaceItem)
         TestUtil.runOnExecutorSync(Executors.MODEL_EXECUTOR) {
             taskUnderTest.execute(mockTaskController, mDataModel, mAllAppsList)
         }

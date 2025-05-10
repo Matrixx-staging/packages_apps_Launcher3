@@ -48,13 +48,15 @@ import android.platform.test.annotations.DisableFlags;
 import android.platform.test.flag.junit.SetFlagsRule;
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 
 import com.android.launcher3.Flags;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherModel;
-import com.android.launcher3.model.BgDataModel.FixedContainerItems;
+import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.model.data.PredictedContainerInfo;
 import com.android.launcher3.util.LauncherLayoutBuilder;
 import com.android.launcher3.util.ModelTestExtensions;
 import com.android.launcher3.util.SandboxApplication;
@@ -71,6 +73,7 @@ import org.mockito.junit.MockitoRule;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @SmallTest
@@ -184,7 +187,8 @@ public final class WidgetsPredicationUpdateTaskTest {
             // 2. app3 doesn't have a widget.
             // 3. only 1 widget is picked from app1 because we only want to promote one widget
             // per app.
-            List<PendingAddWidgetInfo> recommendedWidgets = mCallback.mRecommendedWidgets.items
+            List<PendingAddWidgetInfo> recommendedWidgets = mCallback.mRecommendedWidgets
+                    .getContents()
                     .stream()
                     .map(itemInfo -> (PendingAddWidgetInfo) itemInfo)
                     .collect(Collectors.toList());
@@ -220,7 +224,8 @@ public final class WidgetsPredicationUpdateTaskTest {
             runOnExecutorSync(MAIN_EXECUTOR, () -> { });
 
             // Only widgets suggested by prediction system are returned.
-            List<PendingAddWidgetInfo> recommendedWidgets = mCallback.mRecommendedWidgets.items
+            List<PendingAddWidgetInfo> recommendedWidgets = mCallback.mRecommendedWidgets
+                    .getContents()
                     .stream()
                     .map(itemInfo -> (PendingAddWidgetInfo) itemInfo)
                     .collect(Collectors.toList());
@@ -245,7 +250,8 @@ public final class WidgetsPredicationUpdateTaskTest {
             runOnExecutorSync(MAIN_EXECUTOR, () -> { });
 
             // Only widget 1 (and no widget 6 as its meant to be hidden from picker).
-            List<PendingAddWidgetInfo> recommendedWidgets = mCallback.mRecommendedWidgets.items
+            List<PendingAddWidgetInfo> recommendedWidgets = mCallback.mRecommendedWidgets
+                    .getContents()
                     .stream()
                     .map(itemInfo -> (PendingAddWidgetInfo) itemInfo)
                     .collect(Collectors.toList());
@@ -273,11 +279,16 @@ public final class WidgetsPredicationUpdateTaskTest {
 
     private final class FakeBgDataModelCallback implements BgDataModel.Callbacks {
 
-        private FixedContainerItems mRecommendedWidgets = null;
+        private PredictedContainerInfo mRecommendedWidgets = null;
 
         @Override
-        public void bindExtraContainerItems(FixedContainerItems item) {
-            mRecommendedWidgets = item;
+        public void bindItemsUpdated(@NonNull Set<ItemInfo> updates) {
+            for (ItemInfo update : updates) {
+                if (update.id == CONTAINER_WIDGETS_PREDICTION
+                        && update instanceof PredictedContainerInfo pci) {
+                    mRecommendedWidgets = pci;
+                }
+            }
         }
     }
 }

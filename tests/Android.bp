@@ -57,13 +57,7 @@ filegroup {
     name: "launcher-oop-tests-src",
     srcs: [
         ":launcher-testing-helpers",
-        "src/com/android/launcher3/allapps/TaplOpenCloseAllAppsTest.java",
-        "src/com/android/launcher3/allapps/TaplAllAppsIconsWorkingTest.java",
-        "src/com/android/launcher3/appiconmenu/TaplAppIconMenuTest.java",
-        "src/com/android/launcher3/dragging/TaplDragTest.java",
-        "src/com/android/launcher3/dragging/TaplUninstallRemoveTest.java",
-        "src/com/android/launcher3/ui/TaplTestsLauncher3Test.java",
-        "src/com/android/launcher3/ui/workspace/TaplWorkspaceTest.java",
+        ":launcher-oop-tests-only",
     ],
 }
 
@@ -158,8 +152,8 @@ filegroup {
         "src/**/*.kt",
         "multivalentTests/src/**/*.java",
         "multivalentTests/src/**/*.kt",
-        "src/com/android/launcher3/ui/AbstractLauncherUiTest.java",
-        "src/com/android/launcher3/ui/BaseLauncherTaplTest.java",
+        "src/com/android/launcher3/util/ui/AbstractLauncherUiTest.java",
+        "src/com/android/launcher3/util/ui/BaseLauncherTaplTest.java",
         "tapl/com/android/launcher3/tapl/*.java",
         "tapl/com/android/launcher3/tapl/*.kt",
     ],
@@ -169,6 +163,7 @@ filegroup {
         "src/**/*Test.kt",
         "src/**/RoboApiWrapper.kt",
         "src/**/EventsRule.kt",
+        "src/**/LauncherCustomizer.kt",
         "multivalentTests/src/**/*Test.java",
         "multivalentTests/src/**/*Test.kt",
     ],

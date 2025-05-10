@@ -210,13 +210,6 @@ flag {
 }
 
 flag {
-    name: "enable_smartspace_as_a_widget"
-    namespace: "launcher"
-    description: "Enables smartspace as a widget"
-    bug: "300140279"
-}
-
-flag {
     name: "enabled_folders_in_all_apps"
     namespace: "launcher"
     description: "Enables folders in all apps"
@@ -649,4 +642,11 @@ flag {
   namespace: "launcher"
   description: "Adds various data repositories for the model"
   bug: "390572144"
+}
+
+flag {
+  name: "home_screen_edit_improvements"
+  namespace: "launcher"
+  description: "Improves item removal and resizing within home screen"
+  bug: "416087474"
 }

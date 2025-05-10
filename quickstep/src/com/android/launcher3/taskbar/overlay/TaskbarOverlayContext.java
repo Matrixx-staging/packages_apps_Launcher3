@@ -125,7 +125,7 @@ public class TaskbarOverlayContext extends BaseTaskbarContext {
     }
 
     @Override
-    public boolean isBackgroundBlurEnabled() {
+    public boolean isAllAppsBackgroundBlurEnabled() {
         return Flags.allAppsBlur() && mOverlayController != null
                 && mOverlayController.isBackgroundBlurEnabled();
     }
@@ -135,7 +135,7 @@ public class TaskbarOverlayContext extends BaseTaskbarContext {
         if (!Flags.allAppsBlur()) {
             return;
         }
-        getTheme().applyStyle(getBlurStyleResId(), true);
+        getTheme().applyStyle(getAllAppsBlurStyleResId(), true);
     }
 
     @Override

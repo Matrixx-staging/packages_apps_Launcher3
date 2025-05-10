@@ -33,10 +33,10 @@ import androidx.test.uiautomator.UiDevice;
 
 import com.android.launcher3.tapl.LauncherInstrumentation;
 import com.android.launcher3.tapl.TestHelpers;
-import com.android.launcher3.ui.AbstractLauncherUiTest;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.Wait;
 import com.android.launcher3.util.rule.FailureWatcher;
+import com.android.launcher3.util.ui.AbstractLauncherUiTest;
 import com.android.systemui.shared.system.QuickStepContract;
 
 import org.junit.rules.TestRule;

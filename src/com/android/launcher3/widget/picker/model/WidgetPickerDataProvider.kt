@@ -61,7 +61,7 @@ class WidgetPickerDataProvider {
         val defaultWidgets =
             if (defaultWidgetsFilter != null)
                 allWidgets
-                    .map { it.copy().apply { mWidgets.removeIf(defaultWidgetsFilter) } }
+                    .map { it.copy().apply { mWidgets.removeIf(defaultWidgetsFilter.negate()) } }
                     .filter { it.mWidgets.isNotEmpty() }
             else emptyList()
 

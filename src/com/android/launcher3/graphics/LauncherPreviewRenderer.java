@@ -25,7 +25,6 @@ import static com.android.launcher3.Hotseat.ALPHA_CHANNEL_PREVIEW_RENDERER;
 import static com.android.launcher3.LauncherPrefs.FIXED_LANDSCAPE_MODE;
 import static com.android.launcher3.LauncherPrefs.GRID_NAME;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION;
-import static com.android.launcher3.Utilities.SHOULD_SHOW_FIRST_PAGE_WIDGET;
 import static com.android.launcher3.graphics.ThemeManager.PREF_ICON_SHAPE;
 import static com.android.launcher3.graphics.ThemeManager.THEMED_ICONS;
 import static com.android.launcher3.model.ModelUtils.currentScreenContentFilter;
@@ -60,6 +59,7 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 
+import com.android.launcher3.BuildConfig;
 import com.android.launcher3.CellLayout;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Hotseat;
@@ -68,12 +68,10 @@ import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.ProxyPrefs;
 import com.android.launcher3.R;
-import com.android.launcher3.Workspace;
 import com.android.launcher3.WorkspaceLayoutManager;
 import com.android.launcher3.celllayout.CellLayoutLayoutParams;
 import com.android.launcher3.celllayout.CellPosMapper;
 import com.android.launcher3.concurrent.ExecutorsModule;
-import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.dagger.ApiWrapperModule;
 import com.android.launcher3.dagger.AppModule;
 import com.android.launcher3.dagger.LauncherAppComponent;
@@ -86,7 +84,6 @@ import com.android.launcher3.dagger.StaticObjectModule;
 import com.android.launcher3.dagger.WindowManagerProxyModule;
 import com.android.launcher3.model.BaseLauncherBinder.BaseLauncherBinderFactory;
 import com.android.launcher3.model.BgDataModel;
-import com.android.launcher3.model.BgDataModel.FixedContainerItems;
 import com.android.launcher3.model.LayoutParserFactory;
 import com.android.launcher3.model.LayoutParserFactory.XmlLayoutParserFactory;
 import com.android.launcher3.model.LoaderTask.LoaderTaskFactory;
@@ -112,7 +109,6 @@ import dagger.Component;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -168,7 +164,11 @@ public class LauncherPreviewRenderer extends BaseContext
                 emptyDbDir();
                 mDbDir.mkdirs();
                 builder.bindParserFactory(new XmlLayoutParserFactory(this, layoutXml))
-                        .bindWidgetsFactory(c -> new LauncherWidgetHolder(c, widgetHostId));
+                        .bindWidgetsFactory(c -> {
+                            LauncherWidgetHolder holder = new LauncherWidgetHolder(c, widgetHostId);
+                            holder.startListening();
+                            return holder;
+                        });
             }
             initDaggerComponent(builder);
 
@@ -215,14 +215,17 @@ public class LauncherPreviewRenderer extends BaseContext
     public LauncherPreviewRenderer(Context context,
             InvariantDeviceProfile idp,
             WallpaperColors wallpaperColorsOverride,
+            int workspaceScreenId,
             @Nullable final SparseArray<Size> launcherWidgetSpanInfo) {
-        this(context, idp, null, wallpaperColorsOverride, launcherWidgetSpanInfo);
+        this(context, idp, null, wallpaperColorsOverride, workspaceScreenId,
+                launcherWidgetSpanInfo);
     }
 
     public LauncherPreviewRenderer(Context context,
             InvariantDeviceProfile idp,
             SparseIntArray previewColorOverride,
             WallpaperColors wallpaperColorsOverride,
+            int workspaceScreenId,
             @Nullable final SparseArray<Size> launcherWidgetSpanInfo) {
 
         super(context, Themes.getActivityThemeRes(context));
@@ -265,7 +268,6 @@ public class LauncherPreviewRenderer extends BaseContext
                         : (mDp.workspacePadding.right + mDp.cellLayoutPaddingPx.right),
                 mDp.workspacePadding.bottom + mDp.cellLayoutPaddingPx.bottom
         );
-        mWorkspaceScreens.put(FIRST_SCREEN_ID, firstScreen);
 
         if (mDp.isTwoPanels) {
             CellLayout rightPanel = mRootView.findViewById(R.id.workspace_right);
@@ -275,7 +277,12 @@ public class LauncherPreviewRenderer extends BaseContext
                     mDp.workspacePadding.right + mDp.cellLayoutPaddingPx.right,
                     mDp.workspacePadding.bottom + mDp.cellLayoutPaddingPx.bottom
             );
-            mWorkspaceScreens.put(Workspace.SECOND_SCREEN_ID, rightPanel);
+
+            int closestEvenPageId = workspaceScreenId - (workspaceScreenId % 2);
+            mWorkspaceScreens.put(closestEvenPageId, firstScreen);
+            mWorkspaceScreens.put(closestEvenPageId + 1, rightPanel);
+        } else {
+            mWorkspaceScreens.put(workspaceScreenId, firstScreen);
         }
 
         SparseIntArray wallpaperColorResources;
@@ -463,14 +470,17 @@ public class LauncherPreviewRenderer extends BaseContext
 
 
         // Add first page QSB
-        if (FeatureFlags.QSB_ON_FIRST_SCREEN && !SHOULD_SHOW_FIRST_PAGE_WIDGET) {
+        if (BuildConfig.QSB_ON_FIRST_SCREEN) {
             CellLayout firstScreen = mWorkspaceScreens.get(FIRST_SCREEN_ID);
-            View qsb = mHomeElementInflater.inflate(R.layout.qsb_preview, firstScreen, false);
-            // TODO: set bgHandler on qsb when it is BaseTemplateCard, which requires API changes.
-            CellLayoutLayoutParams lp = new CellLayoutLayoutParams(
-                    0, 0, firstScreen.getCountX(), 1);
-            lp.canReorder = false;
-            firstScreen.addViewToCellLayout(qsb, 0, R.id.search_container_workspace, lp, true);
+            if (firstScreen != null) {
+                View qsb = mHomeElementInflater.inflate(R.layout.qsb_preview, firstScreen, false);
+                // TODO: set bgHandler on qsb when it is BaseTemplateCard, which requires API
+                //  changes.
+                CellLayoutLayoutParams lp = new CellLayoutLayoutParams(
+                        0, 0, firstScreen.getCountX(), 1);
+                lp.canReorder = false;
+                firstScreen.addViewToCellLayout(qsb, 0, R.id.search_container_workspace, lp, true);
+            }
         }
 
         measureView(mRootView, mDp.widthPx, mDp.heightPx);
@@ -481,11 +491,8 @@ public class LauncherPreviewRenderer extends BaseContext
     }
 
     private void populateHotseatPredictions(BgDataModel dataModel) {
-        FixedContainerItems hotseatPredictions =
-                dataModel.extraItems.get(CONTAINER_HOTSEAT_PREDICTION);
-        List<ItemInfo> predictions = hotseatPredictions == null
-                ? Collections.emptyList() : hotseatPredictions.items;
-
+        List<ItemInfo> predictions = dataModel.itemsIdMap
+                .getPredictedContents(CONTAINER_HOTSEAT_PREDICTION);
         int predictionIndex = 0;
         for (int rank = 0; rank < mDp.numShownHotseatIcons; rank++) {
             if (predictions.size() <= predictionIndex) continue;

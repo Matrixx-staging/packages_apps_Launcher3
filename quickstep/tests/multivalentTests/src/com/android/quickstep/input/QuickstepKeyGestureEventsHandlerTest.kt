@@ -73,7 +73,7 @@ class QuickstepKeyGestureEventsHandlerTest {
     }
 
     @Test
-    @EnableFlags(Flags.FLAG_ENABLE_KEY_GESTURE_HANDLER_FOR_RECENTS)
+    @EnableFlags(Flags.FLAG_GRANT_MANAGE_KEY_GESTURES_TO_RECENTS)
     fun registerAllAppsHandler_flagEnabled_registerWithExpectedKeyGestureEvents() {
         keyGestureEventsManager.registerAllAppsKeyGestureEvent(allAppsPendingIntent)
 
@@ -86,7 +86,7 @@ class QuickstepKeyGestureEventsHandlerTest {
     }
 
     @Test
-    @DisableFlags(Flags.FLAG_ENABLE_KEY_GESTURE_HANDLER_FOR_RECENTS)
+    @DisableFlags(Flags.FLAG_GRANT_MANAGE_KEY_GESTURES_TO_RECENTS)
     fun registerAllAppsHandler_flagDisabled_noRegister() {
         keyGestureEventsManager.registerAllAppsKeyGestureEvent(allAppsPendingIntent)
 
@@ -94,7 +94,7 @@ class QuickstepKeyGestureEventsHandlerTest {
     }
 
     @Test
-    @EnableFlags(Flags.FLAG_ENABLE_KEY_GESTURE_HANDLER_FOR_RECENTS)
+    @EnableFlags(Flags.FLAG_GRANT_MANAGE_KEY_GESTURES_TO_RECENTS)
     fun registerOverviewHandler_flagEnabled_registerWithExpectedKeyGestureEvents() {
         keyGestureEventsManager.registerOverviewKeyGestureEvent(fakeOverviewHandler)
 
@@ -108,7 +108,7 @@ class QuickstepKeyGestureEventsHandlerTest {
     }
 
     @Test
-    @DisableFlags(Flags.FLAG_ENABLE_KEY_GESTURE_HANDLER_FOR_RECENTS)
+    @DisableFlags(Flags.FLAG_GRANT_MANAGE_KEY_GESTURES_TO_RECENTS)
     fun registerOverviewHandler_flagDisabled_noRegister() {
         keyGestureEventsManager.registerOverviewKeyGestureEvent(fakeOverviewHandler)
 
@@ -116,7 +116,7 @@ class QuickstepKeyGestureEventsHandlerTest {
     }
 
     @Test
-    @EnableFlags(Flags.FLAG_ENABLE_KEY_GESTURE_HANDLER_FOR_RECENTS)
+    @EnableFlags(Flags.FLAG_GRANT_MANAGE_KEY_GESTURES_TO_RECENTS)
     fun unregisterAllAppsHandler_flagEnabled_unregisterHandler() {
         keyGestureEventsManager.unregisterAllAppsKeyGestureEvent()
 
@@ -127,7 +127,7 @@ class QuickstepKeyGestureEventsHandlerTest {
     }
 
     @Test
-    @DisableFlags(Flags.FLAG_ENABLE_KEY_GESTURE_HANDLER_FOR_RECENTS)
+    @DisableFlags(Flags.FLAG_GRANT_MANAGE_KEY_GESTURES_TO_RECENTS)
     fun unregisterAllAppsHandler_flagDisabled_noUnregister() {
         keyGestureEventsManager.unregisterAllAppsKeyGestureEvent()
 
@@ -135,7 +135,7 @@ class QuickstepKeyGestureEventsHandlerTest {
     }
 
     @Test
-    @EnableFlags(Flags.FLAG_ENABLE_KEY_GESTURE_HANDLER_FOR_RECENTS)
+    @EnableFlags(Flags.FLAG_GRANT_MANAGE_KEY_GESTURES_TO_RECENTS)
     fun unregisterOverviewHandler_flagEnabled_unregisterHandler() {
         keyGestureEventsManager.unregisterOverviewKeyGestureEvent()
 
@@ -146,7 +146,7 @@ class QuickstepKeyGestureEventsHandlerTest {
     }
 
     @Test
-    @DisableFlags(Flags.FLAG_ENABLE_KEY_GESTURE_HANDLER_FOR_RECENTS)
+    @DisableFlags(Flags.FLAG_GRANT_MANAGE_KEY_GESTURES_TO_RECENTS)
     fun unregisterOverviewHandler_flagDisabled_noUnregister() {
         keyGestureEventsManager.unregisterOverviewKeyGestureEvent()
 
@@ -154,7 +154,7 @@ class QuickstepKeyGestureEventsHandlerTest {
     }
 
     @Test
-    @EnableFlags(Flags.FLAG_ENABLE_KEY_GESTURE_HANDLER_FOR_RECENTS)
+    @EnableFlags(Flags.FLAG_GRANT_MANAGE_KEY_GESTURES_TO_RECENTS)
     fun handleAllAppsEvent_flagEnabled_toggleAllAppsSearch() {
         keyGestureEventsManager.registerAllAppsKeyGestureEvent(allAppsPendingIntent)
 
@@ -170,7 +170,7 @@ class QuickstepKeyGestureEventsHandlerTest {
     }
 
     @Test
-    @EnableFlags(Flags.FLAG_ENABLE_KEY_GESTURE_HANDLER_FOR_RECENTS)
+    @EnableFlags(Flags.FLAG_GRANT_MANAGE_KEY_GESTURES_TO_RECENTS)
     fun handleAllAppsEvent_flagEnabled_userSetupIncomplete_noInteractionWithTaskbar() {
         keyGestureEventsManager.onUserSetupCompleteListener.onSettingsChanged(
             /* isEnabled= */ false
@@ -189,7 +189,7 @@ class QuickstepKeyGestureEventsHandlerTest {
     }
 
     @Test
-    @DisableFlags(Flags.FLAG_ENABLE_KEY_GESTURE_HANDLER_FOR_RECENTS)
+    @DisableFlags(Flags.FLAG_GRANT_MANAGE_KEY_GESTURES_TO_RECENTS)
     fun handleAllAppsEvent_flagDisabled_noInteractionWithTaskbar() {
         keyGestureEventsManager.registerAllAppsKeyGestureEvent(allAppsPendingIntent)
 
@@ -205,7 +205,7 @@ class QuickstepKeyGestureEventsHandlerTest {
     }
 
     @Test
-    @EnableFlags(Flags.FLAG_ENABLE_KEY_GESTURE_HANDLER_FOR_RECENTS)
+    @EnableFlags(Flags.FLAG_GRANT_MANAGE_KEY_GESTURES_TO_RECENTS)
     fun handleRecentAppsEvent_flagEnabled_showOverviewWithUndefinedType() {
         keyGestureEventsManager.registerOverviewKeyGestureEvent(fakeOverviewHandler)
 
@@ -223,7 +223,7 @@ class QuickstepKeyGestureEventsHandlerTest {
     }
 
     @Test
-    @EnableFlags(Flags.FLAG_ENABLE_KEY_GESTURE_HANDLER_FOR_RECENTS)
+    @EnableFlags(Flags.FLAG_GRANT_MANAGE_KEY_GESTURES_TO_RECENTS)
     fun handleRecentAppsEvent_userSetupIncomplete_noOverviewEventInFake() {
         keyGestureEventsManager.onUserSetupCompleteListener.onSettingsChanged(
             /* isEnabled= */ false
@@ -243,7 +243,7 @@ class QuickstepKeyGestureEventsHandlerTest {
     }
 
     @Test
-    @DisableFlags(Flags.FLAG_ENABLE_KEY_GESTURE_HANDLER_FOR_RECENTS)
+    @DisableFlags(Flags.FLAG_GRANT_MANAGE_KEY_GESTURES_TO_RECENTS)
     fun handleRecentAppsEvent_flagDisabled_noOverviewEventInFake() {
         keyGestureEventsManager.registerOverviewKeyGestureEvent(fakeOverviewHandler)
 
@@ -260,7 +260,7 @@ class QuickstepKeyGestureEventsHandlerTest {
     }
 
     @Test
-    @EnableFlags(Flags.FLAG_ENABLE_KEY_GESTURE_HANDLER_FOR_RECENTS)
+    @EnableFlags(Flags.FLAG_GRANT_MANAGE_KEY_GESTURES_TO_RECENTS)
     fun handleRecentAppsSwitcherStartEvent_flagEnabled_showOverviewWithAltTabType() {
         keyGestureEventsManager.registerOverviewKeyGestureEvent(fakeOverviewHandler)
 
@@ -278,7 +278,7 @@ class QuickstepKeyGestureEventsHandlerTest {
     }
 
     @Test
-    @EnableFlags(Flags.FLAG_ENABLE_KEY_GESTURE_HANDLER_FOR_RECENTS)
+    @EnableFlags(Flags.FLAG_GRANT_MANAGE_KEY_GESTURES_TO_RECENTS)
     fun handleRecentAppsSwitcherStartEvent_userSetupIncomplete_noOverviewEventInFake() {
         keyGestureEventsManager.onUserSetupCompleteListener.onSettingsChanged(
             /* isEnabled= */ false
@@ -298,7 +298,7 @@ class QuickstepKeyGestureEventsHandlerTest {
     }
 
     @Test
-    @DisableFlags(Flags.FLAG_ENABLE_KEY_GESTURE_HANDLER_FOR_RECENTS)
+    @DisableFlags(Flags.FLAG_GRANT_MANAGE_KEY_GESTURES_TO_RECENTS)
     fun handleRecentAppsSwitcherStartEvent_flagDisabled_noOverviewEventInFake() {
         keyGestureEventsManager.registerOverviewKeyGestureEvent(fakeOverviewHandler)
 
@@ -315,7 +315,7 @@ class QuickstepKeyGestureEventsHandlerTest {
     }
 
     @Test
-    @EnableFlags(Flags.FLAG_ENABLE_KEY_GESTURE_HANDLER_FOR_RECENTS)
+    @EnableFlags(Flags.FLAG_GRANT_MANAGE_KEY_GESTURES_TO_RECENTS)
     fun handleRecentAppsSwitcherCompleteEvent_flagEnabled_hideOverviewWithAltTabType() {
         keyGestureEventsManager.registerOverviewKeyGestureEvent(fakeOverviewHandler)
 
@@ -333,7 +333,7 @@ class QuickstepKeyGestureEventsHandlerTest {
     }
 
     @Test
-    @EnableFlags(Flags.FLAG_ENABLE_KEY_GESTURE_HANDLER_FOR_RECENTS)
+    @EnableFlags(Flags.FLAG_GRANT_MANAGE_KEY_GESTURES_TO_RECENTS)
     fun handleRecentAppsSwitcherCompleteEvent_userSetupIncomplete_noOverviewEventInFake() {
         keyGestureEventsManager.onUserSetupCompleteListener.onSettingsChanged(
             /* isEnabled= */ false
@@ -353,7 +353,7 @@ class QuickstepKeyGestureEventsHandlerTest {
     }
 
     @Test
-    @DisableFlags(Flags.FLAG_ENABLE_KEY_GESTURE_HANDLER_FOR_RECENTS)
+    @DisableFlags(Flags.FLAG_GRANT_MANAGE_KEY_GESTURES_TO_RECENTS)
     fun handleRecentAppsSwitcherCompleteEvent_flagDisabled_noOverviewEventInFake() {
         keyGestureEventsManager.registerOverviewKeyGestureEvent(fakeOverviewHandler)
 

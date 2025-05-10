@@ -23,6 +23,9 @@ import com.android.launcher3.util.CancellableTask
 import com.android.launcher3.util.Executors
 import com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview
 import com.android.launcher3.util.Preconditions
+import com.android.launcher3.util.coroutines.DispatcherProvider
+import com.android.quickstep.recents.di.RecentsDependencies
+import com.android.quickstep.recents.di.inject
 import com.android.quickstep.task.thumbnail.data.TaskThumbnailDataSource
 import com.android.quickstep.util.TaskKeyByLastActiveTimeCache
 import com.android.quickstep.util.TaskKeyCache
@@ -33,6 +36,7 @@ import com.android.systemui.shared.recents.model.ThumbnailData
 import com.android.systemui.shared.system.ActivityManagerWrapper
 import java.util.concurrent.Executor
 import java.util.function.Consumer
+import kotlinx.coroutines.withContext
 
 class TaskThumbnailCache
 @VisibleForTesting
@@ -44,6 +48,7 @@ internal constructor(
     val highResLoadingState = HighResLoadingState()
     private val enableTaskSnapshotPreloading =
         context.resources.getBoolean(R.bool.config_enableTaskSnapshotPreloading)
+    val dispatcherProvider: DispatcherProvider by RecentsDependencies.inject()
 
     @JvmOverloads
     constructor(
@@ -104,27 +109,31 @@ internal constructor(
             return cachedThumbnail
         }
 
-        // Get thumbnail from system
-        var thumbnailData =
-            ActivityManagerWrapper.getInstance().getTaskThumbnail(task.key.id, lowResolution)
-        if (thumbnailData.thumbnail == null) {
-            thumbnailData = ActivityManagerWrapper.getInstance().takeTaskThumbnail(task.key.id)
-        }
-
-        // Avoid an async timing issue that a low res entry replaces an existing high
-        // res entry in high res enabled state, so we check before putting it to cache
-        if (
-            enableGridOnlyOverview() &&
-                thumbnailData.reducedResolution &&
-                highResLoadingState.isEnabled
-        ) {
-            val newCachedThumbnail = cache.getAndInvalidateIfModified(task.key)
-            if (newCachedThumbnail?.thumbnail != null && !newCachedThumbnail.reducedResolution) {
-                return newCachedThumbnail
+        return withContext(dispatcherProvider.ioBackground) {
+            // Get thumbnail from system
+            var thumbnailData =
+                ActivityManagerWrapper.getInstance().getTaskThumbnail(task.key.id, lowResolution)
+            if (thumbnailData.thumbnail == null) {
+                thumbnailData = ActivityManagerWrapper.getInstance().takeTaskThumbnail(task.key.id)
             }
+
+            // Avoid an async timing issue that a low res entry replaces an existing high
+            // res entry in high res enabled state, so we check before putting it to cache
+            if (
+                enableGridOnlyOverview() &&
+                    thumbnailData.reducedResolution &&
+                    highResLoadingState.isEnabled
+            ) {
+                val newCachedThumbnail = cache.getAndInvalidateIfModified(task.key)
+                if (
+                    newCachedThumbnail?.thumbnail != null && !newCachedThumbnail.reducedResolution
+                ) {
+                    return@withContext newCachedThumbnail
+                }
+            }
+            cache.put(task.key, thumbnailData)
+            return@withContext thumbnailData
         }
-        cache.put(task.key, thumbnailData)
-        return thumbnailData
     }
 
     /**

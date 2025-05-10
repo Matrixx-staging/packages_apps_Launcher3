@@ -72,6 +72,11 @@ public class TaskbarUIController implements BubbleBarController.BubbleBarLocatio
     @CallSuper
     protected void onDestroy() {
         mControllers = null;
+        RecentsView recentsView = getRecentsView();
+        if (recentsView != null) {
+            recentsView.setTaskLaunchListener(null);
+            recentsView.setTaskLaunchCancelledRunnable(null);
+        }
     }
 
     protected boolean isTaskbarTouchable() {

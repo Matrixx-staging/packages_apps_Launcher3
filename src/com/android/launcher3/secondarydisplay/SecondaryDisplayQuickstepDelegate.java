@@ -18,7 +18,7 @@ package com.android.launcher3.secondarydisplay;
 import android.content.Context;
 
 import com.android.launcher3.R;
-import com.android.launcher3.model.BgDataModel;
+import com.android.launcher3.model.data.PredictedContainerInfo;
 import com.android.launcher3.util.ResourceBasedOverride;
 
 /**
@@ -43,7 +43,7 @@ public class SecondaryDisplayQuickstepDelegate implements ResourceBasedOverride 
     /**
      * Set predicted apps in top of app drawer.
      */
-    public void setPredictedApps(BgDataModel.FixedContainerItems item) {
+    public void setPredictedApps(PredictedContainerInfo item) {
     }
 
     boolean enableTaskbarConnectedDisplays() {

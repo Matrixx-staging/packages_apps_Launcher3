@@ -16,9 +16,7 @@
 
 package com.android.launcher3;
 
-import static com.android.launcher3.BuildConfig.WIDGET_ON_FIRST_SCREEN;
 import static com.android.launcher3.Flags.enableMouseInteractionChanges;
-import static com.android.launcher3.Flags.enableSmartspaceAsAWidget;
 import static com.android.launcher3.graphics.ShapeDelegate.DEFAULT_PATH_SIZE;
 import static com.android.launcher3.icons.BitmapInfo.FLAG_THEMED;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT;
@@ -146,9 +144,6 @@ public final class Utilities {
     public static final int TRANSLATE_DOWN = 1;
     public static final int TRANSLATE_LEFT = 2;
     public static final int TRANSLATE_RIGHT = 3;
-
-    public static final boolean SHOULD_SHOW_FIRST_PAGE_WIDGET =
-            enableSmartspaceAsAWidget() && WIDGET_ON_FIRST_SCREEN;
 
     @IntDef({TRANSLATE_UP, TRANSLATE_DOWN, TRANSLATE_LEFT, TRANSLATE_RIGHT})
     public @interface AdjustmentDirection{}
@@ -494,6 +489,11 @@ public final class Utilities {
     /** Converts a dp value to pixels for the current device. */
     public static int dpToPx(float dp) {
         return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
+    }
+
+    /** Converts a dp value to pixels for the current context. */
+    public static int dpToPx(float dp, Context context) {
+        return (int) (dp * context.getResources().getDisplayMetrics().density);
     }
 
     /** Converts a dp value to pixels for a certain density. */

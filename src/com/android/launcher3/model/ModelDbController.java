@@ -484,6 +484,7 @@ public class ModelDbController {
      * @return Ids of deleted folders.
      */
     @WorkerThread
+    @Nullable
     public IntArray deleteEmptyFolders() {
         createDbIfNotExists();
 
@@ -506,7 +507,7 @@ public class ModelDbController {
             return folderIds;
         } catch (SQLException ex) {
             Log.e(TAG, ex.getMessage(), ex);
-            return new IntArray();
+            return null;
         }
     }
 
@@ -515,6 +516,7 @@ public class ModelDbController {
      * @return Ids of deleted app pairs.
      */
     @WorkerThread
+    @Nullable
     public IntArray deleteBadAppPairs() {
         createDbIfNotExists();
 
@@ -538,7 +540,7 @@ public class ModelDbController {
             return appPairIds;
         } catch (SQLException ex) {
             Log.e(TAG, ex.getMessage(), ex);
-            return new IntArray();
+            return null;
         }
     }
 
@@ -547,6 +549,7 @@ public class ModelDbController {
      * @return Ids of deleted apps.
      */
     @WorkerThread
+    @Nullable
     public IntArray deleteUnparentedApps() {
         createDbIfNotExists();
 
@@ -568,7 +571,7 @@ public class ModelDbController {
             return appIds;
         } catch (SQLException ex) {
             Log.e(TAG, ex.getMessage(), ex);
-            return new IntArray();
+            return null;
         }
     }
 

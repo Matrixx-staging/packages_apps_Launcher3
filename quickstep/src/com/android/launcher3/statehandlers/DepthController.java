@@ -136,6 +136,7 @@ public class DepthController extends BaseDepthController implements StateHandler
         } else {
             removeOnDrawListener();
             setBaseSurface(null);
+            setEarlyWakeup(false);
         }
     }
 

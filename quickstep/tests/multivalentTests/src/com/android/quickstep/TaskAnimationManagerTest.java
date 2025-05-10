@@ -17,12 +17,15 @@
 package com.android.quickstep;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -33,6 +36,9 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.platform.test.annotations.DisableFlags;
+import android.platform.test.annotations.EnableFlags;
+import android.platform.test.flag.junit.SetFlagsRule;
 import android.view.Display;
 import android.view.RemoteAnimationTarget;
 import android.view.SurfaceControl;
@@ -43,8 +49,10 @@ import androidx.test.filters.SmallTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.android.systemui.shared.system.RecentsAnimationControllerCompat;
+import com.android.window.flags.Flags;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -54,7 +62,7 @@ import org.mockito.MockitoAnnotations;
 @SmallTest
 @RunWith(AndroidJUnit4.class)
 public class TaskAnimationManagerTest {
-
+    private static final int EXTERNAL_DISPLAY_ID = 1;
     protected final Context mContext =
             InstrumentationRegistry.getInstrumentation().getTargetContext();
 
@@ -62,6 +70,10 @@ public class TaskAnimationManagerTest {
     private SystemUiProxy mSystemUiProxy;
 
     private TaskAnimationManager mTaskAnimationManager;
+    private TaskAnimationManager mTaskAnimationManagerWithExternalDisplay;
+
+    @Rule
+    public final SetFlagsRule mSetFlagsRule = new SetFlagsRule();
 
     @Before
     public void setUp() {
@@ -72,6 +84,13 @@ public class TaskAnimationManagerTest {
                 return mSystemUiProxy;
             }
         };
+        mTaskAnimationManagerWithExternalDisplay =
+            new TaskAnimationManager(mContext, EXTERNAL_DISPLAY_ID) {
+                @Override
+                SystemUiProxy getSystemUiProxy() {
+                    return mSystemUiProxy;
+                }
+            };
     }
 
     @Test
@@ -145,5 +164,37 @@ public class TaskAnimationManagerTest {
 
     protected static void runOnMainSync(Runnable runnable) {
         InstrumentationRegistry.getInstrumentation().runOnMainSync(runnable);
+    }
+
+    /**
+     * Invokes maybeStartHomeAction on the given TaskAnimationManager and verifies whether the
+     * provided Runnable was invoked, based on the expectedResult.
+     *
+     * @param taskAnimationManager The TaskAnimationManager instance to test.
+     * @param expectedResult True if the Runnable is expected to be invoked, false otherwise.
+     */
+    private void verifyCanStartHomeAction(TaskAnimationManager taskAnimationManager,
+                Boolean expectedResult) {
+        Runnable mockRunnable = mock(Runnable.class);
+        taskAnimationManager.maybeStartHomeAction(mockRunnable);
+        if (expectedResult) {
+            verify(mockRunnable).run();
+        } else {
+            verify(mockRunnable, never()).run();
+        }
+    }
+
+    @Test
+    @EnableFlags(Flags.FLAG_ENABLE_REJECT_HOME_TRANSITION)
+    public void maybeStartHomeAction_withRejectHomeTransitionEnabled() {
+        verifyCanStartHomeAction(mTaskAnimationManager, true);
+        verifyCanStartHomeAction(mTaskAnimationManagerWithExternalDisplay, false);
+    }
+
+    @Test
+    @DisableFlags(Flags.FLAG_ENABLE_REJECT_HOME_TRANSITION)
+    public void maybeStartHomeAction_withRejectHomeTransitionDisabled() {
+        verifyCanStartHomeAction(mTaskAnimationManager, true);
+        verifyCanStartHomeAction(mTaskAnimationManagerWithExternalDisplay, true);
     }
 }

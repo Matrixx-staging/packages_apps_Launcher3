@@ -21,11 +21,10 @@ import androidx.annotation.NonNull;
 
 import com.android.launcher3.LauncherModel.ModelUpdateTask;
 import com.android.launcher3.model.data.AppInfo;
+import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
-import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.pm.PackageInstallInfo;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -69,14 +68,15 @@ public class PackageIncrementalDownloadUpdatedTask implements ModelUpdateTask {
             taskController.bindApplicationsIfNeeded();
         }
 
-        final ArrayList<WorkspaceItemInfo> updatedWorkspaceItems = new ArrayList<>();
+        final List<ItemInfo> updatedWorkspaceItems;
         synchronized (dataModel) {
-            dataModel.forAllWorkspaceItemInfos(mUser, si -> {
+            updatedWorkspaceItems = dataModel.updateAndCollectWorkspaceItemInfos(mUser, si -> {
                 if (mPackageName.equals(si.getTargetPackage())) {
                     si.runtimeStatusFlags &= ~ItemInfoWithIcon.FLAG_INSTALL_SESSION_ACTIVE;
                     si.setProgressLevel(downloadInfo);
-                    updatedWorkspaceItems.add(si);
+                    return true;
                 }
+                return false;
             });
         }
         taskController.bindUpdatedWorkspaceItems(updatedWorkspaceItems);

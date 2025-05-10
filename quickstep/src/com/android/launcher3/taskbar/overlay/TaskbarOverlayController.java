@@ -15,6 +15,7 @@
  */
 package com.android.launcher3.taskbar.overlay;
 
+import static android.os.Trace.TRACE_TAG_APP;
 import static android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
 import static android.view.WindowManager.LayoutParams.PRIVATE_FLAG_CONSUME_IME_INSETS;
 import static android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
@@ -27,6 +28,7 @@ import static com.android.launcher3.LauncherState.ALL_APPS;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.PixelFormat;
+import android.os.Trace;
 import android.util.Log;
 import android.view.AttachedSurfaceControl;
 import android.view.CrossWindowBlurListeners;
@@ -268,6 +270,8 @@ public final class TaskbarOverlayController {
             boolean wantsEarlyWakeUp = radius > 0 && radius < mMaxBlurRadius;
             if (wantsEarlyWakeUp && !mInEarlyWakeUp) {
                 Log.d(TAG, "setBackgroundBlurRadius: setting early wakeup with token ");
+                Trace.instantForTrack(TRACE_TAG_APP, TAG, "notifyRendererForGpuLoadUp");
+                dragLayerViewRoot.notifyRendererForGpuLoadUp("setBackgroundBlurRadius");
                 transaction.setEarlyWakeupStart();
                 mInEarlyWakeUp = true;
             } else if (!wantsEarlyWakeUp && mInEarlyWakeUp) {

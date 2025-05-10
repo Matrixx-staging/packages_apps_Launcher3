@@ -89,7 +89,7 @@
     <string name="long_accessible_way_to_add_shortcut" msgid="2199537273817090740">"Toque duas vezes sem soltar para mover um atalho ou utilizar ações personalizadas."</string>
     <string name="out_of_space" msgid="6455557115204099579">"Sem espaço neste ecrã principal"</string>
     <string name="hotseat_out_of_space" msgid="7448809638125333693">"Não existe mais espaço no tabuleiro de Favoritos"</string>
-    <string name="all_apps_button_label" msgid="8130441508702294465">"Lista de aplicações"</string>
+    <string name="all_apps_button_label" msgid="8130441508702294465">"Lista de apps"</string>
     <string name="all_apps_search_results" msgid="5889367432531296759">"Resultados da pesquisa"</string>
     <string name="all_apps_button_personal_label" msgid="1315764287305224468">"Lista de aplicações pessoais"</string>
     <string name="all_apps_button_work_label" msgid="7270707118948892488">"Lista de aplicações de trabalho"</string>

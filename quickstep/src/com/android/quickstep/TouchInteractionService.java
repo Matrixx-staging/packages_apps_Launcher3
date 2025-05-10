@@ -53,6 +53,7 @@ import android.os.Looper;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.Choreographer;
 import android.view.Display;
 import android.view.InputDevice;
@@ -632,7 +633,7 @@ public class TouchInteractionService extends Service {
     private AllAppsActionManager mAllAppsActionManager;
     private ActiveTrackpadList mTrackpadsConnected;
 
-    private NavigationMode mGestureStartNavMode = null;
+    private final SparseArray<NavigationMode> mGestureStartNavMode = new SparseArray<>();
 
     private DesktopAppLaunchTransitionManager mDesktopAppLaunchTransitionManager;
 
@@ -922,6 +923,7 @@ public class TouchInteractionService extends Service {
             Log.d(TAG, "RecentsAnimationDeviceState not available for displayId " + displayId);
             return;
         }
+
         RotationTouchHelper rotationTouchHelper = mRotationTouchHelperRepository.get(displayId);
         if (rotationTouchHelper == null) {
             Log.d(TAG, "RotationTouchHelper not available for displayId " + displayId);
@@ -929,9 +931,10 @@ public class TouchInteractionService extends Service {
         }
 
         NavigationMode currentNavMode = deviceState.getMode();
-        if (mGestureStartNavMode != null && mGestureStartNavMode != currentNavMode) {
+        NavigationMode gestureStartNavMode = mGestureStartNavMode.get(displayId);
+        if (gestureStartNavMode != null && gestureStartNavMode != currentNavMode) {
             ActiveGestureProtoLogProxy.logOnInputEventNavModeSwitched(
-                    displayId, mGestureStartNavMode.name(), currentNavMode.name());
+                    displayId, gestureStartNavMode.name(), currentNavMode.name());
             event.setAction(ACTION_CANCEL);
         } else if (deviceState.isButtonNavMode()
                 && !deviceState.supportsAssistantGestureInButtonNav()
@@ -966,9 +969,9 @@ public class TouchInteractionService extends Service {
         InputEventReceiver inputEventReceiver = getInputEventReceiver(displayId);
 
         if (action == ACTION_DOWN || isHoverActionWithoutConsumer) {
-            mGestureStartNavMode = currentNavMode;
+            mGestureStartNavMode.set(displayId, currentNavMode);
         } else if (action == ACTION_UP || action == ACTION_CANCEL) {
-            mGestureStartNavMode = null;
+            mGestureStartNavMode.delete(displayId);
         }
 
         SafeCloseable traceToken = TraceHelper.INSTANCE.allowIpcs("TIS.onInputEvent");

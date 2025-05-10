@@ -21,8 +21,8 @@ import android.content.pm.LauncherApps.ShortcutQuery
 import android.content.pm.ShortcutInfo
 import android.os.UserHandle
 import android.util.Log
+import android.util.SparseArray
 import androidx.annotation.AnyThread
-import androidx.core.util.size
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.Flags
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP
@@ -30,8 +30,6 @@ import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APP_PAIR
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_FOLDER
-import com.android.launcher3.Utilities
-import com.android.launcher3.Workspace
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.logging.DumpManager
 import com.android.launcher3.logging.DumpManager.LauncherDumpable
@@ -39,25 +37,23 @@ import com.android.launcher3.logging.FileLog
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.CollectionInfo
 import com.android.launcher3.model.data.ItemInfo
+import com.android.launcher3.model.data.LauncherAppWidgetInfo
+import com.android.launcher3.model.data.PredictedContainerInfo
+import com.android.launcher3.model.data.WorkspaceData
+import com.android.launcher3.model.data.WorkspaceData.MutableWorkspaceData
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.model.repository.HomeScreenRepository
-import com.android.launcher3.model.repository.HomeScreenRepository.WorkspaceData.ChangeEvent.AddEvent
-import com.android.launcher3.model.repository.HomeScreenRepository.WorkspaceData.ChangeEvent.RemoveEvent
-import com.android.launcher3.model.repository.HomeScreenRepository.WorkspaceData.ChangeEvent.UpdateEvent
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.shortcuts.ShortcutKey
 import com.android.launcher3.shortcuts.ShortcutRequest
 import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.DaggerSingletonTracker
 import com.android.launcher3.util.Executors
-import com.android.launcher3.util.IntArray
-import com.android.launcher3.util.IntSet
 import com.android.launcher3.util.IntSparseArrayMap
 import com.android.launcher3.util.PackageUserKey
 import com.android.launcher3.widget.model.WidgetsListBaseEntry
 import java.io.PrintWriter
 import java.util.Collections
-import java.util.function.Consumer
 import java.util.function.Predicate
 import javax.inject.Inject
 import javax.inject.Provider
@@ -78,14 +74,19 @@ constructor(
     dumpManager: DumpManager,
     lifeCycle: DaggerSingletonTracker,
 ) : LauncherDumpable {
+
+    private val mutableWorkspaceData = MutableWorkspaceData()
+
     /**
-     * Map of all the ItemInfos (shortcuts, folders, and widgets) created by LauncherModel to their
-     * ids
+     * Map of all the ItemInfos (shortcuts, folders, widgets and predicted items) created by
+     * LauncherModel to their ids
      */
-    @JvmField val itemsIdMap = IntSparseArrayMap<ItemInfo>()
+    @JvmField val itemsIdMap: WorkspaceData = mutableWorkspaceData
 
     /** Extra container based items */
-    @JvmField val extraItems = IntSparseArrayMap<FixedContainerItems>()
+    @Deprecated("Use independent repository for each extra item")
+    @JvmField
+    val extraItems = IntSparseArrayMap<FixedContainerItems>()
 
     /** Maps all launcher activities to counts of their shortcuts. */
     @JvmField val deepShortcutMap = HashMap<ComponentKey, Int>()
@@ -108,24 +109,8 @@ constructor(
     /** Clears all the data */
     @Synchronized
     fun clear() {
-        itemsIdMap.clear()
         deepShortcutMap.clear()
         extraItems.clear()
-    }
-
-    /** Creates an array of valid workspace screens based on current items in the model. */
-    @Synchronized
-    fun collectWorkspaceScreens(): IntArray {
-        val screenSet = IntSet()
-        itemsIdMap.forEach { if (it.container == CONTAINER_DESKTOP) screenSet.add(it.screenId) }
-
-        if (
-            (BuildConfig.QSB_ON_FIRST_SCREEN && !Utilities.SHOULD_SHOW_FIRST_PAGE_WIDGET) ||
-                screenSet.isEmpty
-        ) {
-            screenSet.add(Workspace.FIRST_SCREEN_ID)
-        }
-        return screenSet.array
     }
 
     @Synchronized
@@ -166,32 +151,33 @@ constructor(
                 }
         }
 
-        items.forEach { itemsIdMap.remove(it.id) }
+        mutableWorkspaceData.removeItems(items, owner)
         items
             .asSequence()
             .map { it.user }
             .distinct()
             .forEach { updateShortcutPinnedState(context, it) }
 
+        updateHomeRepository()
+    }
+
+    private fun updateHomeRepository() {
         if (Flags.modelRepository() && repo != null) {
-            repo.dispatchChange(this, RemoveEvent(items.toList(), owner))
+            repo.dispatchChange(mutableWorkspaceData.copy())
         }
     }
 
     @Synchronized
     @JvmOverloads
-    fun addItem(context: Context, item: ItemInfo, newItem: Boolean, owner: Any? = null) {
-        itemsIdMap.put(item.id, item)
-        if (newItem && item.itemType == ITEM_TYPE_DEEP_SHORTCUT) {
+    fun addItem(context: Context, item: ItemInfo, owner: Any? = null) {
+        mutableWorkspaceData.addItem(item, owner)
+        if (item.itemType == ITEM_TYPE_DEEP_SHORTCUT) {
             updateShortcutPinnedState(context, item.user)
         }
-        if (Flags.modelRepository() && repo != null) {
-            repo.dispatchChange(this, AddEvent(listOf(item), owner))
-        }
+        updateHomeRepository()
 
         if (
             BuildConfig.IS_DEBUG_DEVICE &&
-                newItem &&
                 item.container != CONTAINER_DESKTOP &&
                 item.container != CONTAINER_HOTSEAT &&
                 (itemsIdMap[item.container] !is CollectionInfo)
@@ -202,15 +188,21 @@ constructor(
     }
 
     @Synchronized
-    fun updateItems(items: List<ItemInfo>, owner: Any?) {
-        if (Flags.modelRepository() && repo != null) {
-            repo.dispatchChange(this, UpdateEvent(items, owner))
-        }
+    fun updateAndDispatchItem(item: ItemInfo, owner: Any?) {
+        mutableWorkspaceData.replaceItem(item, owner)
+        updateHomeRepository()
     }
 
     @Synchronized
-    fun dataLoadComplete() {
-        if (Flags.modelRepository() && repo != null) repo.onNewBind(this)
+    fun updateItems(items: List<ItemInfo>, owner: Any?) {
+        mutableWorkspaceData.notifyItemsUpdated(items, owner)
+        updateHomeRepository()
+    }
+
+    @Synchronized
+    fun dataLoadComplete(allItems: SparseArray<ItemInfo>) {
+        mutableWorkspaceData.replaceDataMap(allItems)
+        updateHomeRepository()
     }
 
     /**
@@ -254,9 +246,15 @@ constructor(
         // Collect all model shortcuts
         val allWorkspaceItems =
             mutableListOf<ShortcutKey>().apply {
-                forAllWorkspaceItemInfos(user) {
-                    if (it.itemType == ITEM_TYPE_DEEP_SHORTCUT) add(ShortcutKey.fromItemInfo(it))
-                }
+                updateAndCollectWorkspaceItemInfos(
+                    user,
+                    {
+                        if (it.itemType == ITEM_TYPE_DEEP_SHORTCUT)
+                            add(ShortcutKey.fromItemInfo(it))
+                        // We don't care about the returned list
+                        false
+                    },
+                )
             }
         allWorkspaceItems.addAll(
             ItemInstallQueue.INSTANCE[context].getPendingShortcuts(user).toList()
@@ -344,19 +342,40 @@ constructor(
     }
 
     /**
-     * Calls the provided `op` for all workspaceItems in the in-memory model (both persisted items
-     * and dynamic/predicted items for the provided `userHandle`. Note the call is not synchronized
-     * over the model, that should be handled by the called.
+     * Calls the [workspaceItemOp] for all workspaceItems [widgetItemOp] for all widget items in the
+     * in-memory model (both persisted items and dynamic/predicted items for the [userHandle]) and
+     * returns a list of updates to be dispatched to the callbacks. Note the call is not
+     * synchronized over the model, that should be handled by the caller.
      */
-    fun forAllWorkspaceItemInfos(userHandle: UserHandle, op: Consumer<WorkspaceItemInfo>) {
-        itemsIdMap.forEach { if (it is WorkspaceItemInfo && userHandle == it.user) op.accept(it) }
-
-        extraItems.forEach { info ->
-            info.items.forEach {
-                if (it is WorkspaceItemInfo && userHandle == it.user) op.accept(it)
+    @JvmOverloads
+    fun updateAndCollectWorkspaceItemInfos(
+        userHandle: UserHandle,
+        workspaceItemOp: (WorkspaceItemInfo) -> Boolean,
+        widgetItemOp: ((LauncherAppWidgetInfo) -> Boolean)? = null,
+    ): List<ItemInfo> =
+        itemsIdMap
+            .filter {
+                when {
+                    it is WorkspaceItemInfo && userHandle == it.user -> workspaceItemOp.invoke(it)
+                    widgetItemOp != null && it is LauncherAppWidgetInfo && userHandle == it.user ->
+                        widgetItemOp.invoke(it)
+                    it is PredictedContainerInfo -> {
+                        // Do not use filter or any as we want to run the update on every item. If
+                        // any
+                        // single item was updated, we add the container to the list of updates
+                        it.getContents().count { predictedItem ->
+                            predictedItem is WorkspaceItemInfo &&
+                                predictedItem.user == userHandle &&
+                                workspaceItemOp.invoke(predictedItem)
+                        } > 0
+                    }
+                    else -> false
+                }
             }
-        }
-    }
+            .apply {
+                // Dispatch an update
+                if (isNotEmpty()) updateItems(this, null)
+            }
 
     /** An object containing items corresponding to a fixed container */
     class FixedContainerItems(@JvmField val containerId: Int, items: List<ItemInfo>) {
@@ -373,23 +392,11 @@ constructor(
          * the client to move the executor to appropriate thread
          */
         @AnyThread
-        fun bindCompleteModelAsync(
-            itemIdMap: IntSparseArrayMap<ItemInfo>,
-            extraItems: List<FixedContainerItems>,
-            stringCache: StringCache,
-            isBindingSync: Boolean,
-        ) {
-            Executors.MAIN_EXECUTOR.execute {
-                bindCompleteModel(itemIdMap, extraItems, stringCache, isBindingSync)
-            }
+        fun bindCompleteModelAsync(itemIdMap: WorkspaceData, isBindingSync: Boolean) {
+            Executors.MAIN_EXECUTOR.execute { bindCompleteModel(itemIdMap, isBindingSync) }
         }
 
-        fun bindCompleteModel(
-            itemIdMap: IntSparseArrayMap<ItemInfo>,
-            extraItems: List<FixedContainerItems>,
-            stringCache: StringCache,
-            isBindingSync: Boolean,
-        ) {}
+        fun bindCompleteModel(itemIdMap: WorkspaceData, isBindingSync: Boolean) {}
 
         fun bindItemsAdded(items: List<@JvmSuppressWildcards ItemInfo>) {}
 
@@ -403,8 +410,6 @@ constructor(
 
         /** Binds the app widgets to the providers that share widgets with the UI. */
         fun bindAllWidgets(widgets: List<@JvmSuppressWildcards WidgetsListBaseEntry>) {}
-
-        fun bindSmartspaceWidget() {}
 
         fun bindDeepShortcutMap(deepShortcutMap: HashMap<ComponentKey, Int>) {}
 

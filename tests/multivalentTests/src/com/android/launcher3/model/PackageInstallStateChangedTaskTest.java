@@ -21,6 +21,7 @@ import static com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY2;
 import static com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY3;
 import static com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE;
 import static com.android.launcher3.util.ModelTestExtensions.getBgDataModel;
+import static com.android.launcher3.util.ModelTestExtensions.nonPredictedItemCount;
 import static com.android.launcher3.util.TestUtil.runOnExecutorSync;
 
 import static org.junit.Assert.assertEquals;
@@ -84,7 +85,7 @@ public class PackageInstallStateChangedTaskTest {
         mDownloadingApps = IntSet.wrap(4, 5, 6, 7, 8, 9, 10);
         mLayoutProvider.setupDefaultLayoutProvider(builder);
         ModelTestExtensions.INSTANCE.loadModelSync(getModel());
-        assertEquals(10, getBgDataModel(getModel()).itemsIdMap.size());
+        assertEquals(10, nonPredictedItemCount(getBgDataModel(getModel()).itemsIdMap));
     }
 
     private PackageInstallStateChangedTask newTask(String pkg, int progress) {
@@ -128,6 +129,7 @@ public class PackageInstallStateChangedTaskTest {
     private void verifyProgressUpdate(int progress, int... idsUpdated) {
         IntSet updates = IntSet.wrap(idsUpdated);
         for (ItemInfo info : getBgDataModel(getModel()).itemsIdMap) {
+            if (info.id < 0) continue;
             int expectedProgress = updates.contains(info.id) ? progress
                     : (mDownloadingApps.contains(info.id) ? 0 : 100);
             if (info instanceof WorkspaceItemInfo wi) {

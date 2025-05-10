@@ -15,6 +15,8 @@
  */
 package com.android.launcher3.taskbar.allapps;
 
+import static android.os.Trace.TRACE_TAG_APP;
+
 import static com.android.app.animation.Interpolators.DECELERATED_EASE;
 import static com.android.app.animation.Interpolators.EMPHASIZED;
 import static com.android.app.animation.Interpolators.LINEAR;
@@ -28,6 +30,7 @@ import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Trace;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.CrossWindowBlurListeners;
@@ -111,11 +114,13 @@ public class TaskbarAllAppsSlideInView extends AbstractSlideInView<TaskbarOverla
     }
 
     private void showOnFullyAttachedToWindow(boolean animate) {
-        if (mActivityContext.isBackgroundBlurEnabled()) {
+        if (mActivityContext.isAllAppsBackgroundBlurEnabled()) {
             ViewRootImpl overlayVri = mActivityContext.getRootView().getViewRootImpl();
             if (overlayVri == null) {
                 Log.w(TAG, "overlayVRI is null, cannot notifyRendererOfExpensiveFrame()");
             } else {
+                Trace.instantForTrack(TRACE_TAG_APP, TAG, "notifyRendererForGpuLoadUp");
+                overlayVri.notifyRendererForGpuLoadUp("opening taskbar all apps");
                 overlayVri.notifyRendererOfExpensiveFrame();
             }
         }

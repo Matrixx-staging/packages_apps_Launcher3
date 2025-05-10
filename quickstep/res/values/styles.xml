@@ -391,7 +391,6 @@
         <item name="privateSpaceSettingsColor">@androidprv:color/surface_effect_2</item>
         <item name="privateSpaceDividerColor">@androidprv:color/surface_effect_3</item>
         <item name="bottomSheetDragHandleColor">@androidprv:color/surface_effect_1</item>
-        <item name="overviewScrimColor">?attr/overviewScrimColorBlur</item>
     </style>
 
     <style name="BlurFallbackStyle">
@@ -405,6 +404,14 @@
         <item name="privateSpaceSettingsColor">@color/materialColorSurfaceBright</item>
         <item name="privateSpaceDividerColor">@color/materialColorOutlineVariant</item>
         <item name="bottomSheetDragHandleColor">@color/materialColorOutlineVariant</item>
+    </style>
+
+    <style name="OverviewBlurStyle">
+        <item name="overviewScrimColor">?attr/overviewScrimColorBlur</item>
+    </style>
+
+    <style name="OverviewBlurFallbackStyle">
         <item name="overviewScrimColor">?attr/overviewScrimColorFallback</item>
     </style>
+
 </resources>

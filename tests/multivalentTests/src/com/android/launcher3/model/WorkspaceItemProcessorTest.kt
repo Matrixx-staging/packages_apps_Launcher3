@@ -88,7 +88,6 @@ class WorkspaceItemProcessorTest {
 
     @Mock private lateinit var mockIconRequestInfo: IconRequestInfo<WorkspaceItemInfo>
     @Mock private lateinit var mockWorkspaceInfo: WorkspaceItemInfo
-    @Mock private lateinit var mockBgDataModel: BgDataModel
     @Mock private lateinit var mockPmHelper: PackageManagerHelper
     @Mock(answer = Answers.RETURNS_DEEP_STUBS) private lateinit var mockCursor: LoaderCursor
     @Mock private lateinit var mockUserCache: UserCache
@@ -165,7 +164,6 @@ class WorkspaceItemProcessorTest {
         userManagerState: UserManagerState = mockUserManagerState,
         launcherApps: LauncherApps = mLauncherApps,
         shortcutKeyToPinnedShortcuts: Map<ShortcutKey, ShortcutInfo> = mKeyToPinnedShortcutsMap,
-        bgDataModel: BgDataModel = mockBgDataModel,
         widgetInflater: WidgetInflater = mockWidgetInflater,
         pmHelper: PackageManagerHelper = mockPmHelper,
         iconRequestInfos: MutableList<IconRequestInfo<WorkspaceItemInfo>> = mIconRequestInfos,
@@ -182,7 +180,6 @@ class WorkspaceItemProcessorTest {
             userManagerState = userManagerState,
             launcherApps = launcherApps,
             context = mContext,
-            bgDataModel = bgDataModel,
             widgetInflater = widgetInflater,
             pmHelper = pmHelper,
             unlockedUsers = unlockedUsers,
@@ -277,7 +274,7 @@ class WorkspaceItemProcessorTest {
         // currently gets marked restored twice, although markRestore() has check for restoreFlag
         verify(mockCursor, times(2)).markRestored()
         assertThat(mIconRequestInfos).containsExactly(mockIconRequestInfo)
-        verify(mockCursor).checkAndAddItem(mockWorkspaceInfo, mockBgDataModel, null)
+        verify(mockCursor).checkAndAddItem(eq(mockWorkspaceInfo), any(), anyOrNull())
     }
 
     @Test
@@ -304,7 +301,7 @@ class WorkspaceItemProcessorTest {
             .isEqualTo(0)
         verify(mockCursor.updater().put(Favorites.INTENT, mIntent.toUri(0))).commit()
         assertThat(mIconRequestInfos).containsExactly(mockIconRequestInfo)
-        verify(mockCursor).checkAndAddItem(mockWorkspaceInfo, mockBgDataModel, null)
+        verify(mockCursor).checkAndAddItem(eq(mockWorkspaceInfo), any(), anyOrNull())
     }
 
     @Test
@@ -409,7 +406,7 @@ class WorkspaceItemProcessorTest {
         assertThat(mIconRequestInfos).isNotEmpty()
         assertThat(mAllDeepShortcuts).isEmpty()
         verify(mockContentWriter).put(Favorites.RESTORED, expectedRestoreFlag)
-        verify(mockCursor).checkAndAddItem(any(), eq(mockBgDataModel), eq(null))
+        verify(mockCursor).checkAndAddItem(any(), any(), eq(null))
     }
 
     @Test
@@ -540,7 +537,6 @@ class WorkspaceItemProcessorTest {
     @Test
     fun `When processing Folder then create FolderInfo and mark restored`() {
         val actualFolderInfo = FolderInfo()
-        mockBgDataModel = mock<BgDataModel>()
         mockCursor =
             mock<LoaderCursor>().apply {
                 user = mUserHandle
@@ -582,7 +578,7 @@ class WorkspaceItemProcessorTest {
         assertThat(actualFolderInfo.spanX).isEqualTo(expectedFolderInfo.spanX)
         assertThat(actualFolderInfo.spanY).isEqualTo(expectedFolderInfo.spanY)
         assertThat(actualFolderInfo.options).isEqualTo(expectedFolderInfo.options)
-        verify(mockCursor).checkAndAddItem(actualFolderInfo, mockBgDataModel, null)
+        verify(mockCursor).checkAndAddItem(eq(actualFolderInfo), any(), anyOrNull())
     }
 
     @Test
@@ -645,8 +641,7 @@ class WorkspaceItemProcessorTest {
 
         // Then
         val widgetInfoCaptor = ArgumentCaptor.forClass(LauncherAppWidgetInfo::class.java)
-        verify(mockCursor)
-            .checkAndAddItem(widgetInfoCaptor.capture(), eq(mockBgDataModel), anyOrNull())
+        verify(mockCursor).checkAndAddItem(widgetInfoCaptor.capture(), any(), anyOrNull())
         val actualWidgetInfo = widgetInfoCaptor.value
         with(actualWidgetInfo) {
             assertThat(providerName).isEqualTo(expectedWidgetInfo.providerName)
@@ -697,7 +692,7 @@ class WorkspaceItemProcessorTest {
         itemProcessorUnderTest.processItem()
 
         // Then
-        verify(mockCursor).checkAndAddItem(any(), eq(mockBgDataModel), eq(null))
+        verify(mockCursor).checkAndAddItem(any(), any(), eq(null))
     }
 
     @Test

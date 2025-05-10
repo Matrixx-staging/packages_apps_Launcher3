@@ -8,16 +8,13 @@ import android.util.Pair
 import androidx.annotation.AnyThread
 import androidx.annotation.UiThread
 import androidx.annotation.VisibleForTesting
-import com.android.launcher3.BuildConfig.QSB_ON_FIRST_SCREEN
 import com.android.launcher3.LauncherConstants.TraceEvents
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
-import com.android.launcher3.Utilities.SHOULD_SHOW_FIRST_PAGE_WIDGET
 import com.android.launcher3.WorkspaceLayoutManager.FIRST_SCREEN_ID
 import com.android.launcher3.allapps.AllAppsStore
 import com.android.launcher3.config.FeatureFlags
 import com.android.launcher3.model.BgDataModel
-import com.android.launcher3.model.BgDataModel.FixedContainerItems
 import com.android.launcher3.model.ItemInstallQueue
 import com.android.launcher3.model.ItemInstallQueue.FLAG_LOADER_RUNNING
 import com.android.launcher3.model.ModelUtils.WIDGET_FILTER
@@ -25,6 +22,8 @@ import com.android.launcher3.model.ModelUtils.currentScreenContentFilter
 import com.android.launcher3.model.StringCache
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.ItemInfo
+import com.android.launcher3.model.data.PredictedContainerInfo
+import com.android.launcher3.model.data.WorkspaceData
 import com.android.launcher3.popup.PopupContainerWithArrow
 import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.Executors
@@ -33,14 +32,12 @@ import com.android.launcher3.util.IntArray as LIntArray
 import com.android.launcher3.util.IntArray
 import com.android.launcher3.util.IntSet as LIntSet
 import com.android.launcher3.util.IntSet
-import com.android.launcher3.util.IntSparseArrayMap
 import com.android.launcher3.util.ItemInfoMatcher
 import com.android.launcher3.util.PackageUserKey
 import com.android.launcher3.util.Preconditions
 import com.android.launcher3.util.RunnableList
 import com.android.launcher3.util.TraceHelper
 import com.android.launcher3.util.ViewOnDrawExecutor
-import com.android.launcher3.widget.PendingAddWidgetInfo
 import com.android.launcher3.widget.model.WidgetsListBaseEntry
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicReference
@@ -221,6 +218,10 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         val itemsToRebind = workspace.updateContainerItems(updates, launcher)
         PopupContainerWithArrow.dismissInvalidPopup(launcher)
 
+        updates
+            .mapNotNull { if (it is PredictedContainerInfo) it else null }
+            .forEach { launcher.bindPredictedContainerInfo(it) }
+
         if (itemsToRebind.isEmpty()) return
         workspace.removeItemsByMatcher(ItemInfoMatcher.ofItems(itemsToRebind), false)
         itemsToRebind
@@ -285,49 +286,16 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         return result
     }
 
-    override fun bindSmartspaceWidget() {
-        val cl: CellLayout? =
-            launcher.workspace.getScreenWithId(WorkspaceLayoutManager.FIRST_SCREEN_ID)
-        val spanX = InvariantDeviceProfile.INSTANCE.get(launcher).numSearchContainerColumns
-
-        if (cl?.isRegionVacant(0, 0, spanX, 1) != true) {
-            return
-        }
-
-        val widgetsListBaseEntry: WidgetsListBaseEntry =
-            launcher.widgetPickerDataProvider.get().allWidgets.firstOrNull {
-                item: WidgetsListBaseEntry ->
-                item.mPkgItem.packageName == BuildConfig.APPLICATION_ID
-            } ?: return
-
-        val info =
-            PendingAddWidgetInfo(
-                widgetsListBaseEntry.mWidgets[0].widgetInfo,
-                LauncherSettings.Favorites.CONTAINER_DESKTOP,
-            )
-        launcher.addPendingItem(
-            info,
-            info.container,
-            WorkspaceLayoutManager.FIRST_SCREEN_ID,
-            intArrayOf(0, 0),
-            info.spanX,
-            info.spanY,
-        )
-    }
-
     private fun bindScreens(orderedScreenIds: LIntArray) {
         launcher.workspace.pageIndicator.setPauseScroll(
             /*pause=*/ true,
             launcher.deviceProfile.isTwoPanels,
         )
         val firstScreenPosition = 0
-        if (
-            !SHOULD_SHOW_FIRST_PAGE_WIDGET &&
-                orderedScreenIds.indexOf(FIRST_SCREEN_ID) != firstScreenPosition
-        ) {
+        if (orderedScreenIds.indexOf(FIRST_SCREEN_ID) != firstScreenPosition) {
             orderedScreenIds.removeValue(FIRST_SCREEN_ID)
             orderedScreenIds.add(firstScreenPosition, FIRST_SCREEN_ID)
-        } else if (SHOULD_SHOW_FIRST_PAGE_WIDGET && orderedScreenIds.isEmpty) {
+        } else if (orderedScreenIds.isEmpty) {
             // If there are no screens, we need to have an empty screen
             launcher.workspace.addExtraEmptyScreens()
         }
@@ -393,9 +361,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
             }
         }
         orderedScreenIds
-            .filterNot { screenId ->
-                !SHOULD_SHOW_FIRST_PAGE_WIDGET && screenId == WorkspaceLayoutManager.FIRST_SCREEN_ID
-            }
+            .filter { screenId -> screenId != FIRST_SCREEN_ID }
             .forEach { screenId ->
                 launcher.workspace.insertNewWorkspaceScreenBeforeEmptyScreen(screenId)
             }
@@ -434,12 +400,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
     }
 
     @AnyThread
-    override fun bindCompleteModelAsync(
-        itemIdMap: IntSparseArrayMap<ItemInfo>,
-        extraItems: List<FixedContainerItems>,
-        stringCache: StringCache,
-        isBindingSync: Boolean,
-    ) {
+    override fun bindCompleteModelAsync(itemIdMap: WorkspaceData, isBindingSync: Boolean) {
         val taskTracker = CancellationSignal()
         activeBindTask.getAndSet(taskTracker).cancel()
 
@@ -482,18 +443,10 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
 
         MAIN_EXECUTOR.execute { clearPendingBinds() }
 
-        val orderedScreenIds =
-            IntSet()
-                .apply {
-                    itemIdMap.forEach { if (it.container == CONTAINER_DESKTOP) add(it.screenId) }
-                    if ((QSB_ON_FIRST_SCREEN && !SHOULD_SHOW_FIRST_PAGE_WIDGET) || isEmpty)
-                        add(Workspace.FIRST_SCREEN_ID)
-                }
-                .array
+        val orderedScreenIds = itemIdMap.collectWorkspaceScreens()
         val currentScreenIds = getPagesToBindSynchronously(orderedScreenIds)
 
         fun setupPendingBind(pendingExecutor: Executor) {
-            executeCallbacksTask(pendingExecutor) { launcher.bindStringCache(stringCache) }
             executeCallbacksTask(pendingExecutor) { finishBindingItems(currentScreenIds) }
             pendingExecutor.execute {
                 ItemInstallQueue.INSTANCE[launcher].resumeModelPush(FLAG_LOADER_RUNNING)
@@ -537,9 +490,10 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
             bindItemsInChunks(currentWorkspaceItems, ITEMS_CHUNK, MAIN_EXECUTOR)
             bindItemsInChunks(currentAppWidgets, 1, MAIN_EXECUTOR)
         }
-        extraItems.forEach {
-            it?.let { executeCallbacksTask { launcher.bindExtraContainerItems(it) } }
-        }
+
+        itemIdMap
+            .mapNotNull { if (it is PredictedContainerInfo) it else null }
+            .forEach { executeCallbacksTask { launcher.bindPredictedContainerInfo(it) } }
 
         val pendingTasks = RunnableList()
         val pendingExecutor = Executor { pendingTasks.add(it) }
@@ -566,7 +520,12 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
             onCompleteSignal.executeAllAndDestroy()
         }
 
-        val workspaceItemCount = itemIdMap.size()
+        // Only include the first level items on desktop (excluding folder contents) for item count
+        val workspaceItemCount =
+            currentWorkspaceItems.size +
+                otherWorkspaceItems.size +
+                currentAppWidgets.size +
+                otherAppWidgets.size
         executeCallbacksTask {
             onInitialBindComplete(
                 currentScreenIds,

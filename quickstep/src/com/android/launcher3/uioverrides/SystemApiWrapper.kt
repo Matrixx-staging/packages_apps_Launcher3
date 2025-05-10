@@ -26,14 +26,18 @@ import android.content.pm.ActivityInfo
 import android.content.pm.LauncherActivityInfo
 import android.content.pm.LauncherApps
 import android.content.pm.ShortcutInfo
+import android.graphics.Bitmap
+import android.graphics.Rect
 import android.os.Bundle
 import android.os.Flags.allowPrivateProfile
 import android.os.IBinder
 import android.os.UserHandle
 import android.os.UserManager
 import android.util.ArrayMap
+import android.view.SurfaceControlViewHost
 import android.widget.Toast
 import android.window.RemoteTransition
+import android.window.ScreenCapture
 import com.android.launcher3.Flags.enablePrivateSpace
 import com.android.launcher3.Flags.privateSpaceSysAppsSeparation
 import com.android.launcher3.R
@@ -193,4 +197,15 @@ open class SystemApiWrapper @Inject constructor(@ApplicationContext context: Con
 
     override fun isFileDrawable(shortcutInfo: ShortcutInfo) =
         shortcutInfo.hasIconFile() || shortcutInfo.hasIconUri()
+
+    override fun captureSnapshot(host: SurfaceControlViewHost, width: Int, height: Int): Bitmap =
+        ScreenCapture.captureLayers(
+                ScreenCapture.LayerCaptureArgs.Builder(host.surfacePackage!!.surfaceControl)
+                    .setSourceCrop(Rect(0, 0, width, height))
+                    .setAllowProtected(true)
+                    .setHintForSeamlessTransition(true)
+                    .build()
+            )
+            .asBitmap()
+            .copy(Bitmap.Config.ARGB_8888, true)
 }

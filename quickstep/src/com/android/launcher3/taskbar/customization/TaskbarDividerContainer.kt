@@ -40,7 +40,10 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 
     override val spaceNeeded: Int
         get() {
-            return dpToPx(activityContext.taskbarSpecsEvaluator.taskbarIconSize.size.toFloat())
+            return dpToPx(
+                activityContext.taskbarSpecsEvaluator.taskbarIconSize.size.toFloat(),
+                activityContext,
+            )
         }
 
     init {
@@ -53,7 +56,12 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         val drawable = getTaskbarDividerIcon()
         setIconDrawable(drawable)
         if (!activityContext.isTransientTaskbar) {
-            setPadding(dpToPx(activityContext.taskbarSpecsEvaluator.taskbarIconPadding.toFloat()))
+            setPadding(
+                dpToPx(
+                    activityContext.taskbarSpecsEvaluator.taskbarIconPadding.toFloat(),
+                    activityContext,
+                )
+            )
         }
     }
 

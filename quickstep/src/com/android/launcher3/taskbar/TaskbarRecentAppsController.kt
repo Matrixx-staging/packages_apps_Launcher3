@@ -24,6 +24,7 @@ import com.android.launcher3.Flags.enableRecentsInTaskbar
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.TaskItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
+import com.android.launcher3.taskbar.PinToTaskbarShortcut.Companion.isPinningAppWithContextMenuEnabled
 import com.android.launcher3.taskbar.TaskbarControllers.LoggableTaskbarController
 import com.android.launcher3.util.CancellableTask
 import com.android.quickstep.RecentsFilterState
@@ -32,7 +33,6 @@ import com.android.quickstep.util.DesktopTask
 import com.android.quickstep.util.GroupTask
 import com.android.quickstep.util.SingleTask
 import com.android.systemui.shared.recents.model.Task
-import com.android.window.flags.Flags.enablePinningAppWithContextMenu
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus
 import java.io.PrintWriter
 
@@ -41,8 +41,10 @@ import java.io.PrintWriter
  * - When in Fullscreen mode: show the N most recent Tasks
  * - When in Desktop Mode: show the currently running (open) Tasks
  */
-class TaskbarRecentAppsController(context: Context, private val recentsModel: RecentsModel) :
-    LoggableTaskbarController {
+class TaskbarRecentAppsController(
+    private val context: Context,
+    private val recentsModel: RecentsModel,
+) : LoggableTaskbarController {
 
     var canShowRunningApps =
         DesktopModeStatus.canEnterDesktopMode(context) &&
@@ -332,12 +334,13 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
             if (Flags.enableMultiInstanceMenuTaskbar()) {
                 val deduplicatedDesktopTasks =
                     desktopTasks.distinctBy { Pair(it.task.key.packageName, it.task.key.userId) }
+                val activityContext = controllers.taskbarActivityContext
 
                 shownTasks
                     .filter {
                         it is SingleTask &&
                             it.task.key.id in deduplicatedDesktopTasks.map { it.task.key.id } &&
-                            (!enablePinningAppWithContextMenu() ||
+                            (!isPinningAppWithContextMenuEnabled(activityContext) ||
                                 shownHotseatItems.none { hotseatItem ->
                                     it.containsPackage(
                                         hotseatItem.targetPackage,

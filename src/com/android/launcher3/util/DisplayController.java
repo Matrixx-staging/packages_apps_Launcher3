@@ -168,7 +168,10 @@ public class DisplayController implements DesktopVisibilityListener {
                     new DisplayManager.DisplayListener() {
                         @Override
                         public void onDisplayAdded(int displayId) {
-                            getOrCreatePerDisplayInfo(displayManager.getDisplay(displayId));
+                            Display display = displayManager.getDisplay(displayId);
+                            if (display != null) {
+                                getOrCreatePerDisplayInfo(display);
+                            }
                         }
 
                         @Override

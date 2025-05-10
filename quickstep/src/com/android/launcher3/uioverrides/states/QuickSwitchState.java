@@ -17,11 +17,7 @@ package com.android.launcher3.uioverrides.states;
 
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_BACKGROUND;
 
-import android.graphics.Color;
-
 import com.android.launcher3.Launcher;
-import com.android.launcher3.R;
-import com.android.launcher3.util.Themes;
 
 /**
  * State to indicate we are about to launch a recent task. Note that this state is only used when
@@ -40,15 +36,6 @@ public class QuickSwitchState extends BackgroundAppState {
         float shiftProgress = getVerticalProgress(launcher) - NORMAL.getVerticalProgress(launcher);
         float translationY = shiftProgress * shiftRange;
         return new ScaleAndTranslation(0.9f, 0, translationY);
-    }
-
-    @Override
-    public int getWorkspaceScrimColor(Launcher launcher) {
-        if (launcher.areDesktopTasksVisible()) {
-            // No scrim while desktop tasks are visible
-            return Color.TRANSPARENT;
-        }
-        return Themes.getAttrColor(launcher, R.attr.overviewScrimColor);
     }
 
     @Override

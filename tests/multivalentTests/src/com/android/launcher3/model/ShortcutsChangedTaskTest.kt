@@ -38,7 +38,7 @@ import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.shortcuts.ShortcutKey
 import com.android.launcher3.util.ComponentKey
-import com.android.launcher3.util.IntSparseArrayMap
+import com.android.launcher3.util.ModelTestExtensions.initItems
 import com.android.launcher3.util.SandboxApplication
 import com.google.common.truth.Truth.assertThat
 import java.util.function.Predicate
@@ -105,8 +105,7 @@ class ShortcutsChangedTaskTest {
                     whenever(id).thenReturn(expectedShortcutId)
                 }
             )
-        val items: IntSparseArrayMap<ItemInfo> = bgDataModel.itemsIdMap
-        items.put(expectedWai.id, expectedWai)
+        bgDataModel.initItems(expectedWai)
         doReturn(
                 ApplicationInfo().apply {
                     enabled = true
@@ -135,8 +134,7 @@ class ShortcutsChangedTaskTest {
                     whenever(id).thenReturn(expectedShortcutId)
                 }
             )
-        val items: IntSparseArrayMap<ItemInfo> = bgDataModel.itemsIdMap
-        items.put(expectedWai.id, expectedWai)
+        bgDataModel.initItems(expectedWai)
         doReturn(
                 ApplicationInfo().apply {
                     enabled = true
@@ -168,8 +166,7 @@ class ShortcutsChangedTaskTest {
                     whenever(id).thenReturn(expectedShortcutId)
                 }
             )
-        val items: IntSparseArrayMap<ItemInfo> = bgDataModel.itemsIdMap
-        items.put(expectedWai.id, expectedWai)
+        bgDataModel.initItems(expectedWai)
         doReturn(
                 ApplicationInfo().apply {
                     enabled = true
@@ -197,8 +194,7 @@ class ShortcutsChangedTaskTest {
                     whenever(id).thenReturn(expectedShortcutId)
                 }
             )
-        val items: IntSparseArrayMap<ItemInfo> = bgDataModel.itemsIdMap
-        items.put(expectedWai.id, expectedWai)
+        bgDataModel.initItems(expectedWai)
         doReturn(
                 ApplicationInfo().apply {
                     enabled = true
@@ -227,8 +223,7 @@ class ShortcutsChangedTaskTest {
                     whenever(id).thenReturn(expectedShortcutId)
                 }
             )
-        val items: IntSparseArrayMap<ItemInfo> = bgDataModel.itemsIdMap
-        items.put(expectedWai.id, expectedWai)
+        bgDataModel.initItems(expectedWai)
         doReturn(
                 ApplicationInfo().apply {
                     enabled = true
@@ -257,8 +252,7 @@ class ShortcutsChangedTaskTest {
                     whenever(id).thenReturn(expectedShortcutId)
                 }
             )
-        val items: IntSparseArrayMap<ItemInfo> = bgDataModel.itemsIdMap
-        items.put(expectedWai.id, expectedWai)
+        bgDataModel.initItems(expectedWai)
         doReturn(
                 ApplicationInfo().apply {
                     enabled = true
@@ -347,8 +341,7 @@ class ShortcutsChangedTaskTest {
                     whenever(id).thenReturn(expectedShortcutId)
                 }
             )
-        val items: IntSparseArrayMap<ItemInfo> = bgDataModel.itemsIdMap
-        items.put(expectedWai.id, expectedWai)
+        bgDataModel.initItems(expectedWai)
         doReturn(
                 ApplicationInfo().apply {
                     enabled = true

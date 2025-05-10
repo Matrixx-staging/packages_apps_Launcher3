@@ -28,6 +28,7 @@ import android.graphics.Insets;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.Property;
 import android.view.MotionEvent;
 import android.view.View;
@@ -53,6 +54,8 @@ import java.util.ArrayList;
  */
 public abstract class BaseDragLayer<T extends Context & ActivityContext>
         extends InsettableFrameLayout {
+
+    public static final String TAG = "BaseDragLayer";
 
     public static final Property<LayoutParams, Integer> LAYOUT_X =
             new Property<LayoutParams, Integer>(Integer.TYPE, "x") {
@@ -198,6 +201,12 @@ public abstract class BaseDragLayer<T extends Context & ActivityContext>
         mActiveController = null;
         if (canFindActiveController()) {
             mActiveController = findControllerToHandleTouch(ev);
+            if (mActiveController != null) {
+                // Logging here won't show log on every touch event, only on the start of new
+                // gestures to prevent spamming the logcat with logs.
+                Log.i(TAG, mActiveController.dump());
+            }
+
         }
         return mActiveController != null;
     }
@@ -518,7 +527,8 @@ public abstract class BaseDragLayer<T extends Context & ActivityContext>
         writer.println(prefix + "DragLayer:");
         if (mActiveController != null) {
             writer.println(prefix + "\tactiveController: " + mActiveController);
-            mActiveController.dump(prefix + "\t", writer);
+            writer.println(prefix + "\t" + mActiveController.dump());
+
         }
         writer.println(prefix + "\tdragLayerAlpha : " + mMultiValueAlpha );
     }

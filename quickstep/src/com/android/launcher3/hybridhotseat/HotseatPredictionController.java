@@ -53,8 +53,8 @@ import com.android.launcher3.graphics.DragPreviewProvider;
 import com.android.launcher3.logger.LauncherAtom.ContainerInfo;
 import com.android.launcher3.logger.LauncherAtom.PredictedHotseatContainer;
 import com.android.launcher3.logging.InstanceId;
-import com.android.launcher3.model.BgDataModel.FixedContainerItems;
 import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.model.data.PredictedContainerInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.pm.UserCache;
 import com.android.launcher3.popup.SystemShortcut;
@@ -285,8 +285,8 @@ public class HotseatPredictionController implements DragController.DragListener,
     /**
      * Sets or updates the predicted items
      */
-    public void setPredictedItems(FixedContainerItems items) {
-        mPredictedItems = new ArrayList(items.items);
+    public void setPredictedItems(PredictedContainerInfo items) {
+        mPredictedItems = items.getContents();
         if (mPredictedItems.isEmpty()) {
             HotseatRestoreHelper.restoreBackup(mLauncher);
         }

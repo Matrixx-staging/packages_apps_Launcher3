@@ -1,0 +1,10 @@
+filegroup {
+    name: "launcher-viewcapture-analysis",
+    srcs: [
+        "FlashDetector.java",
+        "AlphaJumpDetector.java",
+        "AnomalyDetector.java",
+        "PositionJumpDetector.java",
+        "ViewCaptureAnalyzer.java",
+    ],
+}

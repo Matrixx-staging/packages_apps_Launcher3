@@ -38,8 +38,6 @@ import com.android.launcher3.LauncherState;
 import com.android.launcher3.util.TouchController;
 import com.android.quickstep.SystemUiProxy;
 
-import java.io.PrintWriter;
-
 /**
  * TouchController for handling touch events that get sent to the StatusBar. Once the
  * Once the event delta mDownY passes the touch slop, the events start getting forwarded.
@@ -67,11 +65,10 @@ public class StatusBarTouchController implements TouchController {
     }
 
     @Override
-    public void dump(String prefix, PrintWriter writer) {
-        writer.println(prefix + "mCanIntercept:" + mCanIntercept);
-        writer.println(prefix + "mLastAction:" + MotionEvent.actionToString(mLastAction));
-        writer.println(prefix + "mSysUiProxy available:"
-                + SystemUiProxy.INSTANCE.get(mLauncher).isActive());
+    public String dump() {
+        return "mCanIntercept:" + mCanIntercept
+                + " , mLastAction:" + MotionEvent.actionToString(mLastAction)
+                + " , mSysUiProxy available:" + SystemUiProxy.INSTANCE.get(mLauncher).isActive();
     }
 
     private void dispatchTouchEvent(MotionEvent ev) {
