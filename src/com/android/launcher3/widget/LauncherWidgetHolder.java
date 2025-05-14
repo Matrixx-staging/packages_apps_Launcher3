@@ -525,6 +525,14 @@ public class LauncherWidgetHolder {
     }
 
     /**
+     * Get the widget views, mapped by widget ID. This should only be called on the main thread.
+     */
+    @NonNull
+    public SparseArray<LauncherAppWidgetHostView> getViews() {
+        return mViews;
+    }
+
+    /**
      * Returns the new LauncherWidgetHolder instance
      */
     public static LauncherWidgetHolder newInstance(Context context) {
