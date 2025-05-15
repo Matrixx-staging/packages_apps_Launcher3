@@ -365,11 +365,12 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
 
         if (containerInterface.getCreatedContainer()
                 instanceof RecentsWindowManager recentsWindowManager) {
-            mRecentsAnimationStartPending = getSystemUiProxy().startRecentsActivity(intent, options,
-                    mCallbacks, gestureState.useSyntheticRecentsTransition(), null, mDisplayId);
+            mRecentsAnimationStartPending = getSystemUiProxy().startRecentsTransition(intent,
+                    options, mCallbacks, gestureState.useSyntheticRecentsTransition(), null,
+                    mDisplayId);
             recentsWindowManager.startRecentsWindow(mCallbacks);
         } else {
-            mRecentsAnimationStartPending = getSystemUiProxy().startRecentsActivity(intent,
+            mRecentsAnimationStartPending = getSystemUiProxy().startRecentsTransition(intent,
                     options, mCallbacks, false /* useSyntheticRecentsTransition */, null,
                     mDisplayId);
         }

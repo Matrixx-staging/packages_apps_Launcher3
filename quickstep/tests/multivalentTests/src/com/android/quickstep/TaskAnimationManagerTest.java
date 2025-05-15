@@ -108,7 +108,7 @@ public class TaskAnimationManagerTest {
         final ArgumentCaptor<ActivityOptions> optionsCaptor =
                 ArgumentCaptor.forClass(ActivityOptions.class);
         verify(mSystemUiProxy)
-                .startRecentsActivity(any(), optionsCaptor.capture(), any(), anyBoolean(),
+                .startRecentsTransition(any(), optionsCaptor.capture(), any(), anyBoolean(),
                         any(), anyInt());
         assertEquals(ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_ALWAYS,
                 optionsCaptor.getValue().getPendingIntentBackgroundActivityStartMode());
@@ -140,7 +140,7 @@ public class TaskAnimationManagerTest {
                 /* allowEnterPip= */ false);
 
         when(mSystemUiProxy
-                .startRecentsActivity(any(), any(), listenerCaptor.capture(), anyBoolean(), any(),
+                .startRecentsTransition(any(), any(), listenerCaptor.capture(), anyBoolean(), any(),
                         anyInt()))
                 .thenReturn(true);
 
