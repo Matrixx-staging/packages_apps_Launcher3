@@ -55,10 +55,10 @@ import com.android.quickstep.LauncherActivityInterface;
 import com.android.quickstep.OverviewComponentObserver;
 import com.android.quickstep.RecentsAnimationCallbacks;
 import com.android.quickstep.SystemUiProxy;
-import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.util.SplitTask;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
+import com.android.quickstep.window.RecentsWindowManager;
 import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags;
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation;
 

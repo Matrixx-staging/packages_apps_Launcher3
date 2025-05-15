@@ -35,8 +35,8 @@ import com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR
 import com.android.launcher3.util.TestUtil
 import com.android.launcher3.util.coroutines.ProductionDispatchers
 import com.android.quickstep.AllAppsActionManager
-import com.android.quickstep.fallback.window.RecentsWindowManager
 import com.android.quickstep.input.QuickstepKeyGestureEventsManager
+import com.android.quickstep.window.RecentsWindowManager
 import java.lang.reflect.Field
 import java.lang.reflect.ParameterizedType
 import java.util.Locale
@@ -99,8 +99,9 @@ class TaskbarUnitTestRule(
 
                 // Only run test when Taskbar is enabled.
                 instrumentation.runOnMainSync {
-                    assumeTrue("Ignoring test because taskbar is not present",
-                        LauncherAppState.getIDP(context).getDeviceProfile(context).isTaskbarPresent
+                    assumeTrue(
+                        "Ignoring test because taskbar is not present",
+                        LauncherAppState.getIDP(context).getDeviceProfile(context).isTaskbarPresent,
                     )
                 }
 

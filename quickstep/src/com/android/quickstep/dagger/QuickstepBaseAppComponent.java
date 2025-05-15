@@ -37,13 +37,13 @@ import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.TaskAnimationManager;
 import com.android.quickstep.TopTaskTracker;
 import com.android.quickstep.actioncorner.ActionCornerHandler;
-import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.inputconsumers.NavHandleLongPressHandler;
 import com.android.quickstep.logging.SettingsChangeLogger;
 import com.android.quickstep.util.AsyncClockEventDelegate;
 import com.android.quickstep.util.ContextualSearchHapticManager;
 import com.android.quickstep.util.ContextualSearchStateManager;
 import com.android.quickstep.views.RecentsDismissUtils;
+import com.android.quickstep.window.RecentsWindowManager;
 
 /**
  * Launcher Quickstep base component for Dagger injection.

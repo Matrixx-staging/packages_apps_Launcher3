@@ -38,11 +38,11 @@ import com.android.launcher3.views.ScrimColors;
 import com.android.quickstep.GestureState.GestureEndTarget;
 import com.android.quickstep.dagger.QuickstepBaseAppComponent;
 import com.android.quickstep.fallback.RecentsState;
-import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
 import com.android.quickstep.util.AnimatorControllerWithResistance;
 import com.android.quickstep.util.ContextInitListener;
 import com.android.quickstep.views.RecentsView;
+import com.android.quickstep.window.RecentsWindowManager;
 
 import dagger.assisted.AssistedInject;
 

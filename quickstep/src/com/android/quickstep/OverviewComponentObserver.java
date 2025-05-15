@@ -23,9 +23,9 @@ import static android.view.Display.DEFAULT_DISPLAY;
 
 import static com.android.launcher3.config.FeatureFlags.SEPARATE_RECENTS_ACTIVITY;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
-import static com.android.quickstep.fallback.window.RecentsWindowFlags.enableFallbackOverviewInWindow;
-import static com.android.quickstep.fallback.window.RecentsWindowFlags.enableLauncherOverviewInWindow;
-import static com.android.quickstep.fallback.window.RecentsWindowFlags.enableOverviewOnConnectedDisplays;
+import static com.android.quickstep.window.RecentsWindowFlags.enableFallbackOverviewInWindow;
+import static com.android.quickstep.window.RecentsWindowFlags.enableLauncherOverviewInWindow;
+import static com.android.quickstep.window.RecentsWindowFlags.enableOverviewOnConnectedDisplays;
 import static com.android.systemui.shared.system.PackageManagerWrapper.ACTION_PREFERRED_ACTIVITY_CHANGED;
 
 import android.content.ActivityNotFoundException;
@@ -51,8 +51,8 @@ import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.util.DaggerSingletonObject;
 import com.android.launcher3.util.DaggerSingletonTracker;
 import com.android.launcher3.util.SimpleBroadcastReceiver;
-import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.util.ActiveGestureProtoLogProxy;
+import com.android.quickstep.window.RecentsWindowManager;
 import com.android.systemui.shared.system.PackageManagerWrapper;
 
 import java.io.PrintWriter;

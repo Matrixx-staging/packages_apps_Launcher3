@@ -82,7 +82,6 @@ import com.android.quickstep.RemoteAnimationTargets
 import com.android.quickstep.RemoteTargetGluer.RemoteTargetHandle
 import com.android.quickstep.TaskOverlayFactory
 import com.android.quickstep.TaskViewUtils
-import com.android.quickstep.fallback.window.RecentsWindowFlags.enableOverviewOnConnectedDisplays
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler
 import com.android.quickstep.recents.di.RecentsDependencies
 import com.android.quickstep.recents.di.get
@@ -107,6 +106,7 @@ import com.android.quickstep.views.IconAppChipView.AppChipStatus
 import com.android.quickstep.views.OverviewActionsView.DISABLED_NO_THUMBNAIL
 import com.android.quickstep.views.OverviewActionsView.DISABLED_ROTATED
 import com.android.quickstep.views.RecentsView.UNBOUND_TASK_VIEW_ID
+import com.android.quickstep.window.RecentsWindowFlags.enableOverviewOnConnectedDisplays
 import com.android.systemui.shared.recents.model.Task
 import com.android.systemui.shared.recents.model.ThumbnailData
 import com.android.systemui.shared.system.ActivityManagerWrapper

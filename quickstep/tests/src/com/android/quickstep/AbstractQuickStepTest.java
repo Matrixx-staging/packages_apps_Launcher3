@@ -34,9 +34,9 @@ import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.TestUtil;
 import com.android.launcher3.util.Wait;
 import com.android.launcher3.util.ui.AbstractLauncherUiTest;
-import com.android.quickstep.fallback.window.RecentsWindowFlags;
-import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.views.RecentsView;
+import com.android.quickstep.window.RecentsWindowFlags;
+import com.android.quickstep.window.RecentsWindowManager;
 
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
