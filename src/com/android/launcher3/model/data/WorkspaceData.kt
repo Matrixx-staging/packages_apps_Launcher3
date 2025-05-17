@@ -17,14 +17,19 @@
 package com.android.launcher3.model.data
 
 import android.util.SparseArray
+import androidx.annotation.VisibleForTesting
 import androidx.core.util.putAll
 import androidx.core.util.valueIterator
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP
 import com.android.launcher3.Workspace
+import com.android.launcher3.model.data.WorkspaceChangeEvent.AddEvent
+import com.android.launcher3.model.data.WorkspaceChangeEvent.RemoveEvent
+import com.android.launcher3.model.data.WorkspaceChangeEvent.UpdateEvent
 import com.android.launcher3.util.IntArray
 import com.android.launcher3.util.IntSet
-import java.util.Collections
+import com.android.launcher3.util.ItemInfoMatcher
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.stream.Stream
 import java.util.stream.StreamSupport
 
@@ -32,7 +37,7 @@ import java.util.stream.StreamSupport
  * An immutable representation of all the workspace items (shortcuts, folders, widgets and predicted
  * items)
  */
-sealed interface WorkspaceData : Iterable<ItemInfo> {
+sealed class WorkspaceData : Iterable<ItemInfo> {
 
     /** Creates an array of valid workspace screens based on current items in the model. */
     fun collectWorkspaceScreens(): IntArray {
@@ -45,12 +50,16 @@ sealed interface WorkspaceData : Iterable<ItemInfo> {
     }
 
     /** Returns the [ItemInfo] associated with the [id] or null */
-    operator fun get(id: Int): ItemInfo?
+    abstract operator fun get(id: Int): ItemInfo?
 
     fun stream(): Stream<ItemInfo> = StreamSupport.stream(spliterator(), false)
 
     /** Version determines the uniqueness per model load cycle */
-    val version: Int
+    abstract val version: Int
+    /** Number of times, this data has been modified */
+    internal abstract val modificationId: Int
+    /** Previous modifications to this data in reverse order: 1st entry is the latest update */
+    protected abstract val changeHistory: List<WorkspaceChangeEvent>
 
     /**
      * Returns the predicted items for the provided [containerId] or an empty list id no such
@@ -58,19 +67,45 @@ sealed interface WorkspaceData : Iterable<ItemInfo> {
      */
     fun getPredictedContents(containerId: Int): List<ItemInfo> =
         get(containerId).let { if (it is PredictedContainerInfo) it.getContents() else null }
-            ?: Collections.emptyList()
+            ?: emptyList()
 
     /** Returns an immutable copy of the dataset */
-    fun copy(): WorkspaceData
+    abstract fun copy(): WorkspaceData
+
+    /**
+     * Returns a list of [WorkspaceChangeEvent] to apply for reaching from [source] to current
+     * state. Returns an empty list of the source is same as the current state and null if such a
+     * transition is not possible.
+     */
+    fun diff(source: WorkspaceData): List<WorkspaceChangeEvent>? {
+        if (version != source.version) return null
+        val requiredHistorySize = modificationId - source.modificationId
+
+        val changes = changeHistory
+        return when {
+            requiredHistorySize < 0 -> null
+            requiredHistorySize > changes.size -> null
+            requiredHistorySize == 0 -> emptyList()
+            else -> changes.subList(0, requiredHistorySize).reversed()
+        }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return other is WorkspaceData &&
+            other.version == version &&
+            other.modificationId == modificationId
+    }
 
     /** A mutable implementation of [WorkspaceData] */
-    class MutableWorkspaceData : WorkspaceData {
+    class MutableWorkspaceData : WorkspaceData() {
 
         private val itemsIdMap = SparseArray<ItemInfo>()
 
-        override var version: Int = 0
+        override var version: Int = VERSION_COUNTER.incrementAndGet()
 
-        private var modificationId: Int = 0
+        override var modificationId: Int = 0
+
+        override val changeHistory = mutableListOf<WorkspaceChangeEvent>()
 
         override fun iterator() = itemsIdMap.valueIterator()
 
@@ -80,20 +115,21 @@ sealed interface WorkspaceData : Iterable<ItemInfo> {
         fun replaceDataMap(items: SparseArray<ItemInfo>) {
             itemsIdMap.clear()
             itemsIdMap.putAll(items)
-            version++
+            version = VERSION_COUNTER.incrementAndGet()
             modificationId = 0
+            changeHistory.clear()
         }
 
         /** Adds the [item] to the dataset */
-        fun addItem(item: ItemInfo, owner: Any?) {
-            itemsIdMap[item.id] = item
-            modificationId++
+        fun addItems(items: List<ItemInfo>, owner: Any?) {
+            items.forEach { itemsIdMap[it.id] = it }
+            pushUpdate(AddEvent(items, owner))
         }
 
         /** Removes existing [items] from the dataset */
         fun removeItems(items: Collection<ItemInfo>, owner: Any?) {
             items.forEach { itemsIdMap.remove(it.id) }
-            modificationId++
+            pushUpdate(RemoveEvent(ItemInfoMatcher.ofItems(items), owner))
         }
 
         /** Replaces an existing [item] from the dataset */
@@ -108,19 +144,26 @@ sealed interface WorkspaceData : Iterable<ItemInfo> {
          * without going though this dataset
          */
         fun notifyItemsUpdated(items: List<ItemInfo>, owner: Any?) {
+            pushUpdate(UpdateEvent(items, owner))
+        }
+
+        private fun pushUpdate(update: WorkspaceChangeEvent) {
             modificationId++
+            changeHistory.add(0, update)
+            if (changeHistory.size > MAX_HISTORY_SIZE) changeHistory.removeLast()
         }
 
         override fun copy(): WorkspaceData =
-            ImmutableWorkspaceData(version, modificationId, itemsIdMap)
+            ImmutableWorkspaceData(version, modificationId, changeHistory.toList(), itemsIdMap)
     }
 
     /** An immutable implementation of [WorkspaceData] */
     class ImmutableWorkspaceData(
         override val version: Int,
-        private val modificationId: Int,
+        override val modificationId: Int,
+        override val changeHistory: List<WorkspaceChangeEvent>,
         items: SparseArray<ItemInfo>,
-    ) : WorkspaceData {
+    ) : WorkspaceData() {
 
         private val itemsIdMap = items.clone()
 
@@ -129,5 +172,12 @@ sealed interface WorkspaceData : Iterable<ItemInfo> {
         override fun get(id: Int): ItemInfo? = itemsIdMap.get(id)
 
         override fun copy(): WorkspaceData = this
+    }
+
+    companion object {
+        // Maximum number of historic change events to keep in memory
+        @VisibleForTesting const val MAX_HISTORY_SIZE = 4
+
+        private val VERSION_COUNTER = AtomicInteger()
     }
 }

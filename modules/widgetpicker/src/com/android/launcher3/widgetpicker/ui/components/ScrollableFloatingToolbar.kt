@@ -31,7 +31,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -59,20 +58,20 @@ import kotlinx.coroutines.launch
  *
  * This design is suitable for 2-3 tabs.
  *
- * @property tabs A list of tabs (typically [LeadingIconToolbarTab]) that can be arranged in a
+ * @param tabs A list of tabs (typically [LeadingIconToolbarTab]) that can be arranged in a
  *   scrollable row.
- * @property selectedTabIndex the tab that is currently selected; this enables bringing the tab into
+ * @param selectedTabIndex the tab that is currently selected; this enables bringing the tab into
  *   the visible area.
- * @property modifier additional modifications to be applied to the top level of the toolbar.
- * @property shape shape to clip the contents of the toolbar; defaults to fully rounded corners.
- * @property edgePadding padding applied horizontally on sides of the toolbar; in case of long
- *   length tabs, visually the padding will appear only on left (in LTR for instance) and when you
- *   scroll completely to right, the padding will appear on right; in case tab content is smaller in
+ * @param modifier additional modifications to be applied to the top level of the toolbar.
+ * @param shape shape to clip the contents of the toolbar; defaults to fully rounded corners.
+ * @param edgePadding padding applied horizontally on sides of the toolbar; in case of long length
+ *   tabs, visually the padding will appear only on left (in LTR for instance) and when you scroll
+ *   completely to right, the padding will appear on right; in case tab content is smaller in
  *   length, the padding appears on both sides.
- * @property maxWidth if the toolbar needs to be constraint to a specific width.
- * @property minTabWidth minimum width to be guaranteed for individual tabs
- * @property containerColor color to be applied to the surface of toolbar
- * @property scrollState the [ScrollState] of the toolbar's scrollable tab content
+ * @param maxWidth if the toolbar needs to be constraint to a specific width.
+ * @param minTabWidth minimum width to be guaranteed for individual tabs
+ * @param containerColor color to be applied to the surface of toolbar
+ * @param shadowElevation The size of the shadow below the surface.
  */
 @Composable
 fun ScrollableFloatingToolbar(
@@ -84,6 +83,7 @@ fun ScrollableFloatingToolbar(
     maxWidth: Dp = ScrollableFloatingToolbarDefaults.maxWidth,
     minTabWidth: Dp = ScrollableFloatingToolbarDefaults.minTabWidth,
     containerColor: Color = ScrollableFloatingToolbarDefaults.containerColor,
+    shadowElevation: Dp = ScrollableFloatingToolbarDefaults.shadowElevation,
 ) {
     check(tabs.size in 2..3) { "Unexpected number of tabs: ${tabs.size}. Suitable for 2-3 tabs." }
 
@@ -91,7 +91,9 @@ fun ScrollableFloatingToolbar(
 
     Surface(
         color = containerColor,
-        modifier = modifier.clip(shape).wrapContentSize(align = Alignment.Center),
+        shadowElevation = shadowElevation,
+        shape = shape,
+        modifier = modifier.wrapContentSize(align = Alignment.Center),
     ) {
         ScrollableTabsLayout(
             tabs = tabs,
@@ -236,6 +238,8 @@ object ScrollableFloatingToolbarDefaults {
     val edgePadding: Dp = 8.dp
     val maxWidth: Dp = 348.dp
     val minTabWidth: Dp = 90.dp
+
+    val shadowElevation: Dp = 3.dp
 
     val containerColor: Color
         @Composable get() = MaterialTheme.colorScheme.surfaceBright

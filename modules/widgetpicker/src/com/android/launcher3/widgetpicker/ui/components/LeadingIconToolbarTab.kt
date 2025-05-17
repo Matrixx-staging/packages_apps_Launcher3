@@ -72,10 +72,10 @@ fun LeadingIconToolbarTab(
         modifier =
             Modifier.fillMaxWidth()
                 .clip(CircleShape)
+                .clickable { onClick() }
                 .background(color = backgroundColor)
                 .minimumInteractiveComponentSize()
-                .padding(horizontal = LeadingIconToolbarTabDefaults.horizontalPadding)
-                .clickable { onClick() },
+                .padding(horizontal = LeadingIconToolbarTabDefaults.horizontalPadding),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
     ) {

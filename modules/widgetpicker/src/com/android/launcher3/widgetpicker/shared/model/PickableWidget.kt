@@ -36,6 +36,31 @@ data class PickableWidget(
     val id: WidgetId,
     val appId: WidgetAppId,
     val label: String,
-    val description: String,
+    val description: CharSequence?,
     val appWidgetProviderInfo: AppWidgetProviderInfo,
+    val sizeInfo: WidgetSizeInfo,
+)
+
+/**
+ * Sizing information for a specific widget shown in a grid.
+ *
+ * @param spanX the number of horizontal cells in the host's grid that this widget takes
+ * @param spanY the number of vertical cells in the host's grid that this widget takes
+ * @param widthPx the width in pixels that the widget should ideally be sized at based on host's
+ *   grid
+ * @param heightPx the height in pixels that the widget should ideally be sized at based on host's
+ *   grid
+ * @param containerWidthPx the width of container in which the widget may need to be fit to; For
+ *   instance, for visual coherence, widgets of sizes like 3x2 are shown in 2x2 container based on a
+ *   predefined mapping logic. This allows us to show them in a single row when space permits.
+ *   [containerWidthPx] is the width in pixel for such a container. [containerHeightPx] is the
+ *   height in pixels for the container spans.
+ */
+data class WidgetSizeInfo(
+    val spanX: Int,
+    val spanY: Int,
+    val widthPx: Int,
+    val heightPx: Int,
+    val containerWidthPx: Int,
+    val containerHeightPx: Int,
 )

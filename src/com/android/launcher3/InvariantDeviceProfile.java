@@ -106,13 +106,14 @@ public class InvariantDeviceProfile {
             "idp_non_fixed_landscape_grid_name";
 
     @Retention(RetentionPolicy.SOURCE)
-    @IntDef({TYPE_PHONE, TYPE_MULTI_DISPLAY, TYPE_TABLET})
+    @IntDef({TYPE_PHONE, TYPE_MULTI_DISPLAY, TYPE_TABLET, TYPE_DESKTOP})
     public @interface DeviceType {
     }
 
     public static final int TYPE_PHONE = 0;
     public static final int TYPE_MULTI_DISPLAY = 1;
     public static final int TYPE_TABLET = 2;
+    public static final int TYPE_DESKTOP = 3;
 
     private static final float ICON_SIZE_DEFINED_IN_APP_DP = 48;
 
@@ -1008,8 +1009,10 @@ public class InvariantDeviceProfile {
         private static final int DEVICE_CATEGORY_PHONE = 1 << 0;
         private static final int DEVICE_CATEGORY_TABLET = 1 << 1;
         private static final int DEVICE_CATEGORY_MULTI_DISPLAY = 1 << 2;
+        private static final int DEVICE_CATEGORY_DESKTOP = 1 << 3;
         private static final int DEVICE_CATEGORY_ANY =
-                DEVICE_CATEGORY_PHONE | DEVICE_CATEGORY_TABLET | DEVICE_CATEGORY_MULTI_DISPLAY;
+                DEVICE_CATEGORY_PHONE | DEVICE_CATEGORY_TABLET | DEVICE_CATEGORY_MULTI_DISPLAY
+                        | DEVICE_CATEGORY_DESKTOP;
 
         private static final int INLINE_QSB_FOR_PORTRAIT = 1 << 0;
         private static final int INLINE_QSB_FOR_LANDSCAPE = 1 << 1;
@@ -1234,6 +1237,9 @@ public class InvariantDeviceProfile {
                 case TYPE_MULTI_DISPLAY:
                     return (deviceCategory & DEVICE_CATEGORY_MULTI_DISPLAY)
                             == DEVICE_CATEGORY_MULTI_DISPLAY;
+                case TYPE_DESKTOP:
+                    return (deviceCategory & DEVICE_CATEGORY_DESKTOP)
+                            == DEVICE_CATEGORY_DESKTOP;
                 default:
                     return false;
             }

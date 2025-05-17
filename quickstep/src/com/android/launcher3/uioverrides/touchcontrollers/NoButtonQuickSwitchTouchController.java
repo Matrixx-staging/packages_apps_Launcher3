@@ -135,7 +135,7 @@ public class NoButtonQuickSwitchTouchController implements TouchController,
                 mLauncher,
                 mLauncher.getDeviceProfile(),
                 mRecentsView.getPagedOrientationHandler(),
-                mRecentsView.getSizeStrategy());
+                mRecentsView.getContainerInterface());
         mMaxYProgress = mLauncher.getDeviceProfile().heightPx / mYRange;
         mMotionPauseDetector = new MotionPauseDetector(mLauncher);
         mMotionPauseMinDisplacement = mLauncher.getResources().getDimension(

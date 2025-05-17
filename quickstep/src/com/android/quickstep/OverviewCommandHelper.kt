@@ -24,7 +24,6 @@ import android.os.Trace
 import android.util.Log
 import android.view.Display.DEFAULT_DISPLAY
 import android.view.View
-import android.window.DesktopExperienceFlags
 import android.window.TransitionInfo
 import androidx.annotation.BinderThread
 import androidx.annotation.UiThread
@@ -101,7 +100,7 @@ constructor(
         overviewComponentObserver.getContainerInterface(displayId)
 
     private fun getVisibleRecentsView(displayId: Int) =
-        getContainerInterface(displayId).getVisibleRecentsView<RecentsView<*, *>>()
+        getContainerInterface(displayId)?.getVisibleRecentsView<RecentsView<*, *>>()
 
     /**
      * Adds a command to be executed next, after all pending tasks are completed. Max commands that
@@ -338,11 +337,12 @@ constructor(
         }
     }
 
+    // Returns false if callbacks should be awaited, true otherwise.
     private fun executeWhenRecentsIsNotVisible(
         command: CommandInfo,
         onCallbackResult: () -> Unit,
     ): Boolean {
-        val containerInterface = getContainerInterface(command.displayId)
+        val containerInterface = getContainerInterface(command.displayId) ?: return true
         val recentsViewContainer = containerInterface.getCreatedContainer()
         val recentsView: RecentsView<*, *>? = recentsViewContainer?.getOverviewPanel()
         val deviceProfile = recentsViewContainer?.getDeviceProfile()
@@ -361,9 +361,7 @@ constructor(
         val taskAnimationManager = taskAnimationManagerRepository[command.displayId]
         if (taskAnimationManager == null) {
             Log.e(TAG, "No TaskAnimationManager found for display ${command.displayId}")
-            ActiveGestureProtoLogProxy.logOnTaskAnimationManagerNotAvailable(
-                command.displayId
-            )
+            ActiveGestureProtoLogProxy.logOnTaskAnimationManagerNotAvailable(command.displayId)
             return false
         }
 
@@ -468,7 +466,7 @@ constructor(
             // Can happen e.g. when a display is disconnected, so try to handle gracefully.
             Log.d(TAG, "AbsSwipeUpHandler not available for displayId=${command.displayId})")
             ActiveGestureProtoLogProxy.logOnAbsSwipeUpHandlerNotAvailable(command.displayId)
-            return false
+            return true
         }
         interactionHandler.setGestureEndCallback {
             onTransitionComplete(command, interactionHandler, onCallbackResult)
@@ -590,14 +588,17 @@ constructor(
         ) {
             return
         }
-
         // When the overview is launched via alt tab (command type is TYPE_KEYBOARD_INPUT),
         // the touch mode somehow is not change to false by the Android framework.
         // The subsequent tab to go through tasks in overview can only be dispatched to
         // focuses views, while focus can only be requested in
         // {@link View#requestFocusNoSearch(int, Rect)} when touch mode is false. To note,
         // here we launch overview with live tile.
-        recentsView.viewRootImpl.touchModeChanged(false)
+        if (recentsView.isAttachedToWindow) {
+            recentsView.viewRootImpl.touchModeChanged(false)
+        } else {
+            recentsView.post { recentsView.viewRootImpl.touchModeChanged(false) }
+        }
         // Ensure that recents view has focus so that it receives the followup key inputs
         // Stops requesting focused after first view gets focused.
         recentsView
@@ -633,7 +634,7 @@ constructor(
     }
 
     private fun logShowOverviewFrom(command: CommandInfo) {
-        val containerInterface = getContainerInterface(command.displayId)
+        val containerInterface = getContainerInterface(command.displayId) ?: return
         val container = containerInterface.getCreatedContainer() ?: return
         val event =
             when (command.type) {

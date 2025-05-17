@@ -26,12 +26,15 @@ class RecentsViewModel(
     private val recentsTasksRepository: RecentTasksRepository,
     private val recentsViewData: RecentsViewData,
 ) {
+    private var visibleTaskIds = emptySet<Int>()
+
     fun refreshAllTaskData() {
         recentsTasksRepository.getAllTaskData(true)
     }
 
     fun updateVisibleTasks(visibleTaskIdList: List<Int>) {
-        recentsTasksRepository.setVisibleTasks(visibleTaskIdList.toSet())
+        visibleTaskIds = visibleTaskIdList.toSet()
+        recentsTasksRepository.setVisibleTasks(visibleTaskIds)
     }
 
     fun updateTasksFullyVisible(taskIds: Set<Int>) {
@@ -47,9 +50,10 @@ class RecentsViewModel(
     }
 
     suspend fun waitForThumbnailsToUpdate(updatedThumbnails: Map<Int, ThumbnailData>?) {
-        if (updatedThumbnails.isNullOrEmpty()) return
+        val visibleThumbnails = updatedThumbnails?.filterKeys { it in visibleTaskIds }
+        if (visibleThumbnails.isNullOrEmpty()) return
         combine(
-                updatedThumbnails.map {
+                visibleThumbnails.map {
                     recentsTasksRepository.getThumbnailById(it.key).filter { thumbnailData ->
                         thumbnailData?.snapshotId == it.value.snapshotId
                     }

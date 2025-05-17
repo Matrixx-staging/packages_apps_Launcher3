@@ -78,7 +78,7 @@ constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int = 0) :
         recentsViewContainer.deviceProfile.heightPx -
             recentsViewContainer.deviceProfile.overviewActionsClaimedSpaceBelow
     }
-    private val minMenuTop by lazy { taskContainer.iconView.height.toFloat() }
+    private val minMenuTop by lazy { taskContainer.iconView.asView().height.toFloat() }
     private val maxMenuBottom by lazy { taskbarTop - recentsViewContainer.dragLayer.insets.top }
 
     init {

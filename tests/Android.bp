@@ -93,6 +93,7 @@ android_library {
         "android.appwidget.flags-aconfig-java",
         "platform-parametric-runner-lib",
         "kotlin-reflect",
+        "kotlin-test",
     ],
     manifest: "AndroidManifest-common.xml",
     platform_apis: true,

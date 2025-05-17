@@ -565,6 +565,8 @@ public class TaskbarLauncherStateController {
                 @Override
                 public void onAnimationStart(Animator animation) {
                     mIsAnimatingToLauncher = isInLauncher;
+                    // updateOverviewDragState uses mIsAnimatingToLauncher as well, so poke it.
+                    updateOverviewDragState(mLauncherState);
 
                     if (DEBUG) {
                         Log.d(TAG, "onAnimationStart - FLAG_IN_APP: " + !isInLauncher);
@@ -576,6 +578,8 @@ public class TaskbarLauncherStateController {
                 @Override
                 public void onAnimationEnd(Animator animation) {
                     mIsAnimatingToLauncher = false;
+                    // updateOverviewDragState uses mIsAnimatingToLauncher as well, so poke it.
+                    updateOverviewDragState(mLauncherState);
                 }
             });
 

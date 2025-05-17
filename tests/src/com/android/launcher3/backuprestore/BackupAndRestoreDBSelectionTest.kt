@@ -31,10 +31,8 @@ import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import com.android.launcher3.util.SandboxApplication
 import com.android.launcher3.util.TestUtil
 import com.android.launcher3.util.rule.BackAndRestoreRule
-import com.android.launcher3.util.rule.setFlags
 import java.io.File
 import java.nio.file.Files
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -77,11 +75,6 @@ class BackupAndRestoreDBSelectionTest {
     @get:Rule var backAndRestoreRule = BackAndRestoreRule(context)
 
     val modelDelegate = mock<ModelDelegate>()
-
-    @Before
-    fun setUp() {
-        setFlagsRule.setFlags(true, Flags.FLAG_ENABLE_NARROW_GRID_RESTORE)
-    }
 
     @EnableFlags(Flags.FLAG_GRID_MIGRATION_REFACTOR)
     fun oldDatabasesNotPresentAfterRestoreRefactorFlagEnabled() {

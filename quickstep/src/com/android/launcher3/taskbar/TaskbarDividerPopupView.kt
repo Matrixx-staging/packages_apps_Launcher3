@@ -83,7 +83,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         resources.getDimension(R.dimen.taskbar_pinning_popup_menu_min_padding_from_screen_edge)
 
     private var alwaysShowTaskbarOn =
-        if (taskbarActivityContext.isInDesktopMode) {
+        if (taskbarActivityContext.isTaskbarShowingDesktopTasks) {
             LauncherPrefs.TASKBAR_PINNING_IN_DESKTOP_MODE.get(context)
         } else {
             !taskbarActivityContext.isTransientTaskbar

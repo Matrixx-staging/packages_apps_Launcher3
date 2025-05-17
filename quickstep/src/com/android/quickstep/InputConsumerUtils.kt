@@ -526,10 +526,12 @@ object InputConsumerUtils {
         reasonString.append("%skeyguard is not showing occluded", SUBSTRING_PREFIX)
 
         val runningTask = gestureState.runningTask
-        val container = gestureState.getContainerInterface<S, T>()
+        val containerInterface = gestureState.getContainerInterface<S, T>()
         // Use overview input consumer for sharesheets on top of home.
         val forceOverviewInputConsumer =
-            container.isStarted() && runningTask != null && runningTask.isRootChooseActivity
+            containerInterface.isStarted() &&
+                runningTask != null &&
+                runningTask.isRootChooseActivity
 
         if (!Flags.enableShellTopTaskTracking()) {
             // In the case where we are in an excluded, translucent overlay, ignore it and treat the
@@ -551,7 +553,7 @@ object InputConsumerUtils {
         // explicitly check against recents animation too.
         // Home is always running and isn't resumed when home shows behind desktop.
         val launcherResumedThroughShellTransition =
-            container.isResumed() &&
+            containerInterface.isResumed() &&
                 !previousGestureState.isRecentsAnimationRunning &&
                 !DesktopState.fromContext(context).shouldShowHomeBehindDesktop
 
@@ -561,9 +563,9 @@ object InputConsumerUtils {
                 runningTask.isHomeTask &&
                 !previousGestureState.isRecentsAnimationRunning &&
                 overviewComponentObserver.isHomeAndOverviewSame &&
-                container.isLauncherOverlayShowing
+                containerInterface.isLauncherOverlayShowing
 
-        return if (container.isInLiveTileMode()) {
+        return if (containerInterface.isInLiveTileMode()) {
             createOverviewInputConsumer<S, T>(
                 userUnlocked,
                 taskAnimationManager,
@@ -702,8 +704,9 @@ object InputConsumerUtils {
         event: MotionEvent,
         reasonString: CompoundString,
     ): InputConsumer where T : RecentsViewContainer, T : StatefulContainer<S> {
+        val containerInterface = gestureState.getContainerInterface<S, T>()!!
         val container: T =
-            gestureState.getContainerInterface<S, T>().getCreatedContainer()
+            containerInterface.getCreatedContainer()
                 ?: return getDefaultInputConsumer(
                     gestureState.displayId,
                     userUnlocked,
@@ -720,8 +723,7 @@ object InputConsumerUtils {
         val isPreviousGestureAnimatingToLauncher =
             (previousGestureState.isRunningAnimationToLauncher ||
                 deviceState.isPredictiveBackToHomeInProgress)
-        val isInLiveTileMode: Boolean =
-            gestureState.getContainerInterface<S, T>().isInLiveTileMode()
+        val isInLiveTileMode: Boolean = containerInterface.isInLiveTileMode()
 
         reasonString.append(
             if (hasWindowFocus) "%sactivity has window focus"

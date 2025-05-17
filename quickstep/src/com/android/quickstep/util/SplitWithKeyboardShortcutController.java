@@ -37,6 +37,7 @@ import com.android.launcher3.R;
 import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.taskbar.LauncherTaskbarUIController;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
+import com.android.quickstep.BaseContainerInterface;
 import com.android.quickstep.OverviewComponentObserver;
 import com.android.quickstep.RecentsAnimationCallbacks;
 import com.android.quickstep.RecentsAnimationController;
@@ -77,8 +78,13 @@ public class SplitWithKeyboardShortcutController {
             // Do not enter stage split from keyboard shortcuts if the user is already in split
             return;
         }
+        BaseContainerInterface<?, ?> containerInterface =
+                mOverviewComponentObserver.getContainerInterface(displayId);
+        if (containerInterface == null) {
+            return;
+        }
         RecentsAnimationCallbacks callbacks = new RecentsAnimationCallbacks(
-                mOverviewComponentObserver.getContainerInterface(displayId).getCreatedContainer());
+                containerInterface.getCreatedContainer());
         SplitWithKeyboardShortcutRecentsAnimationListener listener =
                 new SplitWithKeyboardShortcutRecentsAnimationListener(leftOrTop);
 

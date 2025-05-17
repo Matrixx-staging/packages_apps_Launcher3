@@ -57,6 +57,7 @@ public final class Utilities {
                 ThemeManager.INSTANCE.get(activityContext).getIconState().getShapeRadius();
         float iconSizeRatio = taskbarIconSize / maxIconSize;
         return dpToPx((iconShapeRadius * iconSizeRatio)
-                + TaskbarIconSpecs.INSTANCE.getDefaultTransientIconMargin().getSize());
+                + TaskbarIconSpecs.INSTANCE.getDefaultTransientIconMargin().getSize(),
+                activityContext);
     }
 }

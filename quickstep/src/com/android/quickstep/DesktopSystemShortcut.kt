@@ -65,8 +65,9 @@ class DesktopSystemShortcut(
         @JvmOverloads
         fun createFactory(
             abstractFloatingViewHelper: AbstractFloatingViewHelper = AbstractFloatingViewHelper()
-        ): TaskShortcutFactory {
-            return object : TaskShortcutFactory {
+        ): TaskShortcutFactory =
+            object : TaskShortcutFactory {
+
                 override fun getShortcuts(
                     container: RecentsViewContainer,
                     taskContainer: TaskContainer,
@@ -74,8 +75,10 @@ class DesktopSystemShortcut(
                     val context = container.asContext()
                     val taskKey = taskContainer.task.key
                     val desktopModeCompatPolicy = DesktopModeCompatPolicy(context)
+                    val isDesktopModeSupported =
+                        DesktopModeStatus.isDesktopModeSupportedOnDisplay(context, context.display)
                     return when {
-                        !DesktopModeStatus.canEnterDesktopMode(context) -> null
+                        !isDesktopModeSupported -> null
 
                         desktopModeCompatPolicy.shouldDisableDesktopEntryPoints(
                             taskKey.baseActivity?.packageName,
@@ -86,7 +89,7 @@ class DesktopSystemShortcut(
 
                         !taskContainer.task.isDockable -> null
 
-                        else -> {
+                        else ->
                             listOf(
                                 DesktopSystemShortcut(
                                     container,
@@ -94,12 +97,10 @@ class DesktopSystemShortcut(
                                     abstractFloatingViewHelper,
                                 )
                             )
-                        }
                     }
                 }
 
                 override fun showForGroupedTask() = true
             }
-        }
     }
 }

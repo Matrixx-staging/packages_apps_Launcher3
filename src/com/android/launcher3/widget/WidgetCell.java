@@ -130,7 +130,8 @@ public class WidgetCell extends LinearLayout {
         super(context, attrs, defStyle);
 
         mActivity = ActivityContext.lookupContext(context);
-        mWidgetPreviewLoader = new DatabaseWidgetPreviewLoader(context);
+        mWidgetPreviewLoader = new DatabaseWidgetPreviewLoader(context,
+                mActivity.getDeviceProfile());
         mLongPressHelper = new CheckLongPressHelper(this);
         mLongPressHelper.setLongPressTimeoutFactor(1);
         mEnforcedCornerRadius = RoundedCornerEnforcement.computeEnforcedRadius(context);

@@ -34,7 +34,7 @@ import kotlinx.coroutines.flow.asStateFlow
 class HomeScreenRepository @Inject constructor() {
 
     private val mutableStateFlow: MutableStateFlow<WorkspaceData> =
-        MutableStateFlow(ImmutableWorkspaceData(0, 0, SparseArray()))
+        MutableStateFlow(ImmutableWorkspaceData(0, 0, emptyList(), SparseArray()))
 
     /** Represents the current home screen data model. There are two ways this can change: */
     val workspaceStateFlow = mutableStateFlow.asStateFlow()

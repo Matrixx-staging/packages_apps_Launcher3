@@ -19,6 +19,7 @@ package com.android.quickstep.recents.ui.viewmodel
 import android.annotation.ColorInt
 import android.util.Log
 import androidx.core.graphics.ColorUtils
+import com.android.launcher3.Flags.enableCoroutineThreadingImprovements
 import com.android.launcher3.util.coroutines.DispatcherProvider
 import com.android.quickstep.recents.domain.model.TaskId
 import com.android.quickstep.recents.domain.model.TaskModel
@@ -82,6 +83,16 @@ class TaskViewModel(
             combine(combinedTaskFlows, isLiveTile, ::mapToTaskData)
         }
 
+    private val taskModels =
+        taskIds.flatMapLatest { ids ->
+            // Combine Tasks requests
+            val taskFlows =
+                ids.map { id ->
+                    getTaskUseCase(id).distinctUntilChanged().map { taskModel -> id to taskModel }
+                }
+            combine(taskFlows) { taskArray -> taskArray }
+        }
+
     private val overlayEnabled =
         if (taskViewType == TaskViewType.DESKTOP) {
             flowOf(false)
@@ -94,8 +105,44 @@ class TaskViewModel(
                 .distinctUntilChanged()
         }
 
-    val state: Flow<TaskTileUiState> =
+    private val preThreadingImprovedState: Flow<TaskTileUiState> =
         combine(taskData, overlayEnabled, isCentralTask, ::mapToTaskTile)
+
+    private val threadingImprovedState: Flow<TaskTileUiState> =
+        com.android.launcher3.util.coroutines.combine(
+            taskModels,
+            recentsViewData.runningTaskIds,
+            recentsViewData.runningTaskShowScreenshot,
+            recentsViewData.overlayEnabled,
+            recentsViewData.settledFullyVisibleTaskIds,
+            recentsViewData.centralTaskIds,
+        ) {
+            taskModels: Array<Pair<Int, TaskModel?>>,
+            runningTaskIds: Set<Int>,
+            runningTaskShowScreenshot: Boolean,
+            isOverlayEnabled: Boolean,
+            settledFullyVisibleTaskIds: Set<Int>,
+            centralTaskIds: Set<Int> ->
+            val taskIds = taskModels.map { it.first }.toSet()
+            val isCentralTask = taskIds == centralTaskIds
+            val overlayEnabled =
+                if (taskViewType == TaskViewType.DESKTOP) {
+                    false
+                } else {
+                    isOverlayEnabled && settledFullyVisibleTaskIds.any { it in taskIds }
+                }
+            val isLiveTile = runningTaskIds == taskIds && !runningTaskShowScreenshot
+            val taskData = mapToTaskData(taskModels, isLiveTile)
+
+            mapToTaskTile(taskData, overlayEnabled, isCentralTask)
+        }
+
+    private val taskTileUiStateFlow =
+        if (enableCoroutineThreadingImprovements()) threadingImprovedState
+        else preThreadingImprovedState
+
+    val state: Flow<TaskTileUiState> =
+        taskTileUiStateFlow
             .distinctUntilChanged()
             .debounce { state ->
                 // Debouncing only when thumbnails are not present gives the best results.

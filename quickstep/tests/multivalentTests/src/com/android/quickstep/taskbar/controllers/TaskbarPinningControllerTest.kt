@@ -76,6 +76,19 @@ class TaskbarPinningControllerTest : TaskbarBaseTestCase() {
                 )
             )
             .thenAnswer { _ -> isInDesktopMode }
+        whenever(
+                taskbarControllers.taskbarDesktopModeController.isInDesktopMode(
+                    taskbarActivityContext.displayId
+                )
+            )
+            .thenAnswer { _ -> isInDesktopMode }
+        whenever(
+                taskbarControllers.taskbarDesktopModeController.shouldShowDesktopTasksInTaskbar(
+                    taskbarActivityContext.displayId
+                )
+            )
+            .thenAnswer { _ -> isInDesktopMode }
+
         pinningController = spy(TaskbarPinningController(taskbarActivityContext))
         pinningController.init(taskbarControllers, taskbarSharedState)
     }

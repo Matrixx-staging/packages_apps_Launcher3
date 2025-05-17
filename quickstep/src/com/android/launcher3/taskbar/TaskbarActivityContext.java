@@ -136,6 +136,7 @@ import com.android.launcher3.taskbar.bubbles.BubbleDismissController;
 import com.android.launcher3.taskbar.bubbles.BubbleDragController;
 import com.android.launcher3.taskbar.bubbles.BubblePinController;
 import com.android.launcher3.taskbar.bubbles.BubbleStashedHandleViewController;
+import com.android.launcher3.taskbar.bubbles.DragToBubbleController;
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController;
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController.TaskbarHotseatDimensionsProvider;
 import com.android.launcher3.taskbar.bubbles.stashing.DeviceProfileDimensionsProviderAdapter;
@@ -342,6 +343,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                     new BubbleBarPinController(this, bubbleBarContainer, this::getScreenSize),
                     new BubblePinController(this, bubbleBarContainer, this::getScreenSize),
                     bubbleBarSwipeController,
+                    new DragToBubbleController(this, bubbleBarContainer),
                     new BubbleCreator(this)
             ));
         }
@@ -591,6 +593,10 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         return ENABLE_TASKBAR_NAVBAR_UNIFICATION
                 && mDeviceProfile.isPhone
                 && !mDeviceProfile.isTaskbarPresent;
+    }
+
+    public boolean isTaskbarInMinimalState() {
+        return mControllers.taskbarViewController.isTaskbarInMinimalState();
     }
 
     /**
@@ -1285,7 +1291,10 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                 && !AbstractFloatingView.hasOpenView(
                 this, TYPE_ALL & ~TYPE_TASKBAR_OVERLAY_PROXY)) {
             // Reverts Taskbar window to its original size
-            setTaskbarWindowFullscreen(false);
+            Runnable resetTaskbarFullscreen = () -> setTaskbarWindowFullscreen(false);
+            mControllers.bubbleControllers.ifPresentOrElse(
+                    bc -> bc.dragToBubbleController.runAfterDropTargetsHidden(
+                            resetTaskbarFullscreen), resetTaskbarFullscreen);
         }
 
         setAutohideSuspendFlag(FLAG_AUTOHIDE_SUSPEND_DRAGGING, isDragInProgress);

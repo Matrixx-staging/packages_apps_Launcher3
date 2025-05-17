@@ -40,6 +40,9 @@ private constructor(private val taskbarActivityContext: TaskbarActivityContext) 
     val isLandscape: Boolean
         get() = taskbarActivityContext.deviceProfile.isLandscape
 
+    val isTnMinimalState: Boolean
+        get() = taskbarActivityContext.isTaskbarInMinimalState
+
     val supportsPinningPopup: Boolean
         // TODO(b/381535785): Allow pinning for desktop taskbar when desktop mode transient behavior
         //     gets updated to retain pinned UI, but translate the taskbar offscreen.

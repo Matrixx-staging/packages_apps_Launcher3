@@ -23,11 +23,14 @@ import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import android.app.WallpaperManager;
 import android.graphics.RenderEffect;
 import android.graphics.Shader;
+import android.gui.EarlyWakeupInfo;
+import android.os.Binder;
 import android.os.IBinder;
 import android.os.Trace;
 import android.util.FloatProperty;
 import android.util.Log;
 import android.view.AttachedSurfaceControl;
+import android.view.CrossWindowBlurListeners;
 import android.view.SurfaceControl;
 
 import androidx.annotation.NonNull;
@@ -118,13 +121,19 @@ public class BaseDepthController {
     protected boolean mWaitingOnSurfaceValidity;
 
     private SurfaceControl mBlurSurface = null;
+    /**
+     * Info for early wakeup requests to SurfaceFlinger.
+     */
+    private EarlyWakeupInfo mEarlyWakeupInfo = new EarlyWakeupInfo();
 
     public BaseDepthController(Launcher activity) {
         mLauncher = activity;
         if (Flags.allAppsBlur() || enableOverviewBackgroundWallpaperBlur()) {
+            mCrossWindowBlursEnabled =
+                    CrossWindowBlurListeners.getInstance().isCrossWindowBlurEnabled();
+            mBlursEnabled = calculateBlursEnabled();
             mMaxBlurRadius = activity.getResources().getDimensionPixelSize(
                     R.dimen.max_depth_blur_radius_enhanced);
-            mLauncher.updateBlurStyle();
         } else {
             mMaxBlurRadius = activity.getResources().getInteger(R.integer.max_depth_blur_radius);
         }
@@ -134,6 +143,8 @@ public class BaseDepthController {
                 new MultiPropertyFactory<>(this, DEPTH, DEPTH_INDEX_COUNT, Float::max);
         stateDepth = depthProperty.get(DEPTH_INDEX_STATE_TRANSITION);
         widgetDepth = depthProperty.get(DEPTH_INDEX_WIDGET);
+        mEarlyWakeupInfo.token = new Binder();
+        mEarlyWakeupInfo.trace = BaseDepthController.class.getName();
     }
 
     protected void setCrossWindowBlursEnabled(boolean isEnabled) {
@@ -157,7 +168,7 @@ public class BaseDepthController {
     }
 
     protected final void onBlurChange() {
-        boolean blursEnabled = mCrossWindowBlursEnabled && !mPauseBlurs;
+        boolean blursEnabled = calculateBlursEnabled();
         if (mBlursEnabled == blursEnabled) {
             return;
         }
@@ -177,7 +188,7 @@ public class BaseDepthController {
     protected void onInvalidSurface() { }
 
     protected void applyDepthAndBlur() {
-        applyDepthAndBlur(null, /* applyImmediately */ false);
+        applyDepthAndBlur(null, /* applyImmediately */ false, /* skipSimilarBlur */ true);
     }
 
     /**
@@ -187,14 +198,14 @@ public class BaseDepthController {
      * @param applyImmediately whether to apply the blur immediately or defer to the next frame.
      */
     protected void applyDepthAndBlur(SurfaceControl.Transaction transaction,
-            boolean applyImmediately) {
+            boolean applyImmediately, boolean skipSimilarBlur) {
         try (transaction) {
-            applyDepthAndBlurInternal(transaction, applyImmediately);
+            applyDepthAndBlurInternal(transaction, applyImmediately, skipSimilarBlur);
         }
     }
 
     private void applyDepthAndBlurInternal(SurfaceControl.Transaction transaction,
-            boolean applyImmediately) {
+            boolean applyImmediately, boolean skipSimilarBlur) {
         float depth = mDepth;
         IBinder windowToken = mLauncher.getRootView().getWindowToken();
         if (windowToken != null) {
@@ -239,8 +250,6 @@ public class BaseDepthController {
         int previousBlur = mCurrentBlur;
         int newBlur = mBlursEnabled && !hasOpaqueBg ? (int) (blurAmount * mMaxBlurRadius) : 0;
         int delta = Math.abs(newBlur - previousBlur);
-        // Don't skip blur if a transaction is provided.
-        boolean skipSimilarBlur = transaction == null;
         if (skipSimilarBlur && delta < Utilities.dpToPx(1) && newBlur != 0 && previousBlur != 0) {
             Log.d(TAG, "Skipping small blur delta. newBlur: " + newBlur + " previousBlur: "
                     + previousBlur + " delta: " + delta + " surface: " + blurSurface);
@@ -254,7 +263,6 @@ public class BaseDepthController {
         try (finalTransaction) {
             finalTransaction.setBackgroundBlurRadius(blurSurface, mCurrentBlur)
                     .setOpaque(blurSurface, isSurfaceOpaque);
-
             // Set early wake-up flags when we know we're executing an expensive operation, this way
             // SurfaceFlinger will adjust its internal offsets to avoid jank.
             boolean wantsEarlyWakeUp = depth > 0 && depth < 1;
@@ -306,9 +314,9 @@ public class BaseDepthController {
         if (start) {
             Trace.instantForTrack(TRACE_TAG_APP, TAG, "notifyRendererForGpuLoadUp");
             mLauncher.getRootView().getViewRootImpl().notifyRendererForGpuLoadUp("applyBlur");
-            transaction.setEarlyWakeupStart();
+            transaction.setEarlyWakeupStart(mEarlyWakeupInfo);
         } else {
-            transaction.setEarlyWakeupEnd();
+            transaction.setEarlyWakeupEnd(mEarlyWakeupInfo);
         }
         mInEarlyWakeUp = start;
     }
@@ -356,7 +364,7 @@ public class BaseDepthController {
             mBaseSurfaceOverride = baseSurfaceOverride;
             Log.d(TAG, "setBaseSurfaceOverride: applying blur behind leash " + baseSurfaceOverride);
             SurfaceControl.Transaction transaction = setupBlurSurface();
-            applyDepthAndBlur(transaction, applyImmediately);
+            applyDepthAndBlur(transaction, applyImmediately, /* skipSimilarBlur */ false);
         }
     }
 
@@ -398,7 +406,8 @@ public class BaseDepthController {
             if (enableOverviewBackgroundWallpaperBlur()) {
                 transaction = setupBlurSurface();
             }
-            applyDepthAndBlur(transaction, /* applyImmediately */ false);
+            applyDepthAndBlur(transaction, /* applyImmediately */ false,
+                    /* skipSimilarBlur */ false);
         }
     }
 
@@ -412,5 +421,9 @@ public class BaseDepthController {
 
     private SurfaceControl.Transaction createTransaction() {
         return new SurfaceControl.Transaction();
+    }
+
+    private Boolean calculateBlursEnabled() {
+        return mCrossWindowBlursEnabled && !mPauseBlurs;
     }
 }

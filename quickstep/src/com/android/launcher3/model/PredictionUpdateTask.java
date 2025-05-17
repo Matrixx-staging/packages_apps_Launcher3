@@ -72,7 +72,8 @@ public class PredictionUpdateTask implements ModelUpdateTask {
 
         Set<UserHandle> usersForChangedShortcuts =
                 dataModel.itemsIdMap.getPredictedContents(mPredictorState.containerId).stream()
-                        .filter(info -> info.itemType == ITEM_TYPE_DEEP_SHORTCUT)
+                        .filter(info -> info != null &&
+                                info.itemType == ITEM_TYPE_DEEP_SHORTCUT)
                         .map(info -> info.user)
                         .collect(Collectors.toSet());
 

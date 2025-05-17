@@ -1143,6 +1143,9 @@ public class StatsLogManager {
      */
     public interface StatsLatencyLogger {
 
+        /** Package Id for Launcher */
+        int LAUNCHER_LATENCY_PACKAGE_ID = 3;
+
         /**
          * Should be in sync with:
          * google3/wireless/android/sysui/aster/asterstats/launcher_event_processed.proto

@@ -122,6 +122,7 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
                     InstallSessionHelper.INSTANCE.get(context);
             LauncherApps launcherApps = context.getSystemService(LauncherApps.class);
 
+            ModelWriter writer = taskController.getModelWriter();
             for (ItemInfo item : filteredItems) {
                 // Find appropriate space for the item.
                 int[] coords = mItemSpaceFinder.findSpaceForItem(
@@ -191,17 +192,17 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
                     }
                 }
 
-                // Add the shortcut to the db
-                taskController.getModelWriter().addItemToDatabase(itemInfo,
+                // Save the WorkspaceItemInfo for binding in the workspace
+                writer.updateItemInfoProps(itemInfo,
                         LauncherSettings.Favorites.CONTAINER_DESKTOP, screenId,
                         coords[1], coords[2]);
-
-                // Save the WorkspaceItemInfo for binding in the workspace
                 addedItemsFinal.add(itemInfo);
 
                 // log bitmap and label
                 FileLog.d(LOG, "Adding item info to workspace: " + itemInfo);
             }
+            // Add the shortcut to the db
+            writer.addItemsToDatabase(addedItemsFinal);
         }
 
         if (!addedItemsFinal.isEmpty()) {

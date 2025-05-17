@@ -133,9 +133,9 @@ public class PendingItemDragHelper extends DragPreviewProvider {
                 previewSizeBeforeScale[0] = mAppWidgetHostViewPreview.getMeasuredWidth();
             }
             if (preview == null && mAppWidgetHostViewPreview == null) {
-                Drawable p = new FastBitmapDrawable(new DatabaseWidgetPreviewLoader(launcher)
-                        .generateWidgetPreview(
-                                createWidgetInfo.info, maxWidth, previewSizeBeforeScale));
+                Drawable p = new FastBitmapDrawable(new DatabaseWidgetPreviewLoader(launcher,
+                        launcher.getDeviceProfile()).generateWidgetPreview(createWidgetInfo.info,
+                        maxWidth, previewSizeBeforeScale));
                 p = new RoundDrawableWrapper(p, mEnforcedRoundedCornersForWidget);
                 preview = p;
             }

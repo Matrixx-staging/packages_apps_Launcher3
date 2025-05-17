@@ -52,6 +52,8 @@ import com.android.window.flags.Flags
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus
 import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource
 import com.google.common.truth.Truth.assertThat
+import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -217,10 +219,11 @@ class DesktopSystemShortcutTest {
     }
 
     @Test
-    fun desktopSystemShortcutClicked() {
+    fun desktopSystemShortcutClickedWithoutDesktopModeOnDisplay() {
         val task = createTask()
         val taskContainer = spy(createTaskContainer(task))
 
+        whenever(DesktopModeStatus.isDesktopModeSupportedOnDisplay(any(), any())).thenReturn(false)
         whenever(launcher.getOverviewPanel<LauncherRecentsView>()).thenReturn(recentsView)
         whenever(launcher.statsLogManager).thenReturn(statsLogManager)
         whenever(statsLogManager.logger()).thenReturn(statsLogger)
@@ -234,10 +237,29 @@ class DesktopSystemShortcutTest {
         doReturn(taskViewItemInfo).whenever(taskContainer).itemInfo
 
         val shortcuts = factory.getShortcuts(launcher, taskContainer)
-        assertThat(shortcuts).isNotNull()
-        assertThat(shortcuts!!.single()).isInstanceOf(DesktopSystemShortcut::class.java)
+        assertThat(shortcuts).isNull()
+    }
 
-        val desktopShortcut = shortcuts.single() as DesktopSystemShortcut
+    @Test
+    fun desktopSystemShortcutClickedWithDesktopModeOnDisplay() {
+        val task = createTask()
+        val taskContainer = spy(createTaskContainer(task))
+
+        whenever(DesktopModeStatus.isDesktopModeSupportedOnDisplay(any(), any())).thenReturn(true)
+        whenever(launcher.getOverviewPanel<LauncherRecentsView>()).thenReturn(recentsView)
+        whenever(launcher.statsLogManager).thenReturn(statsLogManager)
+        whenever(statsLogManager.logger()).thenReturn(statsLogger)
+        whenever(statsLogger.withItemInfo(any())).thenReturn(statsLogger)
+        whenever(taskView.context).thenReturn(context)
+        whenever(recentsView.moveTaskToDesktop(any(), any(), any())).thenAnswer {
+            val successCallback = it.getArgument<Runnable>(2)
+            successCallback.run()
+        }
+        val taskViewItemInfo = mock<TaskViewItemInfo>()
+        doReturn(taskViewItemInfo).whenever(taskContainer).itemInfo
+
+        val shortcuts = assertNotNull(factory.getShortcuts(launcher, taskContainer))
+        val desktopShortcut = assertIs<DesktopSystemShortcut>(shortcuts.single())
 
         desktopShortcut.onClick(taskView)
 

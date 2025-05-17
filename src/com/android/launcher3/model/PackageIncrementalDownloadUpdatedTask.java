@@ -20,10 +20,10 @@ import android.os.UserHandle;
 import androidx.annotation.NonNull;
 
 import com.android.launcher3.LauncherModel.ModelUpdateTask;
-import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.pm.PackageInstallInfo;
+import com.android.launcher3.util.FlagOp;
 
 import java.util.List;
 
@@ -57,14 +57,9 @@ public class PackageIncrementalDownloadUpdatedTask implements ModelUpdateTask {
                 mUser);
 
         synchronized (appsList) {
-            List<AppInfo> updatedAppInfos = appsList.updatePromiseInstallInfo(downloadInfo);
-            if (!updatedAppInfos.isEmpty()) {
-                for (AppInfo appInfo : updatedAppInfos) {
-                    appInfo.runtimeStatusFlags &= ~ItemInfoWithIcon.FLAG_INSTALL_SESSION_ACTIVE;
-                    taskController.scheduleCallbackTask(
-                            c -> c.bindIncrementalDownloadProgressUpdated(appInfo));
-                }
-            }
+            taskController.bindIncrementalUpdates(appsList.updatePromiseInstallInfo(
+                    downloadInfo,
+                    FlagOp.NO_OP.removeFlag(ItemInfoWithIcon.FLAG_INSTALL_SESSION_ACTIVE)));
             taskController.bindApplicationsIfNeeded();
         }
 

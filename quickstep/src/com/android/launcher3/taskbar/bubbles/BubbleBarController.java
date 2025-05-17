@@ -33,12 +33,14 @@ import android.os.Bundle;
 import android.os.SystemProperties;
 import android.util.ArrayMap;
 import android.util.Log;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 
 import com.android.launcher3.taskbar.TaskbarSharedState;
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController;
 import com.android.launcher3.util.Executors.SimpleThreadFactory;
+import com.android.launcher3.util.MultiPropertyFactory;
 import com.android.quickstep.SystemUiProxy;
 import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags;
 import com.android.wm.shell.Flags;
@@ -237,8 +239,19 @@ public class BubbleBarController extends IBubblesListener.Stub {
         mBubbleBarViewController.setHiddenForSysui(hideBubbleBar);
 
         boolean hideHandleView = (flags & MASK_HIDE_HANDLE_VIEW) != 0;
-        mBubbleStashedHandleViewController.ifPresent(
-                controller -> controller.setHiddenForSysui(hideHandleView));
+        mBubbleStashedHandleViewController.ifPresent(controller -> {
+            controller.setHiddenForSysui(hideHandleView);
+            MultiPropertyFactory<View>.MultiProperty handleViewAlpha =
+                    mBubbleStashController.getHandleViewAlpha();
+            boolean shouldShowHandleView = handleViewAlpha != null
+                    && !hideHandleView
+                    && mBubbleStashController.isStashed()
+                    && mBubbleBarViewController.hasBubbles();
+            if (shouldShowHandleView) {
+                // TODO: (b/273592694) animate it?
+                handleViewAlpha.setValue(1f);
+            }
+        });
 
         boolean sysuiLocked = (flags & MASK_SYSUI_LOCKED) != 0;
         mBubbleStashController.setSysuiLocked(sysuiLocked);

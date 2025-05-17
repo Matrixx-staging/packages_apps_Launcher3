@@ -199,7 +199,7 @@ public final class TaskViewUtils {
         } else {
             boolean forDesktop = taskView instanceof DesktopTaskView;
             RemoteTargetGluer gluer = new RemoteTargetGluer(taskView.getContext(),
-                    recentsView.getSizeStrategy(), targets, forDesktop);
+                    recentsView.getContainerInterface(), targets, forDesktop);
             if (forDesktop) {
                 remoteTargetHandles = gluer.assignTargetsForDesktop(targets, transitionInfo);
                 if (enableDesktopExplodedView()) {
@@ -686,7 +686,7 @@ public final class TaskViewUtils {
                             // We may have notified launcher is not visible so that taskbar can
                             // stash immediately. Now that the animation is over, we can update
                             // that launcher is still visible.
-                            TaskbarUIController controller = recentsView.getSizeStrategy()
+                            TaskbarUIController controller = recentsView.getContainerInterface()
                                     .getTaskbarController();
                             // If we're launching the desktop tile in Overview, no need to change
                             // the launcher visibility and taskbar visibility below.

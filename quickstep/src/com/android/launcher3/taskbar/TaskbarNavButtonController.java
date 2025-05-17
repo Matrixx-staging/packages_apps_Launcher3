@@ -181,6 +181,9 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
         }
     }
 
+    /**
+     * Handles long clicks and plays haptics for user visible actions.
+     */
     public boolean onButtonLongClick(@TaskbarButton int buttonType, View view) {
         if (buttonType == BUTTON_SPACE) {
             return false;
@@ -193,34 +196,39 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
             return false;
         }
 
-        // Provide the same haptic feedback that the system offers for long press.
-        // The haptic feedback from long pressing on the home button is handled by circle to search.
-        // There are no haptics for long pressing the back button if predictive back is enabled
-        if (buttonType != BUTTON_HOME
-                && (!predictiveBackThreeButtonNav() || buttonType != BUTTON_BACK)) {
-            view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
-        }
         switch (buttonType) {
             case BUTTON_HOME:
                 logEvent(LAUNCHER_TASKBAR_HOME_BUTTON_LONGPRESS);
                 onLongPressHome();
+                view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS,
+                        HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
                 return true;
             case BUTTON_A11Y:
                 logEvent(LAUNCHER_TASKBAR_A11Y_BUTTON_LONGPRESS);
                 notifyA11yClick(true /* longClick */);
+                view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS,
+                        HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
                 return true;
             case BUTTON_BACK:
                 logEvent(LAUNCHER_TASKBAR_BACK_BUTTON_LONGPRESS);
-                backRecentsLongpress(buttonType);
+                if (backRecentsLongpress(buttonType)) {
+                    view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS,
+                            HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
+                }
                 return true;
             case BUTTON_RECENTS:
                 logEvent(LAUNCHER_TASKBAR_OVERVIEW_BUTTON_LONGPRESS);
-                backRecentsLongpress(buttonType);
+                if (backRecentsLongpress(buttonType)) {
+                    view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS,
+                            HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
+                }
                 return true;
             case BUTTON_IME_SWITCH:
                 if (Flags.imeSwitcherRevamp()) {
                     logEvent(LAUNCHER_TASKBAR_IME_SWITCHER_BUTTON_LONGPRESS);
                     onImeSwitcherLongPress();
+                    view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS,
+                            HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
                     return true;
                 }
                 return false;

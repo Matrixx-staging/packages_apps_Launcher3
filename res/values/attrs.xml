@@ -296,6 +296,8 @@
             <flag name="tablet" value="2" />
             <!-- Enable on multi display devices only -->
             <flag name="multi_display" value="4" />
+            <!-- Enable on desktop devices only -->
+            <flag name="desktop" value="8" />
         </attr>
 
         <!-- By default all are false -->

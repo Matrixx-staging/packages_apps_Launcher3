@@ -168,7 +168,7 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
                     mLauncher.waitForObjectInContainer(verifyActiveContainer(),
                             clearAllSelector));
             if (mLauncher.is3PLauncher()) {
-                mLauncher.executeAndWaitForLauncherStop(
+                mLauncher.executeAndWaitForLauncherHidden(
                         clickClearAll,
                         "clicking 'Clear All'");
             } else {
@@ -477,6 +477,11 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
             // button on tablets.
             return false;
         }
+        if (task.isDesktop() && !isTablet) {
+            testLogD(TAG, "Not expecting an actions bar: device is phone and task is desktop");
+            // Overview actions aren't visible for desktop tasks.
+            return false;
+        }
         testLogD(TAG, "Expecting an actions bar");
         return true;
     }
@@ -507,7 +512,7 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
             mLauncher.expectEvent(TestProtocol.SEQUENCE_MAIN, EVENT_ENTER_UP);
             mLauncher.expectEvent(TestProtocol.SEQUENCE_MAIN, TASK_START_EVENT);
 
-            mLauncher.executeAndWaitForLauncherStop(
+            mLauncher.executeAndWaitForLauncherHidden(
                     () -> mLauncher.assertTrue(
                             "Failed to press enter",
                             mLauncher.getDevice().pressKeyCode(KeyEvent.KEYCODE_ENTER)),

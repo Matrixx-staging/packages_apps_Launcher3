@@ -55,6 +55,7 @@ import com.android.launcher3.taskbar.bubbles.BubbleDismissController;
 import com.android.launcher3.taskbar.bubbles.BubbleDragController;
 import com.android.launcher3.taskbar.bubbles.BubblePinController;
 import com.android.launcher3.taskbar.bubbles.BubbleStashedHandleViewController;
+import com.android.launcher3.taskbar.bubbles.DragToBubbleController;
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController;
 import com.android.launcher3.util.LockedUserState;
 import com.android.launcher3.util.SandboxApplication;
@@ -602,6 +603,7 @@ public class InputConsumerUtilsTest {
         BubbleBarPinController bubbleBarPinController = mock(BubbleBarPinController.class);
         BubblePinController bubblePinController = mock(BubblePinController.class);
         BubbleBarSwipeController bubbleBarSwipeController = mock(BubbleBarSwipeController.class);
+        DragToBubbleController dragToBubbleController = mock(DragToBubbleController.class);
         BubbleCreator bubbleCreator = mock(BubbleCreator.class);
         BubbleControllers bubbleControllers = new BubbleControllers(
                 bubbleBarController,
@@ -613,6 +615,7 @@ public class InputConsumerUtilsTest {
                 bubbleBarPinController,
                 bubblePinController,
                 Optional.of(bubbleBarSwipeController),
+                dragToBubbleController,
                 bubbleCreator);
 
         when(bubbleBarViewController.hasBubbles()).thenReturn(true);

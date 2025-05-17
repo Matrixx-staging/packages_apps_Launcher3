@@ -32,7 +32,7 @@ import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCH
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_PRIVATE_SPACE_UNLOCK_ANIMATION_BEGIN;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_PRIVATE_SPACE_UNLOCK_ANIMATION_END;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_PRIVATE_SPACE_UNLOCK_TAP;
-import static com.android.launcher3.model.BgDataModel.Callbacks.FLAG_PRIVATE_PROFILE_QUIET_MODE_ENABLED;
+import static com.android.launcher3.model.data.AppsListData.FLAG_PRIVATE_PROFILE_QUIET_MODE_ENABLED;
 import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_NOT_PINNABLE;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
@@ -122,6 +122,8 @@ public class PrivateProfileManager extends UserProfileManager {
             }
         }
     };
+
+    private AnimatorSet mAnimatorSet;
     private Intent mAppInstallerIntent = new Intent();
     private PrivateAppsSectionDecorator mPrivateAppsSectionDecorator;
     private boolean mPrivateSpaceSettingsAvailable;
@@ -642,8 +644,11 @@ public class PrivateProfileManager extends UserProfileManager {
             return;
         }
         attachFloatingMaskView(expand);
-        AnimatorSet animatorSet = new AnimatedPropertySetter().buildAnim();
-        animatorSet.addListener(new AnimatorListenerAdapter() {
+        if (mAnimatorSet != null && mAnimatorSet.isRunning()) {
+            mAnimatorSet.cancel();
+        }
+        mAnimatorSet = new AnimatedPropertySetter().buildAnim();
+        mAnimatorSet.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationStart(Animator animation) {
                 Log.d(TAG, "updatePrivateStateAnimator: Private space animation expanding: "
@@ -661,7 +666,7 @@ public class PrivateProfileManager extends UserProfileManager {
                 detachFloatingMaskView();
             }
         });
-        animatorSet.addListener(forEndCallback(() -> {
+        mAnimatorSet.addListener(forEndCallback(() -> {
             mIsStateTransitioning = false;
             setAnimationRunning(false);
             getMainRecyclerView().setChildAttachedConsumer(child -> child.setAlpha(1));
@@ -687,7 +692,7 @@ public class PrivateProfileManager extends UserProfileManager {
             }
         }));
         if (expand) {
-            animatorSet.playTogether(updateSettingsGearAlpha(true),
+            mAnimatorSet.playTogether(updateSettingsGearAlpha(true),
                     updateLockTextAlpha(true),
                     animateAlphaOfIcons(true),
                     animatePillTransition(true),
@@ -699,16 +704,16 @@ public class PrivateProfileManager extends UserProfileManager {
                     animateAlphaOfIcons(false),
                     animatePillTransition(false));
             if (isPrivateSpaceHidden()) {
-                animatorSet.playSequentially(parallelSet,
+                mAnimatorSet.playSequentially(parallelSet,
                         animateAlphaOfPrivateSpaceContainer(),
                         animateCollapseAnimation());
             } else {
-                animatorSet.playSequentially(translateFloatingMaskView(true),
+                mAnimatorSet.playSequentially(translateFloatingMaskView(true),
                         parallelSet,
                         animateCollapseAnimation());
             }
         }
-        animatorSet.start();
+        mAnimatorSet.start();
     }
 
     /** Fades out the private space container (defined by its items' decorators). */

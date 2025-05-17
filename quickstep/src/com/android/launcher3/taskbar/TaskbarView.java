@@ -404,6 +404,11 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         } else {
             updateItemsWithoutLayoutTransition(hotseatItemInfos, recentTasks);
         }
+        mAllAppsButtonContainer.updateTaskbarMinimalState(isTaskbarInMinimalState());
+    }
+
+    public boolean isTaskbarInMinimalState() {
+        return getIconViews().length <= 1;
     }
 
     private void updateItemsWithoutLayoutTransition(

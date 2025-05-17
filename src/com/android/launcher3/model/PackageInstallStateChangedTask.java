@@ -22,9 +22,9 @@ import android.content.pm.PackageManager;
 import androidx.annotation.NonNull;
 
 import com.android.launcher3.LauncherModel.ModelUpdateTask;
-import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.pm.PackageInstallInfo;
+import com.android.launcher3.util.FlagOp;
 import com.android.launcher3.util.InstantAppResolver;
 
 import java.util.List;
@@ -63,13 +63,8 @@ public class PackageInstallStateChangedTask implements ModelUpdateTask {
         }
 
         synchronized (apps) {
-            List<AppInfo> updatedAppInfos = apps.updatePromiseInstallInfo(mInstallInfo);
-            if (!updatedAppInfos.isEmpty()) {
-                for (AppInfo appInfo : updatedAppInfos) {
-                    taskController.scheduleCallbackTask(
-                            c -> c.bindIncrementalDownloadProgressUpdated(appInfo));
-                }
-            }
+            taskController.bindIncrementalUpdates(
+                    apps.updatePromiseInstallInfo(mInstallInfo, FlagOp.NO_OP));
             taskController.bindApplicationsIfNeeded();
         }
 

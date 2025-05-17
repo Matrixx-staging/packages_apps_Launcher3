@@ -148,7 +148,7 @@
     <string name="notification_dots_service_title" msgid="4284221181793592871">"Показывать значки уведомлений"</string>
     <string name="developer_options_title" msgid="700788437593726194">"Для разработчиков"</string>
     <string name="auto_add_shortcuts_label" msgid="4926805029653694105">"Добавлять значки приложений на главный экран"</string>
-    <string name="auto_add_shortcuts_description" msgid="7117251166066978730">"Добавлять значки установленных приложений на главный экран"</string>
+    <string name="auto_add_shortcuts_description" msgid="7117251166066978730">"Для новых приложений"</string>
     <string name="package_state_unknown" msgid="7592128424511031410">"Неизвестно"</string>
     <string name="abandoned_clean_this" msgid="7610119707847920412">"Убрать"</string>
     <string name="abandoned_search" msgid="891119232568284442">"Найти"</string>

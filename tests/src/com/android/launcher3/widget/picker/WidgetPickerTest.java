@@ -28,7 +28,6 @@ import com.android.launcher3.util.BaseLauncherActivityTest;
 import com.android.launcher3.util.rule.ScreenRecordRule;
 import com.android.launcher3.util.rule.ScreenRecordRule.ScreenRecord;
 import com.android.launcher3.util.ui.PortraitLandscapeRunner.PortraitLandscape;
-import com.android.launcher3.views.OptionsPopupView;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -68,7 +67,7 @@ public class WidgetPickerTest extends BaseLauncherActivityTest<Launcher> {
                         getWidgetsView(launcher) == null)
         );
         assertNotNull("openAllWidgets() returned null",
-                getLauncherActivity().getFromLauncher(OptionsPopupView::openWidgets));
+                getLauncherActivity().getFromLauncher(Launcher::openWidgetsFullSheet));
         WidgetsRecyclerView widgets = getLauncherActivity().getFromLauncher(this::getWidgetsView);
         assertNotNull("getAllWidgets() returned null", widgets);
         getLauncherActivity().executeOnLauncher(

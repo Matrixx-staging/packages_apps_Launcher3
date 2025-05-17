@@ -226,7 +226,6 @@ public class BubbleStashedHandleViewController {
     private void updateVisibilityForStateChange() {
         if (!mHiddenForSysui && !mHiddenForHomeButtonDisabled && !mHiddenForNoBubbles) {
             mStashedHandleView.setVisibility(VISIBLE);
-            mStashedHandleView.setAlpha(1);
         } else {
             mStashedHandleView.setVisibility(INVISIBLE);
             mStashedHandleView.setAlpha(0);

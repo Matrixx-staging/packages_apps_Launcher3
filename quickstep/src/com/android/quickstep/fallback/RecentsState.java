@@ -96,13 +96,13 @@ public class RecentsState implements BaseState<RecentsState> {
     @Override
     public String toString() {
         return switch (ordinal) {
-            case DEFAULT_STATE_ORDINAL -> "DEFAULT";
-            case MODAL_TASK_ORDINAL -> "MODAL_TASK";
-            case BACKGROUND_APP_ORDINAL -> "BACKGROUND_APP";
-            case HOME_STATE_ORDINAL -> "HOME";
-            case BG_LAUNCHER_ORDINAL -> "BG_LAUNCHER";
-            case OVERVIEW_SPLIT_SELECT_ORDINAL -> "SPLIT_SELECT";
-            default -> "Unknown Ordinal-" + ordinal;
+            case DEFAULT_STATE_ORDINAL -> "RECENTS_DEFAULT";
+            case MODAL_TASK_ORDINAL -> "RECENTS_MODAL_TASK";
+            case BACKGROUND_APP_ORDINAL -> "RECENTS_BACKGROUND_APP";
+            case HOME_STATE_ORDINAL -> "RECENTS_HOME";
+            case BG_LAUNCHER_ORDINAL -> "RECENTS_BG_LAUNCHER";
+            case OVERVIEW_SPLIT_SELECT_ORDINAL -> "RECENTS_SPLIT_SELECT";
+            default -> "RECENTS Unknown Ordinal-" + ordinal;
         };
     }
 

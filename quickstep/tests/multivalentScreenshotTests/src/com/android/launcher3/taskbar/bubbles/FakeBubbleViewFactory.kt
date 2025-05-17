@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.launcher3.taskbar.bubbles.testing
+package com.android.launcher3.taskbar.bubbles
 
 import android.app.Notification
 import android.content.Context
@@ -26,8 +26,6 @@ import android.util.PathParser
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import com.android.launcher3.R
-import com.android.launcher3.taskbar.bubbles.BubbleBarBubble
-import com.android.launcher3.taskbar.bubbles.BubbleView
 import com.android.wm.shell.shared.bubbles.BubbleInfo
 
 object FakeBubbleViewFactory {

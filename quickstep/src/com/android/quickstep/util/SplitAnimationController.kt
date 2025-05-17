@@ -60,10 +60,10 @@ import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.statehandlers.DepthController
 import com.android.launcher3.statemanager.StateManager
 import com.android.launcher3.taskbar.TaskbarActivityContext
-import com.android.launcher3.uioverrides.QuickstepLauncher
 import com.android.launcher3.util.MultiPropertyFactory.MULTI_PROPERTY_VALUE
 import com.android.launcher3.util.OverviewReleaseFlags.enableOverviewIconMenu
 import com.android.launcher3.util.SplitConfigurationOptions.SplitSelectSource
+import com.android.launcher3.views.ActivityContext
 import com.android.launcher3.views.BaseDragLayer
 import com.android.quickstep.TaskViewUtils
 import com.android.quickstep.util.SplitScreenUtils.Companion.extractTopParentAndChildren
@@ -735,7 +735,7 @@ class SplitAnimationController(val splitSelectStateController: SplitSelectStateC
         }
 
         // Else we are in Launcher and can launch with the full icon stretch-and-split animation.
-        val launcher = QuickstepLauncher.getLauncher(launchingIconView.context)
+        val launcher: ActivityContext = ActivityContext.lookupContext(launchingIconView.context)
         val dp = launcher.deviceProfile
 
         // Create an AnimatorSet that will run both shell and launcher transitions together
@@ -827,7 +827,7 @@ class SplitAnimationController(val splitSelectStateController: SplitSelectStateC
         }
 
         // Else we are in Launcher and can launch with the full icon stretch-and-split animation.
-        val launcher = QuickstepLauncher.getLauncher(launchingIconView.context)
+        val launcher: ActivityContext = ActivityContext.lookupContext(launchingIconView.context)
         val dp = launcher.deviceProfile
 
         // Create an AnimatorSet that will run both shell and launcher transitions together
@@ -884,9 +884,9 @@ class SplitAnimationController(val splitSelectStateController: SplitSelectStateC
 
     private fun getIconLaunchValueAnimator(
         t: Transaction,
-        dp: com.android.launcher3.DeviceProfile,
+        dp: DeviceProfile,
         finishCallback: Runnable,
-        launcher: QuickstepLauncher,
+        launcher: ActivityContext,
         floatingView: FloatingAppPairView,
         rootCandidate: Change,
     ): ValueAnimator {
@@ -1184,7 +1184,7 @@ class SplitAnimationController(val splitSelectStateController: SplitSelectStateC
         animator.start()
     }
 
-    private fun safeRemoveViewFromDragLayer(container: RecentsViewContainer, view: View?) {
+    private fun safeRemoveViewFromDragLayer(container: ActivityContext, view: View?) {
         if (view != null) {
             container.dragLayer.removeView(view)
         }

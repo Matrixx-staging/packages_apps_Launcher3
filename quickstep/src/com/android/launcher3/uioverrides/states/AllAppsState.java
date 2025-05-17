@@ -207,9 +207,10 @@ public class AllAppsState extends LauncherState {
         if (!launcher.getDeviceProfile().shouldShowAllAppsOnSheet()) {
             // Always use an opaque scrim if there's no sheet.
             return launcher.getResources().getColor(R.color.materialColorSurfaceDim);
+        } else if (!Flags.allAppsBlur()) {
+            // If there's a sheet but no blur, use the old scrim color.
+            return launcher.getResources().getColor(R.color.widgets_picker_scrim);
         }
-
-        return Flags.allAppsBlur() ? Themes.getAttrColor(launcher, R.attr.allAppsScrimColor)
-                : launcher.getResources().getColor(R.color.widgets_picker_scrim);
+        return Themes.getAttrColor(launcher, R.attr.allAppsScrimColor);
     }
 }

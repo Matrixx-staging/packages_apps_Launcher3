@@ -22,14 +22,19 @@ import android.util.Log
 import android.util.SparseArray
 import android.view.Display
 import androidx.core.util.valueIterator
+import com.android.app.displaylib.DisplayDecorationListener
+import com.android.app.displaylib.DisplaysWithDecorationsRepositoryCompat
 import com.android.quickstep.DisplayModel.DisplayResource
-import com.android.quickstep.SystemDecorationChangeObserver.DisplayDecorationListener
+import com.android.window.flags.Flags.enableSysDecorsCallbacksViaWm
 import java.io.PrintWriter
+import kotlinx.coroutines.CoroutineDispatcher
 
 /** data model for managing resources with lifecycles that match that of the connected display */
 abstract class DisplayModel<RESOURCE_TYPE : DisplayResource>(
     val context: Context,
     private val systemDecorationChangeObserver: SystemDecorationChangeObserver,
+    private val displaysWithDecorationsRepositoryCompat: DisplaysWithDecorationsRepositoryCompat,
+    private val dispatcher: CoroutineDispatcher,
 ) : DisplayDecorationListener {
 
     companion object {
@@ -58,14 +63,25 @@ abstract class DisplayModel<RESOURCE_TYPE : DisplayResource>(
     protected abstract fun createDisplayResource(display: Display): RESOURCE_TYPE
 
     protected fun initializeDisplays() {
-        systemDecorationChangeObserver.registerDisplayDecorationListener(this)
+        if (enableSysDecorsCallbacksViaWm()) {
+            displaysWithDecorationsRepositoryCompat.registerDisplayDecorationListener(
+                this,
+                dispatcher,
+            )
+        } else {
+            systemDecorationChangeObserver.registerDisplayDecorationListener(this)
+        }
         displayManager.displays
             .filter { getDisplayResource(it.displayId) == null }
             .forEach { storeDisplayResource(it.displayId) }
     }
 
     fun destroy() {
-        systemDecorationChangeObserver.unregisterDisplayDecorationListener(this)
+        if (enableSysDecorsCallbacksViaWm()) {
+            displaysWithDecorationsRepositoryCompat.unregisterDisplayDecorationListener(this)
+        } else {
+            systemDecorationChangeObserver.unregisterDisplayDecorationListener(this)
+        }
         displayResourceArray.valueIterator().forEach { displayResource ->
             displayResource.cleanup()
         }

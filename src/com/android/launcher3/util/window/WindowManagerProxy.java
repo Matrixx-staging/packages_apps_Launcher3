@@ -50,6 +50,7 @@ import android.view.WindowMetrics;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
+import com.android.launcher3.Flags;
 import com.android.launcher3.R;
 import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.dagger.LauncherBaseAppComponent;
@@ -514,6 +515,11 @@ public class WindowManagerProxy {
             }
         }
         return NavigationMode.NO_BUTTON;
+    }
+
+    /** Returns whether overview on connected displays is enabled */
+    public boolean enableOverviewOnConnectedDisplays() {
+        return Flags.enableOverviewOnConnectedDisplays();
     }
 
     /**

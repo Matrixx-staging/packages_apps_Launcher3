@@ -53,7 +53,7 @@ public class DepthController extends BaseDepthController implements StateHandler
 
     private final Consumer<Boolean> mCrossWindowBlurListener = this::setCrossWindowBlursEnabled;
 
-    private final Runnable mOpaquenessListener = this::onBlurChange;
+    private final Runnable mOpaquenessListener = this::applyDepthAndBlur;
 
     // Workaround for animating the depth when multiwindow mode changes.
     private boolean mIgnoreStateChangesDuringMultiWindowAnimation = false;

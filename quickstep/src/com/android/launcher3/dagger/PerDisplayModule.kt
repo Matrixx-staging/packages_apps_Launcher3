@@ -22,10 +22,13 @@ import android.os.Handler
 import android.util.Log
 import android.view.Display.DEFAULT_DISPLAY
 import android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+import android.view.WindowManagerGlobal
 import com.android.app.displaylib.DefaultDisplayOnlyInstanceRepositoryImpl
 import com.android.app.displaylib.DisplayLibBackground
 import com.android.app.displaylib.DisplayLibComponent
 import com.android.app.displaylib.DisplayRepository
+import com.android.app.displaylib.DisplaysWithDecorationsRepository
+import com.android.app.displaylib.DisplaysWithDecorationsRepositoryCompat
 import com.android.app.displaylib.PerDisplayInstanceRepositoryImpl
 import com.android.app.displaylib.PerDisplayRepository
 import com.android.app.displaylib.SingleInstanceRepositoryImpl
@@ -123,22 +126,15 @@ object PerDisplayRepositoriesModule {
     @Provides
     @LauncherAppSingleton
     fun provideFallbackWindowInterfaceRepo(
-        repositoryFactory: PerDisplayInstanceRepositoryImpl.Factory<FallbackWindowInterface>,
-        instanceFactory: FallbackWindowInterface.Factory,
-        recentsWindowManagerRepository: PerDisplayRepository<RecentsWindowManager>,
+        repositoryFactory: PerDisplayInstanceRepositoryImpl.Factory<FallbackWindowInterface>
     ): PerDisplayRepository<FallbackWindowInterface> {
         return if (enableOverviewOnConnectedDisplays()) {
             repositoryFactory.create(
                 "FallbackWindowInterfaceRepo",
-                { displayId ->
-                    recentsWindowManagerRepository[displayId]?.let { instanceFactory.create(it) }
-                },
+                { _ -> FallbackWindowInterface() },
             )
         } else {
-            SingleInstanceRepositoryImpl(
-                "FallbackWindowInterfaceRepo",
-                instanceFactory.create(recentsWindowManagerRepository[DEFAULT_DISPLAY]),
-            )
+            SingleInstanceRepositoryImpl("FallbackWindowInterfaceRepo", FallbackWindowInterface())
         }
     }
 
@@ -228,8 +224,10 @@ object DisplayLibModule {
         coroutineDispatcherProvider: DispatcherProvider,
     ): DisplayLibComponent {
         val displayManager = context.getSystemService(DisplayManager::class.java)
+        val windowManager = checkNotNull(WindowManagerGlobal.getWindowManagerService())
         return createDisplayLibComponent(
             displayManager,
+            windowManager,
             bgHandler,
             bgApplicationScope,
             coroutineDispatcherProvider.ioBackground,
@@ -242,6 +240,22 @@ object DisplayLibModule {
         displayLibComponent: DisplayLibComponent
     ): DisplayRepository {
         return displayLibComponent.displayRepository
+    }
+
+    @Provides
+    @LauncherAppSingleton
+    fun providesDisplaysWithDecorationsRepository(
+        displayLibComponent: DisplayLibComponent
+    ): DisplaysWithDecorationsRepository {
+        return displayLibComponent.displaysWithDecorationsRepository
+    }
+
+    @Provides
+    @LauncherAppSingleton
+    fun providesDisplaysWithDecorationsRepositoryCompat(
+        displayLibComponent: DisplayLibComponent
+    ): DisplaysWithDecorationsRepositoryCompat {
+        return displayLibComponent.displaysWithDecorationsRepositoryCompat
     }
 
     @Provides

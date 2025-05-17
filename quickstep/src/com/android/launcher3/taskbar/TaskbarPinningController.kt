@@ -60,7 +60,7 @@ class TaskbarPinningController(private val context: TaskbarActivityContext) :
                 }
 
                 if (
-                    controllers.taskbarDesktopModeController.isInDesktopModeAndNotInOverview(
+                    controllers.taskbarDesktopModeController.shouldShowDesktopTasksInTaskbar(
                         context.displayId
                     )
                 ) {

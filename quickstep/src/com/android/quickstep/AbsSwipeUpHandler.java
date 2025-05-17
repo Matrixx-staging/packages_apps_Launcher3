@@ -16,6 +16,7 @@
 package com.android.quickstep;
 
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_HOME;
+import static android.app.WindowConfiguration.WINDOWING_MODE_FREEFORM;
 import static android.view.Surface.ROTATION_0;
 import static android.view.Surface.ROTATION_270;
 import static android.view.Surface.ROTATION_90;
@@ -97,6 +98,7 @@ import android.view.ViewTreeObserver.OnScrollChangedListener;
 import android.view.WindowInsets;
 import android.view.animation.Interpolator;
 import android.widget.Toast;
+import android.window.DesktopExperienceFlags;
 import android.window.DesktopModeFlags;
 import android.window.PictureInPictureSurfaceTransaction;
 import android.window.TransitionInfo;
@@ -1680,11 +1682,17 @@ public abstract class AbsSwipeUpHandler<
             boolean hasValidLeash = runningTaskTarget != null
                     && runningTaskTarget.leash != null
                     && runningTaskTarget.leash.isValid();
+            final boolean swipeUpInDesktopWindowing =
+                    DesktopExperienceFlags.ENABLE_DESKTOP_WINDOWING_PIP.isTrue()
+                            && runningTaskTarget != null
+                            && runningTaskTarget.taskInfo.getWindowingMode()
+                            == WINDOWING_MODE_FREEFORM;
             boolean appCanEnterPip = !mDeviceState.isPipActive()
                     && hasValidLeash
                     && runningTaskTarget.allowEnterPip
                     && runningTaskTarget.taskInfo.pictureInPictureParams != null
-                    && runningTaskTarget.taskInfo.pictureInPictureParams.isAutoEnterEnabled();
+                    && runningTaskTarget.taskInfo.pictureInPictureParams.isAutoEnterEnabled()
+                    && !swipeUpInDesktopWindowing;
             HomeAnimationFactory homeAnimFactory = createHomeAnimationFactory(
                     cookies,
                     duration,

@@ -38,6 +38,7 @@ import android.view.SurfaceControlViewHost
 import android.widget.Toast
 import android.window.RemoteTransition
 import android.window.ScreenCapture
+import com.android.launcher3.BaseActivity
 import com.android.launcher3.Flags.enablePrivateSpace
 import com.android.launcher3.Flags.privateSpaceSysAppsSeparation
 import com.android.launcher3.R
@@ -45,11 +46,13 @@ import com.android.launcher3.Utilities
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.proxy.ProxyActivityStarter
+import com.android.launcher3.uioverrides.touchcontrollers.StatusBarTouchController
 import com.android.launcher3.util.ApiWrapper
 import com.android.launcher3.util.Executors
 import com.android.launcher3.util.StartActivityParams
 import com.android.launcher3.util.UserIconInfo
 import com.android.quickstep.util.FadeOutRemoteTransition
+import java.util.function.Supplier
 import javax.inject.Inject
 
 /** A wrapper for the hidden API calls */
@@ -193,6 +196,13 @@ open class SystemApiWrapper @Inject constructor(@ApplicationContext context: Con
             params.intent = roleRequestIntent
             context.startActivity(ProxyActivityStarter.getLaunchIntent(context, params))
         }
+    }
+
+    override fun createStatusBarTouchController(
+        launcher: BaseActivity,
+        isEnabledCheck: Supplier<Boolean>,
+    ): StatusBarTouchController? {
+        return StatusBarTouchController(launcher, isEnabledCheck)
     }
 
     override fun isFileDrawable(shortcutInfo: ShortcutInfo) =

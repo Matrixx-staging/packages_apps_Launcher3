@@ -86,11 +86,11 @@ import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags;
 import com.android.systemui.shared.system.TaskStackChangeListener;
 import com.android.systemui.shared.system.TaskStackChangeListeners;
 
-import java.io.PrintWriter;
-
 import dagger.assisted.Assisted;
 import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
+
+import java.io.PrintWriter;
 
 /**
  * Manages the state of the system during a swipe up gesture.
@@ -106,6 +106,16 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
     public static final DaggerSingletonObject<PerDisplayRepository<RecentsAnimationDeviceState>>
             REPOSITORY_INSTANCE = new DaggerSingletonObject<>(
             QuickstepBaseAppComponent::getRecentsAnimationDeviceStateRepository);
+
+    /** The SysUI state ignores trackpad, touch gestures, and keyboard shortcuts. */
+    private static final long GESTURE_OR_KB_SHORTCUT_DISABLING_STATES =
+            SYSUI_STATE_NOTIFICATION_PANEL_EXPANDED
+                    | SYSUI_STATE_STATUS_BAR_KEYGUARD_SHOWING
+                    | SYSUI_STATE_QUICK_SETTINGS_EXPANDED
+                    | SYSUI_STATE_MAGNIFICATION_OVERLAP
+                    | SYSUI_STATE_DEVICE_DREAMING
+                    | SYSUI_STATE_DISABLE_GESTURE_SPLIT_INVOCATION
+                    | SYSUI_STATE_DISABLE_GESTURE_PIP_ANIMATING;
 
     private final Context mContext;
     private final DisplayController mDisplayController;
@@ -413,19 +423,22 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
     }
 
     /**
+     * @return whether SystemUI is in a state that allows the overview command from being started.
+     */
+    public boolean canStartOverviewCommand() {
+        final long sysUiStateFlags = getSysuiStateFlags();
+        final boolean overviewEnabled = !isOverviewDisabled();
+        return overviewEnabled && (sysUiStateFlags & GESTURE_OR_KB_SHORTCUT_DISABLING_STATES) == 0;
+    }
+
+    /**
      * Common logic to determine if either trackpad or finger gesture can be started
      */
     private boolean canStartAnyGesture() {
         boolean homeOrOverviewEnabled = (getSysuiStateFlags() & SYSUI_STATE_HOME_DISABLED) == 0
                 || (getSysuiStateFlags() & SYSUI_STATE_OVERVIEW_DISABLED) == 0;
-        long gestureDisablingStates = SYSUI_STATE_NOTIFICATION_PANEL_EXPANDED
-                        | SYSUI_STATE_STATUS_BAR_KEYGUARD_SHOWING
-                        | SYSUI_STATE_QUICK_SETTINGS_EXPANDED
-                        | SYSUI_STATE_MAGNIFICATION_OVERLAP
-                        | SYSUI_STATE_DEVICE_DREAMING
-                        | SYSUI_STATE_DISABLE_GESTURE_SPLIT_INVOCATION
-                        | SYSUI_STATE_DISABLE_GESTURE_PIP_ANIMATING;
-        return (gestureDisablingStates & getSysuiStateFlags()) == 0 && homeOrOverviewEnabled;
+        return (GESTURE_OR_KB_SHORTCUT_DISABLING_STATES & getSysuiStateFlags()) == 0
+                && homeOrOverviewEnabled;
     }
 
     /**

@@ -20,6 +20,8 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.view.View;
 
+import androidx.annotation.Nullable;
+
 import com.android.launcher3.accessibility.DragViewStateAnnouncer;
 import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.dragndrop.DragOptions;
@@ -147,8 +149,18 @@ public interface DropTarget {
     // These methods are implemented in Views
     void getHitRectRelativeToDragLayer(Rect outRect);
 
-    /** Returns the drop target view. By default, the implementor class is cast to the view. */
-    default View getDropView() {
+    /**
+     * Returns the drop target view.<br>
+     *
+     * By default, the implementor class is cast to the view.<br>
+     *
+     * The returned {@link View} will be use to map touch coordinates to the view self descendant
+     * and set as [{@link DragObject#x DragObject.x} {@link DragObject#y DragObject.y}].<br>
+     *
+     * If this method returns {@code null}, the raw touch event coordinates will be directly
+     * assigned to [{@link DragObject#x DragObject.x} and {@link DragObject#y DragObject.y}].
+     */
+    default @Nullable View getDropView() {
         return (View) this;
     }
 }

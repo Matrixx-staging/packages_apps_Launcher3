@@ -26,7 +26,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -59,7 +58,7 @@ import com.android.launcher3.widgetpicker.ui.windowsizeclass.isExtraTall
  * structure for different types of widget pickers.
  *
  * @param modifier modifier to be applies to the bottom sheet container.
- * @param title A top level title for the bottom sheet.
+ * @param title A top level title for the bottom sheet. If title is absent, top header isn't shown.
  * @param description an optional short (1-2 line) description that can be shown below the title.
  * @param heightStyle indicates how much vertical space should the bottom sheet take; see
  *   [ModalBottomSheetHeightStyle].
@@ -72,7 +71,7 @@ import com.android.launcher3.widgetpicker.ui.windowsizeclass.isExtraTall
 @OptIn(ExperimentalMaterial3Api::class)
 fun TitledBottomSheet(
     modifier: Modifier = Modifier,
-    title: String,
+    title: String?,
     description: String?,
     heightStyle: ModalBottomSheetHeightStyle,
     showDragHandle: Boolean = true,
@@ -103,12 +102,12 @@ fun TitledBottomSheet(
 
     ModalBottomSheet(
         sheetState = modalBottomSheetState,
+        sheetGesturesEnabled = false,
         sheetMaxWidth = Dp.Unspecified,
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
         onDismissRequest = onDismissRequest,
         dragHandle = dragHandle,
-        modifier =
-            modifier.windowInsetsPadding(WindowInsets.statusBars.union(WindowInsets.displayCutout)),
+        modifier = modifier.windowInsetsPadding(WindowInsets.statusBars),
     ) {
         Column(
             modifier =
@@ -116,8 +115,8 @@ fun TitledBottomSheet(
                     .padding(horizontal = sheetInnerHorizontalPadding)
                     .padding(top = sheetInnerTopPadding.takeIf { !showDragHandle } ?: 0.dp)
         ) {
-            Header(title = title, description = description)
-            content()
+            title?.let { Header(title = title, description = description) }
+            Box(modifier = Modifier.windowInsetsPadding(WindowInsets.displayCutout)) { content() }
         }
     }
 }
@@ -161,7 +160,7 @@ private fun Header(title: String, description: String?) {
 private object TitledBottomSheetDimens {
     val sheetInnerTopPadding = 16.dp
     val sheetInnerHorizontalPadding = 10.dp
-    val headerBottomMargin = 24.dp
+    val headerBottomMargin = 16.dp
 }
 
 private object DragHandleDimens {

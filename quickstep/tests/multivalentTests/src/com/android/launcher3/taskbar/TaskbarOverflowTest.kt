@@ -41,8 +41,7 @@ import com.android.launcher3.taskbar.TaskbarControllerTestUtil.runOnMainSync
 import com.android.launcher3.taskbar.TaskbarViewTestUtil.createHotseatItems
 import com.android.launcher3.taskbar.bubbles.BubbleBarViewController
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController
-import com.android.launcher3.taskbar.rules.DesktopVisibilityControllerModule
-import com.android.launcher3.taskbar.rules.DisplayControllerModule
+import com.android.launcher3.taskbar.rules.AllTaskbarSandboxModules
 import com.android.launcher3.taskbar.rules.MockedRecentsModelHelper
 import com.android.launcher3.taskbar.rules.MockedRecentsModelTestRule
 import com.android.launcher3.taskbar.rules.SandboxParams
@@ -54,8 +53,6 @@ import com.android.launcher3.taskbar.rules.TaskbarSandboxComponent
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.InjectController
 import com.android.launcher3.taskbar.rules.TaskbarWindowSandboxContext
-import com.android.launcher3.util.AllModulesForTest
-import com.android.launcher3.util.FakePrefsModule
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.LauncherMultivalentJUnit.EmulatedDevices
 import com.android.launcher3.util.Preconditions.assertNotNull
@@ -725,15 +722,7 @@ class TaskbarOverflowTest {
 
 /** TaskbarOverflowComponent used to bind the RecentsModel. */
 @LauncherAppSingleton
-@Component(
-    modules =
-        [
-            AllModulesForTest::class,
-            FakePrefsModule::class,
-            DisplayControllerModule::class,
-            DesktopVisibilityControllerModule::class,
-        ]
-)
+@Component(modules = [AllTaskbarSandboxModules::class])
 interface TaskbarOverflowComponent : TaskbarSandboxComponent {
 
     @Component.Builder

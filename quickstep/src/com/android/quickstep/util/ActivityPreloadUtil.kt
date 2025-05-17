@@ -63,7 +63,7 @@ object ActivityPreloadUtil {
             // have the latest state.
             if (
                 fromInit &&
-                    overviewCompObserver.getContainerInterface(DEFAULT_DISPLAY).createdContainer !=
+                    overviewCompObserver.getContainerInterface(DEFAULT_DISPLAY)?.createdContainer !=
                         null
             )
                 return

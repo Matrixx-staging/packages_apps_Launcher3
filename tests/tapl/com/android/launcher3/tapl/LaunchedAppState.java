@@ -157,7 +157,7 @@ public final class LaunchedAppState extends Background {
             int endX = startX;
             int endY = startY - taskbarFromNavThreshold;
 
-            mLauncher.executeAndWaitForLauncherStop(
+            mLauncher.executeAndWaitForLauncherHidden(
                     () -> mLauncher.linearGesture(startX, startY, endX, endY, 10,
                             /* slowDown= */ true,
                             LauncherInstrumentation.GestureScope.EXPECT_PILFER),

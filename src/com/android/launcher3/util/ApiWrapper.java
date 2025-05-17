@@ -37,6 +37,7 @@ import android.view.SurfaceControlViewHost;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.android.launcher3.BaseActivity;
 import com.android.launcher3.BuildConfig;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.Utilities;
@@ -44,10 +45,12 @@ import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.dagger.LauncherAppComponent;
 import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.icons.BitmapRenderer;
+import com.android.launcher3.util.TouchController;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import javax.inject.Inject;
 
@@ -201,6 +204,14 @@ public class ApiWrapper {
             Launcher launcher = Launcher.getLauncher(context);
             launcher.startActivityForResult(roleRequestIntent, REQUEST_HOME_ROLE);
         }
+    }
+
+    @Nullable
+    public TouchController createStatusBarTouchController(
+            BaseActivity launcher,
+            Supplier<Boolean> isEnabledCheck
+    ) {
+        return null;
     }
 
     /**

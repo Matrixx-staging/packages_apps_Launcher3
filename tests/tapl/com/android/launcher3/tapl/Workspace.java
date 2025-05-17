@@ -555,7 +555,7 @@ public final class Workspace extends Home {
     private static void dropDraggedIcon(LauncherInstrumentation launcher, Point dest, long downTime,
             @Nullable Runnable expectedEvents, boolean startsActivity) {
         if (startsActivity) {
-            launcher.executeAndWaitForLauncherStop(
+            launcher.executeAndWaitForLauncherHidden(
                     () -> sendUp(launcher, dest, downTime),
                     "sending UP event");
         } else {

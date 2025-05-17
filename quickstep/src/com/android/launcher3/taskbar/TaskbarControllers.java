@@ -177,7 +177,8 @@ public class TaskbarControllers {
         taskbarOverlayController.init(this);
         taskbarAllAppsController.init(this, sharedState.allAppsVisible);
         navButtonController.init(this);
-        bubbleControllers.ifPresent(controllers -> controllers.init(sharedState, this));
+        bubbleControllers.ifPresentOrElse(controllers -> controllers.init(sharedState, this),
+                sharedState::clearBubbleData);
         taskbarInsetsController.init(this);
         voiceInteractionWindowController.init(this);
         taskbarRecentAppsController.init(this, sharedState.recentTasksBeforeTaskbarRecreate);

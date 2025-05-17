@@ -44,8 +44,6 @@ import com.android.quickstep.util.AnimatorControllerWithResistance;
 import com.android.quickstep.util.ContextInitListener;
 import com.android.quickstep.views.RecentsView;
 
-import dagger.assisted.Assisted;
-import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
 
 import java.util.function.Consumer;
@@ -56,17 +54,20 @@ import java.util.function.Predicate;
  * currently running one and apps should interact with the {@link RecentsWindowManager} as opposed
  * to the in-launcher one.
  */
-public final class FallbackWindowInterface extends BaseWindowInterface{
+public final class FallbackWindowInterface extends BaseWindowInterface {
 
     public static final DaggerSingletonObject<PerDisplayRepository<FallbackWindowInterface>>
             REPOSITORY_INSTANCE = new DaggerSingletonObject<>(
             QuickstepBaseAppComponent::getFallbackWindowInterfaceRepository);
 
-    private final RecentsWindowManager mRecentsWindowManager;
+    @Nullable private RecentsWindowManager mRecentsWindowManager = null;
 
     @AssistedInject
-    public FallbackWindowInterface(@Assisted RecentsWindowManager recentsWindowManager) {
+    public FallbackWindowInterface() {
         super(DEFAULT, BACKGROUND_APP);
+    }
+
+    public void setRecentsWindowManager(@Nullable RecentsWindowManager recentsWindowManager) {
         mRecentsWindowManager = recentsWindowManager;
     }
 
@@ -131,8 +132,8 @@ public final class FallbackWindowInterface extends BaseWindowInterface{
     @Override
     public <T extends RecentsView<?, ?>> T getVisibleRecentsView() {
         RecentsWindowManager manager = getCreatedContainer();
-        if(manager.isStarted() || isInLiveTileMode()){
-            return getCreatedContainer().getOverviewPanel();
+        if (manager != null && (manager.isStarted() || isInLiveTileMode())) {
+            return manager.getOverviewPanel();
         }
         return null;
     }
@@ -160,9 +161,10 @@ public final class FallbackWindowInterface extends BaseWindowInterface{
 
     @Override
     public void onExitOverview(Runnable exitRunnable) {
+        RecentsWindowManager windowManager = getCreatedContainer();
         final StateManager<RecentsState, RecentsWindowManager> stateManager =
-                getCreatedContainer().getStateManager();
-        if (stateManager.getState() == HOME) {
+                windowManager != null ? windowManager.getStateManager() : null;
+        if (stateManager == null || stateManager.getState() == HOME) {
             exitRunnable.run();
             notifyRecentsOfOrientation();
             return;
@@ -215,8 +217,11 @@ public final class FallbackWindowInterface extends BaseWindowInterface{
     }
 
     private void notifyRecentsOfOrientation() {
-        // reset layout on swipe to home
-        ((RecentsView) getCreatedContainer().getOverviewPanel()).reapplyActiveRotation();
+        RecentsWindowManager recentsWindowManager = getCreatedContainer();
+        if (recentsWindowManager != null) {
+            // reset layout on swipe to home
+            ((RecentsView) recentsWindowManager.getOverviewPanel()).reapplyActiveRotation();
+        }
     }
 
     @Override
@@ -239,11 +244,5 @@ public final class FallbackWindowInterface extends BaseWindowInterface{
         AnimatorSet animatorSet = new AnimatorSet();
         animatorSet.playTogether(superAnimator, taskbarAnimator);
         return animatorSet;
-    }
-
-    @AssistedFactory
-    public interface Factory {
-        /** Creates a new instance of [FallbackWindowInterface] for a [RecentsWindowManager]. */
-        FallbackWindowInterface create(RecentsWindowManager recentsWindowManager);
     }
 }

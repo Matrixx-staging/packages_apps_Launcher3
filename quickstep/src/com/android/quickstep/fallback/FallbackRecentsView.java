@@ -41,9 +41,7 @@ import com.android.launcher3.statemanager.StateManager.StateListener;
 import com.android.launcher3.statemanager.StatefulContainer;
 import com.android.launcher3.util.SplitConfigurationOptions;
 import com.android.launcher3.util.SplitConfigurationOptions.SplitSelectSource;
-import com.android.quickstep.BaseContainerInterface;
 import com.android.quickstep.GestureState;
-import com.android.quickstep.OverviewComponentObserver;
 import com.android.quickstep.RemoteTargetGluer.RemoteTargetHandle;
 import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.util.GroupTask;
@@ -77,12 +75,6 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
     public FallbackRecentsView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mContainer.getStateManager().addStateListener(this);
-    }
-
-    @Override
-    public BaseContainerInterface<RecentsState, ?> getContainerInterface(int displayId) {
-        return (BaseContainerInterface<RecentsState, ?>) OverviewComponentObserver.INSTANCE.get(
-                mContext).getContainerInterface(displayId);
     }
 
     @Override
@@ -197,7 +189,7 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
     }
 
     @Override
-    protected void applyLoadPlan(List<GroupTask> taskGroups) {
+    protected void applyLoadPlan(List<GroupTask> taskGroups, int taskListChangeId) {
         // When quick-switching on 3p-launcher, we add a "stub" tile corresponding to Launcher
         // as well. This tile is never shown as we have setCurrentTaskHidden, but allows use to
         // track the index of the next task appropriately, as if we are switching on any other app.
@@ -221,7 +213,7 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
                 taskGroups = newList;
             }
         }
-        super.applyLoadPlan(taskGroups);
+        super.applyLoadPlan(taskGroups, taskListChangeId);
     }
 
     @Override
@@ -338,11 +330,5 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
     @Override
     public boolean canLaunchFullscreenTask() {
         return !mContainer.isInState(OVERVIEW_SPLIT_SELECT);
-    }
-
-    /** Returns if app pairs are supported in this launcher. */
-    @Override
-    public boolean supportsAppPairs() {
-        return false;
     }
 }

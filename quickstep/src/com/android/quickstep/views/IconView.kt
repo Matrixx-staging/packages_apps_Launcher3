@@ -157,7 +157,7 @@ class IconView : View, TaskViewIcon {
         val deviceProfile: DeviceProfile =
             (ActivityContext.lookupContext(context) as ActivityContext).getDeviceProfile()
         orientationHandler.setTaskIconParams(
-            iconParams = getLayoutParams() as FrameLayout.LayoutParams,
+            iconParams = layoutParams as FrameLayout.LayoutParams,
             taskIconMargin = deviceProfile.overviewTaskMarginPx,
             taskIconHeight = deviceProfile.overviewTaskIconSizePx,
             thumbnailTopMargin = deviceProfile.overviewTaskThumbnailTopMarginPx,

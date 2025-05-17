@@ -375,7 +375,8 @@ public interface TaskShortcutFactory {
             // - we are in 3p launcher
             // - the Overview Actions Button should be visible
             // - the task view is not a valid save-able split pair
-            if (!recentsView.supportsAppPairs()
+            if (!OverviewComponentObserver.INSTANCE.get(container.asContext())
+                    .isHomeAndOverviewSame()
                     || shouldShowActionsButtonInstead
                     || !recentsView.getSplitSelectController().getAppPairsController()
                             .canSaveAppPair(taskView)) {

@@ -18,14 +18,14 @@ package com.android.quickstep.views;
 import static android.app.ActivityTaskManager.INVALID_TASK_ID;
 import static android.window.DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY;
 
-import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
-import static com.android.launcher3.LauncherState.CLEAR_ALL_BUTTON;
 import static com.android.launcher3.LauncherState.ADD_DESK_BUTTON;
+import static com.android.launcher3.LauncherState.CLEAR_ALL_BUTTON;
 import static com.android.launcher3.LauncherState.NORMAL;
 import static com.android.launcher3.LauncherState.OVERVIEW;
 import static com.android.launcher3.LauncherState.OVERVIEW_MODAL_TASK;
 import static com.android.launcher3.LauncherState.OVERVIEW_SPLIT_SELECT;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SPLIT_SELECTION_EXIT_HOME;
+import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -48,9 +48,7 @@ import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.PendingSplitSelectInfo;
 import com.android.launcher3.util.SplitConfigurationOptions;
 import com.android.launcher3.util.SplitConfigurationOptions.SplitSelectSource;
-import com.android.quickstep.BaseContainerInterface;
 import com.android.quickstep.GestureState;
-import com.android.quickstep.LauncherActivityInterface;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.util.AnimUtils;
 import com.android.quickstep.util.SplitSelectStateController;
@@ -237,11 +235,6 @@ public class LauncherRecentsView extends RecentsView<QuickstepLauncher, Launcher
         } else if (mContainer.isInState(LauncherState.OVERVIEW_MODAL_TASK)) {
             getStateManager().goToState(LauncherState.OVERVIEW, animate);
         }
-    }
-
-    @Override
-    protected BaseContainerInterface<LauncherState, ?> getContainerInterface(int displayId) {
-        return LauncherActivityInterface.INSTANCE;
     }
 
     @Override

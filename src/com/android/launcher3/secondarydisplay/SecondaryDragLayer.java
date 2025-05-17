@@ -39,6 +39,7 @@ import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.popup.PopupContainerWithArrow;
 import com.android.launcher3.popup.PopupDataProvider;
 import com.android.launcher3.popup.SystemShortcut;
+import com.android.launcher3.util.ApiWrapper;
 import com.android.launcher3.util.ShortcutUtil;
 import com.android.launcher3.util.TouchController;
 import com.android.launcher3.views.BaseDragLayer;
@@ -65,8 +66,22 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
     @Override
     public void recreateControllers() {
         super.recreateControllers();
-        mControllers = new TouchController[]{new CloseAllAppsTouchController(),
-                mContainer.getDragController()};
+        TouchController statusBarController =
+            ApiWrapper.INSTANCE.get(getContext())
+                .createStatusBarTouchController(mContainer, () -> true);
+
+        if (statusBarController != null) {
+            mControllers = new TouchController[]{
+                new CloseAllAppsTouchController(),
+                mContainer.getDragController(),
+                statusBarController
+            };
+        } else {
+            mControllers = new TouchController[]{
+                new CloseAllAppsTouchController(),
+                mContainer.getDragController()
+            };
+        }
     }
 
     /**

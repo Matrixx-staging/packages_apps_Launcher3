@@ -147,7 +147,7 @@ public class RecentsOrientedState implements LauncherPrefChangeListener {
             IntConsumer rotationChangeListener) {
         mContext = context;
         mContainerInterface = containerInterface;
-        mOrientationListener = new OrientationEventListener(context) {
+        mOrientationListener = new OrientationEventListener(mContext) {
             @Override
             public void onOrientationChanged(int degrees) {
                 int newRotation = getRotationForUserDegreesRotated(degrees, mPreviousRotation);

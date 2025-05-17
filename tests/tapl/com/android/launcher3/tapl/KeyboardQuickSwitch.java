@@ -224,7 +224,7 @@ public final class KeyboardQuickSwitch {
             if (expectedPackageName == null || !mIsHomeState) {
                 mLauncher.unpressKeyCode(KeyEvent.KEYCODE_ALT_LEFT, 0);
             } else {
-                mLauncher.executeAndWaitForLauncherStop(
+                mLauncher.executeAndWaitForLauncherHidden(
                         () -> mLauncher.unpressKeyCode(KeyEvent.KEYCODE_ALT_LEFT, 0),
                         "unpressing left alt");
             }

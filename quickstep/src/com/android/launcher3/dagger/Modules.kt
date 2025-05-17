@@ -33,6 +33,7 @@ import com.android.quickstep.logging.StatsLogCompatManager.StatsLogCompatManager
 import com.android.quickstep.util.ChoreographerFrameRateTracker
 import com.android.quickstep.util.GestureExclusionManager
 import com.android.quickstep.util.SystemWindowManagerProxy
+import com.android.systemui.shared.system.ActivityManagerWrapper
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -82,4 +83,9 @@ object StaticObjectModule {
     @Provides
     @JvmStatic
     fun provideRefreshRateTracker(): RefreshRateTracker = ChoreographerFrameRateTracker
+
+    @Provides
+    @JvmStatic
+    fun provideActivityManagerWrapper(): ActivityManagerWrapper =
+        ActivityManagerWrapper.getInstance()
 }

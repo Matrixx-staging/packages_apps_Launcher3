@@ -26,6 +26,7 @@ import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.launcher3.AppFilter
+import com.android.launcher3.Flags
 import com.android.launcher3.Flags.FLAG_ENABLE_PRIVATE_SPACE
 import com.android.launcher3.LauncherSettings
 import com.android.launcher3.dagger.LauncherAppComponent
@@ -40,6 +41,7 @@ import com.android.launcher3.model.PackageUpdatedTask.OP_UPDATE
 import com.android.launcher3.model.PackageUpdatedTask.OP_USER_AVAILABILITY_CHANGE
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
+import com.android.launcher3.model.repository.AppsListRepository
 import com.android.launcher3.util.AllModulesForTest
 import com.android.launcher3.util.Executors
 import com.android.launcher3.util.SandboxApplication
@@ -73,6 +75,7 @@ class PackageUpdatedTaskTest {
 
     private val mockIconCache: IconCache = mock()
     private val mockAppFilter: AppFilter = mock<AppFilter>()
+    private val appsListRepo = AppsListRepository()
     private lateinit var mAllAppsList: AllAppsList
 
     private val mockApplicationInfo: ApplicationInfo = mock<ApplicationInfo>()
@@ -83,7 +86,7 @@ class PackageUpdatedTaskTest {
 
     @Before
     fun setup() {
-        mAllAppsList = spy(AllAppsList(mockIconCache, mockAppFilter))
+        mAllAppsList = spy(AllAppsList(mockIconCache, mockAppFilter) { appsListRepo })
         mContext.initDaggerComponent(
             DaggerPackageUpdatedTaskTest_TestComponent.builder()
                 .bindAllAppsList(mAllAppsList)
@@ -186,6 +189,7 @@ class PackageUpdatedTaskTest {
     }
 
     @Test
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun `OP_SUSPEND triggers model callbacks and updates flags in AllAppsList`() {
         // Given
         val taskUnderTest = PackageUpdatedTask(OP_SUSPEND, mUser, expectedPackage)
@@ -201,9 +205,11 @@ class PackageUpdatedTaskTest {
         verify(mAllAppsList).updateDisabledFlags(any(), any())
         verify(mockTaskController).bindUpdatedWorkspaceItems(listOf(expectedWorkspaceItem))
         assertThat(mAllAppsList.getAndResetChangeFlag()).isTrue()
+        assertThat(appsListRepo.appsListStateFlow.value.apps).isNotEmpty()
     }
 
     @Test
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun `OP_UNSUSPEND triggers no callbacks when app not suspended`() {
         // Given
         val taskUnderTest = PackageUpdatedTask(OP_UNSUSPEND, mUser, expectedPackage)
@@ -218,6 +224,7 @@ class PackageUpdatedTaskTest {
         verify(mAllAppsList).updateDisabledFlags(any(), any())
         verify(mockTaskController).bindUpdatedWorkspaceItems(emptyList())
         assertThat(mAllAppsList.getAndResetChangeFlag()).isFalse()
+        assertThat(appsListRepo.appsListStateFlow.value.apps).isEmpty()
     }
 
     @EnableFlags(FLAG_ENABLE_PRIVATE_SPACE)

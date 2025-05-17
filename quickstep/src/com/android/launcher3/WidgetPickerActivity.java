@@ -35,7 +35,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowInsetsController;
-import android.view.WindowManager;
 import android.window.BackEvent;
 import android.window.OnBackAnimationCallback;
 import android.window.OnBackInvokedDispatcher;
@@ -43,6 +42,8 @@ import android.window.OnBackInvokedDispatcher;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.android.launcher3.dagger.LauncherAppComponent;
+import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.dragndrop.SimpleDragLayer;
 import com.android.launcher3.model.StringCache;
 import com.android.launcher3.model.WidgetItem;
@@ -50,6 +51,7 @@ import com.android.launcher3.model.WidgetPredictionsRequester;
 import com.android.launcher3.model.WidgetsModel;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.PackageItemInfo;
+import com.android.launcher3.util.ScreenOnTracker;
 import com.android.launcher3.widget.WidgetCell;
 import com.android.launcher3.widget.model.WidgetsListBaseEntriesBuilder;
 import com.android.launcher3.widget.model.WidgetsListBaseEntry;
@@ -63,6 +65,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -104,9 +107,10 @@ public class WidgetPickerActivity extends BaseActivity implements
     /**
      * A unique identifier of the surface hosting the widgets;
      * <p>"widgets" is reserved for home screen surface.</p>
-     * <p>"widgets_hub" is reserved for glanceable hub surface.</p>
+     * <p>"widgets_hub" is reserved for lockscreen hub surface.</p>
      */
     private static final String EXTRA_UI_SURFACE = "ui_surface";
+    private static final String LOCKSCREEN_WIDGETS_HUB_UI_SURFACE = "widgets_hub";
     private static final Pattern UI_SURFACE_PATTERN =
             Pattern.compile("^(widgets|widgets_hub)$");
 
@@ -117,7 +121,6 @@ public class WidgetPickerActivity extends BaseActivity implements
 
     private SimpleDragLayer<WidgetPickerActivity> mDragLayer;
     private WidgetsModel mModel;
-    private LauncherAppState mApp;
     private StringCache mStringCache;
     private WidgetPredictionsRequester mWidgetPredictionsRequester;
     private WidgetPickerDataProvider mWidgetPickerDataProvider;
@@ -139,6 +142,7 @@ public class WidgetPickerActivity extends BaseActivity implements
     /** A set of user ids that should be filtered out from the selected widgets. */
     @NonNull
     Set<Integer> mFilteredUserIds = new HashSet<>();
+    private final ScreenOnTracker.ScreenOnListener mScreenOnListener = this::onScreenOnChange;
 
     @Nullable
     private WidgetsFullSheet mWidgetSheet;
@@ -160,23 +164,23 @@ public class WidgetPickerActivity extends BaseActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER);
-
-        mApp = LauncherAppState.getInstance(this);
-        InvariantDeviceProfile idp = mApp.getInvariantDeviceProfile();
+        LauncherAppComponent component = LauncherComponentProvider.get(this);
+        component.getScreenOnTracker().addListener(mScreenOnListener);
+        InvariantDeviceProfile idp = component.getIDP();
         mDeviceProfile = idp.getDeviceProfile(this);
-        mModel = new WidgetsModel(mApp.getContext());
+        mModel = new WidgetsModel(getApplicationContext());
         mWidgetPickerDataProvider = new WidgetPickerDataProvider();
 
         setContentView(R.layout.widget_picker_activity);
         mDragLayer = findViewById(R.id.drag_layer);
         mDragLayer.recreateControllers();
 
-        WindowInsetsController wc = mDragLayer.getWindowInsetsController();
-        wc.hide(navigationBars() + statusBars());
-
         parseIntentExtras();
+        if (Objects.equals(mUiSurface, LOCKSCREEN_WIDGETS_HUB_UI_SURFACE)) {
+            WindowInsetsController wc = mDragLayer.getWindowInsetsController();
+            wc.hide(navigationBars() + statusBars());
+        }
+
         refreshAndBindWidgets();
     }
 
@@ -334,7 +338,7 @@ public class WidgetPickerActivity extends BaseActivity implements
 
     private void bindWidgets(Map<PackageItemInfo, List<WidgetItem>> widgets) {
         WidgetsListBaseEntriesBuilder builder = new WidgetsListBaseEntriesBuilder(
-                mApp.getContext());
+                getApplicationContext());
         final List<WidgetsListBaseEntry> allWidgets = builder.build(widgets, mNoShortcutsFilter);
 
         // Default list is shown if host has additionally enforced size filtering.
@@ -364,9 +368,16 @@ public class WidgetPickerActivity extends BaseActivity implements
                 mDeviceProfile.bottomSheetOpenDuration);
     }
 
+    private void onScreenOnChange(boolean on) {
+        if (!on) {
+            finish(); // auto close when user locks device.
+        }
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        ScreenOnTracker.INSTANCE.get(this).removeListener(mScreenOnListener);
         mWidgetPickerDataProvider.destroy();
         if (mWidgetPredictionsRequester != null) {
             mWidgetPredictionsRequester.clear();

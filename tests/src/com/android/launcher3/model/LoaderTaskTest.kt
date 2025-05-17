@@ -35,6 +35,9 @@ import com.android.launcher3.icons.cache.CachingLogic
 import com.android.launcher3.icons.cache.IconCacheUpdateHandler
 import com.android.launcher3.model.LoaderTask.LoaderTaskFactory
 import com.android.launcher3.model.data.AppInfo
+import com.android.launcher3.model.data.AppsListData.Companion.FLAG_PRIVATE_PROFILE_QUIET_MODE_ENABLED
+import com.android.launcher3.model.data.AppsListData.Companion.FLAG_QUIET_MODE_ENABLED
+import com.android.launcher3.model.data.AppsListData.Companion.FLAG_WORK_PROFILE_QUIET_MODE_ENABLED
 import com.android.launcher3.model.data.IconRequestInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.pm.UserCache
@@ -243,12 +246,9 @@ class LoaderTaskTest {
                 .newLoaderTask(launcherBinder, userManagerState)
                 .runSyncOnBackgroundThread()
 
-            verify(bgAllAppsList)
-                .setFlags(BgDataModel.Callbacks.FLAG_WORK_PROFILE_QUIET_MODE_ENABLED, true)
-            verify(bgAllAppsList)
-                .setFlags(BgDataModel.Callbacks.FLAG_PRIVATE_PROFILE_QUIET_MODE_ENABLED, false)
-            verify(bgAllAppsList, Mockito.never())
-                .setFlags(BgDataModel.Callbacks.FLAG_QUIET_MODE_ENABLED, true)
+            verify(bgAllAppsList).setFlags(FLAG_WORK_PROFILE_QUIET_MODE_ENABLED, true)
+            verify(bgAllAppsList).setFlags(FLAG_PRIVATE_PROFILE_QUIET_MODE_ENABLED, false)
+            verify(bgAllAppsList, Mockito.never()).setFlags(FLAG_QUIET_MODE_ENABLED, true)
         }
 
     @Test
@@ -266,12 +266,9 @@ class LoaderTaskTest {
                 .newLoaderTask(launcherBinder, userManagerState)
                 .runSyncOnBackgroundThread()
 
-            verify(bgAllAppsList)
-                .setFlags(BgDataModel.Callbacks.FLAG_WORK_PROFILE_QUIET_MODE_ENABLED, false)
-            verify(bgAllAppsList)
-                .setFlags(BgDataModel.Callbacks.FLAG_PRIVATE_PROFILE_QUIET_MODE_ENABLED, true)
-            verify(bgAllAppsList, Mockito.never())
-                .setFlags(BgDataModel.Callbacks.FLAG_QUIET_MODE_ENABLED, true)
+            verify(bgAllAppsList).setFlags(FLAG_WORK_PROFILE_QUIET_MODE_ENABLED, false)
+            verify(bgAllAppsList).setFlags(FLAG_PRIVATE_PROFILE_QUIET_MODE_ENABLED, true)
+            verify(bgAllAppsList, Mockito.never()).setFlags(FLAG_QUIET_MODE_ENABLED, true)
         }
 
     @Test

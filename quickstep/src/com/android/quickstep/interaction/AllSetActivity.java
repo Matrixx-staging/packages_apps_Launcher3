@@ -430,7 +430,7 @@ public class AllSetActivity extends Activity {
         @Override
         public boolean performAccessibilityAction(View host, int action, Bundle args) {
             if (action == AccessibilityAction.ACTION_CLICK.getId()) {
-                startHomeIntentSafely(AllSetActivity.this, null, TAG);
+                startHomeIntentSafely(AllSetActivity.this, null, TAG, getDisplayId());
                 finish();
                 return true;
             }

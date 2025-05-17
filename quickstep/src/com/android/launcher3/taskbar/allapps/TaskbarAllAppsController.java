@@ -17,9 +17,7 @@ package com.android.launcher3.taskbar.allapps;
 
 import static com.android.launcher3.model.data.AppInfo.EMPTY_ARRAY;
 
-import android.view.Gravity;
 import android.view.View;
-import android.window.DesktopExperienceFlags;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -33,7 +31,6 @@ import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.taskbar.TaskbarControllers;
 import com.android.launcher3.taskbar.overlay.TaskbarOverlayContext;
 import com.android.launcher3.util.PackageUserKey;
-import com.android.launcher3.views.BaseDragLayer.LayoutParams;
 
 import java.util.Collections;
 import java.util.List;
@@ -168,16 +165,6 @@ public final class TaskbarAllAppsController {
 
         mSlideInView = (TaskbarAllAppsSlideInView) mOverlayContext.getLayoutInflater().inflate(
                 R.layout.taskbar_all_apps_sheet, mOverlayContext.getDragLayer(), false);
-
-        if (!mOverlayContext.isPrimaryDisplay()
-                && DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue()) {
-            LayoutParams lp = (LayoutParams) mSlideInView.getLayoutParams();
-            lp.height = mOverlayContext.getResources().getDimensionPixelSize(
-                    R.dimen.all_apps_secondary_display_height);
-            lp.gravity = Gravity.BOTTOM;
-            mSlideInView.setLayoutParams(lp);
-        }
-
         // Ensures All Apps gets touch events in case it is not the top floating view. Floating
         // views above it may not be able to intercept the touch, so All Apps should try to.
         mOverlayContext.getDragLayer().addTouchController(mSlideInView);

@@ -63,7 +63,7 @@ public abstract class Launchable {
                         + mLauncher.getVisibleBounds(mObject));
 
                 if (launcherStopsAfterLaunch()) {
-                    mLauncher.executeAndWaitForLauncherStop(
+                    mLauncher.executeAndWaitForLauncherHidden(
                             () -> mLauncher.clickLauncherObject(mObject),
                             "clicking the launchable");
                 } else {
@@ -96,7 +96,7 @@ public abstract class Launchable {
                     + mObject.getVisibleCenter() + " in " + mLauncher.getVisibleBounds(
                     mObject));
 
-            mLauncher.executeAndWaitForLauncherStop(
+            mLauncher.executeAndWaitForLauncherHidden(
                     () -> mLauncher.clickLauncherObject(mObject),
                     "clicking the launchable");
 

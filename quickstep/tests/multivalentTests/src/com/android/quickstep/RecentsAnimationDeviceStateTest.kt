@@ -16,6 +16,7 @@ import com.android.launcher3.util.SandboxApplication
 import com.android.quickstep.util.GestureExclusionManager
 import com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_ALLOW_GESTURE_IGNORING_BAR_VISIBILITY
 import com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_DEVICE_DREAMING
+import com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_DISABLE_GESTURE_PIP_ANIMATING
 import com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_DISABLE_GESTURE_SPLIT_INVOCATION
 import com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_HOME_DISABLED
 import com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_MAGNIFICATION_OVERLAP
@@ -205,6 +206,18 @@ class RecentsAnimationDeviceStateTest {
         }
     }
 
+    @Test
+    fun startOverviewCommandForDisallowedSysUiState() {
+        val disallowedStates = GESTURE_DISABLING_SYSUI_STATES + SYSUI_STATE_OVERVIEW_DISABLED
+
+        allSysUiStates().forEach { state ->
+            underTest.setSysUIStateFlags(state)
+
+            val isAllowed = !disallowedStates.contains(state)
+            assertThat(underTest.canStartOverviewCommand()).isEqualTo(isAllowed)
+        }
+    }
+
     private fun allSysUiStates(): List<Long> {
         // SYSUI_STATES_* are binary flags
         return (0..SYSUI_STATES_COUNT).map { 1L shl it }
@@ -219,6 +232,7 @@ class RecentsAnimationDeviceStateTest {
                 SYSUI_STATE_MAGNIFICATION_OVERLAP,
                 SYSUI_STATE_DEVICE_DREAMING,
                 SYSUI_STATE_DISABLE_GESTURE_SPLIT_INVOCATION,
+                SYSUI_STATE_DISABLE_GESTURE_PIP_ANIMATING,
             )
         private const val SYSUI_STATES_COUNT = 33
         private const val DEFAULT_STATE = 0L

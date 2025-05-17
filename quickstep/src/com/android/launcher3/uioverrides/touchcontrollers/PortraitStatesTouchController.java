@@ -149,7 +149,7 @@ public class PortraitStatesTouchController extends AbstractStateChangeTouchContr
                     mLauncher,
                     mLauncher.getDeviceProfile(),
                     recentsView.getPagedOrientationHandler(),
-                    recentsView.getSizeStrategy());
+                    recentsView.getContainerInterface());
         } else {
             mCurrentAnimation = mLauncher.getStateManager()
                     .createAnimationToNewWorkspace(mToState, config);

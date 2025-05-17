@@ -49,6 +49,8 @@ public class TaskbarSharedState {
     // TaskbarManager#onSystemUiFlagsChanged
     @SystemUiStateFlags
     public long sysuiStateFlags;
+    // TaskBarStashController#init()
+    public boolean isTaskbarOnOverview;
 
     // TaskbarManager#disableNavBarElements()
     public int disableNavBarDisplayId;
@@ -90,6 +92,16 @@ public class TaskbarSharedState {
     /** Returns whether there are a saved bubbles. */
     public boolean hasSavedBubbles() {
         return bubbleInfoItems != null && !bubbleInfoItems.isEmpty();
+    }
+
+    /** Clears stored bubble bar data. */
+    public void clearBubbleData() {
+        bubbleInfoItems = null;
+        selectedBubbleKey = null;
+        bubbleBarLocation = null;
+        bubbleBarExpanded = false;
+        bubbleBarStashed = false;
+        suppressedBubbleInfoItems = null;
     }
 
     // LauncherTaskbarUIController#mTaskbarInAppDisplayProgressMultiProp

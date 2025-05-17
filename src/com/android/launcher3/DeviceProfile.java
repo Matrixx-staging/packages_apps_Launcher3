@@ -236,7 +236,7 @@ public class DeviceProfile {
     public int hotseatQsbWidth; // only used when isQsbInline
     public final int hotseatQsbHeight;
     public final int hotseatQsbVisualHeight;
-    private final int hotseatQsbShadowHeight;
+    public final int hotseatQsbShadowHeight;
     public int hotseatBorderSpace;
     private final int mMinHotseatIconSpacePx;
     private final int mMinHotseatQsbWidthPx;

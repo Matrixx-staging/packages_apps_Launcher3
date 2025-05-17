@@ -28,12 +28,11 @@ import com.android.launcher3.LauncherModel.CallbackTask;
 import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.model.BgDataModel.Callbacks;
 import com.android.launcher3.model.BgDataModel.FixedContainerItems;
-import com.android.launcher3.model.data.AppInfo;
+import com.android.launcher3.model.data.AppsListData;
 import com.android.launcher3.model.data.WorkspaceData;
 import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.LooperExecutor;
 import com.android.launcher3.util.LooperIdleLock;
-import com.android.launcher3.util.PackageUserKey;
 import com.android.launcher3.widget.model.WidgetsListBaseEntriesBuilder;
 import com.android.launcher3.widget.model.WidgetsListBaseEntry;
 
@@ -42,12 +41,9 @@ import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Executor;
-import java.util.stream.Collectors;
 
 /**
  * Binds the results of {@link com.android.launcher3.model.LoaderTask} to the Callbacks objects.
@@ -136,13 +132,9 @@ public class BaseLauncherBinder {
      */
     public void bindAllApps() {
         // shallow copy
-        AppInfo[] apps = mBgAllAppsList.copyData();
-        int flags = mBgAllAppsList.getFlags();
-        Map<PackageUserKey, Integer> packageUserKeytoUidMap = Arrays.stream(apps).collect(
-                Collectors.toMap(
-                        appInfo -> new PackageUserKey(appInfo.componentName.getPackageName(),
-                                appInfo.user), appInfo -> appInfo.uid, (a, b) -> a));
-        executeCallbacksTask(c -> c.bindAllApplications(apps, flags, packageUserKeytoUidMap),
+        AppsListData data = mBgAllAppsList.getImmutableData();
+        executeCallbacksTask(c -> c.bindAllApplications(
+                data.getApps(), data.getFlags(), data.getPackageUserKeyToUidMap()),
                 mUiExecutor);
     }
 

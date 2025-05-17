@@ -16,6 +16,7 @@
 
 package com.android.quickstep;
 
+import static com.android.quickstep.fallback.RecentsStateUtilsKt.hasEquivalentRecentsState;
 import static com.android.quickstep.fallback.RecentsStateUtilsKt.toLauncherState;
 
 import static org.junit.Assert.assertTrue;
@@ -110,7 +111,8 @@ public abstract class AbstractQuickStepTest
     @Override
     protected boolean isInState(Supplier<LauncherState> state) {
         if (!TestHelpers.isInLauncherProcess()) return true;
-        if (!RecentsWindowFlags.enableLauncherOverviewInWindow.isTrue()) {
+        if (!RecentsWindowFlags.enableLauncherOverviewInWindow.isTrue()
+                || !hasEquivalentRecentsState(state.get())) {
             return super.isInState(state);
         }
         return getFromRecentsWindow(recentsWindowManager ->
@@ -123,6 +125,7 @@ public abstract class AbstractQuickStepTest
             boolean forInitialization, String message, Supplier<LauncherState> state) {
         if (!TestHelpers.isInLauncherProcess()) return;
         if (!RecentsWindowFlags.enableLauncherOverviewInWindow.isTrue()
+                || !hasEquivalentRecentsState(state.get())
                 || (forInitialization
                 && RecentsWindowManager.getRecentsWindowTracker().getCreatedContext() == null)) {
             super.waitForState(forInitialization, message, state);

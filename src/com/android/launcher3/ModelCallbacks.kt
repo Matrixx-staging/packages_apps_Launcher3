@@ -8,7 +8,8 @@ import android.util.Pair
 import androidx.annotation.AnyThread
 import androidx.annotation.UiThread
 import androidx.annotation.VisibleForTesting
-import com.android.launcher3.LauncherConstants.TraceEvents
+import com.android.launcher3.LauncherConstants.TraceEvents.DISPLAY_WORKSPACE_TRACE_METHOD_NAME
+import com.android.launcher3.LauncherConstants.TraceEvents.SINGLE_TRACE_COOKIE
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
 import com.android.launcher3.WorkspaceLayoutManager.FIRST_SCREEN_ID
@@ -96,10 +97,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         workspaceItemCount: Int,
         isBindSync: Boolean,
     ) {
-        Trace.endAsyncSection(
-            TraceEvents.DISPLAY_WORKSPACE_TRACE_METHOD_NAME,
-            TraceEvents.DISPLAY_WORKSPACE_TRACE_COOKIE,
-        )
+        Trace.endAsyncSection(DISPLAY_WORKSPACE_TRACE_METHOD_NAME, SINGLE_TRACE_COOKIE)
         synchronouslyBoundPages = boundPages
         pagesToBindSynchronously = LIntSet()
         clearPendingBinds()

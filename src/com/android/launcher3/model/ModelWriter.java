@@ -91,15 +91,14 @@ public class ModelWriter {
         mUiExecutor = Executors.MAIN_EXECUTOR;
     }
 
-    private void updateItemInfoProps(
+    /** Updates the location properties of the item */
+    public void updateItemInfoProps(
             ItemInfo item, int container, int screenId, int cellX, int cellY) {
         CellPos modelPos = mCellPosMapper.mapPresenterToModel(cellX, cellY, screenId, container);
-
         item.container = container;
         item.cellX = modelPos.cellX;
         item.cellY = modelPos.cellY;
         item.screenId = modelPos.screenId;
-
     }
 
     /**
@@ -240,23 +239,33 @@ public class ModelWriter {
     public void addItemToDatabase(final ItemInfo item,
             int container, int screenId, int cellX, int cellY) {
         updateItemInfoProps(item, container, screenId, cellX, cellY);
+        addItemsToDatabase(Collections.singletonList(item));
+    }
 
-        item.id = mModel.getModelDbController().generateNewItemId();
-        notifyOtherCallbacks(c -> c.bindItemsAdded(Collections.singletonList(item)));
+    /**
+     * Add provided items to the database. Also assigns an ID to each item.
+     */
+    public void addItemsToDatabase(final List<ItemInfo> items) {
+        items.forEach(info -> info.id = mModel.getModelDbController().generateNewItemId());
+        notifyOtherCallbacks(c -> c.bindItemsAdded(items));
 
         ModelVerifier verifier = new ModelVerifier();
         final StackTraceElement[] stackTrace = new Throwable().getStackTrace();
         newModelTask(() -> {
             // Write the item on background thread, as some properties might have been updated in
             // the background.
-            final ContentWriter writer = new ContentWriter(mContext);
-            item.onAddToDatabase(writer);
-            writer.put(Favorites._ID, item.id);
+            for (ItemInfo item: items) {
+                final ContentWriter writer = new ContentWriter(mContext);
+                item.onAddToDatabase(writer);
+                writer.put(Favorites._ID, item.id);
+                mModel.getModelDbController().insert(writer.getValues(mContext));
+            }
 
-            mModel.getModelDbController().insert(writer.getValues(mContext));
             synchronized (mBgDataModel) {
-                checkItemInfoLocked(item.id, item, stackTrace);
-                mBgDataModel.addItem(mContext, item, mOwner);
+                for (ItemInfo item: items) {
+                    checkItemInfoLocked(item.id, item, stackTrace);
+                }
+                mBgDataModel.addItems(mContext, items, mOwner);
                 verifier.verifyModel();
             }
         }).executeOnModelThread();

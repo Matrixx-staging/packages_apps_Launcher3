@@ -44,8 +44,10 @@ import org.junit.rules.ExternalResource
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
-import org.mockito.ArgumentMatchers
-import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.spy
 import org.mockito.kotlin.whenever
 
 /**
@@ -64,7 +66,7 @@ class SandboxApplication private constructor(private val base: SandboxApplicatio
 
     private val mockResolver = MockContentResolver()
     private val spiedServices = ArrayMap<String, Any>()
-    private val packageManager = Mockito.spy(baseContext.packageManager)
+    private val packageManager = spy(baseContext.packageManager)
     private val dbDir = File(cacheDir, UUID.randomUUID().toString())
 
     private var lockModelThreadOnDestroy = false
@@ -146,7 +148,7 @@ class SandboxApplication private constructor(private val base: SandboxApplicatio
         val service = spiedServices[name]
         if (service != null) return service as T
 
-        val result = Mockito.spy(getSystemService(tClass))
+        val result = spy(getSystemService(tClass))
         spiedServices[name] = result
         return result
     }
@@ -157,9 +159,9 @@ class SandboxApplication private constructor(private val base: SandboxApplicatio
         providerInfo.applicationInfo = applicationInfo
         provider.attachInfo(this, providerInfo)
         mockResolver.addProvider(providerInfo.authority, provider)
-        Mockito.doReturn(providerInfo)
+        doReturn(providerInfo)
             .whenever(packageManager)
-            .resolveContentProvider(ArgumentMatchers.eq(authority), ArgumentMatchers.anyInt())
+            .resolveContentProvider(eq(authority), any<Int>())
     }
 
     /**

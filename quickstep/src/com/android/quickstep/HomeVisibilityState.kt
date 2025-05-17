@@ -46,13 +46,11 @@ class HomeVisibilityState {
             transitions?.setHomeTransitionListener(
                 object : Stub() {
                     override fun onHomeVisibilityChanged(isVisible: Boolean) {
-                        Utilities.postAsyncCallback(
-                            Executors.MAIN_EXECUTOR.handler,
-                            {
-                                isHomeVisible = isVisible
-                                listeners.forEach { it.onHomeVisibilityChanged(isVisible) }
-                            },
-                        )
+                        Utilities.postAsyncCallback(Executors.MAIN_EXECUTOR.handler) {
+                            isHomeVisible = isVisible
+                            val copiedListeners = listeners.toSet()
+                            copiedListeners.forEach { it.onHomeVisibilityChanged(isVisible) }
+                        }
                     }
 
                     override fun onDisplayInsetsChanged(insetsState: InsetsState) {

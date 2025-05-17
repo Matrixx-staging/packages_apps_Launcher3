@@ -31,7 +31,7 @@ import com.android.launcher3.Flags.FLAG_ENABLE_ALT_TAB_KQS_ON_CONNECTED_DISPLAYS
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.taskbar.TaskbarControllerTestUtil.runOnMainSync
-import com.android.launcher3.taskbar.rules.DisplayControllerModule
+import com.android.launcher3.taskbar.rules.AllTaskbarSandboxModules
 import com.android.launcher3.taskbar.rules.MockedRecentsModelHelper
 import com.android.launcher3.taskbar.rules.MockedRecentsModelTestRule
 import com.android.launcher3.taskbar.rules.SandboxParams
@@ -39,8 +39,6 @@ import com.android.launcher3.taskbar.rules.TaskbarSandboxComponent
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.InjectController
 import com.android.launcher3.taskbar.rules.TaskbarWindowSandboxContext
-import com.android.launcher3.util.AllModulesForTest
-import com.android.launcher3.util.FakePrefsModule
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.LauncherMultivalentJUnit.EmulatedDevices
 import com.android.launcher3.util.TestUtil.getOnUiThread
@@ -60,16 +58,15 @@ import com.android.wm.shell.shared.split.SplitScreenConstants
 import com.google.common.truth.Truth.assertThat
 import dagger.BindsInstance
 import dagger.Component
-import org.junit.Ignore;
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.anyInt
+import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.eq
-import org.mockito.kotlin.mock
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -81,9 +78,8 @@ class KeyboardQuickSwitchControllerTest {
     private var systemUiProxySpy: SystemUiProxy? = null
     private var desktopTaskListener: IDesktopTaskListener? = null
     private val mockRecentsModelHelper: MockedRecentsModelHelper = MockedRecentsModelHelper()
-    private val desktopVisibilityController: DesktopVisibilityController = mock()
-    private val taskIdCaptor = ArgumentCaptor.forClass(Int::class.java)
-    private val transitionCaptor = ArgumentCaptor.forClass(RemoteTransition::class.java)
+    private val taskIdCaptor = argumentCaptor<Int>()
+    private val transitionCaptor = argumentCaptor<RemoteTransition>()
 
     @get:Rule(order = 0) val setFlagsRule = SetFlagsRule()
     @get:Rule(order = 1)
@@ -100,8 +96,7 @@ class KeyboardQuickSwitchControllerTest {
                 },
                 builderBase =
                     DaggerKeyboardQuickSwitchControllerComponent.builder()
-                        .bindRecentsModel(mockRecentsModelHelper.mockRecentsModel)
-                        .bindDesktopVisibilityController(desktopVisibilityController),
+                        .bindRecentsModel(mockRecentsModelHelper.mockRecentsModel),
             )
         )
 
@@ -279,15 +274,15 @@ class KeyboardQuickSwitchControllerTest {
 
         triggerAltTabAndLaunchFocusedTask()
 
-        val deskIdCaptor = ArgumentCaptor.forClass(Int::class.java)
+        val deskIdCaptor = argumentCaptor<Int>()
         verify(systemUiProxySpy)?.activateDesk(deskIdCaptor.capture(), transitionCaptor.capture())
-        assertThat(deskIdCaptor.value).isEqualTo(deskId)
-        assertThat(transitionCaptor.value.remoteTransition)
+        assertThat(deskIdCaptor.firstValue).isEqualTo(deskId)
+        assertThat(transitionCaptor.firstValue.remoteTransition)
             .isInstanceOf(SlideInRemoteTransition::class.java)
 
         verify(systemUiProxySpy)
             ?.showDesktopApp(taskIdCaptor.capture(), eq(null), eq(DesktopTaskToFrontReason.ALT_TAB))
-        assertThat(taskIdCaptor.value).isEqualTo(PREVIOUS_TASK_ID)
+        assertThat(taskIdCaptor.firstValue).isEqualTo(PREVIOUS_TASK_ID)
     }
 
     @Test
@@ -304,8 +299,8 @@ class KeyboardQuickSwitchControllerTest {
                 eq(DesktopModeTransitionSource.KEYBOARD_SHORTCUT),
                 transitionCaptor.capture(),
             )
-        assertThat(taskIdCaptor.value).isEqualTo(PREVIOUS_TASK_ID)
-        assertThat(transitionCaptor.value.remoteTransition)
+        assertThat(taskIdCaptor.firstValue).isEqualTo(PREVIOUS_TASK_ID)
+        assertThat(transitionCaptor.firstValue.remoteTransition)
             .isInstanceOf(SlideInRemoteTransition::class.java)
     }
 
@@ -328,7 +323,8 @@ class KeyboardQuickSwitchControllerTest {
         DesktopTask(deskId, DEFAULT_DISPLAY, taskIds.map { createTask(it) })
 
     private fun enableDesktopMode() {
-        whenever(desktopVisibilityController.isInDesktopMode(anyInt())).thenReturn(true)
+        whenever(DesktopVisibilityController.INSTANCE[context].isInDesktopMode(any()))
+            .thenReturn(true)
     }
 
     /*
@@ -374,19 +370,12 @@ class KeyboardQuickSwitchControllerTest {
 
 /** KeyboardQuickSwitchControllerComponent used to bind the RecentsModel. */
 @LauncherAppSingleton
-@Component(
-    modules = [AllModulesForTest::class, FakePrefsModule::class, DisplayControllerModule::class]
-)
+@Component(modules = [AllTaskbarSandboxModules::class])
 interface KeyboardQuickSwitchControllerComponent : TaskbarSandboxComponent {
 
     @Component.Builder
     interface Builder : TaskbarSandboxComponent.Builder {
         @BindsInstance fun bindRecentsModel(model: RecentsModel): Builder
-
-        @BindsInstance
-        fun bindDesktopVisibilityController(
-            desktopVisibilityController: DesktopVisibilityController
-        ): Builder
 
         override fun build(): KeyboardQuickSwitchControllerComponent
     }

@@ -239,10 +239,17 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
         return insets == null ? super.getWindowInsets() : insets;
     }
 
+    @Nullable
     private RecentsViewContainer getRecentsViewContainer() {
         // TODO (b/400647896): support per-display container in e2e tests
-        return OverviewComponentObserver.INSTANCE.get(mContext)
-                .getContainerInterface(DEFAULT_DISPLAY).getCreatedContainer();
+        BaseContainerInterface<?, ?> containerInterface = OverviewComponentObserver.INSTANCE.get(
+                        mContext)
+                .getContainerInterface(DEFAULT_DISPLAY);
+        if (containerInterface != null) {
+            return containerInterface.getCreatedContainer();
+        } else {
+            return null;
+        }
     }
 
     @Override

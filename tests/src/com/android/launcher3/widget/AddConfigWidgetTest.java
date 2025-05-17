@@ -45,7 +45,6 @@ import com.android.launcher3.util.rule.ShellCommandRule;
 import com.android.launcher3.util.ui.PortraitLandscapeRunner.PortraitLandscape;
 import com.android.launcher3.util.ui.TestViewHelpers;
 import com.android.launcher3.util.workspace.FavoriteItemsTransaction;
-import com.android.launcher3.views.OptionsPopupView;
 import com.android.launcher3.widget.picker.WidgetsFullSheet;
 import com.android.launcher3.widget.picker.WidgetsListAdapter;
 import com.android.launcher3.widget.picker.WidgetsRecyclerView;
@@ -97,7 +96,7 @@ public class AddConfigWidgetTest extends BaseLauncherActivityTest<Launcher> {
 
         // Add widget to homescreen
         WidgetConfigStartupMonitor monitor = new WidgetConfigStartupMonitor();
-        getLauncherActivity().executeOnLauncher(OptionsPopupView::openWidgets);
+        getLauncherActivity().executeOnLauncher(Launcher::openWidgetPicker);
         uiDevice.waitForIdle();
 
         // Select the widget header

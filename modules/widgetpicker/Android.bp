@@ -83,6 +83,20 @@ android_library {
 }
 
 android_library {
+    name: "widget_picker_ui_data_types",
+    sdk_version: "current",
+    min_sdk_version: min_launcher3_sdk_version,
+    srcs: [
+        "src/com/android/launcher3/widgetpicker/ui/model/DisplayableWidgetApp.kt",
+        "src/com/android/launcher3/widgetpicker/ui/model/WidgetSizeGroup.kt",
+    ],
+    static_libs: [
+        "androidx.compose.runtime_runtime",
+        "widget_picker_shared_data_types",
+    ],
+}
+
+android_library {
     name: "widget_picker_ui_components",
     sdk_version: "current",
     min_sdk_version: min_launcher3_sdk_version,
@@ -90,8 +104,20 @@ android_library {
         "src/com/android/launcher3/widgetpicker/ui/components/ScrollableFloatingToolbar.kt",
         "src/com/android/launcher3/widgetpicker/ui/components/LeadingIconToolbarTab.kt",
         "src/com/android/launcher3/widgetpicker/ui/components/TitledBottomSheet.kt",
+        "src/com/android/launcher3/widgetpicker/ui/components/TwoPaneLayout.kt",
+        "src/com/android/launcher3/widgetpicker/ui/components/SinglePaneLayout.kt",
+        "src/com/android/launcher3/widgetpicker/ui/components/WidgetsSearchBar.kt",
+        "src/com/android/launcher3/widgetpicker/ui/components/WidgetAppIcon.kt",
+        "src/com/android/launcher3/widgetpicker/ui/components/Strings.kt",
+        "src/com/android/launcher3/widgetpicker/ui/components/WidgetDetails.kt",
+        "src/com/android/launcher3/widgetpicker/ui/components/WidgetPreview.kt",
+        "src/com/android/launcher3/widgetpicker/ui/components/WidgetsGrid.kt",
+        "src/com/android/launcher3/widgetpicker/ui/components/ExpandCollapseIndicator.kt",
+        "src/com/android/launcher3/widgetpicker/ui/components/WidgetAppsListHeader.kt",
+        "src/com/android/launcher3/widgetpicker/ui/components/WidgetAppsList.kt",
     ],
     static_libs: [
+        "widget_picker_ui_data_types",
         "androidx.compose.foundation_foundation",
         "androidx.compose.foundation_foundation-layout",
         "androidx.compose.runtime_runtime",
@@ -102,6 +128,11 @@ android_library {
         "androidx.compose.material_material-icons-extended",
         "androidx.activity_activity-compose",
         "widget_picker_window_size_class",
+        "kotlinx-coroutines-android",
+        "kotlinx-coroutines-core",
+    ],
+    resource_dirs: [
+        "res",
     ],
 }
 

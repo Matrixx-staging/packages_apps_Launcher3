@@ -61,6 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -183,8 +184,27 @@ public class RecentTasksList {
      * @param callback     The callback to receive the list of recent tasks
      * @return The change id of the current task list
      */
-    public synchronized int getTasks(boolean loadKeysOnly,
-            @Nullable Consumer<List<GroupTask>> callback, Predicate<GroupTask> filter) {
+    public synchronized int getTasks(
+            boolean loadKeysOnly,
+            @Nullable Consumer<List<GroupTask>> callback,
+            Predicate<GroupTask> filter) {
+        return getTasks(
+                loadKeysOnly,
+                callback == null ? null : (tasks, requestId) -> callback.accept(tasks),
+                filter);
+    }
+
+    /**
+     * Asynchronously fetches the list of recent tasks, reusing cached list if available.
+     *
+     * @param loadKeysOnly Whether to load other associated task data, or just the key
+     * @param callback     The callback to receive the list of recent tasks
+     * @return The change id of the current task list
+     */
+    public synchronized int getTasks(
+            boolean loadKeysOnly,
+            @Nullable BiConsumer<List<GroupTask>, Integer> callback,
+            Predicate<GroupTask> filter) {
         final int requestLoadId = mChangeId;
         if (mResultsUi.isValidForRequest(requestLoadId, loadKeysOnly)) {
             // The list is up to date, send the callback on the next frame,
@@ -197,7 +217,7 @@ public class RecentTasksList {
                         .collect(Collectors.toCollection(ArrayList<GroupTask>::new));
 
                 mMainThreadExecutor.post(() -> {
-                    callback.accept(result);
+                    callback.accept(result, requestLoadId);
                 });
             }
 
@@ -220,7 +240,7 @@ public class RecentTasksList {
                             .map(GroupTask::copy)
                             .collect(Collectors.toCollection(ArrayList<GroupTask>::new));
 
-                    callback.accept(result);
+                    callback.accept(result, requestLoadId);
                 }
             });
         });

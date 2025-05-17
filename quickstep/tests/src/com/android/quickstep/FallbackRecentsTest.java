@@ -23,6 +23,7 @@ import static androidx.test.InstrumentationRegistry.getInstrumentation;
 import static com.android.launcher3.tapl.LauncherInstrumentation.WAIT_TIME_MS;
 import static com.android.launcher3.tapl.TestHelpers.getHomeIntentInPackage;
 import static com.android.launcher3.tapl.TestHelpers.getLauncherInMyProcess;
+import static com.android.launcher3.ui.TaplTestsLauncher3Test.getAppPackageName;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.rule.ShellCommandRule.disableHeadsUpNotification;
 import static com.android.launcher3.util.rule.ShellCommandRule.getLauncherCommand;
@@ -30,7 +31,6 @@ import static com.android.launcher3.util.ui.AbstractLauncherUiTest.DEFAULT_BROAD
 import static com.android.launcher3.util.ui.AbstractLauncherUiTest.resolveSystemApp;
 import static com.android.launcher3.util.ui.AbstractLauncherUiTest.startAppFast;
 import static com.android.launcher3.util.ui.AbstractLauncherUiTest.startTestActivity;
-import static com.android.launcher3.ui.TaplTestsLauncher3Test.getAppPackageName;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -58,9 +58,9 @@ import com.android.launcher3.testcomponent.TestCommandReceiver;
 import com.android.launcher3.util.TestUtil;
 import com.android.launcher3.util.Wait;
 import com.android.launcher3.util.rule.FailureWatcher;
-import com.android.launcher3.util.rule.MutualExclusionRule;
 import com.android.launcher3.util.rule.SamplerRule;
 import com.android.launcher3.util.rule.ScreenRecordRule;
+import com.android.launcher3.util.rule.SkipAfterTimeOutRule;
 import com.android.launcher3.util.rule.TestIsolationRule;
 import com.android.launcher3.util.rule.TestStabilityRule;
 import com.android.launcher3.util.rule.ViewCaptureRule;
@@ -113,7 +113,7 @@ public class FallbackRecentsTest {
     public ExtendedLongPressTimeoutRule mLongPressTimeoutRule = new ExtendedLongPressTimeoutRule();
 
     @Rule(order = -1000) // This should be the outermost rule
-    public MutualExclusionRule mMutualExclusionRule = new MutualExclusionRule();
+    public SkipAfterTimeOutRule mSkipAfterTimeOutRule = new SkipAfterTimeOutRule();
 
     public FallbackRecentsTest() throws RemoteException {
         Instrumentation instrumentation = getInstrumentation();

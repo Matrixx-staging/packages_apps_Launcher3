@@ -189,8 +189,12 @@ public class GridCustomizationsProxy implements ProxyProvider {
 
                     if (availableShapes.length == 0) {
                         // This is unexpected as we should always provide at least 1 default shape.
-                        Log.e(TAG, "No icon shape options are available, returning null.");
+                        Log.e(TAG, "query: No icon shape options are available"
+                                + ", returning null.");
                         return null;
+                    } else {
+                        Log.d(TAG, "query: Found " + availableShapes.length
+                                + " available shape options");
                     }
 
                     // Assign first available shape as default if current shape doesn't exist.
@@ -209,7 +213,8 @@ public class GridCustomizationsProxy implements ProxyProvider {
                     }
                     return cursor;
                 } else  {
-                    Log.w(TAG, "Shape options queried outside of flag, returning null.");
+                    Log.w(TAG, "query: Shape options queried outside of flag"
+                            + ", returning null.");
                     return null;
                 }
             }
@@ -218,6 +223,13 @@ public class GridCustomizationsProxy implements ProxyProvider {
                         KEY_NAME, KEY_GRID_TITLE, KEY_ROWS, KEY_COLS, KEY_PREVIEW_COUNT,
                         KEY_IS_DEFAULT, KEY_GRID_ICON_ID});
                 List<GridOption> gridOptionList = mIdp.parseAllGridOptions(mContext);
+                if (gridOptionList.isEmpty()) {
+                    Log.e(TAG, "query: No grid options are available, returning null.");
+                    return null;
+                } else {
+                    Log.d(TAG, "query: Found " + gridOptionList.size()
+                            + " available grid options.");
+                }
                 if (com.android.launcher3.Flags.oneGridSpecs()) {
                     gridOptionList.sort(Comparator
                             .comparingInt((GridOption option) -> option.numColumns)
@@ -240,10 +252,12 @@ public class GridCustomizationsProxy implements ProxyProvider {
             case ICON_THEMED: {
                 MatrixCursor cursor = new MatrixCursor(new String[]{BOOLEAN_VALUE});
                 cursor.newRow().add(BOOLEAN_VALUE, mThemeManager.isMonoThemeEnabled() ? 1 : 0);
+                Log.d(TAG, "query: path=" + path
+                        + ", isMonoThemeEnabled=" + mThemeManager.isMonoThemeEnabled());
                 return cursor;
             }
             default: {
-                Log.d(TAG, "Invalid Query Path, returning null.");
+                Log.d(TAG, "query: path=" + path + " not found, returning null.");
                 return null;
             }
         }
@@ -403,6 +417,9 @@ public class GridCustomizationsProxy implements ProxyProvider {
             this.lifeCycleTracker = lifeCycleTracker;
             this.renderer = renderer;
             lifeCycleTracker.add(() -> destroyed = true);
+            // Preview grid change currently affects actual widget size. Revert grid changes
+            // when preview is destroyed to make sure Launcher widgets display correctly.
+            lifeCycleTracker.add(() -> renderer.updateGrid(null));
         }
 
         @Override
@@ -426,9 +443,7 @@ public class GridCustomizationsProxy implements ProxyProvider {
                     break;
                 case MESSAGE_ID_UPDATE_GRID:
                     String gridName = message.getData().getString(KEY_GRID_NAME);
-                    if (!TextUtils.isEmpty(gridName)) {
-                        renderer.updateGrid(gridName);
-                    }
+                    renderer.updateGrid(gridName);
                     break;
                 case MESSAGE_ID_UPDATE_COLOR:
                     if (Flags.newCustomizationPickerUi()) {

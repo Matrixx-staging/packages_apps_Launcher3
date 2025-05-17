@@ -18,7 +18,8 @@ package com.android.launcher3.util;
 import static android.view.Display.DEFAULT_DISPLAY;
 import static android.view.WindowManager.LayoutParams.TYPE_APPLICATION;
 
-import static com.android.launcher3.Flags.enableOverviewOnConnectedDisplays;
+import static com.android.launcher3.Flags.enableScalabilityForDesktopExperience;
+import static com.android.launcher3.InvariantDeviceProfile.TYPE_DESKTOP;
 import static com.android.launcher3.InvariantDeviceProfile.TYPE_MULTI_DISPLAY;
 import static com.android.launcher3.InvariantDeviceProfile.TYPE_PHONE;
 import static com.android.launcher3.InvariantDeviceProfile.TYPE_TABLET;
@@ -54,6 +55,7 @@ import androidx.annotation.VisibleForTesting;
 import com.android.launcher3.InvariantDeviceProfile.DeviceType;
 import com.android.launcher3.LauncherPrefChangeListener;
 import com.android.launcher3.LauncherPrefs;
+import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.dagger.LauncherAppComponent;
@@ -163,7 +165,7 @@ public class DisplayController implements DesktopVisibilityListener {
         FileLog.i(TAG, "(CTOR) perDisplayBounds: "
                 + defaultPerDisplayInfo.mInfo.mPerDisplayBounds);
 
-        if (enableOverviewOnConnectedDisplays()) {
+        if (mWMProxy.enableOverviewOnConnectedDisplays()) {
             final DisplayManager.DisplayListener displayListener =
                     new DisplayManager.DisplayListener() {
                         @Override
@@ -267,7 +269,7 @@ public class DisplayController implements DesktopVisibilityListener {
     // if it is not associated with a display.
     private static Info getInfo(Context context) {
         DisplayController controller = INSTANCE.get(context);
-        if (enableOverviewOnConnectedDisplays()) {
+        if (controller.mWMProxy.enableOverviewOnConnectedDisplays()) {
             Display display = controller.mWMProxy.getDisplay(context);
             int displayId = display.getDisplayId();
             Info info = controller.getInfoForDisplay(displayId);
@@ -362,7 +364,7 @@ public class DisplayController implements DesktopVisibilityListener {
     }
 
     public @Nullable Info getInfoForDisplay(int displayId) {
-        if (enableOverviewOnConnectedDisplays()) {
+        if (mWMProxy.enableOverviewOnConnectedDisplays()) {
             PerDisplayInfo perDisplayInfo = mPerDisplayInfo.get(displayId);
             if (perDisplayInfo != null) {
                 return perDisplayInfo.mInfo;
@@ -452,7 +454,8 @@ public class DisplayController implements DesktopVisibilityListener {
         }
     }
 
-    private PerDisplayInfo getOrCreatePerDisplayInfo(Display display) {
+    @VisibleForTesting
+    protected PerDisplayInfo getOrCreatePerDisplayInfo(Display display) {
         int displayId = display.getDisplayId();
         PerDisplayInfo perDisplayInfo = mPerDisplayInfo.get(displayId);
         if (perDisplayInfo != null) {
@@ -475,7 +478,8 @@ public class DisplayController implements DesktopVisibilityListener {
      * Clean up resources for the given display id.
      * @param displayId The display id
      */
-    void removePerDisplayInfo(int displayId) {
+    @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+    protected void removePerDisplayInfo(int displayId) {
         PerDisplayInfo info = mPerDisplayInfo.get(displayId);
         if (info == null) return;
         info.cleanup();
@@ -508,6 +512,7 @@ public class DisplayController implements DesktopVisibilityListener {
 
         private final boolean mShowLockedTaskbarOnHome;
         private final boolean mIsHomeVisible;
+        private final boolean mIsDesktopFormFactor;
 
         private final boolean mShowDesktopTaskbarForFreeformDisplay;
 
@@ -574,6 +579,8 @@ public class DisplayController implements DesktopVisibilityListener {
             mShowDesktopTaskbarForFreeformDisplay = wmProxy.showDesktopTaskbarForFreeformDisplay(
                     displayInfoContext);
             mIsHomeVisible = wmProxy.isHomeVisible();
+            mIsDesktopFormFactor = enableScalabilityForDesktopExperience()
+                    && displayInfoContext.getResources().getBoolean(R.bool.desktop_form_factor);
         }
 
         /**
@@ -658,6 +665,10 @@ public class DisplayController implements DesktopVisibilityListener {
         }
 
         public @DeviceType int getDeviceType() {
+            if (mIsDesktopFormFactor) {
+                return TYPE_DESKTOP;
+            }
+
             int flagPhone = 1 << 0;
             int flagTablet = 1 << 1;
 
@@ -760,7 +771,8 @@ public class DisplayController implements DesktopVisibilityListener {
         }
     }
 
-    private class PerDisplayInfo implements ComponentCallbacks {
+    @VisibleForTesting
+    protected class PerDisplayInfo implements ComponentCallbacks {
         final int mDisplayId;
         final CopyOnWriteArrayList<DisplayInfoChangeListener> mListeners =
                 new CopyOnWriteArrayList<>();

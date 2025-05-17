@@ -17,15 +17,15 @@
 package com.android.launcher3.taskbar
 
 import android.app.PendingIntent
+import com.android.app.displaylib.DisplayDecorationListener
 import com.android.launcher3.anim.AnimatorPlaybackController
 import com.android.launcher3.statemanager.StatefulActivity
-import com.android.quickstep.SystemDecorationChangeObserver
 import com.android.quickstep.views.RecentsViewContainer
 import com.android.systemui.shared.statusbar.phone.BarTransitions
 import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags
 import java.io.PrintWriter
 
-interface TaskbarManager : SystemDecorationChangeObserver.DisplayDecorationListener {
+interface TaskbarManager : DisplayDecorationListener {
 
     fun createLauncherStartFromSuwAnim(duration: Int): AnimatorPlaybackController?
 

@@ -34,6 +34,7 @@ import com.android.launcher3.util.WindowBounds;
 import com.android.launcher3.util.window.CachedDisplayInfo;
 import com.android.launcher3.util.window.WindowManagerProxy;
 import com.android.quickstep.SystemUiProxy;
+import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
 
 import java.util.List;
@@ -149,5 +150,10 @@ public class SystemWindowManagerProxy extends WindowManagerProxy {
     protected DisplayCutout rotateCutout(DisplayCutout original, int startWidth, int startHeight,
             int fromRotation, int toRotation) {
         return original.getRotated(startWidth, startHeight, fromRotation, toRotation);
+    }
+
+    @Override
+    public boolean enableOverviewOnConnectedDisplays() {
+        return RecentsWindowFlags.enableOverviewOnConnectedDisplays();
     }
 }

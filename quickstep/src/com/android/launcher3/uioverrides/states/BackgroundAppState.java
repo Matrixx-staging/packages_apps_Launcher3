@@ -54,7 +54,7 @@ public class BackgroundAppState extends OverviewState {
                 launcher,
                 launcher.getDeviceProfile(),
                 recentsView.getPagedOrientationHandler(),
-                recentsView.getSizeStrategy());
+                recentsView.getContainerInterface());
         AllAppsTransitionController controller = launcher.getAllAppsController();
         float scrollRange = Math.max(controller.getShiftRange(), 1);
         float progressDelta = (transitionLength / scrollRange);

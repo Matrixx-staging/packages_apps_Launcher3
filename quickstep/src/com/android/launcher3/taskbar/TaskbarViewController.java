@@ -1355,6 +1355,10 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
         return layoutTransition;
     }
 
+    public boolean isTaskbarInMinimalState() {
+        return mTaskbarView.isTaskbarInMinimalState();
+    }
+
     /**
      * To be called when the given Task is updated, so that we can tell TaskbarView to also update.
      * @param task The Task whose e.g. icon changed.

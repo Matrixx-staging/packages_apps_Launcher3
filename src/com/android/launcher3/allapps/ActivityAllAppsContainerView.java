@@ -323,8 +323,8 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
             int layerBg = getContext().getColor(R.color.blur_shade_panel_bg);
             mBottomSheetBackgroundColorOverBlur = ColorUtils.compositeColors(layerFg, layerBg);
             mBottomSheetBackgroundColorBlurFallback = getContext().getColor(
-                    Utilities.isDarkTheme(getContext()) ? android.R.color.system_accent1_800
-                            : android.R.color.system_accent2_100);
+                    Utilities.isDarkTheme(getContext()) ? android.R.color.system_accent2_800
+                            : android.R.color.system_accent2_200);
         }
 
         mBottomSheetBackgroundColorLegacy = getContext().getColor(R.color.materialColorSurfaceDim);
@@ -1486,8 +1486,9 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
             mTmpPath.addRoundRect(mTmpRectF, mBottomSheetCornerRadii, Direction.CW);
             canvas.drawPath(mTmpPath, mHeaderPaint);
 
-            // When the background panel is blurred, we don't add header protection.
-            if (isBackgroundBlurEnabled()) {
+            // When the background panel is blurred (or fallback), we don't add header protection.
+            // TODO (b/414671116): Apply header protection whenever search bar is focused.
+            if (Flags.allAppsBlur()) {
                 return;
             }
         }

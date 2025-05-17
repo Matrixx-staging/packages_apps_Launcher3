@@ -17,9 +17,11 @@
 package com.android.launcher3.taskbar
 
 import android.animation.AnimatorTestRule
+import android.platform.test.annotations.DisableFlags
 import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
+import com.android.launcher3.Flags
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.LauncherPrefs.Companion.TASKBAR_PINNING
 import com.android.launcher3.LauncherPrefs.Companion.TASKBAR_PINNING_IN_DESKTOP_MODE
@@ -53,6 +55,7 @@ import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.InjectController
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.UserSetupMode
 import com.android.launcher3.taskbar.rules.TaskbarWindowSandboxContext
+import com.android.launcher3.taskbar.rules.displayControllerSpy
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.LauncherMultivalentJUnit.EmulatedDevices
 import com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_BUBBLES_EXPANDED
@@ -64,6 +67,8 @@ import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.spy
 import org.mockito.kotlin.whenever
 
 @RunWith(LauncherMultivalentJUnit::class)
@@ -125,7 +130,27 @@ class TaskbarStashControllerTest {
     }
 
     @Test
-    fun testRecreateAsTransient_timeoutStarted() {
+    @DisableFlags(Flags.FLAG_ENABLE_OVERVIEW_ON_CONNECTED_DISPLAYS)
+    fun testRecreateAsTransient_withoutOverviewOnConnectedDisplays_timeoutStarted() {
+        context.displayControllerSpy?.setupTaskbarPinningPrefListener(context.displayId)
+
+        testRecreateAsTransient_timeoutStarted()
+    }
+
+    @Test
+    @EnableFlags(Flags.FLAG_ENABLE_OVERVIEW_ON_CONNECTED_DISPLAYS)
+    fun testRecreateAsTransient_withOverviewOnConnectedDisplay_timeoutStarted() {
+        context.displayControllerSpy?.let { controller ->
+            controller.setupTaskbarPinningPrefListener(context.displayId)
+            controller.infoModifierForDisplay = {
+                spy(it) { on { it?.isTransientTaskbar } doReturn true }
+            }
+        }
+
+        testRecreateAsTransient_timeoutStarted()
+    }
+
+    private fun testRecreateAsTransient_timeoutStarted() {
         var isPinned by TASKBAR_PINNING.asProperty(context)
         isPinned = true
         activityContext.controllers.sharedState?.taskbarWasPinned = true
@@ -410,6 +435,23 @@ class TaskbarStashControllerTest {
         whenever(desktopVisibilityController.isInDesktopMode(context.displayId)).thenReturn(true)
         stashController.updateTaskbarTimeout(false)
         assertThat(stashController.timeoutAlarm.alarmPending()).isFalse()
+    }
+
+    @Test
+    @TaskbarMode(TRANSIENT)
+    fun shouldAllowTaskbarToAutoStash_transientTaskbar() {
+        assertThat(stashController.shouldAllowTaskbarToAutoStash()).isTrue()
+    }
+
+    @Test
+    @TaskbarMode(PINNED)
+    fun toggleTaskbarStash_autoStashedDesktopModeTaskbar() {
+        LauncherPrefs.get(context).put(TASKBAR_PINNING_IN_DESKTOP_MODE, false)
+        whenever(desktopVisibilityController.isInDesktopMode(context.displayId)).thenReturn(true)
+
+        getInstrumentation().runOnMainSync { stashController.toggleTaskbarStash() }
+
+        assertThat(stashController.isStashed).isTrue()
     }
 
     @Test

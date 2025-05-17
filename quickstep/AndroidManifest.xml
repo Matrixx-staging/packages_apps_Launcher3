@@ -141,6 +141,7 @@
             android:excludeFromRecents="true"
             android:permission="android.permission.REBOOT"
             android:theme="@style/AllSetTheme"
+            android:enableOnBackInvokedCallback="false"
             android:label="@string/allset_title"
             android:exported="true">
             <intent-filter>

@@ -66,7 +66,7 @@
     <string name="no_widgets_available" msgid="4337693382501046170">"Հասանելի վիջեթներ և դյուրանցումներ չկան"</string>
     <string name="no_search_results" msgid="3787956167293097509">"Ոչ մի վիջեթ կամ դյուրանցում չի գտնվել"</string>
     <string name="widgets_full_sheet_personal_tab" msgid="2743540105607120182">"Անձնական"</string>
-    <string name="widgets_full_sheet_work_tab" msgid="3767150027110633765">"Աշխատանքային"</string>
+    <string name="widgets_full_sheet_work_tab" msgid="3767150027110633765">"Աշխատանք"</string>
     <string name="widget_category_conversations" msgid="8894438636213590446">"Զրույցներ"</string>
     <string name="widget_category_note_taking" msgid="3469689394504266039">"Նշումների ստեղծում"</string>
     <string name="widget_cell_tap_to_show_add_button_label" msgid="4354194214317043581">"Ցույց տալ «Ավելացնել» կոճակը"</string>

@@ -42,7 +42,6 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
-import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherSettings;
 import com.android.launcher3.R;
@@ -53,7 +52,6 @@ import com.android.launcher3.popup.ArrowPopup;
 import com.android.launcher3.shortcuts.DeepShortcutView;
 import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.TestProtocol;
-import com.android.launcher3.widget.picker.WidgetsFullSheet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -250,23 +248,7 @@ public class OptionsPopupView<T extends Context & ActivityContext> extends Arrow
     }
 
     private static boolean onWidgetsClicked(View view) {
-        return openWidgets(Launcher.getLauncher(view.getContext())) != null;
-    }
-
-    /** Returns WidgetsFullSheet that was opened, or null if nothing was opened. */
-    @Nullable
-    public static WidgetsFullSheet openWidgets(Launcher launcher) {
-        if (launcher.getPackageManager().isSafeMode()) {
-            Toast.makeText(launcher, R.string.safemode_widget_error, Toast.LENGTH_SHORT).show();
-            return null;
-        } else {
-            AbstractFloatingView floatingView = AbstractFloatingView.getTopOpenViewWithType(
-                    launcher, TYPE_WIDGETS_FULL_SHEET);
-            if (floatingView != null) {
-                return (WidgetsFullSheet) floatingView;
-            }
-            return WidgetsFullSheet.show(launcher, true /* animated */);
-        }
+        return Launcher.getLauncher(view.getContext()).openWidgetPicker();
     }
 
     private static boolean startSettings(View view) {

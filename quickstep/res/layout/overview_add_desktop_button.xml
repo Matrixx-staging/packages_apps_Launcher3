@@ -23,4 +23,5 @@
     android:src="@drawable/ic_desktop_add"
     android:background="@drawable/bg_overview_add_desktop_button"
     launcher:focusBorderColor="@color/materialColorOutline"
+    android:tint="@color/materialColorOnSurface"
     android:padding="10dp" />

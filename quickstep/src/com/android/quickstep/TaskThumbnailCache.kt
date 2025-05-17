@@ -18,6 +18,7 @@ package com.android.quickstep
 import android.content.Context
 import androidx.annotation.VisibleForTesting
 import androidx.annotation.WorkerThread
+import com.android.launcher3.Flags.enableCoroutineThreadingImprovements
 import com.android.launcher3.R
 import com.android.launcher3.util.CancellableTask
 import com.android.launcher3.util.Executors
@@ -113,7 +114,7 @@ internal constructor(
             // Get thumbnail from system
             var thumbnailData =
                 ActivityManagerWrapper.getInstance().getTaskThumbnail(task.key.id, lowResolution)
-            if (thumbnailData.thumbnail == null) {
+            if (thumbnailData.thumbnail == null && !enableCoroutineThreadingImprovements()) {
                 thumbnailData = ActivityManagerWrapper.getInstance().takeTaskThumbnail(task.key.id)
             }
 

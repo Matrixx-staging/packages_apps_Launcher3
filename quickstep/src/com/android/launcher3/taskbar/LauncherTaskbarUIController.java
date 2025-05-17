@@ -61,7 +61,6 @@ import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
 import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags;
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation;
-import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
 
 import java.io.PrintWriter;
 import java.util.Arrays;
@@ -224,7 +223,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
     @Override
     public void onLauncherVisibilityChanged(boolean isVisible) {
         final TaskbarActivityContext taskbarContext = mControllers.taskbarActivityContext;
-        if (DesktopModeStatus.enterDesktopByDefaultOnFreeformDisplay(mLauncher)
+        if (taskbarContext.showLockedTaskbarOnHome()
                 && !taskbarContext.showDesktopTaskbarForFreeformDisplay()
                 && taskbarContext.isPrimaryDisplay()) {
             DisplayController.INSTANCE.get(mLauncher).notifyConfigChange();

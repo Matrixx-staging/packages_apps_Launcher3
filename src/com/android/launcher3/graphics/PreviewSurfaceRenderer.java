@@ -51,7 +51,6 @@ import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.FrameLayout;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 import androidx.annotation.WorkerThread;
@@ -254,9 +253,16 @@ public class PreviewSurfaceRenderer {
     /**
      * Update the grid of the launcher preview
      *
-     * @param gridName Name of the grid, e.g. normal, practical
+     * @param gridNameOrNull Name of the grid (e.g. normal, practical), or null to reset preview to
+     *                 current settings
      */
-    public void updateGrid(@NonNull String gridName) {
+    public void updateGrid(@Nullable String gridNameOrNull) {
+        String gridName;
+        if (TextUtils.isEmpty(gridNameOrNull)) {
+            gridName = LauncherPrefs.get(mContext).get(GRID_NAME);
+        } else {
+            gridName = gridNameOrNull;
+        }
         if (gridName.equals(mGridName) || gridName.equals(FIXED_LANDSCAPE_GRID)) {
             return;
         }

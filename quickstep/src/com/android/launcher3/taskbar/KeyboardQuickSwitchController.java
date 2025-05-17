@@ -165,16 +165,18 @@ public final class KeyboardQuickSwitchController implements
                     final boolean shouldShowDesktopTasks = mControllers.taskbarDesktopModeController
                             .shouldShowDesktopTasksInTaskbar();
                     mExcludedTaskIds = taskIdsToExclude;
-                    mTaskListChangeId = mModel.getTasks((tasks) -> {
-                        processLoadedTasks(tasks, taskIdsToExclude);
-                        mQuickSwitchViewController.updateQuickSwitchView(
-                                mTasks,
-                                wasOpenedFromTaskbar ? 0 : mNumHiddenTasks,
-                                currentFocusIndexOverride,
-                                mHasDesktopTask,
-                                mWasDesktopTaskFilteredOut);
-                    }, shouldShowDesktopTasks ? RecentsFilterState.EMPTY_FILTER
-                            : RecentsFilterState.getDesktopTaskFilter());
+                    mTaskListChangeId = mModel.getTasks(
+                            shouldShowDesktopTasks ? RecentsFilterState.EMPTY_FILTER
+                                    : RecentsFilterState.getDesktopTaskFilter(),
+                            (tasks) -> {
+                                processLoadedTasks(tasks, taskIdsToExclude);
+                                mQuickSwitchViewController.updateQuickSwitchView(
+                                        mTasks,
+                                        wasOpenedFromTaskbar ? 0 : mNumHiddenTasks,
+                                        currentFocusIndexOverride,
+                                        mHasDesktopTask,
+                                        mWasDesktopTaskFilteredOut);
+                            });
                 }
 
                 mQuickSwitchViewController.updateLayoutForSurface(wasOpenedFromTaskbar,
@@ -221,7 +223,8 @@ public final class KeyboardQuickSwitchController implements
         }
 
         mExcludedTaskIds = taskIdsToExclude;
-        mTaskListChangeId = mModel.getTasks((tasks) -> {
+        mTaskListChangeId = mModel.getTasks(shouldShowDesktopTasks ? RecentsFilterState.EMPTY_FILTER
+                : RecentsFilterState.getDesktopTaskFilter(), (tasks) -> {
             processLoadedTasks(tasks, taskIdsToExclude);
             // Check if the first task is running after the recents model has updated so that we use
             // the correct index.
@@ -235,8 +238,7 @@ public final class KeyboardQuickSwitchController implements
                     mHasDesktopTask,
                     mWasDesktopTaskFilteredOut,
                     wasOpenedFromTaskbar);
-        }, shouldShowDesktopTasks ? RecentsFilterState.EMPTY_FILTER
-                : RecentsFilterState.getDesktopTaskFilter());
+            });
     }
 
     private boolean shouldExcludeTask(GroupTask task, Set<Integer> taskIdsToExclude) {

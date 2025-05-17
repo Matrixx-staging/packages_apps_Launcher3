@@ -53,18 +53,17 @@ class BlurUtils(private val recentsView: RecentsView<*, *>) {
     }
 
     private fun updateBlurLayer() {
-        if (enableOverviewBackgroundWallpaperBlur()) {
-            recentsView.depthController?.setBaseSurfaceOverride(
-                // Blurs behind lowest live tile surface that's below recents or Launcher if there
-                // are none.
-                getLiveTileRemoteTargetHandles()
-                    ?.filter { it.taskViewSimulator.drawsBelowRecents }
-                    ?.maxByOrNull { it.transformParams.targetSet.firstAppTarget.leash.layerId }
-                    ?.transformParams
-                    ?.targetSet
-                    ?.firstAppTarget
-                    ?.leash
-            )
-        }
+        if (!enableOverviewBackgroundWallpaperBlur()) return
+        recentsView.depthController?.setBaseSurfaceOverride(
+            // Blurs behind lowest live tile surface that's below recents or Launcher if there
+            // are none.
+            getLiveTileRemoteTargetHandles()
+                ?.filter { it.taskViewSimulator.drawsBelowRecents }
+                ?.maxByOrNull { it.transformParams.targetSet.firstAppTarget.leash.layerId }
+                ?.transformParams
+                ?.targetSet
+                ?.firstAppTarget
+                ?.leash
+        )
     }
 }

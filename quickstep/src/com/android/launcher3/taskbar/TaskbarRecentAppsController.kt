@@ -16,6 +16,8 @@
 package com.android.launcher3.taskbar
 
 import android.content.Context
+import android.util.Log
+import android.window.DesktopExperienceFlags
 import android.window.DesktopModeFlags
 import androidx.annotation.VisibleForTesting
 import com.android.launcher3.BubbleTextView.RunningAppState
@@ -56,6 +58,9 @@ class TaskbarRecentAppsController(
                 recentsModel.unregisterRecentTasksChangedListener(recentTasksChangedListener)
             }
         }
+
+    val enableRecentTasksThrottle =
+        DesktopExperienceFlags.ENABLE_TASKBAR_RECENT_TASKS_THROTTLE_BUGFIX.isTrue
 
     // TODO(b/343532825): Add a setting to disable Recents even when the flag is on.
     var canShowRecentApps = enableRecentsInTaskbar()
@@ -175,6 +180,11 @@ class TaskbarRecentAppsController(
     // tasks again if we have already requested it and the task list has not changed
     private var taskListChangeId = -1
 
+    // Whether we're currently loading recents tasks
+    private var loadingRecentsTasks = false
+    // Whether we need to reload recents tasks when the current loading operation is finished
+    private var needsRecentsTasksReload = false
+    // Whether we've loaded recents tasks at least once
     private var recentTasksLoaded = false
 
     fun init(taskbarControllers: TaskbarControllers, previousShownTasks: List<GroupTask>) {
@@ -240,29 +250,34 @@ class TaskbarRecentAppsController(
     }
 
     private fun reloadRecentTasksIfNeeded() {
-        if (!recentsModel.isTaskListValid(taskListChangeId)) {
-            taskListChangeId =
-                recentsModel.getTasks(
-                    { tasks ->
-                        recentTasksLoaded = true
-                        allRecentTasks = tasks
-                        val oldRunningTaskdIds = runningTaskIds
-                        val oldMinimizedTaskIds = minimizedTaskIds
-                        desktopTasks =
-                            allRecentTasks.filterIsInstance<DesktopTask>().flatMap { it.tasks }
-                        val runningTasksChanged = oldRunningTaskdIds != runningTaskIds
-                        val minimizedTasksChanged = oldMinimizedTaskIds != minimizedTaskIds
-                        if (
-                            onRecentsOrHotseatChanged() ||
-                                runningTasksChanged ||
-                                minimizedTasksChanged
-                        ) {
-                            controllers.taskbarViewController.commitRunningAppsToUI()
-                        }
-                    },
-                    RecentsFilterState.EMPTY_FILTER,
-                )
+        if (recentsModel.isTaskListValid(taskListChangeId)) return
+        if (enableRecentTasksThrottle && loadingRecentsTasks) {
+            Log.v(TAG, "reloadRecentTasksIfNeeded: tried to reload while loading recents tasks")
+            needsRecentsTasksReload = true
+            return
         }
+        Log.v(TAG, "reloadRecentTasksIfNeeded: load recents tasks")
+        // Only indicate that recents tasks are loading if the enableRecentTasksThrottle flag is on
+        loadingRecentsTasks = enableRecentTasksThrottle
+        taskListChangeId =
+            recentsModel.getTasks(RecentsFilterState.EMPTY_FILTER) { tasks ->
+                loadingRecentsTasks = false
+                recentTasksLoaded = true
+                allRecentTasks = tasks
+                val oldRunningTaskdIds = runningTaskIds
+                val oldMinimizedTaskIds = minimizedTaskIds
+                desktopTasks = allRecentTasks.filterIsInstance<DesktopTask>().flatMap { it.tasks }
+                val runningTasksChanged = oldRunningTaskdIds != runningTaskIds
+                val minimizedTasksChanged = oldMinimizedTaskIds != minimizedTaskIds
+                if (onRecentsOrHotseatChanged() || runningTasksChanged || minimizedTasksChanged) {
+                    controllers.taskbarViewController.commitRunningAppsToUI()
+                }
+                if (needsRecentsTasksReload) {
+                    Log.v(TAG, "reloadRecentTasksIfNeeded: reload recents tasks")
+                    needsRecentsTasksReload = false
+                    reloadRecentTasksIfNeeded()
+                }
+            }
     }
 
     /**
@@ -467,6 +482,8 @@ class TaskbarRecentAppsController(
         get() = tasks.map { task -> task.key.packageName }
 
     private companion object {
+        private val TAG = "TaskbarRecentAppsController"
+
         const val MAX_RECENT_TASKS = 2
     }
 }

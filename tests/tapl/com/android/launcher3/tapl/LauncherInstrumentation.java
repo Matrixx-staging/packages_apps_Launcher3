@@ -980,9 +980,9 @@ public final class LauncherInstrumentation {
                     waitUntilSystemLauncherObjectGone(SPLIT_PLACEHOLDER_RES_ID);
                     waitUntilLauncherObjectGone(KEYBOARD_QUICK_SWITCH_RES_ID);
                     if (isTaskbarShownOnHome()) {
-                        waitForSystemLauncherObject(TASKBAR_RES_ID);
+                        waitForSystemLauncherObject(TASKBAR_RES_ID, taskbarPrimaryDisplayId);
                     } else {
-                        waitUntilSystemLauncherObjectGone(TASKBAR_RES_ID);
+                        waitUntilSystemLauncherObjectGone(TASKBAR_RES_ID, taskbarPrimaryDisplayId);
                     }
 
                     return waitForLauncherObject(WORKSPACE_RES_ID);
@@ -1002,7 +1002,7 @@ public final class LauncherInstrumentation {
                     waitUntilLauncherObjectGone(WIDGETS_RES_ID);
                     waitUntilSystemLauncherObjectGone(OVERVIEW_RES_ID);
                     if (isTransientTaskbar()) {
-                        waitUntilSystemLauncherObjectGone(TASKBAR_RES_ID);
+                        waitUntilSystemLauncherObjectGone(TASKBAR_RES_ID, taskbarPrimaryDisplayId);
                     }
                     waitUntilSystemLauncherObjectGone(SPLIT_PLACEHOLDER_RES_ID);
                     waitUntilLauncherObjectGone(KEYBOARD_QUICK_SWITCH_RES_ID);
@@ -1017,9 +1017,9 @@ public final class LauncherInstrumentation {
 
                     if ((is3PLauncher() && isTablet() && !isTransientTaskbar())
                             || isTaskbarShownOnHome()) {
-                        waitForSystemLauncherObject(TASKBAR_RES_ID);
+                        waitForSystemLauncherObject(TASKBAR_RES_ID, taskbarPrimaryDisplayId);
                     } else {
-                        waitUntilSystemLauncherObjectGone(TASKBAR_RES_ID);
+                        waitUntilSystemLauncherObjectGone(TASKBAR_RES_ID, taskbarPrimaryDisplayId);
                     }
 
                     boolean splitSelectionActive = getTestInfo(REQUEST_GET_SPLIT_SELECTION_ACTIVE)
@@ -1036,9 +1036,9 @@ public final class LauncherInstrumentation {
                     waitUntilLauncherObjectGone(WORKSPACE_RES_ID);
                     waitUntilLauncherObjectGone(WIDGETS_RES_ID);
                     if (isTablet() && !is3PLauncher()) {
-                        waitForSystemLauncherObject(TASKBAR_RES_ID);
+                        waitForSystemLauncherObject(TASKBAR_RES_ID, taskbarPrimaryDisplayId);
                     } else {
-                        waitUntilSystemLauncherObjectGone(TASKBAR_RES_ID);
+                        waitUntilSystemLauncherObjectGone(TASKBAR_RES_ID, taskbarPrimaryDisplayId);
                     }
                     waitUntilSystemLauncherObjectGone(SPLIT_PLACEHOLDER_RES_ID);
                     waitUntilLauncherObjectGone(KEYBOARD_QUICK_SWITCH_RES_ID);
@@ -1050,9 +1050,9 @@ public final class LauncherInstrumentation {
                     waitUntilLauncherObjectGone(WORKSPACE_RES_ID);
                     waitUntilLauncherObjectGone(WIDGETS_RES_ID);
                     if (isTablet()) {
-                        waitForSystemLauncherObject(TASKBAR_RES_ID);
+                        waitForSystemLauncherObject(TASKBAR_RES_ID, taskbarPrimaryDisplayId);
                     } else {
-                        waitUntilSystemLauncherObjectGone(TASKBAR_RES_ID);
+                        waitUntilSystemLauncherObjectGone(TASKBAR_RES_ID, taskbarPrimaryDisplayId);
                     }
 
                     waitForSystemLauncherObject(SPLIT_PLACEHOLDER_RES_ID);
@@ -1075,10 +1075,10 @@ public final class LauncherInstrumentation {
                         // Only check that Persistent Taskbar is visible, since Transient Taskbar
                         // may or may not be visible by design.
                         if (!isTransientTaskbar()) {
-                            waitForSystemLauncherObject(TASKBAR_RES_ID);
+                            waitForSystemLauncherObject(TASKBAR_RES_ID, taskbarPrimaryDisplayId);
                         }
                     } else {
-                        waitUntilSystemLauncherObjectGone(TASKBAR_RES_ID);
+                        waitUntilSystemLauncherObjectGone(TASKBAR_RES_ID, taskbarPrimaryDisplayId);
                     }
                     return null;
                 }
@@ -1149,12 +1149,20 @@ public final class LauncherInstrumentation {
         }
     }
 
-    void executeAndWaitForLauncherStop(Runnable command, String actionName) {
-        executeAndWaitForLauncherEvent(
-                () -> command.run(),
-                event -> TestProtocol.LAUNCHER_ACTIVITY_STOPPED_MESSAGE
-                        .equals(event.getClassName().toString()),
-                () -> "Launcher activity didn't stop", actionName);
+    void executeAndWaitForLauncherHidden(Runnable command, String actionName) {
+        // Since LAUNCHER_ACTIVITY_STOPPED_MESSAGE is only ever sent from Launcher.onStop or
+        // RecentsActivity.onStop, we never receive this signal on 3P launchers with recents
+        // window enabled. So, instead we should wait for the recent window's state manager to
+        // report the normal state.
+        if (is3PLauncher() && isRecentsWindowEnabled()) {
+            runToState(command, NORMAL_STATE_ORDINAL, actionName);
+        } else {
+            executeAndWaitForLauncherEvent(
+                    () -> command.run(),
+                    event -> TestProtocol.LAUNCHER_ACTIVITY_STOPPED_MESSAGE
+                            .equals(event.getClassName().toString()),
+                    () -> "Launcher activity didn't stop", actionName);
+        }
     }
 
     /**
@@ -1445,20 +1453,32 @@ public final class LauncherInstrumentation {
         return new LaunchedAppState(this);
     }
 
+    void waitUntilLauncherObjectGone(String resId, @Nullable Integer displayId) {
+        waitUntilGoneBySelector(getLauncherObjectSelector(resId, displayId));
+    }
+
     void waitUntilLauncherObjectGone(String resId) {
-        waitUntilGoneBySelector(getLauncherObjectSelector(resId));
+        waitUntilLauncherObjectGone(resId, /* displayId= */ null);
+    }
+
+    void waitUntilOverviewObjectGone(String resId, @Nullable Integer displayId) {
+        waitUntilGoneBySelector(getOverviewObjectSelector(resId, displayId));
     }
 
     void waitUntilOverviewObjectGone(String resId) {
-        waitUntilGoneBySelector(getOverviewObjectSelector(resId));
+        waitUntilOverviewObjectGone(resId, /* displayId= */ null);
+    }
+
+    void waitUntilSystemLauncherObjectGone(String resId, @Nullable Integer displayId) {
+        if (is3PLauncher()) {
+            waitUntilOverviewObjectGone(resId, displayId);
+        } else {
+            waitUntilLauncherObjectGone(resId, displayId);
+        }
     }
 
     void waitUntilSystemLauncherObjectGone(String resId) {
-        if (is3PLauncher()) {
-            waitUntilOverviewObjectGone(resId);
-        } else {
-            waitUntilLauncherObjectGone(resId);
-        }
+        waitUntilSystemLauncherObjectGone(resId, /* displayId= */ null);
     }
 
     void waitUntilLauncherObjectGone(BySelector selector) {
@@ -1641,19 +1661,34 @@ public final class LauncherInstrumentation {
     }
 
     @NonNull
+    UiObject2 waitForOverviewObject(String resName, @Nullable Integer displayId) {
+        return waitForObjectBySelector(getOverviewObjectSelector(resName, displayId));
+    }
+
+    @NonNull
     UiObject2 waitForOverviewObject(String resName) {
-        return waitForObjectBySelector(getOverviewObjectSelector(resName));
+        return waitForOverviewObject(resName, /* displayId= */ null);
+    }
+
+    @NonNull
+    UiObject2 waitForLauncherObject(String resName, @Nullable Integer displayId) {
+        return waitForObjectBySelector(getLauncherObjectSelector(resName, displayId));
     }
 
     @NonNull
     UiObject2 waitForLauncherObject(String resName) {
-        return waitForObjectBySelector(getLauncherObjectSelector(resName));
+        return waitForLauncherObject(resName, /* displayId= */ null);
+    }
+
+    @NonNull
+    UiObject2 waitForSystemLauncherObject(String resName, @Nullable Integer displayId) {
+        return is3PLauncher() ? waitForOverviewObject(resName, displayId)
+                : waitForLauncherObject(resName, displayId);
     }
 
     @NonNull
     UiObject2 waitForSystemLauncherObject(String resName) {
-        return is3PLauncher() ? waitForOverviewObject(resName)
-                : waitForLauncherObject(resName);
+        return waitForSystemLauncherObject(resName, /* displayId= */null);
     }
 
     @NonNull
@@ -1692,11 +1727,27 @@ public final class LauncherInstrumentation {
     }
 
     BySelector getLauncherObjectSelector(String resName) {
-        return By.res(getLauncherPackageName(), resName);
+        return getLauncherObjectSelector(resName, /* displayId= */ null);
+    }
+
+    BySelector getLauncherObjectSelector(String resName, @Nullable Integer displayId) {
+        final BySelector selector = By.res(getLauncherPackageName(), resName);
+        if (displayId != null) {
+            selector.displayId(displayId);
+        }
+        return selector;
     }
 
     BySelector getOverviewObjectSelector(String resName) {
-        return By.res(getOverviewPackageName(), resName);
+        return getOverviewObjectSelector(resName, /* displayId= */ null);
+    }
+
+    BySelector getOverviewObjectSelector(String resName, @Nullable Integer displayId) {
+        final BySelector selector = By.res(getOverviewPackageName(), resName);
+        if (displayId != null) {
+            selector.displayId(displayId);
+        }
+        return selector;
     }
 
     String getLauncherPackageName() {

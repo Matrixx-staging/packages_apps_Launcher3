@@ -33,6 +33,7 @@ import com.android.launcher3.AbstractFloatingView.TYPE_TASK_MENU
 import com.android.launcher3.AbstractFloatingView.getTopOpenViewWithType
 import com.android.launcher3.Flags.enableDesktopExplodedView
 import com.android.launcher3.Flags.enableLargeDesktopWindowingTile
+import com.android.launcher3.Flags.enableOverviewOnConnectedDisplays
 import com.android.launcher3.Utilities.getPivotsForScalingRectToRect
 import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.statehandlers.DesktopVisibilityController.Companion.INACTIVE_DESK_ID
@@ -191,7 +192,10 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
     fun getExpectedCurrentTask(runningTaskView: TaskView?, focusedTaskView: TaskView?): TaskView? =
         runningTaskView
             ?: focusedTaskView
-            ?: taskViews.firstOrNull { it !is DesktopTaskView && !it.isExternalDisplay }
+            ?: taskViews.firstOrNull {
+                it !is DesktopTaskView &&
+                    (enableOverviewOnConnectedDisplays() || !it.isExternalDisplay)
+            }
             ?: taskViews.lastOrNull()
 
     private fun getDeviceProfile() = (recentsView.mContainer as RecentsViewContainer).deviceProfile
@@ -605,7 +609,7 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
         with(recentsView) {
             Log.d(TAG, "onPrepareGestureEndAnimation - endTarget: $endTarget")
             mCurrentGestureEndTarget = endTarget
-            val endState: BaseState<*> = mSizeStrategy.stateFromGestureEndTarget(endTarget)
+            val endState: BaseState<*> = mContainerInterface.stateFromGestureEndTarget(endTarget)
 
             // Starting the desk exploded animation when the gesture from an app is released.
             if (enableDesktopExplodedView()) {

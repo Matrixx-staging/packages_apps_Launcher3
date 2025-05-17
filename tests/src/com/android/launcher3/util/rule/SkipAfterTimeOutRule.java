@@ -16,20 +16,15 @@
 
 package com.android.launcher3.util.rule;
 
-import android.util.Log;
-
+import org.junit.AssumptionViolatedException;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+import org.junit.runners.model.TestTimedOutException;
 
-import java.util.concurrent.locks.ReentrantLock;
-
-/** Enforces a mutual exclusion to prevent flakiness from overlapping remote test runs. */
-public class MutualExclusionRule implements TestRule {
-
-    private static final String TAG = "MutualExclusionRule";
-
-    private static final ReentrantLock MUTEX = new ReentrantLock();
+/** Makes sure that tests are skipped after a timed-out test to avoid test execution overlap. */
+public class SkipAfterTimeOutRule implements TestRule {
+    private static boolean sHadTimeoutException = false;
 
     @Override
     public Statement apply(Statement base, Description description) {
@@ -37,15 +32,14 @@ public class MutualExclusionRule implements TestRule {
             @Override
             public void evaluate() throws Throwable {
                 try {
-                    Log.d(TAG, "In try-block: Enabling reentrant lock");
-                    MUTEX.lock();
+                    if (sHadTimeoutException) {
+                        throw new AssumptionViolatedException(
+                                "An earlier test had TestTimedOutException");
+                    }
                     base.evaluate();
-                } catch (Exception e) {
-                    Log.e(TAG, "Error", e);
+                } catch (TestTimedOutException e) {
+                    sHadTimeoutException = true;
                     throw e;
-                } finally {
-                    Log.d(TAG, "In finally-block: Disabling reentrant lock");
-                    MUTEX.unlock();
                 }
             }
         };

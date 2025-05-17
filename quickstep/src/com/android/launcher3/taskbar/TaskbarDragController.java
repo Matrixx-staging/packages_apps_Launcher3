@@ -131,14 +131,14 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
 
     public void init(TaskbarControllers controllers) {
         mControllers = controllers;
-        mControllers.bubbleControllers.ifPresent(
-                c -> c.bubbleBarViewController.addBubbleBarDropTargets(this));
+        mControllers.runAfterInit(() -> mControllers.bubbleControllers.ifPresent(
+                c -> c.dragToBubbleController.addBubbleBarDropTargets(this)));
     }
 
     /** Called when the controller is destroyed. */
     public void onDestroy() {
         mControllers.bubbleControllers.ifPresent(
-                c -> c.bubbleBarViewController.removeBubbleBarDropTargets(this));
+                c -> c.dragToBubbleController.removeBubbleBarDropTargets(this));
     }
 
     public void setDisallowGlobalDrag(boolean disallowGlobalDrag) {
