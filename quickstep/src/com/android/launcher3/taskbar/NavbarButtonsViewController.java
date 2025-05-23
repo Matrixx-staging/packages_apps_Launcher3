@@ -358,14 +358,13 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
 
         // Potentially force the back button to be visible during setup wizard. The back button
         // won't show up if the expressive theme is enabled and simple view is disabled
-        boolean shouldShowInSetup = !mContext.isUserSetupComplete()
+        final boolean shouldShowInSetup = !mContext.isUserSetupComplete()
                 && (!mIsExpressiveThemeEnabled || mContext.isSimpleViewEnabled());
-        boolean isInKidsMode = mContext.isNavBarKidsModeActive();
-        boolean alwaysShowButtons = isThreeButtonNav || shouldShowInSetup;
+        final boolean alwaysShowButtons = isThreeButtonNav || shouldShowInSetup;
 
         // Make sure to remove nav bar buttons translation when any of the following occur:
         // - Notification shade is expanded
-        // - IME is visible (add separate translation for IME)
+        // - IME is visible (e.g. when editing a Folder name)
         // - VoiceInteractionWindow (assistant) is showing
         // - Keyboard shortcuts helper is showing
         if (!isPhoneMode) {
@@ -374,14 +373,6 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
             mPropertyHolders.add(new StatePropertyHolder(mNavButtonInAppDisplayProgressForSysui,
                     flags -> (flags & flagsToRemoveTranslation) != 0, AnimatedFloat.VALUE,
                     1, 0));
-            // Center nav buttons in new height for IME.
-            float transForIme = (mContext.getDeviceProfile().getTaskbarProfile().getHeight()
-                    - mControllers.taskbarInsetsController.getTaskbarHeightForIme()) / 2f;
-            // For gesture nav, nav buttons only show for IME anyway so keep them translated down.
-            float defaultButtonTransY = alwaysShowButtons ? 0 : transForIme;
-            mPropertyHolders.add(new StatePropertyHolder(mTaskbarNavButtonTranslationYForIme,
-                    flags -> (flags & FLAG_IME_VISIBLE) != 0 && !isInKidsMode, AnimatedFloat.VALUE,
-                    transForIme, defaultButtonTransY));
 
             mPropertyHolders.add(new StatePropertyHolder(
                     mOnBackgroundNavButtonColorOverrideMultiplier,

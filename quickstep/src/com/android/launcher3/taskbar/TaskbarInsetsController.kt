@@ -42,14 +42,12 @@ import android.view.WindowInsets.Type.navigationBars
 import android.view.WindowInsets.Type.systemGestures
 import android.view.WindowInsets.Type.tappableElement
 import android.view.WindowManager
-import android.view.WindowManager.LayoutParams.TYPE_INPUT_METHOD
 import android.view.WindowManager.LayoutParams.TYPE_VOICE_INTERACTION
 import androidx.annotation.VisibleForTesting
 import androidx.core.graphics.toRegion
 import com.android.app.tracing.traceSection
 import com.android.internal.policy.GestureNavigationSettingsObserver
 import com.android.launcher3.DeviceProfile
-import com.android.launcher3.R
 import com.android.launcher3.anim.AlphaUpdateListener
 import com.android.launcher3.config.FeatureFlags.ENABLE_TASKBAR_NAVBAR_UNIFICATION
 import com.android.launcher3.config.FeatureFlags.enableTaskbarNoRecreate
@@ -80,8 +78,6 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
         }
     }
 
-    /** The bottom insets taskbar provides to the IME when IME is visible. */
-    val taskbarHeightForIme: Int = context.resources.getDimensionPixelSize(R.dimen.taskbar_ime_size)
     // The touchableRegion we will set unless some other state takes precedence.
     private val defaultTouchableRegion: Region = Region()
     private val insetsOwner: IBinder = Binder()
@@ -272,46 +268,22 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
             provider.insetsSize = Insets.of(0, 0, rightIndexInset, 0)
         }
 
-        // When in gesture nav, report the stashed height to the IME, to allow hiding the
-        // IME navigation bar.
-        val imeInsetsSize =
-            if (context.isGestureNav) {
-                getInsetsForGravity(controllers.taskbarStashController.stashedHeight, gravity)
-            } else {
-                getInsetsForGravity(taskbarHeightForIme, gravity)
-            }
-        val imeInsetsSizeOverride =
-            arrayOf(
-                InsetsFrameProvider.InsetsSizeOverride(TYPE_INPUT_METHOD, imeInsetsSize),
-                InsetsFrameProvider.InsetsSizeOverride(
-                    TYPE_VOICE_INTERACTION,
-                    // No-op override to keep the size and types in sync with the
-                    // override below (insetsSizeOverrides must have the same length and
-                    // types after the window is added according to
-                    // WindowManagerService#relayoutWindow)
-                    provider.insetsSize,
-                ),
-            )
         // Use 0 tappableElement insets for the VoiceInteractionWindow when gesture nav is enabled.
         val visInsetsSizeForTappableElement =
             if (context.isGestureNav) getInsetsForGravity(0, gravity)
             else getInsetsForGravity(tappableHeight, gravity)
         val insetsSizeOverrideForTappableElement =
             arrayOf(
-                InsetsFrameProvider.InsetsSizeOverride(TYPE_INPUT_METHOD, imeInsetsSize),
                 InsetsFrameProvider.InsetsSizeOverride(
                     TYPE_VOICE_INTERACTION,
                     visInsetsSizeForTappableElement,
-                ),
+                )
             )
         if (
             (context.isGestureNav || ENABLE_TASKBAR_NAVBAR_UNIFICATION) &&
                 provider.type == tappableElement()
         ) {
             provider.insetsSizeOverrides = insetsSizeOverrideForTappableElement
-        } else if (provider.type != systemGestures()) {
-            // We only override insets at the bottom of the screen
-            provider.insetsSizeOverrides = imeInsetsSizeOverride
         }
     }
 
