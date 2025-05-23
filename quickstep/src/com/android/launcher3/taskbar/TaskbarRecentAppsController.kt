@@ -26,8 +26,8 @@ import com.android.launcher3.Flags.enableRecentsInTaskbar
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.TaskItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
-import com.android.launcher3.taskbar.PinToTaskbarShortcut.Companion.isPinningAppWithContextMenuEnabled
 import com.android.launcher3.taskbar.TaskbarControllers.LoggableTaskbarController
+import com.android.launcher3.taskbar.TaskbarPopupController.canPinAppWithContextMenu
 import com.android.launcher3.util.CancellableTask
 import com.android.quickstep.RecentsFilterState
 import com.android.quickstep.RecentsModel
@@ -376,7 +376,7 @@ class TaskbarRecentAppsController(
                     .filter {
                         it is SingleTask &&
                             it.task.key.id in deduplicatedDesktopTasks.map { it.task.key.id } &&
-                            (!isPinningAppWithContextMenuEnabled(activityContext) ||
+                            (!canPinAppWithContextMenu(activityContext) ||
                                 shownHotseatItems.none { hotseatItem ->
                                     it.containsPackage(
                                         hotseatItem.targetPackage,

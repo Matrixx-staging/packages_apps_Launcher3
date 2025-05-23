@@ -28,6 +28,7 @@ import android.util.Pair;
 import android.util.SparseArray;
 import android.view.MotionEvent;
 import android.view.View;
+import android.window.DesktopExperienceFlags;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -43,6 +44,7 @@ import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.notification.NotificationListener;
+import com.android.launcher3.popup.PinToTaskbarShortcut;
 import com.android.launcher3.popup.PopupContainerWithArrow;
 import com.android.launcher3.popup.PopupDataProvider;
 import com.android.launcher3.popup.SystemShortcut;
@@ -148,7 +150,7 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
         ItemInfo itemInfo = null;
         if (icon.getTag() instanceof ItemInfo item && ShortcutUtil.supportsShortcuts(item)) {
             itemInfo = item;
-        } else if (PinToTaskbarShortcut.Companion.isPinningAppWithContextMenuEnabled(mContext)
+        } else if (canPinAppWithContextMenu(mContext)
                 && icon.getTag() instanceof SingleTask task) {
             Task.TaskKey key = task.getTask().getKey();
             AppInfo appInfo = getApp(
@@ -173,7 +175,7 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
                 .collect(Collectors.toList());
 
         // TODO(b/375648361): Revisit to see if this can be implemented within getSystemShortcuts().
-        if (PinToTaskbarShortcut.Companion.isPinningAppWithContextMenuEnabled(mContext)) {
+        if (canPinAppWithContextMenu(mContext)) {
             SystemShortcut shortcut = createPinShortcut(context, itemInfo, icon);
             if (shortcut != null) {
                 systemShortcuts.add(0, shortcut);
@@ -391,6 +393,11 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
         AppInfo app = getApp(key);
         return app != null && app.supportsMultiInstance()
                 && itemInfo.container != CONTAINER_ALL_APPS;
+    }
+
+    protected static boolean canPinAppWithContextMenu(TaskbarActivityContext context) {
+        return DesktopExperienceFlags.ENABLE_PINNING_APP_WITH_CONTEXT_MENU.isTrue()
+                && context.isTaskbarShowingDesktopTasks();
     }
 
     /**

@@ -30,6 +30,7 @@ import static com.android.launcher3.LauncherConstants.SavedInstanceKeys.PENDING_
 import static com.android.launcher3.LauncherConstants.SavedInstanceKeys.RUNTIME_STATE;
 import static com.android.launcher3.LauncherSettings.Animation.DEFAULT_NO_ICON;
 import static com.android.launcher3.LauncherSettings.Animation.VIEW_BACKGROUND;
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPLICATION;
@@ -46,6 +47,7 @@ import static com.android.launcher3.compat.AccessibilityManagerCompat.sendCustom
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_APP_LAUNCH_TAP;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SPLIT_SELECTION_EXIT_HOME;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SPLIT_SELECTION_EXIT_INTERRUPTED;
+import static com.android.launcher3.popup.PinToTaskbarShortcut.PIN_ITEM_FROM_LAUNCHER;
 import static com.android.launcher3.popup.QuickstepSystemShortcut.getSplitSelectShortcutByPosition;
 import static com.android.launcher3.popup.SystemShortcut.APP_INFO;
 import static com.android.launcher3.popup.SystemShortcut.BUBBLE_SHORTCUT;
@@ -502,6 +504,13 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         List<SystemShortcut.Factory> shortcuts = new ArrayList(Arrays.asList(
                 APP_INFO, WellbeingModel.SHORTCUT_FACTORY, mHotseatPredictionController));
 
+        if (mTaskbarUIController != null
+                && mTaskbarUIController.canPinAppWithContextMenu()
+                && DisplayController.showDesktopTaskbarForFreeformDisplay(this)
+                && container == CONTAINER_ALL_APPS) {
+            shortcuts.add(0, PIN_ITEM_FROM_LAUNCHER);
+        }
+
         shortcuts.addAll(getSplitShortcuts());
         shortcuts.add(WIDGETS);
         shortcuts.add(INSTALL);
@@ -581,6 +590,12 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
                 getWidgetPickerDataProvider().setWidgetRecommendations(info.getContents());
                 break;
         }
+    }
+
+    @Override
+    public void onItemPinnedFromContextMenu() {
+        super.onItemPinnedFromContextMenu();
+        mHotseatPredictionController.onItemPinnedFromContextMenu();
     }
 
     @Override

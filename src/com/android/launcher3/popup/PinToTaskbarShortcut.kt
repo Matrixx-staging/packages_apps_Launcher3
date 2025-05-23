@@ -14,34 +14,38 @@
  * limitations under the License.
  */
 
-package com.android.launcher3.taskbar
+package com.android.launcher3.popup
 
 import android.content.Context
 import android.util.SparseArray
 import android.view.View
-import android.window.DesktopExperienceFlags
 import androidx.annotation.VisibleForTesting
 import com.android.launcher3.DeviceProfile
+import com.android.launcher3.Launcher
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
 import com.android.launcher3.R
+import com.android.launcher3.Workspace.mapOverCellLayouts
 import com.android.launcher3.model.BgDataModel
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
-import com.android.launcher3.popup.SystemShortcut
+import com.android.launcher3.popup.SystemShortcut.Factory
 import com.android.launcher3.views.ActivityContext
 
 /**
  * A single menu item shortcut to allow users to pin an item to the taskbar and unpin an item from
  * the taskbar.
  */
-class PinToTaskbarShortcut<T>(
+class PinToTaskbarShortcut<T>
+@JvmOverloads
+constructor(
     target: T,
     itemInfo: ItemInfo?,
     originalView: View,
     @get:VisibleForTesting val mIsPin: Boolean,
     private val mPinnedInfoList: SparseArray<ItemInfo?>,
+    private val mOnClickCallback: Runnable? = null,
 ) :
     SystemShortcut<T>(
         if (mIsPin) R.drawable.ic_pin else R.drawable.ic_unpin,
@@ -75,6 +79,7 @@ class PinToTaskbarShortcut<T>(
                 }
             }
             writer.deleteItemFromDatabase(infoToUnpin, "item unpinned through long-press menu")
+            mOnClickCallback?.run()
             return
         }
 
@@ -101,11 +106,55 @@ class PinToTaskbarShortcut<T>(
         val cellY = if (dp.isVerticalBarLayout()) (dp.numShownHotseatIcons - (targetIdx + 1)) else 0
 
         writer.addItemToDatabase(newInfo, CONTAINER_HOTSEAT, mItemInfo.screenId, cellX, cellY)
+        mOnClickCallback?.run()
     }
 
     companion object {
-        fun isPinningAppWithContextMenuEnabled(context: TaskbarActivityContext): Boolean =
-            DesktopExperienceFlags.ENABLE_PINNING_APP_WITH_CONTEXT_MENU.isTrue &&
-                context.isTaskbarShowingDesktopTasks
+        @JvmField
+        val PIN_ITEM_FROM_LAUNCHER: Factory<Launcher> = Factory { context, itemInfo, originalView ->
+            if (context !is Launcher) {
+                return@Factory null
+            }
+
+            val hotseat = context.hotseat
+            val hotseatInfosList = SparseArray<ItemInfo?>()
+
+            val isPinnedInHotseat =
+                mapOverCellLayouts(arrayOf(hotseat)) { info, _ ->
+                    info?.componentKey == itemInfo?.componentKey
+                } != null
+
+            mapOverCellLayouts(arrayOf(hotseat)) { info, _ ->
+                if (info != null && !info.isPredictedItem) {
+                    // In hotseat, the screenId is often used as the rank or position.
+                    hotseatInfosList.put(info.screenId, info)
+                }
+                false // Return false to continue iterating through all items
+            }
+
+            if (isPinnedInHotseat) {
+                // As the item is already pinned, return a shortcut to UNPIN it.
+                return@Factory PinToTaskbarShortcut<Launcher>(
+                    context,
+                    itemInfo,
+                    originalView,
+                    false,
+                    hotseatInfosList,
+                )
+            }
+
+            if (hotseatInfosList.size() < context.deviceProfile.numShownHotseatIcons) {
+                return@Factory PinToTaskbarShortcut<Launcher>(
+                    context,
+                    itemInfo,
+                    originalView,
+                    true,
+                    hotseatInfosList,
+                    context::onItemPinnedFromContextMenu,
+                )
+            }
+
+            return@Factory null
+        }
     }
 }
