@@ -135,7 +135,11 @@ private fun Previews(widgets: List<PickableWidget>, previews: Map<WidgetId, Widg
             modifier =
                 Modifier.fillMaxSize().clearAndSetSemantics { traversalIndex = index.toFloat() },
         ) {
-            WidgetPreview(sizeInfo = widgetItem.sizeInfo, preview = widgetPreview)
+            WidgetPreview(
+                sizeInfo = widgetItem.sizeInfo,
+                preview = widgetPreview,
+                appwidgetInfo = widgetItem.appWidgetProviderInfo,
+            )
         }
     }
 }

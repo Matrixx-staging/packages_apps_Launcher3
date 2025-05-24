@@ -60,7 +60,10 @@ fun WidgetDetails(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top,
-        modifier = modifier.fillMaxSize().padding(WidgetDetailsDimension.padding),
+        modifier = modifier.fillMaxSize().padding(
+            horizontal = WidgetDetailsDimension.horizontalPadding,
+            vertical = WidgetDetailsDimension.verticalPadding
+        ),
     ) {
         WidgetLabel(label = widget.label, appIcon = appIcon, modifier = Modifier)
         if (showAllDetails) {
@@ -134,6 +137,7 @@ private fun WidgetSpanSizeLabel(spanX: Int, spanY: Int) {
 }
 
 private object WidgetDetailsDimension {
-    val padding: Dp = 4.dp
+    val horizontalPadding: Dp = 4.dp
+    val verticalPadding: Dp = 12.dp
     val appIconLabelSpacing = 8.dp
 }

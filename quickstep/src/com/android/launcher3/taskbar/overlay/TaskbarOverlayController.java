@@ -189,7 +189,7 @@ public final class TaskbarOverlayController {
         return mLauncherDeviceProfile;
     }
 
-    /** Updates {@link DeviceProfile} instance for Taskbar's overlay window. */
+    /** Updates {@link deviceprofile} instance for Taskbar's overlay window. */
     public void updateLauncherDeviceProfile(DeviceProfile dp) {
         mLauncherDeviceProfile = dp;
         Optional.ofNullable(mOverlayContext).ifPresent(c -> {

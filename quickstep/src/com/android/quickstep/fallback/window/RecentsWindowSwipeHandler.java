@@ -283,7 +283,7 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
         @Override
         public AnimatorPlaybackController createActivityAnimationToHome() {
             // copied from {@link LauncherSwipeHandlerV2.LauncherHomeAnimationFactory}
-            long accuracy = 2 * Math.max(mDp.widthPx, mDp.heightPx);
+            long accuracy = 2 * Math.max(mDp.getDeviceProperties().getWidthPx(), mDp.getDeviceProperties().getHeightPx());
             return mRecentsWindowManager
                     .getStateManager()
                     .createAnimationToNewWorkspace(
@@ -359,7 +359,7 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
                     .setStartValue(mVerticalShiftForScale.value)
                     .setEndValue(0)
                     .setStartVelocity(-velocity / mTransitionDragLength)
-                    .setMinimumVisibleChange(1f / mDp.heightPx)
+                    .setMinimumVisibleChange(1f / mDp.getDeviceProperties().getHeightPx())
                     .setDampingRatio(0.6f)
                     .setStiffness(800)
                     .build(mVerticalShiftForScale, AnimatedFloat.VALUE)

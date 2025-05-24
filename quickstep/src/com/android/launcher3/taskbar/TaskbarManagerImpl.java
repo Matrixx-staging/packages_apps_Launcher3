@@ -196,7 +196,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
             new SparseArray<>();
     /** DisplayId - {@link ComponentCallbacks} map for Connected Display. */
     private final SparseArray<ComponentCallbacks> mComponentCallbacks = new SparseArray<>();
-    /** DisplayId - {@link DeviceProfile} map for Connected Display. */
+    /** DisplayId - {@link deviceprofile} map for Connected Display. */
     private final SparseArray<DeviceProfile> mExternalDeviceProfiles = new SparseArray<>();
     private StatefulActivity mActivity;
     private RecentsViewContainer mRecentsViewContainer;
@@ -1373,7 +1373,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
     /**
      * Creates a {@link TaskbarActivityContext} for the given display and adds it to the map.
      *
-     * @param dp        The {@link DeviceProfile} for the display.
+     * @param dp        The {@link deviceprofile} for the display.
      * @param displayId The ID of the display.
      */
     private @Nullable TaskbarActivityContext createTaskbarActivityContext(DeviceProfile dp,
@@ -1400,7 +1400,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
     }
 
     /**
-     * Creates a {@link DeviceProfile} for the given display and adds it to the map.
+     * Creates a {@link deviceprofile} for the given display and adds it to the map.
      *
      * @param displayId The ID of the display.
      */
@@ -1425,7 +1425,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
     }
 
     /**
-     * Gets a {@link DeviceProfile} for the given displayId.
+     * Gets a {@link deviceprofile} for the given displayId.
      *
      * @param displayId The ID of the display.
      */
@@ -1447,7 +1447,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
     }
 
     /**
-     * Removes the {@link DeviceProfile} associated with the given display ID from the map.
+     * Removes the {@link deviceprofile} associated with the given display ID from the map.
      *
      * @param displayId The ID of the display for which to remove the taskbar.
      */

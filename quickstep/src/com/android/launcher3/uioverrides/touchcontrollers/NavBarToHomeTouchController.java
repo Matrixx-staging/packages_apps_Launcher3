@@ -136,7 +136,7 @@ public class NavBarToHomeTouchController implements TouchController,
     }
 
     private float getShiftRange() {
-        return mLauncher.getDeviceProfile().heightPx;
+        return mLauncher.getDeviceProfile().getDeviceProperties().getHeightPx();
     }
 
     @Override

@@ -32,6 +32,7 @@ import static com.android.quickstep.util.ActiveGestureErrorDetector.GestureEvent
 import static com.android.quickstep.util.ActiveGestureErrorDetector.GestureEvent.QUICK_SWITCH_FROM_HOME_FAILED;
 import static com.android.quickstep.util.ActiveGestureErrorDetector.GestureEvent.QUICK_SWITCH_FROM_HOME_FALLBACK;
 import static com.android.quickstep.util.ActiveGestureErrorDetector.GestureEvent.RECENTS_ANIMATION_START_PENDING;
+import static com.android.quickstep.util.ActiveGestureErrorDetector.GestureEvent.RECENTS_ANIMATION_START_TIMEOUT;
 import static com.android.quickstep.util.ActiveGestureErrorDetector.GestureEvent.RECENT_TASKS_MISSING;
 import static com.android.quickstep.util.ActiveGestureErrorDetector.GestureEvent.SET_END_TARGET;
 import static com.android.quickstep.util.ActiveGestureErrorDetector.GestureEvent.START_RECENTS_ANIMATION;
@@ -201,12 +202,6 @@ public class ActiveGestureProtoLogProxy {
         ActiveGestureLog.INSTANCE.addLog("Null mRecentTasks", RECENT_TASKS_MISSING);
         if (!isProtoLogInitialized()) return;
         ProtoLog.d(ACTIVE_GESTURE_LOG, "Null mRecentTasks");
-    }
-
-    public static void logExecuteHomeCommand() {
-        ActiveGestureLog.INSTANCE.addLog("OverviewCommandHelper.executeCommand(HOME)");
-        if (!isProtoLogInitialized()) return;
-        ProtoLog.d(ACTIVE_GESTURE_LOG, "OverviewCommandHelper.executeCommand(HOME)");
     }
 
     public static void logFinishRecentsAnimationCallback() {
@@ -586,5 +581,14 @@ public class ActiveGestureProtoLogProxy {
         if (!isProtoLogInitialized()) return;
         ProtoLog.d(ACTIVE_GESTURE_LOG, "Launcher destroyed while mRecentsAnimationStartPending =="
                 + " true, queuing a callback to clean the pending animation up on start");
+    }
+
+    public static void logRecentsAnimationStartTimedOut() {
+        ActiveGestureLog.INSTANCE.addLog("Recents animation start has timed out; forcefully "
+                        + "cleaning up the recents animation.",
+                /* gestureEvent= */ RECENTS_ANIMATION_START_TIMEOUT);
+        if (!isProtoLogInitialized()) return;
+        ProtoLog.d(ACTIVE_GESTURE_LOG, "Recents animation start has timed out; forcefully "
+                + "cleaning up the recents animation.");
     }
 }

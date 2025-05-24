@@ -33,11 +33,11 @@ import android.view.ViewTreeObserver;
 import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.BaseActivity;
-import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.statemanager.StateManager.StateHandler;
 import com.android.launcher3.states.StateAnimationConfig;
+import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.quickstep.util.BaseDepthController;
 
 import java.io.PrintWriter;
@@ -64,8 +64,8 @@ public class DepthController extends BaseDepthController implements StateHandler
     // via {@link View#post(Runnable)}
     private boolean mIsOnDrawListenerAdded = false;
 
-    public DepthController(Launcher l) {
-        super(l);
+    public DepthController(QuickstepLauncher launcher) {
+        super(launcher);
     }
 
     private void onLauncherDraw() {

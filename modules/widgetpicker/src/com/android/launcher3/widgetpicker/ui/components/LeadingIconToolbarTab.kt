@@ -24,11 +24,11 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -70,9 +70,13 @@ fun LeadingIconToolbarTab(
 
     Row(
         modifier =
-            Modifier.fillMaxWidth()
+            Modifier
+                .fillMaxWidth()
                 .clip(CircleShape)
-                .clickable { onClick() }
+                .selectable(
+                    selected = selected,
+                    onClick = onClick
+                )
                 .background(color = backgroundColor)
                 .minimumInteractiveComponentSize()
                 .padding(horizontal = LeadingIconToolbarTabDefaults.horizontalPadding),

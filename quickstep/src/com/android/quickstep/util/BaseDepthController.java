@@ -37,12 +37,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
+import com.android.app.animation.Interpolators;
 import com.android.launcher3.Flags;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.statemanager.StateManager;
+import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.MultiPropertyFactory;
 import com.android.launcher3.util.MultiPropertyFactory.MultiProperty;
 import com.android.systemui.shared.system.BlurUtils;
@@ -75,7 +77,7 @@ public class BaseDepthController {
     // b/291401432
     private static final String TAG = "BaseDepthController";
 
-    protected final Launcher mLauncher;
+    protected final QuickstepLauncher mLauncher;
     /** Property to set the depth for state transition. */
     public final MultiProperty stateDepth;
     /** Property to set the depth for widget picker. */
@@ -106,9 +108,6 @@ public class BaseDepthController {
     /** Pause blur but allow transparent, can be used when launch something behind the Launcher. */
     protected boolean mPauseBlurs;
 
-    // Combination of mCrossWindowBlursEnabled, Launcher's ScrimView opacity, and mPauseBlurs.
-    private boolean mBlursEnabled;
-
     /**
      * Last blur value, in pixels, that was applied.
      */
@@ -126,12 +125,11 @@ public class BaseDepthController {
      */
     private EarlyWakeupInfo mEarlyWakeupInfo = new EarlyWakeupInfo();
 
-    public BaseDepthController(Launcher activity) {
+    public BaseDepthController(QuickstepLauncher activity) {
         mLauncher = activity;
         if (Flags.allAppsBlur() || enableOverviewBackgroundWallpaperBlur()) {
             mCrossWindowBlursEnabled =
                     CrossWindowBlurListeners.getInstance().isCrossWindowBlurEnabled();
-            mBlursEnabled = calculateBlursEnabled();
             mMaxBlurRadius = activity.getResources().getDimensionPixelSize(
                     R.dimen.max_depth_blur_radius_enhanced);
         } else {
@@ -147,12 +145,21 @@ public class BaseDepthController {
         mEarlyWakeupInfo.trace = BaseDepthController.class.getName();
     }
 
+    /**
+     * Returns if cross window blurs are enabled. In other words, whether launcher should use blurs
+     * style UI or fallback style UI.
+     */
+    public boolean isCrossWindowBlursEnabled() {
+        return mCrossWindowBlursEnabled;
+    }
+
     protected void setCrossWindowBlursEnabled(boolean isEnabled) {
         if (mCrossWindowBlursEnabled == isEnabled) {
             return;
         }
         mCrossWindowBlursEnabled = isEnabled;
-        onBlurChange();
+        mLauncher.updateBlurStyle();
+        applyDepthAndBlur();
     }
 
     public void setHasContentBehindLauncher(boolean hasContentBehindLauncher) {
@@ -164,25 +171,7 @@ public class BaseDepthController {
             return;
         }
         mPauseBlurs = pause;
-        onBlurChange();
-    }
-
-    protected final void onBlurChange() {
-        boolean blursEnabled = calculateBlursEnabled();
-        if (mBlursEnabled == blursEnabled) {
-            return;
-        }
-        mBlursEnabled = blursEnabled;
-        mLauncher.updateBlurStyle();
         applyDepthAndBlur();
-    }
-
-    /**
-     * @return {@code true} if cross window blurs are enabled, the scrim is translucent, and blurs
-     * are not currently paused. In other words, whether depth changes will also apply blur.
-     */
-    public boolean areBlursEnabled() {
-        return mBlursEnabled;
     }
 
     protected void onInvalidSurface() { }
@@ -248,9 +237,11 @@ public class BaseDepthController {
                         : mBaseSurface;
 
         int previousBlur = mCurrentBlur;
-        int newBlur = mBlursEnabled && !hasOpaqueBg ? (int) (blurAmount * mMaxBlurRadius) : 0;
+        int newBlur = mCrossWindowBlursEnabled && !hasOpaqueBg && !mPauseBlurs ? (int) (blurAmount
+                * mMaxBlurRadius) : 0;
         int delta = Math.abs(newBlur - previousBlur);
-        if (skipSimilarBlur && delta < Utilities.dpToPx(1) && newBlur != 0 && previousBlur != 0) {
+        if (skipSimilarBlur && delta < Utilities.dpToPx(1) && newBlur != 0 && previousBlur != 0
+                && blurAmount != 1f) {
             Log.d(TAG, "Skipping small blur delta. newBlur: " + newBlur + " previousBlur: "
                     + previousBlur + " delta: " + delta + " surface: " + blurSurface);
             return;
@@ -265,7 +256,7 @@ public class BaseDepthController {
                     .setOpaque(blurSurface, isSurfaceOpaque);
             // Set early wake-up flags when we know we're executing an expensive operation, this way
             // SurfaceFlinger will adjust its internal offsets to avoid jank.
-            boolean wantsEarlyWakeUp = depth > 0 && depth < 1;
+            boolean wantsEarlyWakeUp = blurAmount > 0 && blurAmount < 1;
             if (wantsEarlyWakeUp && !mInEarlyWakeUp) {
                 setEarlyWakeup(finalTransaction, true);
             } else if (!wantsEarlyWakeUp && mInEarlyWakeUp) {
@@ -311,6 +302,7 @@ public class BaseDepthController {
         if (mInEarlyWakeUp == start) {
             return;
         }
+        Log.d(TAG, "setEarlyWakeup: " + start);
         if (start) {
             Trace.instantForTrack(TRACE_TAG_APP, TAG, "notifyRendererForGpuLoadUp");
             mLauncher.getRootView().getViewRootImpl().notifyRendererForGpuLoadUp("applyBlur");
@@ -331,19 +323,28 @@ public class BaseDepthController {
         // Only blur workspace if the current state wants to blur based on the target state.
         boolean shouldBlurWorkspace =
                 stateManager.getCurrentStableState().shouldBlurWorkspace(stateManager.getState());
-        // If blur is not desired, apply 0 blur to force reset.
-        int blurRadius = shouldBlurWorkspace ? mCurrentBlur : 0;
-        RenderEffect blurEffect =
-                RenderEffect.createBlurEffect(blurRadius, blurRadius, Shader.TileMode.DECAL);
+        RenderEffect blurEffect = shouldBlurWorkspace && mCurrentBlur > 0
+                ? RenderEffect.createBlurEffect(mCurrentBlur, mCurrentBlur, Shader.TileMode.DECAL)
+                // If blur is not desired, clear the blur effect from the depth targets.
+                : null;
         mLauncher.getDepthBlurTargets().forEach(target -> target.setRenderEffect(blurEffect));
         return shouldBlurWorkspace;
     }
 
     private void setDepth(float depth) {
         depth = Utilities.boundToRange(depth, 0, 1);
-        // Round out the depth to dedupe frequent, non-perceptable updates
-        int depthI = (int) (depth * 256);
-        float depthF = depthI / 256f;
+        // Depth of the Launcher state we are in or transitioning to.
+        float targetStateDepth = mLauncher.getStateManager().getState().getDepth(mLauncher);
+
+        float depthF;
+        if (depth == targetStateDepth) {
+            // Always apply the target state depth.
+            depthF = depth;
+        } else {
+            // Round out the depth to dedupe frequent, non-perceptable updates
+            int depthI = (int) (depth * 256);
+            depthF = depthI / 256f;
+        }
         if (Float.compare(mDepth, depthF) == 0) {
             return;
         }
@@ -416,14 +417,10 @@ public class BaseDepthController {
      * The blur percentage grows linearly with depth, and maxes out at 30% depth.
      */
     private static float mapDepthToBlur(float depth) {
-        return Math.min(3 * depth, 1f);
+        return Interpolators.clampToProgress(depth, 0, 0.3f);
     }
 
     private SurfaceControl.Transaction createTransaction() {
         return new SurfaceControl.Transaction();
-    }
-
-    private Boolean calculateBlursEnabled() {
-        return mCrossWindowBlursEnabled && !mPauseBlurs;
     }
 }

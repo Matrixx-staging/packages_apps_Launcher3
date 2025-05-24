@@ -74,7 +74,7 @@ public final class LauncherActivityInterface extends
         calculateTaskSize(context, dp, outRect, orientationHandler);
         if (dp.isVerticalBarLayout()
                 && DisplayController.getNavigationMode(context) != NavigationMode.NO_BUTTON) {
-            return dp.isSeascape() ? outRect.left : (dp.widthPx - outRect.right);
+            return dp.isSeascape() ? outRect.left : (dp.getDeviceProperties().getWidthPx() - outRect.right);
         } else {
             return LayoutUtils.getShelfTrackingDistance(context, dp, orientationHandler, this);
         }

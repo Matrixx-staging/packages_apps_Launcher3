@@ -19,6 +19,7 @@ package com.android.quickstep.actioncorner
 import android.app.ActivityOptions
 import android.content.Context
 import android.window.SplashScreen
+import com.android.launcher3.Flags.enableReversibleHomeActionCorner
 import com.android.launcher3.concurrent.annotations.LightweightBackground
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.util.ActivityOptionsWrapper
@@ -73,7 +74,12 @@ constructor(
         when (action) {
             // TODO(b/410798748): handle projected mode when launching overview
             OVERVIEW -> overviewCommandHelper.addCommandsForAllDisplays(TOGGLE_OVERVIEW_PREVIOUS)
-            HOME -> handleHomeAction(displayId)
+            HOME ->
+                if (enableReversibleHomeActionCorner()) {
+                    handleHomeAction(displayId)
+                } else {
+                    overviewCommandHelper.addCommand(CommandType.HOME, displayId)
+                }
             else -> {}
         }
     }
@@ -94,7 +100,7 @@ constructor(
                 overviewCommandHelper.addCommand(CommandType.HOME, displayId)
             }
         } else {
-            // TODO: handle desktop task
+            // TODO(b/416664984): handle reversible home action for desktop mode
         }
     }
 

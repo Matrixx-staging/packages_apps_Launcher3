@@ -1052,7 +1052,7 @@ public class CellLayout extends ViewGroup {
     /**
      * Returns the amount of space left over after subtracting padding and cells. This space will be
      * very small, a few pixels at most, and is a result of rounding down when calculating the cell
-     * width in {@link DeviceProfile#calculateCellWidth(int, int, int)}.
+     * width in {@link deviceprofile#calculateCellWidth(int, int, int)}.
      */
     public int getUnusedHorizontalSpace() {
         return getMeasuredWidth() - getPaddingLeft() - getPaddingRight() - (mCountX * mCellWidth)

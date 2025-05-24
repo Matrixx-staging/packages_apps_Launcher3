@@ -68,7 +68,8 @@ class TaskbarStashViaTouchController(val controllers: TaskbarControllers) : Touc
                 ResourceUtils.NAVBAR_BOTTOM_GESTURE_SIZE,
                 activity.resources,
             )
-        gestureHeightYThreshold = (activity.deviceProfile.heightPx - gestureHeight).toFloat()
+        gestureHeightYThreshold =
+            (activity.deviceProfile.deviceProperties.heightPx - gestureHeight).toFloat()
     }
 
     private fun createSwipeListener() =

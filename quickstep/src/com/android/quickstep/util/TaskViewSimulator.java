@@ -152,7 +152,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
         mLayoutValid = false;
         mOrientationState.setDeviceProfile(dp);
         if (enableGridOnlyOverview()) {
-            mIsGridTask = dp.isTablet && !mIsDesktopTask;
+            mIsGridTask = dp.getDeviceProperties().isTablet() && !mIsDesktopTask;
         }
         calculateTaskSize();
     }
@@ -325,7 +325,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
     public void addAppToCarouselAnim(PendingAnimation pa, Interpolator interpolator,
             boolean isHandlingAtomicEvent) {
         pa.addFloat(fullScreenProgress, AnimatedFloat.VALUE, 1, 0, interpolator);
-        if (enableGridOnlyOverview() && mDp.isTablet && !isHandlingAtomicEvent) {
+        if (enableGridOnlyOverview() && mDp.getDeviceProperties().isTablet() && !isHandlingAtomicEvent) {
             mIsAnimatingToCarousel = true;
             carouselScale.value = mCarouselTaskSize.width() / (float) mFullTaskSize.width();
         }
@@ -357,7 +357,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
     public RectF getCurrentRect() {
         RectF result = getCurrentCropRect();
         mMatrixTmp.set(mMatrix);
-        preDisplayRotation(mOrientationState.getDisplayRotation(), mDp.widthPx, mDp.heightPx,
+        preDisplayRotation(mOrientationState.getDisplayRotation(), mDp.getDeviceProperties().getWidthPx(), mDp.getDeviceProperties().getHeightPx(),
                 mMatrixTmp);
         mMatrixTmp.mapRect(result);
         return result;
@@ -411,11 +411,11 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
      * window coordinate space.
      */
     public void applyWindowToHomeRotation(Matrix matrix) {
-        matrix.postTranslate(mDp.windowX, mDp.windowY);
+        matrix.postTranslate(mDp.getDeviceProperties().getWindowX(), mDp.getDeviceProperties().getWindowY());
         postDisplayRotation(deltaRotation(
                         mOrientationState.getRecentsActivityRotation(),
                         mOrientationState.getDisplayRotation()),
-                mDp.widthPx, mDp.heightPx, matrix);
+                mDp.getDeviceProperties().getWidthPx(), mDp.getDeviceProperties().getHeightPx(), matrix);
     }
 
     /**
@@ -450,7 +450,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
             boolean isRtlEnabled = !mIsRecentsRtl;
             mPositionHelper.updateThumbnailMatrix(
                     mThumbnailPosition, mThumbnailData, mTaskRect.width(), mTaskRect.height(),
-                    mDp.isTablet, mOrientationState.getRecentsActivityRotation(), isRtlEnabled);
+                    mDp.getDeviceProperties().isTablet(), mOrientationState.getRecentsActivityRotation(), isRtlEnabled);
             mPositionHelper.getMatrix().invert(mInversePositionMatrix);
             if (DEBUG) {
                 Log.d(TAG, " taskRect: " + mTaskRect);

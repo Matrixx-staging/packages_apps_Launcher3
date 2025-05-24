@@ -50,7 +50,6 @@ import android.os.UserManager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseArray;
-import android.view.ContextThemeWrapper;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -436,10 +435,21 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
 
     public boolean shouldContainerScroll(MotionEvent ev) {
         BaseDragLayer dragLayer = mActivityContext.getDragLayer();
-        // IF the MotionEvent is inside the search box or handle area, and the container keeps on
-        // receiving touch input, container should move down.
-        if (dragLayer.isEventOverView(mSearchContainer, ev)
-                || dragLayer.isEventOverView(mBottomSheetHandleArea, ev)) {
+        // If the MotionEvent is inside the search box, and the container keeps on receiving touch
+        // input, container should move down.
+        if (dragLayer.isEventOverView(mSearchContainer, ev)) {
+            // If the touch was on the edit text, container should move down ONLY when edit text is
+            // already at the top.
+            View editText = mSearchUiManager.getEditText();
+            if (editText != null && dragLayer.isEventOverView(editText, ev)) {
+                boolean canScrollUp = editText.canScrollVertically(-1);
+                return !canScrollUp;
+            }
+            return true;
+        }
+        // If the MotionEvent is inside the handle area, and the container keeps on receiving touch
+        // input, container should move down.
+        if (dragLayer.isEventOverView(mBottomSheetHandleArea, ev)) {
             return true;
         }
         AllAppsRecyclerView rv = getActiveRecyclerView();
@@ -780,9 +790,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
      * request {@link FloatingHeaderView} to update its maxTranslation for multiline search bar.
      */
     public void forceUpdateHeaderHeight(int offset) {
-        if (Flags.multilineSearchBar()) {
-            mHeader.updateSearchBarOffset(offset);
-        }
+        mHeader.updateSearchBarOffset(offset);
     }
 
     @Override
@@ -855,17 +863,6 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
 
     boolean isBackgroundBlurEnabled() {
         return Flags.allAppsBlur() && mActivityContext.isAllAppsBackgroundBlurEnabled();
-    }
-
-    /** Refresh the UI according to the current theme. */
-    public void onThemeChanged(ContextThemeWrapper contextThemeWrapper) {
-        updateHeaderScroll(getActiveRecyclerView().computeVerticalScrollOffset());
-        invalidateHeader();
-        forAllRecyclerViews(RecyclerView::invalidateItemDecorations);
-        getSearchUiManager().onThemeChanged();
-        getFloatingHeaderView().updateTheme(contextThemeWrapper);
-        mBottomSheetHandle.setBackground(contextThemeWrapper.getDrawable(
-                R.drawable.bg_rounded_corner_bottom_sheet_handle));
     }
 
     /**
@@ -1213,8 +1210,8 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         applyAdapterSideAndBottomPaddings(grid);
 
         MarginLayoutParams mlp = (MarginLayoutParams) getLayoutParams();
-        // Ignore left/right insets on bottom sheet because we are already centered in-screen.
-        if (grid.shouldShowAllAppsOnSheet()) {
+        // Ignore left/right insets on tablet because we are already centered in-screen.
+        if (grid.getDeviceProperties().isTablet()) {
             mlp.leftMargin = mlp.rightMargin = 0;
         } else {
             mlp.leftMargin = insets.left;
@@ -1464,13 +1461,16 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
 
         final float horizontalScaleOffset = (1 - scale) * panel.getWidth() / 2;
         final float verticalScaleOffset = (1 - scale) * (panel.getHeight() - getHeight() / 2);
+        // Left and right insets can be applied to this container, as well as the panel.
+        float left = getLeft() + panel.getLeft();
+        float right = left + panel.getWidth();
 
         final float topNoScale = panel.getTop() + translationY;
         final float topWithScale = topNoScale + verticalScaleOffset;
-        final float leftWithScale = panel.getLeft() + horizontalScaleOffset;
-        final float rightWithScale = panel.getRight() - horizontalScaleOffset;
+        final float leftWithScale = left + horizontalScaleOffset;
+        final float rightWithScale = right - horizontalScaleOffset;
         final float bottomWithOffset = panel.getBottom() + bottomOffsetPx;
-        // Draw full background panel for tablets.
+        // Draw full background panel if presenting on a sheet.
         int bottomSheetBackgroundColor = getBottomSheetBackgroundColor();
         float bottomSheetBackgroundAlpha = Color.alpha(bottomSheetBackgroundColor) / 255.0f;
         if (hasBottomSheet) {
@@ -1549,11 +1549,11 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
                 }
                 mHeaderPaint.setAlpha((int) tabAlpha);
             }
-            float left = 0f;
-            float right = canvas.getWidth();
+            left = 0f;
+            right = canvas.getWidth();
             if (hasBottomSheet) {
-                left = mBottomSheetBackground.getLeft() + horizontalScaleOffset;
-                right = mBottomSheetBackground.getRight() - horizontalScaleOffset;
+                left = leftWithScale;
+                right = rightWithScale;
             }
 
             final float tabTopWithScale = hasBottomSheet

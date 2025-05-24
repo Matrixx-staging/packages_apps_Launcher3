@@ -74,7 +74,7 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
             }
 
             case TestProtocol.REQUEST_BACKGROUND_TO_OVERVIEW_SWIPE_HEIGHT: {
-                final float swipeHeight = mDeviceProfile.heightPx / 2f;
+                final float swipeHeight = mDeviceProfile.getDeviceProperties().getHeightPx() / 2f;
                 response.putInt(TestProtocol.TEST_INFO_RESPONSE_FIELD, (int) swipeHeight);
                 return response;
             }
@@ -224,6 +224,21 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
                 final Resources resources = mContext.getResources();
                 response.putInt(TestProtocol.TEST_INFO_RESPONSE_FIELD,
                         resources.getDimensionPixelSize(R.dimen.task_dismiss_detach_threshold));
+                return response;
+            }
+
+            case TestProtocol.REQUEST_TASKBAR_ACTION_CORNER_PADDING: {
+                final Resources resources = mContext.getResources();
+                response.putInt(TestProtocol.TEST_INFO_RESPONSE_FIELD,
+                        resources.getDimensionPixelSize(
+                                R.dimen.transient_taskbar_action_corner_padding));
+                return response;
+            }
+            case TestProtocol.REQUEST_TASKBAR_UNSTASHED_INPUT_AREA: {
+                final Resources resources = mContext.getResources();
+                response.putInt(TestProtocol.TEST_INFO_RESPONSE_FIELD,
+                        resources.getDimensionPixelSize(
+                                R.dimen.taskbar_unstash_input_area));
                 return response;
             }
         }

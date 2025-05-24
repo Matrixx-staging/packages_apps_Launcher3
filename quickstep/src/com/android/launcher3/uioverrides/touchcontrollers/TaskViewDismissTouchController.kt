@@ -46,6 +46,7 @@ import com.android.mechanics.spec.MotionSpec
 import com.android.mechanics.spring.SpringParameters
 import com.android.mechanics.view.DistanceGestureContext
 import com.android.mechanics.view.ViewMotionValue
+import com.android.quickstep.views.RecentsDismissUtils
 import com.android.quickstep.views.RecentsView
 import com.android.quickstep.views.RecentsView.RECENTS_SCALE_PROPERTY
 import com.android.quickstep.views.RecentsViewContainer
@@ -86,14 +87,14 @@ CONTAINER : StatefulContainer<T> {
 
     private var taskBeingDragged: TaskView? = null
     private var taskDragDisplacementValue: ViewMotionValue? = null
-    private var springAnimation: SpringAnimation? = null
+    private var springAnimation: RecentsDismissUtils.SpringSet? = null
     private var dismissLength: Int = 0
     private var verticalFactor: Int = 0
     private var hasDismissThresholdHapticRun = false
     private var initialDisplacement: Float = 0f
     private var recentsScaleAnimation: SpringAnimation? = null
-    private var isBlockedDuringDismissal = false
     private var canInterceptTouch = false
+    private var isDismissing = false
 
     init {
         container.getStateManager().addStateListener(stateListener)
@@ -142,9 +143,9 @@ CONTAINER : StatefulContainer<T> {
         }
 
     override fun onControllerInterceptTouchEvent(ev: MotionEvent): Boolean {
-        if (isBlockedDuringDismissal) {
-            return true
-        }
+        // On consecutive events, end animation early so user can dismiss next task.
+        springAnimation?.speedUpSpringsToEnd()
+
         if ((ev.action == MotionEvent.ACTION_UP || ev.action == MotionEvent.ACTION_CANCEL)) {
             clearState()
         }
@@ -169,45 +170,64 @@ CONTAINER : StatefulContainer<T> {
     override fun onControllerTouchEvent(ev: MotionEvent?): Boolean = detector.onTouchEvent(ev)
 
     private fun onActionDown(ev: MotionEvent): Boolean {
-        springAnimation?.cancel()
-        recentsScaleAnimation?.cancel()
         if (!canInterceptTouch(ev)) {
             return false
         }
         taskBeingDragged =
-            recentsView.taskViews
-                .firstOrNull {
-                    recentsView.isTaskViewVisible(it) && container.dragLayer.isEventOverView(it, ev)
-                }
-                ?.also {
-                    val secondaryLayerDimension =
-                        recentsView.pagedOrientationHandler.getSecondaryDimension(
-                            container.dragLayer
+            recentsView.taskViews.firstOrNull {
+                recentsView.isTaskViewVisible(it) && container.dragLayer.isEventOverView(it, ev)
+            }
+                // If event is not over a taskView, check if it would have been either over the
+                // currently dismissing task being dragged, or over where the next task will be.
+                ?: recentsView.taskViews.firstOrNull { taskView ->
+                    if (!recentsView.isTaskViewVisible(taskView)) return@firstOrNull false
+                    container.dragLayer.getDescendantRectRelativeToSelf(
+                        taskView,
+                        tempTaskThumbnailBounds,
+                    )
+                    if (taskView == taskBeingDragged && !isDismissing) {
+                        val secondaryTranslation =
+                            -taskView.secondaryDismissTranslationProperty.get(taskView).toInt()
+                        recentsView.pagedOrientationHandler.extendRectForSecondaryTranslation(
+                            tempTaskThumbnailBounds,
+                            secondaryTranslation,
                         )
-                    // Dismiss length as bottom of task so it is fully off screen when dismissed.
-                    // Take into account the recents scale when fully zoomed out on dismiss.
-                    it.getThumbnailBounds(tempTaskThumbnailBounds, relativeToDragLayer = true)
-                    dismissLength =
-                        ceil(
-                                recentsView.pagedOrientationHandler.getTaskDismissLength(
-                                    secondaryLayerDimension,
-                                    tempTaskThumbnailBounds,
-                                ) / RECENTS_SCALE_ON_DISMISS_SUCCESS
-                            )
-                            .toInt()
-                    verticalFactor =
-                        recentsView.pagedOrientationHandler.getTaskDismissVerticalDirection()
+                    } else {
+                        val primaryTranslation =
+                            recentsView.taskViewsDismissPrimaryTranslations[taskView] ?: 0
+                        recentsView.pagedOrientationHandler.extendRectForPrimaryTranslation(
+                            tempTaskThumbnailBounds,
+                            primaryTranslation,
+                        )
+                    }
+                    tempTaskThumbnailBounds.contains(ev.x.toInt(), ev.y.toInt())
                 }
+
         if (taskBeingDragged == null) {
             debugLog(TAG, "Not intercepting touch, null dragged task.")
             return false
         }
+        val secondaryLayerDimension =
+            recentsView.pagedOrientationHandler.getSecondaryDimension(container.dragLayer)
+        // Dismiss length as bottom of task so it is fully off screen when dismissed.
+        // Take into account the recents scale when fully zoomed out on dismiss.
+        taskBeingDragged?.getThumbnailBounds(tempTaskThumbnailBounds, relativeToDragLayer = true)
+        dismissLength =
+            ceil(
+                    recentsView.pagedOrientationHandler.getTaskDismissLength(
+                        secondaryLayerDimension,
+                        tempTaskThumbnailBounds,
+                    ) / RECENTS_SCALE_ON_DISMISS_SUCCESS
+                )
+                .toInt()
+        verticalFactor = recentsView.pagedOrientationHandler.getTaskDismissVerticalDirection()
+        taskBeingDragged?.isBeingDraggedForDismissal = true
+
         detector.setDetectableScrollConditions(upDirection, /* ignoreSlop= */ false)
         return true
     }
 
     override fun onDragStart(start: Boolean, startDisplacement: Float) {
-        if (isBlockedDuringDismissal) return
         val taskBeingDragged = taskBeingDragged ?: return
         debugLog(TAG, "Handling touch event.")
 
@@ -239,7 +259,6 @@ CONTAINER : StatefulContainer<T> {
     }
 
     override fun onDrag(displacement: Float): Boolean {
-        if (isBlockedDuringDismissal) return true
         taskBeingDragged ?: return false
         val currentDisplacement = displacement + initialDisplacement
         val boundedDisplacement =
@@ -286,9 +305,9 @@ CONTAINER : StatefulContainer<T> {
     }
 
     override fun onDragEnd(velocity: Float) {
-        if (isBlockedDuringDismissal) return
         val taskBeingDragged = taskBeingDragged ?: return
         taskDragDisplacementValue?.dispose()
+        taskBeingDragged.isBeingDraggedForDismissal = false
 
         val currentDisplacement =
             taskBeingDragged.secondaryDismissTranslationProperty.get(taskBeingDragged)
@@ -297,23 +316,23 @@ CONTAINER : StatefulContainer<T> {
         val velocityIsGoingUp = recentsView.pagedOrientationHandler.isGoingUp(velocity, isRtl)
         val isFlingingTowardsDismiss = detector.isFling(velocity) && velocityIsGoingUp
         val isFlingingTowardsRestState = detector.isFling(velocity) && !velocityIsGoingUp
-        val isDismissing =
+        isDismissing =
             isFlingingTowardsDismiss || (isBeyondDismissThreshold && !isFlingingTowardsRestState)
         val dismissThreshold = (DISMISS_THRESHOLD_FRACTION * dismissLength * verticalFactor).toInt()
         val finalPosition = if (isDismissing) (dismissLength * verticalFactor).toFloat() else 0f
         springAnimation =
             recentsView.runTaskDismissSettlingSpringAnimation(
                 taskBeingDragged,
-                velocity,
                 isDismissing,
-                dismissLength,
-                dismissThreshold,
-                finalPosition,
+                RecentsDismissUtils.DismissedTaskData(
+                    startVelocity = velocity,
+                    dismissLength = dismissLength,
+                    finalPosition = finalPosition,
+                    dismissThreshold = dismissThreshold,
+                ),
                 /* shouldRemoveTaskView= */ isDismissing,
                 /* isSplitSelection= */ false,
-                this::clearState,
             )
-        isBlockedDuringDismissal = true
         recentsScaleAnimation =
             recentsView.animateRecentsScale(RECENTS_SCALE_DEFAULT).addEndListener { _, _, _, _ ->
                 recentsScaleAnimation = null
@@ -323,11 +342,11 @@ CONTAINER : StatefulContainer<T> {
     private fun clearState() {
         detector.finishedScrolling()
         detector.setDetectableScrollConditions(0, false)
-        taskBeingDragged?.translationZ = 0f
+        taskBeingDragged?.resetViewTransforms()
         taskBeingDragged = null
         springAnimation = null
         taskDragDisplacementValue = null
-        isBlockedDuringDismissal = false
+        isDismissing = false
     }
 
     private fun getRecentsScale(dismissFraction: Float): Float {

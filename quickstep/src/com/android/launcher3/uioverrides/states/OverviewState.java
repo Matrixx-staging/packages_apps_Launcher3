@@ -82,7 +82,7 @@ public class OverviewState extends LauncherState {
         recentsView.getTaskSize(sTempRect);
         float scale;
         DeviceProfile deviceProfile = launcher.getDeviceProfile();
-        if (deviceProfile.isTwoPanels) {
+        if (deviceProfile.getDeviceProperties().isTwoPanels()) {
             // In two panel layout, width does not include both panels or space between them, so
             // use height instead. We do not use height for handheld, as cell layout can be
             // shorter than a task and we want the workspace to scale down to task size.
@@ -114,9 +114,9 @@ public class OverviewState extends LauncherState {
         int elements = CLEAR_ALL_BUTTON | OVERVIEW_ACTIONS | ADD_DESK_BUTTON;
         DeviceProfile dp = launcher.getDeviceProfile();
         boolean showFloatingSearch;
-        if (dp.isPhone) {
+        if (dp.getDeviceProperties().isPhone()) {
             // Only show search in phone overview in portrait mode.
-            showFloatingSearch = !dp.isLandscape;
+            showFloatingSearch = !dp.getDeviceProperties().isLandscape();
         } else {
             // Only show search in tablet overview if taskbar is not visible.
             showFloatingSearch = !dp.isTaskbarPresent || isTaskbarStashed(launcher);
@@ -148,7 +148,7 @@ public class OverviewState extends LauncherState {
     @Override
     public boolean shouldFloatingSearchBarUsePillWhenUnfocused(Launcher launcher) {
         DeviceProfile dp = launcher.getDeviceProfile();
-        return dp.isPhone && !dp.isLandscape;
+        return dp.getDeviceProperties().isPhone() && !dp.getDeviceProperties().isLandscape();
     }
 
     @Override
@@ -163,7 +163,7 @@ public class OverviewState extends LauncherState {
 
     @Override
     public boolean displayOverviewTasksAsGrid(DeviceProfile deviceProfile) {
-        return deviceProfile.isTablet;
+        return deviceProfile.getDeviceProperties().isTablet();
     }
 
     @Override

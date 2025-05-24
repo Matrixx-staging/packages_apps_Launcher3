@@ -21,7 +21,7 @@
     <dimen name="task_corner_radius_override">-1dp</dimen>
 
     <!--  Task Menu View  -->
-    <dimen name="task_menu_corner_radius">22dp</dimen>
+    <dimen name="task_menu_corner_radius">26dp</dimen>
     <dimen name="task_menu_item_corner_radius">4dp</dimen>
     <dimen name="task_menu_spacing">2dp</dimen>
     <dimen name="task_menu_width_grid">216dp</dimen>
@@ -83,6 +83,7 @@
     <!--  The size of the icon menu's icon touch target  -->
     <dimen name="task_thumbnail_icon_menu_drawable_touch_size">44dp</dimen>
     <dimen name="task_thumbnail_icon_menu_elevation">4dp</dimen>
+    <dimen name="app_chip_round_corner_radius">28dp</dimen>
     <!--  The size of the text fading horizontally -->
     <dimen name="task_thumbnail_icon_menu_text_fading_size">20dp</dimen>
     <!--  The size of the task thumbnail header  -->
@@ -122,6 +123,9 @@
     <dimen name="add_desktop_button_size">56dp</dimen>
     <dimen name="add_desktop_button_outline_padding">2dp</dimen>
 
+    <!-- Recents App Chip -->
+    <dimen name="app_chip_keyboard_border_width">3dp</dimen>
+
     <!-- The speed in dp/s at which the user needs to be scrolling in recents such that we start
              loading full resolution screenshots. -->
     <dimen name="recents_fast_fling_velocity">600dp</dimen>
@@ -141,7 +145,7 @@
 
     <dimen name="quick_switch_scaling_scroll_threshold">100dp</dimen>
 
-    <dimen name="recents_empty_message_text_size">16sp</dimen>
+    <dimen name="recents_empty_message_text_size">14sp</dimen>
     <dimen name="recents_empty_message_text_padding">16dp</dimen>
 
     <dimen name="max_shadow_radius">0dp</dimen>
@@ -202,6 +206,8 @@
     <dimen name="gesture_tutorial_menu_done_button_spacing">72dp</dimen>
     <dimen name="gesture_tutorial_done_button_bottom_margin">40dp</dimen>
     <dimen name="gesture_tutorial_done_button_end_margin">24dp</dimen>
+    <dimen name="gesture_tutorial_done_button_width">142dp</dimen>
+    <dimen name="gesture_tutorial_done_button_padding">16dp</dimen>
 
     <!-- Gesture Tutorial mock conversations -->
     <dimen name="gesture_tutorial_message_icon_size">44dp</dimen>
@@ -398,6 +404,7 @@
     <dimen name="transient_taskbar_stashed_height">32dp</dimen>
     <dimen name="transient_taskbar_all_apps_button_translation_x_offset">8dp</dimen>
     <dimen name="transient_taskbar_stash_spring_velocity_dp_per_s">400dp</dimen>
+    <dimen name="transient_taskbar_action_corner_padding">48dp</dimen>
     <dimen name="taskbar_tooltip_vertical_padding">8dp</dimen>
     <dimen name="taskbar_tooltip_horizontal_padding">16dp</dimen>
     <dimen name="taskbar_tooltip_y_offset">4dp</dimen>
@@ -529,6 +536,7 @@
     <!-- Keyboard Quick Switch -->
     <dimen name="keyboard_quick_switch_border_width">5dp</dimen>
     <dimen name="keyboard_quick_switch_border_stroke">3dp</dimen>
+    <dimen name="keyboard_quick_switch_border_padding">2dp</dimen>
     <dimen name="keyboard_quick_switch_taskview_width">104dp</dimen>
     <dimen name="keyboard_quick_switch_taskview_height">136dp</dimen>
     <dimen name="keyboard_quick_switch_taskview_icon_size">52dp</dimen>

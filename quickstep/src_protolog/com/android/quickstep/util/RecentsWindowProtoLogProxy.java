@@ -54,6 +54,11 @@ public class RecentsWindowProtoLogProxy {
         ProtoLog.d(RECENTS_WINDOW, "onStateSetEnd: %s", stateName);
     }
 
+    public static void logOnRepeatStateSetAborted(@NonNull String stateName) {
+        if (!ENABLE_RECENTS_WINDOW_PROTO_LOG.isTrue() || !isProtoLogInitialized()) return;
+        ProtoLog.d(RECENTS_WINDOW, "onRepeatStateSetAborted: %s", stateName);
+    }
+
     public static void logStartRecentsWindow(boolean isShown, boolean windowViewIsNull) {
         if (!ENABLE_RECENTS_WINDOW_PROTO_LOG.isTrue() || !isProtoLogInitialized()) return;
         ProtoLog.d(RECENTS_WINDOW,

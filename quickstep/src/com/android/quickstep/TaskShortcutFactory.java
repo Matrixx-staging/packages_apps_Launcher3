@@ -294,11 +294,11 @@ public interface TaskShortcutFactory {
         }
     }
 
-    class CloseSystemShortcut extends SystemShortcut {
+    class RemoveTaskSystemShortcut extends SystemShortcut {
         private final TaskContainer mTaskContainer;
 
-        public CloseSystemShortcut(int iconResId, int textResId, RecentsViewContainer container,
-                TaskContainer taskContainer) {
+        public RemoveTaskSystemShortcut(int iconResId, int textResId,
+                RecentsViewContainer container, TaskContainer taskContainer) {
             super(iconResId, textResId, container, taskContainer.getTaskView().getFirstItemInfo(),
                     taskContainer.getTaskView());
             mTaskContainer = taskContainer;
@@ -342,7 +342,7 @@ public interface TaskShortcutFactory {
                     !deviceProfile.isTaskbarPresent && recentsView.getTaskViewCount() < 2;
             boolean isTaskSplitNotSupported = !task.isDockable ||
                     (intentFlags & FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS) != 0;
-            boolean hideForExistingMultiWindow = container.getDeviceProfile().isMultiWindowMode;
+            boolean hideForExistingMultiWindow = container.getDeviceProfile().getDeviceProperties().isMultiWindowMode();
 
             if (notEnoughTasksToSplit || isTaskSplitNotSupported || hideForExistingMultiWindow) {
                 return null;
@@ -365,7 +365,7 @@ public interface TaskShortcutFactory {
             DeviceProfile deviceProfile = container.getDeviceProfile();
             final TaskView taskView = taskContainer.getTaskView();
             final RecentsView recentsView = taskView.getRecentsView();
-            boolean isLargeTile = deviceProfile.isTablet && taskView.isLargeTile();
+            boolean isLargeTile = deviceProfile.getDeviceProperties().isTablet() && taskView.isLargeTile();
             boolean isInExpectedScrollPosition =
                     recentsView.isTaskInExpectedScrollPosition(taskView);
             boolean shouldShowActionsButtonInstead =
@@ -521,7 +521,7 @@ public interface TaskShortcutFactory {
             // Modal only works with grid size tiles with enableGridOnlyOverview enabled on
             // tablets / foldables. With enableGridOnlyOverview off, for large tiles it works,
             // but the tile needs to be in the center of Recents / Overview.
-            boolean isTablet = container.getDeviceProfile().isTablet;
+            boolean isTablet = container.getDeviceProfile().getDeviceProperties().isTablet();
             RecentsView recentsView = container.getOverviewPanel();
             boolean isLargeTileInCenterOfOverview = taskContainer.getTaskView().isLargeTile()
                     && recentsView.isFocusedTaskInExpectedScrollPosition();
@@ -548,13 +548,13 @@ public interface TaskShortcutFactory {
         }
     };
 
-    TaskShortcutFactory CLOSE = new TaskShortcutFactory() {
+    TaskShortcutFactory REMOVE_TASK = new TaskShortcutFactory() {
         @Override
         public List<SystemShortcut> getShortcuts(RecentsViewContainer container,
                 TaskContainer taskContainer) {
-            return Collections.singletonList(new CloseSystemShortcut(
-                    R.drawable.ic_close_option,
-                    R.string.recent_task_option_close, container, taskContainer));
+            return Collections.singletonList(new RemoveTaskSystemShortcut(
+                    R.drawable.ic_remove_task_option,
+                    R.string.recent_task_option_remove_task, container, taskContainer));
         }
 
         @Override

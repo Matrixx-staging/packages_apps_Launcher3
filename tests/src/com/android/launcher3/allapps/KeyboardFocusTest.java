@@ -38,8 +38,8 @@ public class KeyboardFocusTest extends BaseLauncherActivityTest<Launcher> {
         getLauncherActivity().goToState(LauncherState.ALL_APPS);
         freezeAllApps();
 
-        injectKeyEvent(KeyEvent.KEYCODE_DPAD_DOWN, true);
-        injectKeyEvent(KeyEvent.KEYCODE_DPAD_DOWN, false);
+        getLauncherActivity().injectKeyEvent(KeyEvent.KEYCODE_DPAD_DOWN, true);
+        getLauncherActivity().injectKeyEvent(KeyEvent.KEYCODE_DPAD_DOWN, false);
         waitForLauncherCondition("No focused child", launcher ->
                 launcher.getAppsView().getActiveRecyclerView().getApps().getFocusedChild()
                         != null);
@@ -56,8 +56,8 @@ public class KeyboardFocusTest extends BaseLauncherActivityTest<Launcher> {
         waitForLauncherCondition("Search view does not have focus.",
                 launcher -> launcher.getAppsView().getSearchView().hasFocus());
 
-        injectKeyEvent(KeyEvent.KEYCODE_DPAD_DOWN, true);
-        injectKeyEvent(KeyEvent.KEYCODE_DPAD_DOWN, false);
+        getLauncherActivity().injectKeyEvent(KeyEvent.KEYCODE_DPAD_DOWN, true);
+        getLauncherActivity().injectKeyEvent(KeyEvent.KEYCODE_DPAD_DOWN, false);
         waitForLauncherCondition("No focused child", launcher ->
                 launcher.getAppsView().getActiveRecyclerView().getApps().getFocusedChild()
                         != null);
@@ -74,11 +74,11 @@ public class KeyboardFocusTest extends BaseLauncherActivityTest<Launcher> {
         waitForLauncherCondition("Search view does not have focus.",
                 launcher -> launcher.getAppsView().getSearchView().hasFocus());
 
-        injectKeyEvent(KeyEvent.KEYCODE_C, true);
+        getLauncherActivity().injectKeyEvent(KeyEvent.KEYCODE_C, true);
         waitForLauncherCondition("Search view not active.",
                 launcher -> launcher.getAppsView().getActiveRecyclerView()
                         instanceof SearchRecyclerView);
-        injectKeyEvent(KeyEvent.KEYCODE_C, false);
+        getLauncherActivity().injectKeyEvent(KeyEvent.KEYCODE_C, false);
 
         getLauncherActivity().executeOnLauncher(
                 launcher -> launcher.getAppsView().getSearchUiManager().getEditText()
@@ -86,8 +86,8 @@ public class KeyboardFocusTest extends BaseLauncherActivityTest<Launcher> {
         waitForLauncherCondition("Keyboard still visible.",
                 ActivityContext::isSoftwareKeyboardHidden);
 
-        injectKeyEvent(KeyEvent.KEYCODE_DPAD_DOWN, true);
-        injectKeyEvent(KeyEvent.KEYCODE_DPAD_DOWN, false);
+        getLauncherActivity().injectKeyEvent(KeyEvent.KEYCODE_DPAD_DOWN, true);
+        getLauncherActivity().injectKeyEvent(KeyEvent.KEYCODE_DPAD_DOWN, false);
         waitForLauncherCondition("No focused child", launcher ->
                 launcher.getAppsView().getActiveRecyclerView().getApps().getFocusedChild()
                         != null);

@@ -168,6 +168,12 @@ private object DragHandleDimens {
     val dragHandleWidth = 32.dp
 }
 
+/** Default values for the [TitledBottomSheet] component. */
+object TitledBottomSheetDefaults {
+    /** Animation duration for the bottom sheet to fully expand. */
+    const val SLIDE_IN_ANIMATION_DURATION: Long = 400L
+}
+
 /**
  * Describes how should the default height of the bottom sheet look like (excluding the insets such
  * as status bar).

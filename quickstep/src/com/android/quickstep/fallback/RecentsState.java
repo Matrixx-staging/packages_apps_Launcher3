@@ -178,7 +178,7 @@ public class RecentsState implements BaseState<RecentsState> {
      * For this state, whether tasks should layout as a grid rather than a list.
      */
     public boolean displayOverviewTasksAsGrid(DeviceProfile deviceProfile) {
-        return hasFlag(FLAG_SHOW_AS_GRID) && deviceProfile.isTablet;
+        return hasFlag(FLAG_SHOW_AS_GRID) && deviceProfile.getDeviceProperties().isTablet();
     }
 
     @Override

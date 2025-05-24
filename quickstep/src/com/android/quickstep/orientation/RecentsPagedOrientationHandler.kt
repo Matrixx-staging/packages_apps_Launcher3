@@ -357,6 +357,12 @@ interface RecentsPagedOrientationHandler : PagedOrientationHandler {
     /** @return the length to drag a task to full screen for launch. */
     fun getTaskLaunchLength(secondaryDimension: Int, taskThumbnailBounds: Rect): Int
 
+    /** Extends the provided rect to account for task dismiss primary translation. */
+    fun extendRectForPrimaryTranslation(rect: Rect, translation: Int)
+
+    /** Extends the provided rect to account for task dismiss secondary translation. */
+    fun extendRectForSecondaryTranslation(rect: Rect, translation: Int)
+
     /**
      * Maps the velocity from the coordinate plane of the foreground app to that of Launcher's
      * (which now will always be portrait)

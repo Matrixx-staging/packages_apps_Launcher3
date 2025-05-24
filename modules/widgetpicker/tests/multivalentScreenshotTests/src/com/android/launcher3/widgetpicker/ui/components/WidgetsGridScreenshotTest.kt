@@ -26,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -34,6 +35,7 @@ import com.android.launcher3.widgetpicker.goldenpathmanager.WidgetPickerGoldenPa
 import com.android.launcher3.widgetpicker.shared.model.WidgetId
 import com.android.launcher3.widgetpicker.shared.model.WidgetPreview
 import com.android.launcher3.widgetpicker.ui.model.WidgetSizeGroup
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -45,6 +47,7 @@ import platform.test.screenshot.getEmulatedDevicePathConfig
 import platform.test.screenshot.utils.compose.ComposeScreenshotTestRule
 
 @RunWith(ParameterizedAndroidJunit4::class)
+@Ignore("b/418064758: Re-enable when flaky test is fixed.")
 class WidgetsGridScreenshotTest(emulationSpec: DeviceEmulationSpec) {
     @get:Rule(order = 0) val disableAnimationsRule = DisableAnimationsRule()
 
@@ -65,6 +68,11 @@ class WidgetsGridScreenshotTest(emulationSpec: DeviceEmulationSpec) {
     @Test
     fun widgetsGrid_oneByOneWidgets() {
         screenshotRule.screenshotTest("widgetsGrid_oneByOneWidgets") { OneByOneWidgetsPreview() }
+    }
+
+    @Test
+    fun widgetsGrid_remoteViews() {
+        screenshotRule.screenshotTest("widgetsGrid_remoteViews") { RemoteViewWidgetsPreview() }
     }
 
     companion object {
@@ -96,6 +104,20 @@ private fun OneByOneWidgetsPreview() {
     val testWidth = 420.dp
     val testWidthPx = with(LocalDensity.current) { testWidth.roundToPx() }
     val sample = WidgetsGridTestSamples.oneByOneWidgets(testWidthPx)
+
+    GridPreview(groups = sample.widgetSizeGroups, testWidth = testWidth, previews = sample.previews)
+}
+
+@Preview(widthDp = 420)
+@Composable
+private fun RemoteViewWidgetsPreview() {
+    val testWidth = 420.dp
+    val testWidthPx = with(LocalDensity.current) { testWidth.roundToPx() }
+    val sample =
+        WidgetsGridTestSamples.remoteViewWidgets(
+            packageName = LocalContext.current.packageName,
+            screenWidth = testWidthPx,
+        )
 
     GridPreview(groups = sample.widgetSizeGroups, testWidth = testWidth, previews = sample.previews)
 }

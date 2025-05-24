@@ -68,6 +68,9 @@ public final class MenuFragment extends GestureSandboxFragment {
         TypefaceUtils.setTypeface(
                 root.findViewById(R.id.gesture_tutorial_menu_overview_button_text),
                 TypefaceUtils.FontFamily.GSF_DISPLAY_SMALL_EMPHASIZED);
+        TypefaceUtils.setTypeface(
+                root.findViewById(R.id.gesture_tutorial_menu_done_button),
+                TypefaceUtils.FontFamily.GSF_LABEL_LARGE);
 
         return root;
     }

@@ -32,8 +32,9 @@ package com.android.launcher3.widgetpicker.ui.components
  * limitations under the License.
  */
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -48,29 +49,40 @@ import com.android.launcher3.widgetpicker.ui.components.SinglePaneLayoutDimensio
  * A layout that shows all the widget picker content in a column like pane.
  *
  * @param searchBar A sticky search bar shown on top in the left pane.
- * @param toolbar an option toolbar shown at bottom of the screen that allows users to select what
- *   to see in the [content]
  * @param content the primary content e.g. widgets expand collapse list.
+ * @param bottomFloatingContent an option toolbar that floats at the bottom of the screen and
+ * allows users to choose what to see in the [content]
  */
 @Composable
 fun SinglePaneLayout(
     searchBar: @Composable () -> Unit,
-    toolbar: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit,
+    bottomFloatingContent: (@Composable () -> Unit)? = null,
 ) {
-    val topContent: @Composable ColumnScope.() -> Unit = {
-        Column(modifier = Modifier.fillMaxWidth().weight(1f)) {
+    val topContent: @Composable BoxScope.() -> Unit = {
+        Column(modifier = Modifier.fillMaxSize()) {
             searchBar()
-            Spacer(modifier = Modifier.fillMaxWidth().height(searchBarBottomMargin))
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(searchBarBottomMargin)
+            )
             content()
         }
     }
 
-    val bottomContent: @Composable ColumnScope.() -> Unit = { toolbar?.let { it() } }
+    val floatingContent: @Composable BoxScope.() -> Unit = {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter),
+            contentAlignment = Alignment.Center
+        ) { bottomFloatingContent?.let { it() } }
+    }
 
-    Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+    Box(modifier = Modifier.fillMaxSize()) {
         topContent()
-        bottomContent()
+        floatingContent()
     }
 }
 

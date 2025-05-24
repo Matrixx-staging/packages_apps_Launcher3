@@ -84,9 +84,9 @@ open class LandscapePagedViewHandler : RecentsPagedOrientationHandler {
     override fun fixBoundsForHomeAnimStartRect(outStartRect: RectF, deviceProfile: DeviceProfile) {
         // We don't need to check the "top" value here because the startRect is in the orientation
         // of the app, not of the fixed portrait launcher.
-        if (outStartRect.left > deviceProfile.heightPx) {
+        if (outStartRect.left > deviceProfile.deviceProperties.heightPx) {
             outStartRect.offsetTo(0f, outStartRect.top)
-        } else if (outStartRect.left < -deviceProfile.heightPx) {
+        } else if (outStartRect.left < -deviceProfile.deviceProperties.heightPx) {
             outStartRect.offsetTo(0f, outStartRect.top)
         }
     }
@@ -338,6 +338,22 @@ open class LandscapePagedViewHandler : RecentsPagedOrientationHandler {
     override fun getTaskLaunchLength(secondaryDimension: Int, taskThumbnailBounds: Rect): Int =
         taskThumbnailBounds.left
 
+    override fun extendRectForPrimaryTranslation(rect: Rect, translation: Int) {
+        if (translation < 0) {
+            rect.top += translation
+        } else {
+            rect.bottom += translation
+        }
+    }
+
+    override fun extendRectForSecondaryTranslation(rect: Rect, translation: Int) {
+        if (translation < 0) {
+            rect.left += translation
+        } else {
+            rect.right += translation
+        }
+    }
+
     /* -------------------- */
 
     override fun getChildBounds(
@@ -378,15 +394,15 @@ open class LandscapePagedViewHandler : RecentsPagedOrientationHandler {
     ) {
         // In fake land/seascape, the placeholder always needs to go to the "top" of the device,
         // which is the same bounds as 0 rotation.
-        val width = dp.widthPx
+        val width = dp.deviceProperties.widthPx
         val insetSizeAdjustment = getPlaceholderSizeAdjustment(dp)
         out.set(0, 0, width, placeholderHeight + insetSizeAdjustment)
         out.inset(placeholderInset, 0)
 
         // Adjust the top to account for content off screen. This will help to animate the view in
         // with rounded corners.
-        val screenWidth = dp.widthPx
-        val screenHeight = dp.heightPx
+        val screenWidth = dp.deviceProperties.widthPx
+        val screenHeight = dp.deviceProperties.heightPx
         val totalHeight =
             (1.0f * screenHeight / 2 * (screenWidth - 2 * placeholderInset) / screenWidth).toInt()
         out.top -= totalHeight - placeholderHeight
@@ -451,8 +467,8 @@ open class LandscapePagedViewHandler : RecentsPagedOrientationHandler {
         out2: Rect,
     ) {
         // In fake land/seascape, the window bounds are always top and bottom half
-        val screenHeight = dp.heightPx
-        val screenWidth = dp.widthPx
+        val screenHeight = dp.deviceProperties.heightPx
+        val screenWidth = dp.deviceProperties.widthPx
         out1.set(0, 0, screenWidth, screenHeight / 2 - splitDividerSize)
         out2.set(0, screenHeight / 2 + splitDividerSize, screenWidth, screenHeight)
     }

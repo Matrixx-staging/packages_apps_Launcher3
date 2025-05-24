@@ -138,7 +138,8 @@
     <string name="allow_rotation_title" msgid="7222049633713050106">"Дозволити обертання головного екрана"</string>
     <string name="allow_rotation_desc" msgid="8662546029078692509">"Коли телефон обертається"</string>
     <string name="landscape_mode_title" msgid="5138814555934843926">"Альбомна орієнтація"</string>
-    <string name="landscape_mode_desc" msgid="7372569859592816793">"Змінити орієнтацію екрана телефона на альбомну"</string>
+    <!-- no translation found for landscape_mode_desc (3085236452297838664) -->
+    <skip />
     <string name="notification_dots_title" msgid="9062440428204120317">"Значки сповіщень"</string>
     <string name="notification_dots_desc_on" msgid="1679848116452218908">"Увімкнено"</string>
     <string name="notification_dots_desc_off" msgid="1760796511504341095">"Вимкнено"</string>

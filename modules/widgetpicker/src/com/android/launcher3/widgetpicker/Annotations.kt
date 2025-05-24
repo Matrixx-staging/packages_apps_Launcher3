@@ -16,6 +16,7 @@
 
 package com.android.launcher3.widgetpicker
 
+import javax.inject.Qualifier
 import javax.inject.Scope
 
 /** Scope annotation for singleton items within the widget picker. */
@@ -23,3 +24,20 @@ import javax.inject.Scope
 @Retention(AnnotationRetention.RUNTIME)
 @Scope
 annotation class WidgetPickerSingleton
+
+/** Qualifier annotation for the background context used in interactors. */
+@Qualifier
+@MustBeDocumented
+@Retention(AnnotationRetention.RUNTIME)
+annotation class WidgetPickerBackground
+
+/** Qualifier annotation for information about the widget host. */
+@Qualifier
+@MustBeDocumented
+@Retention(AnnotationRetention.RUNTIME)
+annotation class WidgetPickerHostInfo
+
+@Qualifier
+@MustBeDocumented
+@Retention(AnnotationRetention.RUNTIME)
+annotation class WidgetPickerRepository

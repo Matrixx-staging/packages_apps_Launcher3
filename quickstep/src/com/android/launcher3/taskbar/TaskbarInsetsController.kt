@@ -172,7 +172,7 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
                 // only add the taskbar touch region if not on home
                 val bottom = windowLayoutParams.height
                 val top = bottom - taskbarTouchableHeight
-                val right = context.deviceProfile.widthPx
+                val right = context.deviceProfile.deviceProperties.widthPx
                 defaultTouchableRegion.addBoundsToRegion(Rect(/* left= */ 0, top, right, bottom))
             }
 

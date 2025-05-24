@@ -233,6 +233,18 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
             return new PinToTaskbarShortcut<>(target, itemInfo, originalView, false,
                     mHotseatInfosList);
         }
+
+        if (itemInfo.container == CONTAINER_ALL_APPS) {
+            // If the target ItemInfo is already pinned on taskbar. Show the unpin option instead.
+            for (int i = 0; i < mHotseatInfosList.size(); i++) {
+                if (Objects.equals(mHotseatInfosList.valueAt(i).getComponentKey(),
+                        itemInfo.getComponentKey())) {
+                    return new PinToTaskbarShortcut<>(target, itemInfo, originalView, false,
+                            mHotseatInfosList);
+                }
+            }
+        }
+
         if (mHotseatInfosList.size()
                 < mContext.getTaskbarSpecsEvaluator().getNumShownHotseatIcons()) {
             return new PinToTaskbarShortcut<>(target, itemInfo, originalView, true,

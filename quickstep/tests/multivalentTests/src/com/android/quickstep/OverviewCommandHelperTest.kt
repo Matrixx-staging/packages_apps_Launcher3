@@ -20,6 +20,7 @@ import android.content.Intent
 import android.view.Display.DEFAULT_DISPLAY
 import androidx.test.filters.SmallTest
 import com.android.app.displaylib.DisplayRepository
+import com.android.app.displaylib.fakes.FakePerDisplayRepository
 import com.android.app.displaylib.PerDisplayRepository
 import com.android.launcher3.LauncherState
 import com.android.launcher3.statemanager.StateManager
@@ -96,8 +97,6 @@ class OverviewCommandHelperTest {
         whenever(overviewComponentObserver.getHomeIntent(any())).thenReturn(mock<Intent>())
         whenever(recentView.getStateManager()).thenReturn(stateManager)
         whenever(containerInterface.switchToRecentsIfVisible(any())).thenReturn(true)
-        val taskAnimationManagerRepository = mock<PerDisplayRepository<TaskAnimationManager>>()
-        whenever(taskAnimationManagerRepository.get(any())).thenReturn(taskAnimationManager)
         whenever(taskAnimationManager.maybeStartHomeAction(any())).thenAnswer { invocation ->
             invocation.getArgument<Runnable>(0).run()
         }
@@ -110,7 +109,8 @@ class OverviewCommandHelperTest {
                     dispatcherProvider = TestDispatcherProvider(dispatcher),
                     displayRepository = displayRepository,
                     taskbarManager = mock(),
-                    taskAnimationManagerRepository = taskAnimationManagerRepository,
+                    taskAnimationManagerRepository =
+                        FakePerDisplayRepository<TaskAnimationManager> { _ -> taskAnimationManager },
                     elapsedRealtime = ::elapsedRealtime,
                 )
             )

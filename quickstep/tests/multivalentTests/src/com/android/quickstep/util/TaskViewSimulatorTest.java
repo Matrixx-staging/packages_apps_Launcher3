@@ -202,7 +202,7 @@ public class TaskViewSimulatorTest {
             Context configurationContext = app.createConfigurationContext(configuration);
 
             DisplayController.Info info = new Info(
-                    configurationContext, wmProxy, perDisplayBoundsCache);
+                    configurationContext, false, wmProxy, perDisplayBoundsCache);
             when(mockController.getInfo()).thenReturn(info);
 
             mDeviceProfile = InvariantDeviceProfile.INSTANCE.get(app)

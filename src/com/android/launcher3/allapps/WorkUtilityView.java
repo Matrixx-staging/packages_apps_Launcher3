@@ -165,7 +165,7 @@ public class WorkUtilityView extends LinearLayout implements Insettable,
                 bottomMargin += dp.hotseatQsbHeight;
             }
 
-            if (!dp.isGestureMode && dp.isTaskbarPresent) {
+            if (!dp.getDeviceProperties().isGestureMode() && dp.isTaskbarPresent) {
                 bottomMargin += dp.taskbarHeight;
             }
 

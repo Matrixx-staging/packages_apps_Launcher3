@@ -265,6 +265,7 @@ public class StateManager<S extends BaseState<S>, T extends StatefulContainer<S>
                 if (listener != null) {
                     listener.onAnimationEnd(new AnimatorSet());
                 }
+                onRepeatStateSetAborted(state);
                 return;
             } else if ((!mConfig.isUserControlled() && animated && mConfig.targetState == state)
                     || mState.shouldPreserveDataStateOnReapply()) {
@@ -273,6 +274,7 @@ public class StateManager<S extends BaseState<S>, T extends StatefulContainer<S>
                 if (listener != null) {
                     mConfig.currentAnimation.addListener(listener);
                 }
+                onRepeatStateSetAborted(state);
                 return;
             }
         }
@@ -451,6 +453,15 @@ public class StateManager<S extends BaseState<S>, T extends StatefulContainer<S>
         for (int i = mListeners.size() - 1; i >= 0; i--) {
             mListeners.get(i).onStateTransitionComplete(state);
         }
+    }
+
+    private void onRepeatStateSetAborted(S state) {
+        if (enableStateManagerProtoLog()) {
+            StateManagerProtoLogProxy.logOnRepeatStateSetAborted(state);
+        } else if (DEBUG) {
+            Log.d(TAG, "onRepeatStateSetAborted - state: " + state);
+        }
+        mContainer.onRepeatStateSetAborted(state);
     }
 
     public S getLastState() {

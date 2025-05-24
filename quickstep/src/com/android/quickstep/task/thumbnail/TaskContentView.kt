@@ -30,7 +30,6 @@ import android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction
 import android.widget.TextView
 import androidx.annotation.IdRes
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import com.android.launcher3.Flags.enableRefactorDigitalWellbeingToast
@@ -169,16 +168,6 @@ class TaskContentView @JvmOverloads constructor(context: Context, attrs: Attribu
                 findViewById<ViewStub>(R.id.task_header_view)
                     .apply { layoutResource = R.layout.task_header_view }
                     .inflate() as TaskHeaderView
-
-            // TODO: Move to layout xml when moving away from view stubs.
-            val constraintSet = ConstraintSet().apply { clone(this@TaskContentView) }
-            constraintSet.connect(
-                R.id.snapshot,
-                ConstraintSet.TOP,
-                R.id.task_header_view,
-                ConstraintSet.BOTTOM,
-            )
-            constraintSet.applyTo(this@TaskContentView)
         }
     }
 

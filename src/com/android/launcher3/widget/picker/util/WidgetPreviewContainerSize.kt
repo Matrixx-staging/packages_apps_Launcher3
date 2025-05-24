@@ -29,7 +29,7 @@ data class WidgetPreviewContainerSize(@JvmField val spanX: Int, @JvmField val sp
          */
         fun forItem(item: WidgetItem, dp: DeviceProfile): WidgetPreviewContainerSize {
             val sizes =
-                if (dp.isTablet && !dp.isTwoPanels) {
+                if (dp.deviceProperties.isTablet && !dp.deviceProperties.isTwoPanels) {
                     TABLET_WIDGET_PREVIEW_SIZES
                 } else {
                     HANDHELD_WIDGET_PREVIEW_SIZES
@@ -43,7 +43,7 @@ data class WidgetPreviewContainerSize(@JvmField val spanX: Int, @JvmField val sp
                     return findClosestFittingContainer(
                         containerSizes = sizes.toList(),
                         startIndex = index,
-                        item = item
+                        item = item,
                     )
                 }
             }
@@ -54,7 +54,7 @@ data class WidgetPreviewContainerSize(@JvmField val spanX: Int, @JvmField val sp
         private fun findClosestFittingContainer(
             containerSizes: List<WidgetPreviewContainerSize>,
             startIndex: Int,
-            item: WidgetItem
+            item: WidgetItem,
         ): WidgetPreviewContainerSize {
             // Checks if it's a smaller container, but close enough to keep the down-scale minimal.
             fun hasAcceptableSize(currentIndex: Int): Boolean {

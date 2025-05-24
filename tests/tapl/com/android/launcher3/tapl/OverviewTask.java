@@ -245,7 +245,7 @@ public final class OverviewTask {
     public LaunchedAppState open() {
         try (LauncherInstrumentation.Closable e = mLauncher.eventsCheck()) {
             verifyActiveContainer();
-            mLauncher.executeAndWaitForLauncherHidden(
+            mLauncher.executeAndWaitForLauncherStop(
                     () -> mLauncher.clickLauncherObject(mTask),
                     "clicking an overview task");
             if (mOverview.getContainerType()

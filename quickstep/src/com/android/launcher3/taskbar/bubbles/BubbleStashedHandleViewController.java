@@ -348,7 +348,7 @@ public class BubbleStashedHandleViewController {
 
         // the bounds of the handle only include the visible part, so we check that the Y coordinate
         // is anywhere within the stashed height of bubble bar (same as taskbar stashed height).
-        final int top = mActivity.getDeviceProfile().heightPx - mStashedBubbleBarHeight;
+        final int top = mActivity.getDeviceProfile().getDeviceProperties().getHeightPx() - mStashedBubbleBarHeight;
         final float x = ev.getRawX();
         return ev.getRawY() >= top && x >= mStashedHandleBounds.left
                 && x <= mStashedHandleBounds.right;

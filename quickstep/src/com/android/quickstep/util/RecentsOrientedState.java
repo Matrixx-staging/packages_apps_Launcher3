@@ -175,7 +175,7 @@ public class RecentsOrientedState implements LauncherPrefChangeListener {
      */
     public void setDeviceProfile(DeviceProfile deviceProfile) {
         boolean oldMultipleOrientationsSupported = isMultipleOrientationSupportedByDevice();
-        setFlag(FLAG_MULTIPLE_ORIENTATION_SUPPORTED_BY_DENSITY, !deviceProfile.isTablet);
+        setFlag(FLAG_MULTIPLE_ORIENTATION_SUPPORTED_BY_DENSITY, !deviceProfile.getDeviceProperties().isTablet());
         if (mListenersInitialized) {
             boolean newMultipleOrientationsSupported = isMultipleOrientationSupportedByDevice();
             // If isMultipleOrientationSupportedByDevice is changed, init or destroy listeners

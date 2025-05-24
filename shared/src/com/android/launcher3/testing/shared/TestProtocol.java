@@ -189,6 +189,12 @@ public final class TestProtocol {
     public static final String REQUEST_DISMISS_MAGNETIC_DETACH_THRESHOLD =
             "dismiss-magnetic-detach-threshold";
 
+    public static final String REQUEST_TASKBAR_ACTION_CORNER_PADDING =
+            "taskbar-action-corner-padding";
+
+    public static final String REQUEST_TASKBAR_UNSTASHED_INPUT_AREA =
+            "taskbar-unstashed-input-area";
+
     /** Logs {@link Log#d(String, String)} if {@link #sDebugTracing} is true. */
     public static void testLogD(String tag, String message) {
         if (!sDebugTracing) {

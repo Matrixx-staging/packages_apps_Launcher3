@@ -1,3 +1,5 @@
+package com.android.launcher3.widgetpicker.shared.model
+
 /*
  * Copyright (C) 2025 The Android Open Source Project
  *
@@ -14,13 +16,16 @@
  * limitations under the License.
  */
 
-package com.android.launcher3.widgetpicker.data.repository
-
-import com.android.launcher3.widgetpicker.shared.model.WidgetId
-import com.android.launcher3.widgetpicker.shared.model.WidgetPreview
-
-/** A repository that provides previews for the widgets to be displayed in the widget picker. */
-interface WidgetPreviewRepository {
-    /** Returns the preview for a widget represented by given [WidgetId]. */
-    suspend fun getPreview(widgetId: WidgetId): WidgetPreview
-}
+/**
+ * Represents an app hosting widgets that is shown in widget picker.
+ *
+ * @param id a unique identifier for the app
+ * @param title a user readable title for the app; if null a placeholder text (e.g. "pending..")
+ * is shown until the title is loaded.
+ * @param widgets list of widgets available to picker from the app.
+ */
+data class WidgetApp(
+    val id: WidgetAppId,
+    val title: CharSequence?,
+    val widgets: List<PickableWidget>,
+)

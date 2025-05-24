@@ -20,6 +20,7 @@ import android.animation.ObjectAnimator
 import android.animation.RectEvaluator
 import android.animation.ValueAnimator
 import android.content.Context
+import android.graphics.Canvas
 import android.graphics.Outline
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
@@ -43,6 +44,8 @@ import com.android.launcher3.Utilities
 import com.android.launcher3.util.MultiPropertyFactory
 import com.android.launcher3.util.MultiPropertyFactory.FloatBiFunction
 import com.android.launcher3.util.MultiValueAlpha
+import com.android.quickstep.util.BorderAnimator
+import com.android.quickstep.util.BorderAnimator.Companion.createSimpleBorderAnimator
 import com.android.quickstep.util.RecentsOrientedState
 import kotlin.math.max
 import kotlin.math.min
@@ -109,6 +112,9 @@ constructor(
         resources.getDimensionPixelSize(R.dimen.task_thumbnail_icon_menu_arrow_size)
     private val iconViewDrawableExpandedSize =
         resources.getDimensionPixelSize(R.dimen.task_thumbnail_icon_menu_app_icon_expanded_size)
+    private val focusBorderWidth =
+        resources.getDimensionPixelSize(R.dimen.app_chip_keyboard_border_width)
+    private val cornerRadius = resources.getDimensionPixelSize(R.dimen.app_chip_round_corner_radius)
 
     private var animator: AnimatorSet? = null
 
@@ -142,6 +148,78 @@ constructor(
         getExpandedBackgroundLtrBounds().bottom -
             getCollapsedBackgroundLtrBounds().bottom -
             menuToChipGap
+
+    private val focusBorderAnimator: BorderAnimator =
+        createSimpleBorderAnimator(
+            borderRadiusPx = cornerRadius,
+            borderWidthPx = focusBorderWidth,
+            boundsBuilder = { bounds ->
+                bounds.set(backgroundRelativeLtrLocation)
+                if (status == AppChipStatus.Expanded) {
+                    // Draws the border inside the chip to avoid overlap with the task menu.
+                    var inset = focusBorderWidth - 1
+                    bounds.inset(inset, inset)
+                }
+            },
+            targetView = this,
+            borderColor =
+                context
+                    .obtainStyledAttributes(attrs, R.styleable.IconAppChip)
+                    .getColor(
+                        R.styleable.IconAppChip_focusBorderColor,
+                        BorderAnimator.DEFAULT_BORDER_COLOR,
+                    ),
+        )
+
+    private var focusAnimator: AnimatorSet? = null
+
+    private fun animateFocusBorder(isAppearing: Boolean) {
+        focusAnimator?.cancel()
+        focusAnimator = null
+        val borderAnimator = focusBorderAnimator.buildAnimator(isAppearing)
+
+        val initialBackground = Rect(backgroundRelativeLtrLocation)
+        val targetBackground: Rect =
+            when {
+                // Background animator to increase the clipping size to show the focus border.
+                isAppearing ->
+                    Rect(backgroundRelativeLtrLocation).apply {
+                        if (status == AppChipStatus.Collapsed)
+                            inset(-focusBorderWidth + 1, -focusBorderWidth + 1)
+                    }
+                // Background animator to restore the outline size to hide the focus border
+                status == AppChipStatus.Expanded -> getExpandedBackgroundLtrBounds()
+                else -> getCollapsedBackgroundLtrBounds()
+            }
+        val backgroundAnimator =
+            ValueAnimator.ofObject(
+                    backgroundAnimationRectEvaluator,
+                    initialBackground,
+                    targetBackground,
+                )
+                .apply { addUpdateListener { invalidateOutline() } }
+
+        focusAnimator = AnimatorSet().apply {
+            playTogether(borderAnimator, backgroundAnimator)
+            duration = borderAnimator.duration
+            interpolator = borderAnimator.interpolator
+            start()
+        }
+    }
+
+    public override fun onFocusChanged(
+        gainFocus: Boolean,
+        direction: Int,
+        previouslyFocusedRect: Rect?,
+    ) {
+        super.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
+        animateFocusBorder(isAppearing = gainFocus)
+    }
+
+    override fun draw(canvas: Canvas) {
+        super.draw(canvas)
+        focusBorderAnimator.drawBorder(canvas)
+    }
 
     override fun onFinishInflate() {
         super.onFinishInflate()
@@ -215,7 +293,7 @@ constructor(
                     }
                     outline.setRoundRect(
                         mRtlAppliedOutlineBounds,
-                        mRtlAppliedOutlineBounds.height() / 2f,
+                        resources.getDimension(R.dimen.app_chip_round_corner_radius),
                     )
                 }
             }
@@ -433,6 +511,13 @@ constructor(
         // And decrease the size after the animation when is collapsing.
         animator!!.addListener(
             onStart = {
+                // Hide focused border during expanding/collapsing animation
+                if (isFocused) {
+                    focusBorderAnimator.setBorderVisibility(
+                        visible = false,
+                        animated = false
+                    )
+                }
                 when (status) {
                     AppChipStatus.Expanded -> updateChipSize()
                     // Disable marquee before chip is collapsed
@@ -440,6 +525,7 @@ constructor(
                 }
             },
             onEnd = {
+                if (isFocused) animateFocusBorder(isAppearing = true)
                 when (status) {
                     AppChipStatus.Collapsed -> updateChipSize()
                     // Enable marquee after chip is fully expanded

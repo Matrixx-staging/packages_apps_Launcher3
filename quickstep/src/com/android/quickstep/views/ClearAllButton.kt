@@ -236,14 +236,6 @@ constructor(
 
     private fun getGridTrans(endTranslation: Float) = if (gridProgress > 0) endTranslation else 0f
 
-    /** Change the background when blur is enabled/disabled */
-    fun updateBlurStyle(isBackgroundBlurEnabled: Boolean) {
-        setBackgroundResource(
-            if (isBackgroundBlurEnabled) R.drawable.overview_action_button_background_blur
-            else R.drawable.overview_action_button_background
-        )
-    }
-
     companion object {
         private enum class Alpha {
             SCROLL,

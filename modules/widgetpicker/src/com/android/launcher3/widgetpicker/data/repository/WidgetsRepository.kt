@@ -17,11 +17,34 @@
 package com.android.launcher3.widgetpicker.data.repository
 
 import com.android.launcher3.widgetpicker.shared.model.PickableWidget
+import com.android.launcher3.widgetpicker.shared.model.WidgetApp
+import com.android.launcher3.widgetpicker.shared.model.WidgetId
+import com.android.launcher3.widgetpicker.shared.model.WidgetPreview
 import kotlinx.coroutines.flow.Flow
 
 /** A repository of widgets available on the device from various apps */
 interface WidgetsRepository {
+    /**
+     * A hook to setup the repository so clients can observe the widgets available on device.
+     * This serves as a place to start listening to the backing caches / data sources.
+     */
+    fun initialize()
 
-    /** Observe widgets available on the device. */
-    fun observeWidgets(): Flow<List<PickableWidget>>
+    /** Observe widgets available on the device from different apps. */
+    fun observeWidgets(): Flow<List<WidgetApp>>
+
+    /** Loads a preview for an app widget. Returns a placeholder preview if the widget is not found. */
+    suspend fun getWidgetPreview(id: WidgetId): WidgetPreview
+
+    /** Get widgets that can be featured in widget picker. */
+    fun getFeaturedWidgets(): Flow<List<PickableWidget>>
+
+    /**
+     * Search widgets and their apps that match the given plain text [query] string typed by the
+     * user. Matches the widget's label, description and app's title (case-insensitive).
+     */
+    suspend fun searchWidgets(query: String): List<WidgetApp>
+
+    /** Clean up any external listeners or state (if necessary). */
+    fun cleanUp()
 }

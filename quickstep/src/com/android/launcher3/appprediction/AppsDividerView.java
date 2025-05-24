@@ -27,7 +27,6 @@ import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.util.AttributeSet;
-import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.view.accessibility.AccessibilityManager;
 
@@ -56,8 +55,8 @@ public class AppsDividerView extends View implements FloatingHeaderRow {
     private final TextPaint mPaint = new TextPaint();
     private DividerType mDividerType = DividerType.NONE;
 
-    private @ColorInt int mStrokeColor;
-    private @ColorInt int mAllAppsLabelTextColor;
+    private final @ColorInt int mStrokeColor;
+    private final @ColorInt int mAllAppsLabelTextColor;
     private final AccessibilityManager mAccessibilityManager;
 
     private Layout mAllAppsLabelLayout;
@@ -101,19 +100,6 @@ public class AppsDividerView extends View implements FloatingHeaderRow {
         mTabsHidden = tabsHidden;
         mRows = rows;
         updateDividerType();
-    }
-
-    @Override
-    public void updateTheme(ContextThemeWrapper contextThemeWrapper) {
-        mStrokeColor = Themes.getAttrColor(contextThemeWrapper, R.attr.bottomSheetDragHandleColor);
-        mAllAppsLabelTextColor =
-                contextThemeWrapper.getColor(R.color.materialColorOnSurfaceVariant);
-        if (mDividerType == DividerType.LINE) {
-            mPaint.setColor(mStrokeColor);
-        } else if (mDividerType == DividerType.ALL_APPS_LABEL) {
-            mPaint.setColor(mAllAppsLabelTextColor);
-        }
-        invalidate();
     }
 
     /** {@code true} if all apps label should be shown in place of divider. */

@@ -20,7 +20,7 @@ package com.android.launcher3.widgetpicker.shared.model
  * Holds data about all the available user profiles on device that are supported in the widget
  * picker.
  */
-data class WidgetUserProfiles(val users: List<WidgetUserProfile>)
+data class WidgetUserProfiles(val personal: WidgetUserProfile, val work: WidgetUserProfile?)
 
 /**
  * Data about a specific user profile that is supported in the widget picker.
@@ -36,8 +36,8 @@ data class WidgetUserProfiles(val users: List<WidgetUserProfile>)
 data class WidgetUserProfile(
     val type: WidgetUserProfileType,
     val label: String,
-    val paused: Boolean,
-    val pausedProfileMessage: String,
+    val paused: Boolean = false,
+    val pausedProfileMessage: String? = null,
 )
 
 /** Represents types of user profiles that are supported in the widget picker. */

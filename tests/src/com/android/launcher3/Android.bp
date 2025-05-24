@@ -19,6 +19,7 @@ filegroup {
     name: "launcher-e2e-tests-utils",
     srcs: [
         "testcomponent/TestCommandReceiver.java",
+        "testcomponent/BaseTestingActivity.java",
         "util/TestConstants.java",
         "util/Wait.kt",
         "util/rule/FailureWatcher.java",
@@ -31,6 +32,7 @@ filegroup {
         "util/ui/AbstractLauncherUiTest.java",
         "util/ui/BaseLauncherTaplTest.java",
         "util/ui/PortraitLandscapeRunner.java",
+        "util/rule/SetPropRule.java",
     ],
 }
 

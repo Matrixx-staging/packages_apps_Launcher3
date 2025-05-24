@@ -158,7 +158,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         launcher.workspace.removeExtraEmptyScreen(/* stripEmptyScreens= */ true)
         launcher.workspace.pageIndicator.setPauseScroll(
             /*pause=*/ false,
-            deviceProfile.isTwoPanels,
+            deviceProfile.deviceProperties.isTwoPanels,
         )
         launcher.finishBindingItems(pagesBoundFirst)
     }
@@ -270,12 +270,13 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         // in single panel.
         if (actualIds.contains(firstId)) {
             result.add(firstId)
-            if (launcher.deviceProfile.isTwoPanels && actualIds.contains(pairId)) {
+            if (launcher.deviceProfile.deviceProperties.isTwoPanels && actualIds.contains(pairId)) {
                 result.add(pairId)
             }
         } else if (
-            LauncherAppState.getIDP(launcher).supportedProfiles.any(DeviceProfile::isTwoPanels) &&
-                actualIds.contains(pairId)
+            LauncherAppState.getIDP(launcher).supportedProfiles.any {
+                it.deviceProperties.isTwoPanels
+            } && actualIds.contains(pairId)
         ) {
             // Add the right panel if left panel is hidden when switching display, due to empty
             // pages being hidden in single panel.
@@ -287,7 +288,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
     private fun bindScreens(orderedScreenIds: LIntArray) {
         launcher.workspace.pageIndicator.setPauseScroll(
             /*pause=*/ true,
-            launcher.deviceProfile.isTwoPanels,
+            launcher.deviceProfile.deviceProperties.isTwoPanels,
         )
         val firstScreenPosition = 0
         if (orderedScreenIds.indexOf(FIRST_SCREEN_ID) != firstScreenPosition) {
@@ -345,7 +346,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
 
     private fun bindAddScreens(orderedScreenIdsArg: LIntArray) {
         var orderedScreenIds = orderedScreenIdsArg
-        if (launcher.deviceProfile.isTwoPanels) {
+        if (launcher.deviceProfile.deviceProperties.isTwoPanels) {
             if (FeatureFlags.FOLDABLE_SINGLE_PAGE.get()) {
                 orderedScreenIds = filterTwoPanelScreenIds(orderedScreenIds)
             } else {

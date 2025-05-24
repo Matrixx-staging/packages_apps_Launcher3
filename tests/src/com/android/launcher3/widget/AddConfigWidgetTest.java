@@ -115,10 +115,15 @@ public class AddConfigWidgetTest extends BaseLauncherActivityTest<Launcher> {
         });
         uiDevice.waitForIdle();
 
-        View widgetView = getOnceNotNull("Widget not found", l -> searchView(l.getDragLayer(), v ->
-                v instanceof WidgetCell
-                        && v.getTag() instanceof PendingAddWidgetInfo pawi
-                        && mWidgetInfo.provider.equals(pawi.componentName)));
+        View widgetView = getLauncherActivity()
+                .getOnceNotNull("Widget not found",
+                        l -> searchView(
+                                l.getDragLayer(),
+                                v -> v instanceof WidgetCell
+                                        && v.getTag() instanceof PendingAddWidgetInfo pawi
+                                        && mWidgetInfo.provider.equals(pawi.componentName)
+                        )
+        );
         addWidgetToWorkspace(widgetView);
 
         // Widget id for which the config activity was opened
@@ -129,7 +134,7 @@ public class AddConfigWidgetTest extends BaseLauncherActivityTest<Launcher> {
         setResult(acceptConfig);
 
         if (acceptConfig) {
-            getOnceNotNull("Widget was not added", l -> {
+            getLauncherActivity().getOnceNotNull("Widget was not added", l -> {
                 // Close the resize frame before searching for widget
                 AbstractFloatingView.closeAllOpenViews(l);
                 return l.getWorkspace().getFirstMatch(new WidgetSearchCondition());

@@ -93,12 +93,7 @@ fun WidgetAppsList(
                         appIcon = appIcon,
                         title = title,
                         description = description,
-                        widgetPreviews =
-                            if (selected) {
-                                widgetPreviews
-                            } else {
-                                emptyMap()
-                            },
+                        widgetPreviews = widgetPreviews,
                         onWidgetAppClick = onWidgetAppClick,
                     )
                 }

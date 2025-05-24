@@ -178,7 +178,7 @@ constructor(
         val splitBounds = splitBounds
         return when {
             splitBounds == null ||
-                !recentsViewContainer.deviceProfile.isTablet ||
+                !recentsViewContainer.deviceProfile.deviceProperties.isTablet ||
                 taskView.isLargeTile -> SplitBannerConfig.SPLIT_BANNER_FULLSCREEN
             // For portrait grid only height of task changes, not width. So we keep the text the
             // same

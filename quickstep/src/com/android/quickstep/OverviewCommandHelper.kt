@@ -41,6 +41,7 @@ import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_OVER
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_OVERVIEW_SHOW_OVERVIEW_FROM_KEYBOARD_SHORTCUT
 import com.android.launcher3.taskbar.TaskbarManager
 import com.android.launcher3.taskbar.TaskbarUIController
+import com.android.launcher3.util.OverviewCommandHelperProtoLogProxy
 import com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview
 import com.android.launcher3.util.RunnableList
 import com.android.launcher3.util.coroutines.DispatcherProvider
@@ -118,7 +119,7 @@ constructor(
         isLastOfBatch: Boolean = true,
     ): CommandInfo? {
         if (commandQueue.size >= MAX_QUEUE_SIZE) {
-            Log.d(TAG, "command not added: $type - queue is full ($commandQueue).")
+            OverviewCommandHelperProtoLogProxy.logCommandQueueFull(type, commandQueue)
             return null
         }
 
@@ -130,13 +131,13 @@ constructor(
                 isLastOfBatch = isLastOfBatch,
             )
         commandQueue.add(command)
-        Log.d(TAG, "command added: $command")
+        OverviewCommandHelperProtoLogProxy.logCommandAdded(command)
 
         if (commandQueue.size == 1) {
-            Log.d(TAG, "execute: $command - queue size: ${commandQueue.size}")
+            OverviewCommandHelperProtoLogProxy.logCommandExecuted(command, commandQueue.size)
             coroutineScope.launch(dispatcherProvider.main) { processNextCommand() }
         } else {
-            Log.d(TAG, "not executed: $command - queue size: ${commandQueue.size}")
+            OverviewCommandHelperProtoLogProxy.logCommandNotExecuted(command, commandQueue.size)
         }
 
         return command
@@ -172,7 +173,7 @@ constructor(
 
     /** Clear pending or completed commands from the queue */
     fun clearPendingCommands() {
-        Log.d(TAG, "clearing pending commands: $commandQueue")
+        OverviewCommandHelperProtoLogProxy.logClearPendingCommands(commandQueue)
         commandQueue.removeAll { it.status != CommandStatus.PROCESSING }
     }
 
@@ -186,12 +187,12 @@ constructor(
         traceSection("OverviewCommandHelper.processNextCommand") {
             val command: CommandInfo? = commandQueue.firstOrNull()
             if (command == null) {
-                Log.d(TAG, "no pending commands to be executed.")
+                OverviewCommandHelperProtoLogProxy.logNoPendingCommands()
                 return@traceSection
             }
 
             command.status = CommandStatus.PROCESSING
-            Log.d(TAG, "executing command: $command")
+            OverviewCommandHelperProtoLogProxy.logExecutingCommand(command)
 
             coroutineScope.launch(dispatcherProvider.main) {
                 traceSection("OverviewCommandHelper.executeCommandWithTimeout") {
@@ -211,7 +212,7 @@ constructor(
     @VisibleForTesting
     fun executeCommand(command: CommandInfo, onCallbackResult: () -> Unit): Boolean {
         val recentsView = getVisibleRecentsView(command.displayId)
-        Log.d(TAG, "executeCommand: $command - visibleRecentsView: $recentsView")
+        OverviewCommandHelperProtoLogProxy.logExecutingCommand(command, recentsView)
         return if (recentsView != null) {
             executeWhenRecentsIsVisible(command, recentsView, onCallbackResult)
         } else {
@@ -226,11 +227,14 @@ constructor(
     private suspend fun executeCommandSuspended(command: CommandInfo) =
         suspendCancellableCoroutine { continuation ->
             fun processResult(isCompleted: Boolean) {
-                Log.d(TAG, "command executed: $command with result: $isCompleted")
+                OverviewCommandHelperProtoLogProxy.logExecutedCommandWithResult(
+                    command,
+                    isCompleted,
+                )
                 if (isCompleted) {
                     continuation.resume(Unit)
                 } else {
-                    Log.d(TAG, "waiting for command callback: $command")
+                    OverviewCommandHelperProtoLogProxy.logWaitingForCommandCallback(command)
                 }
             }
 
@@ -326,10 +330,10 @@ constructor(
 
         if (callbackList != null) {
             callbackList.add {
-                Log.d(TAG, "launching task callback: $command")
+                OverviewCommandHelperProtoLogProxy.logLaunchingTaskCallback(command)
                 onCallbackResult()
             }
-            Log.d(TAG, "launching task - waiting for callback: $command")
+            OverviewCommandHelperProtoLogProxy.logLaunchingTaskWaitingForCallback(command)
             return false
         } else {
             recents.startHome()
@@ -390,7 +394,6 @@ constructor(
                 }
 
             HOME -> {
-                ActiveGestureProtoLogProxy.logExecuteHomeCommand()
                 taskAnimationManager.maybeStartHomeAction {
                     // Although IActivityTaskManager$Stub$Proxy.startActivity is a slow binder call,
                     // we should still call it on main thread because launcher is waiting for
@@ -423,21 +426,21 @@ constructor(
         val animatorListener: Animator.AnimatorListener =
             object : AnimatorListenerAdapter() {
                 override fun onAnimationStart(animation: Animator) {
-                    Log.d(TAG, "switching to Overview state - onAnimationStart: $command")
+                    OverviewCommandHelperProtoLogProxy.logSwitchingToOverviewStateStart(command)
                     super.onAnimationStart(animation)
                     updateRecentsViewFocus(command)
                     logShowOverviewFrom(command)
                 }
 
                 override fun onAnimationEnd(animation: Animator) {
-                    Log.d(TAG, "switching to Overview state - onAnimationEnd: $command")
+                    OverviewCommandHelperProtoLogProxy.logSwitchingToOverviewStateEnd(command)
                     super.onAnimationEnd(animation)
                     onRecentsViewFocusUpdated(command)
                     onCallbackResult()
                 }
             }
         if (containerInterface.switchToRecentsIfVisible(animatorListener)) {
-            Log.d(TAG, "switching to Overview state - waiting: $command")
+            OverviewCommandHelperProtoLogProxy.logSwitchingToOverviewStateWaiting(command)
             // If successfully switched, wait until animation finishes
             return false
         }
@@ -480,7 +483,7 @@ constructor(
                     targets: RecentsAnimationTargets,
                     transitionInfo: TransitionInfo?,
                 ) {
-                    Log.d(TAG, "recents animation started: $command")
+                    OverviewCommandHelperProtoLogProxy.logRecentsAnimStarted(command)
                     if (recentsViewContainer is RecentsWindowManager) {
                         recentsViewContainer.rootView?.let { view ->
                             InteractionJankMonitorWrapper.begin(view, Cuj.CUJ_LAUNCHER_QUICK_SWITCH)
@@ -490,7 +493,7 @@ constructor(
                     updateRecentsViewFocus(command)
                     logShowOverviewFrom(command)
                     containerInterface.runOnInitBackgroundStateUI {
-                        Log.d(TAG, "recents animation started - onInitBackgroundStateUI: $command")
+                        OverviewCommandHelperProtoLogProxy.logOnInitBackgroundStateUI(command)
                         interactionHandler.onGestureEnded(
                             0f,
                             PointF(),
@@ -503,7 +506,7 @@ constructor(
                 override fun onRecentsAnimationCanceled(
                     thumbnailDatas: HashMap<Int, ThumbnailData>
                 ) {
-                    Log.d(TAG, "recents animation canceled: $command")
+                    OverviewCommandHelperProtoLogProxy.logRecentsAnimCanceled(command)
                     interactionHandler.onGestureCancelled()
                     command.removeListener(this)
 
@@ -533,13 +536,13 @@ constructor(
             command.addListener(recentAnimListener)
         }
         Trace.beginAsyncSection(TRANSITION_NAME, 0)
-        Log.d(TAG, "switching via recents animation - onGestureStarted: $command")
+        OverviewCommandHelperProtoLogProxy.logSwitchingViaRecentsAnim(command)
         return false
     }
 
     private fun shouldShowAltTabKqs(deviceProfile: DeviceProfile?, displayId: Int): Boolean =
         // Alt+Tab KQS is always shown on tablets (large screen devices).
-        deviceProfile?.isTablet == true ||
+        deviceProfile?.deviceProperties?.isTablet == true ||
             // For small screen devices, it's only shown on connected displays.
             displayId != DEFAULT_DISPLAY
 
@@ -548,7 +551,7 @@ constructor(
         handler: AbsSwipeUpHandler<*, *, *>,
         onCommandResult: () -> Unit,
     ) {
-        Log.d(TAG, "switching via recents animation - onTransitionComplete: $command")
+        OverviewCommandHelperProtoLogProxy.logSwitchingViaRecentsAnimComplete(command)
         command.removeListener(handler)
         Trace.endAsyncSection(TRANSITION_NAME, 0)
         onRecentsViewFocusUpdated(command)
@@ -559,22 +562,21 @@ constructor(
     private fun onCommandFinished(command: CommandInfo) {
         command.status = CommandStatus.COMPLETED
         if (commandQueue.firstOrNull() !== command) {
-            Log.d(
-                TAG,
-                "next task not scheduled. First pending command type " +
-                    "is ${commandQueue.firstOrNull()} - command type is: $command",
+            OverviewCommandHelperProtoLogProxy.logCommandFinishedButNotScheduled(
+                commandQueue.firstOrNull(),
+                command,
             )
             return
         }
 
-        Log.d(TAG, "command executed successfully! $command")
+        OverviewCommandHelperProtoLogProxy.logCommandFinishedSuccessfully(command)
         commandQueue.remove(command)
         processNextCommand()
     }
 
     private fun cancelCommand(command: CommandInfo, throwable: Throwable?) {
         command.status = CommandStatus.CANCELED
-        Log.e(TAG, "command cancelled: $command - $throwable")
+        OverviewCommandHelperProtoLogProxy.logCommandCanceled(command, throwable)
         commandQueue.remove(command)
         processNextCommand()
     }

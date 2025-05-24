@@ -160,7 +160,7 @@ public class ItemClickHandler {
         if (!isApp1Launchable || !isApp2Launchable) {
             // App pair is unlaunchable due to screen size.
             boolean isFoldable = InvariantDeviceProfile.INSTANCE.get(launcher)
-                    .supportedProfiles.stream().anyMatch(dp -> dp.isTwoPanels);
+                    .supportedProfiles.stream().anyMatch(dp -> dp.getDeviceProperties().isTwoPanels());
             Toast.makeText(launcher, isFoldable
                             ? R.string.app_pair_needs_unfold
                             : R.string.app_pair_unlaunchable_at_screen_size,

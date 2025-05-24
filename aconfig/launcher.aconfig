@@ -252,13 +252,6 @@ flag {
 }
 
 flag {
-    name: "multiline_search_bar"
-    namespace: "launcher"
-    description: "Search bar can wrap to multi-line"
-    bug: "341795751"
-}
-
-flag {
     name: "enable_multi_instance_menu_taskbar"
     namespace: "launcher"
     description: "Menu in Taskbar with options to launch and manage multiple instances of the same app"
@@ -640,3 +633,19 @@ flag {
   bug: "370950552"
 }
 
+flag {
+    name: "enable_reversible_home_action_corner"
+    namespace: "launcher"
+    description: "Enables home action corner to be reversible"
+    bug: "416664984"
+}
+
+flag {
+  name: "enable_long_press_remove_shortcut"
+  namespace: "launcher"
+  description: "Enables remove app shortcut on long press menu"
+  bug: "419289205"
+  metadata {
+    purpose: PURPOSE_BUGFIX
+  }
+}

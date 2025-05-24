@@ -203,7 +203,7 @@ public class TestInformationHandler implements ResourceBasedOverride {
                 return response;
 
             case TestProtocol.REQUEST_IS_TABLET:
-                response.putBoolean(TestProtocol.TEST_INFO_RESPONSE_FIELD, mDeviceProfile.isTablet);
+                response.putBoolean(TestProtocol.TEST_INFO_RESPONSE_FIELD, mDeviceProfile.getDeviceProperties().isTablet());
                 return response;
             case TestProtocol.REQUEST_IS_PREDICTIVE_BACK_SWIPE_ENABLED:
                 response.putBoolean(TestProtocol.TEST_INFO_RESPONSE_FIELD,
@@ -230,7 +230,7 @@ public class TestInformationHandler implements ResourceBasedOverride {
 
             case TestProtocol.REQUEST_IS_TWO_PANELS:
                 response.putBoolean(TestProtocol.TEST_INFO_RESPONSE_FIELD,
-                        FOLDABLE_SINGLE_PAGE.get() ? false : mDeviceProfile.isTwoPanels);
+                        FOLDABLE_SINGLE_PAGE.get() ? false : mDeviceProfile.getDeviceProperties().isTwoPanels());
                 return response;
 
             case TestProtocol.REQUEST_GET_HAD_NONTEST_EVENTS:

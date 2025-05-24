@@ -122,7 +122,7 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
             TaskShortcutFactory.SAVE_APP_PAIR,
             TaskShortcutFactory.SCREENSHOT,
             TaskShortcutFactory.MODAL,
-            TaskShortcutFactory.CLOSE,
+            TaskShortcutFactory.REMOVE_TASK,
     };
 
     /**
@@ -349,7 +349,7 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
 
             RecentsViewContainer container = containerFromContext(
                     getTaskView().getContext());
-            int bottomInset = container.getDeviceProfile().isTablet
+            int bottomInset = container.getDeviceProfile().getDeviceProperties().isTablet()
                     ? Math.round(bitmapRect.bottom - boundsInBitmapSpace.bottom) : 0;
             return Insets.of(0, 0, 0, bottomInset);
         }

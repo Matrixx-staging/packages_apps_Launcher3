@@ -167,8 +167,10 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
             final Runnable clickClearAll = () -> mLauncher.clickLauncherObject(
                     mLauncher.waitForObjectInContainer(verifyActiveContainer(),
                             clearAllSelector));
-            if (mLauncher.is3PLauncher()) {
-                mLauncher.executeAndWaitForLauncherHidden(
+            // When the recents window is enabled, there is no RecentsActivity to send
+            // LAUNCHER_ACTIVITY_STOPPED_MESSAGE in the 3P launcher case.
+            if (mLauncher.is3PLauncher() && !mLauncher.isRecentsWindowEnabled()) {
+                mLauncher.executeAndWaitForLauncherStop(
                         clickClearAll,
                         "clicking 'Clear All'");
             } else {
@@ -512,7 +514,7 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
             mLauncher.expectEvent(TestProtocol.SEQUENCE_MAIN, EVENT_ENTER_UP);
             mLauncher.expectEvent(TestProtocol.SEQUENCE_MAIN, TASK_START_EVENT);
 
-            mLauncher.executeAndWaitForLauncherHidden(
+            mLauncher.executeAndWaitForLauncherStop(
                     () -> mLauncher.assertTrue(
                             "Failed to press enter",
                             mLauncher.getDevice().pressKeyCode(KeyEvent.KEYCODE_ENTER)),

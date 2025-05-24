@@ -125,8 +125,8 @@ public class PortraitLandscapeRunner<LAUNCHER_TYPE extends Launcher, OVERVIEW_TY
 
             private boolean shouldHaveFixedLandscape(Launcher launcher) {
                 return Flags.oneGridSpecs()
-                        && !launcher.getDeviceProfile().isTablet
-                        && !launcher.getDeviceProfile().isMultiDisplay;
+                        && !launcher.getDeviceProfile().getDeviceProperties().isTablet()
+                        && !launcher.getDeviceProfile().getDeviceProperties().isMultiDisplay();
             }
         };
     }

@@ -53,6 +53,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -92,6 +93,7 @@ fun WidgetsSearchBar(
     val interactionSource = remember { MutableInteractionSource() }
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     val exitSearchMode = {
         onSearch("")
@@ -114,7 +116,10 @@ fun WidgetsSearchBar(
         singleLine = true,
         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-        keyboardActions = KeyboardActions(onSearch = { onSearch(text) }),
+        keyboardActions = KeyboardActions(onSearch = {
+            keyboardController?.hide()
+            onSearch(text)
+        }),
         interactionSource = interactionSource,
         textStyle = WidgetsSearchBarDefaults.textStyle,
         decorationBox =
@@ -214,7 +219,7 @@ private fun BackButton(onClick: () -> Unit) {
     IconButton(colors = WidgetsSearchBarDefaults.iconButtonColors, onClick = onClick) {
         Icon(
             imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-            contentDescription = stringResource(R.string.widget_search_bar_clear_button_label),
+            contentDescription = stringResource(R.string.widget_search_bar_back_button_label),
         )
     }
 }

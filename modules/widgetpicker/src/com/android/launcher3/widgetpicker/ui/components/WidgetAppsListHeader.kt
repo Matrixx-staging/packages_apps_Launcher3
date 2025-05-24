@@ -80,11 +80,11 @@ fun ExpandableListHeader(
         modifier
             .clip(shape = shape)
             .background(color = ExpandedListHeaderDefaults.backgroundColor)
-            .clickable { onClick() }
 
     Column(modifier = finalModifier) {
         WidgetAppHeader(
-            modifier = Modifier,
+            modifier = Modifier
+                .clickable { onClick() },
             leadingIcon = { leadingAppIcon() },
             title = title,
             subTitle = subTitle,
@@ -192,7 +192,8 @@ fun SelectableSuggestionsHeader(
                 imageVector = Icons.Filled.Star,
                 contentDescription = null,
                 modifier =
-                    Modifier.clip(shape)
+                    Modifier
+                        .clip(shape)
                         .background(MaterialTheme.colorScheme.surfaceBright)
                         .minimumInteractiveComponentSize(),
             )
@@ -224,7 +225,8 @@ private fun WidgetAppHeader(
         leadingIcon()
         CenterText(
             modifier =
-                Modifier.weight(1f)
+                Modifier
+                    .weight(1f)
                     .padding(horizontal = ListHeaderDimensions.centerTextHorizontalPadding),
             title = title,
             subTitle = subTitle,

@@ -16,7 +16,9 @@
 
 package com.android.launcher3.widgetpicker.ui.components
 
+import android.appwidget.AppWidgetProviderInfo
 import android.graphics.Bitmap
+import android.widget.RemoteViews
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -29,23 +31,32 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.coerceAtMost
+import androidx.compose.ui.viewinterop.AndroidView
 import com.android.launcher3.widgetpicker.shared.model.WidgetPreview
 import com.android.launcher3.widgetpicker.shared.model.WidgetSizeInfo
 
 /** Renders a different types of preview for an appwidget. */
 @Composable
-fun WidgetPreview(sizeInfo: WidgetSizeInfo, preview: WidgetPreview, modifier: Modifier = Modifier) {
+fun WidgetPreview(
+    sizeInfo: WidgetSizeInfo,
+    preview: WidgetPreview,
+    appwidgetInfo: AppWidgetProviderInfo,
+    modifier: Modifier = Modifier,
+) {
     val widgetRadius = dimensionResource(android.R.dimen.system_app_widget_background_radius)
 
     val density = LocalDensity.current
@@ -66,13 +77,21 @@ fun WidgetPreview(sizeInfo: WidgetSizeInfo, preview: WidgetPreview, modifier: Mo
                     widgetRadius = widgetRadius,
                 )
 
-            // TODO(b/408283627): Add Remote Views preview.
             is WidgetPreview.RemoteViewsWidgetPreview ->
-                PlaceholderWidgetPreview(size = containerSize, widgetRadius = widgetRadius)
+                RemoteViewsWidgetPreview(
+                    remoteViews = preview.remoteViews,
+                    widgetInfo = appwidgetInfo,
+                    sizeInfo = sizeInfo,
+                    widgetRadius = widgetRadius,
+                )
 
-            // TODO(b/408283627): Add Generated previews.
             is WidgetPreview.ProviderInfoWidgetPreview ->
-                PlaceholderWidgetPreview(size = containerSize, widgetRadius = widgetRadius)
+                RemoteViewsWidgetPreview(
+                    previewLayoutProviderInfo = preview.providerInfo,
+                    widgetInfo = appwidgetInfo,
+                    sizeInfo = sizeInfo,
+                    widgetRadius = widgetRadius,
+                )
         }
     }
 }
@@ -141,3 +160,45 @@ private fun BitmapWidgetPreview(bitmap: Bitmap, size: DpSize, widgetRadius: Dp) 
                 .clip(shape = RoundedCornerShape(scaledCornerRadius)),
     )
 }
+
+@Composable
+private fun RemoteViewsWidgetPreview(
+    remoteViews: RemoteViews? = null,
+    previewLayoutProviderInfo: AppWidgetProviderInfo? = null,
+    widgetInfo: AppWidgetProviderInfo,
+    sizeInfo: WidgetSizeInfo,
+    widgetRadius: Dp,
+) {
+    val context = LocalContext.current
+    val appWidgetHostView by
+        remember(sizeInfo) {
+            derivedStateOf {
+                WidgetPreviewHostView(context).apply {
+                    setContainerSizePx(
+                        IntSize(sizeInfo.containerWidthPx, sizeInfo.containerHeightPx)
+                    )
+                }
+            }
+        }
+
+    key(sizeInfo) {
+        AndroidView(
+            modifier = Modifier.wrapContentSize().clip(RoundedCornerShape(widgetRadius)),
+            factory = { appWidgetHostView },
+            update = { view ->
+                // if preview.remoteViews is null, initial layout will render.
+                // the databasePreviewLoader overwrites the initial layout in "preview.providerInfo"
+                // to be the previewLayout.
+                view.setAppWidget(
+                    /*appWidgetId=*/ NO_OP_APP_WIDGET_ID,
+                    /*info=*/ previewLayoutProviderInfo ?: widgetInfo,
+                )
+                view.updateAppWidget(remoteViews)
+            },
+            onReset = {}, // enable reuse ("update" sets the and preview info)
+        )
+    }
+}
+
+// We don't care about appWidgetId since this is a preview.
+private const val NO_OP_APP_WIDGET_ID = -1

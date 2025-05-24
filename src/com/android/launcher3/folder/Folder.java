@@ -1315,7 +1315,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     @VisibleForTesting
     int getMaxContentAreaHeight() {
         DeviceProfile grid = mActivityContext.getDeviceProfile();
-        return grid.availableHeightPx - grid.getTotalWorkspacePadding().y
+        return grid.getDeviceProperties().getAvailableHeightPx() - grid.getTotalWorkspacePadding().y
                 - getFooterHeight();
     }
 
@@ -1963,7 +1963,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     private int getHeightFromBottom() {
         BaseDragLayer.LayoutParams layoutParams = (BaseDragLayer.LayoutParams) getLayoutParams();
         int folderBottomPx = layoutParams.y + layoutParams.height;
-        int windowBottomPx = mActivityContext.getDeviceProfile().heightPx;
+        int windowBottomPx = mActivityContext.getDeviceProfile().getDeviceProperties().getHeightPx();
 
         return windowBottomPx - folderBottomPx;
     }

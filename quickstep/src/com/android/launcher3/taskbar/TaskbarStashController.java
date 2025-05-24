@@ -376,11 +376,14 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
 
         mTaskbarBackgroundAlphaForStash.setValue(shouldHideTaskbarBackground ? 0 : 1);
 
-        // if taskbar should auto stash attempt to start timeout.
-        if (shouldAllowTaskbarToAutoStash()) {
-            tryStartTaskbarTimeout();
-        }
         notifyStashChange(/* visible */ false, /* stashed */ isStashedInApp());
+
+        mControllers.runAfterInit(() -> {
+            // if taskbar should auto stash attempt to start timeout.
+            if (shouldAllowTaskbarToAutoStash()) {
+                tryStartTaskbarTimeout();
+            }
+        });
     }
 
     /**
@@ -1239,7 +1242,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
         }
         // Do not stash if in small screen, with 3 button nav, and in landscape.
         if (mActivity.isPhoneMode() && mActivity.isThreeButtonNav()
-                && mActivity.getDeviceProfile().isLandscape) {
+                && mActivity.getDeviceProfile().getDeviceProperties().isLandscape()) {
             return false;
         }
 

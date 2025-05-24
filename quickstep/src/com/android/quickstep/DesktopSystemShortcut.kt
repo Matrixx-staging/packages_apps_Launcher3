@@ -16,12 +16,14 @@
 
 package com.android.quickstep
 
+import android.view.Display
 import android.view.View
 import com.android.internal.jank.Cuj
 import com.android.launcher3.AbstractFloatingViewHelper
 import com.android.launcher3.R
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent
 import com.android.launcher3.popup.SystemShortcut
+import com.android.quickstep.fallback.window.RecentsWindowFlags.enableDesktopMenuOnSecondaryDisplay
 import com.android.quickstep.views.RecentsView
 import com.android.quickstep.views.RecentsViewContainer
 import com.android.quickstep.views.TaskContainer
@@ -75,10 +77,17 @@ class DesktopSystemShortcut(
                     val context = container.asContext()
                     val taskKey = taskContainer.task.key
                     val desktopModeCompatPolicy = DesktopModeCompatPolicy(context)
-                    val isDesktopModeSupported =
-                        DesktopModeStatus.isDesktopModeSupportedOnDisplay(context, context.display)
+                    val isShortcutSupported =
+                        enableDesktopMenuOnSecondaryDisplay ||
+                            context.displayId == Display.DEFAULT_DISPLAY
+
                     return when {
-                        !isDesktopModeSupported -> null
+                        !isShortcutSupported -> null
+
+                        !DesktopModeStatus.isDesktopModeSupportedOnDisplay(
+                            context,
+                            context.display,
+                        ) -> null
 
                         desktopModeCompatPolicy.shouldDisableDesktopEntryPoints(
                             taskKey.baseActivity?.packageName,

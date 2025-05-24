@@ -21,13 +21,11 @@ import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
-import com.android.dx.mockito.inline.extended.ExtendedMockito.mockitoSession
 import com.android.launcher3.util.DaggerSingletonTracker
 import com.android.quickstep.SystemUiProxy
 import com.android.window.flags.Flags.FLAG_ENABLE_MULTIPLE_DESKTOPS_BACKEND
 import com.android.window.flags.Flags.FLAG_ENABLE_MULTIPLE_DESKTOPS_FRONTEND
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus
-import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Rule
@@ -35,7 +33,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.mockito.quality.Strictness
 
 /**
  * Tests the behavior of [DesktopVisibilityController] in regards to multiple desktops and multiple
@@ -46,12 +43,6 @@ import org.mockito.quality.Strictness
 class DesktopVisibilityControllerTest {
 
     @get:Rule val setFlagsRule = SetFlagsRule()
-
-    private val mockitoSession =
-        mockitoSession()
-            .strictness(Strictness.LENIENT)
-            .mockStatic(DesktopModeStatus::class.java)
-            .startMocking()
 
     private val context = mock<Context>()
     private val systemUiProxy = mock<SystemUiProxy>()
@@ -64,11 +55,6 @@ class DesktopVisibilityControllerTest {
         whenever(DesktopModeStatus.enableMultipleDesktops(context)).thenReturn(true)
         desktopVisibilityController =
             DesktopVisibilityController(context, systemUiProxy, lifeCycleTracker)
-    }
-
-    @After
-    fun tearDown() {
-        mockitoSession.finishMocking()
     }
 
     @Test

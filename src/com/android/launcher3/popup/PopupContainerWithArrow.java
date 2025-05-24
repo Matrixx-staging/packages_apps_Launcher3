@@ -413,7 +413,7 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
         for (int i = deepShortcutCount; i > 0; i--) {
             currentHeight += mShortcutHeight;
             // when there is limited vertical screen space, limit total popup rows to fit
-            if (currentHeight >= mActivityContext.getDeviceProfile().availableHeightPx) break;
+            if (currentHeight >= mActivityContext.getDeviceProfile().getDeviceProperties().getAvailableHeightPx()) break;
             DeepShortcutView v = inflateAndAdd(R.layout.deep_shortcut,
                     mDeepShortcutContainer);
             v.getLayoutParams().width = mContainerWidth;

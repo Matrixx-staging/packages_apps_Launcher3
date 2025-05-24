@@ -2,6 +2,12 @@
   "presubmit": [
     {
       "name": "WidgetPickerScreenshotTests"
+    },
+    {
+      "name": "WidgetPickerDeviceTests"
+    },
+    {
+      "name": "WidgetPickerRoboTests"
     }
   ]
 }

@@ -340,7 +340,8 @@ abstract class AbstractDeviceProfileTest {
             launcherPrefs.put(GRID_NAME, gridName)
         }
 
-        val info = spy(DisplayController.Info(context, windowManagerProxy, perDisplayBoundsCache))
+        val info =
+            spy(DisplayController.Info(context, false, windowManagerProxy, perDisplayBoundsCache))
         whenever(displayController.info).thenReturn(info)
         whenever(info.isTransientTaskbar).thenReturn(isGestureMode)
     }

@@ -138,7 +138,8 @@
     <string name="allow_rotation_title" msgid="7222049633713050106">"Tillad rotation af startskærmen"</string>
     <string name="allow_rotation_desc" msgid="8662546029078692509">"Når telefonen roteres"</string>
     <string name="landscape_mode_title" msgid="5138814555934843926">"Liggende format"</string>
-    <string name="landscape_mode_desc" msgid="7372569859592816793">"Indstil telefonen til liggende format"</string>
+    <!-- no translation found for landscape_mode_desc (3085236452297838664) -->
+    <skip />
     <string name="notification_dots_title" msgid="9062440428204120317">"Notifikationsprikker"</string>
     <string name="notification_dots_desc_on" msgid="1679848116452218908">"Til"</string>
     <string name="notification_dots_desc_off" msgid="1760796511504341095">"Fra"</string>

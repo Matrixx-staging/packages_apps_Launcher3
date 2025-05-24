@@ -312,13 +312,13 @@ public abstract class AbstractStateChangeTouchController
             // snap to top or bottom using the release velocity
         } else {
             float successTransitionProgress = SUCCESS_TRANSITION_PROGRESS;
-            if (mLauncher.getDeviceProfile().isTablet
+            if (mLauncher.getDeviceProfile().getDeviceProperties().isTablet()
                     && (mToState == ALL_APPS || mFromState == ALL_APPS)) {
                 successTransitionProgress = TABLET_BOTTOM_SHEET_SUCCESS_TRANSITION_PROGRESS;
-            } else if (!mLauncher.getDeviceProfile().isTablet
+            } else if (!mLauncher.getDeviceProfile().getDeviceProperties().isTablet()
                     && mToState == ALL_APPS && mFromState == NORMAL) {
                 successTransitionProgress = AllAppsSwipeController.ALL_APPS_STATE_TRANSITION_MANUAL;
-            } else if (!mLauncher.getDeviceProfile().isTablet
+            } else if (!mLauncher.getDeviceProfile().getDeviceProperties().isTablet()
                     && mToState == NORMAL && mFromState == ALL_APPS) {
                 successTransitionProgress =
                         1 - AllAppsSwipeController.ALL_APPS_STATE_TRANSITION_MANUAL;

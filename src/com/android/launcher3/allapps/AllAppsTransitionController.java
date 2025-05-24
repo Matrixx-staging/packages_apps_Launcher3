@@ -235,7 +235,7 @@ public class AllAppsTransitionController
         boolean fromBackground =
                 mLauncher.getStateManager().getCurrentStableState() == BACKGROUND_APP;
         // Allow apps panel to shift the full screen if coming from another app.
-        float shiftRange = fromBackground ? mLauncher.getDeviceProfile().heightPx : mShiftRange;
+        float shiftRange = fromBackground ? mLauncher.getDeviceProfile().getDeviceProperties().getHeightPx() : mShiftRange;
         getAppsViewProgressTranslationY().setValue(mProgress * shiftRange);
         mLauncher.onAllAppsTransition(1 - progress);
 

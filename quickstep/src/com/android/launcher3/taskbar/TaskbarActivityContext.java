@@ -316,7 +316,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         Optional<BubbleControllers> bubbleControllersOptional = Optional.empty();
         BubbleBarController.onTaskbarRecreated();
         final boolean deviceBubbleBarEnabled = enableBubbleBarOnPhones()
-                || (!mDeviceProfile.isPhone && !mDeviceProfile.isVerticalBarLayout());
+                || (!mDeviceProfile.getDeviceProperties().isPhone() && !mDeviceProfile.isVerticalBarLayout());
         if (BubbleBarController.isBubbleBarEnabled() && deviceBubbleBarEnabled
                 && bubbleBarView != null && isPrimaryDisplay) {
             Optional<BubbleStashedHandleViewController> bubbleHandleController = Optional.empty();
@@ -398,7 +398,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         onViewCreated();
     }
 
-    /** Updates {@link DeviceProfile} instances for any Taskbar windows. */
+    /** Updates {@link deviceprofile} instances for any Taskbar windows. */
     public void updateDeviceProfile(DeviceProfile launcherDp) {
         applyDeviceProfile(launcherDp);
         mControllers.taskbarOverlayController.updateLauncherDeviceProfile(launcherDp);
@@ -591,7 +591,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
      */
     public boolean isPhoneMode() {
         return ENABLE_TASKBAR_NAVBAR_UNIFICATION
-                && mDeviceProfile.isPhone
+                && mDeviceProfile.getDeviceProperties().isPhone()
                 && !mDeviceProfile.isTaskbarPresent;
     }
 
@@ -620,11 +620,11 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
 
     /** Returns {@code true} iff a tiny version of taskbar is shown on phone. */
     public boolean isTinyTaskbar() {
-        return enableTinyTaskbar() && mDeviceProfile.isPhone && mDeviceProfile.isTaskbarPresent;
+        return enableTinyTaskbar() && mDeviceProfile.getDeviceProperties().isPhone() && mDeviceProfile.isTaskbarPresent;
     }
 
     public boolean isBubbleBarOnPhone() {
-        return enableBubbleBarOnPhones() && enableBubbleBar() && mDeviceProfile.isPhone;
+        return enableBubbleBarOnPhones() && enableBubbleBar() && mDeviceProfile.getDeviceProperties().isPhone();
     }
 
     /**
@@ -1310,13 +1310,13 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     public void setTaskbarWindowSize(int size) {
         // In landscape phone button nav mode, we should set the task bar width instead of height
         // because this is the only case in which the nav bar is not on the display bottom.
-        boolean landscapePhoneButtonNav = isPhoneButtonNavMode() && mDeviceProfile.isLandscape;
+        boolean landscapePhoneButtonNav = isPhoneButtonNavMode() && mDeviceProfile.getDeviceProperties().isLandscape();
         if ((landscapePhoneButtonNav ? mWindowLayoutParams.width : mWindowLayoutParams.height)
                 == size || mIsDestroyed) {
             return;
         }
         if (size == MATCH_PARENT) {
-            size = mDeviceProfile.heightPx;
+            size = mDeviceProfile.getDeviceProperties().getHeightPx();
         } else {
             mLastRequestedNonFullscreenSize = size;
             if (mIsFullscreen || mIsTaskbarSizeFrozenForAnimatingBubble) {

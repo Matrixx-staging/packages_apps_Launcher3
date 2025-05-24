@@ -96,7 +96,6 @@ import static com.android.launcher3.states.RotationHelper.REQUEST_NONE;
 import static com.android.launcher3.testing.shared.TestProtocol.LAUNCHER_ACTIVITY_STOPPED_MESSAGE;
 import static com.android.launcher3.util.ItemInfoMatcher.forFolderMatch;
 import static com.android.launcher3.util.SettingsCache.TOUCHPAD_NATURAL_SCROLLING;
-import static com.android.launcher3.util.WallpaperThemeManager.setWallpaperDependentTheme;
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;
@@ -232,6 +231,7 @@ import com.android.launcher3.util.Themes;
 import com.android.launcher3.util.Thunk;
 import com.android.launcher3.util.TouchController;
 import com.android.launcher3.util.TraceHelper;
+import com.android.launcher3.util.WallpaperThemeManager;
 import com.android.launcher3.views.FloatingIconView;
 import com.android.launcher3.views.FloatingSurfaceView;
 import com.android.launcher3.views.OptionsPopupView;
@@ -401,6 +401,8 @@ public class Launcher extends StatefulActivity<LauncherState>
 
     private StartupLatencyLogger mStartupLatencyLogger;
 
+    protected WallpaperThemeManager mWallpaperThemeManager;
+
     public static Launcher getLauncher(Context context) {
         return fromContext(context);
     }
@@ -415,7 +417,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         mStartupLatencyLogger.logStart(LAUNCHER_LATENCY_STARTUP_ACTIVITY_ON_CREATE);
 
         super.onCreate(savedInstanceState);
-        setWallpaperDependentTheme(this);
+        mWallpaperThemeManager = new WallpaperThemeManager(this);
 
         LauncherAppState app = LauncherAppState.getInstance(this);
         mModel = app.getModel();
@@ -675,9 +677,9 @@ public class Launcher extends StatefulActivity<LauncherState>
         // When the flag oneGridSpecs is on we want to disable ALLOW_ROTATION which is replaced
         // by FIXED_LANDSCAPE_MODE, ALLOW_ROTATION will only be used on Tablets and foldables
         // afterwards.
-        if (getDeviceProfile().isPhone) {
+        if (getDeviceProfile().getDeviceProperties().isPhone()) {
             LauncherPrefs.get(this).put(LauncherPrefs.ALLOW_ROTATION, false);
-        } else if (getDeviceProfile().isTablet) {
+        } else if (getDeviceProfile().getDeviceProperties().isTablet()) {
             // Tablet do not use fixed landscape mode, make sure it can't be activated by mistake
             LauncherPrefs.get(this).put(FIXED_LANDSCAPE_MODE, false);
         }
@@ -706,7 +708,7 @@ public class Launcher extends StatefulActivity<LauncherState>
                     this, getMultiWindowDisplaySize());
         }
 
-        if (FOLDABLE_SINGLE_PAGE.get() && mDeviceProfile.isTwoPanels) {
+        if (FOLDABLE_SINGLE_PAGE.get() && mDeviceProfile.getDeviceProperties().isTwoPanels()) {
             mCellPosMapper = new TwoPanelCellPosMapper(mDeviceProfile.inv.numColumns);
         } else {
             mCellPosMapper = new CellPosMapper(mDeviceProfile.isVerticalBarLayout(),
@@ -1516,6 +1518,9 @@ public class Launcher extends StatefulActivity<LauncherState>
         boolean isActionMain = Intent.ACTION_MAIN.equals(intent.getAction());
         boolean internalStateHandled = ACTIVITY_TRACKER.handleNewIntent(this);
 
+        logOnNewIntent(alreadyOnHome, shouldMoveToDefaultScreen, intent.getAction(),
+                internalStateHandled);
+
         if (isActionMain) {
             if (!internalStateHandled) {
                 // In all these cases, only animate if we're already on home
@@ -1553,6 +1558,9 @@ public class Launcher extends StatefulActivity<LauncherState>
         TraceHelper.INSTANCE.endSection();
     }
 
+    protected void logOnNewIntent(boolean alreadyOnHome, boolean shouldMoveToDefaultScreen,
+            String action, boolean internalStateHandled) { }
+
     /** Handle animating away split placeholder view when user taps on home button */
     protected void handleSplitAnimationGoingToHome(EventEnum splitDismissReason) {
         // Overridden
@@ -1565,9 +1573,6 @@ public class Launcher extends StatefulActivity<LauncherState>
     public void toggleAllApps(boolean focusSearch) {
         toggleAllApps(/* alreadyOnHome= */ true, focusSearch);
     }
-
-    /** Apply the blur or blur fallback style to the current theme. */
-    public void updateBlurStyle() {}
 
     private void toggleAllApps(boolean alreadyOnHome, boolean focusSearch) {
         if (getStateManager().isInStableState(ALL_APPS)) {
@@ -1884,13 +1889,15 @@ public class Launcher extends StatefulActivity<LauncherState>
     public void updateOpenFolderPosition(int[] inOutPosition, Rect bounds, int width, int height) {
         int left = inOutPosition[0];
         int top = inOutPosition[1];
-        DeviceProfile grid = getDeviceProfile();
+        DeviceProfile deviceProfile = getDeviceProfile();
         int distFromEdgeOfScreen = getWorkspace().getPaddingLeft();
-        if (grid.isPhone && (grid.availableWidthPx - width) < 4 * distFromEdgeOfScreen) {
+        final int availableWidth = deviceProfile.getDeviceProperties().getAvailableWidthPx();
+        if (deviceProfile.getDeviceProperties().isPhone()
+                && (availableWidth - width) < 4 * distFromEdgeOfScreen) {
             // Center the folder if it is very close to being centered anyway, by virtue of
             // filling the majority of the viewport. ie. remove it from the uncanny valley
             // of centeredness.
-            left = (grid.availableWidthPx - width) / 2;
+            left = (availableWidth - width) / 2;
         } else if (width >= bounds.width()) {
             // If the folder doesn't fit within the bounds, center it about the desired bounds
             left = bounds.left + (bounds.width() - width) / 2;
@@ -1901,7 +1908,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         } else {
             // Folder height is less than page height, so bound it to the absolute open folder
             // bounds if necessary
-            Rect folderBounds = grid.getAbsoluteOpenFolderBounds();
+            Rect folderBounds = deviceProfile.getAbsoluteOpenFolderBounds();
             left = Math.max(folderBounds.left, Math.min(left, folderBounds.right - width));
             top = Math.max(folderBounds.top, Math.min(top, folderBounds.bottom - height));
         }
@@ -2541,7 +2548,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         if (BuildCompat.isAtLeastV()
                 && Flags.enableDesktopWindowingMode()
                 && !Flags.enableDesktopWindowingWallpaperActivity()
-                && mDeviceProfile.isTablet) {
+                && mDeviceProfile.getDeviceProperties().isTablet()) {
             // TODO(b/333533253): Clean up after desktop wallpaper activity flag is rolled out
             return;
         }

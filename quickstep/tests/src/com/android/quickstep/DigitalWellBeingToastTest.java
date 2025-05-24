@@ -102,7 +102,10 @@ public class DigitalWellBeingToastTest extends BaseLauncherActivityTest<Quickste
 
     private DigitalWellBeingToast getToast() {
         getLauncherActivity().goToState(LauncherState.OVERVIEW);
-        final TaskView task = getOnceNotNull("No latest task", launcher -> getLatestTask(launcher));
+        final TaskView task = getLauncherActivity().getOnceNotNull(
+                "No latest task",
+                launcher -> getLatestTask(launcher)
+        );
 
         return getLauncherActivity().getFromLauncher(launcher -> {
             TaskContainer taskContainer = task.getFirstTaskContainer();

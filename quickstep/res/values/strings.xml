@@ -30,8 +30,8 @@
     <string name="recent_task_option_desktop">Desktop</string>
     <!-- Title and content description for an option to move app to external display. -->
     <string name="recent_task_option_external_display">Move to external display</string>
-    <!-- Title and content description for an option to close the app [CHAR LIMIT=30] -->
-    <string name="recent_task_option_close">Close</string>
+    <!-- Title and content description for an option to remove the task [CHAR LIMIT=30] -->
+    <string name="recent_task_option_remove_task">Clear</string>
 
     <!-- Title and content description for Desktop tile in Recents screen that contains apps opened inside desktop windowing mode [CHAR LIMIT=NONE] -->
     <string name="recent_task_desktop">Desktop</string>

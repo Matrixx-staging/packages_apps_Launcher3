@@ -16,8 +16,10 @@
 
 package com.android.launcher3.logging
 
+import android.os.Process
 import android.os.SystemClock
 import android.os.Trace
+import android.util.Log
 import android.util.SparseLongArray
 import androidx.annotation.VisibleForTesting
 import com.android.launcher3.LauncherConstants.TraceEvents.COLD_STARTUP_TRACE_METHOD_NAME
@@ -81,6 +83,14 @@ sealed interface StartupLatencyLogger {
             }
 
             Executors.MAIN_EXECUTOR.handler.postAtFrontOfQueue {
+                Log.i(
+                    "Launcher",
+                    "LauncherReady. " +
+                        "User: " +
+                        Process.myUserHandle() +
+                        " TS: " +
+                        SystemClock.uptimeMillis(),
+                )
                 logEnd(LAUNCHER_LATENCY_STARTUP_TOTAL_DURATION)
                 commitLogs()
             }

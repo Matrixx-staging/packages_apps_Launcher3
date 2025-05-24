@@ -127,6 +127,7 @@ public class DisplayController implements DesktopVisibilityListener {
     // TARGET_OVERLAY_PACKAGE and ACTION_OVERLAY_CHANGED.
     private final SimpleBroadcastReceiver mReceiver;
 
+    private final boolean mIsDesktopFormFactor;
     private boolean mDestroyed = false;
 
     @Inject
@@ -136,6 +137,9 @@ public class DisplayController implements DesktopVisibilityListener {
             DaggerSingletonTracker lifecycle) {
         mAppContext = context;
         mWMProxy = wmProxy;
+
+        mIsDesktopFormFactor = enableScalabilityForDesktopExperience()
+                && mAppContext.getResources().getBoolean(R.bool.desktop_form_factor);
 
         if (enableTaskbarPinning()) {
             LauncherPrefChangeListener prefListener = key -> {
@@ -424,12 +428,13 @@ public class DisplayController implements DesktopVisibilityListener {
     }
 
     private Info getNewInfo(Info oldInfo, Context displayInfoContext) {
-        Info newInfo = new Info(displayInfoContext, mWMProxy, oldInfo.mPerDisplayBounds);
+        Info newInfo = new Info(displayInfoContext, mIsDesktopFormFactor, mWMProxy,
+                oldInfo.mPerDisplayBounds);
 
         if (newInfo.densityDpi != oldInfo.densityDpi || newInfo.fontScale != oldInfo.fontScale
                 || newInfo.getNavigationMode() != oldInfo.getNavigationMode()) {
             // Cache may not be valid anymore, recreate without cache
-            newInfo = new Info(displayInfoContext, mWMProxy,
+            newInfo = new Info(displayInfoContext, mIsDesktopFormFactor, mWMProxy,
                     mWMProxy.estimateInternalDisplayBounds(displayInfoContext));
         }
         return newInfo;
@@ -467,7 +472,7 @@ public class DisplayController implements DesktopVisibilityListener {
                             displayId));
         }
         Context windowContext = mAppContext.createWindowContext(display, TYPE_APPLICATION, null);
-        Info info = new Info(windowContext, mWMProxy,
+        Info info = new Info(windowContext, mIsDesktopFormFactor, mWMProxy,
                 mWMProxy.estimateInternalDisplayBounds(windowContext));
         perDisplayInfo = new PerDisplayInfo(displayId, windowContext, info);
         mPerDisplayInfo.put(displayId, perDisplayInfo);
@@ -518,11 +523,15 @@ public class DisplayController implements DesktopVisibilityListener {
 
         public Info(Context displayInfoContext) {
             /* don't need system overrides for external displays */
-            this(displayInfoContext, new WindowManagerProxy(), new ArrayMap<>());
+            this(displayInfoContext, enableScalabilityForDesktopExperience()
+                            && displayInfoContext.getResources().getBoolean(
+                            R.bool.desktop_form_factor),
+                    new WindowManagerProxy(), new ArrayMap<>());
         }
 
         // Used for testing
         public Info(Context displayInfoContext,
+                boolean isDesktopFormFactor,
                 WindowManagerProxy wmProxy,
                 Map<CachedDisplayInfo, List<WindowBounds>> perDisplayBoundsCache) {
             CachedDisplayInfo displayInfo = wmProxy.getDisplayInfo(displayInfoContext);
@@ -579,8 +588,7 @@ public class DisplayController implements DesktopVisibilityListener {
             mShowDesktopTaskbarForFreeformDisplay = wmProxy.showDesktopTaskbarForFreeformDisplay(
                     displayInfoContext);
             mIsHomeVisible = wmProxy.isHomeVisible();
-            mIsDesktopFormFactor = enableScalabilityForDesktopExperience()
-                    && displayInfoContext.getResources().getBoolean(R.bool.desktop_form_factor);
+            mIsDesktopFormFactor = isDesktopFormFactor;
         }
 
         /**

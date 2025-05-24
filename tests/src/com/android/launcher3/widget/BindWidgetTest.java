@@ -227,11 +227,17 @@ public class BindWidgetTest extends BaseLauncherActivityTest<Launcher> {
     }
 
     private void verifyWidgetPresent(LauncherAppWidgetProviderInfo info) {
-        getOnceNotNull("Widget is not present", widgetProvider(info));
+        getLauncherActivity().getOnceNotNull(
+                "Widget is not present",
+                widgetProvider(info)
+        );
     }
 
     private void verifyPendingWidgetPresent() {
-        getOnceNotNull("Widget is not present", pendingWidgetProvider());
+        getLauncherActivity().getOnceNotNull(
+                "Widget is not present",
+                pendingWidgetProvider()
+        );
     }
 
     private Function<Launcher, Object> pendingWidgetProvider() {

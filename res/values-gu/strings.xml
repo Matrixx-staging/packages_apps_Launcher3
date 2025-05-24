@@ -138,7 +138,8 @@
     <string name="allow_rotation_title" msgid="7222049633713050106">"હોમ સ્ક્રીનને ફેરવવાની મંજૂરી આપો"</string>
     <string name="allow_rotation_desc" msgid="8662546029078692509">"જ્યારે ફોન ફેરવવામાં આવે ત્યારે"</string>
     <string name="landscape_mode_title" msgid="5138814555934843926">"લૅન્ડસ્કેપ મોડ"</string>
-    <string name="landscape_mode_desc" msgid="7372569859592816793">"ફોનને લૅન્ડસ્કેપ મોડમાં સેટ કરો"</string>
+    <!-- no translation found for landscape_mode_desc (3085236452297838664) -->
+    <skip />
     <string name="notification_dots_title" msgid="9062440428204120317">"નોટિફિકેશન ડૉટ"</string>
     <string name="notification_dots_desc_on" msgid="1679848116452218908">"ચાલુ છે"</string>
     <string name="notification_dots_desc_off" msgid="1760796511504341095">"બંધ છે"</string>

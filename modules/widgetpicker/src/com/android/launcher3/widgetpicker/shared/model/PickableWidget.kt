@@ -39,7 +39,12 @@ data class PickableWidget(
     val description: CharSequence?,
     val appWidgetProviderInfo: AppWidgetProviderInfo,
     val sizeInfo: WidgetSizeInfo,
-)
+) {
+    // Custom toString to account for the appWidgetProviderInfo.
+    override fun toString(): String =
+        "PickableWidget(id=$id,appId=$appId,label=$label,description=$description," +
+            "sizeInfo=$sizeInfo,provider=${appWidgetProviderInfo.provider})"
+}
 
 /**
  * Sizing information for a specific widget shown in a grid.

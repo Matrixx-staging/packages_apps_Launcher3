@@ -34,6 +34,13 @@
      [CHAR_LIMIT=25]  -->
     <string name="featured_widgets_tab_label">Featured</string>
 
+    <!-- Tab label. A user can tap this tab to access list of all apps hosting appwidgets.
+    [CHAR_LIMIT=25]  -->
+    <string name="browse_widgets_tab_label">Browse</string>
+
+    <!-- accessibilityPaneTitle for the right pane when showing widgets selected on left. -->
+    <string name="widget_picker_right_pane_accessibility_label"><xliff:g id="selected_header" example="Calendar">%1$s</xliff:g> widgets on right, search and options on left</string>
+
     <!-- Search bar strings -->
     <!-- Placeholder text displayed in the widget's search bar [CHAR_LIMIT=50] -->
     <string name="widgets_search_bar_hint">Search</string>

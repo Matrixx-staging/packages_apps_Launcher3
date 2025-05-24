@@ -48,9 +48,6 @@ public interface SearchUiManager {
     @Nullable
     ExtendedEditText getEditText();
 
-    /** Indicates the UI should refresh according to the current theme. */
-    default void onThemeChanged() {}
-
     /**
      * Hint to the edit text that it is about to be focused or unfocused. This can be used to start
      * animating the edit box accordingly, e.g. after a gesture completes.

@@ -24,6 +24,7 @@ import static com.android.launcher3.BubbleTextView.RunningAppState.RUNNING;
 import static com.android.launcher3.BubbleTextView.RunningAppState.MINIMIZED;
 import static com.android.launcher3.Flags.enableContrastTiles;
 import static com.android.launcher3.Flags.enableCursorHoverStates;
+import static com.android.launcher3.Flags.enableScalabilityForDesktopExperience;
 import static com.android.launcher3.allapps.AlphabeticalAppsList.PRIVATE_SPACE_PACKAGE;
 import static com.android.launcher3.graphics.PreloadIconDrawable.newPendingIcon;
 import static com.android.launcher3.icons.BitmapInfo.FLAG_NO_BADGE;
@@ -552,8 +553,39 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
      * Only if actual text can be displayed in two line, the {@code true} value will be effective.
      */
     protected boolean shouldUseTwoLine() {
-        return mDeviceProfile.inv.enableTwoLinesInAllApps
-                && (mDisplay == DISPLAY_ALL_APPS || mDisplay == DISPLAY_PREDICTION_ROW);
+        // For all apps and search UI, respect user selection in home settings. Note that all apps
+        // cell spec can declare support for two line labels, but it's used primarily to decide
+        // whether the BubbleTextView height needs to be increased to accommodate an extra line of
+        // text.
+        if (mDisplay == DISPLAY_ALL_APPS || mDisplay == DISPLAY_PREDICTION_ROW) {
+            return mDeviceProfile.inv.enableTwoLinesInAllApps;
+        }
+
+        // Otherwise, show two lines if the cell declares it can fit two line label.
+        return getCellSpecMaxTextLineCount() == 2;
+    }
+
+    /**
+     * @return The number of lines the that the cell spec associated with the BubbleTextView
+     * declared it can support.
+     */
+    private int getCellSpecMaxTextLineCount() {
+        if (!enableScalabilityForDesktopExperience()) {
+            return 1;
+        }
+
+        switch (mDisplay) {
+            case DISPLAY_ALL_APPS, DISPLAY_PREDICTION_ROW -> {
+                return mDeviceProfile.maxAllAppsTextLineCount;
+            }
+            case DISPLAY_WORKSPACE -> {
+                return mDeviceProfile.maxIconTextLineCount;
+            }
+            case DISPLAY_FOLDER -> {
+                return mDeviceProfile.maxFolderChildTextLineCount;
+            }
+        }
+        return 1;
     }
 
     @UiThread
@@ -912,7 +944,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         if (mCenterVertically) {
             Paint.FontMetrics fm = getPaint().getFontMetrics();
             int cellHeightPx = mIconSize + getCompoundDrawablePadding() +
-                    (int) Math.ceil(fm.bottom - fm.top);
+                    (int) Math.ceil(fm.bottom - fm.top) * getCellSpecMaxTextLineCount();
             setPadding(getPaddingLeft(), (height - cellHeightPx) / 2, getPaddingRight(),
                     getPaddingBottom());
         }

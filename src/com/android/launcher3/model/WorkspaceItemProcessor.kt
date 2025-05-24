@@ -689,8 +689,8 @@ class WorkspaceItemProcessor(
                 deviceProfile.getCellSize(cellSize)
                 FileLog.d(
                     TAG,
-                    "DeviceProfile available width: ${deviceProfile.availableWidthPx}," +
-                        " available height: ${deviceProfile.availableHeightPx}," +
+                    "DeviceProfile available width: ${deviceProfile.deviceProperties.availableWidthPx}," +
+                        " available height: ${deviceProfile.deviceProperties.availableHeightPx}," +
                         " cellLayoutBorderSpacePx Horizontal: ${deviceProfile.cellLayoutBorderSpacePx.x}," +
                         " cellLayoutBorderSpacePx Vertical: ${deviceProfile.cellLayoutBorderSpacePx.y}," +
                         " cellSize: $cellSize",

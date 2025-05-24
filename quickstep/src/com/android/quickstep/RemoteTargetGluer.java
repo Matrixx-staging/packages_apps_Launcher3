@@ -69,8 +69,6 @@ public class RemoteTargetGluer {
      */
     public RemoteTargetGluer(Context context, BaseContainerInterface sizingStrategy,
             @Nullable GroupedTaskInfo groupedTaskInfo) {
-        // TODO: b/403344864 Make sure init with correct number of RemoteTargetHandle with
-        //  multi-desks feature enabled as well.
         if (enableMultipleDesktops(context)) {
             if (groupedTaskInfo != null && groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_DESK)) {
                 // Allocate +1 to account for the DesktopWallpaperActivity added to the desk.
@@ -180,6 +178,12 @@ public class RemoteTargetGluer {
             RemoteAnimationTarget topLeftTarget = targets.findTask(mSplitBounds.leftTopTaskId);
             RemoteAnimationTarget bottomRightTarget = targets.findTask(
                     mSplitBounds.rightBottomTaskId);
+            if (topLeftTarget == null) {
+                Log.e(TAG, "topLeftTarget not found. mSplitBounds: " + mSplitBounds);
+            }
+            if (bottomRightTarget == null) {
+                Log.e(TAG, "bottomRightTarget not found. mSplitBounds: " + mSplitBounds);
+            }
             List<RemoteAnimationTarget> overlayTargets = Arrays.stream(targets.apps).filter(
                     target -> target.windowConfiguration.getWindowingMode()
                             != WindowConfiguration.WINDOWING_MODE_MULTI_WINDOW).toList();

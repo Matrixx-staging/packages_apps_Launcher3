@@ -242,7 +242,7 @@ public abstract class LauncherState implements BaseState<LauncherState> {
         DeviceProfile dp = launcher.getDeviceProfile();
         if (dp.isQsbInline) {
             int marginStart = getFloatingSearchBarRestingMarginStart(launcher);
-            return dp.widthPx - marginStart - dp.hotseatQsbWidth;
+            return dp.getDeviceProperties().getWidthPx() - marginStart - dp.hotseatQsbWidth;
         }
 
         boolean isRtl = Utilities.isRtl(launcher.getResources());
@@ -258,7 +258,7 @@ public abstract class LauncherState implements BaseState<LauncherState> {
     public int getVisibleElements(Launcher launcher) {
         int elements = HOTSEAT_ICONS | WORKSPACE_PAGE_INDICATOR | VERTICAL_SWIPE_INDICATOR;
         // Floating search bar is visible in normal state except in landscape on phones.
-        if (!(launcher.getDeviceProfile().isPhone && launcher.getDeviceProfile().isLandscape)) {
+        if (!(launcher.getDeviceProfile().getDeviceProperties().isPhone() && launcher.getDeviceProfile().getDeviceProperties().isLandscape())) {
             elements |= FLOATING_SEARCH_BAR;
         }
         return elements;
@@ -346,7 +346,7 @@ public abstract class LauncherState implements BaseState<LauncherState> {
     public final  <DEVICE_PROFILE_CONTEXT extends Context & ActivityContext>
             float getDepth(DEVICE_PROFILE_CONTEXT context) {
         return getDepth(context,
-                ActivityContext.lookupContext(context).getDeviceProfile().isMultiWindowMode);
+                ActivityContext.lookupContext(context).getDeviceProfile().getDeviceProperties().isMultiWindowMode());
     }
 
     /**
@@ -390,7 +390,7 @@ public abstract class LauncherState implements BaseState<LauncherState> {
         boolean shouldFadeAdjacentScreens = (this == NORMAL || this == HINT_STATE)
                 && dp.shouldFadeAdjacentWorkspaceScreens();
         // Avoid showing adjacent screens behind handheld All Apps sheet.
-        if (Flags.allAppsSheetForHandheld() && dp.isPhone && this == ALL_APPS) {
+        if (Flags.allAppsSheetForHandheld() && dp.getDeviceProperties().isPhone() && this == ALL_APPS) {
             shouldFadeAdjacentScreens = true;
         }
         if (!shouldFadeAdjacentScreens) {
@@ -410,7 +410,7 @@ public abstract class LauncherState implements BaseState<LauncherState> {
      */
     public PageTranslationProvider getWorkspacePageTranslationProvider(Launcher launcher) {
         if (!(this == SPRING_LOADED || this == EDIT_MODE)
-                || !launcher.getDeviceProfile().isTwoPanels) {
+                || !launcher.getDeviceProfile().getDeviceProperties().isTwoPanels()) {
             return DEFAULT_PAGE_TRANSLATION_PROVIDER;
         }
         final float quarterPageSpacing = launcher.getWorkspace().getPageSpacing() / 4f;

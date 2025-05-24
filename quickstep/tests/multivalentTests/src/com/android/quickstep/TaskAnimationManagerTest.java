@@ -16,9 +16,11 @@
 
 package com.android.quickstep;
 
+import static com.android.quickstep.TaskAnimationManager.RECENTS_ANIMATION_START_TIMEOUT_MS;
+
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -36,6 +38,7 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.platform.test.annotations.DisableFlags;
 import android.platform.test.annotations.EnableFlags;
 import android.platform.test.flag.junit.SetFlagsRule;
@@ -113,7 +116,7 @@ public class TaskAnimationManagerTest {
 
     @Test
     public void testLauncherDestroyed_whileRecentsAnimationStartPending_finishesAnimation() {
-        final GestureState gestureState = mock(GestureState.class);
+        final GestureState gestureState = buildMockGestureState();
         final ArgumentCaptor<RecentsAnimationCallbacks> listenerCaptor =
                 ArgumentCaptor.forClass(RecentsAnimationCallbacks.class);
         final RecentsAnimationControllerCompat controllerCompat =
@@ -136,18 +139,20 @@ public class TaskAnimationManagerTest {
                 /* taskInfo= */ new ActivityManager.RunningTaskInfo(),
                 /* allowEnterPip= */ false);
 
-        doReturn(mock(LauncherActivityInterface.class)).when(gestureState).getContainerInterface();
         when(mSystemUiProxy
                 .startRecentsActivity(any(), any(), listenerCaptor.capture(), anyBoolean(), any(),
                         anyInt()))
                 .thenReturn(true);
-        when(gestureState.getRunningTaskIds(anyBoolean())).thenReturn(new int[0]);
 
         runOnMainSync(() -> {
             mTaskAnimationManager.startRecentsAnimation(
                     gestureState,
                     new Intent(),
                     mock(RecentsAnimationCallbacks.RecentsAnimationListener.class));
+
+            // Simulate multiple launcher destroyed events before the recents animation start
+            mTaskAnimationManager.onLauncherDestroyed();
+            mTaskAnimationManager.onLauncherDestroyed();
             mTaskAnimationManager.onLauncherDestroyed();
             listenerCaptor.getValue().onAnimationStart(
                     controllerCompat,
@@ -158,12 +163,49 @@ public class TaskAnimationManagerTest {
                     new Bundle(),
                     new TransitionInfo(0, 0));
         });
+
+        // Verify checks that finish was only called once
         runOnMainSync(() -> verify(controllerCompat)
                 .finish(/* toHome= */ eq(false), anyBoolean(), any()));
     }
 
+    @Test
+    public void testRecentsAnimationStartTimeout_cleansUpRecentsAnimation() {
+        final GestureState gestureState = buildMockGestureState();
+        when(mSystemUiProxy
+                .startRecentsActivity(any(), any(), any(), anyBoolean(), any(), anyInt()))
+                .thenReturn(true);
+
+        runOnMainSync(() -> {
+            assertNull("Recents animation was started prematurely:",
+                    mTaskAnimationManager.getCurrentCallbacks());
+
+            mTaskAnimationManager.startRecentsAnimation(
+                    gestureState,
+                    new Intent(),
+                    mock(RecentsAnimationCallbacks.RecentsAnimationListener.class));
+
+            assertNotNull("TaskAnimationManager was cleaned up prematurely:",
+                    mTaskAnimationManager.getCurrentCallbacks());
+        });
+
+        SystemClock.sleep(RECENTS_ANIMATION_START_TIMEOUT_MS);
+
+        runOnMainSync(() -> assertNull("TaskAnimationManager was not cleaned up after the timeout:",
+                mTaskAnimationManager.getCurrentCallbacks()));
+    }
+
     protected static void runOnMainSync(Runnable runnable) {
         InstrumentationRegistry.getInstrumentation().runOnMainSync(runnable);
+    }
+
+    private GestureState buildMockGestureState() {
+        final GestureState gestureState = mock(GestureState.class);
+
+        doReturn(mock(LauncherActivityInterface.class)).when(gestureState).getContainerInterface();
+        when(gestureState.getRunningTaskIds(anyBoolean())).thenReturn(new int[0]);
+
+        return gestureState;
     }
 
     /**

@@ -985,7 +985,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
         float scaleUp = ((float) launcherDp.iconSizePx) / taskbarDp.taskbarIconSize;
         int borderSpacing = launcherDp.hotseatBorderSpace;
         int hotseatCellSize = DeviceProfile.calculateCellWidth(
-                launcherDp.availableWidthPx - hotseatPadding.left - hotseatPadding.right,
+                launcherDp.getDeviceProperties().getAvailableWidthPx() - hotseatPadding.left - hotseatPadding.right,
                 borderSpacing,
                 launcherDp.numShownHotseatIcons);
 
@@ -1066,7 +1066,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
             if (child == mTaskbarView.getQsb()) {
                 boolean isRtl = Utilities.isRtl(child.getResources());
                 float hotseatIconCenter = isRtl
-                        ? launcherDp.widthPx - hotseatPadding.right + borderSpacing
+                        ? launcherDp.getDeviceProperties().getWidthPx() - hotseatPadding.right + borderSpacing
                         + launcherDp.hotseatQsbWidth / 2f
                         : hotseatPadding.left - borderSpacing - launcherDp.hotseatQsbWidth / 2f;
                 if (taskbarDp.isQsbInline) {

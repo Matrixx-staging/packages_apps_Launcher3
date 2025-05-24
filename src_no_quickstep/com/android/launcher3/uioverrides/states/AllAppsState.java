@@ -65,7 +65,7 @@ public class AllAppsState extends LauncherState {
 
     @Override
     public ScaleAndTranslation getHotseatScaleAndTranslation(Launcher launcher) {
-        if (launcher.getDeviceProfile().isTablet) {
+        if (launcher.getDeviceProfile().getDeviceProperties().isTablet()) {
             return getWorkspaceScaleAndTranslation(launcher);
         } else {
             ScaleAndTranslation overviewScaleAndTranslation = LauncherState.OVERVIEW
@@ -83,7 +83,7 @@ public class AllAppsState extends LauncherState {
         return new PageAlphaProvider(DECELERATE) {
             @Override
             public float getPageAlpha(int pageIndex) {
-                return launcher.getDeviceProfile().isTablet
+                return launcher.getDeviceProfile().getDeviceProperties().isTablet()
                         ? superPageAlphaProvider.getPageAlpha(pageIndex)
                         : 0;
             }
@@ -97,7 +97,7 @@ public class AllAppsState extends LauncherState {
 
     @Override
     public int getWorkspaceScrimColor(Launcher launcher) {
-        return launcher.getDeviceProfile().isTablet
+        return launcher.getDeviceProfile().getDeviceProperties().isTablet()
                 ? launcher.getResources().getColor(R.color.widgets_picker_scrim)
                 : Themes.getAttrColor(launcher, R.attr.allAppsScrimColor);
     }

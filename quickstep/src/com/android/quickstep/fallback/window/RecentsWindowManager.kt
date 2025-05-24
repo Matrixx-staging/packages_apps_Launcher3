@@ -425,6 +425,14 @@ constructor(
         AccessibilityManagerCompat.sendStateEventToTest(baseContext, state.toLauncherStateOrdinal())
     }
 
+    override fun onRepeatStateSetAborted(state: RecentsState) {
+        super.onRepeatStateSetAborted(state)
+        RecentsWindowProtoLogProxy.logOnRepeatStateSetAborted(state.toString())
+        if (!state.isRecentsViewVisible) {
+            cleanupRecentsWindow()
+        }
+    }
+
     override fun getSystemUiController(): SystemUiController? {
         if (systemUiController == null) {
             systemUiController = SystemUiController(rootView)

@@ -88,7 +88,6 @@ import android.os.Trace;
 import android.os.UserHandle;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.view.ContextThemeWrapper;
 import android.view.Display;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
@@ -165,6 +164,7 @@ import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.IntSet;
 import com.android.launcher3.util.NavigationMode;
 import com.android.launcher3.util.ObjectWrapper;
+import com.android.launcher3.util.OverviewCommandHelperProtoLogProxy;
 import com.android.launcher3.util.PendingRequestArgs;
 import com.android.launcher3.util.PendingSplitSelectInfo;
 import com.android.launcher3.util.RunnableList;
@@ -277,6 +277,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
     private final OverviewChangeListener mOverviewChangeListener = this::onOverviewTargetChanged;
 
+    private boolean mOverviewBlurEnabled;
+
     private final TaskViewRecentsTouchContext mTaskViewRecentsTouchContext =
             new TaskViewRecentsTouchContext() {
                 @Override
@@ -300,6 +302,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     protected void setupViews() {
         getAppWidgetHolder().setOnViewCreationCallback(new QuickstepInteractionHandler(this));
         mDepthController = new DepthController(this);
+        mOverviewBlurEnabled = isOverviewBackgroundBlurEnabled();
         getTheme().applyStyle(getOverviewBlurStyleResId(), true);
         super.setupViews();
 
@@ -456,30 +459,26 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
     @Override
     public boolean isAllAppsBackgroundBlurEnabled() {
-        return mDepthController != null && mDepthController.areBlursEnabled()
+        return mDepthController != null && mDepthController.isCrossWindowBlursEnabled()
                 && Flags.allAppsBlur();
     }
 
     @Override
     public boolean isOverviewBackgroundBlurEnabled() {
-        return mDepthController != null && mDepthController.areBlursEnabled()
+        return mDepthController != null && mDepthController.isCrossWindowBlursEnabled()
                 && enableOverviewBackgroundWallpaperBlur();
     }
 
-    @Override
+    /** Apply the blur or blur fallback style to the current theme. */
     public void updateBlurStyle() {
-        if (Flags.allAppsBlur()) {
-            int allAppsBlurStyleResId = getAllAppsBlurStyleResId();
-            getTheme().applyStyle(allAppsBlurStyleResId, true);
-            getAppsView().onThemeChanged(
-                    new ContextThemeWrapper(getApplicationContext(), allAppsBlurStyleResId));
-        }
         if (enableOverviewBackgroundWallpaperBlur()) {
-            getTheme().applyStyle(getOverviewBlurStyleResId(), true);
-            getScrimView().setBackgroundColor(
-                    getStateManager().getState().getWorkspaceScrimColor(this));
-            RecentsView<?, ?> recentsView = getOverviewPanel();
-            recentsView.updateBlurStyle(isOverviewBackgroundBlurEnabled());
+            if (isOverviewBackgroundBlurEnabled() != mOverviewBlurEnabled) {
+                mWallpaperThemeManager.recreateToUpdateTheme();
+            }
+        } else if (Flags.allAppsBlur()) {
+            // For all apps, we only need to update the scrim, which draws the panel. But if the
+            // activity was recreated above, this is unnecessary.
+            getAppsView().invalidateHeader();
         }
     }
 
@@ -517,7 +516,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     }
 
     private List<SystemShortcut.Factory<QuickstepLauncher>> getSplitShortcuts() {
-        if (!mDeviceProfile.isTablet || mSplitSelectStateController.isSplitSelectActive()) {
+        if (!mDeviceProfile.getDeviceProperties().isTablet() || mSplitSelectStateController.isSplitSelectActive()) {
             return Collections.emptyList();
         }
         RecentsView recentsView = getOverviewPanel();
@@ -706,7 +705,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
                 break;
         }
 
-        if (!getDeviceProfile().isMultiWindowMode) {
+        if (!getDeviceProfile().getDeviceProperties().isMultiWindowMode()) {
             list.add(new StatusBarTouchController(
                     this, () -> this.isInState(LauncherState.NORMAL)));
         }
@@ -894,6 +893,13 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
             recentsWindowManagerRepository.forEach(
                     /* createIfAbsent= */ true, RecentsWindowManager::cleanupRecentsWindow);
         }
+    }
+
+    @Override
+    protected void logOnNewIntent(boolean alreadyOnHome, boolean shouldMoveToDefaultScreen,
+            String action, boolean internalStateHandled) {
+        OverviewCommandHelperProtoLogProxy.logOnNewIntent(alreadyOnHome, shouldMoveToDefaultScreen,
+                action, internalStateHandled);
     }
 
     public QuickstepTransitionManager getAppTransitionManager() {

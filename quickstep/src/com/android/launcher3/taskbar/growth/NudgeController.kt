@@ -32,7 +32,7 @@ import com.airbnb.lottie.LottieAnimationView
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.launcher3.taskbar.TaskbarActivityContext
-import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_EDU_OPEN
+import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_GROWTH_NUDGE_OPEN
 import com.android.launcher3.taskbar.TaskbarControllers
 import com.android.launcher3.taskbar.TaskbarControllers.LoggableTaskbarController
 import com.android.launcher3.views.ActivityContext
@@ -148,16 +148,15 @@ class NudgeController(context: Context) : LoggableTaskbarController {
                 false,
             ) as NudgeView
 
-        // TODO: b/411210699 - considering adding a auto hide suspend flag for the nudge.
         controllers.taskbarAutohideSuspendController.updateFlag(
-            FLAG_AUTOHIDE_SUSPEND_EDU_OPEN,
+            FLAG_AUTOHIDE_SUSPEND_GROWTH_NUDGE_OPEN,
             true,
         )
 
         nudgeView.onCloseCallback = {
             this.nudgeView = null
             controllers.taskbarAutohideSuspendController.updateFlag(
-                FLAG_AUTOHIDE_SUSPEND_EDU_OPEN,
+                FLAG_AUTOHIDE_SUSPEND_GROWTH_NUDGE_OPEN,
                 false,
             )
             controllers.taskbarStashController.updateAndAnimateTransientTaskbar(true)

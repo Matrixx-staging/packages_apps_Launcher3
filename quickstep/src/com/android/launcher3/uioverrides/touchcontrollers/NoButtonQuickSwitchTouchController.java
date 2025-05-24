@@ -130,13 +130,13 @@ public class NoButtonQuickSwitchTouchController implements TouchController,
         mLauncher = launcher;
         mSwipeDetector = new BothAxesSwipeDetector(mLauncher, this);
         mRecentsView = mLauncher.getOverviewPanel();
-        mXRange = mLauncher.getDeviceProfile().widthPx / 2f;
+        mXRange = mLauncher.getDeviceProfile().getDeviceProperties().getWidthPx() / 2f;
         mYRange = LayoutUtils.getShelfTrackingDistance(
                 mLauncher,
                 mLauncher.getDeviceProfile(),
                 mRecentsView.getPagedOrientationHandler(),
                 mRecentsView.getContainerInterface());
-        mMaxYProgress = mLauncher.getDeviceProfile().heightPx / mYRange;
+        mMaxYProgress = mLauncher.getDeviceProfile().getDeviceProperties().getHeightPx() / mYRange;
         mMotionPauseDetector = new MotionPauseDetector(mLauncher);
         mMotionPauseMinDisplacement = mLauncher.getResources().getDimension(
                 R.dimen.motion_pause_detector_min_displacement_from_app);

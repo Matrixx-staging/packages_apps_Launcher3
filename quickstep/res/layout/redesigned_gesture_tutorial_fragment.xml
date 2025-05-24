@@ -193,8 +193,9 @@
 
     <Button
         android:id="@+id/gesture_tutorial_fragment_action_button"
-        android:layout_width="wrap_content"
+        android:layout_width="@dimen/gesture_tutorial_done_button_width"
         android:layout_height="wrap_content"
+        android:padding="@dimen/gesture_tutorial_done_button_padding"
         android:layout_marginEnd="@dimen/gesture_tutorial_done_button_end_margin"
         android:layout_marginBottom="@dimen/gesture_tutorial_done_button_bottom_margin"
         android:layout_alignParentBottom="true"

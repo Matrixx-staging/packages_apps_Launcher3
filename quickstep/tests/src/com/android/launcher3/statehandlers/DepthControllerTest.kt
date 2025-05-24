@@ -27,6 +27,7 @@ import com.android.launcher3.LauncherState
 import com.android.launcher3.R
 import com.android.launcher3.dragndrop.DragLayer
 import com.android.launcher3.statemanager.StateManager
+import com.android.launcher3.uioverrides.QuickstepLauncher
 import java.util.Collections
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
@@ -46,7 +47,7 @@ import org.mockito.MockitoAnnotations
 class DepthControllerTest {
 
     private lateinit var underTest: DepthController
-    @Mock private lateinit var launcher: Launcher
+    @Mock private lateinit var launcher: QuickstepLauncher
     @Mock private lateinit var stateManager: StateManager<LauncherState, Launcher>
     @Mock private lateinit var resource: Resources
     @Mock private lateinit var dragLayer: DragLayer

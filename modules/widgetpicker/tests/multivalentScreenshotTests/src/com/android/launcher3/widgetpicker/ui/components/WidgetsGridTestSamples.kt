@@ -18,22 +18,106 @@ package com.android.launcher3.widgetpicker.ui.components
 
 import android.appwidget.AppWidgetProviderInfo
 import android.content.ComponentName
+import android.content.pm.ActivityInfo
+import android.content.pm.ApplicationInfo
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.os.Process
 import android.os.Process.myUserHandle
+import android.widget.RemoteViews
 import androidx.compose.ui.unit.IntSize
 import com.android.launcher3.widgetpicker.shared.model.PickableWidget
 import com.android.launcher3.widgetpicker.shared.model.WidgetAppId
 import com.android.launcher3.widgetpicker.shared.model.WidgetId
 import com.android.launcher3.widgetpicker.shared.model.WidgetPreview
 import com.android.launcher3.widgetpicker.shared.model.WidgetSizeInfo
+import com.android.launcher3.widgetpicker.tests.R
 import com.android.launcher3.widgetpicker.ui.model.WidgetSizeGroup
 
 /**
  * Different combinations of test widget groupings to verify behavior of arranging them in a grid.
  */
 object WidgetsGridTestSamples {
+    /**
+     * A test sample comprising of different sizes of widgets using layout and generated previews.
+     */
+    fun remoteViewWidgets(packageName: String, screenWidth: Int): WidgetsSample {
+        val (cellWidth, cellHeight) = testCellSize(screenWidth)
+
+        val noFillBoundsWidgetId = newWidgetId("noFillBounds")
+        val bigSizeWidgetId = newWidgetId("tooBig")
+        val fillsBoundsWidgetId = newWidgetId("matchSize")
+
+        return WidgetsSample(
+            widgetSizeGroups =
+                listOf(
+                    WidgetSizeGroup(
+                        previewContainerWidthPx = 2 * cellWidth,
+                        previewContainerHeightPx = 2 * cellHeight,
+                        widgets =
+                            listOf(
+                                twoByTwo(cellWidth, cellHeight)
+                                    .copy(
+                                        id = noFillBoundsWidgetId,
+                                        label = "NoFillBounds",
+                                        description =
+                                            "The preview's layout wraps content with size that doesn't fill" +
+                                                " container",
+                                    ),
+                                threeByTwo(cellWidth, cellHeight)
+                                    .copy(
+                                        id = bigSizeWidgetId,
+                                        label = "BigSize",
+                                        description =
+                                            "The preview's layout hardcodes very large size " +
+                                                "that should be scaled down",
+                                    ),
+                            ),
+                    ),
+                    WidgetSizeGroup(
+                        previewContainerWidthPx = 4 * cellWidth,
+                        previewContainerHeightPx = 2 * cellHeight,
+                        widgets =
+                            listOf(
+                                fourByTwo(cellWidth, cellHeight)
+                                    .copy(
+                                        id = fillsBoundsWidgetId,
+                                        label = "FillBounds",
+                                        description =
+                                            "The preview uses match_parent and renders at correct size. " +
+                                                "This preview doesn't need scaling",
+                                    )
+                            ),
+                    ),
+                ),
+            previews =
+                mapOf(
+                    noFillBoundsWidgetId to
+                        WidgetPreview.RemoteViewsWidgetPreview(
+                            remoteViews =
+                                RemoteViews(packageName, R.layout.widget_preview_wrap_content)
+                        ),
+                    bigSizeWidgetId to
+                        WidgetPreview.RemoteViewsWidgetPreview(
+                            remoteViews =
+                                RemoteViews(
+                                    packageName,
+                                    R.layout.widget_preview_hardcoded_large_size,
+                                )
+                        ),
+                    fillsBoundsWidgetId to
+                        WidgetPreview.RemoteViewsWidgetPreview(
+                            remoteViews =
+                                RemoteViews(
+                                    packageName,
+                                    R.layout.widget_preview_matching_parent_size,
+                                )
+                        ),
+                ),
+        )
+    }
+
     /** A test sample with 3 size groups: 2x2s, 4x2s and 1x1s */
     fun varyingSizedWidgets(screenWidth: Int): WidgetsSample {
         val (cellWidth, cellHeight) = testCellSize(screenWidth)
@@ -167,16 +251,16 @@ object WidgetsGridTestSamples {
                     containerWidthPx = cellWidth,
                     containerHeightPx = cellHeight,
                 ),
-            appWidgetProviderInfo = AppWidgetProviderInfo(),
+            appWidgetProviderInfo = newAppWidgetInfo("OneByOneProvider"),
         )
 
     private fun twoByTwo(cellWidth: Int, cellHeight: Int) =
         PickableWidget(
             id = newWidgetId("TwoByTwo"),
             appId = TEST_WIDGET_APP_ID,
-            label = "One by One",
+            label = "Two by Two",
             description = null,
-            appWidgetProviderInfo = AppWidgetProviderInfo(),
+            appWidgetProviderInfo = newAppWidgetInfo("TwoByTwoProvider"),
             sizeInfo =
                 WidgetSizeInfo(
                     spanX = 2,
@@ -193,9 +277,9 @@ object WidgetsGridTestSamples {
         PickableWidget(
             id = newWidgetId("ThreeByTwo"),
             appId = TEST_WIDGET_APP_ID,
-            label = "One by One",
+            label = "Three by two",
             description = null,
-            appWidgetProviderInfo = AppWidgetProviderInfo(),
+            appWidgetProviderInfo = newAppWidgetInfo("threeByTwoProvider"),
             sizeInfo =
                 WidgetSizeInfo(
                     spanX = 3,
@@ -214,7 +298,7 @@ object WidgetsGridTestSamples {
             appId = TEST_WIDGET_APP_ID,
             label = "Four by two",
             description = null,
-            appWidgetProviderInfo = AppWidgetProviderInfo(),
+            appWidgetProviderInfo = newAppWidgetInfo("FourByTwoProvider"),
             sizeInfo =
                 WidgetSizeInfo(
                     spanX = 4,
@@ -251,6 +335,16 @@ object WidgetsGridTestSamples {
         val cellHeight = cellWidth + 20 // assume cell height slightly larger than width
 
         return IntSize(cellWidth, cellHeight)
+    }
+
+    private fun newAppWidgetInfo(providerClassName: String): AppWidgetProviderInfo {
+        val activityInfo = ActivityInfo()
+        activityInfo.applicationInfo = ApplicationInfo()
+        activityInfo.applicationInfo.uid = Process.myUid()
+        return AppWidgetProviderInfo().apply {
+            providerInfo = activityInfo
+            provider = ComponentName.createRelative(PACKAGE_NAME, providerClassName)
+        }
     }
 
     private const val PACKAGE_NAME = "com.android.widgetpicker.tests"

@@ -16,7 +16,14 @@
 
 package com.android.launcher3.widgetpicker
 
+import com.android.launcher3.widgetpicker.data.repository.WidgetAppIconsRepository
+import com.android.launcher3.widgetpicker.data.repository.WidgetUsersRepository
+import com.android.launcher3.widgetpicker.data.repository.WidgetsRepository
+import com.android.launcher3.widgetpicker.shared.model.WidgetHostInfo
+import com.android.launcher3.widgetpicker.ui.fullcatalog.FullWidgetsCatalog
+import dagger.BindsInstance
 import dagger.Subcomponent
+import kotlin.coroutines.CoroutineContext
 
 /**
  * A sub-component that apps can include in their dagger module to bootstrap & interact with apis
@@ -25,39 +32,44 @@ import dagger.Subcomponent
  * Steps:
  * 1. Include this component as a sub-component on your app's main dagger module (and remember to
  *    update Android.bp & gradle files).
- * 2. Ensure bindings necessary for repository interfaces used in [WidgetPickerModule] are provided
- *    in your app.
- * 3. Host a singleton class in your app to create an instance of widget picker component on-demand
- *    e.g. when user wants to open widget picker.
+ * 2. Host a singleton class in your app to create an instance of widget picker component on-demand
+ *    e.g. when user wants to open widget picker. The component factory takes in a few dependencies
+ *    that should be implemented e.g. the repository implementations.
  *
- * Example for #3.
+ * Example of using the component and opening the picker.
  *
  * ```
  * @MyAppSingleton
- * public class WidgetPickerProvider {
- *     private final Provider<WidgetPickerComponent.Factory> widgetPickerComponentProvider;
- *
- *     @Inject
- *     public WidgetPickerProvider(Provider<WidgetPickerComponent.Factory> widgetPickerComponentProvider) {
- *         this.widgetPickerComponentProvider = widgetPickerComponentProvider;
- *     }
- *
+ * public class WidgetPickerProvider @Inject constructor(
+ *    private val Provider<WidgetPickerComponent.Factory> widgetPickerComponentProvider
+ * ) {
  *     public boolean show(...) {
- *         WidgetPickerComponent component = widgetPickerComponentProvider.get().build();
- *         WidgetPickerUiInteractor interactor = component.getWidgetInteractor();
- *         return interactor.show(...);
+ *         WidgetPickerComponent component = widgetPickerComponentProvider.get().build(...);
+ *         FullCatalog catalog = component.getFullWidgetsCatalog();
+ *         return catalog.show(...);
  *     }
  * }
  * ```
  */
 @WidgetPickerSingleton
-@Subcomponent(modules = [WidgetPickerModule::class])
+@Subcomponent
 interface WidgetPickerComponent {
     @Subcomponent.Factory
     interface Factory {
-        fun build(): WidgetPickerComponent
+        fun build(
+            @WidgetPickerRepository @BindsInstance
+            widgetsRepository: WidgetsRepository,
+            @WidgetPickerRepository @BindsInstance
+            widgetUsersRepository: WidgetUsersRepository,
+            @WidgetPickerRepository @BindsInstance
+            widgetAppIconsRepository: WidgetAppIconsRepository,
+            @WidgetPickerHostInfo @BindsInstance
+            widgetHostInfo: WidgetHostInfo,
+            @WidgetPickerBackground @BindsInstance
+            backgroundContext: CoroutineContext
+        ): WidgetPickerComponent
     }
 
-    // Interactors / APIs available for clients to interact with widget picker will go here.
-    // e.g. fun getWidgetPickerUiInteractor(): WidgetPickerUiInteractor
+    /** Provides UI for the catalog of all widgets on device. */
+    fun getFullWidgetsCatalog(): FullWidgetsCatalog
 }

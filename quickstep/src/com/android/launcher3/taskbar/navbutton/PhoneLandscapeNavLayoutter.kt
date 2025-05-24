@@ -48,7 +48,7 @@ open class PhoneLandscapeNavLayoutter(
     ) {
 
     override fun layoutButtons(context: TaskbarActivityContext, isA11yButtonPersistent: Boolean) {
-        val totalHeight = context.deviceProfile.heightPx
+        val totalHeight = context.deviceProfile.deviceProperties.heightPx
         val homeButtonHeight =
             resources.getDimensionPixelSize(R.dimen.taskbar_phone_home_button_size)
         val roundedCornerContentMargin =

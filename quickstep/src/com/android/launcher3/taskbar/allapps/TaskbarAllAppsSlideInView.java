@@ -147,7 +147,7 @@ public class TaskbarAllAppsSlideInView extends AbstractSlideInView<TaskbarOverla
     protected void onOpenCloseAnimationPending(PendingAnimation animation) {
         final boolean isOpening = mToTranslationShift == TRANSLATION_SHIFT_OPENED;
 
-        if (mActivityContext.getDeviceProfile().isPhone) {
+        if (mActivityContext.getDeviceProfile().getDeviceProperties().isPhone()) {
             final Interpolator allAppsFadeInterpolator =
                     isOpening ? ALL_APPS_FADE_MANUAL : Interpolators.reverse(ALL_APPS_FADE_MANUAL);
             animation.setViewAlpha(mAppsView, 1 - mToTranslationShift, allAppsFadeInterpolator);
@@ -168,7 +168,7 @@ public class TaskbarAllAppsSlideInView extends AbstractSlideInView<TaskbarOverla
 
     @Override
     protected Interpolator getScrimInterpolator() {
-        if (mActivityContext.getDeviceProfile().isTablet) {
+        if (mActivityContext.getDeviceProfile().getDeviceProperties().isTablet()) {
             return super.getScrimInterpolator();
         }
         return mToTranslationShift == TRANSLATION_SHIFT_OPENED
@@ -213,7 +213,7 @@ public class TaskbarAllAppsSlideInView extends AbstractSlideInView<TaskbarOverla
     protected void onFinishInflate() {
         super.onFinishInflate();
         mAppsView = findViewById(R.id.apps_view);
-        if (mActivityContext.getDeviceProfile().isPhone) {
+        if (mActivityContext.getDeviceProfile().getDeviceProperties().isPhone()) {
             mAppsView.setAlpha(0);
         }
         mContent = mAppsView;

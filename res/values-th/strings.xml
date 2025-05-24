@@ -65,7 +65,7 @@
     <string name="widgets_full_sheet_cancel_button_description" msgid="5766167035728653605">"ล้างข้อความออกจากช่องค้นหา"</string>
     <string name="no_widgets_available" msgid="4337693382501046170">"วิดเจ็ตและทางลัดไม่พร้อมให้บริการ"</string>
     <string name="no_search_results" msgid="3787956167293097509">"ไม่พบวิดเจ็ตหรือทางลัด"</string>
-    <string name="widgets_full_sheet_personal_tab" msgid="2743540105607120182">"ส่วนตัว"</string>
+    <string name="widgets_full_sheet_personal_tab" msgid="2743540105607120182">"ส่วนบุคคล"</string>
     <string name="widgets_full_sheet_work_tab" msgid="3767150027110633765">"งาน"</string>
     <string name="widget_category_conversations" msgid="8894438636213590446">"การสนทนา"</string>
     <string name="widget_category_note_taking" msgid="3469689394504266039">"การจดบันทึก"</string>
@@ -138,7 +138,8 @@
     <string name="allow_rotation_title" msgid="7222049633713050106">"อนุญาตให้หมุนหน้าจอหลัก"</string>
     <string name="allow_rotation_desc" msgid="8662546029078692509">"เมื่อหมุนโทรศัพท์"</string>
     <string name="landscape_mode_title" msgid="5138814555934843926">"โหมดแนวนอน"</string>
-    <string name="landscape_mode_desc" msgid="7372569859592816793">"ตั้งค่าโทรศัพท์เป็นโหมดแนวนอน"</string>
+    <!-- no translation found for landscape_mode_desc (3085236452297838664) -->
+    <skip />
     <string name="notification_dots_title" msgid="9062440428204120317">"เครื่องหมายจุดแสดงการแจ้งเตือน"</string>
     <string name="notification_dots_desc_on" msgid="1679848116452218908">"เปิด"</string>
     <string name="notification_dots_desc_off" msgid="1760796511504341095">"ปิด"</string>

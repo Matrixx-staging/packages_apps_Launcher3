@@ -263,7 +263,7 @@ public abstract class Background extends LauncherInstrumentation.VisibleContaine
                     endY = startY;
                 }
 
-                mLauncher.executeAndWaitForLauncherHidden(
+                mLauncher.executeAndWaitForLauncherStop(
                         () -> mLauncher.linearGesture(
                                 startX, startY, endX, endY, 20, false,
                                 LauncherInstrumentation.GestureScope.EXPECT_PILFER),
@@ -276,7 +276,7 @@ public abstract class Background extends LauncherInstrumentation.VisibleContaine
                         "clicking Recents button for the first time");
                 mLauncher.getOverview();
                 mLauncher.expectEvent(TestProtocol.SEQUENCE_MAIN, SQUARE_BUTTON_EVENT);
-                mLauncher.executeAndWaitForLauncherHidden(
+                mLauncher.executeAndWaitForLauncherStop(
                         () -> recentsButton.click(),
                         "clicking Recents button for the second time");
             }

@@ -32,5 +32,6 @@
     <test class="com.android.tradefed.testtype.AndroidJUnitTest">
         <option name="package" value="com.android.launcher3.widgetpicker.tests" />
         <option name="runner" value="androidx.test.runner.AndroidJUnitRunner" />
+        <option name="hidden-api-checks" value="false"/>
     </test>
 </configuration>

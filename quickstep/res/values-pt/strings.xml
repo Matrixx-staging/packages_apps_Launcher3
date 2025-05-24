@@ -23,7 +23,8 @@
     <string name="recent_task_option_freeform" msgid="48863056265284071">"Forma livre"</string>
     <string name="recent_task_option_desktop" msgid="8280879717125435668">"Modo área de trabalho"</string>
     <string name="recent_task_option_external_display" msgid="4533840664313389484">"Mover para a tela externa"</string>
-    <string name="recent_task_option_close" msgid="942942499021777264">"Fechar"</string>
+    <!-- no translation found for recent_task_option_remove_task (803559928027541555) -->
+    <skip />
     <string name="recent_task_desktop" msgid="8081113562549637334">"Computador"</string>
     <string name="recents_empty_message" msgid="7040467240571714191">"Nenhum item recente"</string>
     <string name="accessibility_app_usage_settings" msgid="6312864233673544149">"Configurações de uso do app"</string>
@@ -158,7 +159,7 @@
     <string name="bubble_bar_action_dismiss_all" msgid="3290722022983403060">"Dispensar todos"</string>
     <string name="bubble_bar_accessibility_announce_expand" msgid="1503192695527477102">"abrir <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
     <string name="bubble_bar_accessibility_announce_collapse" msgid="928284600086798791">"fechar <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
-    <string name="search_gesture_feature_title" msgid="1294044108313175306">"Circule para pesquisar"</string>
+    <string name="search_gesture_feature_title" msgid="1294044108313175306">"Circule para Pesquisar"</string>
     <string name="header_app_icon_description" msgid="2184625881433608027">"Ícone do app"</string>
     <string name="header_default_app_title" msgid="8308052350689531566">"Título do app"</string>
     <string name="header_close_icon_description" msgid="5400033616675911319">"Botão \"Fechar\""</string>

@@ -37,6 +37,7 @@ import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_S
 import static com.android.window.flags.Flags.predictiveBackThreeButtonNav;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
@@ -256,6 +257,13 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
             default:
                 return 0;
         }
+    }
+
+    /**
+     * Notifies SystemUI of the new bounds of the recents button in screen coordinates.
+     */
+    public void onRecentsButtonLayoutChanged(Rect bounds) {
+        mSystemUiProxy.notifyRecentsButtonPositionChanged(bounds);
     }
 
     private boolean backRecentsLongpress(@TaskbarButton int buttonType) {

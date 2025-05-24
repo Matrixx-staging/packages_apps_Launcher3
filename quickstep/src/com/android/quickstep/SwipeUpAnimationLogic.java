@@ -113,7 +113,7 @@ public abstract class SwipeUpAnimationLogic implements
                 .getSwipeUpDestinationAndLength(dp, mContext, TEMP_RECT,
                         mRemoteTargetHandles[0].getTaskViewSimulator().getOrientationState()
                                 .getOrientationHandler());
-        mDragLengthFactor = (float) dp.heightPx / mTransitionDragLength;
+        mDragLengthFactor = (float) dp.getDeviceProperties().getHeightPx() / mTransitionDragLength;
 
         for (RemoteTargetHandle remoteHandle : mRemoteTargetHandles) {
             PendingAnimation pendingAnimation = new PendingAnimation(mTransitionDragLength * 2);
@@ -186,10 +186,14 @@ public abstract class SwipeUpAnimationLogic implements
             PagedOrientationHandler orientationHandler = getOrientationHandler();
             DeviceProfile dp = mDp;
             final int halfIconSize = dp.iconSizePx / 2;
-            float primaryDimension = orientationHandler
-                    .getPrimaryValue(dp.availableWidthPx, dp.availableHeightPx);
-            float secondaryDimension = orientationHandler
-                    .getSecondaryValue(dp.availableWidthPx, dp.availableHeightPx);
+            float primaryDimension = orientationHandler.getPrimaryValue(
+                    dp.getDeviceProperties().getAvailableWidthPx(),
+                    dp.getDeviceProperties().getAvailableHeightPx()
+            );
+            float secondaryDimension = orientationHandler.getSecondaryValue(
+                    dp.getDeviceProperties().getAvailableWidthPx(),
+                    dp.getDeviceProperties().getAvailableHeightPx()
+            );
             final float targetX =  primaryDimension / 2f;
             final float targetY = secondaryDimension - dp.hotseatBarSizePx;
             // Fallback to animate to center of screen.
@@ -260,7 +264,7 @@ public abstract class SwipeUpAnimationLogic implements
         }
 
         public boolean isPortrait() {
-            return !mDp.isLandscape && !mDp.isSeascape();
+            return !mDp.getDeviceProperties().isLandscape() && !mDp.isSeascape();
         }
     }
 
@@ -450,7 +454,7 @@ public abstract class SwipeUpAnimationLogic implements
             // to end up offscreen.
             mRunningTaskViewScrollOffset = factory.isRtl()
                     ? (Math.min(0, -invariantStartRect.right))
-                    : (Math.max(0, mDp.widthPx - invariantStartRect.left));
+                    : (Math.max(0, mDp.getDeviceProperties().getWidthPx() - invariantStartRect.left));
         }
 
         @Override

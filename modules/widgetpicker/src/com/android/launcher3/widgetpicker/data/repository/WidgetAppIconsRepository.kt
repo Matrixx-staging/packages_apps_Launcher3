@@ -23,8 +23,17 @@ import kotlinx.coroutines.flow.Flow
 /** A repository that provides app icons for the widget picker. */
 interface WidgetAppIconsRepository {
     /**
+     * A hook to setup the repository so clients can observe the widgets available on device.
+     * This serves as a place to start listening to the backing caches / data sources.
+     */
+    fun initialize()
+
+    /**
      * Loads and returns app icon (may initially return a low res icon, followed by a high res once
      * available).
      */
     fun getAppIcon(widgetAppId: WidgetAppId): Flow<WidgetAppIcon>
+
+    /** Clean up any external listeners or state (if necessary). */
+    fun cleanUp()
 }

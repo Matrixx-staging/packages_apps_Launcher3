@@ -122,7 +122,7 @@ public class ClipIconView extends View implements ClipPathView {
         MarginLayoutParams lp = (MarginLayoutParams) container.getLayoutParams();
 
         float dX = mIsRtl
-                ? rect.left - (dp.widthPx - lp.getMarginStart() - lp.width)
+                ? rect.left - (dp.getDeviceProperties().getWidthPx() - lp.getMarginStart() - lp.width)
                 : rect.left - lp.getMarginStart();
         float dY = rect.top - lp.topMargin;
         container.setTranslationX(dX);
@@ -164,7 +164,7 @@ public class ClipIconView extends View implements ClipPathView {
         float shapeRevealProgress = boundToRange(mapToRange(max(shapeProgressStart, progress),
                 shapeProgressStart, 1f, 0, toMax, LINEAR), 0, 1);
 
-        if (dp.isLandscape) {
+        if (dp.getDeviceProperties().isLandscape()) {
             mOutline.right = (int) (rect.width() / scale);
         } else {
             mOutline.bottom = (int) (rect.height() / scale);
@@ -188,16 +188,16 @@ public class ClipIconView extends View implements ClipPathView {
                 mRevealAnimator.setCurrentFraction(shapeRevealProgress);
             }
 
-            float drawableScale = (dp.isLandscape ? mOutline.width() : mOutline.height())
+            float drawableScale = (dp.getDeviceProperties().isLandscape() ? mOutline.width() : mOutline.height())
                     / minSize;
-            setBackgroundDrawableBounds(drawableScale, dp.isLandscape);
+            setBackgroundDrawableBounds(drawableScale, dp.getDeviceProperties().isLandscape());
 
             // Center align foreground
             int height = mFinalDrawableBounds.height();
             int width = mFinalDrawableBounds.width();
-            int diffY = dp.isLandscape ? 0
+            int diffY = dp.getDeviceProperties().isLandscape() ? 0
                     : (int) (((height * drawableScale) - height) / 2);
-            int diffX = dp.isLandscape ? (int) (((width * drawableScale) - width) / 2)
+            int diffX = dp.getDeviceProperties().isLandscape() ? (int) (((width * drawableScale) - width) / 2)
                     : 0;
             sTmpRect.set(mFinalDrawableBounds);
             sTmpRect.offset(diffX, diffY);
@@ -264,14 +264,14 @@ public class ClipIconView extends View implements ClipPathView {
                 Utilities.scaleRectAboutCenter(mStartRevealRect, ICON_VISIBLE_AREA_FACTOR);
             }
 
-            if (dp.isLandscape) {
-                lp.width = (int) Math.max(lp.width, lp.height * dp.aspectRatio);
+            if (dp.getDeviceProperties().isLandscape()) {
+                lp.width = (int) Math.max(lp.width, lp.height * dp.getDeviceProperties().getAspectRatio());
             } else {
-                lp.height = (int) Math.max(lp.height, lp.width * dp.aspectRatio);
+                lp.height = (int) Math.max(lp.height, lp.width * dp.getDeviceProperties().getAspectRatio());
             }
 
             int left = mIsRtl
-                    ? dp.widthPx - lp.getMarginStart() - lp.width
+                    ? dp.getDeviceProperties().getWidthPx() - lp.getMarginStart() - lp.width
                     : lp.leftMargin;
             layout(left, lp.topMargin, left + lp.width, lp.topMargin + lp.height);
 
@@ -285,7 +285,7 @@ public class ClipIconView extends View implements ClipPathView {
                 bgDrawableStartScale = scale;
                 mOutline.set(0, 0, lp.width, lp.height);
             }
-            setBackgroundDrawableBounds(bgDrawableStartScale, dp.isLandscape);
+            setBackgroundDrawableBounds(bgDrawableStartScale, dp.getDeviceProperties().isLandscape());
             mEndRevealRect.set(0, 0, lp.width, lp.height);
             setOutlineProvider(new ViewOutlineProvider() {
                 @Override

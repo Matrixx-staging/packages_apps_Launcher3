@@ -61,6 +61,13 @@ filegroup {
     ],
 }
 
+filegroup {
+    name: "launcher-compose-tests-src",
+    srcs: [
+        "compose/tests/**/*.kt",
+    ],
+}
+
 // Source code for quickstep build, on top of launcher-src
 filegroup {
     name: "launcher-quickstep-src",
@@ -70,6 +77,13 @@ filegroup {
     ],
     device_common_srcs: [
         ":launcher-quickstep-processed-protolog-src",
+    ],
+}
+
+filegroup {
+    name: "quickstep-compose-tests-src",
+    srcs: [
+        "quickstep/compose/tests/**/*.kt",
     ],
 }
 
@@ -185,6 +199,10 @@ filegroup {
     srcs: ["proguard.flags"],
 }
 
+soong_config_bool_variable {
+    name: "release_enable_compose_in_launcher",
+}
+
 // Opt-in configuration for Launcher3 code depending on Jetpack Compose.
 soong_config_module_type {
     name: "launcher_compose_java_defaults",
@@ -193,32 +211,6 @@ soong_config_module_type {
     bool_variables: ["release_enable_compose_in_launcher"],
     properties: [
         "srcs",
-        "static_libs",
-    ],
-}
-
-// Opt-in configuration for Launcher Quickstep code depending on Jetpack Compose.
-soong_config_bool_variable {
-    name: "release_enable_compose_in_launcher",
-}
-
-soong_config_module_type {
-    name: "quickstep_compose_java_defaults",
-    module_type: "java_defaults",
-    config_namespace: "ANDROID",
-    bool_variables: ["release_enable_compose_in_launcher"],
-    properties: [
-        "srcs",
-        "static_libs",
-    ],
-}
-
-soong_config_module_type {
-    name: "launcher_compose_tests_java_defaults",
-    module_type: "java_defaults",
-    config_namespace: "ANDROID",
-    bool_variables: ["release_enable_compose_in_launcher"],
-    properties: [
         "static_libs",
     ],
 }
@@ -235,6 +227,8 @@ launcher_compose_java_defaults {
             static_libs: [
                 "androidx.compose.runtime_runtime",
                 "androidx.compose.material3_material3",
+                "androidx.compose.ui_ui-tooling-preview",
+                "androidx.compose.ui_ui-tooling",
             ],
 
             // By default, Compose is disabled and we compile the ComposeFacade
@@ -249,6 +243,51 @@ launcher_compose_java_defaults {
     },
 }
 
+soong_config_module_type {
+    name: "launcher_compose_tests_java_defaults",
+    module_type: "java_defaults",
+    config_namespace: "ANDROID",
+    bool_variables: ["release_enable_compose_in_launcher"],
+    properties: [
+        "srcs",
+        "static_libs",
+    ],
+}
+
+launcher_compose_tests_java_defaults {
+    name: "launcher_compose_tests_defaults",
+    soong_config_variables: {
+        release_enable_compose_in_launcher: {
+            srcs: [
+                ":launcher-compose-tests-src",
+            ],
+            // Compose dependencies
+            static_libs: [
+                "androidx.compose.runtime_runtime",
+                "androidx.compose.ui_ui-test-junit4",
+                "androidx.compose.ui_ui-test-manifest",
+            ],
+
+            conditions_default: {
+                srcs: [],
+                static_libs: [],
+            },
+        },
+    },
+}
+
+// Opt-in configuration for Launcher Quickstep code depending on Jetpack Compose.
+soong_config_module_type {
+    name: "quickstep_compose_java_defaults",
+    module_type: "java_defaults",
+    config_namespace: "ANDROID",
+    bool_variables: ["release_enable_compose_in_launcher"],
+    properties: [
+        "srcs",
+        "static_libs",
+    ],
+}
+
 quickstep_compose_java_defaults {
     name: "quickstep_compose_defaults",
     soong_config_variables: {
@@ -261,6 +300,8 @@ quickstep_compose_java_defaults {
             static_libs: [
                 "androidx.compose.runtime_runtime",
                 "androidx.compose.material3_material3",
+                "androidx.compose.ui_ui-tooling-preview",
+                "androidx.compose.ui_ui-tooling",
             ],
 
             // By default, Compose is disabled and we compile the ComposeFacade
@@ -269,24 +310,6 @@ quickstep_compose_java_defaults {
                 srcs: [
                     ":launcher-quickstep-compose-disabled-src",
                 ],
-                static_libs: [],
-            },
-        },
-    },
-}
-
-launcher_compose_tests_java_defaults {
-    name: "launcher_compose_tests_defaults",
-    soong_config_variables: {
-        release_enable_compose_in_launcher: {
-            // Compose dependencies
-            static_libs: [
-                "androidx.compose.runtime_runtime",
-                "androidx.compose.ui_ui-test-junit4",
-                "androidx.compose.ui_ui-test-manifest",
-            ],
-
-            conditions_default: {
                 static_libs: [],
             },
         },

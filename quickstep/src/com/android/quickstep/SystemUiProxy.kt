@@ -425,6 +425,14 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
             systemUiProxy?.notifyTaskbarAutohideSuspend(suspend)
         }
 
+    fun notifyRecentsButtonPositionChanged(bounds: Rect) {
+        executeWithErrorLog({
+            "Failed call notifyRecentsButtonPositionChanged with arg: $bounds"
+        }) {
+            systemUiProxy?.notifyRecentsButtonPositionChanged(bounds)
+        }
+    }
+
     fun takeScreenshot(request: ScreenshotRequest) =
         executeWithErrorLog({ "Failed call takeScreenshot" }) {
             systemUiProxy?.takeScreenshot(request)

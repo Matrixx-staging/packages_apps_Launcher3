@@ -36,6 +36,7 @@ import android.view.ViewConfiguration;
 import androidx.annotation.NonNull;
 import androidx.test.uiautomator.Condition;
 import androidx.test.uiautomator.UiDevice;
+import androidx.test.uiautomator.UiObject2;
 
 import com.android.launcher3.tapl.Taskbar.TaskbarLocation;
 import com.android.launcher3.testing.shared.ResourceUtils;
@@ -157,7 +158,7 @@ public final class LaunchedAppState extends Background {
             int endX = startX;
             int endY = startY - taskbarFromNavThreshold;
 
-            mLauncher.executeAndWaitForLauncherHidden(
+            mLauncher.executeAndWaitForLauncherStop(
                     () -> mLauncher.linearGesture(startX, startY, endX, endY, 10,
                             /* slowDown= */ true,
                             LauncherInstrumentation.GestureScope.EXPECT_PILFER),
@@ -240,26 +241,56 @@ public final class LaunchedAppState extends Background {
      * <p>This unstashing occurs when not actively hovering the taskbar.
      */
     public Taskbar hoverScreenBottomEdgeToUnstashTaskbar() {
+        return hoverScreenBottomEdgeToTryUnstashTaskbar(/* leftEdge= */
+                (mLauncher.getRealDisplaySize().x - mLauncher.getTaskbarUnstashInputArea()) / 2
+                        - 1);
+    }
+
+    /**
+     * Emulate the cursor hovering the screen edge outside of action corner area to unstash the
+     * taskbar.
+     */
+    public Taskbar hoverScreenBottomEdgeOutsideActionCornerToUnstashTaskbar() {
+        return hoverScreenBottomEdgeToTryUnstashTaskbar(/* leftEdge= */
+                getLauncher().getActionCornerPadding());
+    }
+
+    /**
+     * Emulate the cursor hovering the screen edge in action corner padding to try unstashing the
+     * taskbar.
+     */
+    public Taskbar hoverScreenBottomCornerToTryUnstashTaskbar() {
+        // Add 1 pixel to avoid triggering action corner which will affect test result
+        return hoverScreenBottomEdgeToTryUnstashTaskbar(
+                mLauncher.getDisplayBottomCornerRadius() + 1);
+    }
+
+    private Taskbar hoverScreenBottomEdgeToTryUnstashTaskbar(int leftEdge) {
         try (LauncherInstrumentation.Closable e = mLauncher.eventsCheck();
              LauncherInstrumentation.Closable c = mLauncher.addContextLayer(
-                     "cursor hover entering screen edge to unstash taskbar")) {
+                     "cursor hover entering screen edge to try unstashing taskbar")) {
             mLauncher.getDevice().wait(mStashedTaskbarDefaultScaleCondition,
                     ViewConfiguration.DEFAULT_LONG_PRESS_TIMEOUT);
 
             long downTime = SystemClock.uptimeMillis();
-            int leftEdge = 10;
             Point taskbarUnstashArea = new Point(leftEdge, mLauncher.getRealDisplaySize().y - 1);
             mLauncher.sendPointer(downTime, downTime, MotionEvent.ACTION_HOVER_ENTER,
                     new Point(taskbarUnstashArea.x, taskbarUnstashArea.y), null,
                     InputDevice.SOURCE_MOUSE);
 
-            mLauncher.waitForSystemLauncherObject(TASKBAR_RES_ID);
+            UiObject2 taskbar = mLauncher.tryWaitForLauncherObject(
+                    mLauncher.getLauncherObjectSelector(TASKBAR_RES_ID),
+                    WAIT_TIME_MS);
 
             mLauncher.sendPointer(downTime, downTime, MotionEvent.ACTION_HOVER_EXIT,
                     new Point(taskbarUnstashArea.x, taskbarUnstashArea.y), null,
                     InputDevice.SOURCE_MOUSE);
 
-            return new Taskbar(mLauncher, TaskbarLocation.LAUNCHED_APP);
+            if (taskbar == null) {
+                return null;
+            } else {
+                return new Taskbar(mLauncher, TaskbarLocation.LAUNCHED_APP);
+            }
         }
     }
 

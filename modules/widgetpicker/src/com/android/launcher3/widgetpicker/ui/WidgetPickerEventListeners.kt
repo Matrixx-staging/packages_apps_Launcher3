@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.android.launcher3.widgetpicker.data.repository
+package com.android.launcher3.widgetpicker
 
-import com.android.launcher3.widgetpicker.shared.model.WidgetId
-
-/** A repository of widgets that can be recommended to the users in widget picker. */
-interface WidgetRecommendationsRepository {
-    /** Returns a list of widgets that can be recommended to the users in the widget picker. */
-    suspend fun getRecommendations(): List<WidgetId>
+/**
+ * General interface that clients can implement to listen to events from different types of
+ * widget picker.
+ */
+interface WidgetPickerEventListeners {
+    /** Called when the widget picker is dismissed. */
+    fun onClose()
 }

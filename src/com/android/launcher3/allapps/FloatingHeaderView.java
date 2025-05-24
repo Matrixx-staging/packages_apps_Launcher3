@@ -23,7 +23,6 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.ArrayMap;
 import android.util.AttributeSet;
-import android.view.ContextThemeWrapper;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -276,23 +275,10 @@ public class FloatingHeaderView extends LinearLayout implements
         mTabLayout.setVisibility(mTabsHidden ? GONE : visibility);
     }
 
-    /** Update colors using the provided theme wrapper. */
-    void updateTheme(ContextThemeWrapper contextThemeWrapper) {
-        getTabLayout().updateTheme(contextThemeWrapper);
-        for (FloatingHeaderRow row : mAllRows) {
-            row.updateTheme(contextThemeWrapper);
-        }
-    }
-
-    /** Returns whether search bar has multi-line support, and is currently in multi-line state. */
-    private boolean isSearchBarMultiline() {
-        return Flags.multilineSearchBar() && mSearchBarOffset > 0;
-    }
-
     private void updateExpectedHeight() {
         updateFloatingRowsHeight();
         mMaxTranslation = 0;
-        boolean shouldAddSearchBarHeight = isSearchBarMultiline() && !Flags.floatingSearchBar();
+        boolean shouldAddSearchBarHeight = mSearchBarOffset > 0 && !Flags.floatingSearchBar();
         if (shouldAddSearchBarHeight) {
             mMaxTranslation += mSearchBarOffset;
         }

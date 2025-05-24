@@ -247,12 +247,12 @@ public class LauncherPreviewRenderer extends BaseContext
                 new ContextThemeWrapper(this, R.style.HomeScreenElementTheme));
         mHomeElementInflater.setFactory2(this);
 
-        int layoutRes = mDp.isTwoPanels ? R.layout.launcher_preview_two_panel_layout
+        int layoutRes = mDp.getDeviceProperties().isTwoPanels() ? R.layout.launcher_preview_two_panel_layout
                 : R.layout.launcher_preview_layout;
         mRootView = (InsettableFrameLayout) mHomeElementInflater.inflate(
                 layoutRes, null, false);
         mRootView.setInsets(mInsets);
-        measureView(mRootView, mDp.widthPx, mDp.heightPx);
+        measureView(mRootView, mDp.getDeviceProperties().getWidthPx(), mDp.getDeviceProperties().getHeightPx());
 
         mHotseat = mRootView.findViewById(R.id.hotseat);
         mHotseat.resetLayout(false);
@@ -264,12 +264,12 @@ public class LauncherPreviewRenderer extends BaseContext
         firstScreen.setPadding(
                 mDp.workspacePadding.left + mDp.cellLayoutPaddingPx.left,
                 mDp.workspacePadding.top + mDp.cellLayoutPaddingPx.top,
-                mDp.isTwoPanels ? (mDp.cellLayoutBorderSpacePx.x / 2)
+                mDp.getDeviceProperties().isTwoPanels() ? (mDp.cellLayoutBorderSpacePx.x / 2)
                         : (mDp.workspacePadding.right + mDp.cellLayoutPaddingPx.right),
                 mDp.workspacePadding.bottom + mDp.cellLayoutPaddingPx.bottom
         );
 
-        if (mDp.isTwoPanels) {
+        if (mDp.getDeviceProperties().isTwoPanels()) {
             CellLayout rightPanel = mRootView.findViewById(R.id.workspace_right);
             rightPanel.setPadding(
                     mDp.cellLayoutBorderSpacePx.x / 2,
@@ -483,11 +483,11 @@ public class LauncherPreviewRenderer extends BaseContext
             }
         }
 
-        measureView(mRootView, mDp.widthPx, mDp.heightPx);
+        measureView(mRootView, mDp.getDeviceProperties().getWidthPx(), mDp.getDeviceProperties().getHeightPx());
         dispatchVisibilityAggregated(mRootView, true);
-        measureView(mRootView, mDp.widthPx, mDp.heightPx);
+        measureView(mRootView, mDp.getDeviceProperties().getWidthPx(), mDp.getDeviceProperties().getHeightPx());
         // Additional measure for views which use auto text size API
-        measureView(mRootView, mDp.widthPx, mDp.heightPx);
+        measureView(mRootView, mDp.getDeviceProperties().getWidthPx(), mDp.getDeviceProperties().getHeightPx());
     }
 
     private void populateHotseatPredictions(BgDataModel dataModel) {

@@ -87,3 +87,13 @@ flag {
     description: "Enables refactor wrapping TaskThumbnailView in a TaskContentView."
     bug: "408971730"
 }
+
+flag {
+    name: "enable_desktop_menu_on_secondary_display_bugfix"
+    namespace: "launcher_overview"
+    description: "Enable the 'Desktop' menu entry on full screen tiles on secondary display."
+    bug:  "418822736"
+    metadata {
+        purpose: PURPOSE_BUGFIX
+    }
+}

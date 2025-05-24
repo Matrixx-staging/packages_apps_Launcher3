@@ -18,6 +18,7 @@ package com.android.launcher3.widgetpicker.ui.model
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import com.android.launcher3.widgetpicker.shared.model.WidgetApp
 import com.android.launcher3.widgetpicker.shared.model.WidgetAppId
 
 /**
@@ -35,4 +36,31 @@ data class DisplayableWidgetApp(
     val title: CharSequence?,
     val widgetSizeGroups: List<WidgetSizeGroup>,
     val widgetsCount: Int,
-)
+) {
+    companion object {
+        /**
+         * Helper function to create a [DisplayableWidgetApp] from a [WidgetApp].
+         * Converts the list of widgets in the app to a list of [WidgetSizeGroup]s.
+         */
+        fun fromWidgetApp(widgetApp: WidgetApp): DisplayableWidgetApp =
+            DisplayableWidgetApp(
+                id = widgetApp.id,
+                title = widgetApp.title,
+                widgetSizeGroups = widgetApp.widgets.groupBy {
+                    Pair(it.sizeInfo.containerWidthPx, it.sizeInfo.containerHeightPx)
+                }.map { (containerSize, value) ->
+                    WidgetSizeGroup(
+                        previewContainerWidthPx = containerSize.first,
+                        previewContainerHeightPx = containerSize.second,
+                        widgets = value
+                    )
+                },
+                widgetsCount = widgetApp.widgets.size,
+            )
+
+        fun List<DisplayableWidgetApp>.getWidgetIdsForApp(appId: WidgetAppId) =
+            find { it.id == appId }?.widgetSizeGroups?.flatMap { group ->
+                group.widgets.map { it.id }
+            } ?: listOf()
+    }
+}

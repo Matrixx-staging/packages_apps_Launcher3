@@ -78,9 +78,9 @@ class SetupNavLayoutter(
         // If SUW is on a large screen device that is landscape (or has a square aspect
         // ratio) the back button has to be placed accordingly
         if (
-            deviceProfile.isTablet && deviceProfile.isLandscape ||
-                (deviceProfile.aspectRatio > SQUARE_ASPECT_RATIO_BOTTOM_BOUND &&
-                    deviceProfile.aspectRatio < SQUARE_ASPECT_RATIO_UPPER_BOUND)
+            deviceProfile.deviceProperties.isTablet && deviceProfile.deviceProperties.isLandscape ||
+                (deviceProfile.deviceProperties.aspectRatio > SQUARE_ASPECT_RATIO_BOTTOM_BOUND &&
+                    deviceProfile.deviceProperties.aspectRatio < SQUARE_ASPECT_RATIO_UPPER_BOUND)
         ) {
             navButtonsLayoutParams.marginStart =
                 resources.getDimensionPixelSize(R.dimen.taskbar_back_button_suw_start_margin)

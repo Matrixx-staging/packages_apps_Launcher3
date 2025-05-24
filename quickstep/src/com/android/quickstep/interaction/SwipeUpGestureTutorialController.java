@@ -330,7 +330,7 @@ abstract class SwipeUpGestureTutorialController extends TutorialController {
         void initDp(DeviceProfile dp) {
             initTransitionEndpoints(dp);
             mRemoteTargetHandles[0].getTaskViewSimulator().setPreviewBounds(
-                    new Rect(0, 0, dp.widthPx, dp.heightPx), dp.getInsets());
+                    new Rect(0, 0, dp.getDeviceProperties().getWidthPx(), dp.getDeviceProperties().getHeightPx()), dp.getInsets());
         }
 
         @Override

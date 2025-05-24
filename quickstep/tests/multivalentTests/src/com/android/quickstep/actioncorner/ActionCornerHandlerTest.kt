@@ -19,10 +19,13 @@ package com.android.quickstep.actioncorner
 import android.app.ActivityManager.RecentTaskInfo
 import android.graphics.Rect
 import android.platform.test.annotations.DisableFlags
+import android.platform.test.annotations.EnableFlags
+import android.platform.test.flag.junit.SetFlagsRule
 import android.view.Display.DEFAULT_DISPLAY
 import android.window.IWindowContainerToken
 import android.window.WindowContainerToken
 import androidx.test.filters.SmallTest
+import com.android.launcher3.Flags.FLAG_ENABLE_REVERSIBLE_HOME_ACTION_CORNER
 import com.android.launcher3.LauncherState
 import com.android.launcher3.uioverrides.QuickstepLauncher
 import com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR
@@ -41,7 +44,7 @@ import com.android.quickstep.util.SplitTask
 import com.android.systemui.shared.recents.model.Task
 import com.android.systemui.shared.system.ActivityManagerWrapper
 import com.android.systemui.shared.system.actioncorner.ActionCornerConstants.HOME
-import com.android.wm.shell.Flags
+import com.android.wm.shell.Flags.FLAG_ENABLE_SHELL_TOP_TASK_TRACKING
 import com.android.wm.shell.shared.GroupedTaskInfo
 import com.android.wm.shell.shared.split.SplitBounds
 import com.android.wm.shell.shared.split.SplitScreenConstants
@@ -62,10 +65,12 @@ import org.mockito.kotlin.whenever
 
 @SmallTest
 @RunWith(LauncherMultivalentJUnit::class)
-@DisableFlags(Flags.FLAG_ENABLE_SHELL_TOP_TASK_TRACKING)
+@DisableFlags(FLAG_ENABLE_SHELL_TOP_TASK_TRACKING)
+@EnableFlags(FLAG_ENABLE_REVERSIBLE_HOME_ACTION_CORNER)
 class ActionCornerHandlerTest {
 
     @get:Rule val context = SandboxApplication()
+    @get:Rule val mSetFlagsRule = SetFlagsRule()
 
     private val overviewCommandHelper: OverviewCommandHelper = mock()
     private val overviewComponentObserver: OverviewComponentObserver = mock()

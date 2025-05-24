@@ -17,11 +17,6 @@ package com.android.launcher3.util
 
 import android.content.Context
 import android.content.Intent
-import android.os.SystemClock
-import android.view.InputDevice
-import android.view.KeyCharacterMap
-import android.view.KeyEvent
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.children
@@ -29,15 +24,12 @@ import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import androidx.test.uiautomator.UiDevice
 import com.android.launcher3.Launcher
 import com.android.launcher3.LauncherAppState
-import com.android.launcher3.LauncherState
 import com.android.launcher3.R
 import com.android.launcher3.allapps.AllAppsStore.DEFER_UPDATES_TEST
 import com.android.launcher3.integration.util.LauncherActivityScenarioRule
 import com.android.launcher3.util.ModelTestExtensions.loadModelSync
 import com.android.launcher3.util.Wait.atMost
-import java.util.function.Function
 import java.util.function.Predicate
-import java.util.function.Supplier
 import org.junit.Rule
 
 /**
@@ -60,9 +52,6 @@ open class BaseLauncherActivityTest<LAUNCHER_TYPE : Launcher> {
 
     protected fun targetContext(): Context = getInstrumentation().targetContext
 
-    protected fun isInState(state: Supplier<LauncherState>): Boolean =
-        launcherActivity.getFromLauncher { it.stateManager.state == state.get() }!!
-
     protected fun waitForLauncherCondition(message: String, condition: (LAUNCHER_TYPE) -> Boolean) =
         atMost(message, { launcherActivity.getFromLauncher(condition)!! })
 
@@ -71,39 +60,6 @@ open class BaseLauncherActivityTest<LAUNCHER_TYPE : Launcher> {
         condition: (LAUNCHER_TYPE) -> Boolean,
         timeout: Long,
     ) = atMost(message, { launcherActivity.getFromLauncher(condition)!! }, null, timeout)
-
-    protected fun <T> getOnceNotNull(message: String, f: Function<LAUNCHER_TYPE, T?>): T? {
-        var output: T? = null
-        atMost(
-            message,
-            {
-                val fromLauncher = launcherActivity.getFromLauncher<T> { f.apply(it) }
-                output = fromLauncher
-                fromLauncher != null
-            },
-        )
-        return output
-    }
-
-    @JvmOverloads
-    protected fun injectKeyEvent(keyCode: Int, actionDown: Boolean, metaState: Int = 0) {
-        uiDevice.waitForIdle()
-        val eventTime = SystemClock.uptimeMillis()
-        val event =
-            KeyEvent(
-                eventTime,
-                eventTime,
-                if (actionDown) KeyEvent.ACTION_DOWN else MotionEvent.ACTION_UP,
-                keyCode,
-                /* repeat= */ 0,
-                metaState,
-                KeyCharacterMap.VIRTUAL_KEYBOARD,
-                /* scancode= */ 0,
-                /* flags= */ 0,
-                InputDevice.SOURCE_KEYBOARD,
-            )
-        launcherActivity.executeOnLauncher { it.dispatchKeyEvent(event) }
-    }
 
     @JvmOverloads
     fun startAppFast(

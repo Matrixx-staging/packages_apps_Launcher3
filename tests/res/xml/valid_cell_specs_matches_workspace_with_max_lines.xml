@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright (C) 2025 The Android Open Source Project
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +13,15 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="@color/app_chip_menu_item_color_fg" />
-    <corners android:radius="@dimen/task_menu_item_corner_radius" />
-</shape>
+<cellSpecs xmlns:launcher="http://schemas.android.com/apk/res-auto">
+    <specs launcher:maxAspectRatio="10">
+        <cellSpec
+            launcher:dimensionType="height"
+            launcher:maxAvailableSize="9999dp"
+            launcher:maxLineCountMatchesWorkspace="true">
+            <iconDrawablePadding launcher:matchWorkspace="true" />
+            <iconSize launcher:matchWorkspace="true" />
+            <iconTextSize launcher:matchWorkspace="true" />
+        </cellSpec>
+    </specs>
+</cellSpecs>

@@ -120,6 +120,7 @@ import androidx.annotation.Nullable;
 import androidx.core.graphics.ColorUtils;
 
 import com.android.app.animation.Animations;
+import com.android.app.animation.Interpolators;
 import com.android.internal.jank.Cuj;
 import com.android.internal.util.LatencyTracker;
 import com.android.launcher3.DeviceProfile.OnDeviceProfileChangeListener;
@@ -232,7 +233,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
     private static final int MAX_NUM_TASKS = 5;
 
     // Cross-fade duration between App Widget and App
-    private static final int WIDGET_CROSSFADE_DURATION_MILLIS = 125;
+    private static final int WIDGET_CROSSFADE_DURATION_MILLIS = 666;
 
     protected final QuickstepLauncher mLauncher;
     protected final DragLayer mDragLayer;
@@ -511,7 +512,9 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
             target = t;
             break;
         }
-        if (target == null) return new Rect(0, 0, mDeviceProfile.widthPx, mDeviceProfile.heightPx);
+        final int widthPx = mDeviceProfile.getDeviceProperties().getWidthPx();
+        final int heightPx = mDeviceProfile.getDeviceProperties().getHeightPx();
+        if (target == null) return new Rect(0, 0, widthPx, heightPx);
         final Rect bounds = new Rect(target.screenSpaceBounds);
         if (target.localBounds != null) {
             bounds.set(target.localBounds);
@@ -521,10 +524,10 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         if (rotationChange != 0) {
             if ((rotationChange % 2) == 1) {
                 // undoing rotation, so our "original" parent size is actually flipped
-                Utilities.rotateBounds(bounds, mDeviceProfile.heightPx, mDeviceProfile.widthPx,
+                Utilities.rotateBounds(bounds, heightPx, widthPx,
                         4 - rotationChange);
             } else {
-                Utilities.rotateBounds(bounds, mDeviceProfile.widthPx, mDeviceProfile.heightPx,
+                Utilities.rotateBounds(bounds, widthPx, heightPx,
                         4 - rotationChange);
             }
         }
@@ -563,7 +566,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
             final View appsView = mLauncher.getAppsView();
             final float startAlpha = appsView.getAlpha();
             final float startScale = SCALE_PROPERTY.get(appsView);
-            if (mDeviceProfile.isTablet) {
+            if (mDeviceProfile.getDeviceProperties().isTablet()) {
+
                 // AllApps should not fade at all in tablets.
                 alphas = new float[]{1, 1};
             }
@@ -791,7 +795,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         final float initialWindowRadius = supportsRoundedCornersOnWindows(mLauncher.getResources())
                 ? Math.max(crop.width(), crop.height()) / 2f
                 : 0f;
-        final float finalWindowRadius = mDeviceProfile.isMultiWindowMode
+        final float finalWindowRadius = mDeviceProfile.getDeviceProperties().isMultiWindowMode()
                 ? 0 : getWindowCornerRadius(mLauncher);
         final float finalShadowRadius = appTargetsAreTranslucent ? 0 : mMaxShadowRadius;
 
@@ -874,8 +878,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 final int windowCropWidth = crop.width();
                 final int windowCropHeight = crop.height();
                 if (rotationChange != 0) {
-                    Utilities.rotateBounds(crop, mDeviceProfile.widthPx,
-                            mDeviceProfile.heightPx, rotationChange);
+                    Utilities.rotateBounds(crop, mDeviceProfile.getDeviceProperties().getWidthPx(),
+                            mDeviceProfile.getDeviceProperties().getHeightPx(), rotationChange);
                 }
 
                 // Scale the size of the icon to match the size of the window crop.
@@ -922,14 +926,14 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                         matrix.setScale(scale, scale);
                         if (rotationChange == 1) {
                             matrix.postTranslate(windowTransY0,
-                                    mDeviceProfile.widthPx - (windowTransX0 + scaledCropWidth));
+                                    mDeviceProfile.getDeviceProperties().getWidthPx() - (windowTransX0 + scaledCropWidth));
                         } else if (rotationChange == 2) {
                             matrix.postTranslate(
-                                    mDeviceProfile.widthPx - (windowTransX0 + scaledCropWidth),
-                                    mDeviceProfile.heightPx - (windowTransY0 + scaledCropHeight));
+                                    mDeviceProfile.getDeviceProperties().getWidthPx() - (windowTransX0 + scaledCropWidth),
+                                    mDeviceProfile.getDeviceProperties().getHeightPx() - (windowTransY0 + scaledCropHeight));
                         } else if (rotationChange == 3) {
                             matrix.postTranslate(
-                                    mDeviceProfile.heightPx - (windowTransY0 + scaledCropHeight),
+                                    mDeviceProfile.getDeviceProperties().getHeightPx() - (windowTransY0 + scaledCropHeight),
                                     windowTransX0);
                         } else {
                             matrix.postTranslate(windowTransX0, windowTransY0);
@@ -1021,7 +1025,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                     FloatingWidgetView.getDefaultBackgroundColor(mLauncher, openingTarget);
         }
 
-        final float finalWindowRadius = mDeviceProfile.isMultiWindowMode
+        final float finalWindowRadius = mDeviceProfile.getDeviceProperties().isMultiWindowMode()
                 ? 0 : getWindowCornerRadius(mLauncher);
         final FloatingWidgetView floatingView = FloatingWidgetView.getFloatingWidgetView(mLauncher,
                 v, widgetBackgroundBounds,
@@ -1411,9 +1415,9 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         DeviceProfile dp = mLauncher.getDeviceProfile();
         final int halfIconSize = dp.iconSizePx / 2;
         float primaryDimension = orientationHandler
-                .getPrimaryValue(dp.availableWidthPx, dp.availableHeightPx);
+                .getPrimaryValue(dp.getDeviceProperties().getAvailableWidthPx(), dp.getDeviceProperties().getAvailableHeightPx());
         float secondaryDimension = orientationHandler
-                .getSecondaryValue(dp.availableWidthPx, dp.availableHeightPx);
+                .getSecondaryValue(dp.getDeviceProperties().getAvailableWidthPx(), dp.getDeviceProperties().getAvailableHeightPx());
         final float targetX = primaryDimension / 2f;
         final float targetY = secondaryDimension - dp.hotseatBarSizePx;
         return new RectF(targetX - halfIconSize, targetY - halfIconSize,
@@ -1443,13 +1447,13 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         // Get floating view and target rect.
         boolean isInHotseat = false;
         if (launcherView instanceof LauncherAppWidgetHostView) {
-            Size windowSize = new Size(mDeviceProfile.availableWidthPx,
-                    mDeviceProfile.availableHeightPx);
+            Size windowSize = new Size(mDeviceProfile.getDeviceProperties().getAvailableWidthPx(),
+                    mDeviceProfile.getDeviceProperties().getAvailableHeightPx());
             int fallbackBackgroundColor =
                     FloatingWidgetView.getDefaultBackgroundColor(mLauncher, runningTaskTarget);
             floatingWidget = FloatingWidgetView.getFloatingWidgetView(mLauncher,
                     (LauncherAppWidgetHostView) launcherView, targetRect, windowSize,
-                    mDeviceProfile.isMultiWindowMode ? 0 : getWindowCornerRadius(mLauncher),
+                    mDeviceProfile.getDeviceProperties().isMultiWindowMode() ? 0 : getWindowCornerRadius(mLauncher),
                     isTransluscent, fallbackBackgroundColor);
         } else if (launcherView != null && !RemoveAnimationSettingsTracker.INSTANCE.get(
                 mLauncher).isRemoveAnimationEnabled()) {
@@ -1480,7 +1484,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         Rect closingWindowStartRect = new Rect();
         closingWindowStartRectF.round(closingWindowStartRect);
         Rect closingWindowOriginalRect =
-                new Rect(0, 0, mDeviceProfile.widthPx, mDeviceProfile.heightPx);
+                new Rect(0, 0, mDeviceProfile.getDeviceProperties().getWidthPx(), mDeviceProfile.getDeviceProperties().getHeightPx());
         if (floatingIconView != null) {
             anim.addAnimatorListener(floatingIconView);
             floatingIconView.setOnTargetChangeListener(anim::onTargetPositionChanged);
@@ -1488,15 +1492,20 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
             FloatingIconView finalFloatingIconView = floatingIconView;
 
             // We want the window alpha to be 0 once this threshold is met, so that the
-            // FolderIconView can be seen morphing into the icon shape.
+            // FloatingIconView can be seen morphing into the icon shape.
             final float windowAlphaThreshold = 1f - SHAPE_PROGRESS_DURATION;
 
             RectFSpringAnim.OnUpdateListener runner = new SpringAnimRunner(targets, targetRect,
                     closingWindowStartRect, closingWindowOriginalRect, startWindowCornerRadius) {
                 @Override
                 public void onUpdate(RectF currentRectF, float progress) {
-                    finalFloatingIconView.update(1f, currentRectF, progress, windowAlphaThreshold,
-                            getCornerRadius(progress), false);
+                    // We want the icon alpha to be 1 once this threshold is met, so that it can be
+                    // seen morphing into the icon shape. But before the threshold, we want to limit
+                    // the alpha to reduce the blur effect behind the window.
+                    float iconAlpha =
+                            Interpolators.clampToProgress(progress, 0f, windowAlphaThreshold);
+                    finalFloatingIconView.update(iconAlpha, currentRectF, progress,
+                            windowAlphaThreshold, getCornerRadius(progress), false);
 
                     super.onUpdate(currentRectF, progress);
                 }
@@ -1553,7 +1562,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         Rect tmpRect = new Rect();
         ValueAnimator closingAnimator = ValueAnimator.ofFloat(0, 1);
         int duration = CLOSING_TRANSITION_DURATION_MS;
-        float windowCornerRadius = mDeviceProfile.isMultiWindowMode
+        float windowCornerRadius = mDeviceProfile.getDeviceProperties().isMultiWindowMode()
                 ? 0 : getWindowCornerRadius(mLauncher);
         float startShadowRadius = areAllTargetsTranslucent(appTargets) ? 0 : mMaxShadowRadius;
         closingAnimator.setDuration(duration);
@@ -2243,17 +2252,20 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 boolean toLauncher, RectF resultRect) {
             final int taskRotation = target.windowConfiguration.getRotation();
             final DeviceProfile profile = mLauncher.getDeviceProfile();
+            final int rotation = profile.getDeviceProperties().getRotationHint();
+            final int widthPx = profile.getDeviceProperties().getWidthPx();
+            final int heightPx = profile.getDeviceProperties().getWidthPx();
 
             final int rotationDelta = toLauncher
-                    ? android.util.RotationUtils.deltaRotation(taskRotation, profile.rotationHint)
-                    : android.util.RotationUtils.deltaRotation(profile.rotationHint, taskRotation);
+                    ? android.util.RotationUtils.deltaRotation(taskRotation, rotation)
+                    : android.util.RotationUtils.deltaRotation(rotation, taskRotation);
             if (rotationDelta != ROTATION_0) {
                 // Get original display size when task is on top but with different rotation
-                if (rotationDelta % 2 != 0 && toLauncher && (profile.rotationHint == ROTATION_0
-                        || profile.rotationHint == ROTATION_180)) {
-                    mDisplayRect.set(0, 0, profile.heightPx, profile.widthPx);
+                if (rotationDelta % 2 != 0 && toLauncher && (rotation == ROTATION_0
+                        || rotation == ROTATION_180)) {
+                    mDisplayRect.set(0, 0, heightPx, widthPx);
                 } else {
-                    mDisplayRect.set(0, 0, profile.widthPx, profile.heightPx);
+                    mDisplayRect.set(0, 0, widthPx, heightPx);
                 }
                 currentRect.round(mTmpResult);
                 android.util.RotationUtils.rotateBounds(mTmpResult, mDisplayRect, rotationDelta);

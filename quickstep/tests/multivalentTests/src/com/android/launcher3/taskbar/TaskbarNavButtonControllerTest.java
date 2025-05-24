@@ -29,6 +29,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import android.graphics.Rect;
 import android.os.Handler;
 import android.platform.test.annotations.RequiresFlagsEnabled;
 import android.platform.test.flag.junit.CheckFlagsRule;
@@ -379,6 +380,14 @@ public class TaskbarNavButtonControllerTest {
         verify(mockSystemUiProxy, never()).notifyAccessibilityButtonLongClicked();
         assertThat(mOverviewToggleCount).isEqualTo(0);
         verify(mockSystemUiProxy, never()).onImeSwitcherPressed();
+    }
+
+    @Test
+    public void testOnRecentsButtonLayoutChanged() {
+        Rect rect = new Rect(10, 20, 30, 40);
+        mNavButtonController.init(mockTaskbarControllers);
+        mNavButtonController.onRecentsButtonLayoutChanged(rect);
+        verify(mockSystemUiProxy).notifyRecentsButtonPositionChanged(eq(rect));
     }
 
     private void verifyKeyEvent(KeyEvent keyEvent, int action, boolean isCancelled) {

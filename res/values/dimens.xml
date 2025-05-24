@@ -404,7 +404,7 @@
     <dimen name="notification_icon_padding_start">10dp</dimen>
     <!-- notification_icon_padding + notification_icon_size + notification_icon_padding -->
     <dimen name="notification_main_text_padding_start">54dp</dimen>
-    <dimen name="horizontal_ellipsis_size">18dp</dimen>
+    <dimen name="horizontal_ellipsis_size">24dp</dimen>
 
     <!-- Overview -->
     <dimen name="options_menu_icon_size">24dp</dimen>

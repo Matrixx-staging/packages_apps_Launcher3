@@ -52,7 +52,6 @@ import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_T
 import android.app.ActivityTaskManager;
 import android.content.Context;
 import android.graphics.Region;
-import android.inputmethodservice.InputMethodService;
 import android.net.Uri;
 import android.os.RemoteException;
 import android.os.SystemProperties;
@@ -125,9 +124,6 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
 
     private final RotationTouchHelper mRotationTouchHelper;
     private final TaskStackChangeListener mPipListener;
-    // Cache for better performance since it doesn't change at runtime.
-    private final boolean mCanImeRenderGesturalNavButtons =
-            InputMethodService.canImeRenderGesturalNavButtons();
 
     private @SystemUiStateFlags long mSystemUiStateFlags = QuickStepContract.SYSUI_STATE_AWAKE;
     private NavigationMode mMode = THREE_BUTTONS;
@@ -618,8 +614,7 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
 
     /** Returns whether IME is rendering nav buttons, and IME is currently showing. */
     public boolean isImeRenderingNavButtons() {
-        return mCanImeRenderGesturalNavButtons && mMode == NO_BUTTON
-                && ((getSysuiStateFlags() & SYSUI_STATE_IME_VISIBLE) != 0);
+        return mMode == NO_BUTTON && ((getSysuiStateFlags() & SYSUI_STATE_IME_VISIBLE) != 0);
     }
 
     /**

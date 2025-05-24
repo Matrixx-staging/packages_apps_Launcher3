@@ -337,8 +337,9 @@
 
     <!-- Title for Landscape Mode setting. [CHAR LIMIT=50] -->
     <string name="landscape_mode_title">Landscape mode</string>
+
     <!--  [CHAR LIMIT=100] -->
-    <string name="landscape_mode_desc">Set phone into landscape mode</string>
+    <string name="landscape_mode_desc">Set home screen into landscape mode</string>
 
     <!-- Title for Notification dots setting. Tapping this will link to the system Notifications settings screen where the user can turn off notification dots globally. [CHAR LIMIT=50] -->
     <string name="notification_dots_title">Notification dots</string>

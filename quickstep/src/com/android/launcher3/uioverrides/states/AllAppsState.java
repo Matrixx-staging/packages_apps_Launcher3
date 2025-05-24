@@ -176,7 +176,7 @@ public class AllAppsState extends LauncherState {
     }
 
     private static boolean isWorkspaceVisible(DeviceProfile deviceProfile) {
-        return deviceProfile.isTablet || (Flags.allAppsSheetForHandheld() && Flags.allAppsBlur());
+        return deviceProfile.getDeviceProperties().isTablet() || (Flags.allAppsSheetForHandheld() && Flags.allAppsBlur());
     }
 
     @Override
@@ -199,7 +199,7 @@ public class AllAppsState extends LauncherState {
     @Override
     public boolean shouldFloatingSearchBarUsePillWhenUnfocused(Launcher launcher) {
         DeviceProfile dp = launcher.getDeviceProfile();
-        return dp.isPhone && !dp.isLandscape;
+        return dp.getDeviceProperties().isPhone() && !dp.getDeviceProperties().isLandscape();
     }
 
     @Override

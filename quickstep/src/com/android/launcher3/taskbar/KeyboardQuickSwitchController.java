@@ -503,7 +503,7 @@ public final class KeyboardQuickSwitchController implements
 
         boolean isAspectRatioSquare() {
             return mControllers != null && LayoutUtils.isAspectRatioSquare(
-                    mControllers.taskbarActivityContext.getDeviceProfile().aspectRatio);
+                    mControllers.taskbarActivityContext.getDeviceProfile().getDeviceProperties().getAspectRatio());
         }
     }
 }

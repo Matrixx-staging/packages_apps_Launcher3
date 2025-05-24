@@ -19,8 +19,11 @@ package com.android.launcher3.taskbar
 import android.content.Context
 import android.util.SparseArray
 import android.view.View
+import android.window.DesktopExperienceFlags
+import androidx.annotation.VisibleForTesting
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.LauncherAppState
+import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
 import com.android.launcher3.R
 import com.android.launcher3.model.BgDataModel
@@ -28,7 +31,6 @@ import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.popup.SystemShortcut
 import com.android.launcher3.views.ActivityContext
-import com.android.window.flags.Flags.enablePinningAppWithContextMenu
 
 /**
  * A single menu item shortcut to allow users to pin an item to the taskbar and unpin an item from
@@ -38,7 +40,7 @@ class PinToTaskbarShortcut<T>(
     target: T,
     itemInfo: ItemInfo?,
     originalView: View,
-    private val mIsPin: Boolean,
+    @get:VisibleForTesting val mIsPin: Boolean,
     private val mPinnedInfoList: SparseArray<ItemInfo?>,
 ) :
     SystemShortcut<T>(
@@ -61,7 +63,18 @@ class PinToTaskbarShortcut<T>(
                 .getWriter(true, mTarget!!.cellPosMapper, callbacks)
 
         if (!mIsPin) {
-            writer.deleteItemFromDatabase(mItemInfo, "item unpinned through long-press menu")
+            var infoToUnpin = mItemInfo
+            if (mItemInfo.container == CONTAINER_ALL_APPS) {
+                for (i in 0..<mPinnedInfoList.size()) {
+                    if (
+                        mPinnedInfoList.valueAt(i)?.getComponentKey() == mItemInfo.getComponentKey()
+                    ) {
+                        infoToUnpin = mPinnedInfoList.valueAt(i)
+                        break
+                    }
+                }
+            }
+            writer.deleteItemFromDatabase(infoToUnpin, "item unpinned through long-press menu")
             return
         }
 
@@ -91,8 +104,8 @@ class PinToTaskbarShortcut<T>(
     }
 
     companion object {
-        fun isPinningAppWithContextMenuEnabled(context: TaskbarActivityContext): Boolean {
-            return enablePinningAppWithContextMenu() && context.isTaskbarShowingDesktopTasks
-        }
+        fun isPinningAppWithContextMenuEnabled(context: TaskbarActivityContext): Boolean =
+            DesktopExperienceFlags.ENABLE_PINNING_APP_WITH_CONTEXT_MENU.isTrue &&
+                context.isTaskbarShowingDesktopTasks
     }
 }

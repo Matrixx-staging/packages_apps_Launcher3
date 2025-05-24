@@ -44,8 +44,19 @@ android {
             res.setSrcDirs(listOf("$widgetPickerDir/res"))
         }
         named("androidTest") {
-            java.setSrcDirs(listOf("$widgetPickerDir/tests/multivalentScreenshotTests/src/"))
+            java.setSrcDirs(
+                listOf(
+                    "$widgetPickerDir/tests/multivalentScreenshotTests/src",
+                    "$widgetPickerDir/tests/multivalentTestsForDevice/src",
+                )
+            )
             manifest.srcFile("$widgetPickerDir/tests/AndroidManifest.xml")
+        }
+        named("test") {
+            java.setSrcDirs(listOf("$widgetPickerDir/tests/multivalentTests/src"))
+            resources.setSrcDirs(listOf("$widgetPickerDir/tests/config"))
+            manifest.srcFile("$widgetPickerDir/tests/AndroidManifest.xml")
+            res.setSrcDirs(listOf("$widgetPickerDir/tests/multivalentScreenshotTests/res"))
         }
     }
     signingConfigs {
@@ -93,14 +104,19 @@ dependencies {
     testImplementation(libs.mockito.robolectric.bytebuddy.agent)
     testImplementation(libs.mockito.robolectric.bytebuddy)
     testImplementation(libs.mockito.robolectric)
+    testImplementation(libs.junit)
+    testImplementation(libs.google.truth)
+    testImplementation(libs.androidx.test.runner)
+    testImplementation(libs.androidx.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+
     androidTestImplementation(libs.google.truth)
-    androidTestImplementation(libs.junit)
     androidTestImplementation(libs.mockito.kotlin)
-    androidTestImplementation(libs.androidx.test.runner)
-    androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.test.rules)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
 
     // Compose UI Tests
+    testApi(libs.compose.ui.test.junit4)
     androidTestApi(libs.compose.ui.test.junit4)
     debugApi(libs.compose.ui.test.manifest)
 
@@ -110,4 +126,9 @@ dependencies {
     androidTestImplementation(project(":PlatformParameterizedLib"))
     androidTestImplementation(project(":ScreenshotLib"))
     androidTestImplementation(project(":ScreenshotComposeLib"))
+}
+
+// Work around for kotlin bug with symlinked source: http://b/316363701
+tasks.matching { it.name.matches(Regex("widgetpicker.*compile.*TestKotlin")) }.configureEach {
+    inputs.dir("$widgetPickerDir/tests/multivalentTests/src")
 }

@@ -16,7 +16,7 @@
 
 package com.android.launcher3.widgetpicker.data.repository
 
-import com.android.launcher3.widgetpicker.shared.model.WidgetUserProfileType
+import android.os.UserHandle
 import com.android.launcher3.widgetpicker.shared.model.WidgetUserProfiles
 import kotlinx.coroutines.flow.Flow
 
@@ -25,6 +25,18 @@ import kotlinx.coroutines.flow.Flow
  * the widget picker.
  */
 interface WidgetUsersRepository {
+    /**
+     * A hook to setup the repository so clients can observe the widgets available on device.
+     * This serves as a place to start listening to the backing caches / data sources.
+     */
+    fun initialize()
+
     /** Get and listen to the changes in available user profiles. */
-    fun observeUsers(types: List<WidgetUserProfileType>): Flow<WidgetUserProfiles>
+    fun observeUserProfiles(): Flow<WidgetUserProfiles?>
+
+    /** Indicates if a user is a work profile user. */
+    fun getWorkProfileUser(): UserHandle?
+
+    /** Clean up any external listeners or state (if necessary). */
+    fun cleanUp()
 }

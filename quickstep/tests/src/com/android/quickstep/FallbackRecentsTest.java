@@ -137,6 +137,7 @@ public class FallbackRecentsTest {
                         getLauncherCommand(mOtherLauncherActivity));
                 updateHandler.mChangeCounter
                         .await(DEFAULT_BROADCAST_TIMEOUT_SECS, TimeUnit.SECONDS);
+                mLauncher.setTestLauncherPackage(mOtherLauncherActivity.packageName);
                 try {
                     base.evaluate();
                 } finally {
@@ -144,6 +145,7 @@ public class FallbackRecentsTest {
                     TestCommandReceiver.callCommand(TestCommandReceiver.DISABLE_TEST_LAUNCHER);
                     UiDevice.getInstance(getInstrumentation()).executeShellCommand(
                             getLauncherCommand(getLauncherInMyProcess()));
+                    mLauncher.setTestLauncherPackage(null);
                     pressHomeAndWaitForOverviewClose();
                 }
             }

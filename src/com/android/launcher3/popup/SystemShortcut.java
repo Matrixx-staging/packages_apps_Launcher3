@@ -426,6 +426,17 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
                         && !(itemInfo instanceof WorkspaceItemInfo)) {
                     return null;
                 }
+                if (itemInfo instanceof WorkspaceItemInfo) {
+                    // Don't show bubble shortcut option for non-resizeable apps on small screens.
+                    // TODO(b/411558731): isPhone just checks for smallest width < 600dp, so it
+                    // basically is a check for small screens including Foldables when folded.
+                    // However, the name is a bit misleading, so considering renaming.
+                    WorkspaceItemInfo wsItemInfo = (WorkspaceItemInfo) itemInfo;
+                    if (wsItemInfo.isNonResizeable()
+                            && activity.getDeviceProfile().getDeviceProperties().isPhone()) {
+                        return null;
+                    }
+                }
                 return new BubbleShortcut<>(activity, itemInfo, originalView);
             };
 

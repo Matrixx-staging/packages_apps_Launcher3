@@ -155,7 +155,7 @@ constructor(
 
     val isGridTask: Boolean
         /** Returns whether the task is part of overview grid and not being focused. */
-        get() = container.deviceProfile.isTablet && !isLargeTile
+        get() = container.deviceProfile.getDeviceProperties().isTablet && !isLargeTile
 
     val isRunningTask: Boolean
         get() = this === recentsView?.runningTaskView
@@ -321,6 +321,7 @@ constructor(
 
     var taskViewId = UNBOUND_TASK_VIEW_ID
     var isEndQuickSwitchCuj = false
+    var isBeingDraggedForDismissal = false
     var sysUiStatusNavFlags: Int = 0
         get() =
             if (enableRefactorTaskThumbnail()) field
@@ -347,7 +348,7 @@ constructor(
      * The modalness of this view is how it should be displayed when it is shown on its own in the
      * modal state of overview. 0 being in context with other tasks, 1 being shown on its own.
      */
-    var modalness = 0f
+    protected var modalness = 0f
         set(value) {
             if (field == value) {
                 return
@@ -677,7 +678,7 @@ constructor(
             pivotY = modalPivot.y
         } else {
             val thumbnailTopMargin = container.deviceProfile.overviewTaskThumbnailTopMarginPx
-            if (container.deviceProfile.isTablet) {
+            if (container.deviceProfile.getDeviceProperties().isTablet) {
                 pivotX =
                     (if (layoutDirection == LAYOUT_DIRECTION_RTL) 0 else right - left).toFloat()
                 pivotY = thumbnailTopMargin.toFloat()
@@ -689,6 +690,7 @@ constructor(
     }
 
     override fun onRecycle() {
+        isBeingDraggedForDismissal = false
         resetPersistentViewTransforms()
 
         groupTask = null
@@ -952,7 +954,9 @@ constructor(
             // onAttach or another moment in the lifecycle.
             val coroutineJobsToCancel = coroutineJobs.toList()
             coroutineJobs.clear()
-            if (enableCoroutineThreadingImprovements() && coroutineJobsToCancel.isNotEmpty()) {
+            if (coroutineJobsToCancel.isEmpty()) return
+
+            if (enableCoroutineThreadingImprovements()) {
                 // TODO(b/391842220): This should ideally be handled in the completion block of the
                 //  jobs above to be cancelled.
                 taskContainers.forEach {
@@ -1124,7 +1128,7 @@ constructor(
         val boxTranslationY: Float
         val expectedWidth: Int
         val expectedHeight: Int
-        if (container.deviceProfile.isTablet) {
+        if (container.deviceProfile.getDeviceProperties().isTablet) {
             val boxWidth: Int
             val boxHeight: Int
 
@@ -1618,7 +1622,9 @@ constructor(
             // Don't show menu when selecting second split screen app
             return true
         }
-        if (!container.deviceProfile.isTablet && !recentsView.isClearAllHidden) {
+        if (
+            !container.deviceProfile.getDeviceProperties().isTablet && !recentsView.isClearAllHidden
+        ) {
             recentsView.snapToPage(recentsView.indexOfChild(this))
             return false
         }
@@ -1654,11 +1660,11 @@ constructor(
             } else {
                 TaskMenuView.showForTask(menuContainer) { recentsView.setTaskBorderEnabled(true) }
             }
-        } else if (container.deviceProfile.isTablet) {
+        } else if (container.deviceProfile.getDeviceProperties().isTablet) {
             val alignedOptionIndex =
                 if (
                     recentsView.isOnGridBottomRow(menuContainer.taskView) &&
-                        container.deviceProfile.isLandscape
+                        container.deviceProfile.deviceProperties.isLandscape
                 ) {
                     if (enableGridOnlyOverview()) {
                         // With no focused task, there is less available space below the tasks, so
@@ -1937,14 +1943,18 @@ constructor(
     }
 
     fun resetViewTransforms() {
+        // Dismiss translation shouldn't reset if actively being dragged
+        if (!isBeingDraggedForDismissal) {
+            secondaryDismissTranslationProperty.setValue(this, 0f)
+        }
+        primaryDismissTranslationProperty.setValue(this, 0f)
+
         // fullscreenTranslation and accumulatedTranslation should not be reset, as
         // resetViewTransforms is called during QuickSwitch scrolling.
-        dismissTranslationX = 0f
         taskOffsetTranslationX = 0f
         taskResistanceTranslationX = 0f
         splitSelectTranslationX = 0f
         gridEndTranslationX = 0f
-        dismissTranslationY = 0f
         taskOffsetTranslationY = 0f
         taskResistanceTranslationY = 0f
         if (recentsView?.isSplitSelectionActive != true) {
