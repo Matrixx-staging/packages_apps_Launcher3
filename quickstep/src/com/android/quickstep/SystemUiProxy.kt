@@ -212,9 +212,15 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
         }
     }
 
-    fun onBackEvent(backEvent: KeyEvent?) =
+    fun onBackEvent(backEvent: KeyEvent?, displayId: Int) =
         executeWithErrorLog({ "Failed call onBackPressed" }) {
-            systemUiProxy?.onBackEvent(backEvent)
+            systemUiProxy?.onBackEvent(backEvent, displayId)
+        }
+
+    /** SystemUI will run ACTION_DOWN and ACTION_UP KeyEvents for the given keycode. */
+    fun onKeyEvent(keycode: Int, displayId: Int) =
+        executeWithErrorLog({ "Failed call onKeyEvent ${KeyEvent.keyCodeToString(keycode)}" }) {
+            systemUiProxy?.onKeyEvent(keycode, displayId)
         }
 
     fun onImeSwitcherPressed() =
@@ -1248,7 +1254,9 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
     //
     // Recents
     //
-    /** Starts the recents animation. The caller should manage the thread on which this is called. */
+    /**
+     * Starts the recents animation. The caller should manage the thread on which this is called.
+     */
     fun startRecentsTransition(
         intent: Intent?,
         options: ActivityOptions,
