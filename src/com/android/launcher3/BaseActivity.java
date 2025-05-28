@@ -47,6 +47,7 @@ import com.android.launcher3.dagger.ActivityContextComponent;
 import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.testing.TestInformationHandler;
 import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.TestProtocol;
 import com.android.launcher3.util.ActivityOptionsWrapper;
@@ -197,6 +198,7 @@ public abstract class BaseActivity extends Activity implements ActivityContext,
         mSavedStateRegistryController.performAttach();
         registerActivityLifecycleCallbacks(
                 new LifecycleHelper(this, mSavedStateRegistryController, mLifecycleRegistry));
+        TestInformationHandler.trackUiSurface(this);
     }
 
     @Override

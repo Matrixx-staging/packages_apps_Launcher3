@@ -123,7 +123,7 @@ public class TaskbarModeSwitchRule implements TestRule {
         assertTrue(launcher, "Couldn't set taskbar=" + expectTransientTaskbar,
                 isTaskbarTransientMode(context) == expectTransientTaskbar, description);
 
-        AbstractLauncherUiTest.checkDetectedLeaks(launcher, true);
+        AbstractLauncherUiTest.checkDetectedLeaks(launcher);
     }
 
     private static void assertTrue(LauncherInstrumentation launcher, String message,
