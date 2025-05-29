@@ -5511,7 +5511,7 @@ public abstract class RecentsView<
 
         // Recents doesn't receive activity callback, so we cleanup manually
         if (mContainer instanceof RecentsWindowManager manager) {
-            manager.cleanupRecentsWindow();
+            manager.hideRecentsWindow();
         }
     }
 

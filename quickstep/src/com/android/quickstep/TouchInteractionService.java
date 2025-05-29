@@ -921,7 +921,7 @@ public class TouchInteractionService extends Service {
         }
         if (RecentsWindowFlags.getEnableOverviewInWindow()) {
             mRecentsWindowManagerRepository.forEach(
-                    /* createIfAbsent= */ false, RecentsWindowManager::cleanupRecentsWindow);
+                    /* createIfAbsent= */ false, RecentsWindowManager::hideRecentsWindow);
             if (isHomeAndOverviewSame) {
                 TaskStackChangeListeners.getInstance().unregisterTaskStackListener(
                         mHomeIntentStartedListener);

@@ -64,7 +64,7 @@ public abstract class AbstractQuickStepTest
     protected void onLauncherActivityClose(QuickstepLauncher launcher) {
         super.onLauncherActivityClose(launcher);
         if (RecentsWindowFlags.enableLauncherOverviewInWindow.isTrue()) {
-            executeOnRecentsWindowIfPresent(RecentsWindowManager::cleanupRecentsWindow);
+            executeOnRecentsWindowIfPresent(RecentsWindowManager::hideRecentsWindow);
         }
         RecentsView recentsView = launcher.getOverviewPanel();
         if (recentsView != null) {

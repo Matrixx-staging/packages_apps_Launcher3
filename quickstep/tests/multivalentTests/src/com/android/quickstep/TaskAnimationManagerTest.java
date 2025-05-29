@@ -173,7 +173,7 @@ public class TaskAnimationManagerTest {
     public void testRecentsAnimationStartTimeout_cleansUpRecentsAnimation() {
         final GestureState gestureState = buildMockGestureState();
         when(mSystemUiProxy
-                .startRecentsActivity(any(), any(), any(), anyBoolean(), any(), anyInt()))
+                .startRecentsTransition(any(), any(), any(), anyBoolean(), any(), anyInt()))
                 .thenReturn(true);
 
         runOnMainSync(() -> {

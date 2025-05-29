@@ -909,7 +909,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
             RecentsWindowManager defaultRecentsWindowManager =
                     RecentsWindowManager.REPOSITORY_INSTANCE.get(this).get(DEFAULT_DISPLAY);
             if (defaultRecentsWindowManager != null) {
-                defaultRecentsWindowManager.cleanupRecentsWindow();
+                defaultRecentsWindowManager.hideRecentsWindow();
             }
         }
     }
