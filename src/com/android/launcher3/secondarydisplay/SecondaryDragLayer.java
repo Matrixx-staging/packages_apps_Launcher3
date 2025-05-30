@@ -133,7 +133,8 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
         for (int i = 0; i < count; i++) {
             final View child = getChildAt(i);
             if (child == mAppsView) {
-                int horizontalPadding = (2 * grid.desiredWorkspaceHorizontalMarginPx)
+                int horizontalPadding = (2 * grid.getWorkspaceIconProfile()
+                        .getDesiredWorkspaceHorizontalMarginPx())
                         + grid.cellLayoutPaddingPx.left + grid.cellLayoutPaddingPx.right;
                 int verticalPadding =
                         grid.cellLayoutPaddingPx.top + grid.cellLayoutPaddingPx.bottom;
@@ -151,11 +152,13 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
                 mAppsView.measure(
                         makeMeasureSpec(appsWidth, EXACTLY), makeMeasureSpec(appsHeight, EXACTLY));
             } else if (child == mAllAppsButton) {
-                int appsButtonSpec = makeMeasureSpec(grid.iconSizePx, EXACTLY);
+                int appsButtonSpec = makeMeasureSpec(
+                        grid.getWorkspaceIconProfile().getIconSizePx(), EXACTLY
+                );
                 mAllAppsButton.measure(appsButtonSpec, appsButtonSpec);
             } else if (child == mWorkspace) {
                 measureChildWithMargins(mWorkspace, widthMeasureSpec, 0, heightMeasureSpec,
-                        grid.iconSizePx + grid.edgeMarginPx);
+                        grid.getWorkspaceIconProfile().getIconSizePx() + grid.edgeMarginPx);
             } else {
                 measureChildWithMargins(child, widthMeasureSpec, 0, heightMeasureSpec, 0);
             }
@@ -232,7 +235,7 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
         DragOptions options = new DragOptions();
         DeviceProfile grid = mContainer.getDeviceProfile();
         options.intrinsicIconScaleFactor = (float) grid.getAllAppsProfile().getIconSizePx()
-                / grid.iconSizePx;
+                / grid.getWorkspaceIconProfile().getIconSizePx();
         options.preDragCondition = container.createPreDragCondition(false);
         if (options.preDragCondition == null) {
             options.preDragCondition = new DragOptions.PreDragCondition() {

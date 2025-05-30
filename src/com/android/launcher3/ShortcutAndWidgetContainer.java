@@ -170,13 +170,14 @@ public class ShortcutAndWidgetContainer extends ViewGroup implements FolderIcon.
             // Center the icon/folder
             int cHeight = getCellContentHeight();
             int cellPaddingY =
-                    dp.cellYPaddingPx >= 0 && mContainerType == WORKSPACE
-                            ? dp.cellYPaddingPx
+                    dp.getWorkspaceIconProfile().getCellYPaddingPx() >= 0 && mContainerType == WORKSPACE
+                            ? dp.getWorkspaceIconProfile().getCellYPaddingPx()
                             : (int) Math.max(0, ((lp.height - cHeight) / 2f));
 
             // No need to add padding when cell layout border spacing is present.
             boolean noPaddingX =
-                    (dp.cellLayoutBorderSpacePx.x > 0 && mContainerType == WORKSPACE)
+                    (dp.getWorkspaceIconProfile().getCellLayoutBorderSpacePx().x > 0
+                            && mContainerType == WORKSPACE)
                             || (dp.folderCellLayoutBorderSpacePx.x > 0 && mContainerType == FOLDER)
                             || (dp.hotseatBorderSpace > 0 && mContainerType == HOTSEAT);
             int cellPaddingX = noPaddingX

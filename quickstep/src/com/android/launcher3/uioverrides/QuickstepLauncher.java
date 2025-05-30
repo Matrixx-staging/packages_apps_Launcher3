@@ -765,7 +765,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         mDeviceProfile.isPredictiveBackSwipe =
                 getApplicationInfo().isOnBackInvokedCallbackEnabled();
         if (ret) {
-            SystemUiProxy.INSTANCE.get(this).setLauncherAppIconSize(mDeviceProfile.iconSizePx);
+            SystemUiProxy.INSTANCE.get(this).setLauncherAppIconSize(
+                    mDeviceProfile.getWorkspaceIconProfile().getIconSizePx());
         }
         return ret;
     }
@@ -1422,7 +1423,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         super.dispatchDeviceProfileChanged();
         Trace.instantForTrack(TRACE_TAG_APP, "QuickstepLauncher#DeviceProfileChanged",
                 getDeviceProfile().toSmallString());
-        SystemUiProxy.INSTANCE.get(this).setLauncherAppIconSize(mDeviceProfile.iconSizePx);
+        SystemUiProxy.INSTANCE.get(this).setLauncherAppIconSize(
+                mDeviceProfile.getWorkspaceIconProfile().getIconSizePx());
         TaskbarManager taskbarManager = mTISBindHelper.getTaskbarManager();
         if (taskbarManager != null) {
             taskbarManager.debugPrimaryTaskbar("QuickstepLauncher#onDeviceProfileChanged",

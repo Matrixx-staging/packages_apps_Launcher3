@@ -139,7 +139,8 @@ public class LauncherPreviewRenderer extends BaseContext
         firstScreen.setPadding(
                 mDp.workspacePadding.left + mDp.cellLayoutPaddingPx.left,
                 mDp.workspacePadding.top + mDp.cellLayoutPaddingPx.top,
-                mDp.getDeviceProperties().isTwoPanels() ? (mDp.cellLayoutBorderSpacePx.x / 2)
+                mDp.getDeviceProperties().isTwoPanels() ? (
+                        mDp.getWorkspaceIconProfile().getCellLayoutBorderSpacePx().x / 2)
                         : (mDp.workspacePadding.right + mDp.cellLayoutPaddingPx.right),
                 mDp.workspacePadding.bottom + mDp.cellLayoutPaddingPx.bottom
         );
@@ -147,7 +148,7 @@ public class LauncherPreviewRenderer extends BaseContext
         if (mDp.getDeviceProperties().isTwoPanels()) {
             CellLayout rightPanel = mRootView.findViewById(R.id.workspace_right);
             rightPanel.setPadding(
-                    mDp.cellLayoutBorderSpacePx.x / 2,
+                    mDp.getWorkspaceIconProfile().getCellLayoutBorderSpacePx().x / 2,
                     mDp.workspacePadding.top + mDp.cellLayoutPaddingPx.top,
                     mDp.workspacePadding.right + mDp.cellLayoutPaddingPx.right,
                     mDp.workspacePadding.bottom + mDp.cellLayoutPaddingPx.bottom

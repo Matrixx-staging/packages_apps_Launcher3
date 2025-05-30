@@ -265,10 +265,12 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         mDisplay = a.getInteger(R.styleable.BubbleTextView_iconDisplay, DISPLAY_WORKSPACE);
         final int defaultIconSize;
         if (mDisplay == DISPLAY_WORKSPACE) {
-            setTextSize(TypedValue.COMPLEX_UNIT_PX, mDeviceProfile.iconTextSizePx);
-            setCompoundDrawablePadding(mDeviceProfile.iconDrawablePaddingPx);
-            defaultIconSize = mDeviceProfile.iconSizePx;
-            setCenterVertically(mDeviceProfile.iconCenterVertically);
+            setTextSize(TypedValue.COMPLEX_UNIT_PX,
+                    mDeviceProfile.getWorkspaceIconProfile().getIconTextSizePx());
+            setCompoundDrawablePadding(
+                    mDeviceProfile.getWorkspaceIconProfile().getIconDrawablePaddingPx());
+            defaultIconSize = mDeviceProfile.getWorkspaceIconProfile().getIconSizePx();
+            setCenterVertically(mDeviceProfile.getWorkspaceIconProfile().getIconCenterVertically());
         } else if (mDisplay == DISPLAY_ALL_APPS || mDisplay == DISPLAY_PREDICTION_ROW
                 || mDisplay == DISPLAY_SEARCH_RESULT_APP_ROW) {
             setTextSize(TypedValue.COMPLEX_UNIT_PX,
@@ -291,7 +293,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
             defaultIconSize = mDeviceProfile.getTaskbarProfile().getIconSize();
         } else {
             // widget_selection or shortcut_popup
-            defaultIconSize = mDeviceProfile.iconSizePx;
+            defaultIconSize = mDeviceProfile.getWorkspaceIconProfile().getIconSizePx();
         }
 
 
@@ -580,7 +582,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
                 return mDeviceProfile.getAllAppsProfile().getMaxAllAppsTextLineCount();
             }
             case DISPLAY_WORKSPACE -> {
-                return mDeviceProfile.maxIconTextLineCount;
+                return mDeviceProfile.getWorkspaceIconProfile().getMaxIconTextLineCount();
             }
             case DISPLAY_FOLDER -> {
                 return mDeviceProfile.maxFolderChildTextLineCount;

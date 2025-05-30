@@ -1925,7 +1925,7 @@ public abstract class AbsSwipeUpHandler<
                 .setContext(mContext)
                 .setTaskId(runningTaskTarget.taskId)
                 .setActivityInfo(taskInfo.topActivityInfo)
-                .setAppIconSizePx(mDp.iconSizePx)
+                .setAppIconSizePx(mDp.getWorkspaceIconProfile().getIconSizePx())
                 .setLeash(runningTaskTarget.leash)
                 .setSourceRectHint(
                         runningTaskTarget.taskInfo.pictureInPictureParams.getSourceRectHint())

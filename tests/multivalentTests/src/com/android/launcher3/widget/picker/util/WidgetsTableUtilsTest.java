@@ -254,7 +254,8 @@ public final class WidgetsTableUtilsTest {
             return null;
         }).when(mTestDeviceProfile).getCellSize(any(Point.class));
         when(mTestDeviceProfile.getCellSize()).thenReturn(new Point(CELL_SIZE, CELL_SIZE));
-        mTestDeviceProfile.cellLayoutBorderSpacePx = new Point(SPACE_SIZE, SPACE_SIZE);
+        mTestDeviceProfile.getWorkspaceIconProfile().getCellLayoutBorderSpacePx()
+                .set(SPACE_SIZE, SPACE_SIZE);
         mTestDeviceProfile.widgetPadding.setEmpty();
     }
 
