@@ -40,9 +40,9 @@ class TaskbarBackgroundRenderer(private val context: TaskbarActivityContext) {
     private val isInSetup: Boolean = !context.isUserSetupComplete
 
     private val maxTransientTaskbarHeight =
-        context.transientTaskbarDeviceProfile.taskbarHeight.toFloat()
+        context.transientTaskbarDeviceProfile.taskbarProfile.height.toFloat()
     private val maxPersistentTaskbarHeight =
-        context.persistentTaskbarDeviceProfile.taskbarHeight.toFloat()
+        context.persistentTaskbarDeviceProfile.taskbarProfile.height.toFloat()
     var backgroundProgress =
         if (context.isTransientTaskbar) {
             PINNING_TRANSIENT
@@ -57,7 +57,7 @@ class TaskbarBackgroundRenderer(private val context: TaskbarActivityContext) {
     val paint = Paint()
     private val strokePaint = Paint()
     val lastDrawnTransientRect = RectF()
-    var backgroundHeight = context.deviceProfile.taskbarHeight.toFloat()
+    var backgroundHeight = context.deviceProfile.taskbarProfile.height.toFloat()
     var translationYForSwipe = 0f
     var translationYForStash = 0f
     var translationXForBubbleBar = 0f
@@ -195,10 +195,10 @@ class TaskbarBackgroundRenderer(private val context: TaskbarActivityContext) {
             scale = Math.round(scale * 100f) / 100f
             bottomMargin =
                 mapRange(
-                    scale,
-                    0f,
-                    res.getDimensionPixelSize(R.dimen.transient_taskbar_bottom_margin).toFloat(),
-                )
+                        scale,
+                        0f,
+                        res.getDimensionPixelSize(R.dimen.transient_taskbar_bottom_margin).toFloat(),
+                    )
                     .toInt()
             shadowBlur =
                 mapRange(scale, 0f, res.getDimension(R.dimen.transient_taskbar_shadow_blur))

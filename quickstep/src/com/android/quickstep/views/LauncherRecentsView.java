@@ -165,6 +165,8 @@ public class LauncherRecentsView extends RecentsView<QuickstepLauncher, Launcher
             resetModalVisuals();
         }
 
+        resetShareUIState();
+
         // Set border after select mode changes to avoid showing border during state transition
         if (!toState.isRecentsViewVisible || toState == OVERVIEW_MODAL_TASK) {
             setTaskBorderEnabled(false);

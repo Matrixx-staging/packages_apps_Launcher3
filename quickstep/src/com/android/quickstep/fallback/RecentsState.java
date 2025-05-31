@@ -16,10 +16,10 @@
 package com.android.quickstep.fallback;
 
 import static com.android.launcher3.Flags.enableDesktopExplodedView;
-import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 import static com.android.launcher3.LauncherState.FLAG_CLOSE_POPUPS;
 import static com.android.launcher3.uioverrides.states.BackgroundAppState.getOverviewScaleAndOffsetForBackgroundState;
 import static com.android.launcher3.uioverrides.states.OverviewModalTaskState.getOverviewScaleAndOffsetForModalState;
+import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -29,6 +29,7 @@ import com.android.launcher3.R;
 import com.android.launcher3.statemanager.BaseState;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
+import com.android.launcher3.views.ScrimColors;
 import com.android.quickstep.views.RecentsViewContainer;
 
 /**
@@ -164,10 +165,12 @@ public class RecentsState implements BaseState<RecentsState> {
     /**
      * For this state, what color scrim should be drawn behind overview.
      */
-    public int getScrimColor(Context context) {
-        return hasFlag(FLAG_SCRIM)
+    public ScrimColors getScrimColor(Context context) {
+        return new ScrimColors(
+                /* backgroundColor */ hasFlag(FLAG_SCRIM)
                 ? Themes.getAttrColor(context, R.attr.overviewScrimColor)
-                : Color.TRANSPARENT;
+                : Color.TRANSPARENT,
+                /* foregroundColor */ Color.TRANSPARENT);
     }
 
     public float[] getOverviewScaleAndOffset(RecentsViewContainer container) {

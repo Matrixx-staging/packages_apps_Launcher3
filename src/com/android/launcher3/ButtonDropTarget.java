@@ -287,7 +287,8 @@ public abstract class ButtonDropTarget extends TextView
     @Override
     public void getHitRectRelativeToDragLayer(android.graphics.Rect outRect) {
         super.getHitRect(outRect);
-        outRect.bottom += mActivityContext.getDeviceProfile().dropTargetDragPaddingPx;
+        outRect.bottom +=
+                mActivityContext.getDeviceProfile().getDropTargetProfile().getDragPaddingPx();
 
         sTempCords[0] = sTempCords[1] = 0;
         mActivityContext.getDragLayer().getDescendantCoordRelativeToSelf(this, sTempCords);

@@ -41,7 +41,6 @@ import static com.android.launcher3.util.FlagDebugUtils.formatFlagChange;
 import static com.android.quickstep.util.SystemActionConstants.ACTION_SHOW_TASKBAR;
 import static com.android.quickstep.util.SystemActionConstants.SYSTEM_ACTION_ID_TASKBAR;
 import static com.android.wm.shell.shared.desktopmode.DesktopModeStatus.enableMultipleDesktops;
-import static com.android.window.flags.Flags.enableSysDecorsCallbacksViaWm;
 
 import android.animation.AnimatorSet;
 import android.annotation.SuppressLint;
@@ -485,7 +484,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
                 .register(USER_SETUP_COMPLETE_URI, mOnSettingsChangeListener);
         SettingsCache.INSTANCE.get(mPrimaryWindowContext)
                 .register(NAV_BAR_KIDS_MODE, mOnSettingsChangeListener);
-        if (enableSysDecorsCallbacksViaWm()) {
+        if (DesktopExperienceFlags.ENABLE_SYS_DECORS_CALLBACKS_VIA_WM.isTrue()) {
             displaysWithDecorationsRepositoryCompat
                     .registerDisplayDecorationListener(this, dispatcher);
         } else {
@@ -1177,7 +1176,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
                 .unregister(USER_SETUP_COMPLETE_URI, mOnSettingsChangeListener);
         SettingsCache.INSTANCE.get(mPrimaryWindowContext)
                 .unregister(NAV_BAR_KIDS_MODE, mOnSettingsChangeListener);
-        if (enableSysDecorsCallbacksViaWm()) {
+        if (DesktopExperienceFlags.ENABLE_SYS_DECORS_CALLBACKS_VIA_WM.isTrue()) {
             mDisplaysWithDecorationsRepositoryCompat.unregisterDisplayDecorationListener(this);
         } else {
             SystemDecorationChangeObserver.getINSTANCE().get(mPrimaryWindowContext)

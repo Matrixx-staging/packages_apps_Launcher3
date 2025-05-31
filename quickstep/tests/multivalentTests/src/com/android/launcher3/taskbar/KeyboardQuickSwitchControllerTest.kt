@@ -313,8 +313,8 @@ class KeyboardQuickSwitchControllerTest {
             SplitBounds(
                 /* leftTopBounds = */ Rect(),
                 /* rightBottomBounds = */ Rect(),
-                /* leftTopTaskId = */ -1,
-                /* rightBottomTaskId = */ -1,
+                /* leftTopTaskId = */ 1,
+                /* rightBottomTaskId = */ 2,
                 /* snapPosition = */ SplitScreenConstants.SNAP_TO_2_50_50,
             ),
         )

@@ -150,11 +150,10 @@
             </intent-filter>
         </activity>
 
-        <activity android:name="com.android.launcher3.WidgetPickerActivity"
+        <activity android:name="com.android.launcher3.QuickstepWidgetPickerActivity"
             android:theme="@style/WidgetPickerActivityTheme"
             android:excludeFromRecents="true"
             android:autoRemoveFromRecents="true"
-            android:showOnLockScreen="true"
             android:launchMode="singleTop"
             android:exported="true"
             android:permission="${applicationId}.permission.START_WIDGET_PICKER_ACTIVITY">

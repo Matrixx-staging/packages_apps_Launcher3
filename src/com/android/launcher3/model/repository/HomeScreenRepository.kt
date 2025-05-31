@@ -20,9 +20,8 @@ import android.util.SparseArray
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.model.data.WorkspaceData
 import com.android.launcher3.model.data.WorkspaceData.ImmutableWorkspaceData
+import com.android.launcher3.util.MutableListenableRef
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * Repository for the home screen data.
@@ -33,14 +32,14 @@ import kotlinx.coroutines.flow.asStateFlow
 @LauncherAppSingleton
 class HomeScreenRepository @Inject constructor() {
 
-    private val mutableStateFlow: MutableStateFlow<WorkspaceData> =
-        MutableStateFlow(ImmutableWorkspaceData(0, 0, emptyList(), SparseArray()))
+    private val mutableStateRef: MutableListenableRef<WorkspaceData> =
+        MutableListenableRef(ImmutableWorkspaceData(0, 0, emptyList(), SparseArray()))
 
-    /** Represents the current home screen data model. There are two ways this can change: */
-    val workspaceStateFlow = mutableStateFlow.asStateFlow()
+    /** Represents the current home screen data model */
+    val workspaceStateRef = mutableStateRef.asListenable()
 
-    /** sets a new value to [workspaceStateFlow] */
+    /** sets a new value to [workspaceStateRef] */
     fun dispatchChange(workspaceData: WorkspaceData) {
-        mutableStateFlow.value = workspaceData
+        mutableStateRef.dispatchValue(workspaceData)
     }
 }

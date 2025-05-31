@@ -128,17 +128,19 @@ class MonoIconThemeControllerTest {
             MonoIconThemeController().createThemedBitmap(icon, iconInfo, iconFactory)
 
         val nonMonoIcon = AdaptiveIconDrawable(ColorDrawable(Color.BLACK), null, null)
-        assertNotNull(
-            MonoIconThemeController().createThemedAdaptiveIcon(context, nonMonoIcon, iconInfo)
+        assertNotSame(
+            nonMonoIcon,
+            MonoIconThemeController().createThemedAdaptiveIcon(context, nonMonoIcon, iconInfo),
         )
     }
 
     @Test
     fun `createThemedAdaptiveIcon invalid bitmap info`() {
         val nonMonoIcon = AdaptiveIconDrawable(ColorDrawable(Color.BLACK), null, null)
-        assertNull(
+        assertSame(
+            nonMonoIcon,
             MonoIconThemeController()
-                .createThemedAdaptiveIcon(context, nonMonoIcon, BitmapInfo.LOW_RES_INFO)
+                .createThemedAdaptiveIcon(context, nonMonoIcon, BitmapInfo.LOW_RES_INFO),
         )
     }
 

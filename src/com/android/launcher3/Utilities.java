@@ -705,12 +705,12 @@ public final class Utilities {
             IconThemeController themeController =
                     ThemeManager.INSTANCE.get(context).getThemeController();
             if (themeController != null) {
-                AdaptiveIconDrawable themed = themeController.createThemedAdaptiveIcon(
+                result = themeController.createThemedAdaptiveIcon(
                         context,
                         result,
                         info instanceof ItemInfoWithIcon iiwi ? iiwi.bitmap : null);
-                if (themed != null) {
-                    result = themed;
+                if (result == null) {
+                    return null;
                 }
             }
         }

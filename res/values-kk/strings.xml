@@ -138,8 +138,7 @@
     <string name="allow_rotation_title" msgid="7222049633713050106">"Негізгі экранды бұруға рұқсат ету"</string>
     <string name="allow_rotation_desc" msgid="8662546029078692509">"Телефон бұрылғанда"</string>
     <string name="landscape_mode_title" msgid="5138814555934843926">"Альбом режимі"</string>
-    <!-- no translation found for landscape_mode_desc (3085236452297838664) -->
-    <skip />
+    <string name="landscape_mode_desc" msgid="3085236452297838664">"Негізгі экранды альбом режиміне орнату"</string>
     <string name="notification_dots_title" msgid="9062440428204120317">"Хабарландыру белгілері"</string>
     <string name="notification_dots_desc_on" msgid="1679848116452218908">"Қосулы"</string>
     <string name="notification_dots_desc_off" msgid="1760796511504341095">"Өшірулі"</string>

@@ -70,6 +70,7 @@ import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.allapps.ActivityAllAppsContainerView;
 import com.android.launcher3.celllayout.CellPosMapper;
+import com.android.launcher3.dagger.ActivityContextComponent;
 import com.android.launcher3.dot.DotInfo;
 import com.android.launcher3.dragndrop.DragController;
 import com.android.launcher3.folder.FolderIcon;
@@ -102,6 +103,9 @@ import java.util.List;
 public interface ActivityContext extends SavedStateRegistryOwner {
 
     String TAG = "ActivityContext";
+
+    /** Returns the dagger graph for this UI context */
+    ActivityContextComponent getActivityComponent();
 
     default boolean finishAutoCancelActionMode() {
         return false;

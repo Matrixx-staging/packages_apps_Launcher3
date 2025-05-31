@@ -17,6 +17,7 @@ package com.android.launcher3.uioverrides;
 
 import static android.app.ActivityTaskManager.INVALID_TASK_ID;
 import static android.os.Trace.TRACE_TAG_APP;
+import static android.view.Display.DEFAULT_DISPLAY;
 import static android.view.WindowManager.LayoutParams.PRIVATE_FLAG_OPTIMIZE_MEASURE;
 import static android.view.accessibility.AccessibilityEvent.TYPE_VIEW_FOCUSED;
 import static android.window.DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY;
@@ -88,7 +89,6 @@ import android.os.Trace;
 import android.os.UserHandle;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.view.Display;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
 import android.view.View;
@@ -105,7 +105,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
-import com.android.app.displaylib.PerDisplayRepository;
 import com.android.app.viewcapture.ViewCaptureFactory;
 import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.DeviceProfile;
@@ -215,6 +214,7 @@ import com.android.systemui.unfold.updates.RotationChangeProvider;
 import com.android.wm.shell.shared.bubbles.BubbleAnythingFlagHelper;
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation;
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
+import com.android.wm.shell.shared.desktopmode.DesktopState;
 
 import kotlin.Unit;
 
@@ -888,10 +888,11 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
             overviewCommandHelper.clearPendingCommands();
         }
         if (RecentsWindowFlags.getEnableOverviewInWindow() && !intentHasGnc) {
-            PerDisplayRepository<RecentsWindowManager> recentsWindowManagerRepository =
-                    RecentsWindowManager.REPOSITORY_INSTANCE.get(this);
-            recentsWindowManagerRepository.forEach(
-                    /* createIfAbsent= */ true, RecentsWindowManager::cleanupRecentsWindow);
+            RecentsWindowManager defaultRecentsWindowManager =
+                    RecentsWindowManager.REPOSITORY_INSTANCE.get(this).get(DEFAULT_DISPLAY);
+            if (defaultRecentsWindowManager != null) {
+                defaultRecentsWindowManager.cleanupRecentsWindow();
+            }
         }
     }
 
@@ -950,7 +951,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         onTaskbarInAppDisplayProgressUpdate(progress, WIDGETS_PAGE_PROGRESS_INDEX);
         if (mEnableWidgetDepth) {
             getDepthController().widgetDepth.setValue(Utilities.mapToRange(
-                    progress, 0f, 1f, 0f, getDeviceProfile().bottomSheetDepth, EMPHASIZED));
+                    progress, 0f, 1f, 0f,
+                    getDeviceProfile().getBottomSheetProfile().getBottomSheetDepth(), EMPHASIZED));
         }
     }
 
@@ -1290,7 +1292,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         }
         activityOptions.options.setLaunchDisplayId(
                 (v != null && v.getDisplay() != null) ? v.getDisplay().getDisplayId()
-                        : Display.DEFAULT_DISPLAY);
+                        : DEFAULT_DISPLAY);
         activityOptions.options.setPendingIntentBackgroundActivityStartMode(
                 ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
         return activityOptions;
@@ -1400,6 +1402,11 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     public boolean areDesktopTasksVisible() {
         return DesktopVisibilityController.INSTANCE.get(this)
                 .isInDesktopModeAndNotInOverview(getDisplayId());
+    }
+
+    @Override
+    public boolean shouldShowHomeBehindDesktop() {
+        return DesktopState.fromContext(this).getShouldShowHomeBehindDesktop();
     }
 
     @Override

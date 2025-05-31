@@ -325,7 +325,7 @@ class TaskbarStashControllerTest {
         }
 
         val expectedHeight =
-            activityContext.deviceProfile.run { taskbarHeight + taskbarBottomMargin }
+            activityContext.deviceProfile.taskbarProfile.run { height + bottomMargin }
         assertThat(stashController.touchableHeight).isEqualTo(expectedHeight)
     }
 
@@ -333,7 +333,7 @@ class TaskbarStashControllerTest {
     @TaskbarMode(PINNED)
     fun testGetTouchableHeight_pinnedMode_taskbarHeight() {
         assertThat(stashController.touchableHeight)
-            .isEqualTo(activityContext.deviceProfile.taskbarHeight)
+            .isEqualTo(activityContext.deviceProfile.taskbarProfile.height)
     }
 
     @Test
@@ -347,14 +347,14 @@ class TaskbarStashControllerTest {
     @TaskbarMode(THREE_BUTTONS)
     fun testGetContentHeightToReportToApps_threeButtonsMode_taskbarHeight() {
         assertThat(stashController.contentHeightToReportToApps)
-            .isEqualTo(activityContext.deviceProfile.taskbarHeight)
+            .isEqualTo(activityContext.deviceProfile.taskbarProfile.height)
     }
 
     @Test
     @TaskbarMode(PINNED)
     fun testGetContentHeightToReportToApps_pinnedMode_taskbarHeight() {
         assertThat(stashController.contentHeightToReportToApps)
-            .isEqualTo(activityContext.deviceProfile.taskbarHeight)
+            .isEqualTo(activityContext.deviceProfile.taskbarProfile.height)
     }
 
     @Test
@@ -363,6 +363,15 @@ class TaskbarStashControllerTest {
     fun testGetContentHeightToReportToApps_pinnedInSetupMode_setupWizardInsets() {
         assertThat(stashController.contentHeightToReportToApps)
             .isEqualTo(context.resources.getDimensionPixelSize(R.dimen.taskbar_suw_insets))
+    }
+
+    @Test
+    @UserSetupMode
+    fun testGetContentHeightToReportToApps_inExpressiveTheme_setupWizardInsets() {
+        stashController.mShouldHideNavbarForTest = true
+        assertThat(stashController.contentHeightToReportToApps)
+            .isEqualTo(stashController.stashedHeight)
+        stashController.mShouldHideNavbarForTest = false
     }
 
     @Test
@@ -397,7 +406,7 @@ class TaskbarStashControllerTest {
     @TaskbarMode(PINNED)
     fun testGetTappableHeightToReportToApps_pinnedMode_taskbarHeight() {
         assertThat(stashController.tappableHeightToReportToApps)
-            .isEqualTo(activityContext.deviceProfile.taskbarHeight)
+            .isEqualTo(activityContext.deviceProfile.taskbarProfile.height)
     }
 
     @Test

@@ -162,10 +162,11 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         onDeviceProfileChanged(mActivityContext.getDeviceProfile());
 
         int actualMargin = resources.getDimensionPixelSize(R.dimen.taskbar_icon_spacing);
-        int actualIconSize = mActivityContext.getDeviceProfile().taskbarIconSize;
+        int actualIconSize =
+                mActivityContext.getDeviceProfile().getTaskbarProfile().getIconSize();
         if (enableTaskbarPinning() && canTransitionToTransientTaskbar()) {
             DeviceProfile deviceProfile = mActivityContext.getTransientTaskbarDeviceProfile();
-            actualIconSize = deviceProfile.taskbarIconSize;
+            actualIconSize = deviceProfile.getTaskbarProfile().getIconSize();
         }
         int visualIconSize = (int) (actualIconSize * ICON_VISIBLE_AREA_FACTOR);
 
@@ -178,7 +179,10 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         // We always layout taskbar as a transient taskbar when we have taskbar pinning feature on,
         // then we scale and translate the icons to match persistent taskbar designs, so we use
         // taskbar icon size from current device profile to calculate correct item padding.
-        mItemPadding = (mIconTouchSize - mActivityContext.getDeviceProfile().taskbarIconSize) / 2;
+        mItemPadding = (mIconTouchSize - mActivityContext
+                        .getDeviceProfile()
+                        .getTaskbarProfile()
+                        .getIconSize()) / 2;
         mFolderLeaveBehindColor = Themes.getAttrColor(mActivityContext,
                 android.R.attr.textColorTertiary);
 
@@ -217,11 +221,12 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
         // Reserve space required for edge margins, or for navbar if shown. If task bar needs to be
         // center aligned with nav bar shown, reserve space on both sides.
-        availableWidth -=
-                Math.max(defaultEdgeMargin + spaceForBubbleBar, deviceProfile.hotseatBarEndOffset);
+        availableWidth -= Math.max(
+                defaultEdgeMargin + spaceForBubbleBar,
+                deviceProfile.getHotseatProfile().getBarEndOffset());
         availableWidth -= Math.max(
                 defaultEdgeMargin + (mShouldTryStartAlign ? 0 : spaceForBubbleBar),
-                mShouldTryStartAlign ? 0 : deviceProfile.hotseatBarEndOffset);
+                mShouldTryStartAlign ? 0 : deviceProfile.getHotseatProfile().getBarEndOffset());
 
         // The space taken by an item icon used during layout.
         int iconSize = 2 * mItemMarginLeftRight + mIconTouchSize;
@@ -823,11 +828,12 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         int spaceNeeded = getIconLayoutWidth();
         boolean layoutRtl = isLayoutRtl();
         DeviceProfile deviceProfile = mActivityContext.getDeviceProfile();
-        int navSpaceNeeded = deviceProfile.hotseatBarEndOffset;
+        int navSpaceNeeded = deviceProfile.getHotseatProfile().getBarEndOffset();
         int centerAlignIconEnd = (right + left + spaceNeeded) / 2;
         int iconEnd = centerAlignIconEnd;
         if (mShouldTryStartAlign) {
-            int startSpacingPx = deviceProfile.inlineNavButtonsEndSpacingPx;
+            int startSpacingPx =
+                    deviceProfile.getHotseatProfile().getInlineNavButtonsEndSpacingPx();
             if (mControllerCallbacks.isBubbleBarEnabled()
                     && mBubbleBarLocation != null
                     && mActivityContext.shouldStartAlignTaskbar()) {
@@ -904,8 +910,8 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                     qsbEnd = iconEnd - mItemMarginLeftRight;
                     qsbStart = qsbEnd - deviceProfile.hotseatQsbWidth;
                 }
-                int qsbTop = (bottom - top - deviceProfile.hotseatQsbHeight) / 2;
-                int qsbBottom = qsbTop + deviceProfile.hotseatQsbHeight;
+                int qsbTop = (bottom - top - deviceProfile.getHotseatProfile().getQsbHeight()) / 2;
+                int qsbBottom = qsbTop + deviceProfile.getHotseatProfile().getQsbHeight();
                 child.layout(qsbStart, qsbTop, qsbEnd, qsbBottom);
             } else if (child == mTaskbarDividerContainer) {
                 iconEnd += mItemMarginLeftRight;
@@ -1144,7 +1150,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     private float getTaskBarIconsEndForBubbleBarLocation(BubbleBarLocation location) {
         DeviceProfile deviceProfile = mActivityContext.getDeviceProfile();
         boolean navbarOnRight = location.isOnLeft(isLayoutRtl());
-        int navSpaceNeeded = deviceProfile.hotseatBarEndOffset;
+        int navSpaceNeeded = deviceProfile.getHotseatProfile().getBarEndOffset();
         if (navbarOnRight) {
             return getWidth() - navSpaceNeeded;
         } else {

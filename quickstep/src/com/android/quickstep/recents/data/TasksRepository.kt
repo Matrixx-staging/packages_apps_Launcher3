@@ -18,6 +18,8 @@ package com.android.quickstep.recents.data
 
 import android.graphics.drawable.Drawable
 import android.util.Log
+import android.util.SparseArray
+import androidx.core.util.valueIterator
 import com.android.launcher3.util.coroutines.DispatcherProvider
 import com.android.quickstep.recents.data.TaskVisualsChangedDelegate.TaskIconChangedCallback
 import com.android.quickstep.recents.data.TaskVisualsChangedDelegate.TaskThumbnailChangedCallback
@@ -46,10 +48,13 @@ class TasksRepository(
     private val dispatcherProvider: DispatcherProvider,
 ) : RecentTasksRepository {
     private val tasks = MutableStateFlow(MapForStateFlow<Int, Task>(emptyMap()))
-    private var visibleTaskIds = emptySet<Int>()
+    private var visibleTaskIdsPerDisplay = SparseArray<Set<Int>>()
     private val taskRequests = HashMap<Int, Pair<Task.TaskKey, Job>>()
 
-    override fun getAllTaskData(forceRefresh: Boolean): Flow<List<Task>> {
+    override fun getAllTaskData(displayId: Int, forceRefresh: Boolean): Flow<List<Task>> {
+        if (!visibleTaskIdsPerDisplay.contains(displayId)) {
+            visibleTaskIdsPerDisplay.put(displayId, emptySet())
+        }
         if (forceRefresh) {
             recentsModel.getTasks { newTaskList ->
                 val recentTasks =
@@ -72,7 +77,7 @@ class TasksRepository(
                 updateTaskRequests()
             }
         }
-        return tasks.map { it.values.toList() }
+        return tasks.map { it.values.filter { it.key.displayId == displayId }.toList() }
     }
 
     override fun getTaskDataById(taskId: Int) = tasks.map { it[taskId] }
@@ -82,14 +87,20 @@ class TasksRepository(
 
     override fun getCurrentThumbnailById(taskId: Int) = tasks.value[taskId]?.thumbnail
 
-    override fun setVisibleTasks(visibleTaskIdList: Set<Int>) {
-        visibleTaskIds = visibleTaskIdList
+    override fun setVisibleTasks(displayId: Int, visibleTaskIdList: Set<Int>) {
+        if (visibleTaskIdList.isEmpty()) {
+            visibleTaskIdsPerDisplay.remove(displayId)
+        } else {
+            visibleTaskIdsPerDisplay.put(displayId, visibleTaskIdList)
+        }
         updateTaskRequests()
     }
 
     @Synchronized
     private fun updateTaskRequests() {
-        val requestsNeeded = visibleTaskIds.intersect(tasks.value.keys)
+        val allVisibleTaskIds =
+            visibleTaskIdsPerDisplay.valueIterator().asSequence().flatMap { it }.toSet()
+        val requestsNeeded = allVisibleTaskIds.intersect(tasks.value.keys)
 
         val taskRequestIds = taskRequests.keys
         val requestsNoLongerNeeded = taskRequestIds.subtract(requestsNeeded)

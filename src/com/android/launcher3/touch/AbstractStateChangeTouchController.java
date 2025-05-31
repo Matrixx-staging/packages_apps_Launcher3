@@ -109,10 +109,13 @@ public abstract class AbstractStateChangeTouchController
                 ignoreSlopWhenSettling = true;
             } else {
                 directionsToDetectScroll = getSwipeDirection();
+                boolean ignoreWhenShownBehindDesktop = !mLauncher.isTopResumedActivity()
+                        && mLauncher.shouldShowHomeBehindDesktop();
                 boolean ignoreMouseScroll = ev.getSource() == InputDevice.SOURCE_MOUSE
                         && shouldEnableMouseInteractionChanges(
                         mLauncher.getWorkspace().getContext());
-                if (directionsToDetectScroll == 0 || ignoreMouseScroll) {
+                if (directionsToDetectScroll == 0 || ignoreMouseScroll
+                        || ignoreWhenShownBehindDesktop) {
                     mNoIntercept = true;
                     return false;
                 }

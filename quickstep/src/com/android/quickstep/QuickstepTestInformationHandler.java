@@ -97,7 +97,7 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
 
             case TestProtocol.REQUEST_GET_OVERVIEW_PAGE_SPACING: {
                 response.putInt(TestProtocol.TEST_INFO_RESPONSE_FIELD,
-                        mDeviceProfile.overviewPageSpacing);
+                        mDeviceProfile.getOverviewProfile().getPageSpacing());
                 return response;
             }
 

@@ -247,8 +247,8 @@ public class RecentsModelTest {
                 new SplitTask(task1, task2, new SplitBounds(
                         /* leftTopBounds = */ new Rect(),
                         /* rightBottomBounds = */ new Rect(),
-                        /* leftTopTaskId = */ -1,
-                        /* rightBottomTaskId = */ -1,
+                        /* leftTopTaskId = */ 1,
+                        /* rightBottomTaskId = */ 2,
                         /* snapPosition = */ SplitScreenConstants.SNAP_TO_2_50_50)));
         return allTasks;
     }

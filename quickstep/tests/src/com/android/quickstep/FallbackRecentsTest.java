@@ -63,7 +63,6 @@ import com.android.launcher3.util.rule.ScreenRecordRule;
 import com.android.launcher3.util.rule.SkipAfterTimeOutRule;
 import com.android.launcher3.util.rule.TestIsolationRule;
 import com.android.launcher3.util.rule.TestStabilityRule;
-import com.android.launcher3.util.rule.ViewCaptureRule;
 import com.android.launcher3.util.ui.AbstractLauncherUiTest;
 import com.android.quickstep.OverviewComponentObserver.OverviewChangeListener;
 import com.android.quickstep.fallback.window.RecentsWindowFlags;
@@ -151,14 +150,11 @@ public class FallbackRecentsTest {
             }
         };
 
-        final ViewCaptureRule viewCaptureRule = new ViewCaptureRule(
-                RecentsActivity.ACTIVITY_TRACKER::getCreatedContext);
         mOrderSensitiveRules = RuleChain
                 .outerRule(new SamplerRule())
                 .around(new TestStabilityRule())
                 .around(new NavigationModeSwitchRule(mLauncher))
-                .around(new FailureWatcher(mLauncher, viewCaptureRule::getViewCaptureData))
-                // .around(viewCaptureRule) b/315482167
+                .around(new FailureWatcher(mLauncher))
                 .around(new TestIsolationRule(mLauncher, false))
                 .around(setLauncherCommand);
 

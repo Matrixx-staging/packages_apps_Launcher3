@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package com.android.launcher3.dagger;
+package com.android.launcher3.dagger
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import com.android.launcher3.views.ActivityContext
+import dagger.BindsInstance
 
-import javax.inject.Scope;
+/** Base component for ActivityContext Dagger injection. */
+interface BaseActivityContextComponent {
 
-/**
- * Scope annotation for singletons associated with Launcher activity context.
- */
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Scope
-public @interface ActivityContextScope {
+    /** Builder for BaseActivityContextComponent. */
+    interface Builder {
+        @BindsInstance fun activityContext(activityContext: ActivityContext): Builder
+
+        fun build(): BaseActivityContextComponent
+    }
 }

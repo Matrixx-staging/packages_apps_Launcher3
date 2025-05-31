@@ -138,8 +138,7 @@
     <string name="allow_rotation_title" msgid="7222049633713050106">"ହୋମ ସ୍କ୍ରିନ ରୋଟେସନକୁ ଅନୁମତି ଦିଅନ୍ତୁ"</string>
     <string name="allow_rotation_desc" msgid="8662546029078692509">"ଯେତେବେଳେ ଫୋନକୁ ରୋଟେଟ କରାଯାଇଥାଏ"</string>
     <string name="landscape_mode_title" msgid="5138814555934843926">"ଲେଣ୍ଡସ୍କେପ ମୋଡ"</string>
-    <!-- no translation found for landscape_mode_desc (3085236452297838664) -->
-    <skip />
+    <string name="landscape_mode_desc" msgid="3085236452297838664">"ଲେଣ୍ଡସ୍କେପ ମୋଡରେ ହୋମ ସ୍କ୍ରିନ ସେଟ କରନ୍ତୁ"</string>
     <string name="notification_dots_title" msgid="9062440428204120317">"ବିଜ୍ଞପ୍ତି ଡଟ୍ସ"</string>
     <string name="notification_dots_desc_on" msgid="1679848116452218908">"ଚାଲୁ"</string>
     <string name="notification_dots_desc_off" msgid="1760796511504341095">"ବନ୍ଦ କରନ୍ତୁ"</string>

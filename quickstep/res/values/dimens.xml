@@ -91,12 +91,21 @@
     <dimen name="task_thumbnail_header_padding_start_end">12dp</dimen>
     <dimen name="task_thumbnail_header_margin_between_views">8dp</dimen>
     <dimen name="task_thumbnail_header_icon_size">18dp</dimen>
+    <dimen name="task_thumbnail_header_close_button_hit_rect_size">32dp</dimen>
     <dimen name="task_thumbnail_header_round_corner_radius">16dp</dimen>
+    <!-- The size for non-overlapping layout in desktop tile -->
+    <dimen name="desktop_vertical_padding_between_tasks">24dp</dimen>
+    <dimen name="desktop_horizontal_padding_between_tasks">24dp</dimen>
+    <dimen name="desktop_top_bottom_margin_one_row">72dp</dimen>
+    <dimen name="desktop_left_right_margin_one_row">72dp</dimen>
+    <dimen name="desktop_top_margin_multi_rows">72dp</dimen>
+    <dimen name="desktop_bottom_margin_multi_rows">24dp</dimen>
+    <dimen name="desktop_left_right_margin_multi_rows">24dp</dimen>
 
     <!--  How much a task being dragged for dismissal can undershoot the origin when dragged back to its start position.  -->
     <dimen name="task_dismiss_max_undershoot">25dp</dimen>
     <!--  How much a task should be dragged from the origin before it detaches (or reattaches).  -->
-    <dimen name="task_dismiss_detach_threshold">100dp</dimen>
+    <dimen name="task_dismiss_detach_threshold">72dp</dimen>
 
     <dimen name="task_icon_cache_default_icon_size">72dp</dimen>
     <item name="overview_modal_max_scale" format="float" type="dimen">1.1</item>

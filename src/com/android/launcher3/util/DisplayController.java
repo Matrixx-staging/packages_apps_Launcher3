@@ -105,10 +105,12 @@ public class DisplayController implements DesktopVisibilityListener {
     public static final int CHANGE_TASKBAR_PINNING = 1 << 5;
     public static final int CHANGE_DESKTOP_MODE = 1 << 6;
     public static final int CHANGE_SHOW_LOCKED_TASKBAR = 1 << 7;
+    public static final int CHANGE_NIGHT_MODE = 1 << 8;
 
     public static final int CHANGE_ALL = CHANGE_ACTIVE_SCREEN | CHANGE_ROTATION
             | CHANGE_DENSITY | CHANGE_SUPPORTED_BOUNDS | CHANGE_NAVIGATION_MODE
-            | CHANGE_TASKBAR_PINNING | CHANGE_DESKTOP_MODE | CHANGE_SHOW_LOCKED_TASKBAR;
+            | CHANGE_TASKBAR_PINNING | CHANGE_DESKTOP_MODE | CHANGE_SHOW_LOCKED_TASKBAR
+            | CHANGE_NIGHT_MODE;
 
     private static final String ACTION_OVERLAY_CHANGED = "android.intent.action.OVERLAY_CHANGED";
     private static final String TARGET_OVERLAY_PACKAGE = "android";
@@ -332,7 +334,8 @@ public class DisplayController implements DesktopVisibilityListener {
                 || mWMProxy.showLockedTaskbarOnHome(windowContext)
                 != info.showLockedTaskbarOnHome()
                 || mWMProxy.showDesktopTaskbarForFreeformDisplay(windowContext)
-                != info.showDesktopTaskbarForFreeformDisplay()) {
+                != info.showDesktopTaskbarForFreeformDisplay()
+                || config.isNightModeActive() != info.mIsNightModeActive) {
             notifyConfigChange(displayId);
         }
     }
@@ -419,6 +422,9 @@ public class DisplayController implements DesktopVisibilityListener {
         }
         if (newInfo.mShowLockedTaskbarOnHome != oldInfo.mShowLockedTaskbarOnHome) {
             change |= CHANGE_SHOW_LOCKED_TASKBAR;
+        }
+        if (newInfo.mIsNightModeActive != oldInfo.mIsNightModeActive) {
+            change |= CHANGE_NIGHT_MODE;
         }
 
         if (DEBUG) {
@@ -521,6 +527,8 @@ public class DisplayController implements DesktopVisibilityListener {
 
         private final boolean mShowDesktopTaskbarForFreeformDisplay;
 
+        private final boolean mIsNightModeActive;
+
         public Info(Context displayInfoContext) {
             /* don't need system overrides for external displays */
             this(displayInfoContext, enableScalabilityForDesktopExperience()
@@ -545,6 +553,7 @@ public class DisplayController implements DesktopVisibilityListener {
             densityDpi = config.densityDpi;
             mScreenSizeDp = new PortraitSize(config.screenHeightDp, config.screenWidthDp);
             navigationMode = wmProxy.getNavigationMode(displayInfoContext);
+            mIsNightModeActive = config.isNightModeActive();
 
             mPerDisplayBounds.putAll(perDisplayBoundsCache);
             List<WindowBounds> cachedValue = getCurrentBounds();
@@ -723,6 +732,7 @@ public class DisplayController implements DesktopVisibilityListener {
         appendFlag(result, change, CHANGE_TASKBAR_PINNING, "CHANGE_TASKBAR_VARIANT");
         appendFlag(result, change, CHANGE_DESKTOP_MODE, "CHANGE_DESKTOP_MODE");
         appendFlag(result, change, CHANGE_SHOW_LOCKED_TASKBAR, "CHANGE_SHOW_LOCKED_TASKBAR");
+        appendFlag(result, change, CHANGE_NIGHT_MODE, "CHANGE_NIGHT_MODE");
         return result.toString();
     }
 

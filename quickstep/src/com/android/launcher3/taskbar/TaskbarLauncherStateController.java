@@ -804,8 +804,11 @@ public class TaskbarLauncherStateController {
                     taskbarBgOffsetStart,
                     taskbarBgOffsetEnd);
             ObjectAnimator taskbarIconsYTranslation = null;
-            float taskbarHeight =
-                    mControllers.taskbarActivityContext.getDeviceProfile().taskbarHeight;
+            float taskbarHeight = mControllers
+                    .taskbarActivityContext
+                    .getDeviceProfile()
+                    .getTaskbarProfile()
+                    .getHeight();
             if (showTaskbar) {
                 taskbarIconsYTranslation = taskbarIconTranslationYForHome.animateToValue(
                         taskbarHeight, 0);

@@ -104,7 +104,7 @@ public class BubbleStashedHandleViewController {
         // Use values directly from device profile to avoid referencing other bubble controllers
         // during init flow.
         int maxTy = Math.max(deviceProfile.hotseatBarBottomSpacePx,
-                deviceProfile.taskbarBottomMargin);
+                deviceProfile.getTaskbarProfile().getBottomMargin());
         // Adjust handle view size to accommodate the handle morphing into the bubble bar
         mStashedHandleView.getLayoutParams().height = barSize + maxTy;
 

@@ -49,7 +49,6 @@ import com.android.launcher3.tapl.SelectModeButtons;
 import com.android.launcher3.tapl.Workspace;
 import com.android.launcher3.util.TestUtil;
 import com.android.launcher3.util.Wait;
-import com.android.launcher3.util.rule.ScreenRecordRule;
 import com.android.launcher3.util.ui.PortraitLandscapeRunner.PortraitLandscape;
 import com.android.quickstep.NavigationModeSwitchRule.NavigationModeSwitch;
 import com.android.quickstep.TaskbarModeSwitchRule.TaskbarModeSwitch;
@@ -103,7 +102,6 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
 
     @Test
     @PortraitLandscape
-    @ScreenRecordRule.ScreenRecord // TODO(b/415773066): Remove screen record.
     public void testOverview() throws Exception {
         startTestAppsWithCheck();
         // mLauncher.pressHome() also tests an important case of pressing home while in background.
@@ -458,7 +456,6 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
 
     @Test
     @PortraitLandscape
-    @ScreenRecordRule.ScreenRecord // TODO(b/412766455): Remove screen record.
     public void testDismissCancel() throws Exception {
         startTestAppsWithCheck();
         Overview overview = mLauncher.goHome().switchToOverview();

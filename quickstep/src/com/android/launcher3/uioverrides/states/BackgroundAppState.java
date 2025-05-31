@@ -24,6 +24,7 @@ import android.graphics.Color;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.allapps.AllAppsTransitionController;
+import com.android.launcher3.views.ScrimColors;
 import com.android.quickstep.util.BaseDepthController;
 import com.android.quickstep.util.LayoutUtils;
 import com.android.quickstep.views.RecentsView;
@@ -108,8 +109,10 @@ public class BackgroundAppState extends OverviewState {
     }
 
     @Override
-    public int getWorkspaceScrimColor(Launcher launcher) {
-        return Color.TRANSPARENT;
+    public ScrimColors getWorkspaceScrimColor(Launcher launcher) {
+        return new ScrimColors(
+                /* backgroundColor= */ Color.TRANSPARENT,
+                /* foregroundColor= */ Color.TRANSPARENT);
     }
 
     @Override

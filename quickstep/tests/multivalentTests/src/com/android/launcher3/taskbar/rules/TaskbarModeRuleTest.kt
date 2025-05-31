@@ -49,7 +49,7 @@ class TaskbarModeRuleTest {
     @TaskbarMode(TRANSIENT)
     fun testTaskbarMode_transient_overridesDeviceProfile() {
         val dp = InvariantDeviceProfile.INSTANCE.get(context).getDeviceProfile(context)
-        assertThat(dp.isTransientTaskbar).isTrue()
+        assertThat(dp.taskbarProfile.isTransientTaskbar).isTrue()
         assertThat(dp.deviceProperties.isGestureMode).isTrue()
     }
 
@@ -65,7 +65,7 @@ class TaskbarModeRuleTest {
     @TaskbarMode(PINNED)
     fun testTaskbarMode_pinned_overridesDeviceProfile() {
         val dp = InvariantDeviceProfile.INSTANCE.get(context).getDeviceProfile(context)
-        assertThat(dp.isTransientTaskbar).isFalse()
+        assertThat(dp.taskbarProfile.isTransientTaskbar).isFalse()
         assertThat(dp.deviceProperties.isGestureMode).isTrue()
     }
 
@@ -82,7 +82,7 @@ class TaskbarModeRuleTest {
     @TaskbarMode(THREE_BUTTONS)
     fun testTaskbarMode_threeButtons_overridesDeviceProfile() {
         val dp = InvariantDeviceProfile.INSTANCE.get(context).getDeviceProfile(context)
-        assertThat(dp.isTransientTaskbar).isFalse()
+        assertThat(dp.taskbarProfile.isTransientTaskbar).isFalse()
         assertThat(dp.deviceProperties.isGestureMode).isFalse()
     }
 }

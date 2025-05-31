@@ -121,8 +121,8 @@ public class RecentTasksListTest {
                 new RecentTaskInfo(), new RecentTaskInfo(), new SplitBounds(
                         /* leftTopBounds = */ new Rect(),
                         /* rightBottomBounds = */ new Rect(),
-                        /* leftTopTaskId = */ -1,
-                        /* rightBottomTaskId = */ -1,
+                        /* leftTopTaskId = */ 1,
+                        /* rightBottomTaskId = */ 2,
                         /* snapPosition = */ SplitScreenConstants.SNAP_TO_2_50_50));
         when(mSystemUiProxy.getRecentTasks(anyInt(), anyInt()))
                 .thenReturn(new ArrayList<>(Collections.singletonList(recentTaskInfos)));
@@ -217,8 +217,8 @@ public class RecentTasksListTest {
                 new SplitBounds(
                         /* leftTopBounds = */ new Rect(),
                         /* rightBottomBounds = */ new Rect(),
-                        /* leftTopTaskId = */ -1,
-                        /* rightBottomTaskId = */ -1,
+                        /* leftTopTaskId = */ 1,
+                        /* rightBottomTaskId = */ 2,
                         /* snapPosition = */ SplitScreenConstants.SNAP_TO_2_50_50));
         when(mSystemUiProxy.getRecentTasks(anyInt(), anyInt()))
                 .thenReturn(new ArrayList<>(Collections.singletonList(recentTaskInfos)));

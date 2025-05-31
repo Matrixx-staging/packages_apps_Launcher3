@@ -19,39 +19,30 @@ package com.android.launcher3.model.repository
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.AppsListData
-import com.android.launcher3.util.Executors.MODEL_EXECUTOR
+import com.android.launcher3.util.MutableListenableRef
+import com.android.launcher3.util.MutableListenableStream
 import javax.inject.Inject
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 
 /** Repository for app-list daya. */
 @LauncherAppSingleton
-class AppsListRepository(private val scope: CoroutineScope) {
+class AppsListRepository @Inject constructor() {
 
-    @Inject constructor() : this(CoroutineScope(MODEL_EXECUTOR.asCoroutineDispatcher()))
-
-    private val mutableStateFlow: MutableStateFlow<AppsListData> =
-        MutableStateFlow(AppsListData(emptyArray(), 0))
+    private val mutableStateRef = MutableListenableRef(AppsListData(emptyArray(), 0))
 
     /** Represents the current home screen data model. There are two ways this can change: */
-    val appsListStateFlow = mutableStateFlow.asStateFlow()
+    val appsListStateRef = mutableStateRef.asListenable()
 
-    /** sets a new value to [appsListStateFlow] */
+    /** sets a new value to [appsListStateRef] */
     fun dispatchChange(appsListData: AppsListData) {
-        mutableStateFlow.value = appsListData
+        mutableStateRef.dispatchValue(appsListData)
     }
 
-    private val mutableIncrementalUpdate = MutableSharedFlow<AppInfo>()
+    private val mutableIncrementalUpdate = MutableListenableStream<AppInfo>()
     /** Represents incremental download apps to apps list items */
-    val incrementalUpdates = mutableIncrementalUpdate.asSharedFlow()
+    val incrementalUpdates = mutableIncrementalUpdate.asListenable()
 
     /** Dispatches an incremental download update to [incrementalUpdates] */
     fun dispatchIncrementationUpdate(appInfo: AppInfo) {
-        scope.launch { mutableIncrementalUpdate.emit(appInfo) }
+        mutableIncrementalUpdate.dispatchValue(appInfo)
     }
 }

@@ -18,11 +18,13 @@ package com.android.launcher3.uioverrides.states;
 import static com.android.app.animation.Interpolators.DECELERATE;
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_ALLAPPS;
 
+import android.graphics.Color;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.R;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
+import com.android.launcher3.views.ScrimColors;
 
 /**
  * Definition for AllApps state
@@ -96,9 +98,11 @@ public class AllAppsState extends LauncherState {
     }
 
     @Override
-    public int getWorkspaceScrimColor(Launcher launcher) {
-        return launcher.getDeviceProfile().getDeviceProperties().isTablet()
+    public ScrimColors getWorkspaceScrimColor(Launcher launcher) {
+        return new ScrimColors(
+                /* backgroundColor */ launcher.getDeviceProfile().getDeviceProperties().isTablet()
                 ? launcher.getResources().getColor(R.color.widgets_picker_scrim)
-                : Themes.getAttrColor(launcher, R.attr.allAppsScrimColor);
+                : Themes.getAttrColor(launcher, R.attr.allAppsScrimColor),
+                /* foregroundColor */ Color.TRANSPARENT);
     }
 }

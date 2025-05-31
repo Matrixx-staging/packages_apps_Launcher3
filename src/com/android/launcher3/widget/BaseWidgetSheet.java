@@ -344,7 +344,8 @@ public abstract class BaseWidgetSheet extends AbstractSlideInView<BaseActivity>
 
         DeviceProfile deviceProfile = mActivityContext.getDeviceProfile();
         measureChildWithMargins(mContent, widthMeasureSpec,
-                widthUsed, heightMeasureSpec, deviceProfile.bottomSheetTopPadding);
+                widthUsed, heightMeasureSpec,
+                deviceProfile.getBottomSheetProfile().getBottomSheetTopPadding());
         setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec),
                 MeasureSpec.getSize(heightMeasureSpec));
     }

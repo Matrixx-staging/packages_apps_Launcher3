@@ -25,6 +25,7 @@ import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.RemoveAnimationSettingsTracker;
 import com.android.launcher3.backuprestore.LauncherRestoreEventLogger;
+import com.android.launcher3.compose.core.widgetpicker.WidgetPickerComposeWrapper;
 import com.android.launcher3.folder.FolderNameSuggestionLoader;
 import com.android.launcher3.graphics.GridCustomizationsProxy;
 import com.android.launcher3.graphics.ThemeManager;
@@ -100,6 +101,9 @@ public interface LauncherBaseAppComponent {
     InstantAppResolver getInstantAppResolver();
     DumpManager getDumpManager();
     StatsLogManager.StatsLogManagerFactory getStatsLogManagerFactory();
+      ActivityContextComponent.Builder getActivityContextComponentBuilder();
+      WidgetPickerComposeWrapper getWidgetPickerComposeWrapper();
+
 
     /** Builder for LauncherBaseAppComponent. */
     interface Builder {

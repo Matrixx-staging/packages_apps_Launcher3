@@ -113,8 +113,8 @@
     <string name="gadget_complete_setup_text" msgid="309040266978007925">"Koppintson a beállítás befejezéséhez"</string>
     <string name="uninstall_system_app_text" msgid="4172046090762920660">"Ez egy rendszeralkalmazás, és nem lehet eltávolítani."</string>
     <string name="folder_hint_text" msgid="5174843001373488816">"Név módosítása"</string>
-    <string name="paginate_left" msgid="7915437358451360433">"Oldalszámozás bal oldalon"</string>
-    <string name="paginate_right" msgid="6701038155201975878">"Oldalszámozás jobb oldalon"</string>
+    <string name="paginate_left" msgid="7915437358451360433">"Lapozás balra"</string>
+    <string name="paginate_right" msgid="6701038155201975878">"Lapozás jobbra"</string>
     <string name="disabled_app_label" msgid="6673129024321402780">"A(z) <xliff:g id="APP_NAME">%1$s</xliff:g> letiltva"</string>
     <string name="dotted_app_label" msgid="1865617679843363410">"{count,plural, =1{A(z) {app_name} alkalmazásnak # értesítése van}other{A(z) {app_name} alkalmazásnak # értesítése van}}"</string>
     <string name="default_scroll_format" msgid="7475544710230993317">"%2$d/%1$d. oldal"</string>
@@ -138,8 +138,7 @@
     <string name="allow_rotation_title" msgid="7222049633713050106">"A kezdőképernyő elforgatásának engedélyezése"</string>
     <string name="allow_rotation_desc" msgid="8662546029078692509">"A telefon elforgatásakor"</string>
     <string name="landscape_mode_title" msgid="5138814555934843926">"Fekvő tájolás"</string>
-    <!-- no translation found for landscape_mode_desc (3085236452297838664) -->
-    <skip />
+    <string name="landscape_mode_desc" msgid="3085236452297838664">"Állítsa a kezdőképernyőt fekvő tájolásúra"</string>
     <string name="notification_dots_title" msgid="9062440428204120317">"Értesítési pöttyök"</string>
     <string name="notification_dots_desc_on" msgid="1679848116452218908">"Be"</string>
     <string name="notification_dots_desc_off" msgid="1760796511504341095">"Ki"</string>

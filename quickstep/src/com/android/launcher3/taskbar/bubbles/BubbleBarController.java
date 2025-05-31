@@ -533,6 +533,10 @@ public class BubbleBarController extends IBubblesListener.Stub {
         }
         if (bubbleToSelect != null) {
             setSelectedBubbleInternal(bubbleToSelect);
+        } else if (update.initialState && BubbleBarOverflow.KEY.equals(update.selectedBubbleKey)) {
+            // this is the initial update with the overflow selected which could happen after
+            // unfolding with the overflow expanded
+            setSelectedBubbleInternal(mBubbleBarViewController.getOverflowBubble());
         }
         if (update.shouldShowEducation) {
             mBubbleBarViewController.prepareToShowEducation();

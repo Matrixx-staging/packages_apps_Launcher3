@@ -124,6 +124,7 @@ android_library {
     name: "widget_picker_ui_components",
     sdk_version: "current",
     min_sdk_version: min_launcher3_sdk_version,
+    plugins: ["dagger2-compiler"],
     srcs: [
         "src/com/android/launcher3/widgetpicker/ui/components/ScrollableFloatingToolbar.kt",
         "src/com/android/launcher3/widgetpicker/ui/components/LeadingIconToolbarTab.kt",
@@ -164,6 +165,7 @@ android_library {
 android_library {
     name: "widget_picker_ui",
     sdk_version: "current",
+    plugins: ["dagger2-compiler"],
     min_sdk_version: min_launcher3_sdk_version,
     srcs: [
         "src/com/android/launcher3/widgetpicker/ui/ViewModel.kt",

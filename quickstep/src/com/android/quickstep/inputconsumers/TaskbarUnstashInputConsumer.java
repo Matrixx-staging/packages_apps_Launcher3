@@ -372,7 +372,8 @@ public class TaskbarUnstashInputConsumer extends DelegateInputConsumer {
         DeviceProfile dp = mTaskbarActivityContext.getDeviceProfile();
         mStashedTaskbarHandleBounds.set(
                 (dp.getDeviceProperties().getWidthPx() - (int) mUnstashArea) / 2,
-                dp.getDeviceProperties().getHeightPx() - dp.stashedTaskbarHeight,
+                dp.getDeviceProperties().getHeightPx()
+                        - dp.getTaskbarProfile().getStashedTaskbarHeight(),
                 (int) (((dp.getDeviceProperties().getWidthPx() - mUnstashArea) / 2) + mUnstashArea),
                 dp.getDeviceProperties().getHeightPx());
         return mStashedTaskbarHandleBounds.contains(x, y);

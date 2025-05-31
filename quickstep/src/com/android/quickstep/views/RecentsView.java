@@ -100,7 +100,6 @@ import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -159,6 +158,7 @@ import com.android.launcher3.compat.AccessibilityManagerCompat;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.desktop.DesktopRecentsTransitionController;
+import com.android.launcher3.deviceprofile.OverviewProfile;
 import com.android.launcher3.logger.LauncherAtom;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.model.data.ItemInfo;
@@ -246,7 +246,6 @@ import com.android.systemui.shared.system.TaskStackChangeListener;
 import com.android.systemui.shared.system.TaskStackChangeListeners;
 import com.android.wm.shell.common.pip.IPipAnimationListener;
 import com.android.wm.shell.shared.GroupedTaskInfo;
-import com.android.wm.shell.shared.TypefaceUtils;
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
 import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource;
 import com.android.wm.shell.shared.pip.PipFlags;
@@ -911,7 +910,8 @@ public abstract class RecentsView<
             String scopeId = recentsDependencies.createRecentsViewScope(context);
             mRecentsViewModel = new RecentsViewModel(
                     recentsDependencies.inject(RecentTasksRepository.class, scopeId),
-                    recentsDependencies.inject(RecentsViewData.class, scopeId)
+                    recentsDependencies.inject(RecentsViewData.class, scopeId),
+                    mContainer.getDisplayId()
             );
             mHelper = new RecentsViewModelHelper(
                     mRecentsViewModel,
@@ -2304,7 +2304,7 @@ public abstract class RecentsView<
         if (enableGridOnlyOverview()) {
             mActionsView.updateHiddenFlags(HIDDEN_ACTIONS_IN_MENU, dp.getDeviceProperties().isTablet());
         }
-        setPageSpacing(dp.overviewPageSpacing);
+        setPageSpacing(dp.getOverviewProfile().getPageSpacing());
 
         // Propagate DeviceProfile change event.
         runActionOnRemoteHandles(
@@ -2379,7 +2379,8 @@ public abstract class RecentsView<
         mTaskWidth = mLastComputedTaskSize.width();
         mTaskHeight = mLastComputedTaskSize.height();
         setPadding(mLastComputedTaskSize.left - mInsets.left,
-                mLastComputedTaskSize.top - dp.overviewTaskThumbnailTopMarginPx - mInsets.top,
+                mLastComputedTaskSize.top - dp.getOverviewProfile().getTaskThumbnailTopMarginPx()
+                        - mInsets.top,
                 dp.getDeviceProperties().getWidthPx() - mInsets.right - mLastComputedTaskSize.right,
                 dp.getDeviceProperties().getHeightPx() - mInsets.bottom - mLastComputedTaskSize.bottom);
 
@@ -2388,9 +2389,9 @@ public abstract class RecentsView<
                 getPagedOrientationHandler());
 
         mTaskGridVerticalDiff = mLastComputedGridTaskSize.top - mLastComputedTaskSize.top;
-        mTopBottomRowHeightDiff =
-                mLastComputedGridTaskSize.height() + dp.overviewTaskThumbnailTopMarginPx
-                        + dp.overviewRowSpacing;
+        mTopBottomRowHeightDiff = mLastComputedGridTaskSize.height()
+                + dp.getOverviewProfile().getTaskThumbnailTopMarginPx()
+                + dp.getOverviewProfile().getRowSpacing();
 
         // Force TaskView to update size from thumbnail
         updateTaskSize();
@@ -2464,9 +2465,9 @@ public abstract class RecentsView<
     private float getTaskAlignmentTranslationY() {
         DeviceProfile deviceProfile = mContainer.getDeviceProfile();
         if (deviceProfile.getDeviceProperties().isTablet()) {
-            return deviceProfile.overviewRowSpacing;
+            return deviceProfile.getOverviewProfile().getRowSpacing();
         }
-        return deviceProfile.overviewTaskThumbnailTopMarginPx / 2.0f;
+        return deviceProfile.getOverviewProfile().getTaskThumbnailTopMarginPx() / 2.0f;
     }
 
     protected Rect getTaskBounds(TaskView taskView) {
@@ -3261,7 +3262,7 @@ public abstract class RecentsView<
         }
 
         DeviceProfile deviceProfile = mContainer.getDeviceProfile();
-        int taskTopMargin = deviceProfile.overviewTaskThumbnailTopMarginPx;
+        int taskTopMargin = deviceProfile.getOverviewProfile().getTaskThumbnailTopMarginPx();
 
         int topRowWidth = 0;
         int bottomRowWidth = 0;
@@ -3494,7 +3495,7 @@ public abstract class RecentsView<
                     (mIsRtl
                             ? mLastComputedTaskSize.left
                             : deviceProfile.getDeviceProperties().getWidthPx() - mLastComputedTaskSize.right)
-                            - deviceProfile.overviewGridSideMargin - mPageSpacing
+                            - deviceProfile.getOverviewProfile().getGridSideMargin() - mPageSpacing
                             + (mTaskWidth - snappedTaskView.getLayoutParams().width)
                             - mClearAllShortTotalWidthTranslation;
             if (distanceFromClearAll < minimumDistance) {
@@ -5017,7 +5018,10 @@ public abstract class RecentsView<
             TaskView taskView = (TaskView) child;
             outRect.offset(taskView.getPersistentTranslationX(),
                     taskView.getPersistentTranslationY());
-            outRect.top += mContainer.getDeviceProfile().overviewTaskThumbnailTopMarginPx;
+            outRect.top += mContainer
+                    .getDeviceProfile()
+                    .getOverviewProfile()
+                    .getTaskThumbnailTopMarginPx();
 
             mTempMatrix.reset();
             float persistentScale = taskView.getPersistentScale();
@@ -5184,6 +5188,10 @@ public abstract class RecentsView<
             getSelectedTaskView().taskContainers.forEach(
                     taskContainer -> taskContainer.getOverlay().resetModalVisuals());
         }
+    }
+
+    protected void resetShareUIState() {
+        mUtils.resetShareUIState();
     }
 
     /**
@@ -5837,7 +5845,8 @@ public abstract class RecentsView<
                     finishRecentsAnimation(false /* toRecents */, null);
                     onTaskLaunchAnimationEnd(true /* success */);
                 } else {
-                    taskView.launchWithoutAnimation(this::onTaskLaunchAnimationEnd);
+                    finishRecentsAnimation(true /* toRecents */,
+                            () -> taskView.launchWithoutAnimation(this::onTaskLaunchAnimationEnd));
                 }
                 mContainer.getStatsLogManager().logger().withItemInfo(taskView.getItemInfo())
                         .log(LAUNCHER_TASK_LAUNCH_SWIPE_DOWN);
@@ -6123,9 +6132,9 @@ public abstract class RecentsView<
     }
 
     protected int getClearAllExtraPageSpacing() {
+        OverviewProfile overviewProfile = mContainer.getDeviceProfile().getOverviewProfile();
         return showAsGrid()
-                ? Math.max(mContainer.getDeviceProfile().overviewGridSideMargin - mPageSpacing, 0)
-                : 0;
+                ? Math.max(overviewProfile.getGridSideMargin() - mPageSpacing, 0) : 0;
     }
 
     @Override

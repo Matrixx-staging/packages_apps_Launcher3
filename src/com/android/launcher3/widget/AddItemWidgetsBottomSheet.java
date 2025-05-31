@@ -113,7 +113,8 @@ public class AddItemWidgetsBottomSheet extends AbstractSlideInView<AddItemActivi
         }
 
         measureChildWithMargins(mContent, widthMeasureSpec,
-                widthUsed, heightMeasureSpec, deviceProfile.bottomSheetTopPadding);
+                widthUsed, heightMeasureSpec,
+                deviceProfile.getBottomSheetProfile().getBottomSheetTopPadding());
         setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec),
                 MeasureSpec.getSize(heightMeasureSpec));
     }

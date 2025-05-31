@@ -18,6 +18,7 @@ package com.android.launcher3.util
 
 import com.android.launcher3.FakeLauncherPrefs
 import com.android.launcher3.LauncherPrefs
+import com.android.launcher3.compose.core.widgetpicker.NoOpWidgetPickerModule
 import com.android.launcher3.concurrent.ExecutorsModule
 import com.android.launcher3.util.dagger.LauncherExecutorsModule
 import com.android.launcher3.dagger.ApiWrapperModule
@@ -47,6 +48,7 @@ abstract class FakePrefsModule {
             LauncherConcurrencyModule::class,
             ExecutorsModule::class,
             LauncherExecutorsModule::class,
+            NoOpWidgetPickerModule::class
         ]
 )
 class CommonModulesForTest

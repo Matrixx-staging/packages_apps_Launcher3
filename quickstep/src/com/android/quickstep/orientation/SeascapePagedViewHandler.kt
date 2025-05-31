@@ -152,7 +152,7 @@ class SeascapePagedViewHandler : LandscapePagedViewHandler() {
                 if (isGroupedTaskView) {
                     snapshotViewHeight
                 } else {
-                    taskViewHeight - deviceProfile.overviewTaskThumbnailTopMarginPx
+                    taskViewHeight - deviceProfile.overviewProfile.taskThumbnailTopMarginPx
                 }
         }
     }
@@ -299,12 +299,12 @@ class SeascapePagedViewHandler : LandscapePagedViewHandler() {
         val secondaryParams = secondarySnapshot.layoutParams as FrameLayout.LayoutParams
 
         // Swap the margins that are set in TaskView#setRecentsOrientedState()
-        secondaryParams.topMargin = dp.overviewTaskThumbnailTopMarginPx
+        secondaryParams.topMargin = dp.overviewProfile.taskThumbnailTopMarginPx
         primaryParams.topMargin = 0
 
         // Measure and layout the thumbnails bottom up, since the primary is on the visual left
         // (portrait bottom) and secondary is on the right (portrait top)
-        val spaceAboveSnapshot = dp.overviewTaskThumbnailTopMarginPx
+        val spaceAboveSnapshot = dp.overviewProfile.taskThumbnailTopMarginPx
         val totalThumbnailHeight = parentHeight - spaceAboveSnapshot
         val dividerBar = getDividerBarSize(totalThumbnailHeight, splitBoundsConfig)
 
@@ -331,7 +331,7 @@ class SeascapePagedViewHandler : LandscapePagedViewHandler() {
     ): Pair<Point, Point> {
         // Measure and layout the thumbnails bottom up, since the primary is on the visual left
         // (portrait bottom) and secondary is on the right (portrait top)
-        val spaceAboveSnapshot = dp.overviewTaskThumbnailTopMarginPx
+        val spaceAboveSnapshot = dp.overviewProfile.taskThumbnailTopMarginPx
         val totalThumbnailHeight = parentHeight - spaceAboveSnapshot
         val dividerBar = getDividerBarSize(totalThumbnailHeight, splitBoundsConfig)
 

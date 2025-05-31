@@ -16,13 +16,17 @@
 
 package com.android.quickstep.task.thumbnail
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.content.Context
 import android.content.Intent
+import android.graphics.Canvas
 import android.graphics.Outline
 import android.graphics.Path
 import android.graphics.Rect
 import android.provider.Settings
 import android.util.AttributeSet
+import android.util.FloatProperty
 import android.view.View
 import android.view.ViewOutlineProvider
 import android.view.ViewStub
@@ -34,9 +38,14 @@ import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import com.android.launcher3.Flags.enableRefactorDigitalWellbeingToast
 import com.android.launcher3.R
+import com.android.launcher3.util.KFloatProperty
 import com.android.launcher3.util.ViewPool
+import com.android.quickstep.DesktopFullscreenDrawParams.Companion.computeCornerRadius
 import com.android.quickstep.task.apptimer.TaskAppTimerUiState
 import com.android.quickstep.task.apptimer.TimerTextHelper
+import com.android.quickstep.util.BorderAnimator
+import com.android.quickstep.util.BorderAnimator.Companion.DEFAULT_BORDER_COLOR
+import com.android.quickstep.util.BorderAnimator.Companion.createSimpleBorderAnimator
 import com.android.quickstep.util.setActivityStarterClickListener
 import com.android.quickstep.views.TaskHeaderView
 
@@ -63,6 +72,22 @@ class TaskContentView @JvmOverloads constructor(context: Context, attrs: Attribu
     private var onSizeChanged: ((width: Int, height: Int) -> Unit)? = null
     private val outlinePath = Path()
 
+    private var focusAnimator: AnimatorSet? = null
+    private val focusBorderAnimator: BorderAnimator by lazy {
+        val borderWidth =
+            context.resources.getDimensionPixelSize(R.dimen.keyboard_quick_switch_border_width)
+        createSimpleBorderAnimator(
+            borderRadiusPx = computeCornerRadius(context).toInt(),
+            borderWidthPx = borderWidth,
+            boundsBuilder = { it.set(0, 0, width, height) },
+            targetView = this,
+            borderColor =
+                context
+                    .obtainStyledAttributes(attrs, R.styleable.TaskContentView)
+                    .getColor(R.styleable.TaskContentView_focusBorderColor, DEFAULT_BORDER_COLOR),
+        )
+    }
+
     /**
      * Sets the outline bounds of the view. Default to use view's bound as outline when set to null.
      */
@@ -75,6 +100,12 @@ class TaskContentView @JvmOverloads constructor(context: Context, attrs: Attribu
     private val bounds = Rect()
 
     var cornerRadius: Float = 0f
+        set(value) {
+            field = value
+            invalidateOutline()
+        }
+
+    private var outlineExpansion = 0.0f
         set(value) {
             field = value
             invalidateOutline()
@@ -102,15 +133,16 @@ class TaskContentView @JvmOverloads constructor(context: Context, attrs: Attribu
             object : ViewOutlineProvider() {
                 override fun getOutline(view: View, outline: Outline) {
                     val outlineRect = outlineBounds ?: bounds
+                    val expansion = outlineExpansion.toInt()
                     outlinePath.apply {
                         rewind()
                         addRoundRect(
-                            outlineRect.left.toFloat(),
-                            outlineRect.top.toFloat(),
-                            outlineRect.right.toFloat(),
-                            outlineRect.bottom.toFloat(),
-                            cornerRadius / scaleX,
-                            cornerRadius / scaleY,
+                            outlineRect.left.toFloat() - expansion,
+                            outlineRect.top.toFloat() - expansion,
+                            outlineRect.right.toFloat() + expansion,
+                            outlineRect.bottom.toFloat() + expansion,
+                            (cornerRadius + expansion) / scaleX,
+                            (cornerRadius + expansion) / scaleY,
                             Path.Direction.CW,
                         )
                     }
@@ -121,6 +153,7 @@ class TaskContentView @JvmOverloads constructor(context: Context, attrs: Attribu
 
     override fun onRecycle() {
         taskHeaderView?.isInvisible = true
+        taskHeaderView?.alpha = 1.0f
         onSizeChanged = null
         outlineBounds = null
         alpha = 1.0f
@@ -141,6 +174,41 @@ class TaskContentView @JvmOverloads constructor(context: Context, attrs: Attribu
         bounds.set(0, 0, w, h)
         updateTimerText(w)
         invalidateOutline()
+    }
+
+    override fun draw(canvas: Canvas) {
+        super.draw(canvas)
+        if (isFocusable()) {
+            focusBorderAnimator.drawBorder(canvas)
+        }
+    }
+
+    public override fun onFocusChanged(
+        gainFocus: Boolean,
+        direction: Int,
+        previouslyFocusedRect: Rect?,
+    ) {
+        super.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
+        focusAnimator?.cancel()
+
+        val targetExpansion =
+            if (gainFocus)
+                context.resources
+                    .getDimensionPixelSize(R.dimen.keyboard_quick_switch_border_width)
+                    .toFloat()
+            else 0f
+
+        val borderAnimator = focusBorderAnimator.buildAnimator(gainFocus)
+        val outlineExpansionAnimator =
+            ObjectAnimator.ofFloat(this, OUTLINE_EXPANSION, targetExpansion)
+
+        focusAnimator =
+            AnimatorSet().apply {
+                playTogether(borderAnimator, outlineExpansionAnimator)
+                duration = borderAnimator.duration
+                interpolator = borderAnimator.interpolator
+                start()
+            }
     }
 
     fun onParentAnimationProgress(progress: Float) {
@@ -207,6 +275,10 @@ class TaskContentView @JvmOverloads constructor(context: Context, attrs: Attribu
             setAppTimerToastState(taskAppTimerUiState)
             updateContentDescriptionWithTimer(taskAppTimerUiState)
         }
+    }
+
+    fun setTaskHeaderAlpha(alpha: Float) {
+        taskHeaderView?.alpha = alpha
     }
 
     private fun updateContentDescriptionWithTimer(state: TaskAppTimerUiState) {
@@ -281,5 +353,8 @@ class TaskContentView @JvmOverloads constructor(context: Context, attrs: Attribu
                 actionId,
                 context.getString(R.string.split_app_usage_settings, taskDescription),
             )
+
+        private val OUTLINE_EXPANSION: FloatProperty<TaskContentView> =
+            KFloatProperty(TaskContentView::outlineExpansion)
     }
 }

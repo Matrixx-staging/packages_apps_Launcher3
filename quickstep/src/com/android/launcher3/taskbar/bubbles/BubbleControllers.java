@@ -118,7 +118,7 @@ public class BubbleControllers {
                                 .get(ALPHA_INDEX_BUBBLE_BAR);
                     }
                 });
-        bubbleDragController.init(/* bubbleControllers = */ this);
+        bubbleDragController.init(/* bubbleControllers = */ this, bubbleBarLocationListeners);
         bubbleDismissController.init(/* bubbleControllers = */ this);
         bubbleBarPinController.init(this, bubbleBarLocationListeners);
         bubblePinController.init(this);
@@ -140,6 +140,7 @@ public class BubbleControllers {
                         return -(int) bubbleStashController.getBubbleBarTranslationY();
                     }
                 },
+                bubbleBarLocationListeners,
                 SystemUiProxy.INSTANCE.get(taskbarControllers.taskbarActivityContext));
         mPostInitRunnables.executeAllAndDestroy();
     }

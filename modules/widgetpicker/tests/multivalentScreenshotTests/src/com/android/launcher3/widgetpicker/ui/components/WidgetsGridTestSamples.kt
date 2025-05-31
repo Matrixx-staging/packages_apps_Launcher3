@@ -248,6 +248,8 @@ object WidgetsGridTestSamples {
                     spanY = 1,
                     widthPx = cellWidth,
                     heightPx = cellHeight,
+                    containerSpanX = 1,
+                    containerSpanY = 1,
                     containerWidthPx = cellWidth,
                     containerHeightPx = cellHeight,
                 ),
@@ -267,6 +269,8 @@ object WidgetsGridTestSamples {
                     spanY = 2,
                     widthPx = cellWidth * 2,
                     heightPx = cellHeight * 2,
+                    containerSpanX = 2,
+                    containerSpanY = 2,
                     // container same as size
                     containerWidthPx = cellWidth * 2,
                     containerHeightPx = cellHeight * 2,
@@ -286,6 +290,8 @@ object WidgetsGridTestSamples {
                     spanY = 2,
                     widthPx = cellWidth * 3,
                     heightPx = cellHeight * 2,
+                    containerSpanX = 2,
+                    containerSpanY = 2,
                     // 3x2s are bucketed to 2x2 container
                     containerWidthPx = cellWidth * 2,
                     containerHeightPx = cellHeight * 2,
@@ -305,6 +311,8 @@ object WidgetsGridTestSamples {
                     spanY = 2,
                     widthPx = cellWidth * 4,
                     heightPx = cellHeight * 2,
+                    containerSpanX = 4,
+                    containerSpanY = 2,
                     // container same as size
                     containerWidthPx = cellWidth * 4,
                     containerHeightPx = cellHeight * 2,

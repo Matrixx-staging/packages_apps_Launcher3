@@ -46,6 +46,58 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.ToIntFunction;
 
+/**
+ * This provider facilitates the import and export of home screen metadata within the
+ * Launcher's database. This includes managing shortcut placement, launch intents, and labels.
+ * Each row in the Launcher3 database corresponds to a single item on the workspace (often
+ * referred to as "favorites").
+ *
+ * <p>Only applications installed on the system partition or those possessing the platform's
+ * signature can access this provider.
+ *
+ * <p>After data insertion into the Launcher's database, a row may be deleted during Launcher
+ * startup if any of these conditions are true. This list is not exhaustive:
+ * <ul>
+ * <li>Missing or invalid launch intent: This includes a null intent, one without a target
+ * package, or one referencing a non-existent activity.</li>
+ * <li>When an app previously installed doesn't exist or fails to restore properly.</li>
+ * <li>If ShortcutManager/WidgetManager haven't finished restoring by the time Launcher loads</li>
+ * <li>If the App Store hasn't finished restoring when Launcher starts loading.</li>
+ * <li>The item is linked to a profile that no longer exists (e.g., a deleted work profile).</li>
+ * <li>A widget's metadata specifies an invalid height or width.</li>
+ * <li>Incorrect item container: For instance, widgets can only be on the desktop or hotseat<li>
+ * <li>If the launcher is restoring, but the item isn't flagged as restoring/installing.</li>
+ * <li>If a widget fails to inflate within AppWidgetManagerService for any reason.</li>
+ * <li>When items in the database occupy the same or overlapping positions.</li>
+ * </ul>
+ *
+ * <p>Although query, bulkInsert, and insert methods are available, their direct use is not
+ * recommended. Instead, prefer the XML-based insertion methods accessible via the
+ * {@code call()} method. This preference is due to several reasons, including:
+ * <ul>
+ * <li>The insert methods can can lead to unpredictable behavior if invoked while Launcher
+ * is in the process of loading.</li>
+ * <li>The XML approach allows for custom tags which can be ingested for proprietary variants
+ * of workspace items.</li>
+ * <li>The XML method clears old data and inserts new data as a single, atomic action. Direct
+ * Delete/Insert usage requires at least 2 binder calls that are not atomic.</li>
+ * </ul>
+ *
+ * <p>It's important to note that the XML format has non-obvious and strict requirements. For
+ * instance:
+ * <ul>
+ * <li>The Launcher uses the "screen" value to determine hot seat placement order.</li>
+ * <li>Conversely, for items within a folder, the rank db column dictates their placement
+ * order.</li>
+ * <li>When an item is on the top-level workspace (i.e., not in the hot seat), the "screen"
+ * value signifies its workspace page.</li>
+ * </ul>
+ *
+ * <p>During a launcher restore, a grid migration might occur, either due to user preference or
+ * design updates. This migration can cause items to be repositioned or moved to different pages,
+ * depending on the old and new grid sizes. Therefore, precise placement cannot be guaranteed
+ * in all situations.
+ */
 public class LauncherProvider extends ContentProvider {
     private static final String TAG = "LauncherProvider";
 

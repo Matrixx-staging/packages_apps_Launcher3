@@ -138,8 +138,7 @@
     <string name="allow_rotation_title" msgid="7222049633713050106">"允許旋轉主畫面"</string>
     <string name="allow_rotation_desc" msgid="8662546029078692509">"當手機旋轉時"</string>
     <string name="landscape_mode_title" msgid="5138814555934843926">"橫向模式"</string>
-    <!-- no translation found for landscape_mode_desc (3085236452297838664) -->
-    <skip />
+    <string name="landscape_mode_desc" msgid="3085236452297838664">"將主畫面設為橫向模式"</string>
     <string name="notification_dots_title" msgid="9062440428204120317">"通知圓點"</string>
     <string name="notification_dots_desc_on" msgid="1679848116452218908">"開啟"</string>
     <string name="notification_dots_desc_off" msgid="1760796511504341095">"關閉"</string>

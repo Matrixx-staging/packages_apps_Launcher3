@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import com.android.launcher3.widgetpicker.WidgetPickerSingleton
 import com.android.launcher3.widgetpicker.domain.interactor.WidgetAppIconsInteractor
 import com.android.launcher3.widgetpicker.domain.interactor.WidgetsInteractor
 import com.android.launcher3.widgetpicker.shared.model.WidgetAppIcon
@@ -233,6 +234,7 @@ class LandingScreenViewModel @AssistedInject constructor(
 
     /** A factory that should be injected whenever [LandingScreenViewModel] is required. */
     @AssistedFactory
+    @WidgetPickerSingleton
     interface Factory {
         fun create(): LandingScreenViewModel
     }

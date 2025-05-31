@@ -362,15 +362,6 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
         mTaskbarLauncherStateController.applyState();
     }
 
-    public boolean isDraggingItem() {
-        boolean bubblesDragging = false;
-        if (mControllers.bubbleControllers.isPresent()) {
-            bubblesDragging =
-                    mControllers.bubbleControllers.get().bubbleDragController.isDragging();
-        }
-        return mControllers.taskbarDragController.isDragging() || bubblesDragging;
-    }
-
     @Override
     protected void onStashedInAppChanged() {
         onStashedInAppChanged(mLauncher.getDeviceProfile());

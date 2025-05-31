@@ -16,6 +16,8 @@
 
 package com.android.launcher3;
 
+import static android.view.View.MeasureSpec.makeMeasureSpec;
+
 import static com.android.launcher3.LauncherAnimUtils.VIEW_TRANSLATE_X;
 import static com.android.launcher3.util.MultiTranslateDelegate.INDEX_BUBBLE_ADJUSTMENT_ANIM;
 
@@ -112,6 +114,7 @@ public class Hotseat extends CellLayout implements Insettable {
         addView(mQsb);
         mIconsAlphaChannels = new MultiValueAlpha(getShortcutsAndWidgets(),
                 ALPHA_CHANNEL_CHANNELS_COUNT);
+        mIconsAlphaChannels.setUpdateVisibility(true);
         if (mQsb instanceof Reorderable qsbReorderable) {
             mQsbTranslationX = qsbReorderable.getTranslateDelegate()
                     .getTranslationX(MultiTranslateDelegate.INDEX_NAV_BAR_ANIM);
@@ -119,6 +122,7 @@ public class Hotseat extends CellLayout implements Insettable {
         mIconsTranslationXFactory = new MultiPropertyFactory<>(getShortcutsAndWidgets(),
                 VIEW_TRANSLATE_X, ICONS_TRANSLATION_X_CHANNELS_COUNT, Float::sum);
         mQsbAlphaChannels = new MultiValueAlpha(mQsb, ALPHA_CHANNEL_CHANNELS_COUNT);
+        mQsbAlphaChannels.setUpdateVisibility(true);
     }
 
     /** Provides translation X for hotseat icons for the channel. */
@@ -315,8 +319,8 @@ public class Hotseat extends CellLayout implements Insettable {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
         DeviceProfile dp = mActivity.getDeviceProfile();
-        mQsb.measure(MeasureSpec.makeMeasureSpec(dp.hotseatQsbWidth, MeasureSpec.EXACTLY),
-                MeasureSpec.makeMeasureSpec(dp.hotseatQsbHeight, MeasureSpec.EXACTLY));
+        mQsb.measure(makeMeasureSpec(dp.hotseatQsbWidth, MeasureSpec.EXACTLY),
+                makeMeasureSpec(dp.getHotseatProfile().getQsbHeight(), MeasureSpec.EXACTLY));
     }
 
     @Override
@@ -336,7 +340,7 @@ public class Hotseat extends CellLayout implements Insettable {
         int right = left + qsbMeasuredWidth;
 
         int bottom = b - t - dp.getQsbOffsetY();
-        int top = bottom - dp.hotseatQsbHeight;
+        int top = bottom - dp.getHotseatProfile().getQsbHeight();
         mQsb.layout(left, top, right, bottom);
     }
 

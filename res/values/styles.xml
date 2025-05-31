@@ -84,6 +84,8 @@
         <item name="dropTargetHoverTextColor">@color/drop_target_hover_text_color_light</item>
         <item name="dropTargetHoverButtonColor">@color/drop_target_hover_button_color_light</item>
         <item name="overviewScrimColorFallback">@color/overview_scrim</item>
+        <item name="overviewScrimForegroundPrimaryBlur">@color/overview_scrim_foreground_primary</item>
+        <item name="overviewScrimForegroundSecondaryBlur">@color/overview_scrim_foreground_secondary</item>
         <item name="overviewScrimColorBlur">#80FFFFFF</item>
         <item name="preloadIconAccentColor">@color/preload_icon_accent_color_light</item>
         <item name="preloadIconBackgroundColor">@color/preload_icon_background_color_light</item>
@@ -149,6 +151,8 @@
         <item name="iconOnlyShortcutColor">#B3FFFFFF</item>
         <item name="eduHalfSheetBGColor">#DD000000</item>
         <item name="overviewScrimColorFallback">@color/overview_scrim_dark</item>
+        <item name="overviewScrimForegroundPrimaryBlur">@color/overview_scrim_foreground_primary_dark</item>
+        <item name="overviewScrimForegroundSecondaryBlur">@color/overview_scrim_foreground_secondary_dark</item>
         <item name="overviewScrimColorBlur">#80000000</item>
         <item name="preloadIconAccentColor">@color/preload_icon_accent_color_dark</item>
         <item name="preloadIconBackgroundColor">@color/preload_icon_background_color_dark</item>
@@ -544,5 +548,26 @@
         <item name="android:fontFamily" android:featureFlag="com.android.launcher3.gsf_res">
             variable-title-small
         </item>
+    </style>
+
+    <style name="WidgetPickerActivityTheme" parent="@android:style/Theme.DeviceDefault.DayNight">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:colorBackgroundCacheHint">@null</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowAnimationStyle">@android:style/Animation</item>
+
+        <!-- Edge to edge with transparent (not translucent nav / status bars) -->
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+        <item name="android:windowTranslucentNavigation">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:enforceStatusBarContrast">false</item>
+        <item name="android:windowTranslucentStatus">false</item>
+
+        <item name="widgetsTheme">@style/WidgetContainerTheme</item>
+        <item name="pageIndicatorDotColor">@color/page_indicator_dot_color_light</item>
     </style>
 </resources>

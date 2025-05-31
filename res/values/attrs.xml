@@ -48,6 +48,10 @@
     <attr name="overviewScrimColor" format="color" />
     <attr name="overviewScrimColorFallback" format="color" />
     <attr name="overviewScrimColorBlur" format="color" />
+    <attr name="overviewScrimForegroundPrimaryBlur" format="color" />
+    <attr name="overviewScrimForegroundPrimary" format="color" />
+    <attr name="overviewScrimForegroundSecondaryBlur" format="color" />
+    <attr name="overviewScrimForegroundSecondary" format="color" />
     <attr name="overviewActionsContainerStyle" format="reference" />
     <attr name="overviewActionButtonStyle" format="reference" />
     <attr name="popupNotificationDotColor" format="color" />
@@ -184,8 +188,8 @@
     </declare-styleable>
 
     <declare-styleable name="GridSize">
-        <attr name="minDeviceWidth" format="dimension"/>
-        <attr name="minDeviceHeight" format="dimension"/>
+        <attr name="minDeviceWidthPx" format="integer"/>
+        <attr name="minDeviceHeightPx" format="integer"/>
         <attr name="numGridRows" format="integer"/>
         <attr name="numGridColumns" format="integer"/>
         <attr name="dbFile" />

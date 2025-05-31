@@ -626,6 +626,15 @@ public class InvariantDeviceProfile {
             Info displayInfo) {
         ArrayList<GridSize> gridSizes = new ArrayList<>();
 
+        // Difference between grid sizes available for different display size breakpoints is more
+        // stark on desktop devices, so using grid size matched against display pixel sizes results
+        // in noticeable worse UI on devices with larger DPI. Compromise by matching grid size
+        // breakpoints against pixel size for stable device density on desktop, to ensure optimal
+        // grid size is selected for the default display size.
+        // TODO(b/420970288): Ideally, this should use the current DPI, and update grid content if
+        //     the change in display size changes the grid size.
+        boolean matchAgainstDefaultDpSize = displayInfo.getDeviceType() == TYPE_DESKTOP
+                && enableScalabilityForDesktopExperience();
         try (XmlResourceParser parser = resourceHelper.getXml()) {
             final int depth = parser.getDepth();
             int type;
@@ -633,7 +642,8 @@ public class InvariantDeviceProfile {
                     || parser.getDepth() > depth) && type != XmlPullParser.END_DOCUMENT) {
                 if ((type == XmlPullParser.START_TAG)
                         && "GridSize".equals(parser.getName())) {
-                    gridSizes.add(new GridSize(context, Xml.asAttributeSet(parser)));
+                    gridSizes.add(new GridSize(context, Xml.asAttributeSet(parser),
+                            matchAgainstDefaultDpSize));
                 }
             }
         } catch (IOException | XmlPullParserException e) {
@@ -1342,13 +1352,21 @@ public class InvariantDeviceProfile {
         final String mDbFile;
         final int mDefaultLayoutId;
 
-        GridSize(Context context, AttributeSet attrs) {
+        GridSize(Context context, AttributeSet attrs, boolean matchAgainstDefaultDpSize) {
             TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.GridSize);
 
             mNumRows = (int) a.getFloat(R.styleable.GridSize_numGridRows, 0);
             mNumColumns = (int) a.getFloat(R.styleable.GridSize_numGridColumns, 0);
-            mMinDeviceWidthPx = a.getDimensionPixelSize(R.styleable.GridSize_minDeviceWidth, 0);
-            mMinDeviceHeightPx = a.getDimensionPixelSize(R.styleable.GridSize_minDeviceHeight, 0);
+
+            float defaultScale =
+                    matchAgainstDefaultDpSize
+                            ? (float) DisplayMetrics.DENSITY_DEVICE_STABLE
+                                / DisplayMetrics.DENSITY_DEFAULT
+                            : 1.0f;
+            mMinDeviceWidthPx = a.getInt(R.styleable.GridSize_minDeviceWidthPx, 0) * defaultScale;
+            mMinDeviceHeightPx = a.getInt(R.styleable.GridSize_minDeviceHeightPx, 0)
+                    * defaultScale;
+
             mDbFile = a.getString(R.styleable.GridSize_dbFile);
             mDefaultLayoutId = a.getResourceId(
                     R.styleable.GridSize_defaultLayoutId, 0);

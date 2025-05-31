@@ -19,15 +19,15 @@
         launcher:numGridRows="3"
         launcher:dbFile="launcher_7_by_3.db"
         launcher:defaultLayoutId="@xml/default_workspace_7x3"
-        launcher:minDeviceWidth="0px"
-        launcher:minDeviceHeight="0px"
+        launcher:minDeviceWidthPx="0"
+        launcher:minDeviceHeightPx="0"
         />
     <GridSize
         launcher:numGridColumns="8"
         launcher:numGridRows="3"
         launcher:dbFile="launcher_8_by_3.db"
         launcher:defaultLayoutId="@xml/default_workspace_8x3"
-        launcher:minDeviceWidth="0px"
-        launcher:minDeviceHeight="2093px"
+        launcher:minDeviceWidthPx="0"
+        launcher:minDeviceHeightPx="2093"
         />
 </GridSizeSpecs>

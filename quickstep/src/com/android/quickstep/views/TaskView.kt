@@ -677,7 +677,8 @@ constructor(
             pivotX = modalPivot.x
             pivotY = modalPivot.y
         } else {
-            val thumbnailTopMargin = container.deviceProfile.overviewTaskThumbnailTopMarginPx
+            val thumbnailTopMargin =
+                container.deviceProfile.overviewProfile.taskThumbnailTopMarginPx
             if (container.deviceProfile.getDeviceProperties().isTablet) {
                 pivotX =
                     (if (layoutDirection == LAYOUT_DIRECTION_RTL) 0 else right - left).toFloat()
@@ -1121,7 +1122,7 @@ constructor(
      * ensuring TaskView fits into screen in fullscreen.
      */
     open fun updateTaskSize(lastComputedTaskSize: Rect, lastComputedGridTaskSize: Rect) {
-        val thumbnailPadding = container.deviceProfile.overviewTaskThumbnailTopMarginPx
+        val thumbnailPadding = container.deviceProfile.overviewProfile.taskThumbnailTopMarginPx
         val taskWidth = lastComputedTaskSize.width()
         val taskHeight = lastComputedTaskSize.height()
         val nonGridScale: Float
@@ -1171,7 +1172,7 @@ constructor(
         // TODO(b/271468547), we should default to setting translations only on the snapshot instead
         //  of a hybrid of both margins and translations
         firstTaskContainer?.taskContentView?.updateLayoutParams<LayoutParams> {
-            topMargin = container.deviceProfile.overviewTaskThumbnailTopMarginPx
+            topMargin = container.deviceProfile.overviewProfile.taskThumbnailTopMarginPx
         }
         taskContainers.forEach { it.digitalWellBeingToast?.setupLayout() }
     }

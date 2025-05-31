@@ -234,7 +234,7 @@ public abstract class BaseLauncherTaplTest {
 
     protected TestRule getRulesInsideActivityMonitor() {
         final RuleChain inner = RuleChain
-                .outerRule(new FailureWatcher(mLauncher, null))
+                .outerRule(new FailureWatcher(mLauncher))
                 .around(new TestIsolationRule(mLauncher, true));
         return TestHelpers.isInLauncherProcess()
                 ? RuleChain.outerRule(ShellCommandRule.setDefaultLauncher()).around(inner)

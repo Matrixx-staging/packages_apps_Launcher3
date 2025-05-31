@@ -657,7 +657,8 @@ public class WidgetsFullSheet extends BaseWidgetSheet
             return 0f;
         }
 
-        return (mDeviceProfile.getDeviceProperties().getHeightPx() - mDeviceProfile.bottomSheetTopPadding)
+        return (mDeviceProfile.getDeviceProperties().getHeightPx()
+                - mDeviceProfile.getBottomSheetProfile().getBottomSheetTopPadding())
                 * RECOMMENDATION_TABLE_HEIGHT_RATIO;
     }
 
@@ -672,13 +673,22 @@ public class WidgetsFullSheet extends BaseWidgetSheet
             if (getPopupContainer().getInsets().bottom > 0) {
                 mContent.setAlpha(0);
             }
-            setUpOpenAnimation(mActivityContext.getDeviceProfile().bottomSheetOpenDuration);
+            setUpOpenAnimation(
+                    mActivityContext
+                            .getDeviceProfile()
+                            .getBottomSheetProfile()
+                            .getBottomSheetOpenDuration()
+            );
             Animator animator = mOpenCloseAnimation.getAnimationPlayer();
             animator.setInterpolator(AnimationUtils.loadInterpolator(
                     getContext(), android.R.interpolator.linear_out_slow_in));
             post(() -> {
-                animator.setDuration(mActivityContext.getDeviceProfile().bottomSheetOpenDuration)
-                        .start();
+                animator.setDuration(
+                                mActivityContext
+                                        .getDeviceProfile()
+                                        .getBottomSheetProfile()
+                                        .getBottomSheetOpenDuration()
+                        ).start();
                 mContent.animate().alpha(1).setDuration(FADE_IN_DURATION);
             });
         } else {
@@ -689,7 +699,13 @@ public class WidgetsFullSheet extends BaseWidgetSheet
 
     @Override
     protected void handleClose(boolean animate) {
-        handleClose(animate, mActivityContext.getDeviceProfile().bottomSheetCloseDuration);
+        handleClose(
+                animate,
+                mActivityContext
+                        .getDeviceProfile()
+                        .getBottomSheetProfile()
+                        .getBottomSheetCloseDuration()
+        );
     }
 
     @Override

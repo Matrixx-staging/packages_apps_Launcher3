@@ -63,4 +63,12 @@
 
     <!-- This is a float because it is converted to dp later in DeviceProfile -->
     <item name="taskbar_icon_size" type="dimen" format="float">44</item>
+
+    <!-- Expressive Dismiss -->
+    <item name="expressive_dismiss_task_trans_y_damping_ratio" type="dimen" format="float">0.65</item>
+    <item name="expressive_dismiss_task_trans_y_stiffness" type="dimen" format="float">850</item>
+    <item name="expressive_dismiss_task_trans_x_damping_ratio" type="dimen" format="float">0.8</item>
+    <item name="expressive_dismiss_task_trans_x_stiffness" type="dimen" format="float">2800</item>
+    <item name="expressive_dismiss_effects_damping_ratio" type="dimen" format="float">1</item>
+    <item name="expressive_dismiss_effects_stiffness" type="dimen" format="float">1600</item>
 </resources>

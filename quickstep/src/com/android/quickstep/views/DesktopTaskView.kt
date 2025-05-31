@@ -59,6 +59,7 @@ import com.android.quickstep.TaskOverlayFactory
 import com.android.quickstep.ViewUtils
 import com.android.quickstep.recents.di.RecentsDependencies
 import com.android.quickstep.recents.di.get
+import com.android.quickstep.recents.domain.model.DesktopLayoutConfig
 import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData
 import com.android.quickstep.recents.ui.viewmodel.DesktopTaskViewModel
 import com.android.quickstep.recents.ui.viewmodel.TaskData
@@ -163,7 +164,9 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
     var remoteTargetHandles: Array<RemoteTargetHandle>? = null
         set(value) {
             field = value
-            positionTaskWindows()
+            if (value != null) {
+                positionTaskWindows()
+            }
         }
 
     override val displayId: Int
@@ -184,7 +187,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         contentView =
             findViewById<DesktopTaskContentView>(R.id.desktop_content).apply {
                 updateLayoutParams<LayoutParams> {
-                    topMargin = container.deviceProfile.overviewTaskThumbnailTopMarginPx
+                    topMargin = container.deviceProfile.overviewProfile.taskThumbnailTopMarginPx
                 }
                 cornerRadius = contentViewFullscreenParams.currentCornerRadius
                 backgroundView = findViewById(R.id.background)
@@ -209,19 +212,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
             return
         }
 
-        val thumbnailTopMarginPx = container.deviceProfile.overviewTaskThumbnailTopMarginPx
-
-        val taskViewWidth = layoutParams.width
-        val taskViewHeight = layoutParams.height - thumbnailTopMarginPx
-
-        BaseContainerInterface.getTaskDimension(mContext, container.deviceProfile, tempPointF)
-
-        val screenWidth = tempPointF.x.toInt()
-        val screenHeight = tempPointF.y.toInt()
-        val screenRect = Rect(0, 0, screenWidth, screenHeight)
-        val scaleWidth = taskViewWidth / screenWidth.toFloat()
-        val scaleHeight = taskViewHeight / screenHeight.toFloat()
-
+        val (widthScale, heightScale) = getScreenScaleFactors()
         taskContainers.forEach { taskContainer ->
             val taskId = taskContainer.task.key.id
             val fullscreenTaskBounds =
@@ -264,7 +255,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                     val fromRect =
                         TEMP_FROM_RECTF.apply {
                             set(fullscreenTaskBounds)
-                            scale(scaleWidth)
+                            scale(widthScale)
                             offset(
                                 lastComputedTaskSize.left.toFloat(),
                                 lastComputedTaskSize.top.toFloat(),
@@ -273,7 +264,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                     val toRect =
                         TEMP_TO_RECTF.apply {
                             set(currentTaskBounds)
-                            scale(scaleWidth)
+                            scale(widthScale)
                             offset(
                                 lastComputedTaskSize.left.toFloat(),
                                 lastComputedTaskSize.top.toFloat(),
@@ -284,12 +275,17 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                     remoteTargetHandle.taskViewSimulator.setTaskRectTransform(transform)
                     remoteTargetHandle.taskViewSimulator.apply(remoteTargetHandle.transformParams)
                 }
+
+                (taskContainer.taskContentView as? TaskContentView)?.setTaskHeaderAlpha(
+                    explodeProgress
+                )
             }
 
-            val overviewTaskLeft = overviewTaskBounds.left * scaleWidth
-            val overviewTaskTop = overviewTaskBounds.top * scaleHeight
-            val overviewTaskWidth = overviewTaskBounds.width() * scaleWidth
-            val overviewTaskHeight = overviewTaskBounds.height() * scaleHeight
+            val overviewTaskLeft = overviewTaskBounds.left * widthScale
+            val overviewTaskTop = overviewTaskBounds.top * heightScale
+            val overviewTaskWidth = overviewTaskBounds.width() * widthScale
+            val overviewTaskHeight = overviewTaskBounds.height() * heightScale
+
             if (updateLayout) {
                 // Position the task to the same position as it would be on the desktop
                 taskContainer.taskContentView.updateLayoutParams<LayoutParams> {
@@ -308,6 +304,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                     overviewTaskBounds.width().toFloat() / currentTaskBounds.width()
                 val thumbnailScaleHeight =
                     overviewTaskBounds.height().toFloat() / currentTaskBounds.height()
+                val screenRect = getScreenRect()
                 val contentOutlineBounds =
                     if (intersects(currentTaskBounds, screenRect))
                         Rect(currentTaskBounds).apply {
@@ -315,10 +312,10 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                             // Offset to 0,0 to transform into TaskThumbnailView's coordinate
                             // system.
                             offset(-currentTaskBounds.left, -currentTaskBounds.top)
-                            left = (left * scaleWidth * thumbnailScaleWidth).roundToInt()
-                            top = (top * scaleHeight * thumbnailScaleHeight).roundToInt()
-                            right = (right * scaleWidth * thumbnailScaleWidth).roundToInt()
-                            bottom = (bottom * scaleHeight * thumbnailScaleHeight).roundToInt()
+                            left = (left * widthScale * thumbnailScaleWidth).roundToInt()
+                            top = (top * heightScale * thumbnailScaleHeight).roundToInt()
+                            right = (right * widthScale * thumbnailScaleWidth).roundToInt()
+                            bottom = (bottom * heightScale * thumbnailScaleHeight).roundToInt()
                         }
                     else null
 
@@ -330,10 +327,10 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                 }
             }
 
-            val currentTaskLeft = currentTaskBounds.left * scaleWidth
-            val currentTaskTop = currentTaskBounds.top * scaleHeight
-            val currentTaskWidth = currentTaskBounds.width() * scaleWidth
-            val currentTaskHeight = currentTaskBounds.height() * scaleHeight
+            val currentTaskLeft = currentTaskBounds.left * widthScale
+            val currentTaskTop = currentTaskBounds.top * heightScale
+            val currentTaskWidth = currentTaskBounds.width() * widthScale
+            val currentTaskHeight = currentTaskBounds.height() * heightScale
             // During the animation, apply translation and scale such that the view is transformed
             // to where we want, without triggering layout.
             taskContainer.taskContentView.apply {
@@ -341,8 +338,9 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                 pivotY = 0.0f
                 translationX = currentTaskLeft - overviewTaskLeft
                 translationY = currentTaskTop - overviewTaskTop
-                scaleX = currentTaskWidth / overviewTaskWidth
-                scaleY = currentTaskHeight / overviewTaskHeight
+                scaleX = if (overviewTaskWidth != 0f) currentTaskWidth / overviewTaskWidth else 1f
+                scaleY =
+                    if (overviewTaskHeight != 0f) currentTaskHeight / overviewTaskHeight else 1f
             }
 
             if (taskContainer.task.isMinimized) {
@@ -403,10 +401,11 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                         taskContentView
                     }
                 if (enableDesktopExplodedView() && !enableMultipleDesktops(context)) {
-                    // Note, currently there are some issues with launching an individual app window
-                    // with multi-desks enabled, see b/413378320. Will enable this functionality
-                    // after b/413378320 is fixed.
-                    snapshotView.setOnClickListener {
+                    // Note, currently there are some issues with launching an individual app
+                    // window with multi-desks enabled, see b/413378320. Will enable this
+                    // functionality after b/413378320 is fixed.
+                    taskContentView.isFocusable = true
+                    taskContentView.setOnClickListener {
                         launchTaskWithDesktopController(animated = true, task.key.id)
                     }
                 }
@@ -447,6 +446,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         if (enableOverviewIconMenu()) {
             (iconView as IconAppChipView).reset()
         }
+        remoteTargetHandles = null
     }
 
     override fun setOrientationState(orientationState: RecentsOrientedState) {
@@ -647,9 +647,70 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
             }
 
         if (enableDesktopExplodedView()) {
-            viewModel?.organizeDesktopTasks(desktopSize, fullscreenTaskPositions)
+            val (widthScale, heightScale) = getScreenScaleFactors()
+            val res = context.resources
+            val layoutConfig =
+                DesktopLayoutConfig(
+                    topBottomMarginOneRow =
+                        (res.getDimensionPixelSize(R.dimen.desktop_top_bottom_margin_one_row) /
+                                heightScale)
+                            .toInt(),
+                    topMarginMultiRows =
+                        (res.getDimensionPixelSize(R.dimen.desktop_top_margin_multi_rows) /
+                                heightScale)
+                            .toInt(),
+                    bottomMarginMultiRows =
+                        (res.getDimensionPixelSize(R.dimen.desktop_bottom_margin_multi_rows) /
+                                heightScale)
+                            .toInt(),
+                    leftRightMarginOneRow =
+                        (res.getDimensionPixelSize(R.dimen.desktop_left_right_margin_one_row) /
+                                widthScale)
+                            .toInt(),
+                    leftRightMarginMultiRows =
+                        (res.getDimensionPixelSize(R.dimen.desktop_left_right_margin_multi_rows) /
+                                widthScale)
+                            .toInt(),
+                    horizontalPaddingBetweenTasks =
+                        (res.getDimensionPixelSize(
+                                R.dimen.desktop_horizontal_padding_between_tasks
+                            ) / widthScale)
+                            .toInt(),
+                    verticalPaddingBetweenTasks =
+                        (res.getDimensionPixelSize(R.dimen.desktop_vertical_padding_between_tasks) /
+                                heightScale)
+                            .toInt(),
+                )
+
+            viewModel?.organizeDesktopTasks(desktopSize, fullscreenTaskPositions, layoutConfig)
         }
         positionTaskWindows(updateLayout = true)
+    }
+
+    /**
+     * Calculates the scale factors for the desktop task view's width and height. This is determined
+     * by comparing the available task view dimensions (after accounting for margins like
+     * [thumbnailTopMarginPx]) against the total screen dimensions.
+     *
+     * @return A [Pair] where the first value is the scale factor for width and the second is for
+     *   height.
+     */
+    private fun getScreenScaleFactors(): Pair<Float, Float> {
+        val thumbnailTopMarginPx = container.deviceProfile.overviewProfile.taskThumbnailTopMarginPx
+        val taskViewWidth = layoutParams.width
+        val taskViewHeight = layoutParams.height - thumbnailTopMarginPx
+
+        val screenRect = getScreenRect()
+        val widthScale = taskViewWidth / screenRect.width().toFloat()
+        val heightScale = taskViewHeight / screenRect.height().toFloat()
+
+        return Pair(widthScale, heightScale)
+    }
+
+    /** Returns the dimensions of the screen. */
+    private fun getScreenRect(): Rect {
+        BaseContainerInterface.getTaskDimension(mContext, container.deviceProfile, tempPointF)
+        return Rect(0, 0, tempPointF.x.toInt(), tempPointF.y.toInt())
     }
 
     companion object {

@@ -40,20 +40,25 @@ import com.android.launcher3.util.SettingsCache
 import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.Answers
 import org.mockito.ArgumentCaptor
 import org.mockito.Captor
 import org.mockito.Mock
-import org.mockito.MockitoAnnotations
-import org.mockito.kotlin.any
+import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.atLeastOnce
+import org.mockito.kotlin.capture
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 @RunWith(AndroidJUnit4::class)
 class SettingsChangeLoggerTest {
+
+    @get:Rule val mockito = MockitoJUnit.rule()
+
     private val mContext: Context = ApplicationProvider.getApplicationContext()
 
     private val mInstanceId = InstanceId.fakeInstanceId(1)
@@ -64,7 +69,8 @@ class SettingsChangeLoggerTest {
 
     @Mock private lateinit var mStatsLogManager: StatsLogManager
 
-    @Mock private lateinit var mMockLogger: StatsLogManager.StatsLogger
+    @Mock(answer = Answers.RETURNS_SELF)
+    private lateinit var mMockLogger: StatsLogManager.StatsLogger
     @Mock private lateinit var mTracker: DaggerSingletonTracker
     private var displayController: DisplayController = DisplayController.INSTANCE.get(mContext)
     private var settingsCache: SettingsCache = SettingsCache.INSTANCE.get(mContext)
@@ -79,10 +85,8 @@ class SettingsChangeLoggerTest {
 
     @Before
     fun setUp() {
-        MockitoAnnotations.initMocks(this)
         whenever(mStatsLogFactory.create(mContext)).doReturn(mStatsLogManager)
         whenever(mStatsLogManager.logger()).doReturn(mMockLogger)
-        whenever(mStatsLogManager.logger().withInstanceId(any())).doReturn(mMockLogger)
         mDefaultThemedIcons = themeManager.isMonoThemeEnabled
         mDefaultAllowRotation = LauncherPrefs.get(mContext).get(ALLOW_ROTATION)
         // To match the default value of THEMED_ICONS
@@ -128,7 +132,7 @@ class SettingsChangeLoggerTest {
     fun logSnapshot_defaultValue() {
         mSystemUnderTest.logSnapshot(mInstanceId)
 
-        verify(mMockLogger, atLeastOnce()).log(mEventCaptor.capture())
+        verify(mMockLogger, atLeastOnce()).log(capture(mEventCaptor))
         val capturedEvents = mEventCaptor.allValues
         assertThat(capturedEvents.isNotEmpty()).isTrue()
         verifyDefaultEvent(capturedEvents)
@@ -144,7 +148,7 @@ class SettingsChangeLoggerTest {
         SettingsChangeLogger(mContext, mTracker, displayController, settingsCache, mStatsLogFactory)
             .logSnapshot(mInstanceId)
 
-        verify(mMockLogger, atLeastOnce()).log(mEventCaptor.capture())
+        verify(mMockLogger, atLeastOnce()).log(capture(mEventCaptor))
         val capturedEvents = mEventCaptor.allValues
         assertThat(capturedEvents.isNotEmpty()).isTrue()
         verifyDefaultEvent(capturedEvents)

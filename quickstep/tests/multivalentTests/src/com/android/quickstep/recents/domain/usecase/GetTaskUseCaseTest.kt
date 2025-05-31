@@ -24,6 +24,7 @@ import android.os.UserHandle
 import android.platform.test.annotations.DisableFlags
 import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
+import android.view.Display.DEFAULT_DISPLAY
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.launcher3.Flags
 import com.android.quickstep.recents.data.FakeAppTimersRepository
@@ -95,7 +96,7 @@ class GetTaskUseCaseTest {
     @EnableFlags(Flags.FLAG_ENABLE_REFACTOR_DIGITAL_WELLBEING_TOAST)
     fun taskVisible_returnsData() =
         testScope.runTest {
-            tasksRepository.setVisibleTasks(setOf(TASK_1_ID))
+            tasksRepository.setVisibleTasks(DEFAULT_DISPLAY, setOf(TASK_1_ID))
 
             val result = sut.invoke(TASK_1_ID).firstOrNull()
 
@@ -120,7 +121,7 @@ class GetTaskUseCaseTest {
     @EnableFlags(Flags.FLAG_ENABLE_REFACTOR_DIGITAL_WELLBEING_TOAST)
     fun taskVisible_noAppTimer_returnsDataWithoutTimer() =
         testScope.runTest {
-            tasksRepository.setVisibleTasks(setOf(TASK_1_ID))
+            tasksRepository.setVisibleTasks(DEFAULT_DISPLAY, setOf(TASK_1_ID))
             timersRepository.resetTimer(PACKAGE_1, UserHandle(USER_1))
 
             val result = sut.invoke(TASK_1_ID).firstOrNull()
@@ -148,7 +149,7 @@ class GetTaskUseCaseTest {
     @DisableFlags(Flags.FLAG_ENABLE_REFACTOR_DIGITAL_WELLBEING_TOAST)
     fun taskVisible_dwbFlagOff_doesNotFetchTimer() =
         testScope.runTest {
-            tasksRepository.setVisibleTasks(setOf(TASK_1_ID))
+            tasksRepository.setVisibleTasks(DEFAULT_DISPLAY, setOf(TASK_1_ID))
 
             val result = sut.invoke(TASK_1_ID).firstOrNull()
 

@@ -18,7 +18,8 @@
     android:id="@+id/task_content_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:importantForAccessibility="no">
+    android:importantForAccessibility="no"
+    app:focusBorderColor="@color/materialColorOutline">
 
     <ViewStub
         android:id="@+id/snapshot"

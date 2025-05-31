@@ -677,6 +677,10 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
         }
     }
 
+    fun resetShareUIState() {
+        taskViews.flatMap { it.taskContainers }.forEach { it.overlay.resetShareUI() }
+    }
+
     companion object {
         class RecentsViewFloatProperty(
             private val utilsProperty: KMutableProperty1<RecentsViewUtils, Float>

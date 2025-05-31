@@ -348,15 +348,7 @@ public abstract class AbsSwipeUpHandler<
     private final SwipePipToHomeAnimator[] mSwipePipToHomeAnimators =
             new SwipePipToHomeAnimator[2];
 
-    private final Runnable mLauncherOnDestroyCallback = () -> {
-        ActiveGestureProtoLogProxy.logLauncherDestroyed();
-        mRecentsView.removeOnScrollChangedListener(mOnRecentsScrollListener);
-        mRecentsView = null;
-        mContainer = null;
-        mStateCallback.clearState(STATE_LAUNCHER_PRESENT);
-        mRecentsAnimationStartCallbacks.clear();
-        mTaskAnimationManager.onLauncherDestroyed();
-    };
+    private final Runnable mLauncherOnDestroyCallback;
 
     // Interpolate RecentsView scale from start of quick switch scroll until this scroll threshold
     private final float mQuickSwitchScaleScrollThreshold;
@@ -393,6 +385,18 @@ public abstract class AbsSwipeUpHandler<
         mContainerInterface = gestureState.getContainerInterface();
         mContextInitListener =
                 mContainerInterface.createActivityInitListener(this::onActivityInit);
+        mLauncherOnDestroyCallback = () -> {
+            ActiveGestureProtoLogProxy.logLauncherDestroyed();
+            mContextInitListener.unregister("AbsSwipeUpHandler.mLauncherOnDestroyCallback");
+            if (mRecentsView != null) {
+                mRecentsView.removeOnScrollChangedListener(mOnRecentsScrollListener);
+                mRecentsView = null;
+            }
+            mContainer = null;
+            mStateCallback.clearState(STATE_LAUNCHER_PRESENT);
+            mRecentsAnimationStartCallbacks.clear();
+            mTaskAnimationManager.onLauncherDestroyed();
+        };
         mInputConsumerProxy =
                 new InputConsumerProxy(context, /* rotationSupplier = */ () -> {
                     if (mRecentsView == null) {
@@ -2705,7 +2709,8 @@ public abstract class AbsSwipeUpHandler<
             transaction.setAlpha(app.leash, 1f - fadeProgress);
             transaction.setPosition(app.leash,
                     /* x= */ app.startBounds.left
-                            + (mContainer.getDeviceProfile().overviewPageSpacing
+                            + (
+                            mContainer.getDeviceProfile().getOverviewProfile().getPageSpacing()
                             * (mRecentsView.isRtl() ? fadeProgress : -fadeProgress)),
                     /* y= */ 0f);
             transaction.setScale(app.leash, 1f, 1f);

@@ -35,7 +35,8 @@
         app:layout_constraintTop_toTopOf="parent" />
     <TextView
         android:id="@+id/header_app_title"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
+        android:ellipsize="end"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/task_thumbnail_header_margin_between_views"
         android:layout_marginEnd="@dimen/task_thumbnail_header_margin_between_views"
@@ -43,6 +44,7 @@
         android:text="@string/header_default_app_title"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@id/header_app_icon"
+        app:layout_constraintEnd_toStartOf="@id/header_close_button"
         app:layout_constraintTop_toTopOf="parent" />
     <ImageButton
         android:id="@+id/header_close_button"

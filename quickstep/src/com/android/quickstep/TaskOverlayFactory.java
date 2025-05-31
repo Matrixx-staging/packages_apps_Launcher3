@@ -273,6 +273,11 @@ public class TaskOverlayFactory implements ResourceBasedOverride {
         }
 
         /**
+         * Called when Recents wants to reset the share UI in Overview.
+         */
+        public void resetShareUI() {}
+
+        /**
          * Gets the modal state system shortcut.
          */
         public SystemShortcut getModalStateSystemShortcut(WorkspaceItemInfo itemInfo,

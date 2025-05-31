@@ -262,12 +262,13 @@ class SplitAnimationController(val splitSelectStateController: SplitSelectStateC
             taskContentView.scaleY = 1f
             val translateYResetVal: Float =
                 if (!isPrimaryTaskSplitting) 0f
-                else deviceProfile.overviewTaskThumbnailTopMarginPx.toFloat()
+                else deviceProfile.overviewProfile.taskThumbnailTopMarginPx.toFloat()
             builder.add(
                 ObjectAnimator.ofFloat(taskContentView, View.TRANSLATION_Y, translateYResetVal)
             )
         } else {
-            val thumbnailSize = taskViewHeight - deviceProfile.overviewTaskThumbnailTopMarginPx
+            val thumbnailSize =
+                taskViewHeight - deviceProfile.overviewProfile.taskThumbnailTopMarginPx
             // Center view first so scaling happens uniformly, alternatively we can move pivotY to 0
             // primary thumbnail has layout margin above it, so secondary thumbnail needs to take
             // that into account. We should migrate to only using translations otherwise this
@@ -282,7 +283,7 @@ class SplitAnimationController(val splitSelectStateController: SplitSelectStateC
             if (isPrimaryTaskSplitting) {
                 centerThumbnailTranslationY = (thumbnailSize - snapshotViewSize.y) / 2f
                 centerThumbnailTranslationY +=
-                    deviceProfile.overviewTaskThumbnailTopMarginPx.toFloat()
+                    deviceProfile.overviewProfile.taskThumbnailTopMarginPx.toFloat()
             } else {
                 centerThumbnailTranslationY = (thumbnailSize - snapshotViewSize.y) / 2f
             }

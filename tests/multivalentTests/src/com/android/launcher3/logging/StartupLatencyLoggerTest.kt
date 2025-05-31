@@ -25,7 +25,7 @@ import com.android.launcher3.logging.StatsLogManager.LauncherLatencyEvent.LAUNCH
 import com.android.launcher3.logging.StatsLogManager.LauncherLatencyEvent.LAUNCHER_LATENCY_STARTUP_VIEW_INFLATION
 import com.android.launcher3.logging.StatsLogManager.LauncherLatencyEvent.LAUNCHER_LATENCY_STARTUP_WORKSPACE_LOADER_ASYNC
 import com.android.launcher3.logging.StatsLogManager.StatsLatencyLogger
-import com.android.launcher3.logging.StatsLogManager.StatsLatencyLogger.LAUNCHER_LATENCY_PACKAGE_ID
+import com.android.launcher3.logging.StatsLogManager.StatsLatencyLogger.Companion.LAUNCHER_LATENCY_PACKAGE_ID
 import com.android.launcher3.logging.StatsLogManager.StatsLatencyLogger.LatencyType
 import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.LauncherMultivalentJUnit

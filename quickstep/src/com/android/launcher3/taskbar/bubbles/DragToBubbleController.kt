@@ -25,10 +25,13 @@ import com.android.launcher3.dragndrop.DragController
 import com.android.launcher3.dragndrop.DragOptions
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
+import com.android.launcher3.taskbar.bubbles.BubbleBarController.BubbleBarLocationListener
 import com.android.launcher3.taskbar.bubbles.BubbleBarLocationDropTarget.BubbleBarDropTargetController
 import com.android.quickstep.SystemUiProxy
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation
+import com.android.wm.shell.shared.bubbles.ContextUtils.isRtl
 import com.android.wm.shell.shared.bubbles.DeviceConfig
+import com.android.wm.shell.shared.bubbles.DragToBubblesZoneChangeListener
 import com.android.wm.shell.shared.bubbles.DragZone
 import com.android.wm.shell.shared.bubbles.DragZoneFactory
 import com.android.wm.shell.shared.bubbles.DragZoneFactory.BubbleBarPropertiesProvider
@@ -41,20 +44,18 @@ import com.android.wm.shell.shared.bubbles.DropTargetManager
 import com.android.wm.shell.shared.bubbles.DropTargetManager.DragZoneChangedListener
 import com.google.common.annotations.VisibleForTesting
 
-class DragToBubbleController(
-    private val context: Context,
-    private val bubbleBarContainer: FrameLayout,
-) : DragController.DragListener {
+class DragToBubbleController(private val context: Context, bubbleBarContainer: FrameLayout) :
+    DragController.DragListener {
 
     @VisibleForTesting val dropTargetManager: DropTargetManager
-
     @VisibleForTesting lateinit var bubbleBarLeftDropTarget: BubbleBarLocationDropTarget
     @VisibleForTesting lateinit var bubbleBarRightDropTarget: BubbleBarLocationDropTarget
     @VisibleForTesting lateinit var dragZoneFactory: DragZoneFactory
+    // If item drop is handled the next sysui update will set the bubble bar location
+    @VisibleForTesting var isItemDropHandled = false
+    private lateinit var bubbleBarLocationListener: BubbleBarLocationListener
     private lateinit var systemUiProxy: SystemUiProxy
     private lateinit var bubbleBarViewController: BubbleBarViewController
-    private val isRtl: Boolean
-        get() = bubbleBarContainer.isLayoutRtl
 
     init {
         dropTargetManager = createDropTargetManager(bubbleBarContainer)
@@ -63,10 +64,12 @@ class DragToBubbleController(
     fun init(
         bubbleBarViewController: BubbleBarViewController,
         bubbleBarPropertiesProvider: BubbleBarPropertiesProvider,
+        bubbleBarLocationListener: BubbleBarLocationListener,
         systemUiProxy: SystemUiProxy,
     ) {
         this.bubbleBarViewController = bubbleBarViewController
         this.systemUiProxy = systemUiProxy
+        this.bubbleBarLocationListener = bubbleBarLocationListener
         val dropController: BubbleBarDropTargetController = createDropController()
         dragZoneFactory = createDragZoneFactory(bubbleBarPropertiesProvider)
         bubbleBarLeftDropTarget = createDropTarget(dropController, isLeftDropTarget = true)
@@ -97,6 +100,7 @@ class DragToBubbleController(
     }
 
     override fun onDragStart(dragObject: DragObject, options: DragOptions) {
+        isItemDropHandled = false
         val launcherIcon: DraggedObject = LauncherIcon(bubbleBarViewController.hasBubbles()) {}
         val dragZones: List<DragZone> = dragZoneFactory.createSortedDragZones(launcherIcon)
         dropTargetManager.onDragStarted(launcherIcon, dragZones)
@@ -108,79 +112,42 @@ class DragToBubbleController(
 
     private fun createDropTargetManager(bubbleBarContainer: FrameLayout): DropTargetManager {
         val listener: DragZoneChangedListener =
-            object : DragZoneChangedListener {
+            DragToBubblesZoneChangeListener(
+                context.isRtl,
+                object : DragToBubblesZoneChangeListener.Callback {
 
-                private var lastUpdateLocation: BubbleBarLocation? = null
-                private val isLocationChangedFromOriginal: Boolean
-                    get() =
-                        lastUpdateLocation != null &&
-                            isDifferentSides(
-                                lastUpdateLocation,
-                                bubbleBarViewController.bubbleBarLocation,
-                            )
+                    private var currentBarLocation: BubbleBarLocation? = null
 
-                override fun onInitialDragZoneSet(dragZone: DragZone?) {}
-
-                override fun onDragZoneChanged(
-                    draggedObject: DraggedObject,
-                    from: DragZone?,
-                    to: DragZone?,
-                ) {
-                    if (!bubbleBarViewController.hasBubbles()) {
-                        return
+                    override fun onDragEnteredLocation(bubbleBarLocation: BubbleBarLocation?) {
+                        bubbleBarViewController.isShowingDropTarget = bubbleBarLocation != null
+                        if (isItemDropHandled) return
+                        val updatedLocation = bubbleBarLocation ?: getStartingBubbleBarLocation()
+                        currentBarLocation = currentBarLocation ?: getStartingBubbleBarLocation()
+                        if (updatedLocation != currentBarLocation) {
+                            currentBarLocation = updatedLocation
+                            bubbleBarLocationListener.onBubbleBarLocationAnimated(updatedLocation)
+                        }
                     }
-                    bubbleBarViewController.isShowingDropTarget = true
-                    val updateLocation = getBarLocation(to)
-                    updateBubbleBarLocation(updateLocation)
-                    lastUpdateLocation = updateLocation
-                }
 
-                override fun onDragEnded(zone: DragZone?) {
-                    if (isLocationChangedFromOriginal) {
-                        bubbleBarViewController.animateBubbleBarLocation(
-                            bubbleBarViewController.bubbleBarLocation
-                        )
+                    override fun getStartingBubbleBarLocation(): BubbleBarLocation {
+                        return bubbleBarViewController.bubbleBarLocation
+                            ?: BubbleBarLocation.DEFAULT
                     }
-                    bubbleBarViewController.isShowingDropTarget = false
-                }
 
-                fun updateBubbleBarLocation(updateLocation: BubbleBarLocation?) {
-                    val updatedBefore = lastUpdateLocation != null
-                    val originalLocation = bubbleBarViewController.bubbleBarLocation
-                    if (updateLocation == null && isLocationChangedFromOriginal) {
-                        bubbleBarViewController.animateBubbleBarLocation(originalLocation)
-                        return
-                    }
-                    if (updatedBefore && isDifferentSides(lastUpdateLocation, updateLocation)) {
-                        // updated before and location changed - update to new location
-                        bubbleBarViewController.animateBubbleBarLocation(updateLocation)
-                        return
-                    }
-                    if (!updatedBefore && isDifferentSides(originalLocation, updateLocation)) {
-                        // not updated before and location changed from original
-                        bubbleBarViewController.animateBubbleBarLocation(updateLocation)
-                    }
-                }
+                    override fun hasBubbles(): Boolean = bubbleBarViewController.hasBubbles()
 
-                fun getBarLocation(dragZone: DragZone?): BubbleBarLocation? {
-                    return when (dragZone) {
-                        is DragZone.Bubble.Left -> BubbleBarLocation.LEFT
-                        is DragZone.Bubble.Right -> BubbleBarLocation.RIGHT
-                        else -> null
+                    override fun animateBubbleBarLocation(bubbleBarLocation: BubbleBarLocation) {
+                        if (isItemDropHandled) return
+                        bubbleBarViewController.animateBubbleBarLocation(bubbleBarLocation)
                     }
-                }
-
-                fun isDifferentSides(f: BubbleBarLocation?, s: BubbleBarLocation?): Boolean {
-                    return f != null && s != null && f.isOnLeft(isRtl) != s.isOnLeft(isRtl)
-                }
-            }
+                },
+            )
         return DropTargetManager(context, bubbleBarContainer, listener)
     }
 
     private fun createDragZoneFactory(
         bubbleBarPropertiesProvider: BubbleBarPropertiesProvider
     ): DragZoneFactory {
-        // TODO(b/411506181) remove IPC call to display drop target in shell
         val splitScreenModeChecker = SplitScreenModeChecker { SplitScreenMode.NONE }
         val desktopWindowModeChecker = DesktopWindowModeChecker { false }
         val windowManager: WindowManager = context.getSystemService(WindowManager::class.java)!!
@@ -197,6 +164,18 @@ class DragToBubbleController(
     private fun createDropController(): BubbleBarDropTargetController {
         return object : BubbleBarDropTargetController {
             override fun onDrop(itemInfo: ItemInfo, isLeftDropTarget: Boolean) {
+                isItemDropHandled = handleDrop(itemInfo, isLeftDropTarget)
+            }
+
+            override fun acceptDrop(itemInfo: ItemInfo): Boolean {
+                return hasShortcutInfo(itemInfo) || itemInfo.intent?.component != null
+            }
+
+            fun hasShortcutInfo(itemInfo: ItemInfo): Boolean {
+                return itemInfo is WorkspaceItemInfo && itemInfo.deepShortcutInfo != null
+            }
+
+            private fun handleDrop(itemInfo: ItemInfo, isLeftDropTarget: Boolean): Boolean {
                 val location =
                     if (isLeftDropTarget) {
                         BubbleBarLocation.LEFT
@@ -206,20 +185,13 @@ class DragToBubbleController(
                 if (hasShortcutInfo(itemInfo)) {
                     val si = (itemInfo as WorkspaceItemInfo).deepShortcutInfo
                     systemUiProxy.showShortcutBubble(si, location)
-                    return
+                    return true
                 }
-                val itemIntent: Intent = itemInfo.intent ?: return
-                val packageName = itemIntent.component?.packageName ?: return
+                val itemIntent: Intent = itemInfo.intent ?: return false
+                val packageName = itemIntent.component?.packageName ?: return false
                 itemIntent.setPackage(packageName)
                 systemUiProxy.showAppBubble(itemIntent, itemInfo.user, location)
-            }
-
-            override fun acceptDrop(itemInfo: ItemInfo): Boolean {
-                return hasShortcutInfo(itemInfo) || itemInfo.intent?.component != null
-            }
-
-            fun hasShortcutInfo(itemInfo: ItemInfo): Boolean {
-                return itemInfo is WorkspaceItemInfo && itemInfo.deepShortcutInfo != null
+                return true
             }
         }
     }

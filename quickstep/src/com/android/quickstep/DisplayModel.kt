@@ -21,6 +21,7 @@ import android.hardware.display.DisplayManager
 import android.util.Log
 import android.util.SparseArray
 import android.view.Display
+import android.window.DesktopExperienceFlags
 import androidx.core.util.valueIterator
 import com.android.app.displaylib.DisplayDecorationListener
 import com.android.app.displaylib.DisplaysWithDecorationsRepositoryCompat
@@ -63,7 +64,7 @@ abstract class DisplayModel<RESOURCE_TYPE : DisplayResource>(
     protected abstract fun createDisplayResource(display: Display): RESOURCE_TYPE
 
     protected fun initializeDisplays() {
-        if (enableSysDecorsCallbacksViaWm()) {
+        if (DesktopExperienceFlags.ENABLE_SYS_DECORS_CALLBACKS_VIA_WM.isTrue()) {
             displaysWithDecorationsRepositoryCompat.registerDisplayDecorationListener(
                 this,
                 dispatcher,

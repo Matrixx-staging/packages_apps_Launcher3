@@ -165,6 +165,7 @@ import com.android.launcher3.celllayout.CellPosMapper;
 import com.android.launcher3.celllayout.CellPosMapper.CellPos;
 import com.android.launcher3.celllayout.CellPosMapper.TwoPanelCellPosMapper;
 import com.android.launcher3.compat.AccessibilityManagerCompat;
+import com.android.launcher3.compose.ComposeFacade;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.debug.TestEventEmitter;
@@ -293,6 +294,9 @@ public class Launcher extends StatefulActivity<LauncherState>
     public static final String INTENT_ACTION_ALL_APPS_TOGGLE =
             "launcher.intent_action_all_apps_toggle";
 
+    private static final String EXCLUDE_CLOSE_WIDGET_PICKER =
+            "launcher.extra.EXCLUDE_CLOSE_WIDGET_PICKER";
+
     private StateManager<LauncherState, Launcher> mStateManager;
 
     private static final int ON_ACTIVITY_RESULT_ANIMATION_DELAY = 500;
@@ -402,6 +406,8 @@ public class Launcher extends StatefulActivity<LauncherState>
     private StartupLatencyLogger mStartupLatencyLogger;
 
     protected WallpaperThemeManager mWallpaperThemeManager;
+
+    private boolean mIsTopResumedActivity;
 
     public static Launcher getLauncher(Context context) {
         return fromContext(context);
@@ -1524,8 +1530,12 @@ public class Launcher extends StatefulActivity<LauncherState>
         if (isActionMain) {
             if (!internalStateHandled) {
                 // In all these cases, only animate if we're already on home
-                AbstractFloatingView.closeAllOpenViewsExcept(
-                        this, isStarted(), AbstractFloatingView.TYPE_LISTENER);
+                int excludedViews = AbstractFloatingView.TYPE_LISTENER;
+                if (intent.getBooleanExtra(EXCLUDE_CLOSE_WIDGET_PICKER, false)) {
+                    excludedViews |= TYPE_WIDGETS_FULL_SHEET;
+                }
+                AbstractFloatingView.closeAllOpenViewsExcept(this, isStarted(), excludedViews);
+
 
                 if (!isInState(NORMAL)) {
                     // Only change state, if not already the same. This prevents cancelling any
@@ -2623,7 +2633,7 @@ public class Launcher extends StatefulActivity<LauncherState>
      */
     public void onWidgetsTransition(float progress) {
         float scale = Utilities.mapToRange(progress, 0f, 1f, 1f,
-                mDeviceProfile.bottomSheetWorkspaceScale, EMPHASIZED);
+                mDeviceProfile.getBottomSheetProfile().getBottomSheetWorkspaceScale(), EMPHASIZED);
         WORKSPACE_WIDGET_SCALE.set(getWorkspace(), scale);
         HOTSEAT_WIDGET_SCALE.set(getHotseat(), scale);
     }
@@ -2663,6 +2673,13 @@ public class Launcher extends StatefulActivity<LauncherState>
      */
     public boolean areDesktopTasksVisible() {
         return false; // Base launcher does not track desktop tasks
+    }
+
+    /**
+     * @return true when home screen should be shown behind desktop mode.
+     */
+    public boolean shouldShowHomeBehindDesktop() {
+        return false; // Base launcher does not show behind desktop mode.
     }
 
     // Getters and Setters
@@ -2862,14 +2879,19 @@ public class Launcher extends StatefulActivity<LauncherState>
         // Overridden
     }
 
-    /**
-     * Opens the widget picker UI. Returns true if opened.
-     */
+    /** Opens the widget picker UI. Returns true if opened. */
     public boolean openWidgetPicker() {
         if (getPackageManager().isSafeMode()) {
             Toast.makeText(this, R.string.safemode_widget_error, Toast.LENGTH_SHORT).show();
             return false;
         } else {
+            if (com.android.launcher3.Flags.enableWidgetPickerRefactor() &&
+                     ComposeFacade.INSTANCE.isComposeAvailable()) {
+                Intent intent = new Intent(Intent.ACTION_PICK);
+                intent.setPackage(asContext().getPackageName());
+                asContext().startActivity(intent);
+                return true;
+            }
             openWidgetsFullSheet();
             return true;
         }
@@ -2882,6 +2904,13 @@ public class Launcher extends StatefulActivity<LauncherState>
                 this, TYPE_WIDGETS_FULL_SHEET);
         if (floatingView != null) {
             return (WidgetsFullSheet) floatingView;
+        }
+        if (shouldShowHomeBehindDesktop() && !mIsTopResumedActivity) {
+            Intent intent = new Intent(Intent.ACTION_MAIN)
+                    .addCategory(Intent.CATEGORY_HOME)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    .putExtra(EXCLUDE_CLOSE_WIDGET_PICKER, true);
+            startActivity(intent);
         }
         return WidgetsFullSheet.show(this, true /* animated */);
     }
@@ -2921,6 +2950,19 @@ public class Launcher extends StatefulActivity<LauncherState>
     public OnClickListener getItemOnClickListener() {
         return ItemClickHandler.INSTANCE;
     }
+
+    /**
+     * @return true if Launcher is the current top resumed activity.
+     */
+    public boolean isTopResumedActivity() {
+        return mIsTopResumedActivity;
+    }
+
+    @Override
+    public void onTopResumedActivityChanged(boolean isResumed) {
+        mIsTopResumedActivity = isResumed;
+    }
+
 
     // End of Getters and Setters
 }

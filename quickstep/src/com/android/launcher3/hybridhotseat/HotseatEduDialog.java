@@ -88,11 +88,11 @@ public class HotseatEduDialog extends AbstractSlideInView<Launcher> implements I
         mSampleHotseat = findViewById(R.id.sample_prediction);
 
         Context context = getContext();
-        DeviceProfile grid = mActivityContext.getDeviceProfile();
-        Rect padding = grid.getHotseatLayoutPadding(context);
+        DeviceProfile dp = mActivityContext.getDeviceProfile();
+        Rect padding = dp.getHotseatLayoutPadding(context);
 
-        mSampleHotseat.getLayoutParams().height = grid.cellHeightPx;
-        mSampleHotseat.setGridSize(grid.numShownHotseatIcons, 1);
+        mSampleHotseat.getLayoutParams().height = dp.cellHeightPx;
+        mSampleHotseat.setGridSize(dp.numShownHotseatIcons, 1);
         mSampleHotseat.setPadding(padding.left, 0, padding.right, 0);
 
         Button turnOnBtn = findViewById(R.id.turn_predictions_on);
@@ -102,7 +102,8 @@ public class HotseatEduDialog extends AbstractSlideInView<Launcher> implements I
         mDismissBtn.setOnClickListener(this::onDismiss);
 
         LinearLayout buttonContainer = findViewById(R.id.button_container);
-        int adjustedMarginEnd = grid.hotseatBarEndOffset - buttonContainer.getPaddingEnd();
+        int adjustedMarginEnd =
+                dp.getHotseatProfile().getBarEndOffset() - buttonContainer.getPaddingEnd();
         if (InvariantDeviceProfile.INSTANCE.get(context)
                 .getDeviceProfile(context).isTaskbarPresent && adjustedMarginEnd > 0) {
             ((LinearLayout.LayoutParams) buttonContainer.getLayoutParams()).setMarginEnd(

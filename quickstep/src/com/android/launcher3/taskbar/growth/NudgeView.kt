@@ -68,7 +68,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         // constraint to reduce the number of lines of text and hopefully free up some height.
         activityContext.dragLayer.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED)
         if (
-            measuredHeight + activityContext.deviceProfile.taskbarHeight >=
+            measuredHeight + activityContext.deviceProfile.taskbarProfile.height >=
                 activityContext.deviceProfile.deviceProperties.availableHeightPx
         ) {
             updateLayoutParams { width = LayoutParams.MATCH_PARENT }

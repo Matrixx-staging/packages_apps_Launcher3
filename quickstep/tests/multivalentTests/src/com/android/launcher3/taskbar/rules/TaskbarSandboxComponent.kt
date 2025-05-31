@@ -22,6 +22,7 @@ import com.android.launcher3.Flags
 import com.android.launcher3.LauncherPrefChangeListener
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.LauncherPrefs.Companion.TASKBAR_PINNING
+import com.android.launcher3.compose.core.widgetpicker.NoOpWidgetPickerModule
 import com.android.launcher3.concurrent.ExecutorsModule
 import com.android.launcher3.dagger.ApiWrapperModule
 import com.android.launcher3.dagger.AppModule
@@ -86,6 +87,7 @@ interface TaskbarSandboxComponent : LauncherAppComponent {
             TaskbarSandboxWmProxyModule::class,
             TaskbarPerDisplayReposModule::class,
             DesktopVisibilityControllerModule::class,
+            NoOpWidgetPickerModule::class,
         ]
 )
 interface AllTaskbarSandboxModules
@@ -107,7 +109,18 @@ constructor(
 ) : DisplayController(context, wmProxy, prefs, lifecycle) {
 
     var infoModifier: ((Info) -> Info)? = null
-    var infoModifierForDisplay: ((Info?) -> Info?)? = null
+
+    // When overview on CD is enabled, DisplayController queries getInfoForDisplay instead of
+    // getInfo for the primary (virtual) display used in tests. So, override it to get info from the
+    // default display.
+    private val defaultInfoModifierForDisplay: ((Info?) -> Info?)? =
+        if (Flags.enableOverviewOnConnectedDisplays()) {
+            { _ -> info }
+        } else {
+            null
+        }
+
+    var infoModifierForDisplay: ((Info?) -> Info?)? = defaultInfoModifierForDisplay
 
     private var prefListener: LauncherPrefChangeListener? = null
 
@@ -141,8 +154,10 @@ constructor(
                 .also { prefs.addListener(it, TASKBAR_PINNING) }
     }
 
-    fun removeTaskbarPinningPrefListener() {
+    fun cleanup() {
         prefListener?.let { prefs.removeListener(it, TASKBAR_PINNING) }
+        infoModifier = null
+        infoModifierForDisplay = defaultInfoModifierForDisplay
     }
 }
 

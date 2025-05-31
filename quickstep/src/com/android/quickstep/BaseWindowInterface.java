@@ -18,7 +18,6 @@ package com.android.quickstep;
 import static com.android.app.animation.Interpolators.ACCELERATE_2;
 import static com.android.app.animation.Interpolators.INSTANT;
 import static com.android.app.animation.Interpolators.LINEAR;
-import static com.android.launcher3.MotionEventsUtils.isTrackpadMultiFingerSwipe;
 import static com.android.quickstep.AbsSwipeUpHandler.RECENTS_ATTACH_DURATION;
 import static com.android.quickstep.util.RecentsAtomicAnimationFactory.INDEX_RECENTS_FADE_ANIM;
 import static com.android.quickstep.util.RecentsAtomicAnimationFactory.INDEX_RECENTS_TRANSLATE_X_ANIM;
@@ -30,7 +29,6 @@ import static com.android.quickstep.views.RecentsView.TASK_SECONDARY_TRANSLATION
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
-import android.view.MotionEvent;
 
 import androidx.annotation.Nullable;
 
@@ -83,14 +81,6 @@ public abstract class BaseWindowInterface extends
     public final boolean isStarted() {
         RecentsWindowManager windowManager = getCreatedContainer();
         return windowManager != null && windowManager.isStarted();
-    }
-
-    public boolean deferStartingActivity(RecentsAnimationDeviceState deviceState, MotionEvent ev) {
-        TaskbarUIController controller = getTaskbarController();
-        boolean isEventOverBubbleBarStashHandle =
-                controller != null && controller.isEventOverBubbleBarViews(ev);
-        return deviceState.isInDeferredGestureRegion(ev) || deviceState.isImeRenderingNavButtons()
-                || isTrackpadMultiFingerSwipe(ev) || isEventOverBubbleBarStashHandle;
     }
 
     /**

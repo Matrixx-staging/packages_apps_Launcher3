@@ -17,10 +17,10 @@ package com.android.launcher3.graphics;
 
 import static com.android.launcher3.BuildConfig.IS_DEBUG_DEVICE;
 import static com.android.launcher3.Flags.enableLauncherIconShapes;
-import static com.android.launcher3.graphics.PreviewSurfaceRenderer.KEY_BITMAP_GENERATION_DELAY_MS;
-import static com.android.launcher3.graphics.PreviewSurfaceRenderer.KEY_VIEW_HEIGHT;
-import static com.android.launcher3.graphics.PreviewSurfaceRenderer.KEY_VIEW_WIDTH;
-import static com.android.launcher3.graphics.PreviewSurfaceRenderer.MIN_BITMAP_GENERATION_DELAY_MS;
+import static com.android.launcher3.preview.PreviewSurfaceRenderer.KEY_BITMAP_GENERATION_DELAY_MS;
+import static com.android.launcher3.preview.PreviewSurfaceRenderer.KEY_VIEW_HEIGHT;
+import static com.android.launcher3.preview.PreviewSurfaceRenderer.KEY_VIEW_WIDTH;
+import static com.android.launcher3.preview.PreviewSurfaceRenderer.MIN_BITMAP_GENERATION_DELAY_MS;
 import static com.android.launcher3.graphics.ThemeManager.PREF_ICON_SHAPE;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
@@ -54,6 +54,7 @@ import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.model.BgDataModel;
+import com.android.launcher3.preview.PreviewSurfaceRenderer;
 import com.android.launcher3.shapes.IconShapeModel;
 import com.android.launcher3.shapes.ShapesProvider;
 import com.android.launcher3.util.ApiWrapper;
@@ -127,6 +128,7 @@ public class GridCustomizationsProxy implements ProxyProvider {
     private static final String METHOD_GET_PREVIEW = "get_preview";
     public static final String METHOD_GET_PREVIEW_BITMAP = "get_preview_bitmap";
 
+    /** These methods are used to set monochrome theme */
     private static final String GET_ICON_THEMED = "/get_icon_themed";
     private static final String SET_ICON_THEMED = "/set_icon_themed";
     private static final String ICON_THEMED = "/icon_themed";

@@ -31,6 +31,7 @@ import com.android.launcher3.DropTarget
 import com.android.launcher3.DropTarget.DragObject
 import com.android.launcher3.dragndrop.DragOptions
 import com.android.launcher3.model.data.AppInfo
+import com.android.launcher3.taskbar.bubbles.BubbleBarController.BubbleBarLocationListener
 import com.android.quickstep.SystemUiProxy
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation
 import com.android.wm.shell.shared.bubbles.DeviceConfig
@@ -44,7 +45,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.any
+import org.mockito.kotlin.clearInvocations
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.stub
@@ -61,6 +64,7 @@ class DragToBubbleControllerTest {
     private val container = FrameLayout(context)
     private val bubbleBarViewController: BubbleBarViewController = mock()
     private val systemUiProxy: SystemUiProxy = mock()
+    private val bubbleBarLocationListener: BubbleBarLocationListener = mock()
     private val bubbleBarPropertiesProvider = FakeBubbleBarPropertiesProvider()
     private val testDragZonesFactory = createTestDragZoneFactory()
     private val dragObject = DragObject(context)
@@ -86,10 +90,12 @@ class DragToBubbleControllerTest {
 
     @Before
     fun setUp() {
+        prepareBubbleBarViewController()
         dragToBubbleController = DragToBubbleController(context, container)
         dragToBubbleController.init(
             bubbleBarViewController,
             bubbleBarPropertiesProvider,
+            bubbleBarLocationListener,
             systemUiProxy,
         )
         dragToBubbleController.dragZoneFactory = testDragZonesFactory
@@ -104,6 +110,7 @@ class DragToBubbleControllerTest {
         assertThat(secondDropTargetView!!.parent).isEqualTo(container)
         assertThat(dropTargetView.alpha).isEqualTo(0f)
         assertThat(secondDropTargetView!!.alpha).isEqualTo(0f)
+        assertThat(dragToBubbleController.isItemDropHandled).isFalse()
     }
 
     @Test
@@ -235,11 +242,166 @@ class DragToBubbleControllerTest {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             dragObject.updateXYToCenterOf(leftDropTargetRect)
             bubbleBarLeftDropTarget.onDragEnter(dragObject)
-            bubbleBarLeftDropTarget.onDragExit(dragObject)
             bubbleBarLeftDropTarget.onDrop(dragObject, DragOptions())
+            assertThat(dragToBubbleController.isItemDropHandled).isTrue()
+            bubbleBarLeftDropTarget.onDragExit(dragObject)
         }
 
         verify(systemUiProxy).showAppBubble(itemIntent, appInfo.user, BubbleBarLocation.LEFT)
+    }
+
+    @Test
+    fun dragExitRightZone_noBubbles_listenerNotNotified() {
+        // Scenario: No bubbles. Drag enters RIGHT, then exits to no particular zone.
+        // This is distinct as it starts on the default side.
+        prepareBubbleBarViewController(
+            hasBubbles = false,
+            bubbleBarLocation = BubbleBarLocation.RIGHT,
+        )
+        dragToBubbleController.onDragStart(dragObject, DragOptions())
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            dragObject.updateXYToCenterOf(rightDropTargetRect)
+            bubbleBarRightDropTarget.onDragEnter(dragObject) // Location is the same
+        }
+        verify(bubbleBarLocationListener, never())
+            .onBubbleBarLocationAnimated(BubbleBarLocation.RIGHT)
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            dragObject.updateXY(0, 0) // Move out of all zones
+            bubbleBarRightDropTarget.onDragExit(dragObject)
+        }
+
+        // Exiting the RIGHT zone (which is the default) should not re-notify of RIGHT
+        verify(bubbleBarLocationListener, never())
+            .onBubbleBarLocationAnimated(BubbleBarLocation.RIGHT)
+    }
+
+    @Test
+    fun onDragEnd_noBubbles_wasDraggingLeft_listenerNotifiedWithDefaultRightLocationAnimated() {
+        val startingLocation = BubbleBarLocation.RIGHT
+        // Scenario: No bubbles. Drag was over LEFT zone. Drag ends.
+        prepareBubbleBarViewController(hasBubbles = false, bubbleBarLocation = startingLocation)
+        dragToBubbleController.onDragStart(dragObject, DragOptions())
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            dragObject.updateXYToCenterOf(leftDropTargetRect)
+            bubbleBarLeftDropTarget.onDragEnter(dragObject)
+        }
+        // Notifies onBubbleBarLocationAnimated(LEFT)
+        verify(bubbleBarLocationListener).onBubbleBarLocationAnimated(BubbleBarLocation.LEFT)
+        clearInvocations(bubbleBarLocationListener)
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            dragToBubbleController.onDragEnd()
+        }
+        assertThat(dragToBubbleController.isItemDropHandled).isFalse()
+
+        // After drag ends (and no bubbles), the listener should be notified of the default location
+        verify(bubbleBarLocationListener).onBubbleBarLocationAnimated(startingLocation)
+    }
+
+    @Test
+    fun onDragEnd_noBubbles_wasDraggingRight_listenerNotifiedWithDefaultRightLocationAnimated() {
+        // Scenario: No bubbles. Drag was over RIGHT zone (default side). Drag ends.
+        prepareBubbleBarViewController(hasBubbles = false)
+        dragToBubbleController.onDragStart(dragObject, DragOptions())
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            dragObject.updateXYToCenterOf(rightDropTargetRect)
+        }
+        verify(bubbleBarLocationListener, never())
+            .onBubbleBarLocationAnimated(BubbleBarLocation.RIGHT)
+        clearInvocations(bubbleBarLocationListener)
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            dragObject.updateXY(0, 0)
+            bubbleBarLeftDropTarget.onDragExit(dragObject)
+            dragToBubbleController.onDragEnd()
+        }
+
+        // After drag ends (and no bubbles), listener  should not be notified of the default
+        // location.
+        verify(bubbleBarLocationListener, never())
+            .onBubbleBarLocationAnimated(BubbleBarLocation.RIGHT)
+    }
+
+    @Test
+    fun dragEnterLeftZone_bubblesOnLeft_listenerNotNotified() {
+        // Scenario: Bubbles on LEFT. Drag enters LEFT zone.
+        prepareBubbleBarViewController(
+            hasBubbles = true,
+            bubbleBarLocation = BubbleBarLocation.LEFT,
+        )
+        dragToBubbleController.onDragStart(dragObject, DragOptions())
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            dragObject.updateXYToCenterOf(leftDropTargetRect)
+            bubbleBarLeftDropTarget.onDragEnter(dragObject)
+        }
+
+        // Bubbles are already on the LEFT, and drag enters LEFT.
+        // No new animation to LEFT should be triggered by the zone entry itself.
+        verify(bubbleBarLocationListener, never())
+            .onBubbleBarLocationAnimated(BubbleBarLocation.LEFT)
+    }
+
+    @Test
+    fun onDragEnd_bubblesOnLeft_defaultIsLeft_wasDraggingRight_listenerNotifiedLeftAnimated() {
+        // Scenario: Bubbles on LEFT. Drag was over RIGHT zone. Drag ends.
+        prepareBubbleBarViewController(
+            hasBubbles = true,
+            bubbleBarLocation = BubbleBarLocation.LEFT,
+        )
+        dragToBubbleController.onDragStart(dragObject, DragOptions())
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            dragObject.updateXYToCenterOf(rightDropTargetRect)
+            bubbleBarRightDropTarget.onDragEnter(dragObject) // Notifies Animated(RIGHT)
+        }
+        verify(bubbleBarLocationListener).onBubbleBarLocationAnimated(BubbleBarLocation.RIGHT)
+        clearInvocations(bubbleBarLocationListener) // Clear the Animated(RIGHT)
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            dragObject.updateXY(0, 0)
+            bubbleBarLeftDropTarget.onDragExit(dragObject)
+            dragToBubbleController.onDragEnd()
+        }
+
+        // Bubble bar's final animated location should be LEFT.
+        verify(bubbleBarLocationListener).onBubbleBarLocationAnimated(BubbleBarLocation.LEFT)
+    }
+
+    @Test
+    fun dragEnterLeftThenExitToNoZoneThenEnterRight_noBubbles_listenerSequenceCorrectAnimated() {
+        // Scenario: No bubbles. Complex drag path: Left -> None -> Right
+        prepareBubbleBarViewController(hasBubbles = false)
+        dragToBubbleController.onDragStart(dragObject, DragOptions())
+        clearInvocations(bubbleBarLocationListener)
+
+        val inOrder = inOrder(bubbleBarLocationListener)
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            // 1. Enter Left
+            dragObject.updateXYToCenterOf(leftDropTargetRect)
+            bubbleBarLeftDropTarget.onDragEnter(dragObject)
+
+            // 2. Exit Left to no zone
+            dragObject.updateXY(0, 0)
+            bubbleBarLeftDropTarget.onDragExit(dragObject)
+
+            // 3. Enter Right
+            dragObject.updateXYToCenterOf(rightDropTargetRect)
+            bubbleBarRightDropTarget.onDragEnter(dragObject)
+        }
+
+        inOrder
+            .verify(bubbleBarLocationListener)
+            .onBubbleBarLocationAnimated(BubbleBarLocation.LEFT)
+        // Revert to default, following enter of the same zone should not trigger updated
+        inOrder
+            .verify(bubbleBarLocationListener)
+            .onBubbleBarLocationAnimated(BubbleBarLocation.RIGHT)
     }
 
     private fun prepareBubbleBarViewController(

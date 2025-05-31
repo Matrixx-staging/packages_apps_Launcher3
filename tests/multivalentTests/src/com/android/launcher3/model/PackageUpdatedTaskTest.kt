@@ -205,7 +205,7 @@ class PackageUpdatedTaskTest {
         verify(mAllAppsList).updateDisabledFlags(any(), any())
         verify(mockTaskController).bindUpdatedWorkspaceItems(listOf(expectedWorkspaceItem))
         assertThat(mAllAppsList.getAndResetChangeFlag()).isTrue()
-        assertThat(appsListRepo.appsListStateFlow.value.apps).isNotEmpty()
+        assertThat(appsListRepo.appsListStateRef.value.apps).isNotEmpty()
     }
 
     @Test
@@ -224,7 +224,7 @@ class PackageUpdatedTaskTest {
         verify(mAllAppsList).updateDisabledFlags(any(), any())
         verify(mockTaskController).bindUpdatedWorkspaceItems(emptyList())
         assertThat(mAllAppsList.getAndResetChangeFlag()).isFalse()
-        assertThat(appsListRepo.appsListStateFlow.value.apps).isEmpty()
+        assertThat(appsListRepo.appsListStateRef.value.apps).isEmpty()
     }
 
     @EnableFlags(FLAG_ENABLE_PRIVATE_SPACE)

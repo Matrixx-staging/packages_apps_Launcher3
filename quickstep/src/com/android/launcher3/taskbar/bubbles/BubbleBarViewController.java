@@ -356,6 +356,11 @@ public class BubbleBarViewController {
         };
     }
 
+    /** Returns the overflow bubble. */
+    public BubbleBarOverflow getOverflowBubble() {
+        return mOverflowBubble;
+    }
+
     private void onBubbleClicked(BubbleView bubbleView) {
         if (mBubbleBarPinning.isAnimating()) return;
         bubbleView.markSeen();
@@ -560,6 +565,7 @@ public class BubbleBarViewController {
         mBarView.showDropTarget(showingDropTarget);
     }
 
+    //TODO(b/411505605) remove unused IPC calls and code
     /**
      * Notifies the controller that a drag event is over the Bubble Bar drop zone. The controller
      * will display the appropriate drop target and enter drop target mode. The controller will also
@@ -854,7 +860,7 @@ public class BubbleBarViewController {
         float mediumIconSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
                 APP_ICON_MEDIUM_DP, dm);
         float smallMediumThreshold = (smallIconSize + mediumIconSize) / 2f;
-        int taskbarIconSize = deviceProfile.taskbarIconSize;
+        int taskbarIconSize = deviceProfile.getTaskbarProfile().getIconSize();
         return taskbarIconSize <= smallMediumThreshold
                 ? res.getDimensionPixelSize(R.dimen.bubblebar_icon_size_small) :
                 res.getDimensionPixelSize(R.dimen.bubblebar_icon_size);
@@ -872,7 +878,7 @@ public class BubbleBarViewController {
         float largeIconSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
                 APP_ICON_LARGE_DP, dm);
         float mediumLargeThreshold = (mediumIconSize + largeIconSize) / 2f;
-        return deviceProfile.taskbarIconSize >= mediumLargeThreshold
+        return deviceProfile.getTaskbarProfile().getIconSize() >= mediumLargeThreshold
                 ? res.getDimensionPixelSize(R.dimen.bubblebar_icon_spacing_large) :
                 res.getDimensionPixelSize(R.dimen.bubblebar_icon_spacing);
     }
@@ -949,9 +955,11 @@ public class BubbleBarViewController {
         int persistentSpacingSize = res
                 .getDimensionPixelSize(R.dimen.bubblebar_icon_spacing_persistent_taskbar);
         int persistentBubbleBarSize = persistentBubbleSize + persistentSpacingSize * 2;
-        int persistentTaskbarHeight = activity.getPersistentTaskbarDeviceProfile().taskbarHeight;
+        int persistentTaskbarHeight =
+                activity.getPersistentTaskbarDeviceProfile().getTaskbarProfile().getHeight();
         int persistentBubbleBarY = (persistentTaskbarHeight - persistentBubbleBarSize) / 2;
-        int transientBubbleBarY = activity.getTransientTaskbarDeviceProfile().taskbarBottomMargin;
+        int transientBubbleBarY =
+                activity.getTransientTaskbarDeviceProfile().getTaskbarProfile().getBottomMargin();
         return transientBubbleBarY - persistentBubbleBarY;
     }
 

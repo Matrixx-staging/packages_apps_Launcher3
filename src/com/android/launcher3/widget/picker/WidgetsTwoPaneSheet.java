@@ -403,7 +403,8 @@ public class WidgetsTwoPaneSheet extends WidgetsFullSheet {
             return Float.MAX_VALUE;
         }
 
-        return (mDeviceProfile.getDeviceProperties().getHeightPx() - mDeviceProfile.bottomSheetTopPadding)
+        return (mDeviceProfile.getDeviceProperties().getHeightPx()
+                - mDeviceProfile.getBottomSheetProfile().getBottomSheetTopPadding())
                 * RECOMMENDATION_SECTION_HEIGHT_RATIO_TWO_PANE;
     }
 

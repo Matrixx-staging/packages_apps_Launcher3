@@ -25,7 +25,6 @@ import android.widget.FrameLayout.LayoutParams.MATCH_PARENT
 import android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
 import androidx.activity.ComponentActivity
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.filters.FlakyTest
 import com.android.launcher3.R
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation
 import com.google.android.apps.nexuslauncher.imagecomparison.goldenpathmanager.ViewScreenshotGoldenPathManager
@@ -79,14 +78,13 @@ class BubbleBarViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
         }
     }
 
-    @FlakyTest(bugId = 416207075)
     @Test
     fun bubbleBarView_collapsed_twoBubbles() {
         screenshotRule.screenshotTest("bubbleBarView_collapsed_twoBubbles") { activity ->
             activity.actionBar?.hide()
             setupBubbleBarView()
-            bubbleBarView.addBubble(createBubble("key1", Color.GREEN), false)
-            bubbleBarView.addBubble(createBubble("key2", Color.CYAN), false)
+            bubbleBarView.addBubble(createBubble("key1", Color.GREEN), true)
+            bubbleBarView.addBubble(createBubble("key2", Color.CYAN), true)
             val container = FrameLayout(context)
             val lp = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
             container.layoutParams = lp

@@ -17,7 +17,9 @@
 package com.android.quickstep.views
 
 import android.content.Context
+import android.graphics.Rect
 import android.util.AttributeSet
+import android.view.TouchDelegate
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
@@ -32,6 +34,29 @@ class TaskHeaderView @JvmOverloads constructor(context: Context, attrs: Attribut
     private val headerTitleView: TextView by lazy { findViewById(R.id.header_app_title) }
     private val headerIconView: ImageView by lazy { findViewById(R.id.header_app_icon) }
     private val headerCloseButton: ImageButton by lazy { findViewById(R.id.header_close_button) }
+
+    override fun onFinishInflate() {
+        super.onFinishInflate()
+        // Post to ensure the button has been laid out and has its dimensions.
+        headerCloseButton.post {
+            val delegateArea = Rect()
+            headerCloseButton.getHitRect(delegateArea)
+
+            // Calculate the desired touch area size in pixels.
+            val touchTargetSize =
+                resources.getDimensionPixelSize(
+                    R.dimen.task_thumbnail_header_close_button_hit_rect_size
+                )
+
+            // Expand the hit rect to the desired touch target size, centered on the button.
+            val sizeDifferenceX = (touchTargetSize - delegateArea.width()) / 2
+            val sizeDifferenceY = (touchTargetSize - delegateArea.height()) / 2
+            delegateArea.inset(-sizeDifferenceX, -sizeDifferenceY)
+
+            // The TouchDelegate is set on the parent `TaskHeaderView`.
+            touchDelegate = TouchDelegate(delegateArea, headerCloseButton)
+        }
+    }
 
     fun setState(taskHeaderState: TaskHeaderUiState) {
         when (taskHeaderState) {

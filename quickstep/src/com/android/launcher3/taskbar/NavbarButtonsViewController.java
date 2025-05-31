@@ -167,6 +167,9 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
             FLAG_NOTIFICATION_SHADE_EXPANDED | FLAG_VOICE_INTERACTION_WINDOW_SHOWING;
 
     private static final String NAV_BUTTONS_SEPARATE_WINDOW_TITLE = "Taskbar Nav Buttons";
+    private static final String SUW_THEME_SYSTEM_PROPERTY = "setupwizard.theme";
+    private static final String GLIF_EXPRESSIVE_THEME = "glif_expressive";
+    private static final String GLIF_EXPRESSIVE_LIGHT_THEME = "glif_expressive_light";
 
     private static final double SQUARE_ASPECT_RATIO_BOTTOM_BOUND = 0.95;
     private static final double SQUARE_ASPECT_RATIO_UPPER_BOUND = 1.05;
@@ -278,9 +281,9 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         if (mContext.isPhoneMode()) {
             mTaskbarTransitions = new TaskbarTransitions(mContext, mNavButtonsView);
         }
-        String SUWTheme = SystemProperties.get("setupwizard.theme", "");
-        mIsExpressiveThemeEnabled = SUWTheme.equals("glif_expressive")
-                || SUWTheme.equals("glif_expressive_light");
+        String SUWTheme = SystemProperties.get(SUW_THEME_SYSTEM_PROPERTY, "");
+        mIsExpressiveThemeEnabled = SUWTheme.equals(GLIF_EXPRESSIVE_THEME)
+                || SUWTheme.equals(GLIF_EXPRESSIVE_LIGHT_THEME);
     }
 
     /**
@@ -363,7 +366,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
                     flags -> (flags & flagsToRemoveTranslation) != 0, AnimatedFloat.VALUE,
                     1, 0));
             // Center nav buttons in new height for IME.
-            float transForIme = (mContext.getDeviceProfile().taskbarHeight
+            float transForIme = (mContext.getDeviceProfile().getTaskbarProfile().getHeight()
                     - mControllers.taskbarInsetsController.getTaskbarHeightForIme()) / 2f;
             // For gesture nav, nav buttons only show for IME anyway so keep them translated down.
             float defaultButtonTransY = alwaysShowButtons ? 0 : transForIme;
@@ -391,13 +394,6 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
                         mControllers.taskbarDragLayerController.getNavbarBackgroundAlpha(),
                         flags -> (flags & FLAG_ONLY_BACK_FOR_BOUNCER_VISIBLE) != 0));
             }
-        } else if (!mIsImeRenderingNavButtons) {
-            View imeDownButton = addButton(R.drawable.ic_sysbar_back, BUTTON_BACK,
-                    mStartContextualContainer, mControllers.navButtonController, R.id.back);
-            imeDownButton.setRotation(Utilities.isRtl(resources) ? 90 : -90);
-            // Only show when IME is visible.
-            mPropertyHolders.add(new StatePropertyHolder(imeDownButton,
-                    flags -> (flags & FLAG_IME_VISIBLE) != 0));
         }
         mFloatingRotationButton = new FloatingRotationButton(
                 ENABLE_TASKBAR_NAVBAR_UNIFICATION ? mNavigationBarPanelContext : mContext,
@@ -531,6 +527,20 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         mSpace.setOnClickListener(view -> navButtonController.onButtonClick(BUTTON_SPACE, view));
         mSpace.setOnLongClickListener(view ->
                 navButtonController.onButtonLongClick(BUTTON_SPACE, view));
+    }
+
+    /**
+     * Method to determine whether the Navigation Bar is viewable in Setup Wizard
+     *
+     * @return {@code true} if the device is in Setup Wizard, the expressive theme is enabled,
+     * and Simple View is NOT enabled
+     */
+    boolean isNavbarHiddenInSUW() {
+        if (mContext == null) {
+            return false;
+        }
+        return !mContext.isUserSetupComplete() && mIsExpressiveThemeEnabled
+                && !mContext.isSimpleViewEnabled();
     }
 
     /**
@@ -1423,7 +1433,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
             // Skip additional translations on the nav bar container while in SUW layout
             return 0;
         } else if (mContext.shouldStartAlignTaskbar()) {
-            int navBarSpacing = dp.inlineNavButtonsEndSpacingPx;
+            int navBarSpacing = dp.getHotseatProfile().getInlineNavButtonsEndSpacingPx();
             // If the taskbar is start aligned the navigation bar is aligned to the start or end of
             // the container, depending on the bubble bar location
             if (isNavbarOnRight) {

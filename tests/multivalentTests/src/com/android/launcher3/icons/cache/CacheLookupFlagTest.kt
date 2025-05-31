@@ -21,8 +21,8 @@ import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
-import com.android.launcher3.Flags
 import com.android.launcher3.icons.cache.CacheLookupFlag.Companion.DEFAULT_LOOKUP_FLAG
+import com.android.systemui.shared.Flags.FLAG_EXTENDIBLE_THEME_MANAGER
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -107,14 +107,14 @@ class CacheLookupFlagTest {
         )
     }
 
-    @DisableFlags(Flags.FLAG_EXTENDIBLE_THEME_MANAGER)
+    @DisableFlags(FLAG_EXTENDIBLE_THEME_MANAGER)
     @Test
     fun `isVisuallyLessThan does not depend on theme with flag off`() {
         assertFalse(DEFAULT_LOOKUP_FLAG.withThemeIcon().isVisuallyLessThan(DEFAULT_LOOKUP_FLAG))
         assertFalse(DEFAULT_LOOKUP_FLAG.isVisuallyLessThan(DEFAULT_LOOKUP_FLAG.withThemeIcon()))
     }
 
-    @EnableFlags(Flags.FLAG_EXTENDIBLE_THEME_MANAGER)
+    @EnableFlags(FLAG_EXTENDIBLE_THEME_MANAGER)
     @Test
     fun `isVisuallyLessThan depends on theme with flag on`() {
         assertFalse(DEFAULT_LOOKUP_FLAG.withThemeIcon().isVisuallyLessThan(DEFAULT_LOOKUP_FLAG))

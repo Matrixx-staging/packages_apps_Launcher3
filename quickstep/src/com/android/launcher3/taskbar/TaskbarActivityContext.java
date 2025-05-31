@@ -44,6 +44,7 @@ import static com.android.launcher3.taskbar.TaskbarStashController.SHOULD_BUBBLE
 import static com.android.launcher3.testing.shared.ResourceUtils.getBoolByName;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 import static com.android.quickstep.util.AnimUtils.completeRunnableListCallback;
+import static com.android.quickstep.util.ExternalDisplaysKt.isExternalDisplay;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_NOTIFICATION_PANEL_VISIBLE;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_VOICE_INTERACTION_WINDOW_SHOWING;
 import static com.android.wm.shell.Flags.enableBubbleBar;
@@ -236,9 +237,9 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     private boolean mImeDrawsImeNavBar;
 
     private final boolean mIsSafeModeEnabled;
-    private final boolean mIsUserSetupComplete;
-    private final boolean mIsNavBarForceVisible;
-    private final boolean mIsNavBarKidsMode;
+    private boolean mIsUserSetupComplete;
+    private boolean mIsNavBarForceVisible;
+    private boolean mIsNavBarKidsMode;
 
     private boolean mIsDestroyed = false;
     private boolean mAddedWindow = false;
@@ -283,15 +284,6 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         mImeDrawsImeNavBar = getBoolByName(IME_DRAWS_IME_NAV_BAR_RES_NAME, resources, false);
         mIsSafeModeEnabled = TraceHelper.allowIpcs("isSafeMode",
                 () -> getPackageManager().isSafeMode());
-
-        // TODO(b/244231596) For shared Taskbar window, update this value in applyDeviceProfile()
-        //  instead so to get correct value when recreating the taskbar
-        SettingsCache settingsCache = SettingsCache.INSTANCE.get(this);
-        mIsUserSetupComplete = settingsCache.getValue(
-                Settings.Secure.getUriFor(Settings.Secure.USER_SETUP_COMPLETE), 0);
-        mIsNavBarKidsMode = settingsCache.getValue(
-                Settings.Secure.getUriFor(Settings.Secure.NAV_BAR_KIDS_MODE), 0);
-        mIsNavBarForceVisible = mIsNavBarKidsMode;
 
         // Get display and corners first, as views might use them in constructor.
         Context c = getApplicationContext();
@@ -480,7 +472,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             deviceProfile.hotseatQsbWidth = originDeviceProfile.hotseatQsbWidth;
 
             // Update icon size
-            deviceProfile.iconSizePx = deviceProfile.taskbarIconSize;
+            deviceProfile.iconSizePx = deviceProfile.getTaskbarProfile().getIconSize();
             deviceProfile.updateIconSize(1f, this);
         };
         mDeviceProfile = originDeviceProfile.toBuilder(this)
@@ -502,6 +494,13 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                     .build();
         }
         mNavMode = getNavigationMode();
+
+        SettingsCache settingsCache = SettingsCache.INSTANCE.get(this);
+        mIsUserSetupComplete = settingsCache.getValue(
+                Settings.Secure.getUriFor(Settings.Secure.USER_SETUP_COMPLETE), 0);
+        mIsNavBarKidsMode = settingsCache.getValue(
+                Settings.Secure.getUriFor(Settings.Secure.NAV_BAR_KIDS_MODE), 0);
+        mIsNavBarForceVisible = mIsNavBarKidsMode;
     }
 
     /** Called when the visibility of the bubble bar changed. */
@@ -817,7 +816,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
 
     /** Returns whether taskbar should start align. */
     public boolean shouldStartAlignTaskbar() {
-        return isThreeButtonNav() && mDeviceProfile.startAlignTaskbar;
+        return isThreeButtonNav() && mDeviceProfile.getTaskbarProfile().isStartAlignTaskbar();
     }
 
     public boolean isGestureNav() {
@@ -1383,15 +1382,15 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             DeviceProfile transientTaskbarDp = mDeviceProfile.toBuilder(this)
                     .setIsTransientTaskbar(true).build();
 
-            taskbarWindowSize = transientTaskbarDp.taskbarHeight
-                    + (2 * transientTaskbarDp.taskbarBottomMargin)
+            taskbarWindowSize = transientTaskbarDp.getTaskbarProfile().getHeight()
+                    + (2 * transientTaskbarDp.getTaskbarProfile().getBottomMargin())
                     + Math.max(extraHeightForTaskbarTooltips, resources.getDimensionPixelSize(
                     R.dimen.transient_taskbar_shadow_blur));
             return Math.max(taskbarWindowSize, bubbleBarTop);
         }
 
 
-        taskbarWindowSize =  mDeviceProfile.taskbarHeight
+        taskbarWindowSize = mDeviceProfile.getTaskbarProfile().getHeight()
                 + getCornerRadius()
                 + extraHeightForTaskbarTooltips;
         return Math.max(taskbarWindowSize, bubbleBarTop);
@@ -1838,8 +1837,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                     return;
                 }
             }
-            if (isTaskbarShowingDesktopTasks()
-                    && DesktopModeFlags.ENABLE_DESKTOP_APP_LAUNCH_TRANSITIONS_BUGFIX.isTrue()) {
+            if (shouldLaunchInDesktop(displayId)) {
                 launchDesktopApp(intent, info, displayId);
             } else {
                 startActivity(intent, null);
@@ -1849,6 +1847,15 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                     .show();
             Log.e(TAG, "Unable to launch. tag=" + info + " intent=" + intent, e);
         }
+    }
+
+    private boolean shouldLaunchInDesktop(int displayId) {
+        if (!DesktopModeFlags.ENABLE_DESKTOP_APP_LAUNCH_TRANSITIONS_BUGFIX.isTrue()) {
+            return false;
+        }
+        // Always launch in freeform if in external display.
+        return (DesktopExperienceFlags.ENABLE_FREEFORM_DISPLAY_LAUNCH_PARAMS.isTrue()
+                && isExternalDisplay(displayId)) || isTaskbarShowingDesktopTasks();
     }
 
     private void launchDesktopApp(Intent intent, ItemInfo info, int displayId) {

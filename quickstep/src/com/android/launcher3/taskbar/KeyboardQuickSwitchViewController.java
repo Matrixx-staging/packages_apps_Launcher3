@@ -172,8 +172,9 @@ public class KeyboardQuickSwitchViewController {
         // Calculate the additional margin space that the KQS should move up for the transient
         // taskbar. The value of spaceForTaskbar is the distance between the bottom of the KQS
         // view with 0 bottom margin to the top of the transient taskbar view.
-        final int spaceForTaskbar = isTransientTaskbar ? dp.taskbarHeight + dp.taskbarBottomMargin
-                - dp.stashedTaskbarHeight : 0;
+        final int spaceForTaskbar = isTransientTaskbar ? dp.getTaskbarProfile().getHeight()
+                + dp.getTaskbarProfile().getBottomMargin()
+                - dp.getTaskbarProfile().getStashedTaskbarHeight() : 0;
         final int marginBottom = spaceForTaskbar + resources.getDimensionPixelSize(
                 R.dimen.keyboard_quick_switch_margin_bottom);
 
@@ -260,7 +261,7 @@ public class KeyboardQuickSwitchViewController {
         TaskbarActivityContext context = mControllers.taskbarActivityContext;
         final RemoteTransition slideInTransition = new RemoteTransition(new SlideInRemoteTransition(
                 Utilities.isRtl(mControllers.taskbarActivityContext.getResources()),
-                context.getDeviceProfile().overviewPageSpacing,
+                context.getDeviceProfile().getOverviewProfile().getPageSpacing(),
                 QuickStepContract.getWindowCornerRadius(context),
                 AnimationUtils.loadInterpolator(
                         context, android.R.interpolator.fast_out_extra_slow_in)),

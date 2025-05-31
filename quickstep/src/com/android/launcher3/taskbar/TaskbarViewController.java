@@ -231,14 +231,14 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
         mActivity = activity;
         mTransientTaskbarDp = mActivity.getTransientTaskbarDeviceProfile();
         mPersistentTaskbarDp = mActivity.getPersistentTaskbarDeviceProfile();
-        mTransientIconSize = mTransientTaskbarDp.taskbarIconSize;
-        mPersistentIconSize = mPersistentTaskbarDp.taskbarIconSize;
+        mTransientIconSize = mTransientTaskbarDp.getTaskbarProfile().getIconSize();
+        mPersistentIconSize = mPersistentTaskbarDp.getTaskbarProfile().getIconSize();
         mTaskbarView = taskbarView;
         mTaskbarIconAlpha = new MultiValueAlpha(mTaskbarView, NUM_ALPHA_CHANNELS);
         mTaskbarIconAlpha.setUpdateVisibility(true);
         mModelCallbacks = TaskbarModelCallbacksFactory.newInstance(mActivity)
                 .create(mActivity, mTaskbarView);
-        mTaskbarBottomMargin = activity.getDeviceProfile().taskbarBottomMargin;
+        mTaskbarBottomMargin = activity.getDeviceProfile().getTaskbarProfile().getBottomMargin();
         mStashedHandleHeight = activity.getResources()
                 .getDimensionPixelSize(R.dimen.taskbar_stashed_handle_height);
 
@@ -271,7 +271,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
         mControllers.runAfterInit(mTaskbarView::updatePinningPopupEventHandlers);
         mTaskbarView.getLayoutParams().height = mActivity.isPhoneMode()
                 ? mActivity.getResources().getDimensionPixelSize(R.dimen.taskbar_phone_size)
-                : mActivity.getDeviceProfile().taskbarHeight;
+                : mActivity.getDeviceProfile().getTaskbarProfile().getHeight();
 
         mTaskbarIconScaleForStash.updateValue(1f);
         float pinningValue =
@@ -687,17 +687,19 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
         // finally placing the icon in the middle of new taskbar background height.
         if (mControllers.getSharedState().startTaskbarVariantIsTransient) {
             float transY =
-                    mTransientTaskbarDp.taskbarBottomMargin + (mTransientTaskbarDp.taskbarHeight
+                    mTransientTaskbarDp.getTaskbarProfile().getBottomMargin() + (
+                            mTransientTaskbarDp.getTaskbarProfile().getHeight()
                             - mTaskbarView.getTransientTaskbarIconLayoutBounds().bottom)
-                            - (mPersistentTaskbarDp.taskbarHeight
-                                    - mTransientTaskbarDp.taskbarIconSize) / 2f;
+                            - (mPersistentTaskbarDp.getTaskbarProfile().getHeight()
+                                    - mTransientTaskbarDp.getTaskbarProfile().getIconSize()) / 2f;
             taskbarIconTranslationYForPinningValue = mapRange(scale, 0f, transY);
         } else {
             float transY =
-                    -mTransientTaskbarDp.taskbarBottomMargin + (mPersistentTaskbarDp.taskbarHeight
+                    -mTransientTaskbarDp.getTaskbarProfile().getBottomMargin() + (
+                            mPersistentTaskbarDp.getTaskbarProfile().getHeight()
                             - mTaskbarView.getTransientTaskbarIconLayoutBounds().bottom)
-                            - (mTransientTaskbarDp.taskbarHeight
-                                    - mTransientTaskbarDp.taskbarIconSize) / 2f;
+                            - (mTransientTaskbarDp.getTaskbarProfile().getHeight()
+                                    - mTransientTaskbarDp.getTaskbarProfile().getIconSize()) / 2f;
             taskbarIconTranslationYForPinningValue = mapRange(scale, transY, 0f);
         }
         return taskbarIconTranslationYForPinningValue;
@@ -982,12 +984,16 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
         Rect hotseatPadding = launcherDp.getHotseatLayoutPadding(mActivity);
         boolean isTransientTaskbar = mActivity.isTransientTaskbar();
 
-        float scaleUp = ((float) launcherDp.iconSizePx) / taskbarDp.taskbarIconSize;
+        float scaleUp = ((float) launcherDp.iconSizePx)
+                / taskbarDp.getTaskbarProfile().getIconSize();
         int borderSpacing = launcherDp.hotseatBorderSpace;
         int hotseatCellSize = DeviceProfile.calculateCellWidth(
-                launcherDp.getDeviceProperties().getAvailableWidthPx() - hotseatPadding.left - hotseatPadding.right,
+                launcherDp.getDeviceProperties().getAvailableWidthPx()
+                        - hotseatPadding.left
+                        - hotseatPadding.right,
                 borderSpacing,
-                launcherDp.numShownHotseatIcons);
+                launcherDp.numShownHotseatIcons
+        );
 
         boolean isToHome = mControllers.uiController.isIconAlignedWithHotseat();
         boolean isDeviceLocked = mControllers.taskbarStashController.isDeviceLocked();
@@ -1012,13 +1018,14 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
             }
         }
         int collapsedHeight = mActivity.getDefaultTaskbarWindowSize();
-        int expandedHeight = Math.max(collapsedHeight, taskbarDp.taskbarHeight + offsetY);
+        int expandedHeight = Math.max(collapsedHeight,
+                taskbarDp.getTaskbarProfile().getHeight() + offsetY);
         setter.addOnFrameListener(anim -> mActivity.setTaskbarWindowSize(
                 anim.getAnimatedFraction() > 0 ? expandedHeight : collapsedHeight));
 
         mTaskbarBottomMargin = isTransientTaskbar
-                ? mTransientTaskbarDp.taskbarBottomMargin
-                : mPersistentTaskbarDp.taskbarBottomMargin;
+                ? mTransientTaskbarDp.getTaskbarProfile().getBottomMargin()
+                : mPersistentTaskbarDp.getTaskbarProfile().getBottomMargin();
 
         int firstRecentTaskIndex = -1;
         int hotseatNavBarTranslationX = 0;
@@ -1078,9 +1085,10 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
                             INDEX_TASKBAR_PINNING_ANIM).getValue();
                 }
                 float halfQsbIconWidthDiff =
-                        (launcherDp.hotseatQsbWidth - taskbarDp.taskbarIconSize) / 2f;
-                float scale = ((float) taskbarDp.taskbarIconSize)
-                        / launcherDp.hotseatQsbVisualHeight;
+                        (launcherDp.hotseatQsbWidth - taskbarDp.getTaskbarProfile().getIconSize())
+                                / 2f;
+                float scale = ((float) taskbarDp.getTaskbarProfile().getIconSize())
+                        / launcherDp.getHotseatProfile().getQsbVisualHeight();
                 setter.addFloat(child, SCALE_PROPERTY, scale, 1f, interpolator);
 
                 float fromX = isRtl ? -halfQsbIconWidthDiff : halfQsbIconWidthDiff;

@@ -24,7 +24,6 @@ import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.content.Context;
 import android.graphics.Rect;
-import android.view.MotionEvent;
 import android.view.RemoteAnimationTarget;
 
 import androidx.annotation.Nullable;
@@ -35,6 +34,7 @@ import com.android.launcher3.statemanager.StateManager;
 import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.util.DaggerSingletonObject;
 import com.android.launcher3.util.DisplayController;
+import com.android.launcher3.views.ScrimColors;
 import com.android.quickstep.GestureState.GestureEndTarget;
 import com.android.quickstep.dagger.QuickstepBaseAppComponent;
 import com.android.quickstep.fallback.RecentsState;
@@ -48,6 +48,7 @@ import dagger.assisted.AssistedInject;
 
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+
 
 /**
  * {@link BaseWindowInterface} for recents when the default launcher is different than the
@@ -144,19 +145,9 @@ public final class FallbackWindowInterface extends BaseWindowInterface {
     }
 
     @Override
-    protected int getOverviewScrimColorForState(RecentsWindowManager container,
+    protected ScrimColors getOverviewScrimColorForState(RecentsWindowManager container,
             RecentsState state) {
         return state.getScrimColor(container.asContext());
-    }
-
-    @Override
-    public boolean deferStartingActivity(RecentsAnimationDeviceState deviceState, MotionEvent ev) {
-        // In non-gesture mode, user might be clicking on the home button which would directly
-        // start the home activity instead of going through recents. In that case, defer starting
-        // recents until we are sure it is a gesture.
-        return false;
-//        return !deviceState.isFullyGesturalNavMode();
-//                || super.deferStartingActivity(deviceState, ev);
     }
 
     @Override

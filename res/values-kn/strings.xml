@@ -138,8 +138,7 @@
     <string name="allow_rotation_title" msgid="7222049633713050106">"ಹೋಮ್ ಸ್ಕ್ರೀನ್ ತಿರುಗುವಿಕೆಯನ್ನು ಅನುಮತಿಸಿ"</string>
     <string name="allow_rotation_desc" msgid="8662546029078692509">"ಫೋನ್‌ ತಿರುಗಿಸಿದಾಗ"</string>
     <string name="landscape_mode_title" msgid="5138814555934843926">"ಲ್ಯಾಂಡ್‌ಸ್ಕೇಪ್ ಮೋಡ್"</string>
-    <!-- no translation found for landscape_mode_desc (3085236452297838664) -->
-    <skip />
+    <string name="landscape_mode_desc" msgid="3085236452297838664">"ಹೋಮ್ ಸ್ಕ್ರೀನ್ ಅನ್ನು ಲ್ಯಾಂಡ್‌ಸ್ಕೇಪ್ ಮೋಡ್‌ಗೆ ಸೆಟ್ ಮಾಡಿ"</string>
     <string name="notification_dots_title" msgid="9062440428204120317">"ನೋಟಿಫಿಕೇಶನ್ ಡಾಟ್‌ಗಳು"</string>
     <string name="notification_dots_desc_on" msgid="1679848116452218908">"ಆನ್ ಆಗಿದೆ"</string>
     <string name="notification_dots_desc_off" msgid="1760796511504341095">"ಆಫ್ ಆಗಿದೆ"</string>

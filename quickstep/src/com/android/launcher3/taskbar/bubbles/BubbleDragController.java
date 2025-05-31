@@ -30,6 +30,7 @@ import androidx.annotation.Nullable;
 import androidx.dynamicanimation.animation.FloatPropertyCompat;
 
 import com.android.launcher3.taskbar.TaskbarActivityContext;
+import com.android.launcher3.taskbar.bubbles.BubbleBarController.BubbleBarLocationListener;
 import com.android.wm.shell.shared.bubbles.BaseBubblePinController.LocationChangeListener;
 import com.android.wm.shell.shared.bubbles.BubbleAnythingFlagHelper;
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation;
@@ -89,6 +90,7 @@ public class BubbleDragController {
     private BubbleDismissController mBubbleDismissController;
     private BubbleBarPinController mBubbleBarPinController;
     private BubblePinController mBubblePinController;
+    private BubbleBarLocationListener mBubbleBarLocationListener;
     private final DropTargetManager mDropTargetManager;
     private final DragZoneFactory mDragZoneFactory;
     private final BubbleDragZoneChangedListener mBubbleDragZoneChangedListener;
@@ -143,12 +145,14 @@ public class BubbleDragController {
      * Should be careful to only access things that were created in constructors for now, as some
      * controllers may still be waiting for init().
      */
-    public void init(@NonNull BubbleControllers bubbleControllers) {
+    public void init(@NonNull BubbleControllers bubbleControllers,
+            BubbleBarLocationListener bubbleBarLocationListener) {
         mBubbleBarController = bubbleControllers.bubbleBarController;
         mBubbleBarViewController = bubbleControllers.bubbleBarViewController;
         mBubbleDismissController = bubbleControllers.bubbleDismissController;
         mBubbleBarPinController = bubbleControllers.bubbleBarPinController;
         mBubblePinController = bubbleControllers.bubblePinController;
+        mBubbleBarLocationListener = bubbleBarLocationListener;
         mBubbleDismissController.setListener(
                 stuck -> {
                     if (stuck) {
@@ -690,13 +694,19 @@ public class BubbleDragController {
             if (to instanceof DragZone.Bubble.Left
                     && mBubbleBarLocation != BubbleBarLocation.LEFT) {
                 if (draggedObject instanceof DraggedObject.Bubble) {
+                    // listener will be notified by BubbleBarController
                     mBubbleBarController.animateBubbleBarLocation(BubbleBarLocation.LEFT);
+                } else {
+                    // otherwise notify listener manually
+                    mBubbleBarLocationListener.onBubbleBarLocationAnimated(BubbleBarLocation.LEFT);
                 }
                 mBubbleBarLocation = BubbleBarLocation.LEFT;
             } else if (to instanceof DragZone.Bubble.Right
                     && mBubbleBarLocation != BubbleBarLocation.RIGHT) {
                 if (draggedObject instanceof DraggedObject.Bubble) {
                     mBubbleBarController.animateBubbleBarLocation(BubbleBarLocation.RIGHT);
+                } else {
+                    mBubbleBarLocationListener.onBubbleBarLocationAnimated(BubbleBarLocation.RIGHT);
                 }
                 mBubbleBarLocation = BubbleBarLocation.RIGHT;
             }

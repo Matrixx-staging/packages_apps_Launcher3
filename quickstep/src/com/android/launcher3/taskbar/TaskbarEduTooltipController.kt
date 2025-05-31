@@ -245,7 +245,7 @@ open class TaskbarEduTooltipController(context: Context) :
                             else R.dimen.taskbar_edu_features_tooltip_width_with_two_features
                         )
 
-                    bottomMargin += activityContext.deviceProfile.taskbarHeight
+                    bottomMargin += activityContext.deviceProfile.taskbarProfile.height
                 } else {
                     width =
                         resources.getDimensionPixelSize(
@@ -299,7 +299,7 @@ open class TaskbarEduTooltipController(context: Context) :
             handleEduAnimations(listOf(pinningAnim))
             updateLayoutParams<BaseDragLayer.LayoutParams> {
                 if (activityContext.isTransientTaskbar) {
-                    bottomMargin += activityContext.deviceProfile.taskbarHeight
+                    bottomMargin += activityContext.deviceProfile.taskbarProfile.height
                 }
                 // Unlike other tooltips, we want to align with taskbar divider rather than center.
                 gravity = Gravity.BOTTOM
@@ -356,7 +356,7 @@ open class TaskbarEduTooltipController(context: Context) :
             showDisclosureText(eduSubtitle)
             updateLayoutParams<BaseDragLayer.LayoutParams> {
                 if (activityContext.isTransientTaskbar) {
-                    bottomMargin += activityContext.deviceProfile.taskbarHeight
+                    bottomMargin += activityContext.deviceProfile.taskbarProfile.height
                 }
                 // Unlike other tooltips, we want to align with the all apps button rather than
                 // center.

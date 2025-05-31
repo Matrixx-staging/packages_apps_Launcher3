@@ -45,7 +45,6 @@ import com.android.launcher3.util.Wait;
 import com.android.launcher3.util.rule.FailureWatcher;
 import com.android.launcher3.util.rule.ShellCommandRule;
 import com.android.launcher3.util.rule.TestIsolationRule;
-import com.android.launcher3.util.rule.ViewCaptureRule;
 
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
@@ -105,12 +104,9 @@ public abstract class AbstractLauncherUiTest<LAUNCHER_TYPE extends Launcher,
 
     @Override
     protected TestRule getRulesInsideActivityMonitor() {
-        final ViewCaptureRule viewCaptureRule = new ViewCaptureRule(
-                Launcher.ACTIVITY_TRACKER::getCreatedContext);
         final RuleChain inner = RuleChain
                 .outerRule(new PortraitLandscapeRunner<>(this))
-                .around(new FailureWatcher(mLauncher, viewCaptureRule::getViewCaptureData))
-                // .around(viewCaptureRule) // b/315482167
+                .around(new FailureWatcher(mLauncher))
                 .around(new TestIsolationRule(mLauncher, true));
 
         return TestHelpers.isInLauncherProcess()

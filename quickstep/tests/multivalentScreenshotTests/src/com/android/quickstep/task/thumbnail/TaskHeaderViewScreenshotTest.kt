@@ -19,6 +19,7 @@ package com.android.quickstep.task.thumbnail
 import android.content.Context
 import android.graphics.drawable.BitmapDrawable
 import android.view.LayoutInflater
+import android.widget.FrameLayout
 import com.android.launcher3.R
 import com.android.quickstep.task.thumbnail.SplashHelper.createSplash
 import com.android.quickstep.views.TaskHeaderView
@@ -31,6 +32,7 @@ import platform.test.runner.parameterized.Parameters
 import platform.test.screenshot.DeviceEmulationSpec
 import platform.test.screenshot.Displays
 import platform.test.screenshot.ViewScreenshotTestRule
+import platform.test.screenshot.ViewScreenshotTestRule.Mode.WrapContent
 import platform.test.screenshot.getEmulatedDevicePathConfig
 
 /** Screenshot tests for [TaskHeaderView]. */
@@ -45,18 +47,42 @@ class TaskHeaderViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
 
     @Test
     fun taskHeaderView_showHeader() {
-        screenshotRule.screenshotTest("taskHeaderView_showHeader") { activity ->
+        screenshotRule.screenshotTest("taskHeaderView_showHeader", mode = WrapContent) { activity ->
             activity.actionBar?.hide()
-            createTaskHeaderView(activity).apply {
-                setState(
-                    TaskHeaderUiState.ShowHeader(
-                        TaskHeaderUiState.ThumbnailHeader(
-                            BitmapDrawable(activity.resources, createSplash()),
-                            "Example",
-                        ) {}
-                    )
+            val container = FrameLayout(activity)
+            val headerView = createTaskHeaderView(activity)
+
+            container.addView(headerView, CONTAINER_WIDTH, CONTAINER_HEIGHT)
+            headerView.setState(
+                TaskHeaderUiState.ShowHeader(
+                    TaskHeaderUiState.ThumbnailHeader(
+                        BitmapDrawable(activity.resources, createSplash()),
+                        "Example",
+                    ) {}
                 )
-            }
+            )
+            container
+        }
+    }
+
+    @Test
+    fun taskNarrowHeaderView_showHeader() {
+        screenshotRule.screenshotTest("taskNarrowHeaderView_showHeader", mode = WrapContent) {
+            activity ->
+            activity.actionBar?.hide()
+            val container = FrameLayout(activity)
+            val headerView = createTaskHeaderView(activity)
+
+            container.addView(headerView, CONTAINER_NARROW_WIDTH, CONTAINER_HEIGHT)
+            headerView.setState(
+                TaskHeaderUiState.ShowHeader(
+                    TaskHeaderUiState.ThumbnailHeader(
+                        BitmapDrawable(activity.resources, createSplash()),
+                        "Example",
+                    ) {}
+                )
+            )
+            container
         }
     }
 
@@ -68,6 +94,10 @@ class TaskHeaderViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
     }
 
     companion object {
+        private const val CONTAINER_HEIGHT = 65
+        private const val CONTAINER_WIDTH = 400
+        private const val CONTAINER_NARROW_WIDTH = 300
+
         @Parameters(name = "{0}")
         @JvmStatic
         fun getTestSpecs() =

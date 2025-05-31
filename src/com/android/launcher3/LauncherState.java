@@ -49,6 +49,7 @@ import com.android.launcher3.uioverrides.states.AllAppsState;
 import com.android.launcher3.uioverrides.states.HintState;
 import com.android.launcher3.uioverrides.states.OverviewState;
 import com.android.launcher3.views.ActivityContext;
+import com.android.launcher3.views.ScrimColors;
 
 import java.util.Arrays;
 
@@ -219,7 +220,7 @@ public abstract class LauncherState implements BaseState<LauncherState> {
     public int getFloatingSearchBarRestingMarginBottom(Launcher launcher) {
         DeviceProfile dp = launcher.getDeviceProfile();
         return areElementsVisible(launcher, FLOATING_SEARCH_BAR) ? dp.getQsbOffsetY()
-                : -dp.hotseatQsbHeight;
+                : -dp.getHotseatProfile().getQsbHeight();
     }
 
     /**
@@ -317,8 +318,9 @@ public abstract class LauncherState implements BaseState<LauncherState> {
      * What color should the workspace scrim be in when at rest in this state.
      * Return {@link Color#TRANSPARENT} for no scrim.
      */
-    public int getWorkspaceScrimColor(Launcher launcher) {
-        return Color.TRANSPARENT;
+    public ScrimColors getWorkspaceScrimColor(Launcher launcher) {
+        return new ScrimColors(/* backgroundColor */ Color.TRANSPARENT,
+                /* foregroundColor */ Color.TRANSPARENT);
     }
 
     /**

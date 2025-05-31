@@ -26,6 +26,7 @@ import androidx.core.graphics.ColorUtils;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.views.ActivityContext;
+import com.android.launcher3.views.ScrimColors;
 
 /**
  * Scale down workspace/hotseat to hint at going to either overview (on pause) or first home screen.
@@ -60,10 +61,14 @@ public class HintState extends LauncherState {
     }
 
     @Override
-    public int getWorkspaceScrimColor(Launcher launcher) {
-        int overviewStateColor = OVERVIEW.getWorkspaceScrimColor(launcher);
-        return ColorUtils.setAlphaComponent(overviewStateColor,
-                Math.round(Color.valueOf(overviewStateColor).alpha() * 100));
+    public ScrimColors getWorkspaceScrimColor(Launcher launcher) {
+        ScrimColors overviewStateColor = OVERVIEW.getWorkspaceScrimColor(launcher);
+        return new ScrimColors(
+                /* backgroundColor */
+                ColorUtils.setAlphaComponent(overviewStateColor.getBackgroundColor(),
+                        Math.round(Color.valueOf(overviewStateColor.getBackgroundColor()).alpha()
+                                * 100)),
+                /* foregroundColor */ Color.TRANSPARENT);
     }
 
     @Override

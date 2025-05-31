@@ -58,7 +58,6 @@ public class DigitalWellBeingToastTest extends BaseLauncherActivityTest<Quickste
     public final String calculatorPackage =
             resolveSystemAppInfo(Intent.CATEGORY_APP_CALCULATOR).packageName;
 
-    @ScreenRecordRule.ScreenRecord // b/407406547
     @Test
     public void testToast() {
         startAppFast(calculatorPackage);

@@ -292,7 +292,10 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
             // Move the icon to align with the center-top of the touch point
             Point iconShift = new Point();
             iconShift.x = mIconLastTouchPos.x - sv.getIconCenter().x;
-            iconShift.y = mIconLastTouchPos.y - mContext.getDeviceProfile().taskbarIconSize;
+            iconShift.y = mIconLastTouchPos.y
+                    - mContext.getDeviceProfile()
+                    .getTaskbarProfile()
+                    .getIconSize();
 
             ((TaskbarDragController) ActivityContext.lookupContext(
                     v.getContext()).getDragController()).startDragOnLongClick(sv, iconShift);

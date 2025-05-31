@@ -263,6 +263,8 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
             resetModalVisuals();
         }
 
+        resetShareUIState();
+
         // Set border after select mode changes to avoid showing border during state transition
         if (!toState.isRecentsViewVisible() || toState == MODAL_TASK) {
             setTaskBorderEnabled(false);

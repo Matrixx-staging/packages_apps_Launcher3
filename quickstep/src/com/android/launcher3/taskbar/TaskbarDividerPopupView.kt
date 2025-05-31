@@ -267,8 +267,8 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     }
 
     override fun getExtraVerticalOffset(): Int {
-        return (mActivityContext.deviceProfile.taskbarHeight -
-            mActivityContext.deviceProfile.taskbarIconSize) / 2 + verticalOffsetForPopupView
+        return (mActivityContext.deviceProfile.taskbarProfile.height -
+            mActivityContext.deviceProfile.taskbarProfile.iconSize) / 2 + verticalOffsetForPopupView
     }
 
     override fun onCreateCloseAnimation(anim: AnimatorSet?) {

@@ -23,7 +23,6 @@ import static android.text.Layout.Alignment.ALIGN_NORMAL;
 import static com.android.launcher3.BubbleTextView.RunningAppState.RUNNING;
 import static com.android.launcher3.BubbleTextView.RunningAppState.MINIMIZED;
 import static com.android.launcher3.Flags.enableContrastTiles;
-import static com.android.launcher3.Flags.enableCursorHoverStates;
 import static com.android.launcher3.Flags.enableScalabilityForDesktopExperience;
 import static com.android.launcher3.allapps.AlphabeticalAppsList.PRIVATE_SPACE_PACKAGE;
 import static com.android.launcher3.graphics.PreloadIconDrawable.newPendingIcon;
@@ -251,7 +250,6 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     public BubbleTextView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         mActivity = ActivityContext.lookupContext(context);
-        FastBitmapDrawable.setFlagHoverEnabled(enableCursorHoverStates());
         mMinimizedStateDescription = getContext().getString(
                 R.string.app_minimized_state_description);
         mRunningStateDescription = getContext().getString(R.string.app_running_state_description);
@@ -287,7 +285,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
             defaultIconSize = getResources().getDimensionPixelSize(
                     R.dimen.search_row_small_icon_size);
         } else if (mDisplay == DISPLAY_TASKBAR) {
-            defaultIconSize = mDeviceProfile.taskbarIconSize;
+            defaultIconSize = mDeviceProfile.getTaskbarProfile().getIconSize();
         } else {
             // widget_selection or shortcut_popup
             defaultIconSize = mDeviceProfile.iconSizePx;
@@ -1203,7 +1201,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         if (mIcon instanceof PreloadIconDrawable p) {
             pid = p;
             pid.setLevel(progressLevel);
-            pid.setIsDisabled(isIconDisabled(info));
+            pid.setDisabled(isIconDisabled(info));
         } else {
             pid = makePreloadIcon(info);
             setIcon(pid);
@@ -1226,7 +1224,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         final PreloadIconDrawable preloadDrawable = newPendingIcon(getContext(), info);
 
         preloadDrawable.setLevel(progressLevel);
-        preloadDrawable.setIsDisabled(isIconDisabled(info));
+        preloadDrawable.setDisabled(isIconDisabled(info));
         return preloadDrawable;
     }
 
@@ -1337,7 +1335,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     /** Sets the icon visual state to disabled or not. */
     public void setIconDisabled(boolean isDisabled) {
         if (mIcon != null) {
-            mIcon.setIsDisabled(isDisabled);
+            mIcon.setDisabled(isDisabled);
         }
     }
 

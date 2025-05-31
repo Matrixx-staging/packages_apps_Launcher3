@@ -15,9 +15,9 @@
  */
 package com.android.quickstep;
 
+import static android.app.ActivityTaskManager.INVALID_TASK_ID;
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_UNDEFINED;
 import static android.app.WindowConfiguration.WINDOWING_MODE_PINNED;
-import static android.app.ActivityTaskManager.INVALID_TASK_ID;
 
 import static com.android.launcher3.MotionEventsUtils.isTrackpadScroll;
 import static com.android.launcher3.util.DisplayController.CHANGE_ALL;
@@ -222,16 +222,16 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
     }
 
     /**
-     * Adds a listener for the nav mode change, guaranteed to be called after the device state's
+     * Adds a listener for the change flag, guaranteed to be called after the device state's
      * mode has changed.
      *
      * @return Added {@link DisplayInfoChangeListener} so that caller is
      * responsible for removing the listener from {@link DisplayController} to avoid memory leak.
      */
-    public DisplayController.DisplayInfoChangeListener addNavigationModeChangedCallback(
-            Runnable callback) {
+    public DisplayController.DisplayInfoChangeListener addDisplayInfoChangeCallback(
+            int changeFlag, Runnable callback) {
         DisplayController.DisplayInfoChangeListener listener = (context, info, flags) -> {
-            if ((flags & CHANGE_NAVIGATION_MODE) != 0) {
+            if ((flags & changeFlag) != 0) {
                 callback.run();
             }
         };
@@ -242,7 +242,7 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
 
     /**
      * Remove the {DisplayController.DisplayInfoChangeListener} added from
-     * {@link #addNavigationModeChangedCallback} when {@link TouchInteractionService} is destroyed.
+     * {@link #addDisplayInfoChangeCallback} when {@link TouchInteractionService} is destroyed.
      */
     public void removeDisplayInfoChangeListener(
             DisplayController.DisplayInfoChangeListener listener) {

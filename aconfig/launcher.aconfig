@@ -518,13 +518,6 @@ flag {
 }
 
 flag {
-  name: "extendible_theme_manager"
-  namespace: "launcher"
-  description: "Enables custom theme manager in Launcher"
-  bug: "381897614"
-}
-
-flag {
   name: "enable_alt_tab_kqs_flatenning"
   namespace: "lse_desktop_experience"
   description: "Enable Alt + Tab KQS view to show apps in flattened structure"

@@ -27,7 +27,6 @@ filegroup {
         "util/rule/SamplerRule.java",
         "util/rule/ScreenRecordRule.java",
         "util/rule/ShellCommandRule.java",
-        "util/rule/ViewCaptureRule.kt",
         "util/rule/TestIsolationRule.java",
         "util/ui/AbstractLauncherUiTest.java",
         "util/ui/BaseLauncherTaplTest.java",
@@ -42,7 +41,6 @@ filegroup {
     srcs: [
         ":launcher-e2e-tests-only",
         ":launcher-e2e-tests-utils",
-        ":launcher-viewcapture-analysis",
     ],
 }
 

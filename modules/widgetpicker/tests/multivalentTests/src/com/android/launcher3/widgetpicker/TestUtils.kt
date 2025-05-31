@@ -121,6 +121,8 @@ object TestUtils {
                     spanY = 2,
                     widthPx = 200,
                     heightPx = 200,
+                    containerSpanX = 2,
+                    containerSpanY = 2,
                     containerWidthPx = 200,
                     containerHeightPx = 200,
                 ),

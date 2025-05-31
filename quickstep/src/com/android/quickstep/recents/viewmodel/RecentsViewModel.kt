@@ -25,16 +25,17 @@ import kotlinx.coroutines.flow.first
 class RecentsViewModel(
     private val recentsTasksRepository: RecentTasksRepository,
     private val recentsViewData: RecentsViewData,
+    private val displayId: Int,
 ) {
     private var visibleTaskIds = emptySet<Int>()
 
     fun refreshAllTaskData() {
-        recentsTasksRepository.getAllTaskData(true)
+        recentsTasksRepository.getAllTaskData(displayId, true)
     }
 
     fun updateVisibleTasks(visibleTaskIdList: List<Int>) {
         visibleTaskIds = visibleTaskIdList.toSet()
-        recentsTasksRepository.setVisibleTasks(visibleTaskIds)
+        recentsTasksRepository.setVisibleTasks(displayId, visibleTaskIds)
     }
 
     fun updateTasksFullyVisible(taskIds: Set<Int>) {

@@ -199,7 +199,7 @@ class GroupedTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
     private fun updateIconPlacement() {
         val splitBoundsConfig = splitBoundsConfig ?: return
         val deviceProfile = container.deviceProfile
-        val taskIconHeight = deviceProfile.overviewTaskIconSizePx
+        val taskIconHeight = deviceProfile.overviewProfile.taskIconSizePx
         val inSplitSelection = getThisTaskCurrentlyInSplitSelection() != INVALID_TASK_ID
         var oneIconHiddenDueToSmallWidth = false
 

@@ -24,6 +24,16 @@ import kotlin.math.abs
 data class WidgetPreviewContainerSize(@JvmField val spanX: Int, @JvmField val spanY: Int) {
     companion object {
         /**
+         * Returns a template that can be used for presenting featured widgets in widget picker.
+         **/
+        fun pickTemplateForFeaturedWidgets(dp: DeviceProfile): List<WidgetPreviewContainerSize> =
+            if (dp.deviceProperties.isTablet && !dp.deviceProperties.isTwoPanels) {
+                TABLET_FEATURED_CONTAINER_SIZES.random()
+            } else {
+                HANDHELD_FEATURED_CONTAINER_SIZES.random()
+            }
+
+        /**
          * Returns the size of the preview container in which the given widget's preview should be
          * displayed (by scaling it if necessary).
          */

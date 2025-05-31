@@ -28,6 +28,7 @@ import static com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY;
 import static com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY2;
 import static com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE;
 import static com.android.launcher3.util.TestUtil.runOnExecutorSync;
+import static com.android.systemui.shared.Flags.FLAG_EXTENDIBLE_THEME_MANAGER;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -59,7 +60,6 @@ import androidx.annotation.Nullable;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 
-import com.android.launcher3.Flags;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.icons.cache.CachingLogic;
 import com.android.launcher3.icons.cache.IconCacheUpdateHandler;
@@ -284,7 +284,7 @@ public class IconCacheTest {
     }
 
     @Test
-    @EnableFlags(Flags.FLAG_EXTENDIBLE_THEME_MANAGER)
+    @EnableFlags(FLAG_EXTENDIBLE_THEME_MANAGER)
     public void theme_icon_not_returned_if_not_requested() {
         ComponentName cn = new ComponentName(TEST_PACKAGE, TEST_ACTIVITY);
         UserHandle user = myUserHandle();
@@ -302,7 +302,7 @@ public class IconCacheTest {
     }
 
     @Test
-    @EnableFlags(Flags.FLAG_EXTENDIBLE_THEME_MANAGER)
+    @EnableFlags(FLAG_EXTENDIBLE_THEME_MANAGER)
     public void theme_icon_returned_if_requested() {
         ComponentName cn = new ComponentName(TEST_PACKAGE, TEST_ACTIVITY);
         UserHandle user = myUserHandle();
@@ -320,7 +320,7 @@ public class IconCacheTest {
     }
 
     @Test
-    @DisableFlags(Flags.FLAG_EXTENDIBLE_THEME_MANAGER)
+    @DisableFlags(FLAG_EXTENDIBLE_THEME_MANAGER)
     public void theme_icon_returned_if_not_requested_with_flag_off() {
         ComponentName cn = new ComponentName(TEST_PACKAGE, TEST_ACTIVITY);
         UserHandle user = myUserHandle();

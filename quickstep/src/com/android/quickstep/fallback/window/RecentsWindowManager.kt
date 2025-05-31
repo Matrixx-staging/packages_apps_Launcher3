@@ -23,6 +23,7 @@ import android.content.Context
 import android.content.LocusId
 import android.content.res.Configuration
 import android.os.Bundle
+import android.view.Display.DEFAULT_DISPLAY
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -329,6 +330,12 @@ constructor(
     fun startHome(finishRecentsAnimation: Boolean) {
         val recentsView: RecentsView<*, *> = getOverviewPanel()
 
+        // Don't go to home on connected displays
+        if (displayId != DEFAULT_DISPLAY) {
+            recentsView.runningTaskView?.launchWithAnimation()
+            return
+        }
+
         if (!finishRecentsAnimation) {
             recentsView.switchToScreenshot /* onFinishRunnable= */ {}
             startHomeInternal()
@@ -384,7 +391,9 @@ constructor(
 
     override fun canStartHomeSafely(): Boolean {
         val overviewCommandHelper = tisBindHelper.overviewCommandHelper
-        return overviewCommandHelper == null || overviewCommandHelper.canStartHomeSafely()
+        return overviewCommandHelper == null ||
+            overviewCommandHelper.canStartHomeSafely() ||
+            displayId != DEFAULT_DISPLAY
     }
 
     override fun setTaskbarUIController(taskbarUIController: TaskbarUIController?) {

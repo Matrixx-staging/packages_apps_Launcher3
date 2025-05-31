@@ -270,7 +270,7 @@ constructor(
             snapshotWidth = taskView.layoutParams.width
             snapshotHeight =
                 taskView.layoutParams.height -
-                    recentsViewContainer.deviceProfile.overviewTaskThumbnailTopMarginPx
+                    recentsViewContainer.deviceProfile.overviewProfile.taskThumbnailTopMarginPx
         } else {
             val groupedTaskSize =
                 taskView.pagedOrientationHandler.getGroupedTaskViewSizes(

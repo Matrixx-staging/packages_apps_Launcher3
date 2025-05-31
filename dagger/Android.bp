@@ -20,7 +20,7 @@ package {
 java_library {
     name: "launcher-dagger-qualifiers",
     srcs: [
-        "src/com/android/launcher3/dagger/ActivityContextScope.java",
+        "src/com/android/launcher3/dagger/ActivityContextSingleton.java",
         "src/com/android/launcher3/dagger/ApplicationContext.java",
         "src/com/android/launcher3/dagger/LauncherAppSingleton.java",
     ],

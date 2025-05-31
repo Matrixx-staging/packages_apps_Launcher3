@@ -57,6 +57,7 @@ object LauncherConcurrencyModule {
      * Prefer the Background Executor when possible.
      */
     @Provides
+    @LauncherAppSingleton
     @Background
     fun provideBgHandler(@Background bgLooper: Looper): Handler = Handler(bgLooper)
 
@@ -65,6 +66,7 @@ object LauncherConcurrencyModule {
 
     /** Background CoroutineScope provider. */
     @Provides
+    @LauncherAppSingleton
     @Background
     fun provideBgCoroutineScope(dispatcherProvider: DispatcherProvider) =
         CoroutineScope(

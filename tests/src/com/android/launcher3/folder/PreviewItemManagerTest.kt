@@ -134,7 +134,7 @@ class PreviewItemManagerTest {
 
         previewItemManager.setDrawable(drawingParams, folderItems[0])
 
-        assert((drawingParams.drawable as FastBitmapDrawable).isThemed)
+        assert((drawingParams.drawable as FastBitmapDrawable).isThemed())
     }
 
     @Test
@@ -144,7 +144,7 @@ class PreviewItemManagerTest {
 
         previewItemManager.setDrawable(drawingParams, folderItems[0])
 
-        assert(!(drawingParams.drawable as FastBitmapDrawable).isThemed)
+        assert(!(drawingParams.drawable as FastBitmapDrawable).isThemed())
     }
 
     @Test
@@ -154,7 +154,7 @@ class PreviewItemManagerTest {
 
         previewItemManager.setDrawable(drawingParams, folderItems[1])
 
-        assert(!(drawingParams.drawable as FastBitmapDrawable).isThemed)
+        assert(!(drawingParams.drawable as FastBitmapDrawable).isThemed())
     }
 
     @Test
@@ -164,7 +164,7 @@ class PreviewItemManagerTest {
 
         previewItemManager.setDrawable(drawingParams, folderItems[1])
 
-        assert(!(drawingParams.drawable as FastBitmapDrawable).isThemed)
+        assert(!(drawingParams.drawable as FastBitmapDrawable).isThemed())
     }
 
     @Test
@@ -174,7 +174,7 @@ class PreviewItemManagerTest {
 
         previewItemManager.setDrawable(drawingParams, folderItems[2])
 
-        assert((drawingParams.drawable as FastBitmapDrawable).isThemed)
+        assert((drawingParams.drawable as FastBitmapDrawable).isThemed())
         assert(
             ((drawingParams.drawable as FastBitmapDrawable).badge as UserBadgeDrawable).mIsThemed
         )
@@ -187,7 +187,7 @@ class PreviewItemManagerTest {
 
         previewItemManager.setDrawable(drawingParams, folderItems[3])
 
-        assert(!(drawingParams.drawable as FastBitmapDrawable).isThemed)
+        assert(!(drawingParams.drawable as FastBitmapDrawable).isThemed())
         assert(
             ((drawingParams.drawable as FastBitmapDrawable).badge as UserBadgeDrawable).mIsThemed
         )
@@ -200,7 +200,7 @@ class PreviewItemManagerTest {
 
         previewItemManager.setDrawable(drawingParams, folderItems[3])
 
-        assert(!(drawingParams.drawable as FastBitmapDrawable).isThemed)
+        assert(!(drawingParams.drawable as FastBitmapDrawable).isThemed())
         assert(
             !((drawingParams.drawable as FastBitmapDrawable).badge as UserBadgeDrawable).mIsThemed
         )
