@@ -39,6 +39,7 @@ import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.util.DaggerSingletonTracker
 import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.FakePrefsModule
+import com.android.launcher3.util.SandboxWmProxyModule
 import com.android.launcher3.util.SettingsCache
 import com.android.launcher3.util.dagger.LauncherExecutorsModule
 import com.android.launcher3.util.window.WindowManagerProxy
@@ -84,7 +85,7 @@ interface TaskbarSandboxComponent : LauncherAppComponent {
             LauncherExecutorsModule::class,
             FakePrefsModule::class,
             DisplayControllerModule::class,
-            TaskbarSandboxWmProxyModule::class,
+            SandboxWmProxyModule::class,
             TaskbarPerDisplayReposModule::class,
             DesktopVisibilityControllerModule::class,
             NoOpWidgetPickerModule::class,
