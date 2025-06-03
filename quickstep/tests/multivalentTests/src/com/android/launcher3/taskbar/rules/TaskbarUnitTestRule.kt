@@ -23,6 +23,7 @@ import android.provider.Settings.Secure.NAV_BAR_KIDS_MODE
 import android.provider.Settings.Secure.USER_SETUP_COMPLETE
 import android.provider.Settings.Secure.getUriFor
 import androidx.test.platform.app.InstrumentationRegistry
+import com.android.app.displaylib.DisplaysWithDecorationsRepositoryCompat
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.taskbar.TaskbarActivityContext
 import com.android.launcher3.taskbar.TaskbarControllers
@@ -30,12 +31,10 @@ import com.android.launcher3.taskbar.TaskbarManagerImpl
 import com.android.launcher3.taskbar.TaskbarNavButtonController.TaskbarNavButtonCallbacks
 import com.android.launcher3.taskbar.TaskbarUIController
 import com.android.launcher3.taskbar.bubbles.BubbleControllers
-import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.InjectController
 import com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR
 import com.android.launcher3.util.TestUtil
 import com.android.launcher3.util.coroutines.ProductionDispatchers
 import com.android.quickstep.AllAppsActionManager
-import com.android.quickstep.LauncherDisplaysWithDecorationsRepositoryCompat
 import com.android.quickstep.fallback.window.RecentsWindowManager
 import com.android.quickstep.input.QuickstepKeyGestureEventsManager
 import java.lang.reflect.Field
@@ -48,6 +47,7 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doNothing
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.whenever
 
@@ -85,7 +85,7 @@ class TaskbarUnitTestRule(
 
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
 
-    private lateinit var taskbarManager: TaskbarManagerImpl
+    lateinit var taskbarManager: TaskbarManagerImpl
 
     val activityContext: TaskbarActivityContext
         get() {
@@ -138,9 +138,8 @@ class TaskbarUnitTestRule(
                                 },
                                 object : TaskbarNavButtonCallbacks {},
                                 RecentsWindowManager.REPOSITORY_INSTANCE.get(context),
-                                LauncherDisplaysWithDecorationsRepositoryCompat.INSTANCE.get(
-                                    context
-                                ),
+                                // VirtualDisplaysRule dispatches system decoration changes.
+                                mock<DisplaysWithDecorationsRepositoryCompat>(),
                                 ProductionDispatchers.main,
                             ) {
                             override fun recreateTaskbars() {
@@ -166,6 +165,7 @@ class TaskbarUnitTestRule(
                             }
                         }
                     }
+                context.virtualDisplayRule.registerDisplayDecorationListener(taskbarManager)
 
                 if (description.getAnnotation(ForceRtl::class.java) != null) {
                     // Needs to be set on window context instead of sandbox context, because it does
