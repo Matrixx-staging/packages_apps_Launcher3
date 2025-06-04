@@ -225,6 +225,8 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
 
     private final TaskbarRunningAppStateAnimationController mRunningStateController;
 
+    private final OverflownAppsContainerController mOverflownAppsContainerController;
+
     public TaskbarViewController(TaskbarActivityContext activity, TaskbarView taskbarView) {
         mActivity = activity;
         mTransientTaskbarProfile = mActivity.getTransientTaskbarProfile();
@@ -245,6 +247,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
         mTaskbarLeftRightMargin = mActivity.getResources().getDimensionPixelSize(
                 R.dimen.transient_taskbar_padding);
         mRunningStateController = new TaskbarRunningAppStateAnimationController(mActivity);
+        mOverflownAppsContainerController = new OverflownAppsContainerController(mActivity);
     }
 
     /**
@@ -1430,6 +1433,10 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
                 overflowButton.updateTaskIsShown(task);
             }
         }
+    }
+
+    OverflownAppsContainerController getOverflownAppsContainerController() {
+        return mOverflownAppsContainerController;
     }
 
     @Override

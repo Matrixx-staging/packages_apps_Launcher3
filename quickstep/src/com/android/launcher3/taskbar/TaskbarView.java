@@ -385,11 +385,21 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         mAllAppsButtonContainer.setUpCallbacks(callbacks);
         if (mTaskbarRecentsOverflowView != null) {
             mTaskbarRecentsOverflowView.setOnClickListener(
-                    mControllerCallbacks.getOverflowOnClickListener());
+                    mControllerCallbacks.getRecentsOverflowOnClickListener());
             mTaskbarRecentsOverflowView.setOnLongClickListener(
-                    mControllerCallbacks.getOverflowOnLongClickListener());
+                    mControllerCallbacks.getRecentsOverflowOnLongClickListener());
             if (enableCursorHoverStates()) {
                 setHoverListenerForIcon(mTaskbarRecentsOverflowView);
+            }
+        }
+
+        if (mTaskbarPinnedOverflowView != null) {
+            mTaskbarPinnedOverflowView.setOnClickListener(
+                    mControllerCallbacks.getPinnedOverflowOnClickListener());
+            mTaskbarPinnedOverflowView.setOnLongClickListener(
+                    mControllerCallbacks.getPinnedOverflowOnLongClickListener());
+            if (enableCursorHoverStates()) {
+                setHoverListenerForIcon(mTaskbarPinnedOverflowView);
             }
         }
 
@@ -761,7 +771,11 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     }
 
     private boolean isOverflowViewShowing() {
-        return mTaskbarPinnedOverflowView != null && indexOfChild(mTaskbarPinnedOverflowView) != -1;
+        if (mTaskbarPinnedOverflowView == null) return false;
+        if (mHotseatIconsContainer != null) {
+            return mHotseatIconsContainer.indexOfChild(mTaskbarPinnedOverflowView) != -1;
+        }
+        return indexOfChild(mTaskbarPinnedOverflowView) != -1;
     }
 
     private void maybeAddPinOverflowView() {
@@ -1312,7 +1326,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     }
 
     /**
-     * Returns the taskbar overflow view in the taskbar.
+     * Returns the taskbar recent tasks overflow view in the taskbar.
      */
     @Nullable
     public TaskbarOverflowView getTaskbarRecentsOverflowView() {
