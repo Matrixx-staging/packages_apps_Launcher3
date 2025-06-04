@@ -48,14 +48,16 @@ abstract class AbstractNavButtonLayoutter(
     protected val imeSwitcher: ImageView?,
     protected val a11yButton: ImageView?,
     protected val space: Space?,
+    protected val backButton: ImageView? = navButtonContainer.findViewById(R.id.back),
+    protected val homeButton: ImageView? = navButtonContainer.findViewById(R.id.home),
+    protected val recentsButton: ImageView? = navButtonContainer.findViewById(R.id.recent_apps),
 ) : NavButtonLayoutter {
-    protected val homeButton: ImageView? = navButtonContainer.findViewById(R.id.home)
-    protected val recentsButton: ImageView? = navButtonContainer.findViewById(R.id.recent_apps)
-    protected val backButton: ImageView? = navButtonContainer.findViewById(R.id.back)
+
+    open val orientation: Int = LinearLayout.HORIZONTAL
 
     init {
         // setup back button drawable
-        if (backButton != null) {
+        if (backButton != null && backButton.resources != null) {
             val rotateDrawable = RotateDrawable()
             rotateDrawable.drawable = backButton.context?.getDrawable(R.drawable.ic_sysbar_back)
             rotateDrawable.fromDegrees = 0f
@@ -116,5 +118,41 @@ abstract class AbstractNavButtonLayoutter(
         }
         contextualContainerParams.gravity = gravity or Gravity.CENTER_VERTICAL
         contextualContainer.layoutParams = contextualContainerParams
+    }
+
+    /** For ordered layouts, this determines if the order of buttons should be flipped. */
+    open fun shouldFlipButtonOrder(): Boolean {
+        val isFlipEnabledBySetting =
+            android.view.accessibility.Flags.navbarFlipOrderOption() &&
+                android.provider.Settings.Secure.getInt(
+                    navButtonContainer.context.contentResolver,
+                    android.provider.Settings.Secure.NAV_BAR_ORDER,
+                    0,
+                ) != 0
+
+        return Utilities.isRtl(resources) xor isFlipEnabledBySetting
+    }
+
+    /**
+     * Attaches the three primary buttons to the nav button container, in the appropriate order.
+     * Clears all views from the container beforehand.
+     */
+    override fun addThreeButtons() {
+        if (backButton == null || homeButton == null || recentsButton == null) {
+            return
+        }
+
+        navButtonContainer.removeAllViews()
+        navButtonContainer.orientation = orientation
+        // Flip ordering of back and recents buttons
+        if (shouldFlipButtonOrder()) {
+            navButtonContainer.addView(recentsButton)
+            navButtonContainer.addView(homeButton)
+            navButtonContainer.addView(backButton)
+        } else {
+            navButtonContainer.addView(backButton)
+            navButtonContainer.addView(homeButton)
+            navButtonContainer.addView(recentsButton)
+        }
     }
 }
