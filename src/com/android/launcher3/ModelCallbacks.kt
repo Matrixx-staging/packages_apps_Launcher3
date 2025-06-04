@@ -137,7 +137,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         // Cache one page worth of icons
         launcher.viewCache.setCacheSize(
             R.layout.folder_application,
-            deviceProfile.numFolderColumns * deviceProfile.numFolderRows,
+            deviceProfile.folderProfile.numColumns * deviceProfile.folderProfile.numRows,
         )
         launcher.viewCache.setCacheSize(R.layout.folder_page, 2)
         TraceHelper.INSTANCE.endSection()

@@ -22,13 +22,11 @@ import static com.android.launcher3.InvariantDeviceProfile.INDEX_TWO_PANEL_LANDS
 import static com.android.launcher3.InvariantDeviceProfile.INDEX_TWO_PANEL_PORTRAIT;
 import static com.android.launcher3.InvariantDeviceProfile.createDisplayOptionSpec;
 import static com.android.launcher3.Utilities.dpiFromPx;
-import static com.android.launcher3.Utilities.pxFromSp;
 import static com.android.launcher3.deviceprofile.DevicePropertiesKt.createWindowBounds;
 import static com.android.launcher3.folder.ClippedFolderIconLayoutRule.ICON_OVERLAP_FACTOR;
 import static com.android.launcher3.icons.IconNormalizer.ICON_VISIBLE_AREA_FACTOR;
 import static com.android.launcher3.testing.shared.ResourceUtils.INVALID_RESOURCE_HANDLE;
 import static com.android.launcher3.testing.shared.ResourceUtils.pxFromDp;
-import static com.android.launcher3.testing.shared.ResourceUtils.roundPxValueFromFloat;
 import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 import static com.android.wm.shell.Flags.enableBubbleBar;
 import static com.android.wm.shell.Flags.enableBubbleBarOnPhones;
@@ -59,6 +57,7 @@ import com.android.launcher3.deviceprofile.AllAppsProfile;
 import com.android.launcher3.deviceprofile.BottomSheetProfile;
 import com.android.launcher3.deviceprofile.DeviceProperties;
 import com.android.launcher3.deviceprofile.DropTargetProfile;
+import com.android.launcher3.deviceprofile.FolderProfile;
 import com.android.launcher3.deviceprofile.HotseatProfile;
 import com.android.launcher3.deviceprofile.OverviewProfile;
 import com.android.launcher3.deviceprofile.TaskbarProfile;
@@ -74,7 +73,6 @@ import com.android.launcher3.responsive.ResponsiveCellSpecsProvider;
 import com.android.launcher3.responsive.ResponsiveSpec.Companion.ResponsiveSpecType;
 import com.android.launcher3.responsive.ResponsiveSpec.DimensionType;
 import com.android.launcher3.responsive.ResponsiveSpecsProvider;
-import com.android.launcher3.util.CellContentDimensions;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.DisplayController.Info;
 import com.android.launcher3.util.IconSizeSteps;
@@ -173,29 +171,10 @@ public class DeviceProfile {
     public int workspaceCellPaddingXPx;
 
 
-    // Folder
-    public final int numFolderRows;
-    public final int numFolderColumns;
-    public final float folderLabelTextScale;
-    public int folderLabelTextSizePx;
-    public int folderFooterHeightPx;
+
+    private final FolderProfile mFolderProfile;
     public int folderIconSizePx;
     public int folderIconOffsetYPx;
-
-    // Folder content
-    public Point folderCellLayoutBorderSpacePx;
-    public int folderContentPaddingLeftRight;
-    public int folderContentPaddingTop;
-
-    // Folder cell
-    public int folderCellWidthPx;
-    public int folderCellHeightPx;
-
-    // Folder child
-    public int folderChildIconSizePx;
-    public int folderChildTextSizePx;
-    public int folderChildDrawablePaddingPx;
-    public int maxFolderChildTextLineCount;
 
     // Hotseat
     private final HotseatProfile hotseatProfile;
@@ -284,6 +263,7 @@ public class DeviceProfile {
         );
         hotseatProfile = new HotseatProfile(false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
         mTaskbarProfile = new TaskbarProfile(0, 0, 0, 0, 0, false, false);
+        mFolderProfile = new FolderProfile(0, 0, 0, 0, 0, new Point(), 0, 0, 0, 0, 0, 0, 0, 0);
         inv = null;
         mDisplayOptionSpec = null;
         mInfo = null;
@@ -302,10 +282,7 @@ public class DeviceProfile {
         extraSpace = 0;
         workspacePageIndicatorHeight = 0;
         mWorkspacePageIndicatorOverlapWorkspace = 0;
-        numFolderRows = 0;
-        numFolderColumns = 0;
         mDropTargetProfile = new DropTargetProfile(0, 0, 0, 0, 0, 0, 0, 0, 0);
-        folderLabelTextScale = 0;
         hotseatQsbWidth = 0;
         hotseatBorderSpace = 0;
         mBubbleBarSpaceThresholdPx = 0;
@@ -401,34 +378,6 @@ public class DeviceProfile {
                 shouldShowAllAppsOnSheet(),
                 workspaceContentScale
         );
-
-        folderLabelTextScale = res.getFloat(R.dimen.folder_label_text_scale);
-        numFolderRows = inv.numFolderRows[mTypeIndex];
-        numFolderColumns = inv.numFolderColumns[mTypeIndex];
-
-        if (mIsScalableGrid && inv.folderStyle != INVALID_RESOURCE_HANDLE) {
-            TypedArray folderStyle = context.obtainStyledAttributes(inv.folderStyle,
-                    R.styleable.FolderStyle);
-            // These are re-set in #updateFolderCellSize if the grid is not scalable
-            folderCellHeightPx = folderStyle.getDimensionPixelSize(
-                    R.styleable.FolderStyle_folderCellHeight, 0);
-            folderCellWidthPx = folderStyle.getDimensionPixelSize(
-                    R.styleable.FolderStyle_folderCellWidth, 0);
-
-            folderContentPaddingTop = folderStyle.getDimensionPixelSize(
-                    R.styleable.FolderStyle_folderTopPadding, 0);
-
-            int gutter = folderStyle.getDimensionPixelSize(
-                    R.styleable.FolderStyle_folderBorderSpace, 0);
-            folderCellLayoutBorderSpacePx = new Point(gutter, gutter);
-            folderFooterHeightPx = folderStyle.getDimensionPixelSize(
-                    R.styleable.FolderStyle_folderFooterHeight, 0);
-            folderStyle.recycle();
-        } else if (!mIsResponsiveGrid) {
-            folderCellLayoutBorderSpacePx = new Point(0, 0);
-            folderFooterHeightPx = res.getDimensionPixelSize(R.dimen.folder_footer_height_default);
-            folderContentPaddingTop = res.getDimensionPixelSize(R.dimen.folder_top_padding_default);
-        }
 
         setupAllAppsStyle(context);
 
@@ -549,6 +498,8 @@ public class DeviceProfile {
         // Needs to be calculated after hotseatBarSizePx is correct,
         // for the available height to be correct
         if (mIsResponsiveGrid) {
+            int numFolderRows = inv.numFolderRows[mTypeIndex];
+            int numFolderColumns = inv.numFolderColumns[mTypeIndex];
             int availableResponsiveWidth =
                     mDeviceProperties.getAvailableWidthPx() - (isVerticalBarLayout()
                             ? hotseatBarSizePx : 0);
@@ -593,7 +544,7 @@ public class DeviceProfile {
                     mResponsiveWorkspaceWidthSpec.getAvailableSpace(),
                     mResponsiveWorkspaceWidthSpec);
             mResponsiveFolderHeightSpec = folderSpecs.getCalculatedSpec(responsiveAspectRatio,
-                    DimensionType.HEIGHT, numFolderRows,
+                    DimensionType.HEIGHT,  numFolderRows,
                     mResponsiveWorkspaceHeightSpec.getAvailableSpace(),
                     mResponsiveWorkspaceHeightSpec);
 
@@ -636,7 +587,7 @@ public class DeviceProfile {
         updateWorkspacePadding();
 
         // Folder scaling requires correct workspace paddings
-        updateAvailableFolderCellDimensions(res);
+        mFolderProfile = updateAvailableFolderCellDimensions(res, context);
 
         // Hotseat and QSB width depends on updated cellSize and workspace padding
         recalculateHotseatWidthAndBorderSpace();
@@ -1125,9 +1076,11 @@ public class DeviceProfile {
         // TODO(b/235886078): workaround needed because of this bug
         // Icons are 10% larger on XML than their visual size,
         // so remove that extra space to get labels closer to the correct padding
-        int drawablePadding = (folderCellHeightPx - folderChildIconSizePx - textHeight) / 3;
+        int drawablePadding = (mFolderProfile.getCellHeightPx()
+                - mFolderProfile.getChildIconSizePx() - textHeight) / 3;
 
-        int iconSizeDiff = folderChildIconSizePx - getIconVisibleSizePx(folderChildIconSizePx);
+        int iconSizeDiff = mFolderProfile.getChildIconSizePx() - getIconVisibleSizePx(
+                mFolderProfile.getChildIconSizePx());
         return max(0, drawablePadding - iconSizeDiff / 2);
     }
 
@@ -1254,134 +1207,54 @@ public class DeviceProfile {
         allAppsStyle.recycle();
     }
 
-    private void updateAvailableFolderCellDimensions(Resources res) {
-        updateFolderCellSize(1f, res);
+    private FolderProfile updateAvailableFolderCellDimensions(Resources res, Context context) {
+        FolderProfile folderProfile = updateFolderCellSize(1f, res, context);
 
         // Responsive grid doesn't need to scale the folder
-        if (mIsResponsiveGrid) return;
+        if (mIsResponsiveGrid) return folderProfile;
 
         // For usability we can't have the folder use the whole width of the screen
         Point totalWorkspacePadding = getTotalWorkspacePadding();
 
         // Check if the folder fit within the available height.
-        float contentUsedHeight = folderCellHeightPx * numFolderRows
-                + ((numFolderRows - 1) * folderCellLayoutBorderSpacePx.y)
-                + folderFooterHeightPx
-                + folderContentPaddingTop;
+        float contentUsedHeight = folderProfile.getCellHeightPx() * folderProfile.getNumRows()
+                + ((folderProfile.getNumRows() - 1) * folderProfile.getCellLayoutBorderSpacePx().y)
+                + folderProfile.getFooterHeightPx()
+                + folderProfile.getContentPaddingTop();
         int contentMaxHeight = mDeviceProperties.getAvailableHeightPx() - totalWorkspacePadding.y;
         float scaleY = contentMaxHeight / contentUsedHeight;
 
         // Check if the folder fit within the available width.
-        float contentUsedWidth = folderCellWidthPx * numFolderColumns
-                + ((numFolderColumns - 1) * folderCellLayoutBorderSpacePx.x)
-                + folderContentPaddingLeftRight * 2;
+        float contentUsedWidth = folderProfile.getCellWidthPx() * folderProfile.getNumColumns()
+                + ((folderProfile.getNumColumns() - 1)
+                    * folderProfile.getCellLayoutBorderSpacePx().x)
+                + folderProfile.getContentPaddingLeftRight() * 2;
         int contentMaxWidth = mDeviceProperties.getAvailableWidthPx() - totalWorkspacePadding.x;
         float scaleX = contentMaxWidth / contentUsedWidth;
 
         float scale = Math.min(scaleX, scaleY);
         if (scale < 1f) {
-            updateFolderCellSize(scale, res);
+            return updateFolderCellSize(scale, res, context);
         }
+        return folderProfile;
     }
 
-    private void updateFolderCellSize(float scale, Resources res) {
-        int minLabelTextSize = pxFromSp(MIN_FOLDER_TEXT_SIZE_SP, mMetrics, scale);
-        if (mIsResponsiveGrid) {
-            folderChildIconSizePx = mResponsiveWorkspaceCellSpec.getIconSize();
-            folderChildTextSizePx = mResponsiveWorkspaceCellSpec.getIconTextSize();
-            folderLabelTextSizePx = max(minLabelTextSize,
-                    (int) (folderChildTextSizePx * folderLabelTextScale));
-            int textHeight = Utilities.calculateTextHeight(folderChildTextSizePx);
-
-            folderCellWidthPx = mResponsiveFolderWidthSpec.getCellSizePx();
-            folderCellHeightPx = mResponsiveFolderHeightSpec.getCellSizePx();
-            folderContentPaddingTop = mResponsiveFolderHeightSpec.getStartPaddingPx();
-            folderFooterHeightPx = mResponsiveFolderHeightSpec.getEndPaddingPx();
-
-            folderCellLayoutBorderSpacePx = new Point(mResponsiveFolderWidthSpec.getGutterPx(),
-                    mResponsiveFolderHeightSpec.getGutterPx());
-
-            folderContentPaddingLeftRight = mResponsiveFolderWidthSpec.getStartPaddingPx();
-
-            // Reduce icon width if it's wider than the expected folder cell width
-            if (folderCellWidthPx < folderChildIconSizePx) {
-                folderChildIconSizePx = mIconSizeSteps.getIconSmallerThan(folderCellWidthPx);
-            }
-
-            // Recalculating padding and cell height
-            folderChildDrawablePaddingPx = mResponsiveWorkspaceCellSpec.getIconDrawablePadding();
-
-            CellContentDimensions cellContentDimensions = new CellContentDimensions(
-                    folderChildIconSizePx,
-                    folderChildDrawablePaddingPx,
-                    folderChildTextSizePx,
-                    mResponsiveWorkspaceCellSpec.getIconTextMaxLineCount());
-            cellContentDimensions.resizeToFitCellHeight(folderCellHeightPx, mIconSizeSteps);
-            folderChildIconSizePx = cellContentDimensions.getIconSizePx();
-            folderChildDrawablePaddingPx = cellContentDimensions.getIconDrawablePaddingPx();
-            folderChildTextSizePx = cellContentDimensions.getIconTextSizePx();
-            folderLabelTextSizePx = max(minLabelTextSize,
-                    (int) (folderChildTextSizePx * folderLabelTextScale));
-            maxFolderChildTextLineCount = cellContentDimensions.getMaxLineCount();
-            return;
-        }
-
-        float invIconSizeDp = inv.iconSize[mTypeIndex];
-        float invIconTextSizeDp = inv.iconTextSize[mTypeIndex];
-        folderChildIconSizePx = max(1, pxFromDp(invIconSizeDp, mMetrics, scale));
-        folderChildTextSizePx = pxFromSp(invIconTextSizeDp, mMetrics, scale);
-        folderLabelTextSizePx = max(minLabelTextSize,
-                (int) (folderChildTextSizePx * folderLabelTextScale));
-        int textHeight = Utilities.calculateTextHeight(folderChildTextSizePx);
-        maxFolderChildTextLineCount = 1;
-
-        if (mIsScalableGrid) {
-            if (inv.folderStyle == INVALID_RESOURCE_HANDLE) {
-                folderCellWidthPx = roundPxValueFromFloat(getCellSize().x * scale);
-                folderCellHeightPx = roundPxValueFromFloat(getCellSize().y * scale);
-            } else {
-                folderCellWidthPx = roundPxValueFromFloat(folderCellWidthPx * scale);
-                folderCellHeightPx = roundPxValueFromFloat(folderCellHeightPx * scale);
-            }
-            // Recalculating padding and cell height
-            folderChildDrawablePaddingPx = getNormalizedFolderChildDrawablePaddingPx(textHeight);
-
-            CellContentDimensions cellContentDimensions = new CellContentDimensions(
-                    folderChildIconSizePx,
-                    folderChildDrawablePaddingPx,
-                    folderChildTextSizePx,
-                    maxFolderChildTextLineCount);
-            cellContentDimensions.resizeToFitCellHeight(folderCellHeightPx, mIconSizeSteps);
-            folderChildIconSizePx = cellContentDimensions.getIconSizePx();
-            folderChildDrawablePaddingPx = cellContentDimensions.getIconDrawablePaddingPx();
-            folderChildTextSizePx = cellContentDimensions.getIconTextSizePx();
-            maxFolderChildTextLineCount = cellContentDimensions.getMaxLineCount();
-
-            folderContentPaddingTop = roundPxValueFromFloat(folderContentPaddingTop * scale);
-            folderCellLayoutBorderSpacePx = new Point(
-                    roundPxValueFromFloat(folderCellLayoutBorderSpacePx.x * scale),
-                    roundPxValueFromFloat(folderCellLayoutBorderSpacePx.y * scale)
-            );
-            folderFooterHeightPx = roundPxValueFromFloat(folderFooterHeightPx * scale);
-            folderContentPaddingLeftRight = folderCellLayoutBorderSpacePx.x;
-        } else {
-            int cellPaddingX = (int) (res.getDimensionPixelSize(R.dimen.folder_cell_x_padding)
-                    * scale);
-            int cellPaddingY = (int) (res.getDimensionPixelSize(R.dimen.folder_cell_y_padding)
-                    * scale);
-
-            folderCellWidthPx = folderChildIconSizePx + 2 * cellPaddingX;
-            folderCellHeightPx = folderChildIconSizePx + 2 * cellPaddingY + textHeight;
-            folderContentPaddingTop = roundPxValueFromFloat(folderContentPaddingTop * scale);
-            folderContentPaddingLeftRight =
-                    res.getDimensionPixelSize(R.dimen.folder_content_padding_left_right);
-            folderFooterHeightPx =
-                    roundPxValueFromFloat(
-                            res.getDimensionPixelSize(R.dimen.folder_footer_height_default)
-                                    * scale);
-
-            folderChildDrawablePaddingPx = getNormalizedFolderChildDrawablePaddingPx(textHeight);
-        }
+    private FolderProfile updateFolderCellSize(float scale, Resources res, Context context) {
+        return FolderProfile.Factory.createFolderProfile(
+                context,
+                mIsResponsiveGrid,
+                mIsScalableGrid,
+                scale,
+                mMetrics,
+                inv,
+                mTypeIndex,
+                res,
+                mResponsiveFolderHeightSpec,
+                mResponsiveWorkspaceCellSpec,
+                mResponsiveFolderWidthSpec,
+                mIconSizeSteps,
+                getCellSize()
+        );
     }
 
     public void updateInsets(Rect insets) {
@@ -1952,7 +1825,7 @@ public class DeviceProfile {
             case CellLayout.WORKSPACE:
                 return getWorkspaceIconProfile().getCellHeightPx();
             case CellLayout.FOLDER:
-                return folderCellHeightPx;
+                return mFolderProfile.getCellHeightPx();
             case CellLayout.HOTSEAT:
                 // The hotseat is the only container where the cell height is going to be
                 // different from the content within that cell.
@@ -2041,22 +1914,28 @@ public class DeviceProfile {
         writer.println(prefix + pxToDpStr("iconDrawablePaddingPx",
                 getWorkspaceIconProfile().getIconDrawablePaddingPx()));
 
-        writer.println(prefix + "\tnumFolderRows: " + numFolderRows);
-        writer.println(prefix + "\tnumFolderColumns: " + numFolderColumns);
-        writer.println(prefix + pxToDpStr("folderCellWidthPx", folderCellWidthPx));
-        writer.println(prefix + pxToDpStr("folderCellHeightPx", folderCellHeightPx));
-        writer.println(prefix + pxToDpStr("folderChildIconSizePx", folderChildIconSizePx));
-        writer.println(prefix + pxToDpStr("folderChildTextSizePx", folderChildTextSizePx));
+        writer.println(prefix + "\tnumFolderRows: " + mFolderProfile.getNumRows());
+        writer.println(prefix + "\tnumFolderColumns: " + mFolderProfile.getNumColumns());
+        writer.println(prefix + pxToDpStr("folderCellWidthPx",
+                mFolderProfile.getCellWidthPx()));
+        writer.println(prefix + pxToDpStr("folderCellHeightPx",
+                mFolderProfile.getCellHeightPx()));
+        writer.println(prefix + pxToDpStr("folderChildIconSizePx",
+                mFolderProfile.getChildIconSizePx()));
+        writer.println(prefix + pxToDpStr("folderChildTextSizePx",
+                mFolderProfile.getChildTextSizePx()));
         writer.println(prefix + pxToDpStr("folderChildDrawablePaddingPx",
-                folderChildDrawablePaddingPx));
+                mFolderProfile.getChildDrawablePaddingPx()));
         writer.println(prefix + pxToDpStr("folderCellLayoutBorderSpacePx.x",
-                folderCellLayoutBorderSpacePx.x));
+                mFolderProfile.getCellLayoutBorderSpacePx().x));
         writer.println(prefix + pxToDpStr("folderCellLayoutBorderSpacePx.y",
-                folderCellLayoutBorderSpacePx.y));
+                mFolderProfile.getCellLayoutBorderSpacePx().y));
         writer.println(prefix + pxToDpStr("folderContentPaddingLeftRight",
-                folderContentPaddingLeftRight));
-        writer.println(prefix + pxToDpStr("folderTopPadding", folderContentPaddingTop));
-        writer.println(prefix + pxToDpStr("folderFooterHeight", folderFooterHeightPx));
+                mFolderProfile.getContentPaddingLeftRight()));
+        writer.println(prefix + pxToDpStr("folderTopPadding",
+                mFolderProfile.getContentPaddingTop()));
+        writer.println(prefix + pxToDpStr("folderFooterHeight",
+                mFolderProfile.getFooterHeightPx()));
 
         writer.println(prefix + pxToDpStr("bottomSheetTopPadding",
                 getBottomSheetProfile().getBottomSheetTopPadding()));
@@ -2269,6 +2148,10 @@ public class DeviceProfile {
 
     public void setAllAppsProfile(AllAppsProfile allAppsProfile) {
         mAllAppsProfile = allAppsProfile;
+    }
+
+    public FolderProfile getFolderProfile() {
+        return mFolderProfile;
     }
 
     /**
