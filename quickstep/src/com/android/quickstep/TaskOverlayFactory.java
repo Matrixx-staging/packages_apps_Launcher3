@@ -39,7 +39,6 @@ import com.android.launcher3.R;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.popup.SystemShortcut;
-import com.android.launcher3.util.ResourceBasedOverride;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.Snackbar;
 import com.android.quickstep.recents.domain.usecase.ThumbnailPosition;
@@ -57,10 +56,16 @@ import com.android.systemui.shared.recents.model.ThumbnailData;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 /**
  * Factory class to create and add an overlays on the TaskView
  */
-public class TaskOverlayFactory implements ResourceBasedOverride {
+public class TaskOverlayFactory {
+
+    @Inject
+    public TaskOverlayFactory() {
+    }
 
     public static List<SystemShortcut> getEnabledShortcuts(TaskView taskView,
             TaskContainer taskContainer) {

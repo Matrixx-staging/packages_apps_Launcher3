@@ -171,7 +171,6 @@ import com.android.launcher3.util.CancellableTask;
 import com.android.launcher3.util.DynamicResource;
 import com.android.launcher3.util.IntArray;
 import com.android.launcher3.util.IntSet;
-import com.android.launcher3.util.ResourceBasedOverride.Overrides;
 import com.android.launcher3.util.RunnableList;
 import com.android.launcher3.util.SplitConfigurationOptions.SplitSelectSource;
 import com.android.launcher3.util.SplitConfigurationOptions.StagePosition;
@@ -992,10 +991,7 @@ public abstract class RecentsView<
         setWillNotDraw(false);
         updateEmptyMessage();
 
-        mTaskOverlayFactory = Overrides.getObject(
-                TaskOverlayFactory.class,
-                context.getApplicationContext(),
-                R.string.task_overlay_factory_class);
+        mTaskOverlayFactory = LauncherComponentProvider.get(context).getTaskOverlayFactory();
 
         // Initialize quickstep specific cache params here, as this is constructed only once
         mContainer.getViewCache().setCacheSize(R.layout.digital_wellbeing_toast, 5);

@@ -28,13 +28,16 @@ import com.android.launcher3.MainProcessInitializer;
 import com.android.quickstep.util.QuickstepProtoLogGroup;
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
 
+import javax.inject.Inject;
+
 @SuppressWarnings("unused")
 public class QuickstepProcessInitializer extends MainProcessInitializer {
 
     private static final String TAG = "QuickstepProcessInitializer";
     private static final int SETUP_DELAY_MILLIS = 5000;
 
-    public QuickstepProcessInitializer(Context context) {
+    @Inject
+    public QuickstepProcessInitializer() {
         // Fake call to create an instance of InteractionJankMonitor to avoid binder calls during
         // its initialization during transitions.
         InteractionJankMonitorWrapper.cancel(-1);
