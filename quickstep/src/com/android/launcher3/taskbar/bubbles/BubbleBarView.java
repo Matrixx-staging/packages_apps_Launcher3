@@ -1062,26 +1062,45 @@ public class BubbleBarView extends FrameLayout {
                 bv.setBadgeScale(bv == mSelectedBubbleView ? 1 : widthState);
             }
 
-            if (mIsBarExpanded) {
-                // If bar is on the right, account for bubble bar expanding and shifting left
-                final float expandedBarShift = onLeft ? 0 : currentWidth - expandedWidth;
-                // where the bubble will end up when the animation ends
-                final float targetX = expandedX + expandedBarShift;
-                bv.setTranslationX(widthState * (targetX - collapsedX) + collapsedX);
-                bv.setVisibility(VISIBLE);
+            if (onLeft) {
+                bv.setTranslationX(widthState * (expandedX - collapsedX) + collapsedX);
             } else {
-                // If bar is on the right, account for bubble bar expanding and shifting left
-                final float collapsedBarShift = onLeft ? 0 : currentWidth - collapsedWidth;
-                final float targetX = collapsedX + collapsedBarShift;
-                bv.setTranslationX(widthState * (expandedX - targetX) + targetX);
+                final boolean changingWidth =
+                        mIsBarExpanded
+                                ? currentWidth != expandedWidth
+                                : currentWidth != collapsedWidth;
+                // when the bubble bar is on the right, the bubble bar x position is its left-most
+                // bound. when the bar expands and collapses, the left bound changes due to the
+                // change in width. this impacts the position of the bubbles.
+                // during the expansion animation, the width of the bubble bar remains unchanged,
+                // and only updates at the end of the animation. e.g. while expanding, the width of
+                // the bubble bar is typically the collapsed width. and similarly while collapsing,
+                // the width is the expanded width. however if we start collapsing in the middle of
+                // expanding, the width of the bubble bar during the animation will be the collapsed
+                // width. in this case the path that bubbles travel on is the same path as "normal"
+                // expansion, just in the other direction.
+                final boolean useExpandingPath =
+                        (mIsBarExpanded && changingWidth) || (!mIsBarExpanded && !changingWidth);
+                if (useExpandingPath) {
+                    final float widthDelta = currentWidth - expandedWidth;
+                    final float targetX = expandedX + widthDelta;
+                    bv.setTranslationX(widthState * (targetX - collapsedX) + collapsedX);
+                } else {
+                    final float widthDelta = currentWidth - collapsedWidth;
+                    final float targetX = collapsedX + widthDelta;
+                    bv.setTranslationX(widthState * (expandedX - targetX) + targetX);
+                }
+            }
+
+            if (mIsBarExpanded) {
+                bv.setVisibility(VISIBLE);
+            } else if (widthState == 0) {
                 // If we're fully collapsed, hide all bubbles except for the first 2, excluding
                 // the overflow.
-                if (widthState == 0) {
-                    if (bv.isOverflow() || i > MAX_VISIBLE_BUBBLES_COLLAPSED - 1) {
-                        bv.setVisibility(INVISIBLE);
-                    } else {
-                        bv.setVisibility(VISIBLE);
-                    }
+                if (bv.isOverflow() || i > MAX_VISIBLE_BUBBLES_COLLAPSED - 1) {
+                    bv.setVisibility(INVISIBLE);
+                } else {
+                    bv.setVisibility(VISIBLE);
                 }
             }
         }
