@@ -19,7 +19,6 @@
     </string-array>
 
     <string name="test_information_handler_class" translatable="false">com.android.quickstep.QuickstepTestInformationHandler</string>
-    <string name="secondary_display_quickstep_delegate_class" translatable="false">com.android.launcher3.secondarydisplay.SecondaryDisplayQuickstepDelegateImpl</string>
     <string name="taskbar_edu_tooltip_controller_class" translatable="false">com.android.launcher3.taskbar.TaskbarEduTooltipController</string>
 
     <!-- The number of thumbnails and icons to keep in the cache. The thumbnail cache size also

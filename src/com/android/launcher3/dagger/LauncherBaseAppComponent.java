@@ -95,7 +95,6 @@ public interface LauncherBaseAppComponent {
     IconPool getIconPool();
     RemoveAnimationSettingsTracker getRemoveAnimationSettingsTracker();
     LauncherAppState getLauncherAppState();
-
     LauncherRestoreEventLogger getLauncherRestoreEventLogger();
     GridCustomizationsProxy getGridCustomizationsProxy();
     FolderNameSuggestionLoader getFolderNameSuggestionLoader();

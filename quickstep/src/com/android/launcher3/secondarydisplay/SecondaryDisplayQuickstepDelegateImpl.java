@@ -22,21 +22,25 @@ import android.window.DesktopExperienceFlags;
 
 import com.android.launcher3.appprediction.AppsDividerView;
 import com.android.launcher3.appprediction.PredictionRowView;
+import com.android.launcher3.dagger.ActivityContextSingleton;
 import com.android.launcher3.model.data.PredictedContainerInfo;
 import com.android.launcher3.views.ActivityContext;
 
+import javax.inject.Inject;
+
 /**
- * Implementation of {@link SecondaryDisplayQuickstepDelegate}..
+ * Implementation of {@link SecondaryDisplayDelegate}.
  */
-@SuppressWarnings("unused")
-public final class SecondaryDisplayQuickstepDelegateImpl extends SecondaryDisplayQuickstepDelegate {
+@ActivityContextSingleton
+public final class SecondaryDisplayQuickstepDelegateImpl extends SecondaryDisplayDelegate {
 
     private final ActivityContext mActivityContext;
     private final Context mContext;
 
-    public SecondaryDisplayQuickstepDelegateImpl(Context context) {
-        mContext = context;
-        mActivityContext = ActivityContext.lookupContext(context);
+    @Inject
+    public SecondaryDisplayQuickstepDelegateImpl(ActivityContext activityContext) {
+        mContext = activityContext.asContext();
+        mActivityContext = activityContext;
     }
 
     @Override
