@@ -80,6 +80,7 @@ import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.graphics.TintedDrawableSpan;
 import com.android.launcher3.icons.BitmapInfo;
 import com.android.launcher3.icons.CacheableShortcutInfo;
+import com.android.launcher3.icons.IconShape;
 import com.android.launcher3.icons.IconThemeController;
 import com.android.launcher3.icons.LauncherIcons;
 import com.android.launcher3.model.data.ItemInfo;
@@ -660,7 +661,7 @@ public final class Utilities {
 
         Drawable badge = null;
         if ((info instanceof ItemInfoWithIcon iiwi) && !iiwi.getMatchingLookupFlag().useLowRes()) {
-            badge = iiwi.bitmap.getBadgeDrawable(context, useTheme, getIconShapeOrNull(context));
+            badge = iiwi.bitmap.getBadgeDrawable(context, useTheme);
         }
 
         if (info instanceof PendingAddShortcutInfo) {
@@ -686,12 +687,13 @@ public final class Utilities {
                         appState.getInvariantDeviceProfile().fillResIconDpi);
                 // Only fetch badge if the icon is on workspace
                 if (info.id != ItemInfo.NO_ID && badge == null) {
-                    badge = appState.getIconCache().getShortcutInfoBadge(si).newIcon(
-                            context,
-                            ThemeManager.INSTANCE.get(context).isIconThemeEnabled()
-                                    ? FLAG_THEMED : 0,
-                            getIconShapeOrNull(context)
-                    );
+                    ThemeManager themeManager = ThemeManager.INSTANCE.get(context);
+                    BitmapInfo badgeInfo = appState.getIconCache().getShortcutInfoBadge(si);
+                    IconShape shape = themeManager.getIconShapeData();
+
+                    int flags = ThemeManager.INSTANCE.get(context).isIconThemeEnabled()
+                            ? FLAG_THEMED : 0;
+                    badge = badgeInfo.newIcon(context, flags, shape);
                 }
             }
         } else if (info.itemType == LauncherSettings.Favorites.ITEM_TYPE_FOLDER) {
@@ -741,7 +743,7 @@ public final class Utilities {
                             .getUserInfo(info.user)
                             .applyBitmapInfoFlags(FlagOp.NO_OP)
                     )
-                    .getBadgeDrawable(context, useTheme, getIconShapeOrNull(context));
+                    .getBadgeDrawable(context, useTheme);
             if (badge == null) {
                 badge = new ColorDrawable(Color.TRANSPARENT);
             }

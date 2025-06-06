@@ -418,6 +418,8 @@ public class InvariantDeviceProfile {
             maxIconSize = Math.max(maxIconSize, iconSize[i]);
         }
         iconBitmapSize = ResourceUtils.pxFromDp(maxIconSize, metrics);
+        mThemeManager.generateIconShape((float) iconBitmapSize);
+
         fillResIconDpi = getLauncherIconDensity(iconBitmapSize);
 
         iconTextSize = displayOption.textSizes;
@@ -541,6 +543,9 @@ public class InvariantDeviceProfile {
 
         // Re-init grid
         initGrid(context, mPrefs.get(GRID_NAME));
+
+        // Generate new Icon Shape info
+        mThemeManager.generateIconShape((float) iconBitmapSize);
 
         boolean modelPropsChanged = !Arrays.equals(oldState, toModelState());
         for (OnIDPChangeListener listener : mChangeListeners) {

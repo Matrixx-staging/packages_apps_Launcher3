@@ -139,7 +139,8 @@ public class PredictedAppIcon extends DoubleShadowBubbleTextView {
         int shadowSize = context.getResources().getDimensionPixelSize(
                 R.dimen.blur_size_thin_outline);
         mShadowFilter = new BlurMaskFilter(shadowSize, BlurMaskFilter.Blur.OUTER);
-        mShapePath = ThemeManager.INSTANCE.get(context).getIconShape().getPath(mNormalizedIconSize);
+        mShapePath = ThemeManager.INSTANCE.get(context)
+                .getIconShape().getPath(mNormalizedIconSize);
     }
 
     @Override
