@@ -75,7 +75,22 @@ public final class Taskbar {
                 "want to get a taskbar icon")) {
             return new TaskbarAppIcon(mLauncher, mLauncher.waitForObjectInContainer(
                     mLauncher.waitForSystemLauncherObject(TASKBAR_RES_ID),
-                    AppIcon.getAppIconSelector(appName, mLauncher)), mTaskbarLocation);
+                    AppIcon.getAppIconSelector(appName, mLauncher)), mTaskbarLocation, true);
+        }
+    }
+
+    /**
+     * Returns an app icon with the given name. This fails if the icon is not found.
+     * Should be used for app icons which when launched do not create a new activity - for example,
+     * icons that represent running tasks.
+     */
+    @NonNull
+    public TaskbarAppIcon getAppIconForRunningApp(String appName) {
+        try (LauncherInstrumentation.Closable c = mLauncher.addContextLayer(
+                "want to get a taskbar icon")) {
+            return new TaskbarAppIcon(mLauncher, mLauncher.waitForObjectInContainer(
+                    mLauncher.waitForSystemLauncherObject(TASKBAR_RES_ID),
+                    AppIcon.getAppIconSelector(appName, mLauncher)), mTaskbarLocation, false);
         }
     }
 

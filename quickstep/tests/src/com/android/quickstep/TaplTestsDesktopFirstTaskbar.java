@@ -48,10 +48,14 @@ import org.junit.Test;
 import org.junit.rules.ExternalResource;
 import org.junit.runner.RunWith;
 
+/**
+ * Test taskbar behavior on desktop devices, and more generally, freeform windowing mode displays
+ * where launching an app opens enters desktop windowing by default.
+ */
 @LargeTest
 @RunWith(AndroidJUnit4.class)
-public class TaplTestsLockedTaskbar extends AbstractTaplTestsTaskbar {
-    private static final String TAG = "TaplTestsLockedTaskbar";
+public class TaplTestsDesktopFirstTaskbar extends AbstractTaplTestsTaskbar {
+    private static final String TAG = "TaplTestsDesktopFirstTaskbar";
 
     @Rule
     public SetPropRule mSetPropRule =
@@ -78,11 +82,11 @@ public class TaplTestsLockedTaskbar extends AbstractTaplTestsTaskbar {
     @Override
     public void setUp() throws Exception {
         Assume.assumeTrue("Ignoring test because device is not a tablet",
-            mLauncher.isTablet());
+                mLauncher.isTablet());
         Assume.assumeTrue(Flags.enterDesktopByDefaultOnFreeformDisplays());
         Assume.assumeTrue(
-            "Ignoring test because device does not support desktop mode",
-            DesktopModeStatus.canEnterDesktopMode(getTargetContext()));
+                "Ignoring test because device does not support desktop mode",
+                DesktopModeStatus.canEnterDesktopMode(getTargetContext()));
         super.setUp();
     }
 
@@ -100,14 +104,76 @@ public class TaplTestsLockedTaskbar extends AbstractTaplTestsTaskbar {
     @PortraitLandscape
     @NavigationModeSwitch
     @TaskbarModeSwitch(mode = PERSISTENT)
-    public void testTaskbarVisibility() {
-        // The taskbar should be visible on home.
+    public void testTaskbarOnHome() {
+        // Go home - taskbar should be visible in desktop-first display context.
         mDevice.pressHome();
         waitForResumed("Launcher internal state is still Background");
         mLauncher.getLaunchedAppState().assertTaskbarVisible();
 
-        // The taskbar should be visible when a freeform task is active.
+        // Open an app, and go back home.
         startAppFast(CALCULATOR_APP_PACKAGE);
+        mLauncher.getLaunchedAppState().assertTaskbarVisible();
+        mDevice.pressHome();
+        waitForResumed("Launcher internal state is still Background");
+
+        // Verify that taskbar is still visible, and contains an icon associated with a running app,
+        // which is expected in desktop-first display context.
+        mLauncher.getLaunchedAppState().assertTaskbarVisible();
+        getTaskbar().getAppIconForRunningApp(CALCULATOR_APP_NAME).launch(CALCULATOR_APP_PACKAGE);
+
+        // Activating the running app icon on desktop-fist taskbar opens the app in desktop.
+        mLauncher.getLaunchedAppState().assertAppInDesktop(CALCULATOR_APP_PACKAGE);
+        mLauncher.getLaunchedAppState().assertTaskbarVisible();
+    }
+
+    @Test
+    @PortraitLandscape
+    @NavigationModeSwitch
+    @TaskbarModeSwitch(mode = PERSISTENT)
+    public void testTaskbarForFullscreenApp() {
+        clearAllRecentTasks();
+        mDevice.pressHome();
+        waitForResumed("Launcher internal state is still Background");
+
+        // Open two apps - they are both expected to open in desktop windowing on desktop-first
+        // display, then move the second one into fullscreen.
+        startAppFast(CALCULATOR_APP_PACKAGE);
+        startTestActivity(2);
+        mLauncher.getLaunchedAppState().moveFocusedActivityToFullscreen(getAppPackageName(),
+                "TestActivity2");
+
+        // Verify that taskbar is still visible, and contains an icon associated with a running app,
+        // which is expected in desktop-first display context.
+        mLauncher.getLaunchedAppState().assertTaskbarVisible();
+        getTaskbar().getAppIconForRunningApp(CALCULATOR_APP_NAME).launch(CALCULATOR_APP_PACKAGE);
+
+        // Activating the running app icon on desktop-fist taskbar opens the app in desktop.
+        mLauncher.getLaunchedAppState().assertAppInDesktop(CALCULATOR_APP_PACKAGE);
+        mLauncher.getLaunchedAppState().assertTaskbarVisible();
+    }
+
+    @Test
+    @PortraitLandscape
+    @NavigationModeSwitch
+    @TaskbarModeSwitch(mode = PERSISTENT)
+    public void testTaskbarForDesktopMode() {
+        clearAllRecentTasks();
+        mDevice.pressHome();
+        waitForResumed("Launcher internal state is still Background");
+
+        // Start two apps - they are both expected to open in desktop windowing on desktop-first
+        // display.
+        startAppFast(CALCULATOR_APP_PACKAGE);
+        startTestActivity(2);
+        mLauncher.getLaunchedAppState().assertTaskbarVisible();
+
+        // Verify that taskbar is still visible, and contains an icon associated with a running app,
+        // which is expected in desktop-first display context.
+        mLauncher.getLaunchedAppState().assertTaskbarVisible();
+        getTaskbar().getAppIconForRunningApp(CALCULATOR_APP_NAME).launch(CALCULATOR_APP_PACKAGE);
+
+        // Activating the running app icon on desktop-fist taskbar opens the app in desktop.
+        mLauncher.getLaunchedAppState().assertAppInDesktop(CALCULATOR_APP_PACKAGE);
         mLauncher.getLaunchedAppState().assertTaskbarVisible();
     }
 
