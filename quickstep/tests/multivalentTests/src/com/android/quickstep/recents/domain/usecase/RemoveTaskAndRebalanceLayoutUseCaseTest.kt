@@ -37,6 +37,8 @@ class RemoveTaskAndRebalanceLayoutUseCaseTest {
             leftRightMarginMultiRows = 20,
             horizontalPaddingBetweenTasks = 10,
             verticalPaddingBetweenTasks = 10,
+            minTaskWidth = 100,
+            maxRows = 4,
         )
 
     @Test
@@ -51,7 +53,7 @@ class RemoveTaskAndRebalanceLayoutUseCaseTest {
     // [ T1 ]
     @Test
     fun removeTask_whenTaskNotFoundInSingleItemLayout_returnsOriginalLayout() {
-        val currentLayout = listOf(DesktopTaskBoundsData(1, Rect(0, 0, 100, 200)))
+        val currentLayout = listOf(DesktopTaskBoundsData(1, Rect(0, 0, 100, 200), true))
         val result = useCase(currentLayout, taskIdToRemove = 2, layoutConfig = testLayoutConfig)
         assertThat(result).isEqualTo(currentLayout)
     }
@@ -67,16 +69,16 @@ class RemoveTaskAndRebalanceLayoutUseCaseTest {
     fun removeFirstRow_fromLayoutWithThreeRowsSingleColumn_rebalancesRemainingTwo() {
         val currentLayout =
             listOf(
-                DesktopTaskBoundsData(1, Rect(0, 0, 100, 200)),
-                DesktopTaskBoundsData(2, Rect(0, 210, 100, 410)),
-                DesktopTaskBoundsData(3, Rect(0, 420, 100, 620)),
+                DesktopTaskBoundsData(1, Rect(0, 0, 100, 200), true),
+                DesktopTaskBoundsData(2, Rect(0, 210, 100, 410), true),
+                DesktopTaskBoundsData(3, Rect(0, 420, 100, 620), true),
             )
         val result = useCase(currentLayout, taskIdToRemove = 1, layoutConfig = testLayoutConfig)
 
         val expectedResult =
             listOf(
-                DesktopTaskBoundsData(2, Rect(0, 105, 100, 305)),
-                DesktopTaskBoundsData(3, Rect(0, 315, 100, 515)),
+                DesktopTaskBoundsData(2, Rect(0, 105, 100, 305), true),
+                DesktopTaskBoundsData(3, Rect(0, 315, 100, 515), true),
             )
         assertThat(result).isEqualTo(expectedResult)
     }
@@ -92,17 +94,17 @@ class RemoveTaskAndRebalanceLayoutUseCaseTest {
     fun removeMiddleRow_fromLayoutWithThreeRowsSingleColumn_rebalancesRemainingTwo() {
         val currentLayout =
             listOf(
-                DesktopTaskBoundsData(1, Rect(0, 0, 100, 200)),
-                DesktopTaskBoundsData(2, Rect(0, 210, 100, 410)),
-                DesktopTaskBoundsData(3, Rect(0, 420, 100, 620)),
+                DesktopTaskBoundsData(1, Rect(0, 0, 100, 200), true),
+                DesktopTaskBoundsData(2, Rect(0, 210, 100, 410), true),
+                DesktopTaskBoundsData(3, Rect(0, 420, 100, 620), true),
             )
 
         val result = useCase(currentLayout, taskIdToRemove = 2, layoutConfig = testLayoutConfig)
 
         val expectedResult =
             listOf(
-                DesktopTaskBoundsData(1, Rect(0, 105, 100, 305)),
-                DesktopTaskBoundsData(3, Rect(0, 315, 100, 515)),
+                DesktopTaskBoundsData(1, Rect(0, 105, 100, 305), true),
+                DesktopTaskBoundsData(3, Rect(0, 315, 100, 515), true),
             )
         assertThat(result).isEqualTo(expectedResult)
     }
@@ -118,17 +120,17 @@ class RemoveTaskAndRebalanceLayoutUseCaseTest {
     fun removeLastRow_fromLayoutWithThreeRowsSingleColumn_rebalancesRemainingTwo() {
         val currentLayout =
             listOf(
-                DesktopTaskBoundsData(1, Rect(0, 0, 100, 200)),
-                DesktopTaskBoundsData(2, Rect(0, 210, 100, 410)),
-                DesktopTaskBoundsData(3, Rect(0, 420, 100, 620)),
+                DesktopTaskBoundsData(1, Rect(0, 0, 100, 200), true),
+                DesktopTaskBoundsData(2, Rect(0, 210, 100, 410), true),
+                DesktopTaskBoundsData(3, Rect(0, 420, 100, 620), true),
             )
 
         val result = useCase(currentLayout, taskIdToRemove = 3, layoutConfig = testLayoutConfig)
 
         val expectedResult =
             listOf(
-                DesktopTaskBoundsData(1, Rect(0, 105, 100, 305)),
-                DesktopTaskBoundsData(2, Rect(0, 315, 100, 515)),
+                DesktopTaskBoundsData(1, Rect(0, 105, 100, 305), true),
+                DesktopTaskBoundsData(2, Rect(0, 315, 100, 515), true),
             )
         assertThat(result).isEqualTo(expectedResult)
     }
@@ -144,21 +146,21 @@ class RemoveTaskAndRebalanceLayoutUseCaseTest {
     fun removeMiddleRowWithSingleTask_fromLayoutWithThreeRowsMixedColumns_rebalancesRemainingTwoRows() {
         val currentLayout =
             listOf(
-                DesktopTaskBoundsData(1, Rect(0, 0, 100, 200)),
-                DesktopTaskBoundsData(2, Rect(110, 0, 210, 200)),
-                DesktopTaskBoundsData(3, Rect(0, 210, 100, 410)),
-                DesktopTaskBoundsData(4, Rect(0, 420, 100, 620)),
-                DesktopTaskBoundsData(5, Rect(110, 420, 210, 620)),
+                DesktopTaskBoundsData(1, Rect(0, 0, 100, 200), true),
+                DesktopTaskBoundsData(2, Rect(110, 0, 210, 200), true),
+                DesktopTaskBoundsData(3, Rect(0, 210, 100, 410), true),
+                DesktopTaskBoundsData(4, Rect(0, 420, 100, 620), true),
+                DesktopTaskBoundsData(5, Rect(110, 420, 210, 620), true),
             )
 
         val result = useCase(currentLayout, taskIdToRemove = 3, layoutConfig = testLayoutConfig)
 
         val expectedResult =
             listOf(
-                DesktopTaskBoundsData(1, Rect(0, 105, 100, 305)),
-                DesktopTaskBoundsData(2, Rect(110, 105, 210, 305)),
-                DesktopTaskBoundsData(4, Rect(0, 315, 100, 515)),
-                DesktopTaskBoundsData(5, Rect(110, 315, 210, 515)),
+                DesktopTaskBoundsData(1, Rect(0, 105, 100, 305), true),
+                DesktopTaskBoundsData(2, Rect(110, 105, 210, 305), true),
+                DesktopTaskBoundsData(4, Rect(0, 315, 100, 515), true),
+                DesktopTaskBoundsData(5, Rect(110, 315, 210, 515), true),
             )
         assertThat(result).isEqualTo(expectedResult)
     }
@@ -171,17 +173,17 @@ class RemoveTaskAndRebalanceLayoutUseCaseTest {
     fun removeFirstTask_fromLayoutWithSingleRowThreeColumns_rebalancesRemainingTwo() {
         val currentLayout =
             listOf(
-                DesktopTaskBoundsData(1, Rect(0, 0, 100, 200)),
-                DesktopTaskBoundsData(2, Rect(110, 0, 210, 200)),
-                DesktopTaskBoundsData(3, Rect(220, 0, 320, 200)),
+                DesktopTaskBoundsData(1, Rect(0, 0, 100, 200), true),
+                DesktopTaskBoundsData(2, Rect(110, 0, 210, 200), true),
+                DesktopTaskBoundsData(3, Rect(220, 0, 320, 200), true),
             )
 
         val result = useCase(currentLayout, taskIdToRemove = 1, layoutConfig = testLayoutConfig)
 
         val expectedResult =
             listOf(
-                DesktopTaskBoundsData(2, Rect(55, 0, 155, 200)),
-                DesktopTaskBoundsData(3, Rect(165, 0, 265, 200)),
+                DesktopTaskBoundsData(2, Rect(55, 0, 155, 200), true),
+                DesktopTaskBoundsData(3, Rect(165, 0, 265, 200), true),
             )
         assertThat(result).isEqualTo(expectedResult)
     }
@@ -194,17 +196,17 @@ class RemoveTaskAndRebalanceLayoutUseCaseTest {
     fun removeMiddleTask_fromLayoutWithSingleRowThreeColumns_rebalancesRemainingTwo() {
         val currentLayout =
             listOf(
-                DesktopTaskBoundsData(1, Rect(0, 0, 100, 200)),
-                DesktopTaskBoundsData(2, Rect(110, 0, 210, 200)),
-                DesktopTaskBoundsData(3, Rect(220, 0, 320, 200)),
+                DesktopTaskBoundsData(1, Rect(0, 0, 100, 200), true),
+                DesktopTaskBoundsData(2, Rect(110, 0, 210, 200), true),
+                DesktopTaskBoundsData(3, Rect(220, 0, 320, 200), true),
             )
 
         val result = useCase(currentLayout, taskIdToRemove = 2, layoutConfig = testLayoutConfig)
 
         val expectedResult =
             listOf(
-                DesktopTaskBoundsData(1, Rect(55, 0, 155, 200)),
-                DesktopTaskBoundsData(3, Rect(165, 0, 265, 200)),
+                DesktopTaskBoundsData(1, Rect(55, 0, 155, 200), true),
+                DesktopTaskBoundsData(3, Rect(165, 0, 265, 200), true),
             )
         assertThat(result).isEqualTo(expectedResult)
     }
@@ -217,17 +219,17 @@ class RemoveTaskAndRebalanceLayoutUseCaseTest {
     fun removeLastTask_fromLayoutWithSingleRowThreeColumns_rebalancesRemainingTwo() {
         val currentLayout =
             listOf(
-                DesktopTaskBoundsData(1, Rect(0, 0, 100, 200)),
-                DesktopTaskBoundsData(2, Rect(110, 0, 210, 200)),
-                DesktopTaskBoundsData(3, Rect(220, 0, 320, 200)),
+                DesktopTaskBoundsData(1, Rect(0, 0, 100, 200), true),
+                DesktopTaskBoundsData(2, Rect(110, 0, 210, 200), true),
+                DesktopTaskBoundsData(3, Rect(220, 0, 320, 200), true),
             )
 
         val result = useCase(currentLayout, taskIdToRemove = 3, layoutConfig = testLayoutConfig)
 
         val expectedResult =
             listOf(
-                DesktopTaskBoundsData(1, Rect(55, 0, 155, 200)),
-                DesktopTaskBoundsData(2, Rect(165, 0, 265, 200)),
+                DesktopTaskBoundsData(1, Rect(55, 0, 155, 200), true),
+                DesktopTaskBoundsData(2, Rect(165, 0, 265, 200), true),
             )
         assertThat(result).isEqualTo(expectedResult)
     }

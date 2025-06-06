@@ -38,6 +38,8 @@ class OrganizeDesktopTasksUseCaseTest {
             leftRightMarginMultiRows = 20,
             horizontalPaddingBetweenTasks = 10,
             verticalPaddingBetweenTasks = 10,
+            minTaskWidth = 100,
+            maxRows = 4,
         )
 
     @Test
@@ -53,7 +55,7 @@ class OrganizeDesktopTasksUseCaseTest {
     @Test
     fun test_emptyDesktopBounds_returnsEmptyList() {
         val desktopBounds = Rect(0, 0, 0, 0)
-        val taskBounds = listOf(DesktopTaskBoundsData(1, Rect(0, 0, 100, 100)))
+        val taskBounds = listOf(DesktopTaskBoundsData(1, Rect(0, 0, 100, 100), true))
 
         val result = useCase.invoke(desktopBounds, taskBounds, testLayoutConfig)
 
@@ -61,30 +63,10 @@ class OrganizeDesktopTasksUseCaseTest {
     }
 
     @Test
-    fun test_filtersOutTasksWithEmptyBounds() {
-        val desktopBounds = Rect(0, 0, 1000, 2000)
-        val taskBounds =
-            listOf(
-                DesktopTaskBoundsData(1, Rect(0, 0, 100, 100)),
-                DesktopTaskBoundsData(2, Rect()), // Empty bounds
-                DesktopTaskBoundsData(3, Rect(0, 0, 50, 50)),
-            )
-
-        val result = useCase.invoke(desktopBounds, taskBounds, testLayoutConfig)
-        assertThat(result)
-            .isEqualTo(
-                listOf(
-                    DesktopTaskBoundsData(1, Rect(20, 34, 980, 995)),
-                    DesktopTaskBoundsData(3, Rect(20, 1005, 980, 1966)),
-                )
-            )
-    }
-
-    @Test
     fun test_singleTask_isCenteredAndScaled() {
         val desktopBounds = Rect(0, 0, 1000, 2000)
         val originalAppRect = Rect(0, 0, 800, 1200)
-        val taskBounds = listOf(DesktopTaskBoundsData(1, originalAppRect))
+        val taskBounds = listOf(DesktopTaskBoundsData(1, originalAppRect, true))
 
         val result = useCase.invoke(desktopBounds, taskBounds, testLayoutConfig)
 
@@ -102,7 +84,15 @@ class OrganizeDesktopTasksUseCaseTest {
         // Check if the task is centered within effective layout bounds
         val expectedTaskRect = Rect(25, 287, 975, 1713)
         assertThat(result)
-            .isEqualTo(listOf(DesktopTaskBoundsData(taskId = 1, bounds = expectedTaskRect)))
+            .isEqualTo(
+                listOf(
+                    DesktopTaskBoundsData(
+                        taskId = 1,
+                        bounds = expectedTaskRect,
+                        shouldBeDisplayedInOverview = true,
+                    )
+                )
+            )
     }
 
     @Test
@@ -112,9 +102,9 @@ class OrganizeDesktopTasksUseCaseTest {
         val taskRect = Rect(0, 0, 600, 400)
         val taskBounds =
             listOf(
-                DesktopTaskBoundsData(1, taskRect),
-                DesktopTaskBoundsData(2, taskRect),
-                DesktopTaskBoundsData(3, taskRect),
+                DesktopTaskBoundsData(1, taskRect, true),
+                DesktopTaskBoundsData(2, taskRect, true),
+                DesktopTaskBoundsData(3, taskRect, true),
             )
 
         val result = useCase.invoke(desktopBounds, taskBounds, testLayoutConfig)
@@ -137,10 +127,71 @@ class OrganizeDesktopTasksUseCaseTest {
         val expectedTask3Bounds = Rect(20, 1330, 980, 1970)
         val expectedResult =
             listOf(
-                DesktopTaskBoundsData(1, expectedTask1Bounds),
-                DesktopTaskBoundsData(2, expectedTask2Bounds),
-                DesktopTaskBoundsData(3, expectedTask3Bounds),
+                DesktopTaskBoundsData(1, expectedTask1Bounds, true),
+                DesktopTaskBoundsData(2, expectedTask2Bounds, true),
+                DesktopTaskBoundsData(3, expectedTask3Bounds, true),
             )
         assertThat(result).isEqualTo(expectedResult)
+    }
+
+    @Test
+    fun test_maxRows_limitsNumberOfRowsEffectively() {
+        val desktopBounds = Rect(0, 0, 1000, 550) // Height is somewhat constrained
+        val taskRect = Rect(0, 0, 200, 100) // Aspect ratio 2:1
+        val tasks =
+            listOf(
+                DesktopTaskBoundsData(1, taskRect, true),
+                DesktopTaskBoundsData(2, taskRect, true),
+                DesktopTaskBoundsData(3, taskRect, true),
+            )
+
+        // For simplicity, configure maxRows = 1.
+        // Effective layout height for multi-row (or single-row if margins are same):
+        // 550 - 20 (topMargin) - 20 (bottomMargin) = 510
+        // Effective layout width for multi-row:
+        // 1000 - 20 (leftMargin) - (20-10) (rightNetMargin from leftRightMarginMultiRows -
+        // horizontalPadding) = 970
+        // availableLayoutBounds for the main layout logic will be Rect(20, 20, 990, 530)
+        //
+        // With maxRows = 1, verticalPaddingBetweenTasks = 10:
+        // getMinTaskHeightGivenMaxRows = ((510 - 1*10) / (1+1)) + 1 = (500/2) + 1 = 251.
+        // This acts as a lower bound for the optimalHeight bisection.
+        //
+        // If optimalHeight is determined to be 251 (original task aspect ratio 200:100):
+        //   Scaled task width = 251 * (200/100) = 502.
+        //   Horizontally, in fitWindowRectsInBounds, for the first task:
+        //     left (20) + width (502) + horizontalPadding (10) = 532. This fits within
+        // layoutBounds.right (990).
+        //   For the second task on the same row:
+        //     new_left (532) + width (502) + horizontalPadding (10) = 1044. This exceeds
+        // layoutBounds.right (990).
+        //   So, second task attempts to move to a new row.
+        //   New row top = old_top (20) + optimalWindowHeight (251) + verticalPadding (10) = 281.
+        //   Check if new row fits vertically: (new_row_top + optimalWindowHeight) >
+        // layoutBounds.bottom
+        //     (281 + 251) > 530  => 532 > 530. It does NOT fit.
+        //   Thus, fitWindowRectsInBounds sets allWindowsFit = false and only Task 1 gets bounds.
+        //
+        // Expected: Task 1 gets bounds and centered, Tasks 2 and 3 get a small bounds in the center
+        // of the screen.
+        // Expected Rect for Task 1: Rect(254, 149, 756, 401)
+        val config =
+            testLayoutConfig.copy(
+                // testLayoutConfig has topBottomMarginOneRow = 20
+                maxRows = 1,
+                minTaskWidth = 50, // Low enough not to dominate height calculation
+                verticalPaddingBetweenTasks = 10,
+                topMarginMultiRows = 20,
+                bottomMarginMultiRows = 20,
+                leftRightMarginMultiRows = 20,
+                horizontalPaddingBetweenTasks = 10,
+            )
+
+        val result = useCase.invoke(desktopBounds, tasks, config)
+
+        assertThat(result).hasSize(3)
+        assertThat(result[0].bounds).isEqualTo(Rect(254, 149, 756, 401))
+        assertThat(result[1].bounds).isEqualTo(Rect(475, 250, 525, 300))
+        assertThat(result[2].bounds).isEqualTo(Rect(475, 250, 525, 300))
     }
 }

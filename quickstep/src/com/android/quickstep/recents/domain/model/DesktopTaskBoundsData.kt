@@ -18,4 +18,8 @@ package com.android.quickstep.recents.domain.model
 
 import android.graphics.Rect
 
-data class DesktopTaskBoundsData(val taskId: Int, val bounds: Rect)
+data class DesktopTaskBoundsData(
+    val taskId: Int,
+    val bounds: Rect,
+    val shouldBeDisplayedInOverview: Boolean,
+)

@@ -102,6 +102,8 @@
     <dimen name="desktop_top_margin_multi_rows">72dp</dimen>
     <dimen name="desktop_bottom_margin_multi_rows">24dp</dimen>
     <dimen name="desktop_left_right_margin_multi_rows">24dp</dimen>
+    <dimen name="desktop_min_task_width">72dp</dimen>
+    <integer name="desktop_layout_max_rows">5</integer>
     <!-- The length of the fading edge (gradient) of the task header title -->
     <dimen name="task_header_title_fading_edge_length">28dp</dimen>
 
