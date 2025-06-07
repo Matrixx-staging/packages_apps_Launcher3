@@ -121,6 +121,23 @@ android_library {
 }
 
 android_library {
+    name: "widget_picker_ui_theme",
+    sdk_version: "current",
+    min_sdk_version: min_launcher3_sdk_version,
+    srcs: [
+        "src/com/android/launcher3/widgetpicker/ui/theme/WidgetPickerTheme.kt",
+        "src/com/android/launcher3/widgetpicker/ui/theme/WidgetPickerColors.kt",
+        "src/com/android/launcher3/widgetpicker/ui/theme/WidgetPickerTextStyles.kt",
+    ],
+    static_libs: [
+        "androidx.compose.foundation_foundation",
+        "androidx.compose.runtime_runtime",
+        "androidx.compose.ui_ui",
+        "androidx.compose.material3_material3",
+    ],
+}
+
+android_library {
     name: "widget_picker_ui_components",
     sdk_version: "current",
     min_sdk_version: min_launcher3_sdk_version,
@@ -136,13 +153,17 @@ android_library {
         "src/com/android/launcher3/widgetpicker/ui/components/Strings.kt",
         "src/com/android/launcher3/widgetpicker/ui/components/WidgetDetails.kt",
         "src/com/android/launcher3/widgetpicker/ui/components/WidgetPreview.kt",
+        "src/com/android/launcher3/widgetpicker/ui/components/DragAndDrop.kt",
         "src/com/android/launcher3/widgetpicker/ui/components/WidgetPreviewHostView.kt",
         "src/com/android/launcher3/widgetpicker/ui/components/WidgetsGrid.kt",
         "src/com/android/launcher3/widgetpicker/ui/components/ExpandCollapseIndicator.kt",
         "src/com/android/launcher3/widgetpicker/ui/components/WidgetAppsListHeader.kt",
         "src/com/android/launcher3/widgetpicker/ui/components/WidgetAppsList.kt",
+        "src/com/android/launcher3/widgetpicker/ui/components/TestTag.kt",
     ],
     static_libs: [
+        "widget_picker_event_listeners",
+        "widget_picker_ui_theme",
         "widget_picker_ui_data_types",
         "androidx.compose.foundation_foundation",
         "androidx.compose.foundation_foundation-layout",
@@ -163,6 +184,18 @@ android_library {
 }
 
 android_library {
+    name: "widget_picker_event_listeners",
+    sdk_version: "current",
+    min_sdk_version: min_launcher3_sdk_version,
+    srcs: [
+        "src/com/android/launcher3/widgetpicker/ui/WidgetPickerEventListeners.kt",
+    ],
+    static_libs: [
+        "widget_picker_shared_data_types",
+    ],
+}
+
+android_library {
     name: "widget_picker_ui",
     sdk_version: "current",
     plugins: ["dagger2-compiler"],
@@ -177,10 +210,11 @@ android_library {
         "src/com/android/launcher3/widgetpicker/ui/fullcatalog/screens/landing/LandingScreenViewModel.kt",
         "src/com/android/launcher3/widgetpicker/ui/fullcatalog/screens/search/SearchScreen.kt",
         "src/com/android/launcher3/widgetpicker/ui/fullcatalog/screens/search/SearchScreenViewModel.kt",
-        "src/com/android/launcher3/widgetpicker/ui/WidgetPickerEventListeners.kt",
     ],
     static_libs: [
+        "widget_picker_ui_theme",
         "widget_picker_ui_components",
+        "widget_picker_event_listeners",
         "widget_picker_ui_data_types",
         "widget_picker_domain_layer",
         "dagger2",

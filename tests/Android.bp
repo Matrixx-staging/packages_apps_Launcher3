@@ -64,9 +64,6 @@ filegroup {
 // Library with all the dependencies for building quickstep
 android_library {
     name: "Launcher3TestLib",
-    defaults: [
-        "launcher_compose_tests_defaults",
-    ],
     srcs: [],
     asset_dirs: ["assets"],
     resource_dirs: ["res"],

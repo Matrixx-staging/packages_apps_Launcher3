@@ -24,11 +24,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
@@ -39,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import com.android.launcher3.widgetpicker.shared.model.AppIcon
 import com.android.launcher3.widgetpicker.shared.model.AppIconBadge
 import com.android.launcher3.widgetpicker.shared.model.WidgetAppIcon
+import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 
 /** An app icon rendered from the provided [WidgetAppIcon] with an option badge. */
 @Composable
@@ -68,7 +67,7 @@ private fun HighResAppIcon(
     Box(modifier = Modifier.size(size.iconSize)) {
         Icon(
             bitmap = icon.bitmap.asImageBitmap(),
-            modifier = Modifier.fillMaxSize().clip(CircleShape),
+            modifier = Modifier.fillMaxSize(),
             contentDescription = null,
             tint = Color.Unspecified,
         )
@@ -92,7 +91,7 @@ private fun PlaceholderAppIcon(size: AppIconSize) {
         modifier =
             Modifier.size(size.iconSize)
                 .background(
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f),
+                    color = WidgetPickerTheme.colors.placeholderAppIcon.copy(alpha = 0.2f),
                     shape = CircleShape,
                 )
     )

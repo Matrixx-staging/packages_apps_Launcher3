@@ -24,21 +24,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 
 /** A visual cue displayed on list headers to indicate its current expand / collapse state. */
 @Composable
 fun ExpandCollapseIndicator(
     expanded: Boolean,
     modifier: Modifier = Modifier,
-    iconColor: Color = ExpandCollapseIndicatorDefaults.iconColor,
-    backgroundColor: Color = ExpandCollapseIndicatorDefaults.backgroundColor,
 ) {
     Box(
         contentAlignment = Alignment.Center,
@@ -46,11 +43,11 @@ fun ExpandCollapseIndicator(
             modifier
                 .size(ExpandCollapseIndicatorDimensions.size)
                 .clip(ExpandCollapseIndicatorDimensions.cornerShape)
-                .background(backgroundColor),
+                .background(WidgetPickerTheme.colors.expandCollapseIndicatorBackground),
     ) {
         Icon(
             modifier = Modifier.size(ExpandCollapseIndicatorDimensions.iconSize),
-            tint = iconColor,
+            tint = WidgetPickerTheme.colors.expandCollapseIndicatorIcon,
             contentDescription = null, // Decorative
             imageVector =
                 if (expanded) {
@@ -66,12 +63,4 @@ private object ExpandCollapseIndicatorDimensions {
     val cornerShape = RoundedCornerShape(50.dp)
     val size = 24.dp
     val iconSize = 16.dp
-}
-
-private object ExpandCollapseIndicatorDefaults {
-    val iconColor
-        @Composable get() = MaterialTheme.colorScheme.onSecondaryContainer
-
-    val backgroundColor
-        @Composable get() = MaterialTheme.colorScheme.secondaryContainer
 }

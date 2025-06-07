@@ -31,17 +31,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 
 /**
  * A tab (suitable for displaying in a horizontal toolbar) that shows a leading icon along with its
@@ -55,22 +53,20 @@ fun LeadingIconToolbarTab(
     label: String,
     selected: Boolean,
     onClick: () -> Unit,
-    selectedBackgroundColor: Color = LeadingIconToolbarTabDefaults.selectedBackgroundColor,
-    contentColor: Color = LeadingIconToolbarTabDefaults.contentColor,
-    textStyle: TextStyle = LeadingIconToolbarTabDefaults.textStyle,
+    modifier: Modifier = Modifier,
     iconEnterTransition: EnterTransition = LeadingIconToolbarTabDefaults.iconEnterTransition,
     iconExitTransition: ExitTransition = LeadingIconToolbarTabDefaults.iconExitTransition,
 ) {
     val backgroundColor =
         if (selected) {
-            selectedBackgroundColor
+            WidgetPickerTheme.colors.toolbarTabSelectedBackground
         } else {
-            Color.Transparent
+            WidgetPickerTheme.colors.toolbarTabUnSelectedBackground
         }
 
     Row(
         modifier =
-            Modifier
+            modifier
                 .fillMaxWidth()
                 .clip(CircleShape)
                 .selectable(
@@ -92,24 +88,19 @@ fun LeadingIconToolbarTab(
                 imageVector = leadingIcon,
                 contentDescription = null, // decorative
                 modifier = Modifier.padding(end = LeadingIconToolbarTabDefaults.contentSpacing),
-                tint = contentColor,
+                tint = WidgetPickerTheme.colors.toolbarTabContent,
             )
         }
-        Text(text = label, style = textStyle, color = contentColor)
+        Text(
+            text = label,
+            style = WidgetPickerTheme.typography.toolbarTabLabel,
+            color = WidgetPickerTheme.colors.toolbarTabContent,
+        )
     }
 }
 
 /** Holds default values used by the [LeadingIconToolbarTab]. */
 object LeadingIconToolbarTabDefaults {
-    val selectedBackgroundColor: Color
-        @Composable get() = MaterialTheme.colorScheme.secondaryContainer
-
-    val contentColor: Color
-        @Composable get() = MaterialTheme.colorScheme.onSecondaryContainer
-
-    val textStyle: TextStyle
-        @Composable get() = MaterialTheme.typography.labelLarge
-
     val horizontalPadding = 16.dp
     val contentSpacing = 8.dp
 

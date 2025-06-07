@@ -21,7 +21,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
@@ -30,6 +33,7 @@ import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
@@ -42,6 +46,7 @@ import com.android.launcher3.widgetpicker.shared.model.WidgetAppIcon
 import com.android.launcher3.widgetpicker.shared.model.WidgetAppId
 import com.android.launcher3.widgetpicker.shared.model.WidgetId
 import com.android.launcher3.widgetpicker.shared.model.WidgetPreview
+import com.android.launcher3.widgetpicker.ui.WidgetInteractionInfo
 import com.android.launcher3.widgetpicker.ui.components.WidgetGridDimensions.MAX_ITEMS_PER_ROW
 import com.android.launcher3.widgetpicker.ui.model.WidgetSizeGroup
 import kotlin.math.max
@@ -55,6 +60,11 @@ import kotlin.math.max
  *   label.
  * @param appIcons optional map containing app icons to show in the widget details besides the label
  *   (when showing the widgets outside of app context e.g. recommendations)
+ * @param showDragShadow indicates if in a drag and drop session, widget picker should show drag
+ * shadow containing the preview; if not set, a transparent shadow is rendered and host should
+ * manage providing a shadow on its own.
+ * @param onWidgetInteraction callback invoked when a widget is being dragged and picker has started
+ * global drag and drop session.
  * @param modifier modifier with parent constraints and additional modifications
  */
 @Composable
@@ -64,7 +74,11 @@ fun WidgetsGrid(
     previews: Map<WidgetId, WidgetPreview>,
     modifier: Modifier,
     appIcons: Map<WidgetAppId, WidgetAppIcon> = emptyMap(),
+    showDragShadow: Boolean,
+    onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
 ) {
+    var addButtonWidgetId by remember { mutableStateOf<WidgetId?>(null) }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier.padding(vertical = WidgetGridDimensions.gridVerticalPadding),
@@ -75,6 +89,16 @@ fun WidgetsGrid(
                 showAllWidgetDetails = showAllWidgetDetails,
                 appIcons = appIcons,
                 previews = previews,
+                showDragShadow = showDragShadow,
+                addButtonWidgetId = addButtonWidgetId,
+                onWidgetInteraction = onWidgetInteraction,
+                onAddButtonToggle = { id ->
+                    addButtonWidgetId = if (id != addButtonWidgetId) {
+                        id
+                    } else {
+                        null
+                    }
+                }
             )
         }
     }
@@ -102,8 +126,12 @@ fun WidgetsGrid(
 private fun WidgetsFlowRow(
     widgetSizeGroup: WidgetSizeGroup,
     showAllWidgetDetails: Boolean,
+    addButtonWidgetId: WidgetId?,
     appIcons: Map<WidgetAppId, WidgetAppIcon>,
     previews: Map<WidgetId, WidgetPreview>,
+    showDragShadow: Boolean,
+    onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
+    onAddButtonToggle: (WidgetId) -> Unit,
     cellHorizontalPadding: Dp = WidgetGridDimensions.cellHorizontalPadding,
     rowVerticalSpacing: Dp = WidgetGridDimensions.rowVerticalSpacing,
     minItemWidth: Dp = WidgetGridDimensions.minItemWidth,
@@ -111,8 +139,25 @@ private fun WidgetsFlowRow(
     val items = widgetSizeGroup.widgets
 
     WidgetsFlowRowLayout(
-        widgetPreviews = { Previews(items, previews) },
-        widgetDetails = { Details(showAllWidgetDetails, items, appIcons) },
+        widgetPreviews = {
+            Previews(
+                widgets = items,
+                previews = previews,
+                showDragShadow = showDragShadow,
+                onWidgetInteraction = onWidgetInteraction,
+                onAddButtonToggle = onAddButtonToggle,
+            )
+        },
+        widgetDetails = {
+            Details(
+                showAllWidgetDetails = showAllWidgetDetails,
+                widgets = items,
+                appIcons = appIcons,
+                addButtonWidgetId = addButtonWidgetId,
+                onWidgetInteraction = onWidgetInteraction,
+                onAddButtonToggle = onAddButtonToggle
+            )
+        },
         previewContainerWidthPx = widgetSizeGroup.previewContainerWidthPx,
         cellHorizontalPadding = cellHorizontalPadding,
         rowVerticalSpacing = rowVerticalSpacing,
@@ -121,7 +166,13 @@ private fun WidgetsFlowRow(
 }
 
 @Composable
-private fun Previews(widgets: List<PickableWidget>, previews: Map<WidgetId, WidgetPreview>) {
+private fun Previews(
+    widgets: List<PickableWidget>,
+    previews: Map<WidgetId, WidgetPreview>,
+    showDragShadow: Boolean,
+    onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
+    onAddButtonToggle: (WidgetId) -> Unit,
+) {
     widgets.forEachIndexed { index, widgetItem ->
         val id = widgetItem.id
 
@@ -133,12 +184,21 @@ private fun Previews(widgets: List<PickableWidget>, previews: Map<WidgetId, Widg
         Box(
             contentAlignment = Alignment.BottomCenter,
             modifier =
-                Modifier.fillMaxSize().clearAndSetSemantics { traversalIndex = index.toFloat() },
+                Modifier
+                    .fillMaxSize()
+                    .clearAndSetSemantics {
+                        traversalIndex = index.toFloat()
+                        testTag = buildWidgetPickerTestTag(WIDGET_PREVIEW_TEST_TAG)
+                    },
         ) {
             WidgetPreview(
+                id = widgetItem.id,
                 sizeInfo = widgetItem.sizeInfo,
                 preview = widgetPreview,
                 appwidgetInfo = widgetItem.appWidgetProviderInfo,
+                showDragShadow = showDragShadow,
+                onWidgetInteraction = onWidgetInteraction,
+                onAddButtonToggle = onAddButtonToggle
             )
         }
     }
@@ -148,7 +208,10 @@ private fun Previews(widgets: List<PickableWidget>, previews: Map<WidgetId, Widg
 private fun Details(
     showAllWidgetDetails: Boolean,
     widgets: List<PickableWidget>,
+    addButtonWidgetId: WidgetId?,
     appIcons: Map<WidgetAppId, WidgetAppIcon>,
+    onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
+    onAddButtonToggle: (WidgetId) -> Unit
 ) {
     widgets.forEachIndexed { index, widgetItem ->
         val appId = widgetItem.appId
@@ -159,7 +222,10 @@ private fun Details(
         WidgetDetails(
             widget = widgetItem,
             showAllDetails = showAllWidgetDetails,
+            showAddButton = addButtonWidgetId == widgetItem.id,
             appIcon = appIcon,
+            onWidgetAddClick = onWidgetInteraction,
+            onAddButtonToggle = onAddButtonToggle,
             modifier =
                 Modifier.semantics(mergeDescendants = true) { traversalIndex = index.toFloat() },
         )
@@ -310,8 +376,8 @@ private fun Placeable.PlacementScope.placeRows(
         // Move to next row
         yPosition +=
             measuredRow.tallestPreviewHeight +
-                measuredRow.tallestDetailsHeight +
-                rowVerticalSpacingPx
+                    measuredRow.tallestDetailsHeight +
+                    rowVerticalSpacingPx
     }
 }
 
@@ -377,3 +443,5 @@ private object WidgetGridDimensions {
     const val MAX_ITEMS_PER_ROW = 3
     val minItemWidth = 100.dp
 }
+
+private const val WIDGET_PREVIEW_TEST_TAG = "widget_preview"

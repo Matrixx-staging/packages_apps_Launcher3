@@ -42,6 +42,7 @@ import android.graphics.Rect;
 import android.hardware.display.DisplayManager;
 import android.util.ArrayMap;
 import android.util.ArraySet;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.Display;
@@ -435,13 +436,14 @@ public class DisplayController implements DesktopVisibilityListener {
 
     private Info getNewInfo(Info oldInfo, Context displayInfoContext) {
         Info newInfo = new Info(displayInfoContext, mIsDesktopFormFactor, mWMProxy,
-                oldInfo.mPerDisplayBounds);
+                oldInfo.mPerDisplayBounds, DisplayMetrics.DENSITY_DEVICE_STABLE);
 
         if (newInfo.densityDpi != oldInfo.densityDpi || newInfo.fontScale != oldInfo.fontScale
                 || newInfo.getNavigationMode() != oldInfo.getNavigationMode()) {
             // Cache may not be valid anymore, recreate without cache
             newInfo = new Info(displayInfoContext, mIsDesktopFormFactor, mWMProxy,
-                    mWMProxy.estimateInternalDisplayBounds(displayInfoContext));
+                    mWMProxy.estimateInternalDisplayBounds(displayInfoContext),
+                    DisplayMetrics.DENSITY_DEVICE_STABLE);
         }
         return newInfo;
     }
@@ -479,7 +481,8 @@ public class DisplayController implements DesktopVisibilityListener {
         }
         Context windowContext = mAppContext.createWindowContext(display, TYPE_APPLICATION, null);
         Info info = new Info(windowContext, mIsDesktopFormFactor, mWMProxy,
-                mWMProxy.estimateInternalDisplayBounds(windowContext));
+                mWMProxy.estimateInternalDisplayBounds(windowContext),
+                DisplayMetrics.DENSITY_DEVICE_STABLE);
         perDisplayInfo = new PerDisplayInfo(displayId, windowContext, info);
         mPerDisplayInfo.put(displayId, perDisplayInfo);
         return perDisplayInfo;
@@ -508,6 +511,7 @@ public class DisplayController implements DesktopVisibilityListener {
         // Configuration property
         public final float fontScale;
         private final int densityDpi;
+        private final float mStableDensityScaleFactor;
         private final NavigationMode navigationMode;
         private final PortraitSize mScreenSizeDp;
 
@@ -534,14 +538,16 @@ public class DisplayController implements DesktopVisibilityListener {
             this(displayInfoContext, enableScalabilityForDesktopExperience()
                             && displayInfoContext.getResources().getBoolean(
                             R.bool.desktop_form_factor),
-                    new WindowManagerProxy(), new ArrayMap<>());
+                    new WindowManagerProxy(), new ArrayMap<>(),
+                    DisplayMetrics.DENSITY_DEVICE_STABLE);
         }
 
         // Used for testing
         public Info(Context displayInfoContext,
                 boolean isDesktopFormFactor,
                 WindowManagerProxy wmProxy,
-                Map<CachedDisplayInfo, List<WindowBounds>> perDisplayBoundsCache) {
+                Map<CachedDisplayInfo, List<WindowBounds>> perDisplayBoundsCache,
+                int defaultDensityDpi) {
             CachedDisplayInfo displayInfo = wmProxy.getDisplayInfo(displayInfoContext);
             normalizedDisplayInfo = displayInfo.normalize(wmProxy);
             rotation = displayInfo.rotation;
@@ -551,6 +557,7 @@ public class DisplayController implements DesktopVisibilityListener {
             Configuration config = displayInfoContext.getResources().getConfiguration();
             fontScale = config.fontScale;
             densityDpi = config.densityDpi;
+            mStableDensityScaleFactor = (float) defaultDensityDpi / DisplayMetrics.DENSITY_DEFAULT;
             mScreenSizeDp = new PortraitSize(config.screenHeightDp, config.screenWidthDp);
             navigationMode = wmProxy.getNavigationMode(displayInfoContext);
             mIsNightModeActive = config.isNightModeActive();
@@ -679,6 +686,10 @@ public class DisplayController implements DesktopVisibilityListener {
 
         public int getDensityDpi() {
             return densityDpi;
+        }
+
+        public float getStableDensityScaleFactor() {
+            return mStableDensityScaleFactor;
         }
 
         public @DeviceType int getDeviceType() {

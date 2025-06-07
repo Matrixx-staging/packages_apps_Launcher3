@@ -172,6 +172,13 @@ class AllAppsActionManagerTest {
         assertThat(allAppsActionManager.isActionRegistered).isTrue()
         verify(quickstepKeyGestureEventsManager).registerAllAppsKeyGestureEvent(any())
     }
+
+    @Test
+    fun onDestroy_shouldUnregisterAllAppsKeyGestureHandler() {
+        allAppsActionManager.onDestroy()
+
+        verify(quickstepKeyGestureEventsManager).unregisterAllAppsKeyGestureEvent()
+    }
 }
 
 @LauncherAppSingleton

@@ -44,6 +44,7 @@ import com.android.launcher3.widgetpicker.repository.FakeWidgetsRepository
 import com.android.launcher3.widgetpicker.shared.model.WidgetHostInfo
 import com.android.launcher3.widgetpicker.shared.model.WidgetUserProfiles
 import com.android.launcher3.widgetpicker.ui.rememberViewModel
+import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -57,13 +58,10 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 @AllowedDevices(allowed = [DeviceProduct.CF_TABLET])
 class SearchScreenTest {
-    @get:Rule
-    val limitDevicesRule = LimitDevicesRule()
-    @get:Rule
-    val composeTestRule = createAndroidComposeRule<ComponentActivity>()
+    @get:Rule val limitDevicesRule = LimitDevicesRule()
+    @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val testDispatcher = UnconfinedTestDispatcher()
+    @OptIn(ExperimentalCoroutinesApi::class) private val testDispatcher = UnconfinedTestDispatcher()
     private val testScope = TestScope(testDispatcher)
     private val context = InstrumentationRegistry.getInstrumentation().context
 
@@ -77,33 +75,37 @@ class SearchScreenTest {
 
     @Before
     fun setUp() {
-        viewModel = SearchScreenViewModel(
-            widgetsInteractor = WidgetsInteractor(
-                widgetsRepository = widgetsRepository,
-                widgetUsersRepository = widgetsUsersRepository,
-                filterWidgetsForHostUseCase = FilterWidgetsForHostUseCase(WidgetHostInfo()),
-                getWidgetAppsByProfileUseCase = GroupWidgetAppsByProfileUseCase(),
-                backgroundContext = testDispatcher,
-            ),
-            widgetAppIconsInteractor = WidgetAppIconsInteractor(
-                widgetAppIconsRepository = widgetAppIconsRepository,
-                widgetsRepository = widgetsRepository,
-                backgroundContext = testDispatcher
-            ),
-        )
+        viewModel =
+            SearchScreenViewModel(
+                widgetsInteractor =
+                    WidgetsInteractor(
+                        widgetsRepository = widgetsRepository,
+                        widgetUsersRepository = widgetsUsersRepository,
+                        filterWidgetsForHostUseCase = FilterWidgetsForHostUseCase(WidgetHostInfo()),
+                        getWidgetAppsByProfileUseCase = GroupWidgetAppsByProfileUseCase(),
+                        backgroundContext = testDispatcher,
+                    ),
+                widgetAppIconsInteractor =
+                    WidgetAppIconsInteractor(
+                        widgetAppIconsRepository = widgetAppIconsRepository,
+                        widgetsRepository = widgetsRepository,
+                        backgroundContext = testDispatcher,
+                    ),
+            )
 
-        searchBarHint = context.applicationContext.resources.getString(
-            R.string.widgets_search_bar_hint
-        )
+        searchBarHint =
+            context.applicationContext.resources.getString(R.string.widgets_search_bar_hint)
         clearButtonContentDescription =
-            context.applicationContext.resources.getString(R.string.widget_search_bar_clear_button_label)
+            context.applicationContext.resources.getString(
+                R.string.widget_search_bar_clear_button_label
+            )
         widgetsRepository.seedWidgets(PERSONAL_TEST_APPS + WORK_TEST_APPS)
         widgetsUsersRepository.seedUserProfiles(
             WidgetUserProfiles(
                 personal = TestUtils.widgetUserProfilePersonal,
-                work = TestUtils.widgetUserProfileWork
+                work = TestUtils.widgetUserProfileWork,
             ),
-            workProfileUser = workUser
+            workProfileUser = workUser,
         )
     }
 
@@ -111,102 +113,130 @@ class SearchScreenTest {
     private fun TestContent(isCompact: Boolean) {
         val viewModel = rememberViewModel { viewModel }
 
-        SearchScreen(
-            isCompact = isCompact,
-            onExitSearchMode = {},
-            viewModel = viewModel,
-        )
+        WidgetPickerTheme {
+            SearchScreen(
+                isCompact = isCompact,
+                onExitSearchMode = {},
+                onWidgetInteraction = {},
+                showDragShadow = true,
+                viewModel = viewModel,
+            )
+        }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun singlePane_showMatchingApps() = testScope.runTest {
-        composeTestRule.setContent {
-            TestContent(
-                isCompact = true
-            )
+    fun singlePane_showMatchingApps() =
+        testScope.runTest {
+            composeTestRule.setContent { TestContent(isCompact = true) }
+
+            runCurrent()
+            composeTestRule.waitForIdle()
+
+            val testInputOne = "PersonalWidget"
+            composeTestRule.onNodeWithText(searchBarHint).performTextInput(testInputOne)
+
+            runCurrent()
+            composeTestRule.waitForIdle()
+
+            // has both apps
+            composeTestRule.onNode(hasText(PERSONAL_TEST_APPS[0].title!!.toString())).assertExists()
+            composeTestRule.onNode(hasText(PERSONAL_TEST_APPS[1].title!!.toString())).assertExists()
+
+            composeTestRule
+                .onNodeWithContentDescription(clearButtonContentDescription)
+                .performClick()
+
+            runCurrent()
+            composeTestRule.waitForIdle()
+
+            // change query
+            val testInputTwo = "PersonalWidget1A"
+            composeTestRule.onNodeWithText(searchBarHint).performTextInput(testInputTwo)
+
+            runCurrent()
+            composeTestRule.waitForIdle()
+
+            // has only app 1
+            composeTestRule.onNode(hasText(PERSONAL_TEST_APPS[0].title!!.toString())).assertExists()
+            composeTestRule
+                .onNode(hasText(PERSONAL_TEST_APPS[1].title!!.toString()))
+                .assertDoesNotExist()
         }
-
-        runCurrent()
-        composeTestRule.waitForIdle()
-
-        val testInputOne = "PersonalWidget"
-        composeTestRule.onNodeWithText(searchBarHint)
-            .performTextInput(testInputOne)
-
-        runCurrent()
-        composeTestRule.waitForIdle()
-
-        // has both apps
-        composeTestRule.onNode(hasText(PERSONAL_TEST_APPS[0].title!!.toString()))
-            .assertExists()
-        composeTestRule.onNode(hasText(PERSONAL_TEST_APPS[1].title!!.toString()))
-            .assertExists()
-
-        composeTestRule
-            .onNodeWithContentDescription(clearButtonContentDescription)
-            .performClick()
-
-        runCurrent()
-        composeTestRule.waitForIdle()
-
-        // change query
-        val testInputTwo = "PersonalWidget1A"
-        composeTestRule.onNodeWithText(searchBarHint).performTextInput(testInputTwo)
-
-        runCurrent()
-        composeTestRule.waitForIdle()
-
-        // has only app 1
-        composeTestRule.onNode(hasText(PERSONAL_TEST_APPS[0].title!!.toString()))
-            .assertExists()
-        composeTestRule.onNode(hasText(PERSONAL_TEST_APPS[1].title!!.toString()))
-            .assertDoesNotExist()
-    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun twoPane_showMatchingApps() = testScope.runTest {
-        composeTestRule.setContent {
-            TestContent(
-                isCompact = false
-            )
+    fun singlePane_noResults_showsNotFoundMessage() =
+        testScope.runTest {
+            composeTestRule.setContent { TestContent(isCompact = true) }
+
+            runCurrent()
+            composeTestRule.waitForIdle()
+
+            val notMatchingInput = "Invalid"
+            composeTestRule.onNodeWithText(searchBarHint).performTextInput(notMatchingInput)
+
+            runCurrent()
+            composeTestRule.waitForIdle()
+
+            composeTestRule.onNode(hasText("No widgets or shortcuts found")).assertExists()
         }
 
-        runCurrent()
-        composeTestRule.waitForIdle()
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun twoPane_showMatchingApps() =
+        testScope.runTest {
+            composeTestRule.setContent { TestContent(isCompact = false) }
 
-        val testInputOne = "PersonalWidget"
-        composeTestRule.onNodeWithText(searchBarHint)
-            .performTextInput(testInputOne)
+            runCurrent()
+            composeTestRule.waitForIdle()
 
-        runCurrent()
-        composeTestRule.waitForIdle()
+            val testInputOne = "PersonalWidget"
+            composeTestRule.onNodeWithText(searchBarHint).performTextInput(testInputOne)
 
-        // has both apps
-        composeTestRule.onNode(hasText(PERSONAL_TEST_APPS[0].title!!.toString()))
-            .assertExists()
-        composeTestRule.onNode(hasText(PERSONAL_TEST_APPS[1].title!!.toString()))
-            .assertExists()
+            runCurrent()
+            composeTestRule.waitForIdle()
 
-        composeTestRule
-            .onNodeWithContentDescription(clearButtonContentDescription)
-            .performClick()
+            // has both apps
+            composeTestRule.onNode(hasText(PERSONAL_TEST_APPS[0].title!!.toString())).assertExists()
+            composeTestRule.onNode(hasText(PERSONAL_TEST_APPS[1].title!!.toString())).assertExists()
 
-        runCurrent()
-        composeTestRule.waitForIdle()
+            composeTestRule
+                .onNodeWithContentDescription(clearButtonContentDescription)
+                .performClick()
 
-        // change query
-        val testInputTwo = "PersonalWidget1A"
-        composeTestRule.onNodeWithText(searchBarHint).performTextInput(testInputTwo)
+            runCurrent()
+            composeTestRule.waitForIdle()
 
-        runCurrent()
-        composeTestRule.waitForIdle()
+            // change query
+            val testInputTwo = "PersonalWidget1A"
+            composeTestRule.onNodeWithText(searchBarHint).performTextInput(testInputTwo)
 
-        // has only app 1
-        composeTestRule.onNode(hasText(PERSONAL_TEST_APPS[0].title!!.toString()))
-            .assertExists()
-        composeTestRule.onNode(hasText(PERSONAL_TEST_APPS[1].title!!.toString()))
-            .assertDoesNotExist()
-    }
+            runCurrent()
+            composeTestRule.waitForIdle()
+
+            // has only app 1
+            composeTestRule.onNode(hasText(PERSONAL_TEST_APPS[0].title!!.toString())).assertExists()
+            composeTestRule
+                .onNode(hasText(PERSONAL_TEST_APPS[1].title!!.toString()))
+                .assertDoesNotExist()
+        }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun twoPane_noResults_showsNotFoundMessage() =
+        testScope.runTest {
+            composeTestRule.setContent { TestContent(isCompact = false) }
+
+            runCurrent()
+            composeTestRule.waitForIdle()
+
+            val notMatchingInput = "Invalid"
+            composeTestRule.onNodeWithText(searchBarHint).performTextInput(notMatchingInput)
+
+            runCurrent()
+            composeTestRule.waitForIdle()
+
+            composeTestRule.onNode(hasText("No widgets or shortcuts found")).assertExists()
+        }
 }

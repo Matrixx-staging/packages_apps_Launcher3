@@ -531,7 +531,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
                         getActiveAppsRecyclerView(),
                         getPersonalAppList().getAdapterItems(),
                         mPrivateProfileManager.getPsHeaderHeight(),
-                        mActivityContext.getDeviceProfile().allAppsCellHeightPx);
+                        mActivityContext.getDeviceProfile().getAllAppsProfile().getCellHeightPx());
             }
         });
     }

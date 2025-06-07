@@ -827,7 +827,7 @@ public class PrivateProfileManager extends UserProfileManager {
             DeviceProfile deviceProfile =
                     ActivityContext.lookupContext(mAllApps.getContext()).getDeviceProfile();
             scrollForHeaderToBeVisibleInContainer(mainAdapterHolder.mRecyclerView, adapterItems,
-                    getPsHeaderHeight(), deviceProfile.allAppsCellHeightPx);
+                    getPsHeaderHeight(), deviceProfile.getAllAppsProfile().getCellHeightPx());
             updatePrivateStateAnimator(true);
         }
         Trace.endSection();

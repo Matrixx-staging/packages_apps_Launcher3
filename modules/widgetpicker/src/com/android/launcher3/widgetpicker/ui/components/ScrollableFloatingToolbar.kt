@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -32,7 +31,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.Measurable
@@ -42,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastFold
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastMap
+import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -70,7 +69,6 @@ import kotlinx.coroutines.launch
  *   length, the padding appears on both sides.
  * @param maxWidth if the toolbar needs to be constraint to a specific width.
  * @param minTabWidth minimum width to be guaranteed for individual tabs
- * @param containerColor color to be applied to the surface of toolbar
  * @param shadowElevation The size of the shadow below the surface.
  */
 @Composable
@@ -82,7 +80,6 @@ fun ScrollableFloatingToolbar(
     edgePadding: Dp = ScrollableFloatingToolbarDefaults.edgePadding,
     maxWidth: Dp = ScrollableFloatingToolbarDefaults.maxWidth,
     minTabWidth: Dp = ScrollableFloatingToolbarDefaults.minTabWidth,
-    containerColor: Color = ScrollableFloatingToolbarDefaults.containerColor,
     shadowElevation: Dp = ScrollableFloatingToolbarDefaults.shadowElevation,
 ) {
     check(tabs.size in 2..3) { "Unexpected number of tabs: ${tabs.size}. Suitable for 2-3 tabs." }
@@ -90,7 +87,7 @@ fun ScrollableFloatingToolbar(
     val scrollState = rememberScrollState()
 
     Surface(
-        color = containerColor,
+        color = WidgetPickerTheme.colors.toolbarBackground,
         shadowElevation = shadowElevation,
         shape = shape,
         modifier = modifier.wrapContentSize(align = Alignment.Center),
@@ -240,7 +237,4 @@ object ScrollableFloatingToolbarDefaults {
     val minTabWidth: Dp = 90.dp
 
     val shadowElevation: Dp = 3.dp
-
-    val containerColor: Color
-        @Composable get() = MaterialTheme.colorScheme.surfaceBright
 }

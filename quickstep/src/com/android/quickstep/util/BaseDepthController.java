@@ -320,9 +320,12 @@ public class BaseDepthController {
             return false;
         }
         StateManager<LauncherState, Launcher> stateManager = mLauncher.getStateManager();
+        LauncherState targetState = stateManager.getTargetState() != null
+                ? stateManager.getTargetState() : stateManager.getState();
         // Only blur workspace if the current state wants to blur based on the target state.
         boolean shouldBlurWorkspace =
-                stateManager.getCurrentStableState().shouldBlurWorkspace(stateManager.getState());
+                stateManager.getCurrentStableState().shouldBlurWorkspace(targetState);
+
         RenderEffect blurEffect = shouldBlurWorkspace && mCurrentBlur > 0
                 ? RenderEffect.createBlurEffect(mCurrentBlur, mCurrentBlur, Shader.TileMode.DECAL)
                 // If blur is not desired, clear the blur effect from the depth targets.
@@ -359,9 +362,11 @@ public class BaseDepthController {
      * applied to below {@link #mBaseSurface}.
      * </p>
      */
-    public void setBaseSurfaceOverride(@Nullable SurfaceControl baseSurfaceOverride) {
+    public void setBaseSurfaceOverride(@Nullable SurfaceControl baseSurfaceOverride,
+            boolean applyOnDraw) {
         if (mBaseSurfaceOverride != baseSurfaceOverride) {
-            boolean applyImmediately = mBaseSurfaceOverride != null && baseSurfaceOverride == null;
+            boolean applyImmediately = mBaseSurfaceOverride != null && baseSurfaceOverride == null
+                    && !applyOnDraw;
             mBaseSurfaceOverride = baseSurfaceOverride;
             Log.d(TAG, "setBaseSurfaceOverride: applying blur behind leash " + baseSurfaceOverride);
             SurfaceControl.Transaction transaction = setupBlurSurface();

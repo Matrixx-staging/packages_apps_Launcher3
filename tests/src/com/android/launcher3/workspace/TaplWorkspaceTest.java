@@ -116,7 +116,6 @@ public class TaplWorkspaceTest extends AbstractLauncherUiTest<Launcher, View> {
      * Similar to {@link TaplWorkspaceTest#testWorkspace} but here we also make sure we can delete
      * the pages.
      */
-    @ScreenRecord // b/381918059
     @Test
     public void testAddAndDeletePageAndFling() throws Exception {
         // Set workspace  that includes the chrome Activity app icon on the hotseat.

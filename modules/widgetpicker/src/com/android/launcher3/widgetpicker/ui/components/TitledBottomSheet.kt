@@ -49,6 +49,7 @@ import com.android.launcher3.widgetpicker.ui.components.DragHandleDimens.dragHan
 import com.android.launcher3.widgetpicker.ui.components.TitledBottomSheetDimens.headerBottomMargin
 import com.android.launcher3.widgetpicker.ui.components.TitledBottomSheetDimens.sheetInnerHorizontalPadding
 import com.android.launcher3.widgetpicker.ui.components.TitledBottomSheetDimens.sheetInnerTopPadding
+import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 import com.android.launcher3.widgetpicker.ui.windowsizeclass.WindowInfo
 import com.android.launcher3.widgetpicker.ui.windowsizeclass.calculateWindowInfo
 import com.android.launcher3.widgetpicker.ui.windowsizeclass.isExtraTall
@@ -104,7 +105,7 @@ fun TitledBottomSheet(
         sheetState = modalBottomSheetState,
         sheetGesturesEnabled = false,
         sheetMaxWidth = Dp.Unspecified,
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        containerColor = WidgetPickerTheme.colors.sheetBackground,
         onDismissRequest = onDismissRequest,
         dragHandle = dragHandle,
         modifier = modifier.windowInsetsPadding(WindowInsets.statusBars),
@@ -141,8 +142,8 @@ private fun Header(title: String, description: String?) {
             maxLines = 1,
             text = title,
             textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.headlineSmallEmphasized,
-            color = MaterialTheme.colorScheme.onSurface,
+            style = WidgetPickerTheme.typography.sheetTitle,
+            color = WidgetPickerTheme.colors.sheetTitle,
         )
         description?.let {
             Text(
@@ -150,8 +151,8 @@ private fun Header(title: String, description: String?) {
                 maxLines = 2,
                 text = it,
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = WidgetPickerTheme.typography.sheetDescription,
+                color = WidgetPickerTheme.colors.sheetDescription,
             )
         }
     }

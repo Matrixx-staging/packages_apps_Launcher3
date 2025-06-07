@@ -46,6 +46,10 @@ import org.junit.Assume.assumeTrue
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doNothing
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.whenever
 
 /**
  * Manages the Taskbar lifecycle for unit tests.
@@ -106,6 +110,20 @@ class TaskbarUnitTestRule(
                 context.settingsCacheSandbox[getUriFor(NAV_BAR_KIDS_MODE)] =
                     if (description.getAnnotation(NavBarKidsMode::class.java) != null) 1 else 0
 
+                val quickstepKeyGestureEventsManagerSpy =
+                    spy(QuickstepKeyGestureEventsManager(context))
+                doNothing()
+                    .whenever(quickstepKeyGestureEventsManagerSpy)
+                    .registerAllAppsKeyGestureEvent(any())
+                doNothing()
+                    .whenever(quickstepKeyGestureEventsManagerSpy)
+                    .unregisterAllAppsKeyGestureEvent()
+                doNothing()
+                    .whenever(quickstepKeyGestureEventsManagerSpy)
+                    .registerOverviewKeyGestureEvent(any())
+                doNothing()
+                    .whenever(quickstepKeyGestureEventsManagerSpy)
+                    .unregisterOverviewKeyGestureEvent()
                 taskbarManager =
                     TestUtil.getOnUiThread {
                         object :
@@ -114,7 +132,7 @@ class TaskbarUnitTestRule(
                                 AllAppsActionManager(
                                     context,
                                     UI_HELPER_EXECUTOR,
-                                    QuickstepKeyGestureEventsManager(context),
+                                    quickstepKeyGestureEventsManagerSpy,
                                 ) {
                                     PendingIntent(IIntentSender.Default())
                                 },

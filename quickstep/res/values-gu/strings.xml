@@ -28,6 +28,8 @@
     <string name="recents_empty_message" msgid="7040467240571714191">"તાજેતરની કોઈ આઇટમ નથી"</string>
     <string name="accessibility_app_usage_settings" msgid="6312864233673544149">"ઍપ વપરાશનું સેટિંગ"</string>
     <string name="recents_clear_all" msgid="5328176793634888831">"બધું સાફ કરો"</string>
+    <!-- no translation found for add_desk_button_content_description (5866025518368823735) -->
+    <skip />
     <string name="accessibility_recent_apps" msgid="4058661986695117371">"તાજેતરની ઍપ"</string>
     <string name="task_contents_description_with_remaining_time" msgid="4479688746574672685">"<xliff:g id="TASK_DESCRIPTION">%1$s</xliff:g>, <xliff:g id="REMAINING_TIME">%2$s</xliff:g>"</string>
     <string name="shorter_duration_less_than_one_minute" msgid="4722015666335015336">"&lt; 1 મિનિટ"</string>
@@ -93,6 +95,22 @@
     <string name="allset_description_generic" msgid="5385500062202019855">"તમે તમારા <xliff:g id="DEVICE">%1$s</xliff:g>નો ઉપયોગ કરવાનું શરૂ કરવા માટે તૈયાર છો"</string>
     <string name="allset_description_fallback" msgid="2488751930355201578">"તમે તમારા ડિવાઇસનો ઉપયોગ કરવાનું શરૂ કરવા માટે તૈયાર છો"</string>
     <string name="allset_navigation_settings" msgid="4713404605961476027"><annotation id="link">"સિસ્ટમના નૅવિગેશન સેટિંગ"</annotation></string>
+    <!-- no translation found for allset_title_expressive (474399969304146994) -->
+    <skip />
+    <!-- no translation found for allset_title_expressive_fallback (2829102990606405239) -->
+    <skip />
+    <!-- no translation found for allset_subtitle_expressive (419688197551192358) -->
+    <skip />
+    <!-- no translation found for allset_navigation_settings_expressive (3745595273748356) -->
+    <skip />
+    <!-- no translation found for allset_hint_expressive (756856423510976261) -->
+    <skip />
+    <!-- no translation found for allset_button_hint_expressive (667643693410494225) -->
+    <skip />
+    <!-- no translation found for allset_device_type_tablet (2173392009787325894) -->
+    <skip />
+    <!-- no translation found for allset_device_type_phone (6842334562074507337) -->
+    <skip />
     <string name="action_share" msgid="2648470652637092375">"શેર કરો"</string>
     <string name="action_screenshot" msgid="8171125848358142917">"સ્ક્રીનશૉટ"</string>
     <string name="action_split" msgid="2098009717623550676">"વિભાજિત કરો"</string>
@@ -137,7 +155,8 @@
     <string name="always_show_taskbar" msgid="3608801276107751229">"હંમેશાં ટાસ્કબાર બતાવો"</string>
     <string name="change_navigation_mode" msgid="9088393078736808968">"નૅવિગેશન મોડ બદલો"</string>
     <string name="taskbar_divider_a11y_title" msgid="6608690309720242080">"ટાસ્કબાર વિભાજક"</string>
-    <string name="taskbar_overflow_a11y_title" msgid="7960342079198820179">"ટાસ્કબાર ઓવરફ્લો"</string>
+    <!-- no translation found for taskbar_overflow_a11y_title (8114045167370723746) -->
+    <skip />
     <string name="move_drop_target_top_or_left" msgid="2988702185049595807">"સૌથી ઉપર ડાબી બાજુએ ખસેડો"</string>
     <string name="move_drop_target_bottom_or_right" msgid="5431393418797620162">"સૌથી નીચે જમણી બાજુએ ખસેડો"</string>
     <string name="open_app_as_a_bubble" msgid="6642626287247807473">"બબલ તરીકે ઍપ ખોલો"</string>

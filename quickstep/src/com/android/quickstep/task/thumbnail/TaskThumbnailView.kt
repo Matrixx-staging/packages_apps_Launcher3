@@ -201,11 +201,12 @@ class TaskThumbnailView : FrameLayout, ViewPool.Reusable {
         thumbnailView.isInvisible = true
         thumbnailView.setImageBitmap(null)
         splashBackground.alpha = 0f
+        splashBackground.setBackgroundColor(Color.TRANSPARENT)
         splashIcon.alpha = 0f
         splashIcon.setImageDrawable(null)
         scrimView.alpha = 0f
         alpha = 1.0f
-        setBackgroundColor(Color.BLACK)
+        setBackgroundColor(Color.TRANSPARENT)
     }
 
     private fun drawBackground(@ColorInt background: Int) {
@@ -225,6 +226,8 @@ class TaskThumbnailView : FrameLayout, ViewPool.Reusable {
     }
 
     private fun drawSnapshot(snapshot: Snapshot) {
+        // Always draw the background since the snapshots might be translucent or partially empty
+        // E.g. reparented tasks from drag-to-dismiss split screen.
         drawBackground(snapshot.backgroundColor)
         thumbnailView.setImageBitmap(snapshot.bitmap)
         thumbnailView.isInvisible = false

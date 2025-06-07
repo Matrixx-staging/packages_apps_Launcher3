@@ -52,6 +52,7 @@ import androidx.annotation.VisibleForTesting;
 import com.android.launcher3.CellLayout.ContainerType;
 import com.android.launcher3.DevicePaddings.DevicePadding;
 import com.android.launcher3.InvariantDeviceProfile.DisplayOptionSpec;
+import com.android.launcher3.deviceprofile.AllAppsProfile;
 import com.android.launcher3.deviceprofile.BottomSheetProfile;
 import com.android.launcher3.deviceprofile.DeviceProperties;
 import com.android.launcher3.deviceprofile.DropTargetProfile;
@@ -217,20 +218,13 @@ public class DeviceProfile {
     // not enough space, the hotseat will adjust itself for the bubble bar.
     private final int mBubbleBarSpaceThresholdPx;
 
-    // All apps
-    public Point allAppsBorderSpacePx;
+    private AllAppsProfile mAllAppsProfile;
     public int allAppsShiftRange;
     public Rect allAppsPadding = new Rect();
     public int allAppsOpenDuration;
     public int allAppsCloseDuration;
-    public int allAppsCellHeightPx;
-    public int allAppsCellWidthPx;
-    public int allAppsIconSizePx;
-    public int allAppsIconDrawablePaddingPx;
     public int allAppsLeftRightMargin;
     public final int numShownAllAppsColumns;
-    public float allAppsIconTextSizePx;
-    public int maxAllAppsTextLineCount;
 
     private final OverviewProfile overviewProfile;
 
@@ -323,6 +317,7 @@ public class DeviceProfile {
         mViewScaleProvider = null;
         mDotRendererWorkSpace = null;
         mDotRendererAllApps = null;
+        mAllAppsProfile = new AllAppsProfile(new Point(0, 0), 0, 0, 0f, 0, 0, 0);
     }
 
     /** TODO: Once we fully migrate to staged split, remove "isMultiWindowMode" */
@@ -441,9 +436,6 @@ public class DeviceProfile {
             folderContentPaddingTop = res.getDimensionPixelSize(R.dimen.folder_top_padding_default);
         }
 
-        allAppsBorderSpacePx = new Point(
-                pxFromDp(inv.allAppsBorderSpaces[mTypeIndex].x, mMetrics),
-                pxFromDp(inv.allAppsBorderSpaces[mTypeIndex].y, mMetrics));
         setupAllAppsStyle(context);
 
         if (!mIsResponsiveGrid) {
@@ -675,7 +667,8 @@ public class DeviceProfile {
 
         // This is done last, after iconSizePx is calculated above.
         mDotRendererWorkSpace = createDotRenderer(themeManager, iconSizePx, dotRendererCache);
-        mDotRendererAllApps = createDotRenderer(themeManager, allAppsIconSizePx, dotRendererCache);
+        mDotRendererAllApps = createDotRenderer(themeManager,
+                getAllAppsProfile().getIconSizePx(), dotRendererCache);
     }
 
     public DeviceProperties getDeviceProperties() {
@@ -734,7 +727,7 @@ public class DeviceProfile {
      */
     public int getMaxAllAppsRowCount() {
         return (int) (Math.ceil((mDeviceProperties.getAvailableHeightPx() - allAppsPadding.top)
-                / (float) allAppsCellHeightPx));
+                / (float) getAllAppsProfile().getCellHeightPx()));
     }
 
     /**
@@ -942,7 +935,7 @@ public class DeviceProfile {
 
         SparseArray<DotRenderer> dotRendererCache = new SparseArray<>();
         dotRendererCache.put(iconSizePx, mDotRendererWorkSpace);
-        dotRendererCache.put(allAppsIconSizePx, mDotRendererAllApps);
+        dotRendererCache.put(getAllAppsProfile().getIconSizePx(), mDotRendererAllApps);
 
         return inv.newDPBuilder(context, mInfo)
                 .setWindowBounds(bounds)
@@ -998,7 +991,8 @@ public class DeviceProfile {
             iconDrawablePaddingPx = 0;
             cellHeightPx = getIconSizeWithOverlap(iconSizePx);
             maxIconTextLineCount = 0;
-            autoResizeAllAppsCells();
+            // TODO(420933882) Group all modifications of AllAppsProfile in one place
+            mAllAppsProfile = AllAppsProfile.Factory.autoResizeAllAppsCells(getAllAppsProfile());
         }
     }
 
@@ -1217,17 +1211,38 @@ public class DeviceProfile {
 
         // All apps
         if (mIsResponsiveGrid) {
+            mAllAppsProfile = AllAppsProfile.Factory.createAllAppsWithResponsive(
+                    mResponsiveAllAppsCellSpec,
+                    mResponsiveAllAppsWidthSpec,
+                    mResponsiveAllAppsHeightSpec,
+                    mIconSizeSteps,
+                    isVerticalBarLayout()
+            );
             updateAllAppsWithResponsiveMeasures();
         } else {
-            updateAllAppsIconSize(scale, context.getResources());
+            mAllAppsProfile = AllAppsProfile.Factory.createAllAppsProfile(
+                    context.getResources(),
+                    inv,
+                    mMetrics,
+                    mIsScalableGrid,
+                    mTypeIndex,
+                    scale,
+                    iconSizePx,
+                    mIconDrawablePaddingOriginalPx
+            );
         }
         updateAllAppsContainerWidth();
         if (isVerticalLayout && !mIsResponsiveGrid) {
             hideWorkspaceLabelsIfNotEnoughSpace();
         }
-        if (inv.enableTwoLinesInAllApps && !(mIsResponsiveGrid && maxAllAppsTextLineCount == 2)) {
+
+        if (inv.enableTwoLinesInAllApps
+                && !(mIsResponsiveGrid && getAllAppsProfile().getMaxAllAppsTextLineCount() == 2)) {
             // Add extra textHeight to the existing allAppsCellHeight.
-            allAppsCellHeightPx += Utilities.calculateTextHeight(allAppsIconTextSizePx);
+            mAllAppsProfile = getAllAppsProfile().copyWithCellHeightPx(
+                    getAllAppsProfile().getCellHeightPx() + Utilities.calculateTextHeight(
+                            getAllAppsProfile().getIconTextSizePx())
+            );
         }
 
         updateHotseatSizes(iconSizePx);
@@ -1261,138 +1276,27 @@ public class DeviceProfile {
         return Math.min(hotseatBorderSpacePx, getHotseatProfile().getMaxIconSpacePx());
     }
 
-    /**
-     * Updates the iconSize for allApps* variants.
-     */
-    private void updateAllAppsIconSize(float scale, Resources res) {
-        allAppsBorderSpacePx = new Point(
-                pxFromDp(inv.allAppsBorderSpaces[mTypeIndex].x, mMetrics, scale),
-                pxFromDp(inv.allAppsBorderSpaces[mTypeIndex].y, mMetrics, scale));
-        // AllApps cells don't have real space between cells,
-        // so we add the border space to the cell height
-        allAppsCellHeightPx = pxFromDp(inv.allAppsCellSize[mTypeIndex].y, mMetrics)
-                + allAppsBorderSpacePx.y;
-        maxAllAppsTextLineCount = 1;
-
-        // but width is just the cell,
-        // the border is added in #updateAllAppsContainerWidth
-        if (mIsScalableGrid) {
-            allAppsIconSizePx = pxFromDp(inv.allAppsIconSize[mTypeIndex], mMetrics);
-            allAppsIconTextSizePx = pxFromSp(inv.allAppsIconTextSize[mTypeIndex], mMetrics);
-            allAppsIconDrawablePaddingPx = getNormalizedIconDrawablePadding();
-            allAppsCellWidthPx = pxFromDp(inv.allAppsCellSize[mTypeIndex].x, mMetrics, scale);
-
-            if (allAppsCellWidthPx < allAppsIconSizePx) {
-                // If allAppsCellWidth no longer fit allAppsIconSize, reduce allAppsBorderSpace to
-                // make allAppsCellWidth bigger.
-                int numBorders = inv.numAllAppsColumns - 1;
-                int extraWidthRequired =
-                        (allAppsIconSizePx - allAppsCellWidthPx) * inv.numAllAppsColumns;
-                if (allAppsBorderSpacePx.x * numBorders >= extraWidthRequired) {
-                    allAppsCellWidthPx = allAppsIconSizePx;
-                    allAppsBorderSpacePx.x -= extraWidthRequired / numBorders;
-                } else {
-                    // If it still doesn't fit, set allAppsBorderSpace to 0 and distribute the space
-                    // for allAppsCellWidth, and reduce allAppsIconSize.
-                    allAppsCellWidthPx = (allAppsCellWidthPx * inv.numAllAppsColumns
-                            + allAppsBorderSpacePx.x * numBorders) / inv.numAllAppsColumns;
-                    allAppsIconSizePx = Math.min(allAppsIconSizePx, allAppsCellWidthPx);
-                    allAppsBorderSpacePx.x = 0;
-                }
-            }
-
-            int cellContentHeight = allAppsIconSizePx
-                    + Utilities.calculateTextHeight(allAppsIconTextSizePx) + allAppsBorderSpacePx.y;
-            if (allAppsCellHeightPx < cellContentHeight) {
-                // Increase allAppsCellHeight to fit its content.
-                allAppsCellHeightPx = cellContentHeight;
-            }
-        } else {
-            float invIconSizeDp = inv.allAppsIconSize[mTypeIndex];
-            float invIconTextSizeSp = inv.allAppsIconTextSize[mTypeIndex];
-            allAppsIconSizePx = Math.max(1, pxFromDp(invIconSizeDp, mMetrics, scale));
-            allAppsIconTextSizePx = (int) (pxFromSp(invIconTextSizeSp, mMetrics) * scale);
-            allAppsIconDrawablePaddingPx =
-                    res.getDimensionPixelSize(R.dimen.all_apps_icon_drawable_padding);
-            allAppsCellWidthPx = allAppsIconSizePx + (2 * allAppsIconDrawablePaddingPx);
-        }
-    }
-
     private void updateAllAppsWithResponsiveMeasures() {
-        allAppsIconSizePx = mResponsiveAllAppsCellSpec.getIconSize();
-        allAppsIconTextSizePx = mResponsiveAllAppsCellSpec.getIconTextSize();
-        allAppsIconDrawablePaddingPx = getNormalizedIconDrawablePadding(allAppsIconSizePx,
-                mResponsiveAllAppsCellSpec.getIconDrawablePadding());
-        maxAllAppsTextLineCount = mResponsiveAllAppsCellSpec.getIconTextMaxLineCount();
-        allAppsBorderSpacePx = new Point(
-                mResponsiveAllAppsWidthSpec.getGutterPx(),
-                mResponsiveAllAppsHeightSpec.getGutterPx()
-        );
-        allAppsCellHeightPx = mResponsiveAllAppsHeightSpec.getCellSizePx();
-        allAppsCellWidthPx = mResponsiveAllAppsWidthSpec.getCellSizePx();
-
         // This workaround is needed to align AllApps icons with Workspace icons
         // since AllApps doesn't have borders between cells
-        int halfBorder = allAppsBorderSpacePx.x / 2;
+        int halfBorder = getAllAppsProfile().getBorderSpacePx().x / 2;
         allAppsPadding.left = mResponsiveAllAppsWidthSpec.getStartPaddingPx() - halfBorder;
         allAppsPadding.right = mResponsiveAllAppsWidthSpec.getEndPaddingPx() - halfBorder;
-
-
-        // Reduce the size of the app icon if it doesn't fit
-        if (allAppsCellWidthPx < allAppsIconSizePx) {
-            // get a smaller icon size
-            allAppsIconSizePx = mIconSizeSteps.getIconSmallerThan(allAppsCellWidthPx);
-        }
-
-        CellContentDimensions cellContentDimensions = new CellContentDimensions(
-                allAppsIconSizePx, allAppsIconDrawablePaddingPx, (int) allAppsIconTextSizePx,
-                maxAllAppsTextLineCount);
-        if (allAppsCellHeightPx < cellContentDimensions.getCellContentHeight()) {
-            if (isVerticalBarLayout()) {
-                if (allAppsCellHeightPx < allAppsIconSizePx) {
-                    cellContentDimensions.setIconSizePx(
-                            mIconSizeSteps.getIconSmallerThan(allAppsCellHeightPx));
-                }
-            } else {
-                cellContentDimensions.resizeToFitCellHeight(allAppsCellHeightPx,
-                        mIconSizeSteps);
-            }
-            allAppsIconSizePx = cellContentDimensions.getIconSizePx();
-            allAppsIconDrawablePaddingPx = cellContentDimensions.getIconDrawablePaddingPx();
-            allAppsIconTextSizePx = cellContentDimensions.getIconTextSizePx();
-            maxAllAppsTextLineCount = cellContentDimensions.getMaxLineCount();
-        }
-
-        allAppsCellHeightPx += mResponsiveAllAppsHeightSpec.getGutterPx();
-
-        if (isVerticalBarLayout()) {
-            autoResizeAllAppsCells();
-        }
     }
 
-    /**
-     * Re-computes the all-apps cell size to be independent of workspace
-     */
-    public void autoResizeAllAppsCells() {
-        int textHeight =
-                Utilities.calculateTextHeight(allAppsIconTextSizePx) * maxAllAppsTextLineCount;
-        int topBottomPadding = textHeight;
-        allAppsCellHeightPx = allAppsIconSizePx + allAppsIconDrawablePaddingPx
-                + textHeight + (topBottomPadding * 2);
-    }
 
     private void updateAllAppsContainerWidth() {
         int cellLayoutHorizontalPadding =
                 (cellLayoutPaddingPx.left + cellLayoutPaddingPx.right) / 2;
         if (mDeviceProperties.isTablet()) {
-            int usedWidth = (allAppsCellWidthPx * numShownAllAppsColumns)
-                    + (allAppsBorderSpacePx.x * (numShownAllAppsColumns - 1))
+            int usedWidth = (getAllAppsProfile().getCellWidthPx() * numShownAllAppsColumns)
+                    + (getAllAppsProfile().getBorderSpacePx().x * (numShownAllAppsColumns - 1))
                     + allAppsPadding.left + allAppsPadding.right;
             allAppsLeftRightMargin = Math.max(1, (mDeviceProperties.getAvailableWidthPx() - usedWidth) / 2);
         } else if (!mIsResponsiveGrid) {
             allAppsPadding.left = allAppsPadding.right =
                     Math.max(0, desiredWorkspaceHorizontalMarginPx + cellLayoutHorizontalPadding
-                            - (allAppsBorderSpacePx.x / 2));
+                            - (getAllAppsProfile().getBorderSpacePx().x / 2));
         }
     }
 
@@ -1906,7 +1810,8 @@ public class DeviceProfile {
                 mDeviceProperties.getAvailableWidthPx() - allAppsSpacing,
                 0 /* borderSpace */,
                 numShownAllAppsColumns);
-        int iconAlignmentMargin = (cellWidth - getIconVisibleSizePx(allAppsIconSizePx)) / 2;
+        int iconAlignmentMargin = (cellWidth - getIconVisibleSizePx(
+                getAllAppsProfile().getIconSizePx())) / 2;
 
         return (Utilities.isRtl(context.getResources()) ? allAppsPadding.right
                 : allAppsPadding.left) + iconAlignmentMargin;
@@ -2194,14 +2099,20 @@ public class DeviceProfile {
         writer.println(prefix + pxToDpStr("allAppsShiftRange", allAppsShiftRange));
         writer.println(prefix + "\tallAppsOpenDuration: " + allAppsOpenDuration);
         writer.println(prefix + "\tallAppsCloseDuration: " + allAppsCloseDuration);
-        writer.println(prefix + pxToDpStr("allAppsIconSizePx", allAppsIconSizePx));
-        writer.println(prefix + pxToDpStr("allAppsIconTextSizePx", allAppsIconTextSizePx));
+        writer.println(prefix + pxToDpStr("allAppsIconSizePx",
+                getAllAppsProfile().getIconSizePx()));
+        writer.println(prefix + pxToDpStr("allAppsIconTextSizePx",
+                getAllAppsProfile().getIconTextSizePx()));
         writer.println(prefix + pxToDpStr("allAppsIconDrawablePaddingPx",
-                allAppsIconDrawablePaddingPx));
-        writer.println(prefix + pxToDpStr("allAppsCellHeightPx", allAppsCellHeightPx));
-        writer.println(prefix + pxToDpStr("allAppsCellWidthPx", allAppsCellWidthPx));
-        writer.println(prefix + pxToDpStr("allAppsBorderSpacePxX", allAppsBorderSpacePx.x));
-        writer.println(prefix + pxToDpStr("allAppsBorderSpacePxY", allAppsBorderSpacePx.y));
+                getAllAppsProfile().getIconDrawablePaddingPx()));
+        writer.println(prefix + pxToDpStr("allAppsCellHeightPx",
+                getAllAppsProfile().getCellHeightPx()));
+        writer.println(prefix + pxToDpStr("allAppsCellWidthPx",
+                getAllAppsProfile().getCellWidthPx()));
+        writer.println(prefix + pxToDpStr("allAppsBorderSpacePxX",
+                getAllAppsProfile().getBorderSpacePx().x));
+        writer.println(prefix + pxToDpStr("allAppsBorderSpacePxY",
+                getAllAppsProfile().getBorderSpacePx().y));
         writer.println(prefix + "\tnumShownAllAppsColumns: " + numShownAllAppsColumns);
         writer.println(prefix + pxToDpStr("allAppsPadding.top", allAppsPadding.top));
         writer.println(prefix + pxToDpStr("allAppsPadding.left", allAppsPadding.left));
@@ -2375,6 +2286,14 @@ public class DeviceProfile {
 
     public BottomSheetProfile getBottomSheetProfile() {
         return mBottomSheetProfile;
+    }
+
+    public AllAppsProfile getAllAppsProfile() {
+        return mAllAppsProfile;
+    }
+
+    public void setAllAppsProfile(AllAppsProfile allAppsProfile) {
+        mAllAppsProfile = allAppsProfile;
     }
 
     /**

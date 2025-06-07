@@ -17,6 +17,8 @@
 package com.android.launcher3.compose.core.widgetpicker
 
 import com.android.launcher3.widgetpicker.WidgetPickerActivity
+import com.android.launcher3.widgetpicker.WidgetPickerConfig
+import javax.annotation.Nonnull
 import javax.inject.Inject
 
 /**
@@ -24,7 +26,11 @@ import javax.inject.Inject
  * widget picker in [WidgetPickerActivity] when compose is enabled via build flag.
  */
 interface WidgetPickerComposeWrapper {
-    fun showAllWidgets(activity: WidgetPickerActivity)
+    fun showAllWidgets(
+        activity: WidgetPickerActivity,
+        @Nonnull
+        widgetPickerConfig: WidgetPickerConfig
+    )
 }
 
 /**
@@ -32,7 +38,11 @@ interface WidgetPickerComposeWrapper {
  * don't involve widget picker e.g. launcher preview OR when compose is disabled via build flag.
  */
 class NoOpWidgetPickerComposeWrapper @Inject constructor() : WidgetPickerComposeWrapper {
-    override fun showAllWidgets(activity: WidgetPickerActivity) {
+    override fun showAllWidgets(
+        activity: WidgetPickerActivity,
+        @Nonnull
+        widgetPickerConfig: WidgetPickerConfig
+    ) {
         error("Widget picker with compose is not supported")
     }
 }

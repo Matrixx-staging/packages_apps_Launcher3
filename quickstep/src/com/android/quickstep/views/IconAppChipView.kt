@@ -27,6 +27,7 @@ import android.graphics.drawable.Drawable
 import android.text.TextUtils.TruncateAt
 import android.util.AttributeSet
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.View
 import android.view.ViewAnimationUtils
 import android.view.ViewOutlineProvider
@@ -199,12 +200,13 @@ constructor(
                 )
                 .apply { addUpdateListener { invalidateOutline() } }
 
-        focusAnimator = AnimatorSet().apply {
-            playTogether(borderAnimator, backgroundAnimator)
-            duration = borderAnimator.duration
-            interpolator = borderAnimator.interpolator
-            start()
-        }
+        focusAnimator =
+            AnimatorSet().apply {
+                playTogether(borderAnimator, backgroundAnimator)
+                duration = borderAnimator.duration
+                interpolator = borderAnimator.interpolator
+                start()
+            }
     }
 
     public override fun onFocusChanged(
@@ -513,10 +515,7 @@ constructor(
             onStart = {
                 // Hide focused border during expanding/collapsing animation
                 if (isFocused) {
-                    focusBorderAnimator.setBorderVisibility(
-                        visible = false,
-                        animated = false
-                    )
+                    focusBorderAnimator.setBorderVisibility(visible = false, animated = false)
                 }
                 when (status) {
                     AppChipStatus.Expanded -> updateChipSize()
@@ -622,6 +621,30 @@ constructor(
             FOCUS_LEFT -> mParent.focusSearch(this, FOCUS_BACKWARD)
             else -> super.focusSearch(direction)
         }
+    }
+
+    /**
+     * We need to over-ride here due to liveTile mode, the [OverviewInputConsumer] is added, which
+     * consumes all [InputEvent]'s and focus isn't moved correctly.
+     */
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.action != KeyEvent.ACTION_DOWN) return super.dispatchKeyEvent(event)
+
+        val currentFocus = findFocus() ?: return super.dispatchKeyEvent(event)
+
+        val nextFocus =
+            when (event.keyCode) {
+                KeyEvent.KEYCODE_DPAD_UP -> focusSearch(currentFocus, FOCUS_BACKWARD)
+                KeyEvent.KEYCODE_DPAD_DOWN -> focusSearch(currentFocus, FOCUS_FORWARD)
+                KeyEvent.KEYCODE_TAB ->
+                    focusSearch(
+                        currentFocus,
+                        if (event.isShiftPressed) FOCUS_BACKWARD else FOCUS_FORWARD,
+                    )
+                else -> null
+            }
+
+        return nextFocus?.requestFocus() ?: super.dispatchKeyEvent(event)
     }
 
     fun reset() {

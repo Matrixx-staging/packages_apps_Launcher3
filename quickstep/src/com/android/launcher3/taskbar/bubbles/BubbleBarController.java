@@ -35,8 +35,6 @@ import android.util.ArrayMap;
 import android.util.Log;
 import android.view.View;
 
-import androidx.annotation.NonNull;
-
 import com.android.launcher3.taskbar.TaskbarSharedState;
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController;
 import com.android.launcher3.util.Executors.SimpleThreadFactory;
@@ -636,23 +634,9 @@ public class BubbleBarController extends IBubblesListener.Stub {
     }
 
     @Override
-    public void onDragItemOverBubbleBarDragZone(@NonNull BubbleBarLocation bubbleBarLocation) {
+    public void showBubbleBarPillowAt(@Nullable BubbleBarLocation location) {
         MAIN_EXECUTOR.execute(() -> {
-            mBubbleBarViewController.onDragItemOverBubbleBarDragZone(bubbleBarLocation);
-            if (mBubbleBarViewController.isLocationUpdatedForDropTarget()) {
-                mBubbleBarLocationListener.onBubbleBarLocationAnimated(bubbleBarLocation);
-            }
-        });
-    }
-
-    @Override
-    public void onItemDraggedOutsideBubbleBarDropZone() {
-        MAIN_EXECUTOR.execute(() -> {
-            if (mBubbleBarViewController.isLocationUpdatedForDropTarget()) {
-                BubbleBarLocation original = mBubbleBarViewController.getBubbleBarLocation();
-                mBubbleBarLocationListener.onBubbleBarLocationAnimated(original);
-            }
-            mBubbleBarViewController.onItemDraggedOutsideBubbleBarDropZone();
+            //TODO(b/411505605) add logic to show pillow and update taskbar
         });
     }
 

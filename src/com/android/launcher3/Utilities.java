@@ -19,6 +19,7 @@ package com.android.launcher3;
 import static com.android.launcher3.Flags.enableMouseInteractionChanges;
 import static com.android.launcher3.graphics.ShapeDelegate.DEFAULT_PATH_SIZE;
 import static com.android.launcher3.icons.BitmapInfo.FLAG_THEMED;
+import static com.android.launcher3.icons.IconNormalizer.ICON_VISIBLE_AREA_FACTOR;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_TOP_OR_LEFT;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_TYPE_MAIN;
@@ -433,6 +434,25 @@ public final class Utilities {
         }
         float progress = getProgress(t, fromMin, fromMax);
         return (int) mapRange(interpolator.getInterpolation(progress), toMin, toMax);
+    }
+
+    /**
+     * TODO(b/235886078): workaround needed because of this bug
+     * Icons are 10% larger on XML than their visual size, so remove that extra space to get
+     * some dimensions correct.
+     *
+     * When this bug is resolved this method will no longer be needed and we would be able to
+     * replace all instances where this method is called with iconSizePx.
+     */
+    public static int getIconVisibleSizePx(int iconSizePx) {
+        return Math.round(ICON_VISIBLE_AREA_FACTOR * iconSizePx);
+    }
+
+    public static int getNormalizedIconDrawablePadding(int iconSizePx, int iconDrawablePadding) {
+        return Math.max(
+                0,
+                iconDrawablePadding - ((iconSizePx - getIconVisibleSizePx(iconSizePx)) / 2)
+        );
     }
 
     /** Bounds t between a lower and upper bound and maps the result to a range. */

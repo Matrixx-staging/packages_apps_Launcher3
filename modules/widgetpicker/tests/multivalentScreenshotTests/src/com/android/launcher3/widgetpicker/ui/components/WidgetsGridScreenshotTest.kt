@@ -35,6 +35,7 @@ import com.android.launcher3.widgetpicker.goldenpathmanager.WidgetPickerGoldenPa
 import com.android.launcher3.widgetpicker.shared.model.WidgetId
 import com.android.launcher3.widgetpicker.shared.model.WidgetPreview
 import com.android.launcher3.widgetpicker.ui.model.WidgetSizeGroup
+import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -128,18 +129,22 @@ private fun GridPreview(
     previews: Map<WidgetId, WidgetPreview>,
     testWidth: Dp,
 ) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier =
-            Modifier.width(testWidth)
-                .wrapContentHeight()
-                .background(MaterialTheme.colorScheme.surfaceBright),
-    ) {
-        WidgetsGrid(
-            widgetSizeGroups = groups,
-            showAllWidgetDetails = true,
-            previews = previews,
-            modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-        )
+    WidgetPickerTheme {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier =
+                Modifier.width(testWidth)
+                    .wrapContentHeight()
+                    .background(MaterialTheme.colorScheme.surfaceBright),
+        ) {
+            WidgetsGrid(
+                widgetSizeGroups = groups,
+                showAllWidgetDetails = true,
+                showDragShadow = false,
+                previews = previews,
+                modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+                onWidgetInteraction = {}
+            )
+        }
     }
 }

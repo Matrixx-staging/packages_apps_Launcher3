@@ -139,11 +139,13 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
                         grid.cellLayoutPaddingPx.top + grid.cellLayoutPaddingPx.bottom;
 
                 int maxWidth =
-                        grid.allAppsCellWidthPx * grid.numShownAllAppsColumns + horizontalPadding;
+                        grid.getAllAppsProfile().getCellWidthPx() * grid.numShownAllAppsColumns
+                                + horizontalPadding;
                 int appsWidth = Math.min(width - getPaddingLeft() - getPaddingRight(), maxWidth);
 
                 int maxHeight =
-                        grid.allAppsCellHeightPx * grid.numShownAllAppsColumns + verticalPadding;
+                        grid.getAllAppsProfile().getCellHeightPx() * grid.numShownAllAppsColumns
+                                + verticalPadding;
                 int appsHeight = Math.min(height - getPaddingTop() - getPaddingBottom(), maxHeight);
 
                 mAppsView.measure(
@@ -229,7 +231,8 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
 
         DragOptions options = new DragOptions();
         DeviceProfile grid = mContainer.getDeviceProfile();
-        options.intrinsicIconScaleFactor = (float) grid.allAppsIconSizePx / grid.iconSizePx;
+        options.intrinsicIconScaleFactor = (float) grid.getAllAppsProfile().getIconSizePx()
+                / grid.iconSizePx;
         options.preDragCondition = container.createPreDragCondition(false);
         if (options.preDragCondition == null) {
             options.preDragCondition = new DragOptions.PreDragCondition() {

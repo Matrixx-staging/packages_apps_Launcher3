@@ -250,7 +250,9 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
         } else {
             recentsCallback = callback;
         }
-        mRecentsView.cleanupRemoteTargets();
+        if (mRecentsView != null) {
+            mRecentsView.cleanupRemoteTargets();
+        }
         mRecentsAnimationController.finish(
                 true /* toRecents */, recentsCallback, true /* sendUserLeaveHint */);
     }
@@ -268,7 +270,7 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
     @Override
     protected void notifyGestureAnimationStartToRecents() {
         if (mRunningOverHome) {
-            if (DisplayController.getNavigationMode(mContext).hasGestures) {
+            if (DisplayController.getNavigationMode(mContext).hasGestures && mRecentsView != null) {
                 mRecentsView.onGestureAnimationStartOnHome(
                         mGestureState.getRunningTask().getPlaceholderGroupedTaskInfo(
                                 /* splitTaskIds = */ null));

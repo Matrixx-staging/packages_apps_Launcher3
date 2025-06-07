@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-package com.android.launcher3.widgetpicker
+package com.android.launcher3.widgetpicker.ui
+
+import android.appwidget.AppWidgetProviderInfo
+import android.graphics.Rect
+import com.android.launcher3.widgetpicker.shared.model.WidgetPreview
 
 /**
  * General interface that clients can implement to listen to events from different types of
@@ -23,4 +27,38 @@ package com.android.launcher3.widgetpicker
 interface WidgetPickerEventListeners {
     /** Called when the widget picker is dismissed. */
     fun onClose()
+
+    /** Called when a widget is being dragged or added from picker. */
+    fun onWidgetInteraction(widgetInteractionInfo: WidgetInteractionInfo)
+}
+
+/** Information passed in event listener when a widget is dragged or added from picker. */
+sealed class WidgetInteractionInfo {
+    /**
+     * Information passed in event listener when a widget is dragged.
+     *
+     * @param providerInfo metadata for the provider of the widget being dragged.
+     * @param bounds current bounds of the widget's preview considering the drag offset and scale.
+     * @param widthPx measured width of the preview.
+     * @param heightPx measured height of the preview.
+     * @param previewInfo information necessary to render a preview within host
+     * @param mimeType a unique mime type set on clip data for the drag session
+     */
+    data class WidgetDragInfo(
+        val providerInfo: AppWidgetProviderInfo,
+        val bounds: Rect,
+        val widthPx: Int,
+        val heightPx: Int,
+        val previewInfo: WidgetPreview,
+        val mimeType: String,
+    ) : WidgetInteractionInfo()
+
+    /**
+     * Information passed in event listener when a widget is added using tap to add.
+     *
+     * @param providerInfo metadata for the provider of the widget being added.
+     */
+    data class WidgetAddInfo(
+        val providerInfo: AppWidgetProviderInfo
+    ) : WidgetInteractionInfo()
 }

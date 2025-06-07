@@ -134,6 +134,8 @@ public class TaskbarHoverToolTipController implements View.OnHoverListener {
             return icon.mInfo.title.toString();
         } else if (mHoverView instanceof AppPairIcon icon) {
             return icon.getTitleTextView().getText().toString();
+        } else if (mHoverView instanceof TaskbarOverflowView icon) {
+            return icon.getTextForTooltipPopup();
         } else {
             return null;
         }

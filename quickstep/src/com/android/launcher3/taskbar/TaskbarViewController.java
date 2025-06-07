@@ -781,21 +781,25 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     }
 
     /**
-     * @return A set of Task ids of running apps that are pinned in the taskbar.
+     * @return A set of Task ids shown in the taskbar - includes task ID for running tasks of pinned
+     *         apps, and standalone running tasks.
      */
-    protected Set<Integer> getTaskIdsForPinnedApps() {
+    protected Set<Integer> getShownTaskIds() {
         if (!ENABLE_TASKBAR_OVERFLOW.isTrue()) {
             return Collections.emptySet();
         }
 
-        Set<Integer> pinnedAppsWithTasks = new HashSet<>();
+        Set<Integer> shownTasks = new HashSet<>();
         for (View iconView : getIconViews()) {
-            if (iconView instanceof BubbleTextView btv
-                    && btv.getTag() instanceof TaskItemInfo itemInfo) {
-                pinnedAppsWithTasks.add(itemInfo.getTaskId());
+            if (iconView instanceof BubbleTextView btv) {
+                if (btv.getTag() instanceof TaskItemInfo itemInfo) {
+                    shownTasks.add(itemInfo.getTaskId());
+                } else if (btv.getTag() instanceof SingleTask task) {
+                    shownTasks.add(task.getTask().getKey().id);
+                }
             }
         }
-        return pinnedAppsWithTasks;
+        return shownTasks;
     }
 
     private void updateRunningState(BubbleTextView btv) {

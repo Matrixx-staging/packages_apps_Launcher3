@@ -65,15 +65,11 @@
     <string name="test_information_handler_class" translatable="false"></string>
     <string name="secondary_display_quickstep_delegate_class" translatable="false"></string>
     <string name="taskbar_search_session_controller_class" translatable="false"></string>
-    <string name="taskbar_model_callbacks_factory_class" translatable="false"></string>
-    <string name="taskbar_view_callbacks_factory_class" translatable="false"></string>
-    <string name="taskbar_overlay_context_factory_class" translatable="false"></string>
     <string name="taskbar_edu_tooltip_controller_class" translatable="false"></string>
 
     <!-- Default packages -->
     <string name="wallpaper_picker_package" translatable="false"></string>
     <string name="local_colors_extraction_class" translatable="false"></string>
-    <string name="search_session_manager_class" translatable="false"></string>
 
     <!-- Scalable Grid configuration -->
     <!-- This is a float because it is converted to dp later in DeviceProfile -->

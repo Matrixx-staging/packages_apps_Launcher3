@@ -32,24 +32,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.android.launcher3.widgetpicker.R
+import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 
 /**
  * A list header in widget picker that when [expanded] displays the [expandedContent].
@@ -79,12 +75,11 @@ fun ExpandableListHeader(
     val finalModifier =
         modifier
             .clip(shape = shape)
-            .background(color = ExpandedListHeaderDefaults.backgroundColor)
+            .background(color = WidgetPickerTheme.colors.expandableListItemsBackground)
 
     Column(modifier = finalModifier) {
         WidgetAppHeader(
-            modifier = Modifier
-                .clickable { onClick() },
+            modifier = Modifier.clickable { onClick() },
             leadingIcon = { leadingAppIcon() },
             title = title,
             subTitle = subTitle,
@@ -115,8 +110,6 @@ fun ExpandableListHeader(
  * @param subTitle a short 1 line description (e.g. number of widgets in the selected app).
  * @param onSelect action to perform when user clicks to select the header
  * @param shape shape for the header e.g. depending on position in the list, a different corner
- * @param selectedBackgroundColor background color when header is [selected]
- * @param unSelectedBackgroundColor background color when header is not [selected]
  */
 @Composable
 fun SelectableListHeader(
@@ -127,8 +120,6 @@ fun SelectableListHeader(
     subTitle: String,
     onSelect: () -> Unit,
     shape: RoundedCornerShape,
-    selectedBackgroundColor: Color = ClickableListHeaderDefaults.selectedBackgroundColor,
-    unSelectedBackgroundColor: Color = ClickableListHeaderDefaults.unSelectedBackgroundColor,
 ) {
     val clickModifier =
         if (!selected) {
@@ -145,9 +136,9 @@ fun SelectableListHeader(
                 .background(
                     color =
                         if (selected) {
-                            selectedBackgroundColor
+                            WidgetPickerTheme.colors.selectedListHeaderBackground
                         } else {
-                            unSelectedBackgroundColor
+                            WidgetPickerTheme.colors.unselectedListHeaderBackground
                         }
                 )
                 .then(clickModifier),
@@ -166,8 +157,6 @@ fun SelectableListHeader(
  * @param count number of suggested widgets.
  * @param onSelect action to perform when user selects the header.
  * @param shape shape for the header e.g. depending on position in the list, a different corner.
- * @param selectedBackgroundColor background color when header is [selected].
- * @param unSelectedBackgroundColor background color when header is not [selected].
  */
 @Composable
 fun SelectableSuggestionsHeader(
@@ -176,25 +165,24 @@ fun SelectableSuggestionsHeader(
     count: Int,
     onSelect: () -> Unit,
     shape: RoundedCornerShape,
-    selectedBackgroundColor: Color = ClickableListHeaderDefaults.selectedBackgroundColor,
-    unSelectedBackgroundColor: Color = ClickableListHeaderDefaults.unSelectedBackgroundColor,
 ) {
     SelectableListHeader(
         modifier = modifier,
         selected = selected,
         shape = shape,
-        selectedBackgroundColor = selectedBackgroundColor,
-        unSelectedBackgroundColor = unSelectedBackgroundColor,
         title = stringResource(R.string.featured_widgets_tab_label),
         subTitle = widgetsCountString(count),
         leadingAppIcon = {
             Icon(
                 imageVector = Icons.Filled.Star,
                 contentDescription = null,
+                tint = WidgetPickerTheme.colors.featuredHeaderLeadingIcon,
                 modifier =
                     Modifier
                         .clip(shape)
-                        .background(MaterialTheme.colorScheme.surfaceBright)
+                        .background(
+                            WidgetPickerTheme.colors.featuredHeaderLeadingIconBackground
+                        )
                         .minimumInteractiveComponentSize(),
             )
         },
@@ -243,24 +231,24 @@ private fun CenterText(title: String, subTitle: String, selected: Boolean, modif
             text = title,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            color = WidgetAppListHeaderDefaults.titleTextColor,
+            color = WidgetPickerTheme.colors.listHeaderTitle,
             style =
                 if (selected) {
-                    WidgetAppListHeaderDefaults.selectedTitleTextStyle
+                    WidgetPickerTheme.typography.selectedListHeaderTitle
                 } else {
-                    WidgetAppListHeaderDefaults.unSelectedTitleTextStyle
+                    WidgetPickerTheme.typography.unSelectedListHeaderTitle
                 },
         )
         Text(
             text = subTitle,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            color = WidgetAppListHeaderDefaults.subTitleTextColor,
+            color =  WidgetPickerTheme.colors.listHeaderSubTitle,
             style =
                 if (selected) {
-                    WidgetAppListHeaderDefaults.selectedSubTitleTextStyle
+                    WidgetPickerTheme.typography.selectedListHeaderSubTitle
                 } else {
-                    WidgetAppListHeaderDefaults.unSelectedSubTitleTextStyle
+                    WidgetPickerTheme.typography.unSelectedListHeaderSubTitle
                 },
         )
     }
@@ -273,40 +261,6 @@ private object ListHeaderDimensions {
 }
 
 private object ExpandedListHeaderDefaults {
-    val backgroundColor: Color
-        @Composable get() = MaterialTheme.colorScheme.surfaceBright
-
     val contentExpandAnimationSpec = fadeIn(tween(durationMillis = 500)) + expandVertically()
     val contentCollapseAnimationSpec = fadeOut(tween(durationMillis = 500)) + shrinkVertically()
-}
-
-private object ClickableListHeaderDefaults {
-    val selectedBackgroundColor
-        @Composable get() = MaterialTheme.colorScheme.secondaryContainer
-
-    val unSelectedBackgroundColor
-        @Composable get() = Color.Transparent
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-private object WidgetAppListHeaderDefaults {
-    val selectedTitleTextStyle: TextStyle
-        @Composable
-        get() = MaterialTheme.typography.titleMediumEmphasized.copy(fontWeight = FontWeight.Medium)
-
-    val unSelectedTitleTextStyle: TextStyle
-        @Composable
-        get() = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal)
-
-    val selectedSubTitleTextStyle: TextStyle
-        @Composable get() = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium)
-
-    val unSelectedSubTitleTextStyle: TextStyle
-        @Composable get() = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Normal)
-
-    val titleTextColor: Color
-        @Composable get() = MaterialTheme.colorScheme.onSurface
-
-    val subTitleTextColor: Color
-        @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
 }

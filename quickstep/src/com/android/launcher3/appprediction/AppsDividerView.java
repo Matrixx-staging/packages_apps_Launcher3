@@ -89,7 +89,7 @@ public class AppsDividerView extends View implements FloatingHeaderRow {
         mStrokeColor = Flags.allAppsBlur()
                 ? Themes.getAttrColor(context, R.attr.bottomSheetDragHandleColor)
                 : context.getColor(R.color.materialColorOutlineVariant);
-        mAllAppsLabelTextColor = context.getColor(R.color.materialColorOnSurfaceVariant);
+        mAllAppsLabelTextColor = context.getColor(R.color.materialColorOnSurface);
 
         mAccessibilityManager = AccessibilityManager.getInstance(context);
         setShowAllAppsLabel(!ALL_APPS_VISITED_COUNT.hasReachedMax(context));
@@ -214,7 +214,8 @@ public class AppsDividerView extends View implements FloatingHeaderRow {
     private Layout getAllAppsLabelLayout() {
         if (mAllAppsLabelLayout == null) {
             mPaint.setAntiAlias(true);
-            mPaint.setTypeface(Typeface.create("google-sans", Typeface.NORMAL));
+            mPaint.setTypeface(Typeface.create(Flags.gsfRes() ? "variable-title-small"
+                    : "google-sans", Typeface.NORMAL));
             mPaint.setTextSize(
                     getResources().getDimensionPixelSize(R.dimen.all_apps_label_text_size));
 

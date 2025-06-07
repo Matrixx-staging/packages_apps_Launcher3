@@ -60,7 +60,7 @@ class WidgetAppIconsRepositoryImpl @Inject constructor(
                     trySend(
                         WidgetAppIcon(
                             icon = AppIcon.HighResBitmapIcon(itemInfoWithIcon.bitmap.icon),
-                            badge = itemInfoWithIcon.bitmap.badgeDrawableInfo?.let {
+                            badge = itemInfoWithIcon.bitmap.getBadgeDrawableInfo()?.let {
                                 AppIconBadge.DrawableBadge(
                                     it.drawableRes,
                                     it.colorRes

@@ -17,6 +17,7 @@
 package com.android.launcher3.taskbar
 
 import android.animation.AnimatorTestRule
+import android.app.WindowConfiguration
 import android.content.ComponentName
 import android.content.Intent
 import android.os.Process
@@ -25,7 +26,6 @@ import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
 import androidx.test.core.app.ApplicationProvider
 import com.android.launcher3.BubbleTextView
-import com.android.launcher3.Flags.FLAG_ENABLE_ALT_TAB_KQS_FLATENNING
 import com.android.launcher3.Flags.FLAG_ENABLE_MULTI_INSTANCE_MENU_TASKBAR
 import com.android.launcher3.R
 import com.android.launcher3.dagger.LauncherAppSingleton
@@ -358,7 +358,6 @@ class TaskbarOverflowTest {
 
     @Test
     @TaskbarMode(PINNED)
-    @DisableFlags(FLAG_ENABLE_ALT_TAB_KQS_FLATENNING)
     fun testPressingOverflowButtonOpensKeyboardQuickSwitch() {
         val maxNumIconViews = maxNumberOfTaskbarIcons
         // Assume there are at least all apps and divider icon, as they would appear once running
@@ -370,6 +369,8 @@ class TaskbarOverflowTest {
         createDesktopTask(createdTasks)
 
         assertThat(taskbarOverflowIconIndex).isEqualTo(initialIconCount)
+        assertThat(getOverflowIconTooltipText()).isEqualTo("Other recent apps")
+
         tapOverflowIcon()
         // Keyboard quick switch view is shown only after list of recent task is asynchronously
         // retrieved from the recents model.
@@ -377,10 +378,12 @@ class TaskbarOverflowTest {
 
         assertThat(getOnUiThread { keyboardQuickSwitchController.isShownFromTaskbar }).isTrue()
         assertThat(getOnUiThread { keyboardQuickSwitchController.shownTaskIds() })
-            .containsExactlyElementsIn(0..<createdTasks)
+            .containsExactlyElementsIn(0..targetOverflowSize)
+        assertThat(getOverflowIconTooltipText()).isNull()
 
         tapOverflowIcon()
         assertThat(keyboardQuickSwitchController.isShown).isFalse()
+        assertThat(getOverflowIconTooltipText()).isEqualTo("Other recent apps")
     }
 
     @Test
@@ -418,7 +421,6 @@ class TaskbarOverflowTest {
 
     @Test
     @TaskbarMode(PINNED)
-    @DisableFlags(FLAG_ENABLE_ALT_TAB_KQS_FLATENNING)
     fun testHotseatItemTasksNotShownInKQS() {
         val maxNumIconViews = maxNumberOfTaskbarIcons
         // Assume there are at least all apps and divider icon, as they would appear once running
@@ -450,7 +452,47 @@ class TaskbarOverflowTest {
 
         assertThat(getOnUiThread { keyboardQuickSwitchController.isShownFromTaskbar }).isTrue()
         assertThat(getOnUiThread { keyboardQuickSwitchController.shownTaskIds() })
-            .containsExactlyElementsIn(listOf(0) + (2..<createdTasks).toList())
+            .containsExactlyElementsIn(listOf(0) + (2..targetOverflowSize + 1).toList())
+    }
+
+    @Test
+    @TaskbarMode(PINNED)
+    fun testFullscreenTasksNotShownInKQS() {
+        val maxNumIconViews = maxNumberOfTaskbarIcons
+        // Assume there are at least all apps and divider icon, as they would appear once running
+        // apps are added, even if not present initially.
+        val initialIconCount = currentNumberOfTaskbarIcons.coerceAtLeast(2)
+        val hotseatItems = createHotseatItems(1)
+
+        val targetOverflowSize = 5
+        val createdTasks = maxNumIconViews - initialIconCount + targetOverflowSize
+        createFullscreenAndDesktopTasksFromPackages(
+            listOf("fakeFullscreen"),
+            listOf("fake") +
+                listOf(hotseatItems[0]?.targetPackage ?: "") +
+                List(createdTasks - 2) { "fake" },
+        )
+
+        runOnMainSync {
+            val taskbarView: TaskbarView =
+                taskbarUnitTestRule.activityContext.dragLayer.findViewById(R.id.taskbar_view)
+            taskbarView.updateItems(
+                recentAppsController.updateHotseatItemInfos(hotseatItems as Array<ItemInfo?>),
+                recentAppsController.shownTasks,
+            )
+        }
+
+        tapOverflowIcon()
+        // Keyboard quick switch view is shown only after list of recent task is asynchronously
+        // retrieved from the recents model.
+        runOnMainSync { recentsModel.resolvePendingTaskRequests() }
+
+        assertThat(getOnUiThread { keyboardQuickSwitchController.isShownFromTaskbar }).isTrue()
+        // Taskbar is in overflow by `targetOverflowSize`, so overflow UI should have
+        // `targetOverflowSize + 1` items, to account for a spot in taskbar taken by the overflow
+        // icon. Task IDs for running desktop apps start at 1 - 0 is used for fullscreen task.
+        assertThat(getOnUiThread { keyboardQuickSwitchController.shownTaskIds() })
+            .containsExactlyElementsIn(listOf(1) + (3..targetOverflowSize + 2).toList())
     }
 
     @Test
@@ -568,7 +610,7 @@ class TaskbarOverflowTest {
             taskbarUnitTestRule.activityContext.dragLayer.findViewById(R.id.taskbar_view)
         taskbarView.updateItems(hotseatItems, recentAppsController.shownTasks)
         modelCallback.recentAppsController = recentAppsController
-        context.baseContext.appComponent.launcherAppState.model.addCallbacksAndLoad(modelCallback)
+        context.baseContext.appComponent.launcherAppState.model.addCallbacks(modelCallback)
         modelCallback.bindItemsAdded(hotseatItems.toList())
         return taskbarView
     }
@@ -578,12 +620,36 @@ class TaskbarOverflowTest {
     }
 
     private fun createDesktopTaskWithTasksFromPackages(packages: List<String>) {
-        val tasks =
-            packages.mapIndexed({ index, p ->
+        createFullscreenAndDesktopTasksFromPackages(emptyList(), packages)
+    }
+
+    private fun createFullscreenAndDesktopTasksFromPackages(
+        fullscreenPackages: List<String>,
+        desktopPackages: List<String>,
+    ) {
+        val defaultDisplayId = context.displayId
+        val tasks: List<GroupTask> =
+            fullscreenPackages.mapIndexed({ index, p ->
+                SingleTask(
+                    Task(
+                        Task.TaskKey(
+                            index,
+                            WindowConfiguration.WINDOWING_MODE_FULLSCREEN,
+                            Intent().apply { `package` = p },
+                            ComponentName(p, ""),
+                            Process.myUserHandle().identifier,
+                            2000,
+                        )
+                    )
+                )
+            })
+
+        val desktopTasks =
+            desktopPackages.mapIndexed({ index, p ->
                 Task(
                     Task.TaskKey(
-                        index,
-                        0,
+                        index + fullscreenPackages.size,
+                        WindowConfiguration.WINDOWING_MODE_FREEFORM,
                         Intent().apply { `package` = p },
                         ComponentName(p, ""),
                         Process.myUserHandle().identifier,
@@ -592,10 +658,11 @@ class TaskbarOverflowTest {
                 )
             })
 
-        val displayId = context.virtualDisplay.display.displayId
-        recentsModel.updateRecentTasks(listOf(DesktopTask(deskId = 0, displayId, tasks)))
-        for (task in 1..tasks.size) {
-            desktopTaskListener?.onTasksVisibilityChanged(displayId, task)
+        recentsModel.updateRecentTasks(
+            tasks + listOf(DesktopTask(deskId = 0, defaultDisplayId, desktopTasks))
+        )
+        for (task in 1..desktopTasks.size) {
+            desktopTaskListener?.onTasksVisibilityChanged(defaultDisplayId, task)
         }
         runOnMainSync { recentsModel.resolvePendingTaskRequests() }
     }
@@ -658,6 +725,14 @@ class TaskbarOverflowTest {
             val overflowIcon =
                 taskbarViewController.iconViews.firstOrNull { it is TaskbarOverflowView }
             assertThat(overflowIcon?.callOnClick()).isTrue()
+        }
+    }
+
+    private fun getOverflowIconTooltipText(): String? {
+        return getOnUiThread {
+            val overflowIcon =
+                taskbarViewController.iconViews.firstOrNull { it is TaskbarOverflowView }
+            (overflowIcon as? TaskbarOverflowView)?.getTextForTooltipPopup()
         }
     }
 

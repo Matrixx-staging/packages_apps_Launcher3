@@ -21,10 +21,12 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
-import com.android.launcher3.widgetpicker.WidgetPickerEventListeners
+import com.android.launcher3.widgetpicker.ui.WidgetPickerEventListeners
 import com.android.launcher3.widgetpicker.ui.components.ModalBottomSheetHeightStyle
 import com.android.launcher3.widgetpicker.ui.components.TitledBottomSheet
 import com.android.launcher3.widgetpicker.ui.components.TitledBottomSheetDefaults
+import com.android.launcher3.widgetpicker.ui.components.widgetPickerTestTag
+import com.android.launcher3.widgetpicker.ui.components.widgetPickerTestTagContainer
 import com.android.launcher3.widgetpicker.ui.fullcatalog.FullWidgetsCatalogViewModel.Screen
 import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.LandingScreen
 import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.search.SearchScreen
@@ -61,8 +63,11 @@ class FullWidgetsCatalog @Inject constructor(
 
         TitledBottomSheet(
             title = viewModel.title.takeIf { !isCompactHeight },
-            modifier = Modifier,
-            description = null,
+            modifier =
+                Modifier
+                .widgetPickerTestTagContainer()
+                .widgetPickerTestTag(WIDGET_CATALOG_TEST_TAG),
+            description = viewModel.description,
             heightStyle = ModalBottomSheetHeightStyle.FILL_HEIGHT,
             showDragHandle = true,
             onDismissRequest = { eventListeners.onClose() },
@@ -72,6 +77,8 @@ class FullWidgetsCatalog @Inject constructor(
                     LandingScreen(
                         isCompact = isCompactWidth,
                         onEnterSearchMode = { viewModel.onActiveScreenChange(Screen.SEARCH) },
+                        onWidgetInteraction = eventListeners::onWidgetInteraction,
+                        showDragShadow = viewModel.showDragShadow,
                         viewModel = viewModel.landingScreenViewModel,
                     )
                 }
@@ -80,6 +87,8 @@ class FullWidgetsCatalog @Inject constructor(
                     SearchScreen(
                         isCompact = isCompactWidth,
                         onExitSearchMode = { viewModel.onActiveScreenChange(Screen.LANDING) },
+                        onWidgetInteraction = eventListeners::onWidgetInteraction,
+                        showDragShadow = viewModel.showDragShadow,
                         viewModel = viewModel.searchScreenViewModel,
                     )
                 }
@@ -87,3 +96,5 @@ class FullWidgetsCatalog @Inject constructor(
         }
     }
 }
+
+private const val WIDGET_CATALOG_TEST_TAG = "widgets_catalog"

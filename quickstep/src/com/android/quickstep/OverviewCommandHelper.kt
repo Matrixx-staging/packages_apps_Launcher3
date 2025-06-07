@@ -60,6 +60,7 @@ import com.android.quickstep.views.RecentsView
 import com.android.quickstep.views.TaskView
 import com.android.systemui.shared.recents.model.ThumbnailData
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper
+import com.android.wm.shell.Flags.enableShellTopTaskTracking
 import java.io.PrintWriter
 import java.util.concurrent.ConcurrentLinkedDeque
 import java.util.concurrent.TimeUnit
@@ -455,12 +456,28 @@ constructor(
         }
 
         val gestureState =
-            touchInteractionService.createGestureState(
-                command.displayId,
-                GestureState.DEFAULT_STATE,
-                GestureState.TrackpadGestureType.NONE,
-            )
-        gestureState.isHandlingAtomicEvent = true
+            touchInteractionService
+                .createGestureState(
+                    command.displayId,
+                    GestureState.DEFAULT_STATE,
+                    GestureState.TrackpadGestureType.NONE,
+                )
+                .apply {
+                    isHandlingAtomicEvent = true
+                    if (!enableShellTopTaskTracking()) {
+                        val runningTask = runningTask
+                        // In the case where we are in an excluded, translucent overlay, ignore it
+                        // and treat the running activity as the task behind the overlay.
+                        val otherVisibleTask = runningTask?.visibleNonExcludedTask
+                        if (otherVisibleTask != null) {
+                            ActiveGestureProtoLogProxy.logUpdateGestureStateRunningTask(
+                                otherVisibleTask.packageName ?: "MISSING",
+                                runningTask.packageName ?: "MISSING",
+                            )
+                            updateRunningTask(otherVisibleTask)
+                        }
+                    }
+                }
         val interactionHandler =
             touchInteractionService
                 .getSwipeUpHandlerFactory(command.displayId)
@@ -471,7 +488,7 @@ constructor(
             ActiveGestureProtoLogProxy.logOnAbsSwipeUpHandlerNotAvailable(command.displayId)
             return true
         }
-        interactionHandler.setGestureEndCallback {
+        interactionHandler.setGestureAnimationEndCallback {
             onTransitionComplete(command, interactionHandler, onCallbackResult)
         }
         interactionHandler.initWhenReady("OverviewCommandHelper: command.type=${command.type}")

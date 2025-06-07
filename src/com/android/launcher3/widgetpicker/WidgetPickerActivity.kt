@@ -50,7 +50,7 @@ open class WidgetPickerActivity : BaseActivity() {
         checkNotNull(_dragLayer).recreateControllers()
 
         if (Flags.enableWidgetPickerRefactor() && isComposeAvailable()) {
-            component.widgetPickerComposeWrapper.showAllWidgets(this)
+            component.widgetPickerComposeWrapper.showAllWidgets(this, widgetPickerConfig)
         }
     }
 

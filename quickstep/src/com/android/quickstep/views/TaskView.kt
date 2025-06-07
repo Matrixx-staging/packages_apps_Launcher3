@@ -322,6 +322,9 @@ constructor(
     var taskViewId = UNBOUND_TASK_VIEW_ID
     var isEndQuickSwitchCuj = false
     var isBeingDraggedForDismissal = false
+    val isBeingDismissed
+        get() = secondaryDismissTranslationProperty.get(this) != 0f
+
     var sysUiStatusNavFlags: Int = 0
         get() =
             if (enableRefactorTaskThumbnail()) field
@@ -967,7 +970,10 @@ constructor(
                         canShowAppTimer = false,
                         clickCloseListener = null,
                     )
-                    if (enableOverviewIconMenu()) {
+                    // Do not set icon to null if we are actively in split selection. The task
+                    // appears to have been offloaded as we remove it during split, but we still
+                    // need the icon to show over the split task.
+                    if (enableOverviewIconMenu() && recentsView?.isSplitSelectionActive == false) {
                         setIconState(it, null)
                     }
                 }
@@ -1511,6 +1517,10 @@ constructor(
         isQuickSwitch: Boolean = false,
         callback: (launched: Boolean) -> Unit,
     ) {
+        val callbackWithLogging = { launchSuccess: Boolean ->
+            Log.d(TAG, "launchWithoutAnimation - callback: launchSuccess: $launchSuccess")
+            callback(launchSuccess)
+        }
         val firstTaskContainer = firstTaskContainer ?: return
         TestLogging.recordEvent(
             TestProtocol.SEQUENCE_MAIN,
@@ -1545,8 +1555,9 @@ constructor(
                     0,
                     0,
                     Executors.MAIN_EXECUTOR.handler,
-                    { callback(true) },
+                    { callbackWithLogging(true) },
                 ) {
+                    Log.d(TAG, "launchWithoutAnimation: launch animation finished")
                     failureListener.onTransitionFinished()
                 }
                 .apply {
@@ -1558,22 +1569,24 @@ constructor(
                     disableStartingWindow = firstTaskContainer.shouldShowSplashView
                 }
         Executors.UI_HELPER_EXECUTOR.execute {
+            Log.d(
+                TAG,
+                "launchWithoutAnimation(isQuickSwitch: $isQuickSwitch) - " +
+                    "startActivityFromRecents: ${taskIds.contentToString()}",
+            )
             if (
                 !ActivityManagerWrapper.getInstance()
                     .startActivityFromRecents(firstTaskContainer.task.key, opts)
             ) {
+                Log.d(TAG, "launchWithoutAnimation - task launch failed")
                 // If the call to start activity failed, then post the result immediately,
                 // otherwise, wait for the animation start callback from the activity options
                 // above
                 Executors.MAIN_EXECUTOR.post {
                     notifyTaskLaunchFailed("launchTask")
-                    callback(false)
+                    callbackWithLogging(false)
                 }
             }
-            Log.d(
-                TAG,
-                "launchWithoutAnimation - startActivityFromRecents: ${taskIds.contentToString()}",
-            )
         }
     }
 

@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.android.launcher3.widgetpicker.goldenpathmanager.WidgetPickerGoldenPathManager
+import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -88,37 +89,39 @@ private fun TwoTabsPreview() {
     var selectedIndexOne: Int by remember { mutableStateOf(0) }
     var selectedIndexTwo: Int by remember { mutableStateOf(1) }
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier =
-            Modifier.background(
-                    MaterialTheme.colorScheme.surfaceContainer
-                ) // uses bg color of picker
-                .padding(8.dp),
-    ) {
-        TestComposable(
-            tabs = TWO_TABS,
-            selectedIndex = selectedIndexOne,
-            onClick = { selectedIndexOne = it },
-        )
-        TestSpacer()
-        TestComposable(
-            tabs = TWO_TABS,
-            selectedIndex = selectedIndexTwo,
-            onClick = { selectedIndexTwo = it },
-        )
-        TestSpacer()
-        TestComposable(
-            tabs = TWO_LONG_TABS,
-            selectedIndex = selectedIndexOne,
-            onClick = { selectedIndexOne = it },
-        )
-        TestSpacer()
-        TestComposable(
-            tabs = TWO_LONG_TABS,
-            selectedIndex = selectedIndexTwo,
-            onClick = { selectedIndexTwo = it },
-        )
+    WidgetPickerTheme {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier =
+                Modifier.background(
+                        MaterialTheme.colorScheme.surfaceContainer
+                    ) // uses bg color of picker
+                    .padding(8.dp),
+        ) {
+            TestComposable(
+                tabs = TWO_TABS,
+                selectedIndex = selectedIndexOne,
+                onClick = { selectedIndexOne = it },
+            )
+            TestSpacer()
+            TestComposable(
+                tabs = TWO_TABS,
+                selectedIndex = selectedIndexTwo,
+                onClick = { selectedIndexTwo = it },
+            )
+            TestSpacer()
+            TestComposable(
+                tabs = TWO_LONG_TABS,
+                selectedIndex = selectedIndexOne,
+                onClick = { selectedIndexOne = it },
+            )
+            TestSpacer()
+            TestComposable(
+                tabs = TWO_LONG_TABS,
+                selectedIndex = selectedIndexTwo,
+                onClick = { selectedIndexTwo = it },
+            )
+        }
     }
 }
 
@@ -129,49 +132,51 @@ private fun ThreeTabsPreview() {
     var selectedIndexTwo: Int by remember { mutableStateOf(1) }
     var selectedIndexThree: Int by remember { mutableStateOf(2) }
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier =
-            Modifier.background(
-                    MaterialTheme.colorScheme.surfaceContainer
-                ) // uses bg color of picker
-                .padding(8.dp),
-    ) {
-        TestComposable(
-            tabs = THREE_TABS,
-            selectedIndex = selectedIndexOne,
-            onClick = { selectedIndexOne = it },
-        )
-        TestSpacer()
-        TestComposable(
-            tabs = THREE_TABS,
-            selectedIndex = selectedIndexTwo,
-            onClick = { selectedIndexTwo = it },
-        )
-        TestSpacer()
-        TestComposable(
-            tabs = THREE_TABS,
-            selectedIndex = selectedIndexThree,
-            onClick = { selectedIndexThree = it },
-        )
-        TestSpacer()
-        TestComposable(
-            tabs = THREE_LONG_TABS,
-            selectedIndex = selectedIndexOne,
-            onClick = { selectedIndexOne = it },
-        )
-        TestSpacer()
-        TestComposable(
-            tabs = THREE_LONG_TABS,
-            selectedIndex = selectedIndexTwo,
-            onClick = { selectedIndexTwo = it },
-        )
-        TestSpacer()
-        TestComposable(
-            tabs = THREE_LONG_TABS,
-            selectedIndex = selectedIndexThree,
-            onClick = { selectedIndexThree = it },
-        )
+    WidgetPickerTheme {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier =
+                Modifier.background(
+                        MaterialTheme.colorScheme.surfaceContainer
+                    ) // uses bg color of picker
+                    .padding(8.dp),
+        ) {
+            TestComposable(
+                tabs = THREE_TABS,
+                selectedIndex = selectedIndexOne,
+                onClick = { selectedIndexOne = it },
+            )
+            TestSpacer()
+            TestComposable(
+                tabs = THREE_TABS,
+                selectedIndex = selectedIndexTwo,
+                onClick = { selectedIndexTwo = it },
+            )
+            TestSpacer()
+            TestComposable(
+                tabs = THREE_TABS,
+                selectedIndex = selectedIndexThree,
+                onClick = { selectedIndexThree = it },
+            )
+            TestSpacer()
+            TestComposable(
+                tabs = THREE_LONG_TABS,
+                selectedIndex = selectedIndexOne,
+                onClick = { selectedIndexOne = it },
+            )
+            TestSpacer()
+            TestComposable(
+                tabs = THREE_LONG_TABS,
+                selectedIndex = selectedIndexTwo,
+                onClick = { selectedIndexTwo = it },
+            )
+            TestSpacer()
+            TestComposable(
+                tabs = THREE_LONG_TABS,
+                selectedIndex = selectedIndexThree,
+                onClick = { selectedIndexThree = it },
+            )
+        }
     }
 }
 

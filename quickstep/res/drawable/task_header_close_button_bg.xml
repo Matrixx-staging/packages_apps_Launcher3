@@ -14,14 +14,8 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<ripple android:color="?android:attr/colorControlHighlight"
-    xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
-        <shape
-            android:shape="rectangle"
-            android:tint="?colorButtonNormal">
-            <corners android:radius="@dimen/add_desktop_button_size" />
-            <solid android:color="@color/materialColorSurfaceBright"/>
-        </shape>
-    </item>
-</ripple>
+
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@color/task_header_close_button_color" />
+</shape>

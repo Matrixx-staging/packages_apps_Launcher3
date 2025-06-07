@@ -64,23 +64,7 @@ constructor(
 ) {
 
     fun initialize(model: LauncherModel) {
-        fun refreshAndReloadLauncher() {
-            iconPool.clear()
-            iconCache.updateIconParams(idp.fillResIconDpi, idp.iconBitmapSize)
-            model.forceReload()
-        }
-
-        // IDP changes
-        val idpChangeListener = OnIDPChangeListener { modelChanged ->
-            if (modelChanged) refreshAndReloadLauncher()
-        }
-        idp.addOnChangeListener(idpChangeListener)
-        lifeCycle.addCloseable { idp.removeOnChangeListener(idpChangeListener) }
-
-        // Theme changes
-        val themeChangeListener = ThemeChangeListener { refreshAndReloadLauncher() }
-        themeManager.addChangeListener(themeChangeListener)
-        lifeCycle.addCloseable { themeManager.removeChangeListener(themeChangeListener) }
+        initializeDisplayEvents(model)
 
         // System changes
         val modelCallbacks = model.newModelCallbacks()
@@ -140,13 +124,33 @@ constructor(
         // Custom widgets
         lifeCycle.addCloseable(customWidgetManager.addWidgetRefreshCallback(model::rebindCallbacks))
 
+        // Install session changes
+        lifeCycle.addCloseable(installSessionHelper.registerInstallTracker(modelCallbacks))
+    }
+
+    fun initializeDisplayEvents(model: LauncherModel) {
+        fun refreshAndReloadLauncher() {
+            iconPool.clear()
+            iconCache.updateIconParams(idp.fillResIconDpi, idp.iconBitmapSize)
+            model.forceReload()
+        }
+
+        // IDP changes
+        val idpChangeListener = OnIDPChangeListener { modelChanged ->
+            if (modelChanged) refreshAndReloadLauncher()
+        }
+        idp.addOnChangeListener(idpChangeListener)
+        lifeCycle.addCloseable { idp.removeOnChangeListener(idpChangeListener) }
+
+        // Theme changes
+        val themeChangeListener = ThemeChangeListener { refreshAndReloadLauncher() }
+        themeManager.addChangeListener(themeChangeListener)
+        lifeCycle.addCloseable { themeManager.removeChangeListener(themeChangeListener) }
+
         // Icon changes
         lifeCycle.addCloseable(
             iconProvider.registerIconChangeListener(model::onAppIconChanged, MODEL_EXECUTOR.handler)
         )
-
-        // Install session changes
-        lifeCycle.addCloseable(installSessionHelper.registerInstallTracker(modelCallbacks))
     }
 
     companion object {

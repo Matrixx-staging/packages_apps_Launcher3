@@ -72,12 +72,12 @@ object ProductionDispatchers : DispatcherProvider {
 
     override val ioBackground =
         if (enableCoroutineThreadingImprovements())
-            bgDispatcher(nThreads = max(1, availableProcessors / 8), threadName = "LauncherBgIO")
+            bgDispatcher(nThreads = 1, threadName = "LauncherBgIO")
         else singleBgThreadPool
 
     override val lightweightBackground =
         if (enableCoroutineThreadingImprovements())
-            bgDispatcher(nThreads = max(1, availableProcessors / 8), threadName = "LauncherBgLight")
+            bgDispatcher(nThreads = 1, threadName = "LauncherBgLight")
         else singleBgThreadPool
 
     override val unconfined = Dispatchers.Unconfined

@@ -72,7 +72,7 @@ class SetupNavLayoutter(
         val deviceProfile: DeviceProfile = context.deviceProfile
 
         navButtonsLayoutParams.marginEnd = 0
-        navButtonsLayoutParams.gravity = Gravity.START
+        navButtonsLayoutParams.gravity = Gravity.START or Gravity.CENTER_VERTICAL
         context.setTaskbarWindowSize(context.setupWindowSize)
 
         // If SUW is on a large screen device that is landscape (or has a square aspect

@@ -16,7 +16,6 @@
 <com.android.quickstep.task.thumbnail.TaskThumbnailView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/snapshot"
-    android:background="@android:color/black"
     android:layout_width="match_parent"
     android:layout_height="0dp"
     android:layout_weight="1" >
@@ -46,7 +45,6 @@
         android:id="@+id/splash_background"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@android:color/black"
         android:alpha="0"
         android:importantForAccessibility="no" />
 

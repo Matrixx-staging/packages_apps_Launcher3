@@ -27,13 +27,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
@@ -43,6 +43,7 @@ import com.android.launcher3.widgetpicker.ui.components.TwoPaneLayoutDimensions.
 import com.android.launcher3.widgetpicker.ui.components.TwoPaneLayoutDimensions.horizontalPadding
 import com.android.launcher3.widgetpicker.ui.components.TwoPaneLayoutDimensions.paneSpacing
 import com.android.launcher3.widgetpicker.ui.components.TwoPaneLayoutDimensions.searchBarBottomMargin
+import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 
 /**
  * A layout that splits the widget picker content into two panes where the left pane takes about
@@ -58,7 +59,6 @@ import com.android.launcher3.widgetpicker.ui.components.TwoPaneLayoutDimensions.
  *   pane guides the user that content for selected option is now visible on right. When using
  *   accessibility services like talkback, after selecting an option on left, the users can use four
  *   finger swipe down to move focus to the right pane.
- * @param rightPaneBackgroundColor color to use for that background of content on right.
  */
 @Composable
 fun TwoPaneLayout(
@@ -66,7 +66,6 @@ fun TwoPaneLayout(
     leftContent: @Composable () -> Unit,
     rightContent: @Composable () -> Unit,
     rightPaneTitle: String?,
-    rightPaneBackgroundColor: Color = TwoPaneLayoutDefaults.rightPaneBackgroundColor,
 ) {
     val rightPaneModifier =
         if (rightPaneTitle != null) {
@@ -95,7 +94,8 @@ fun TwoPaneLayout(
                     .fillMaxHeight()
                     .weight(RIGHT_PANE_WEIGHT)
                     .clip(TwoPaneLayoutDimensions.rightPaneShape)
-                    .background(rightPaneBackgroundColor),
+                    .background(WidgetPickerTheme.colors.widgetsContainerBackground)
+                    .verticalScroll(rememberScrollState()),
         ) {
             rightContent()
         }
@@ -117,9 +117,4 @@ private object TwoPaneLayoutDimensions {
     val searchBarBottomMargin = 16.dp
 
     val rightPaneShape = RoundedCornerShape(28.dp)
-}
-
-private object TwoPaneLayoutDefaults {
-    val rightPaneBackgroundColor
-        @Composable get() = MaterialTheme.colorScheme.surfaceBright
 }

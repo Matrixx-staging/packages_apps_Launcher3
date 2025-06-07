@@ -272,7 +272,8 @@ public class DatabaseWidgetPreviewLoader {
 
     private Bitmap generateShortcutPreview(
             ShortcutConfigActivityInfo info, int maxWidth, int maxHeight) {
-        int iconSize = ActivityContext.lookupContext(mContext).getDeviceProfile().allAppsIconSizePx;
+        int iconSize = ActivityContext.lookupContext(
+                mContext).getDeviceProfile().getAllAppsProfile().getIconSizePx();
         int padding = mContext.getResources()
                 .getDimensionPixelSize(R.dimen.widget_preview_shortcut_padding);
 

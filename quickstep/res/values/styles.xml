@@ -214,6 +214,11 @@
         <item name="android:windowShowWallpaper">false</item>
     </style>
 
+    <style name="AllSetTheme.Expressive" parent="AllSetTheme">
+        <item name="android:windowShowWallpaper">true</item>
+        <item name="android:windowIsTranslucent">true</item>
+    </style>
+
     <!--
       Can be applied to views to color things like ripples and list highlights the workspace text
       color.
@@ -392,6 +397,8 @@
         <item name="overviewScrimForegroundPrimary">?attr/overviewScrimForegroundPrimaryBlur</item>
         <item name="overviewScrimForegroundSecondary">?attr/overviewScrimForegroundSecondaryBlur
         </item>
+        <item name="addDesktopButtonBackgroundDrawable">@drawable/overview_action_button_background_blur</item>
+
     </style>
 
     <style name="OverviewBlurFallbackStyle">
@@ -400,6 +407,7 @@
         <item name="overviewActionButtonStyle">@style/OverviewActionButton</item>
         <item name="overviewScrimForegroundPrimary">@android:color/transparent</item>
         <item name="overviewScrimForegroundSecondary">@android:color/transparent</item>
+        <item name="addDesktopButtonBackgroundDrawable">@drawable/overview_action_button_background</item>
     </style>
 
 </resources>

@@ -119,6 +119,7 @@ class AllAppsActionManager(
         context
             .getSystemService(AccessibilityManager::class.java)
             ?.unregisterSystemAction(GLOBAL_ACTION_ACCESSIBILITY_ALL_APPS)
+        quickstepKeyGestureEventsManager.unregisterAllAppsKeyGestureEvent()
         SettingsCache.INSTANCE[context].unregister(
             USER_SETUP_COMPLETE_URI,
             onSettingsChangeListener,

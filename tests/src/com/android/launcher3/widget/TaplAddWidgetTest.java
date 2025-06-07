@@ -17,12 +17,15 @@ package com.android.launcher3.widget;
 
 import static org.junit.Assert.assertNotNull;
 
+import android.platform.test.annotations.DisableFlags;
 import android.platform.test.annotations.PlatinumTest;
+import android.platform.test.flag.junit.SetFlagsRule;
 import android.view.View;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 
+import com.android.launcher3.Flags;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.tapl.Widget;
 import com.android.launcher3.tapl.WidgetResizeFrame;
@@ -44,12 +47,16 @@ import org.junit.runner.RunWith;
 @LargeTest
 @RunWith(AndroidJUnit4.class)
 public class TaplAddWidgetTest extends AbstractLauncherUiTest<Launcher, View> {
+    @Rule
+    public final SetFlagsRule mSetFlagsRule =
+            new SetFlagsRule(SetFlagsRule.DefaultInitValueType.DEVICE_DEFAULT);
 
     @Rule
     public ShellCommandRule mGrantWidgetRule = ShellCommandRule.grantWidgetBind();
 
     @Test
     @PortraitLandscape
+    @DisableFlags(Flags.FLAG_ENABLE_WIDGET_PICKER_REFACTOR)
     public void testDragIcon() throws Throwable {
         commitTransactionAndLoadHome(new FavoriteItemsTransaction(mTargetContext));
 
@@ -81,6 +88,7 @@ public class TaplAddWidgetTest extends AbstractLauncherUiTest<Launcher, View> {
      */
     @Test
     @PortraitLandscape
+    @DisableFlags(Flags.FLAG_ENABLE_WIDGET_PICKER_REFACTOR)
     public void testDragCustomShortcut() throws Throwable {
         // TODO(b/322820039): Enable test for tablets - the picker UI has changed and test needs to
         //  be updated to look for appropriate UI elements.
@@ -99,6 +107,7 @@ public class TaplAddWidgetTest extends AbstractLauncherUiTest<Launcher, View> {
      */
     @PlatinumTest(focusArea = "launcher")
     @Test
+    @DisableFlags(Flags.FLAG_ENABLE_WIDGET_PICKER_REFACTOR)
     public void testResizeWidget() throws Throwable {
         commitTransactionAndLoadHome(new FavoriteItemsTransaction(mTargetContext));
 

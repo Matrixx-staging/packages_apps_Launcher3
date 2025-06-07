@@ -20,6 +20,7 @@ import android.app.ActivityTaskManager.INVALID_TASK_ID
 import android.view.View
 import androidx.core.graphics.toRectF
 import androidx.core.view.children
+import androidx.core.view.contains
 import androidx.dynamicanimation.animation.FloatPropertyCompat
 import androidx.dynamicanimation.animation.FloatValueHolder
 import androidx.dynamicanimation.animation.SpringAnimation
@@ -35,8 +36,12 @@ import com.android.launcher3.util.MSDLPlayerWrapper
 import com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview
 import com.android.launcher3.views.ActivityContext
 import com.android.quickstep.SystemUiProxy
+import com.android.quickstep.util.DesksUtils.Companion.areMultiDesksFlagsEnabled
 import com.android.quickstep.util.TaskGridNavHelper
+import com.android.quickstep.util.isDefaultDisplay
+import com.android.quickstep.util.isExternalDisplay
 import com.android.quickstep.views.RecentsView.RECENTS_SCALE_PROPERTY
+import com.android.quickstep.views.RecentsViewUtils.OnDeskAddedListener
 import com.android.quickstep.views.TaskView.Companion.GRID_END_TRANSLATION_X
 import com.android.systemui.shared.system.ActivityManagerWrapper
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper
@@ -68,6 +73,20 @@ constructor(
     interface Factory {
         fun create(recentsView: RecentsView<*, *>): RecentsDismissUtils
     }
+
+    /**
+     * [OnDeskAddedListener] which launches the new desk right after it is created.
+     *
+     * This is mainly used for clearing all desks via the clear all button in the recent view or the
+     * removal of the last task in a desk.
+     */
+    private val launchNewDeskListener =
+        object : OnDeskAddedListener {
+            override fun onDeskAdded(desktopTaskView: DesktopTaskView) {
+                desktopTaskView.launchWithAnimation()
+                recentsView.mUtils.removeOnDeskAddedListener(this)
+            }
+        }
 
     /**
      * Runs the default spring animation when a dismissed task view in overview is released.
@@ -312,13 +331,18 @@ constructor(
                     // tasks), and closing all tasks on a desk doesn't always necessarily mean that
                     // the desk will be removed. So, there are no guarantees that the below call to
                     // `ActivityManagerWrapper::removeAllRecentTasks()` will be enough.
+                    if (areMultiDesksFlagsEnabled() && context.displayId.isExternalDisplay) {
+                        mUtils.addOnDeskAddedListener(launchNewDeskListener)
+                    }
                     systemUiProxy.removeAllDesks()
 
                     // Remove all the task views now
                     finishRecentsAnimation(/* toRecents */ true, /* shouldPip */ false) {
                         uiHelperExecutor.execute { activityManagerWrapper.removeAllRecentTasks() }
                         removeAllTaskViews()
-                        startHome()
+                        if (context.displayId.isDefaultDisplay || !areMultiDesksFlagsEnabled()) {
+                            startHome()
+                        }
                     }
                 }
             }
@@ -933,6 +957,16 @@ constructor(
             if (shouldRemoveTask && dismissedTaskView != null) {
                 val groupTask = dismissedTaskView.groupTask
                 if (groupTask != null) {
+                    // For the multi desk case, the launcher should switch to the new desk once the
+                    // last task of the previous desk is removed.
+                    if (
+                        areMultiDesksFlagsEnabled() &&
+                            context.displayId.isExternalDisplay &&
+                            taskViewCount == 1 &&
+                            contains(dismissedTaskView)
+                    ) {
+                        mUtils.addOnDeskAddedListener(launchNewDeskListener)
+                    }
                     if (dismissedTaskView.isRunningTask) {
                         finishRecentsAnimation(/* toRecents */ true, /* shouldPip */ false) {
                             removeGroupTaskInternal(groupTask)
@@ -1059,7 +1093,9 @@ constructor(
                     if (dismissedTaskView === homeTaskView) {
                         updateEmptyMessage()
                     } else {
-                        startHome()
+                        if (!areMultiDesksFlagsEnabled() || context.displayId.isDefaultDisplay) {
+                            startHome()
+                        }
                     }
                 }
             } else {
@@ -1192,6 +1228,7 @@ constructor(
         private val startListenerSet = mutableSetOf<() -> Unit>()
         private val endListenerSet = mutableSetOf<() -> Unit>()
         private var hasStarted = false
+        private var hasEnded = false
 
         init {
             trackSpring(driverSpring, driverSpringThreshold)
@@ -1212,12 +1249,17 @@ constructor(
         }
 
         private fun onEnd() {
+            if (hasEnded) {
+                return
+            }
+            hasEnded = true
             endListenerSet.forEach { it() }
         }
 
         fun cancel(): SpringSet {
             driverSpring.cancel()
             trackedSprings.forEach { it.cancel() }
+            trackedSpringSets.forEach { it.cancel() }
             onEnd()
             return this
         }

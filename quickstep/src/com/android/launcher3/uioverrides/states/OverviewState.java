@@ -220,7 +220,7 @@ public class OverviewState extends LauncherState {
     public void onBackInvoked(Launcher launcher) {
         RecentsView recentsView = launcher.getOverviewPanel();
         TaskView taskView = recentsView.getRunningTaskView();
-        if (taskView != null) {
+        if (taskView != null && !taskView.isBeingDismissed()) {
             if (recentsView.isTaskViewFullyVisible(taskView)) {
                 taskView.launchWithAnimation();
             } else {

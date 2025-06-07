@@ -45,6 +45,7 @@ class FullWidgetsCatalogViewModel @AssistedInject constructor(
 
     val title: String? = hostInfo.title
     val description: String? = hostInfo.description
+    val showDragShadow: Boolean = hostInfo.showDragShadow
     var activeScreen by mutableStateOf(Screen.LANDING)
         private set
 

@@ -209,9 +209,10 @@ public class AllAppsSwipeController extends AbstractStateChangeTouchController {
             if (!config.isUserControlled()) {
                 config.setInterpolator(ANIM_VERTICAL_PROGRESS, EMPHASIZED);
             }
-            config.setInterpolator(ANIM_WORKSPACE_SCALE, ALL_APPS_SHEET_DEPTH);
-            config.setInterpolator(ANIM_HOTSEAT_SCALE, ALL_APPS_SHEET_DEPTH);
-            config.setInterpolator(ANIM_DEPTH, ALL_APPS_SHEET_DEPTH);
+            config.setInterpolator(ANIM_WORKSPACE_SCALE,
+                Interpolators.reverse(ALL_APPS_SHEET_DEPTH));
+            config.setInterpolator(ANIM_HOTSEAT_SCALE, Interpolators.reverse(ALL_APPS_SHEET_DEPTH));
+            config.setInterpolator(ANIM_DEPTH, Interpolators.reverse(ALL_APPS_SHEET_DEPTH));
             if (!Flags.allAppsBlur() && launcher.getDeviceProfile().getDeviceProperties().isPhone()) {
                 // On phones without blur, reveal the workspace and hotseat when leaving All Apps.
                 config.setInterpolator(ANIM_WORKSPACE_FADE, INSTANT);

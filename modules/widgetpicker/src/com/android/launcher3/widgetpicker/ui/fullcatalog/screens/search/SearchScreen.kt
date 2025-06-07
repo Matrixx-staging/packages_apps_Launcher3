@@ -20,14 +20,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.android.launcher3.widgetpicker.R
 import com.android.launcher3.widgetpicker.shared.model.WidgetAppId
+import com.android.launcher3.widgetpicker.ui.WidgetInteractionInfo
 import com.android.launcher3.widgetpicker.ui.components.AppHeaderDescriptionStyle
 import com.android.launcher3.widgetpicker.ui.components.SinglePaneLayout
 import com.android.launcher3.widgetpicker.ui.components.TwoPaneLayout
@@ -38,13 +37,13 @@ import com.android.launcher3.widgetpicker.ui.components.WidgetsSearchBar
 import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.AppIconsState
 import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.PreviewsState
 
-/**
- * Screen showing the search results in the widget picker when browsing the full widget catalog.
- */
+/** Screen showing the search results in the widget picker when browsing the full widget catalog. */
 @Composable
 fun SearchScreen(
     isCompact: Boolean,
     onExitSearchMode: () -> Unit,
+    onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
+    showDragShadow: Boolean,
     viewModel: SearchScreenViewModel,
 ) {
     SearchScreen(
@@ -57,6 +56,8 @@ fun SearchScreen(
         onSearch = viewModel::onQueryChange,
         onSelectedWidgetAppToggle = viewModel::onSelectedWidgetAppToggle,
         onExitSearchMode = onExitSearchMode,
+        onWidgetInteraction = onWidgetInteraction,
+        showDragShadow = showDragShadow,
     )
 }
 
@@ -71,7 +72,16 @@ private fun SearchScreen(
     onSearch: (String) -> Unit,
     onSelectedWidgetAppToggle: (id: WidgetAppId) -> Unit,
     onExitSearchMode: () -> Unit,
+    onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
+    showDragShadow: Boolean,
 ) {
+    val emptyWidgetsErrorMessage =
+        if (input.isNotEmpty()) {
+            stringResource(R.string.widgets_no_search_results)
+        } else {
+            ""
+        }
+
     val searchBar: @Composable () -> Unit = {
         WidgetsSearchBar(
             text = input,
@@ -92,7 +102,10 @@ private fun SearchScreen(
             selectedWidgetAppId = selectedWidgetAppId,
             appIconsState = appIconsState,
             widgetPreviewsState = widgetPreviewsState,
-            onSelectedWidgetAppChange = onSelectedWidgetAppToggle
+            onSelectedWidgetAppChange = onSelectedWidgetAppToggle,
+            onWidgetInteraction = onWidgetInteraction,
+            showDragShadow = showDragShadow,
+            emptyWidgetsErrorMessage = emptyWidgetsErrorMessage,
         )
     } else {
         SearchScreenTwoPane(
@@ -101,7 +114,10 @@ private fun SearchScreen(
             selectedWidgetAppId = selectedWidgetAppId,
             appIconsState = appIconsState,
             widgetPreviewsState = widgetPreviewsState,
-            onSelectedWidgetAppChange = onSelectedWidgetAppToggle
+            onSelectedWidgetAppChange = onSelectedWidgetAppToggle,
+            onWidgetInteraction = onWidgetInteraction,
+            showDragShadow = showDragShadow,
+            emptyWidgetsErrorMessage = emptyWidgetsErrorMessage,
         )
     }
 }
@@ -113,7 +129,10 @@ private fun SearchScreenSinglePane(
     selectedWidgetAppId: WidgetAppId?,
     appIconsState: AppIconsState,
     widgetPreviewsState: PreviewsState,
-    onSelectedWidgetAppChange: (id: WidgetAppId) -> Unit
+    onSelectedWidgetAppChange: (id: WidgetAppId) -> Unit,
+    onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
+    showDragShadow: Boolean,
+    emptyWidgetsErrorMessage: String,
 ) {
     SinglePaneLayout(
         searchBar = searchBar,
@@ -125,14 +144,15 @@ private fun SearchScreenSinglePane(
                     selectedWidgetAppId = selectedWidgetAppId,
                     widgetAppHeaderStyle = WidgetAppHeaderStyle.EXPANDABLE,
                     headerDescriptionStyle = AppHeaderDescriptionStyle.COMBINED_WIDGETS_TITLE,
-                    onWidgetAppClick = { widgetApp ->
-                        onSelectedWidgetAppChange(widgetApp.id)
-                    },
+                    onWidgetAppClick = { widgetApp -> onSelectedWidgetAppChange(widgetApp.id) },
                     appIcons = appIconsState.icons,
-                    widgetPreviews = widgetPreviewsState.previews
+                    widgetPreviews = widgetPreviewsState.previews,
+                    onWidgetInteraction = onWidgetInteraction,
+                    showDragShadow = showDragShadow,
+                    emptyWidgetsErrorMessage = emptyWidgetsErrorMessage,
                 )
             }
-        }
+        },
     )
 }
 
@@ -143,7 +163,10 @@ fun SearchScreenTwoPane(
     selectedWidgetAppId: WidgetAppId?,
     appIconsState: AppIconsState,
     widgetPreviewsState: PreviewsState,
-    onSelectedWidgetAppChange: (id: WidgetAppId) -> Unit
+    onSelectedWidgetAppChange: (id: WidgetAppId) -> Unit,
+    onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
+    showDragShadow: Boolean,
+    emptyWidgetsErrorMessage: String,
 ) {
     TwoPaneLayout(
         searchBar = searchBar,
@@ -157,36 +180,31 @@ fun SearchScreenTwoPane(
                     headerDescriptionStyle = AppHeaderDescriptionStyle.COMBINED_WIDGETS_TITLE,
                     appIcons = appIconsState.icons,
                     widgetPreviews = widgetPreviewsState.previews,
-                    onWidgetAppClick = { widgetApp ->
-                        onSelectedWidgetAppChange(widgetApp.id)
-                    },
+                    onWidgetAppClick = { widgetApp -> onSelectedWidgetAppChange(widgetApp.id) },
+                    onWidgetInteraction = onWidgetInteraction,
+                    showDragShadow = showDragShadow,
+                    emptyWidgetsErrorMessage = emptyWidgetsErrorMessage,
                 )
             }
         },
-        rightPaneTitle = rightPaneTitle(
-            resultsState = resultsState,
-            selectedWidgetAppId = selectedWidgetAppId,
-        ),
+        rightPaneTitle =
+            rightPaneTitle(resultsState = resultsState, selectedWidgetAppId = selectedWidgetAppId),
         rightContent = {
             selectedWidgetAppId?.let { id ->
                 val selectedWidgets =
                     remember(id, resultsState) {
                         id.let { selectedId ->
-                            resultsState.results.find {
-                                it.id == selectedId
-                            }?.widgetSizeGroups
+                            resultsState.results.find { it.id == selectedId }?.widgetSizeGroups
                         } ?: listOf()
                     }
 
                 WidgetsGrid(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentSize()
-                        .verticalScroll(rememberScrollState()),
+                    modifier = Modifier.fillMaxWidth().wrapContentSize(),
                     showAllWidgetDetails = true,
                     widgetSizeGroups = selectedWidgets,
                     previews = widgetPreviewsState.previews,
-                    appIcons = appIconsState.icons
+                    onWidgetInteraction = onWidgetInteraction,
+                    showDragShadow = showDragShadow,
                 )
             }
         },
@@ -200,7 +218,7 @@ fun SearchScreenTwoPane(
 @Composable
 private fun rightPaneTitle(
     resultsState: SearchResultsState,
-    selectedWidgetAppId: WidgetAppId?
+    selectedWidgetAppId: WidgetAppId?,
 ): String? {
     val selectedAppName: CharSequence? =
         selectedWidgetAppId?.let { selectedId ->
@@ -208,10 +226,7 @@ private fun rightPaneTitle(
         }
 
     return if (selectedAppName != null) {
-        stringResource(
-            R.string.widget_picker_right_pane_accessibility_label,
-            selectedAppName
-        )
+        stringResource(R.string.widget_picker_right_pane_accessibility_label, selectedAppName)
     } else {
         null
     }

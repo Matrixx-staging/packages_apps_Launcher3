@@ -203,7 +203,7 @@ public class TaskbarViewCallbacks {
                             mTaskbarView.getTaskbarOverflowView().getIsActive());
         }
         mControllers.keyboardQuickSwitchController.toggleQuickSwitchViewForTaskbar(
-                mControllers.taskbarViewController.getTaskIdsForPinnedApps(),
+                mControllers.taskbarViewController.getShownTaskIds(),
                 this::onKeyboardQuickSwitchViewClosed);
     }
 

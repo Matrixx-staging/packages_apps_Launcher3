@@ -23,6 +23,7 @@ import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -55,6 +56,34 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
         implements OnClickListener, Insettable {
     public static final String TAG = "OverviewActionsView";
     private final Rect mInsets = new Rect();
+
+    /**
+     * We need to over-ride here due to liveTile mode, the [OverviewInputConsumer] is added, which
+     * consumes all [InputEvent]'s and focus isn't moved correctly.
+     */
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getAction() != KeyEvent.ACTION_DOWN) return super.dispatchKeyEvent(event);
+
+        View currentFocus = findFocus();
+        if (currentFocus == null) return super.dispatchKeyEvent(event);
+
+        View nextFocus = null;
+        switch (event.getKeyCode()) {
+            case KeyEvent.KEYCODE_DPAD_LEFT -> nextFocus = focusSearch(currentFocus,
+                    FOCUS_BACKWARD);
+            case KeyEvent.KEYCODE_DPAD_RIGHT -> nextFocus = focusSearch(currentFocus,
+                    FOCUS_FORWARD);
+            case KeyEvent.KEYCODE_TAB -> nextFocus = focusSearch(currentFocus,
+                    event.isShiftPressed() ? FOCUS_BACKWARD : FOCUS_FORWARD);
+        }
+
+        if (nextFocus != null) {
+            return nextFocus.requestFocus();
+        }
+
+        return super.dispatchKeyEvent(event);
+    }
 
     @IntDef(flag = true, value = {
             HIDDEN_NON_ZERO_ROTATION,

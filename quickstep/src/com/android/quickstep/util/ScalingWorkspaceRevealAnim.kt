@@ -22,7 +22,6 @@ import android.animation.AnimatorSet
 import android.animation.ValueAnimator
 import android.graphics.Matrix
 import android.graphics.Path
-import android.graphics.PointF
 import android.graphics.RectF
 import android.util.Log
 import android.view.SurfaceControl
@@ -33,11 +32,13 @@ import com.android.app.animation.Animations
 import com.android.app.animation.Interpolators
 import com.android.app.animation.Interpolators.EMPHASIZED
 import com.android.app.animation.Interpolators.LINEAR
-import com.android.launcher3.LauncherAnimUtils.VIEW_ALPHA
+import com.android.launcher3.Flags
 import com.android.launcher3.LauncherAnimUtils.HOTSEAT_SCALE_PROPERTY_FACTORY
 import com.android.launcher3.LauncherAnimUtils.SCALE_INDEX_WORKSPACE_STATE
+import com.android.launcher3.LauncherAnimUtils.VIEW_ALPHA
 import com.android.launcher3.LauncherAnimUtils.WORKSPACE_SCALE_PROPERTY_FACTORY
 import com.android.launcher3.LauncherState
+import com.android.launcher3.R
 import com.android.launcher3.anim.AnimatorListeners
 import com.android.launcher3.anim.PendingAnimation
 import com.android.launcher3.anim.PropertySetter
@@ -46,10 +47,7 @@ import com.android.launcher3.states.StateAnimationConfig.SKIP_DEPTH_CONTROLLER
 import com.android.launcher3.states.StateAnimationConfig.SKIP_OVERVIEW
 import com.android.launcher3.states.StateAnimationConfig.SKIP_SCRIM
 import com.android.launcher3.uioverrides.QuickstepLauncher
-import com.android.launcher3.R
-import com.android.launcher3.Utilities
 import com.android.quickstep.views.RecentsView
-import com.android.launcher3.Flags
 
 const val TAG = "ScalingWorkspaceRevealAnim"
 
@@ -90,7 +88,8 @@ class ScalingWorkspaceRevealAnim(
 
     private val animation = PendingAnimation(SCALE_DURATION_MS)
     private var blurLayer: SurfaceControl? = null
-    private var transaction: SurfaceControl.Transaction? = null
+    private var surfaceTransactionApplier: SurfaceTransactionApplier =
+        SurfaceTransactionApplier(launcher.dragLayer)
 
     init {
         // Make sure the starting state is right for the animation.
@@ -167,18 +166,19 @@ class ScalingWorkspaceRevealAnim(
         // Match the Wallpaper depth to the rest of the content.
         val depthController = (launcher as? QuickstepLauncher)?.depthController
         transitionConfig.setInterpolator(StateAnimationConfig.ANIM_DEPTH, SCALE_INTERPOLATOR)
-        depthController?.pauseBlursOnWindows(true)  // Blurring is handled by the scrim layer.
+        depthController?.pauseBlursOnWindows(true) // Blurring is handled by the scrim layer.
         depthController?.stateDepth?.value = LauncherState.BACKGROUND_APP.getDepth(launcher)
         depthController?.setStateWithAnimation(LauncherState.NORMAL, transitionConfig, animation)
 
         // Add a blur animation to the scrim layer.
-        var maxBlurRadius = launcher.resources.getDimensionPixelSize(
-            if (Flags.allAppsBlur() || Flags.enableOverviewBackgroundWallpaperBlur()) {
-                R.dimen.max_depth_blur_radius_enhanced
-            } else {
-                R.integer.max_depth_blur_radius
-            }
-        )
+        var maxBlurRadius =
+            launcher.resources.getDimensionPixelSize(
+                if (Flags.allAppsBlur() || Flags.enableOverviewBackgroundWallpaperBlur()) {
+                    R.dimen.max_depth_blur_radius_enhanced
+                } else {
+                    R.integer.max_depth_blur_radius
+                }
+            )
         val blurAnimator = ValueAnimator.ofFloat(1f, 0f)
         blurAnimator.setInterpolator(BLUR_INTERPOLATOR)
         blurAnimator.addUpdateListener {
@@ -298,29 +298,34 @@ class ScalingWorkspaceRevealAnim(
                 .setOpaque(false)
                 .setHidden(false)
                 .build()
-        transaction =
-            SurfaceControl.Transaction().apply {
-                setAlpha(blurLayer, 0f)
-                show(blurLayer)
-            }
+
+        // Schedule the initial setup of the blur layer.
+        val setupTransaction = SurfaceTransaction()
+        setupTransaction.forSurface(blurLayer).setAlpha(0f).setShow()
+        surfaceTransactionApplier.scheduleApply(setupTransaction)
+
         this.blurLayer = blurLayer
     }
 
     private fun removeBlurLayer() {
         blurLayer?.let {
             if (it.isValid) {
-                transaction?.remove(it)?.apply()
+                // Schedule the removal of the blur layer.
+                val removalTransaction = SurfaceTransaction()
+                removalTransaction.forSurface(it).setRemove()
+                surfaceTransactionApplier.scheduleApply(removalTransaction)
             }
         }
         blurLayer = null
-        transaction?.close()
-        transaction = null
     }
 
     private fun applyBlur(blurRadius: Float) {
         blurLayer?.let {
             if (it.isValid) {
-                transaction?.setBackgroundBlurRadius(it, blurRadius.toInt())?.apply()
+                // Schedule the blur update.
+                val blurUpdateTransaction = SurfaceTransaction()
+                blurUpdateTransaction.forSurface(it).setBackgroundBlurRadius(blurRadius.toInt())
+                surfaceTransactionApplier.scheduleApply(blurUpdateTransaction)
             }
         }
     }

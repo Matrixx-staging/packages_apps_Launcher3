@@ -15,10 +15,12 @@
  */
 package com.android.launcher3.preview
 
+import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
 import android.text.TextUtils
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.Item
+import com.android.launcher3.LauncherModel
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.ProxyPrefs
 import com.android.launcher3.WorkspaceLayoutManager
@@ -29,24 +31,21 @@ import com.android.launcher3.dagger.AppModule
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
-import com.android.launcher3.dagger.LauncherComponentProvider.get
 import com.android.launcher3.dagger.LauncherConcurrencyModule
 import com.android.launcher3.dagger.PerDisplayModule
 import com.android.launcher3.dagger.PluginManagerWrapperModule
 import com.android.launcher3.dagger.StaticObjectModule
 import com.android.launcher3.dagger.WindowManagerProxyModule
-import com.android.launcher3.graphics.ThemeManager
-import com.android.launcher3.model.BaseLauncherBinder.BaseLauncherBinderFactory
-import com.android.launcher3.model.BgDataModel
 import com.android.launcher3.model.LayoutParserFactory
 import com.android.launcher3.model.LayoutParserFactory.XmlLayoutParserFactory
-import com.android.launcher3.model.LoaderTask.LoaderTaskFactory
+import com.android.launcher3.model.ModelInitializer
 import com.android.launcher3.model.data.LoaderParams
 import com.android.launcher3.provider.LauncherDbUtils.selectionForWorkspaceScreen
 import com.android.launcher3.util.SandboxContext
 import com.android.launcher3.util.dagger.LauncherExecutorsModule
 import com.android.launcher3.widget.LauncherWidgetHolder
 import com.android.launcher3.widget.LauncherWidgetHolder.WidgetHolderFactory
+import com.android.launcher3.widget.util.WidgetSizeHandler
 import com.android.systemui.shared.Flags
 import dagger.BindsInstance
 import dagger.Component
@@ -63,8 +62,6 @@ class PreviewContext
 constructor(
     base: Context,
     gridName: String?,
-    shapeKey: String?,
-    isMonoThemeEnabled: Boolean,
     widgetHostId: Int = LauncherWidgetHolder.APPWIDGET_HOST_ID,
     layoutXml: String? = null,
     workspacePageId: Int = WorkspaceLayoutManager.FIRST_SCREEN_ID,
@@ -78,9 +75,7 @@ constructor(
         mPrefName = "preview-$randomUid"
         val prefs = ProxyPrefs(this, getSharedPreferences(mPrefName, MODE_PRIVATE))
         prefs.putOrRemove(LauncherPrefs.GRID_NAME, gridName)
-        prefs.putOrRemove(ThemeManager.PREF_ICON_SHAPE, shapeKey)
         prefs.put(LauncherPrefs.FIXED_LANDSCAPE_MODE, false)
-        prefs.put(ThemeManager.THEMED_ICONS, isMonoThemeEnabled)
 
         val isTwoPanel =
             base.appComponent.idp.supportedProfiles.any { it.deviceProperties.isTwoPanels }
@@ -90,19 +85,21 @@ constructor(
             else selectionForWorkspaceScreen(workspacePageId)
 
         val builder = DaggerPreviewContext_PreviewAppComponent.builder().bindPrefs(prefs)
-        builder.bindLoaderParams(
-            LoaderParams(
-                workspaceSelection = selectionQuery,
-                sanitizeData = false,
-                loadNonWorkspaceItems = false,
+        builder
+            .bindLoaderParams(
+                LoaderParams(
+                    workspaceSelection = selectionQuery,
+                    sanitizeData = false,
+                    loadNonWorkspaceItems = false,
+                )
             )
-        )
+            .bindWidgetSizeHandler(NoOpWidgetSizeHandler(this))
 
         if (layoutXml.isNullOrEmpty() || !Flags.extendibleThemeManager()) {
             mDbDir = null
             builder
                 .bindParserFactory(LayoutParserFactory(this))
-                .bindWidgetsFactory(get(base).widgetHolderFactory)
+                .bindWidgetsFactory(base.appComponent.widgetHolderFactory)
         } else {
             mDbDir = File(base.filesDir, randomUid)
             emptyDbDir()
@@ -139,8 +136,19 @@ constructor(
         }
     }
 
-    override fun getDatabasePath(name: String): File {
-        return if (mDbDir != null) File(mDbDir, name) else super.getDatabasePath(name)
+    override fun getDatabasePath(name: String): File =
+        if (mDbDir != null) File(mDbDir, name) else super.getDatabasePath(name)
+
+    private class NoOpWidgetSizeHandler(context: Context) : WidgetSizeHandler(context) {
+
+        override fun updateSizeRangesAsync(
+            widgetId: Int,
+            info: AppWidgetProviderInfo,
+            spanX: Int,
+            spanY: Int,
+        ) {
+            // Ignore
+        }
     }
 
     @LauncherAppSingleton // Exclude widget module since we bind widget holder separately
@@ -160,9 +168,8 @@ constructor(
             ]
     )
     interface PreviewAppComponent : LauncherAppComponent {
-        val loaderTaskFactory: LoaderTaskFactory
-        val baseLauncherBinderFactory: BaseLauncherBinderFactory
-        val dataModel: BgDataModel
+        val model: LauncherModel
+        val modelInitializer: ModelInitializer
 
         /** Builder for NexusLauncherAppComponent. */
         @Component.Builder
@@ -174,6 +181,8 @@ constructor(
             @BindsInstance fun bindWidgetsFactory(holderFactory: WidgetHolderFactory): Builder
 
             @BindsInstance fun bindLoaderParams(params: LoaderParams): Builder
+
+            @BindsInstance fun bindWidgetSizeHandler(handler: WidgetSizeHandler): Builder
 
             override fun build(): PreviewAppComponent
         }

@@ -16,25 +16,37 @@
 
 package com.android.launcher3.widgetpicker
 
+import android.app.Activity.RESULT_OK
 import android.content.Context
+import androidx.compose.foundation.isSystemInDarkTheme
+import android.content.Intent
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalView
+import com.android.launcher3.Launcher
 import com.android.launcher3.R
-import com.android.launcher3.widgetpicker.WidgetPickerActivity
 import com.android.launcher3.compose.ComposeFacade
 import com.android.launcher3.compose.core.widgetpicker.WidgetPickerComposeWrapper
 import com.android.launcher3.concurrent.annotations.BackgroundContext
 import com.android.launcher3.dagger.ApplicationContext
-import com.android.launcher3.widgetpicker.WidgetPickerComponent
-import com.android.launcher3.widgetpicker.WidgetPickerEventListeners
+import com.android.launcher3.util.ApiWrapper
+import com.android.launcher3.widgetpicker.WidgetPickerConfig
+import com.android.launcher3.widgetpicker.WidgetPickerConfig.Companion.EXTRA_IS_PENDING_WIDGET_DRAG
 import com.android.launcher3.widgetpicker.data.repository.WidgetAppIconsRepository
 import com.android.launcher3.widgetpicker.data.repository.WidgetUsersRepository
 import com.android.launcher3.widgetpicker.data.repository.WidgetsRepository
+import com.android.launcher3.widgetpicker.listeners.WidgetPickerAddItemListener
+import com.android.launcher3.widgetpicker.listeners.WidgetPickerDragItemListener
+import com.android.launcher3.widgetpicker.shared.model.HostConstraint
 import com.android.launcher3.widgetpicker.shared.model.WidgetHostInfo
+import com.android.launcher3.widgetpicker.ui.WidgetInteractionInfo
+import com.android.launcher3.widgetpicker.ui.WidgetPickerEventListeners
+import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
+import com.android.launcher3.widgetpicker.theme.darkWidgetPickerColors
+import com.android.launcher3.widgetpicker.theme.lightWidgetPickerColors
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Provider
@@ -42,7 +54,7 @@ import kotlin.coroutines.CoroutineContext
 
 /**
  * An helper that bootstraps widget picker UI (from [WidgetPickerComponent]) in to
- * [WidgetPickerActivity].
+ * [WidgetPickerActivity] when compose is available and widget picker refactor flags are on.
  *
  * Sets up the bindings necessary for widget picker component.
  */
@@ -55,27 +67,35 @@ class WidgetPickerComposeWrapperImpl @Inject constructor(
     private val backgroundContext: CoroutineContext,
     @ApplicationContext
     private val appContext: Context,
+    private val apiWrapper: ApiWrapper,
 ) : WidgetPickerComposeWrapper {
+
     override fun showAllWidgets(
         activity: WidgetPickerActivity,
+        widgetPickerConfig: WidgetPickerConfig
     ) {
-        val widgetPickerComponent = newWidgetPickerComponent()
-        val callbacks = object : WidgetPickerEventListeners {
-            override fun onClose() {
-                activity.finish()
-            }
-        }
+        val widgetPickerComponent = newWidgetPickerComponent(widgetPickerConfig)
+        val callbacks = activity.buildEventListeners(widgetPickerConfig, apiWrapper)
 
         val fullWidgetsCatalog = widgetPickerComponent.getFullWidgetsCatalog()
         val composeView = ComposeFacade.initComposeView(activity.asContext()) as ComposeView
+
         composeView.apply {
             setContent {
                 val scope = rememberCoroutineScope()
                 val view = LocalView.current
 
+                val widgetPickerColors = if (isSystemInDarkTheme()) {
+                    darkWidgetPickerColors()
+                } else {
+                    lightWidgetPickerColors()
+                }
+
                 MaterialTheme { // TODO(b/408283627): Use launcher theme.
-                    val eventListeners = remember { callbacks }
-                    fullWidgetsCatalog.Content(eventListeners)
+                    WidgetPickerTheme(colors = widgetPickerColors) {
+                        val eventListeners = remember { callbacks }
+                        fullWidgetsCatalog.Content(eventListeners)
+                    }
                 }
 
                 DisposableEffect(view) {
@@ -90,20 +110,27 @@ class WidgetPickerComposeWrapperImpl @Inject constructor(
             }
         }
 
-        activity.dragLayer?.addView(composeView)
+        checkNotNull(activity.dragLayer).addView(composeView)
     }
 
-    private fun newWidgetPickerComponent(): WidgetPickerComponent =
-        widgetPickerComponentProvider.get()
+    private fun newWidgetPickerComponent(
+        widgetPickerConfig: WidgetPickerConfig
+    ): WidgetPickerComponent {
+        return widgetPickerComponentProvider.get()
             .build(
                 widgetsRepository = widgetsRepository,
                 widgetUsersRepository = widgetUsersRepository,
                 widgetAppIconsRepository = widgetAppIconsRepository,
                 widgetHostInfo = WidgetHostInfo(
-                    appContext.resources.getString(R.string.widget_button_text)
+                    title = widgetPickerConfig.title
+                        ?: appContext.resources.getString(R.string.widget_button_text),
+                    description = widgetPickerConfig.description,
+                    constraints = widgetPickerConfig.asHostConstraints(),
+                    showDragShadow = !widgetPickerConfig.isForHomeScreen
                 ),
                 backgroundContext = backgroundContext
             )
+    }
 
     private fun initializeRepositories() {
         widgetsRepository.initialize()
@@ -115,5 +142,119 @@ class WidgetPickerComposeWrapperImpl @Inject constructor(
         widgetsRepository.cleanUp()
         widgetUsersRepository.cleanUp()
         widgetAppIconsRepository.cleanUp()
+    }
+
+    companion object {
+        private const val HOME_SCREEN_WIDGET_INTERACTION_REASON_STRING =
+            "WidgetPickerActivity.OnWidgetInteraction"
+
+        private fun WidgetPickerActivity.buildEventListeners(
+            widgetPickerConfig: WidgetPickerConfig,
+            apiWrapper: ApiWrapper
+        ) = object : WidgetPickerEventListeners {
+            override fun onClose() {
+                finish()
+            }
+
+            override fun onWidgetInteraction(widgetInteractionInfo: WidgetInteractionInfo) {
+                if (widgetPickerConfig.isForHomeScreen) {
+                    handleWidgetInteractionForHomeScreen(widgetInteractionInfo, apiWrapper)
+                } else {
+                    handleWidgetInteractionForExternalHost(widgetInteractionInfo)
+                }
+            }
+        }
+
+        /**
+         * Handles communication with the home screen about the "add" and "drag" interactions on
+         * widgets within widget picker.
+         *
+         * For home screen, we register a listener that is called back when home screen is shown;
+         * - WidgetPickerDragItemListener: bootstraps the drag helper that displays the shadow and
+         * handles the drag until completion.
+         * - WidgetPickerAddItemListener: once launcher is shown, triggers the flow to add the
+         * widget to workspace.
+         */
+        private fun WidgetPickerActivity.handleWidgetInteractionForHomeScreen(
+            interactionInfo: WidgetInteractionInfo,
+            apiWrapper: ApiWrapper
+        ) {
+            val interactionListener = when (interactionInfo) {
+                is WidgetInteractionInfo.WidgetDragInfo ->
+                    WidgetPickerDragItemListener(
+                        mimeType = interactionInfo.mimeType,
+                        appWidgetProviderInfo = interactionInfo.providerInfo,
+                        widgetPreview = interactionInfo.previewInfo,
+                        previewRect = interactionInfo.bounds,
+                        previewWidth = interactionInfo.widthPx
+                    )
+
+                is WidgetInteractionInfo.WidgetAddInfo ->
+                    WidgetPickerAddItemListener(interactionInfo.providerInfo)
+            }
+            Launcher.ACTIVITY_TRACKER.registerCallback(
+                interactionListener,
+                HOME_SCREEN_WIDGET_INTERACTION_REASON_STRING
+            )
+            startActivity(
+                /*intent=*/ Intent(Intent.ACTION_MAIN)
+                    .addCategory(Intent.CATEGORY_HOME)
+                    .setPackage(packageName)
+                    .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                /*options=*/ apiWrapper.createFadeOutAnimOptions().toBundle()
+            )
+            finish()
+        }
+
+        /**
+         * Handles communication with the external host about the "add" and "drag" interactions on
+         * widgets within widget picker.
+         *
+         * - In case of drag and drop, finishes the activity with result indicating that there is a
+         * pending drag [EXTRA_IS_PENDING_WIDGET_DRAG] (that would contain the widget info as part
+         * of clip data) that the host should be handling.
+         * - In case of add, finishes the activity with result containing extra information about
+         * the widget being added (namely [Intent.EXTRA_COMPONENT_NAME] and [Intent.EXTRA_USER].
+         */
+        private fun WidgetPickerActivity.handleWidgetInteractionForExternalHost(
+            widgetInteractionInfo: WidgetInteractionInfo,
+        ) {
+            when (widgetInteractionInfo) {
+                is WidgetInteractionInfo.WidgetDragInfo ->
+                    setResult(
+                        RESULT_OK,
+                        Intent().putExtra(EXTRA_IS_PENDING_WIDGET_DRAG, true)
+                    )
+
+                is WidgetInteractionInfo.WidgetAddInfo -> {
+                    val providerInfo = widgetInteractionInfo.providerInfo
+                    setResult(
+                        RESULT_OK, Intent()
+                            .putExtra(Intent.EXTRA_COMPONENT_NAME, providerInfo.provider)
+                            .putExtra(Intent.EXTRA_USER, providerInfo.profile)
+                    )
+                }
+            }
+
+            finish()
+        }
+
+        /** Builds the host constraints to provide to the widget picker module. */
+        fun WidgetPickerConfig.asHostConstraints() =
+            buildList {
+                if (filteredUsers.isNotEmpty()) {
+                    add(HostConstraint.HostUserConstraint(filteredUsers))
+                }
+                if (categoryInclusionFilter != 0
+                    || categoryExclusionFilter != 0
+                ) {
+                    add(
+                        HostConstraint.HostCategoryConstraint(
+                            categoryInclusionMask = categoryInclusionFilter,
+                            categoryExclusionMask = categoryExclusionFilter,
+                        )
+                    )
+                }
+            }
     }
 }

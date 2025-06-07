@@ -259,8 +259,14 @@ public class LoaderTask implements Runnable {
             LoaderMemoryLogger memoryLogger, LauncherRestoreEventLogger restoreEventLogger) {
 
         List<CacheableShortcutInfo> allShortcuts = new ArrayList<>();
-        loadWorkspace(
-                allShortcuts, mParams.getWorkspaceSelection(), memoryLogger, restoreEventLogger);
+        Trace.beginSection("LoadWorkspace");
+        try {
+            loadWorkspaceImpl(allShortcuts, mParams.getWorkspaceSelection(), memoryLogger,
+                    restoreEventLogger);
+        } finally {
+            Trace.endSection();
+        }
+        logASplit("loadWorkspace finished");
 
         // Sanitize data re-syncs widgets/shortcuts based on the workspace loaded from db.
         // sanitizeData should not be invoked if the workspace is loaded from a db different
@@ -414,25 +420,6 @@ public class LoaderTask implements Runnable {
         FileLog.w(TAG, "stopLocked: Loader stopping");
         mStopped = true;
         this.notify();
-    }
-
-    public void loadWorkspaceForPreview(String selection) {
-        loadWorkspace(new ArrayList<>(), selection, null, null);
-    }
-
-    private void loadWorkspace(
-            List<CacheableShortcutInfo> allDeepShortcuts,
-            String selection,
-            @Nullable LoaderMemoryLogger memoryLogger,
-            @Nullable LauncherRestoreEventLogger restoreEventLogger
-    ) {
-        Trace.beginSection("LoadWorkspace");
-        try {
-            loadWorkspaceImpl(allDeepShortcuts, selection, memoryLogger, restoreEventLogger);
-        } finally {
-            Trace.endSection();
-        }
-        logASplit("loadWorkspace finished");
     }
 
     private void loadWorkspaceImpl(

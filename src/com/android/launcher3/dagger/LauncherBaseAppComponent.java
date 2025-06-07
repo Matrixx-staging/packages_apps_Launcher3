@@ -53,6 +53,7 @@ import com.android.launcher3.util.window.RefreshRateTracker;
 import com.android.launcher3.util.window.WindowManagerProxy;
 import com.android.launcher3.widget.LauncherWidgetHolder.WidgetHolderFactory;
 import com.android.launcher3.widget.custom.CustomWidgetManager;
+import com.android.launcher3.widget.util.WidgetSizeHandler;
 
 import dagger.BindsInstance;
 
@@ -101,8 +102,9 @@ public interface LauncherBaseAppComponent {
     InstantAppResolver getInstantAppResolver();
     DumpManager getDumpManager();
     StatsLogManager.StatsLogManagerFactory getStatsLogManagerFactory();
-      ActivityContextComponent.Builder getActivityContextComponentBuilder();
-      WidgetPickerComposeWrapper getWidgetPickerComposeWrapper();
+    ActivityContextComponent.Builder getActivityContextComponentBuilder();
+    WidgetPickerComposeWrapper getWidgetPickerComposeWrapper();
+    WidgetSizeHandler getWidgetSizeHandler();
 
 
     /** Builder for LauncherBaseAppComponent. */

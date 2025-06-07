@@ -293,7 +293,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
                 // get pinned tasks - we care about all tasks, not just the one moved to the front
                 Set<Integer> taskbarPinnedTasks =
                         entry.getValue().getControllers().taskbarViewController
-                                .getTaskIdsForPinnedApps();
+                                .getShownTaskIds();
 
                 // filter out tasks already marked as perceptible
                 taskbarPinnedTasks.removeAll(mPerceptibleTasks);
@@ -484,7 +484,8 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
                 .register(USER_SETUP_COMPLETE_URI, mOnSettingsChangeListener);
         SettingsCache.INSTANCE.get(mPrimaryWindowContext)
                 .register(NAV_BAR_KIDS_MODE, mOnSettingsChangeListener);
-        if (DesktopExperienceFlags.ENABLE_SYS_DECORS_CALLBACKS_VIA_WM.isTrue()) {
+        if (DesktopExperienceFlags.ENABLE_SYS_DECORS_CALLBACKS_VIA_WM.isTrue()
+                && DesktopExperienceFlags.ENABLE_DISPLAY_CONTENT_MODE_MANAGEMENT.isTrue()) {
             displaysWithDecorationsRepositoryCompat
                     .registerDisplayDecorationListener(this, dispatcher);
         } else {
@@ -1176,7 +1177,8 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
                 .unregister(USER_SETUP_COMPLETE_URI, mOnSettingsChangeListener);
         SettingsCache.INSTANCE.get(mPrimaryWindowContext)
                 .unregister(NAV_BAR_KIDS_MODE, mOnSettingsChangeListener);
-        if (DesktopExperienceFlags.ENABLE_SYS_DECORS_CALLBACKS_VIA_WM.isTrue()) {
+        if (DesktopExperienceFlags.ENABLE_SYS_DECORS_CALLBACKS_VIA_WM.isTrue()
+                && DesktopExperienceFlags.ENABLE_DISPLAY_CONTENT_MODE_MANAGEMENT.isTrue()) {
             mDisplaysWithDecorationsRepositoryCompat.unregisterDisplayDecorationListener(this);
         } else {
             SystemDecorationChangeObserver.getINSTANCE().get(mPrimaryWindowContext)
@@ -1392,7 +1394,8 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
         TaskbarActivityContext newTaskbar = new TaskbarActivityContext(displayId,
                 getWindowContext(displayId), navigationBarPanelContext, dp,
                 getNavButtonController(displayId), mUnfoldProgressProvider,
-                !isExternalDisplay(displayId), SystemUiProxy.INSTANCE.get(mBaseContext));
+                !isExternalDisplay(displayId), getPrimaryDisplayId(),
+                SystemUiProxy.INSTANCE.get(mBaseContext));
 
         addTaskbarToMap(displayId, newTaskbar);
         return newTaskbar;

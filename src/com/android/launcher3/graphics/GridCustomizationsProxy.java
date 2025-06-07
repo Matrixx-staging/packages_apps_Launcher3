@@ -16,7 +16,6 @@
 package com.android.launcher3.graphics;
 
 import static com.android.launcher3.BuildConfig.IS_DEBUG_DEVICE;
-import static com.android.launcher3.Flags.enableLauncherIconShapes;
 import static com.android.launcher3.preview.PreviewSurfaceRenderer.KEY_BITMAP_GENERATION_DELAY_MS;
 import static com.android.launcher3.preview.PreviewSurfaceRenderer.KEY_VIEW_HEIGHT;
 import static com.android.launcher3.preview.PreviewSurfaceRenderer.KEY_VIEW_WIDTH;
@@ -38,7 +37,6 @@ import android.net.Uri;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder.DeathRecipient;
 import android.os.Message;
 import android.os.Messenger;
 import android.text.TextUtils;
@@ -54,6 +52,7 @@ import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.model.BgDataModel;
+import com.android.launcher3.preview.PreviewLifecycleObserver;
 import com.android.launcher3.preview.PreviewSurfaceRenderer;
 import com.android.launcher3.shapes.IconShapeModel;
 import com.android.launcher3.shapes.ShapesProvider;
@@ -114,7 +113,7 @@ public class GridCustomizationsProxy implements ProxyProvider {
     private static final String KEY_PREVIEW_COUNT = "preview_count";
     // is_default means if a certain option is currently set to the system
     private static final String KEY_IS_DEFAULT = "is_default";
-    private static final String KEY_SHAPE_KEY = "shape_key";
+    public static final String KEY_SHAPE_KEY = "shape_key";
     private static final String KEY_SHAPE_TITLE = "shape_title";
     private static final String KEY_PATH = "path";
 
@@ -122,8 +121,8 @@ public class GridCustomizationsProxy implements ProxyProvider {
     private static final String KEY_LIST_OPTIONS = "/list_options";
     private static final String KEY_SHAPE_OPTIONS = "/shape_options";
     // default_grid is for setting grid and shape to system settings
-    private static final String KEY_DEFAULT_GRID = "/default_grid";
-    private static final String SET_SHAPE = "/shape";
+    public static final String KEY_DEFAULT_GRID = "/default_grid";
+    public static final String SET_SHAPE = "/shape";
 
     private static final String METHOD_GET_PREVIEW = "get_preview";
     public static final String METHOD_GET_PREVIEW_BITMAP = "get_preview_bitmap";
@@ -131,8 +130,8 @@ public class GridCustomizationsProxy implements ProxyProvider {
     /** These methods are used to set monochrome theme */
     private static final String GET_ICON_THEMED = "/get_icon_themed";
     private static final String SET_ICON_THEMED = "/set_icon_themed";
-    private static final String ICON_THEMED = "/icon_themed";
-    private static final String BOOLEAN_VALUE = "boolean_value";
+    public static final String ICON_THEMED = "/icon_themed";
+    public static final String BOOLEAN_VALUE = "boolean_value";
 
     private static final String KEY_SURFACE_PACKAGE = "surface_package";
     private static final String KEY_CALLBACK = "callback";
@@ -140,11 +139,7 @@ public class GridCustomizationsProxy implements ProxyProvider {
     public static final String KEY_GRID_NAME = "grid_name";
     public static final String KEY_IMAGE = "image";
 
-    private static final int MESSAGE_ID_UPDATE_PREVIEW = 1337;
-    private static final int MESSAGE_ID_UPDATE_SHAPE = 2586;
-    private static final int MESSAGE_ID_UPDATE_GRID = 7414;
-    private static final int MESSAGE_ID_UPDATE_COLOR = 856;
-    private static final int MESSAGE_ID_UPDATE_ICON_THEMED = 311;
+    public static final String KEY_UPDATE_METHOD = "update_method";
 
     // Set of all active previews used to track duplicate memory allocations
     private final Set<PreviewLifecycleObserver> mActivePreviews =
@@ -271,9 +266,19 @@ public class GridCustomizationsProxy implements ProxyProvider {
         if (path == null) {
             return 0;
         }
+
+        int result = handleUpdate(path, values);
+        if (result != 0) {
+            mContext.getContentResolver().notifyChange(uri, null);
+        }
+        return result;
+    }
+
+    public int handleUpdate(@NonNull String path, ContentValues values) {
         switch (path) {
             case KEY_DEFAULT_GRID: {
                 String gridName = values.getAsString(KEY_NAME);
+                gridName = gridName == null ? values.getAsString(KEY_GRID_NAME) : gridName;
                 // Verify that this is a valid grid option
                 GridOption match = null;
                 for (GridOption option : mIdp.parseAllGridOptions(mContext)) {
@@ -295,7 +300,6 @@ public class GridCustomizationsProxy implements ProxyProvider {
                         Log.e(TAG, "Fail to load model", e);
                     }
                 }
-                mContext.getContentResolver().notifyChange(uri, null);
                 return 1;
             }
             case SET_SHAPE:
@@ -307,7 +311,6 @@ public class GridCustomizationsProxy implements ProxyProvider {
             case ICON_THEMED:
             case SET_ICON_THEMED: {
                 mThemeManager.setMonoThemeEnabled(values.getAsBoolean(BOOLEAN_VALUE));
-                mContext.getContentResolver().notifyChange(uri, null);
                 return 1;
             }
             default:
@@ -404,82 +407,6 @@ public class GridCustomizationsProxy implements ProxyProvider {
             Log.e(TAG, "Unable to generate preview", e);
             MAIN_EXECUTOR.execute(lifeCycleTracker::executeAllAndDestroy);
             return null;
-        }
-    }
-
-    private static class PreviewLifecycleObserver implements Handler.Callback, DeathRecipient {
-
-        public final RunnableList lifeCycleTracker;
-        public final PreviewSurfaceRenderer renderer;
-        public boolean destroyed = false;
-
-        PreviewLifecycleObserver(
-                RunnableList lifeCycleTracker,
-                PreviewSurfaceRenderer renderer) {
-            this.lifeCycleTracker = lifeCycleTracker;
-            this.renderer = renderer;
-            lifeCycleTracker.add(() -> destroyed = true);
-            // Preview grid change currently affects actual widget size. Revert grid changes
-            // when preview is destroyed to make sure Launcher widgets display correctly.
-            lifeCycleTracker.add(() -> renderer.updateGrid(null));
-        }
-
-        @Override
-        public boolean handleMessage(Message message) {
-            if (destroyed) {
-                return true;
-            }
-
-            switch (message.what) {
-                case MESSAGE_ID_UPDATE_PREVIEW:
-                    renderer.hideBottomRow(message.getData().getBoolean(KEY_HIDE_BOTTOM_ROW));
-                    break;
-                case MESSAGE_ID_UPDATE_SHAPE:
-                    if (Flags.newCustomizationPickerUi()
-                            && enableLauncherIconShapes()) {
-                        String shapeKey = message.getData().getString(KEY_SHAPE_KEY);
-                        if (!TextUtils.isEmpty(shapeKey)) {
-                            renderer.updateShape(shapeKey);
-                        }
-                    }
-                    break;
-                case MESSAGE_ID_UPDATE_GRID:
-                    String gridName = message.getData().getString(KEY_GRID_NAME);
-                    renderer.updateGrid(gridName);
-                    break;
-                case MESSAGE_ID_UPDATE_COLOR:
-                    if (Flags.newCustomizationPickerUi()) {
-                        renderer.previewColor(message.getData());
-                    }
-                    break;
-                case MESSAGE_ID_UPDATE_ICON_THEMED:
-                    if (Flags.newCustomizationPickerUi()) {
-                        boolean iconThemed = message.getData().getBoolean(BOOLEAN_VALUE);
-                        renderer.updateTheme(iconThemed);
-                    }
-                    break;
-                default:
-                    // Unknown command, destroy lifecycle
-                    Log.d(TAG, "Unknown preview command: " + message.what + ", destroying preview");
-                    MAIN_EXECUTOR.execute(lifeCycleTracker::executeAllAndDestroy);
-                    break;
-            }
-
-            return true;
-        }
-
-        @Override
-        public void binderDied() {
-            MAIN_EXECUTOR.execute(lifeCycleTracker::executeAllAndDestroy);
-        }
-
-        /**
-         * Two renderers are considered same if they have the same host token and display Id
-         */
-        public boolean isSameRenderer(PreviewLifecycleObserver plo) {
-            return plo != null
-                    && plo.renderer.getHostToken().equals(renderer.getHostToken())
-                    && plo.renderer.getDisplayId() == renderer.getDisplayId();
         }
     }
 

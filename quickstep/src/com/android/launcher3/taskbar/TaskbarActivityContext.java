@@ -254,6 +254,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     private DeviceProfile mPersistentTaskbarDeviceProfile;
 
     private final LauncherPrefs mLauncherPrefs;
+    private final int mPrimaryDisplayId;
     private final SystemUiProxy mSysUiProxy;
 
     private TaskbarFeatureEvaluator mTaskbarFeatureEvaluator;
@@ -268,10 +269,11 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             @Nullable Context navigationBarPanelContext, DeviceProfile launcherDp,
             TaskbarNavButtonController buttonController,
             ScopedUnfoldTransitionProgressProvider unfoldTransitionProgressProvider,
-            boolean isPrimaryDisplay, SystemUiProxy sysUiProxy) {
+            boolean isPrimaryDisplay, int primaryDisplayId, SystemUiProxy sysUiProxy) {
         super(windowContext, displayId, isPrimaryDisplay);
         mNavigationBarPanelContext = navigationBarPanelContext;
         mSysUiProxy = sysUiProxy;
+        mPrimaryDisplayId = primaryDisplayId;
         applyDeviceProfile(launcherDp);
         final Resources resources = getResources();
         mTaskbarFeatureEvaluator = TaskbarFeatureEvaluator.getInstance(this);
@@ -404,6 +406,10 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         setTaskbarWindowFullscreen(mIsFullscreen);
 
         dispatchDeviceProfileChanged();
+    }
+
+    public final int getPrimaryDisplayId() {
+        return mPrimaryDisplayId;
     }
 
     @Override
@@ -1367,7 +1373,8 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         ).orElse(0);
         int taskbarWindowSize;
         boolean shouldTreatAsTransient =
-                isTransientTaskbar() || (enableTaskbarPinning() && !isThreeButtonNav());
+                isTransientTaskbar() || (enableTaskbarPinning()
+                        && mTaskbarFeatureEvaluator.getSupportsTransitionToTransientTaskbar());
 
         int extraHeightForTaskbarTooltips = enableCursorHoverStates()
                 ? resources.getDimensionPixelSize(R.dimen.arrow_toast_arrow_height)

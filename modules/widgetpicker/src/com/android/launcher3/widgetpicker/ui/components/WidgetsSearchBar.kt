@@ -37,9 +37,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
@@ -55,14 +53,12 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.android.launcher3.widgetpicker.R
+import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.flow.Flow
 
@@ -114,14 +110,17 @@ fun WidgetsSearchBar(
         value = text,
         onValueChange = { onSearch(it) },
         singleLine = true,
-        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+        cursorBrush = SolidColor(WidgetPickerTheme.colors.searchBarCursor),
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
         keyboardActions = KeyboardActions(onSearch = {
             keyboardController?.hide()
             onSearch(text)
         }),
         interactionSource = interactionSource,
-        textStyle = WidgetsSearchBarDefaults.textStyle,
+        textStyle =
+            WidgetPickerTheme.typography.searchBarText.copy(
+                color = WidgetPickerTheme.colors.searchBarText
+            ),
         decorationBox =
             @Composable { innerTextField ->
                 WidgetsSearchBarContent(
@@ -172,7 +171,11 @@ private fun WidgetsSearchBarContent(
                 isError = false,
                 interactionSource = interactionSource,
                 shape = CircleShape,
-                colors = WidgetsSearchBarDefaults.containerColors,
+                colors =
+                    TextFieldDefaults.colors(
+                        focusedContainerColor = WidgetPickerTheme.colors.searchBarBackground,
+                        unfocusedContainerColor = WidgetPickerTheme.colors.searchBarBackground,
+                    ),
                 focusedIndicatorLineThickness = 0.dp,
                 unfocusedIndicatorLineThickness = 0.dp,
             )
@@ -210,13 +213,22 @@ private fun LeadingButton(isSearching: Boolean, onBack: () -> Unit) {
 private fun SearchIcon() {
     Icon(
         imageVector = Icons.Filled.Search,
+        tint = WidgetPickerTheme.colors.searchBarSearchIcon,
         contentDescription = null, // decorative
     )
 }
 
 @Composable
 private fun BackButton(onClick: () -> Unit) {
-    IconButton(colors = WidgetsSearchBarDefaults.iconButtonColors, onClick = onClick) {
+    IconButton(
+        colors =
+            IconButtonDefaults.iconButtonColors()
+                .copy(
+                    containerColor = Color.Transparent,
+                    contentColor = WidgetPickerTheme.colors.searchBarBackButtonIcon,
+                ),
+        onClick = onClick,
+    ) {
         Icon(
             imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
             contentDescription = stringResource(R.string.widget_search_bar_back_button_label),
@@ -230,14 +242,22 @@ private fun PlaceholderText() {
         text = stringResource(R.string.widgets_search_bar_hint),
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
-        color = WidgetsSearchBarDefaults.placeholderTextColor,
-        style = WidgetsSearchBarDefaults.placeholderTextStyle,
+        color = WidgetPickerTheme.colors.searchBarPlaceholderText,
+        style = WidgetPickerTheme.typography.searchBarPlaceholderText,
     )
 }
 
 @Composable
 private fun ClearButton(onClick: () -> Unit) {
-    IconButton(colors = WidgetsSearchBarDefaults.iconButtonColors, onClick = onClick) {
+    IconButton(
+        colors =
+            IconButtonDefaults.iconButtonColors()
+                .copy(
+                    containerColor = Color.Transparent,
+                    contentColor = WidgetPickerTheme.colors.searchBarClearButtonIcon,
+                ),
+        onClick = onClick,
+    ) {
         Icon(
             imageVector = Icons.Filled.Close,
             contentDescription = stringResource(R.string.widget_search_bar_clear_button_label),
@@ -248,38 +268,4 @@ private fun ClearButton(onClick: () -> Unit) {
 private object WidgetsSearchBarDimens {
     val paddingValues = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
     val minHeight = 52.dp
-}
-
-private object WidgetsSearchBarDefaults {
-    val containerColors: TextFieldColors
-        @Composable
-        get() =
-            TextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceBright,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceBright,
-            )
-
-    val placeholderTextColor: Color
-        @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
-
-    val iconButtonColors
-        @Composable
-        get() = IconButtonDefaults.iconButtonColors().copy(containerColor = Color.Transparent)
-
-    val textStyle: TextStyle
-        @Composable
-        get() =
-            MaterialTheme.typography.bodyLarge.copy(
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Normal,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-    val placeholderTextStyle: TextStyle
-        @Composable
-        get() =
-            MaterialTheme.typography.bodyLarge.copy(
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Normal,
-            )
 }

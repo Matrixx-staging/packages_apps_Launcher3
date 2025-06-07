@@ -19,6 +19,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import android.platform.test.annotations.DisableFlags;
+import android.platform.test.flag.junit.SetFlagsRule;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.MediumTest;
 
@@ -34,12 +37,17 @@ import org.junit.Test;
 import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 
+import com.android.launcher3.Flags;
+
 /**
  * Make sure the basic interactions with the WidgetPicker works.
  */
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class WidgetPickerTest extends BaseLauncherActivityTest<Launcher> {
+    @Rule
+    public final SetFlagsRule mSetFlagsRule =
+            new SetFlagsRule(SetFlagsRule.DefaultInitValueType.DEVICE_DEFAULT);
 
     @Rule
     public TestRule screenRecordRule = new ScreenRecordRule();
@@ -58,6 +66,7 @@ public class WidgetPickerTest extends BaseLauncherActivityTest<Launcher> {
     @Test
     @ScreenRecord
     @PortraitLandscape
+    @DisableFlags(Flags.FLAG_ENABLE_WIDGET_PICKER_REFACTOR)
     public void testWidgets() {
         loadLauncherSync();
         // Test opening widgets.

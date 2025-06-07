@@ -20,6 +20,7 @@ import android.content.Context
 import android.graphics.drawable.BitmapDrawable
 import android.view.LayoutInflater
 import android.widget.FrameLayout
+import android.widget.ImageButton
 import com.android.launcher3.R
 import com.android.quickstep.task.thumbnail.SplashHelper.createSplash
 import com.android.quickstep.views.TaskHeaderView
@@ -82,6 +83,54 @@ class TaskHeaderViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
                     ) {}
                 )
             )
+            container
+        }
+    }
+
+    @Test
+    fun taskHeaderView_closeButtonHovered() {
+        screenshotRule.screenshotTest("taskHeaderView_closeButtonHovered", mode = WrapContent) {
+            activity ->
+            activity.actionBar?.hide()
+            val container = FrameLayout(activity)
+            val headerView = createTaskHeaderView(activity)
+
+            container.addView(headerView, CONTAINER_WIDTH, CONTAINER_HEIGHT)
+            headerView.setState(
+                TaskHeaderUiState.ShowHeader(
+                    TaskHeaderUiState.ThumbnailHeader(
+                        BitmapDrawable(activity.resources, createSplash()),
+                        "Example",
+                    ) {}
+                )
+            )
+            // Simulate hover state on the close button
+            val closeButton = headerView.findViewById<ImageButton>(R.id.header_close_button)
+            activity.runOnUiThread { closeButton.isHovered = true }
+            container
+        }
+    }
+
+    @Test
+    fun taskHeaderView_closeButtonPressed() {
+        screenshotRule.screenshotTest("taskHeaderView_closeButtonPressed", mode = WrapContent) {
+            activity ->
+            activity.actionBar?.hide()
+            val container = FrameLayout(activity)
+            val headerView = createTaskHeaderView(activity)
+
+            container.addView(headerView, CONTAINER_WIDTH, CONTAINER_HEIGHT)
+            headerView.setState(
+                TaskHeaderUiState.ShowHeader(
+                    TaskHeaderUiState.ThumbnailHeader(
+                        BitmapDrawable(activity.resources, createSplash()),
+                        "Example",
+                    ) {}
+                )
+            )
+            // Simulate press state on the close button
+            val closeButton = headerView.findViewById<ImageButton>(R.id.header_close_button)
+            activity.runOnUiThread { closeButton.isPressed = true }
             container
         }
     }

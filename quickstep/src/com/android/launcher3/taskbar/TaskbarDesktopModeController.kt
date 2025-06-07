@@ -28,6 +28,9 @@ class TaskbarDesktopModeController(
     private lateinit var taskbarControllers: TaskbarControllers
     private lateinit var taskbarSharedState: TaskbarSharedState
 
+    val isLauncherAnimationRunning: Boolean
+        get() = desktopVisibilityController.launcherAnimationRunning
+
     fun init(controllers: TaskbarControllers, sharedState: TaskbarSharedState) {
         taskbarControllers = controllers
         taskbarSharedState = sharedState

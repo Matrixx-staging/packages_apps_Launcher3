@@ -63,6 +63,7 @@ public class DepthController extends BaseDepthController implements StateHandler
     // Ensure {@link mOnDrawListener} is added only once to avoid spamming DragLayer's mRunQueue
     // via {@link View#post(Runnable)}
     private boolean mIsOnDrawListenerAdded = false;
+    private boolean mRemoveOnDrawListenerCancelled = false;
 
     public DepthController(QuickstepLauncher launcher) {
         super(launcher);
@@ -72,7 +73,12 @@ public class DepthController extends BaseDepthController implements StateHandler
         View view = mLauncher.getDragLayer();
         ViewRootImpl viewRootImpl = view.getViewRootImpl();
         setBaseSurface(viewRootImpl != null ? viewRootImpl.getSurfaceControl() : null);
-        view.post(this::removeOnDrawListener);
+        mRemoveOnDrawListenerCancelled = false;
+        view.post(() -> {
+            if (!mRemoveOnDrawListenerCancelled) {
+                removeOnDrawListener();
+            }
+        });
     }
 
     private void ensureDependencies() {
@@ -178,6 +184,7 @@ public class DepthController extends BaseDepthController implements StateHandler
     }
 
     private void addOnDrawListener() {
+        mRemoveOnDrawListenerCancelled = true;
         if (mIsOnDrawListenerAdded) {
             return;
         }
@@ -186,6 +193,7 @@ public class DepthController extends BaseDepthController implements StateHandler
     }
 
     private void removeOnDrawListener() {
+        mRemoveOnDrawListenerCancelled = true;
         if (!mIsOnDrawListenerAdded) {
             return;
         }

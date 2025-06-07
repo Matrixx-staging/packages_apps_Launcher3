@@ -17,14 +17,13 @@
 package com.android.launcher3.taskbar.overlay
 
 import android.content.Context
-import com.android.launcher3.R
+import com.android.launcher3.dagger.LauncherComponentProvider
 import com.android.launcher3.taskbar.TaskbarActivityContext
 import com.android.launcher3.taskbar.TaskbarControllers
-import com.android.launcher3.util.ResourceBasedOverride
-import com.android.launcher3.util.ResourceBasedOverride.Overrides
+import javax.inject.Inject
 
 /** Creates [TaskbarOverlayContext] instances. */
-open class TaskbarOverlayContextFactory : ResourceBasedOverride {
+open class TaskbarOverlayContextFactory @Inject constructor() {
 
     open fun create(
         windowContext: Context,
@@ -35,11 +34,7 @@ open class TaskbarOverlayContextFactory : ResourceBasedOverride {
     companion object {
         @JvmStatic
         fun newInstance(context: Context): TaskbarOverlayContextFactory {
-            return Overrides.getObject(
-                TaskbarOverlayContextFactory::class.java,
-                context,
-                R.string.taskbar_overlay_context_factory_class,
-            )
+            return LauncherComponentProvider.get(context).getTaskbarOverlayContextFactory()
         }
     }
 }

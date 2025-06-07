@@ -48,6 +48,9 @@
     <!-- Recents: Title of a button that goes back from displaying tasks filtered by package name to displaying all tasks [CHAR LIMIT=30] -->
     <string name="recents_back" translatable="false">Back</string>
 
+    <!-- Content description for the add desk button inside recents [CHAR_LIMIT=none] -->
+    <string name="add_desk_button_content_description">Add new desk</string>
+
     <!-- Accessibility title for the list of recent apps [CHAR_LIMIT=none] -->
     <string name="accessibility_recent_apps">Recent apps</string>
 
@@ -225,6 +228,22 @@
     <string name="allset_description_fallback">You\u2019re ready to start using your device</string>
     <!-- String linking to navigation settings on "All Set" page [CHAR LIMIT=NONE] -->
     <string name="allset_navigation_settings"><annotation id="link">System navigation settings</annotation></string>
+    <!-- New Title of "All Set" page [CHAR LIMIT=NONE] -->
+    <string name="allset_title_expressive">Your <xliff:g id="device" example="Pixel 9">%1$s</xliff:g> is \nready!</string>
+    <!-- Description of "All Set" page on the user's device when no device name is provided [CHAR LIMIT=NONE] -->
+    <string name="allset_title_expressive_fallback">Your device is \nready!</string>
+    <!-- New subtitle of "All Set" page [CHAR LIMIT=NONE] -->
+    <string name="allset_subtitle_expressive">Enjoy your new <xliff:g id="device" example="phone">%1$s</xliff:g>!</string>
+    <!-- String linking to navigation settings on "All Set" page [CHAR LIMIT=NONE] -->
+    <string name="allset_navigation_settings_expressive"><annotation id="link">Choose how to navigate</annotation></string>
+    <!-- Hint string at the bottom of "All Set" page [CHAR LIMIT=NONE] -->
+    <string name="allset_hint_expressive">Swipe up</string>
+    <!-- Hint string at the bottom of "All Set" page for button navigation [CHAR LIMIT=NONE] -->
+    <string name="allset_button_hint_expressive">Tap the home button</string>
+    <!-- String representing device type of a Tablet [CHAR LIMIT=30] -->
+    <string name="allset_device_type_tablet">tablet</string>
+    <!-- String representing device type of a Phone [CHAR LIMIT=30] -->
+    <string name="allset_device_type_phone">phone</string>
 
     <!-- ******* Overview ******* -->
     <!-- Label for a button that causes the current overview app to be shared. [CHAR_LIMIT=40] -->
@@ -316,7 +335,7 @@
     <!-- Accessibility title for the Taskbar vertical divider icon. [CHAR_LIMIT=NONE] -->
     <string name="taskbar_divider_a11y_title">Taskbar Divider</string>
     <!-- Accessibility title for the Taskbar Overflow icon. [CHAR_LIMIT=NONE] -->
-    <string name="taskbar_overflow_a11y_title">Taskbar Overflow</string>
+    <string name="taskbar_overflow_a11y_title">Other recent apps</string>
 
 
     <!-- Label for moving drop target to the top or left side of the screen, depending on orientation (from the Taskbar only). -->

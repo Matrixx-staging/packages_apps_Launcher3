@@ -385,7 +385,8 @@ public class FolderIcon extends FrameLayout implements FloatingIconViewCompanion
             // Account for potentially different icon sizes with non-default grid settings
             if (d.dragSource instanceof ActivityAllAppsContainerView) {
                 DeviceProfile grid = mActivity.getDeviceProfile();
-                float containerScale = (1f * grid.iconSizePx / grid.allAppsIconSizePx);
+                float containerScale = (1f * grid.iconSizePx
+                        / grid.getAllAppsProfile().getIconSizePx());
                 finalScale *= containerScale;
             }
 

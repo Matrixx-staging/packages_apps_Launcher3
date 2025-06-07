@@ -111,7 +111,9 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
             return getAllAppsButtonForExpressiveTheme()
         }
         val shouldSelectTransientIcon =
-            isTransientTaskbar || (enableTaskbarPinning() && !activityContext.isThreeButtonNav)
+            isTransientTaskbar ||
+                (enableTaskbarPinning() &&
+                    activityContext.taskbarFeatureEvaluator.supportsTransitionToTransientTaskbar)
         return if (shouldSelectTransientIcon) R.drawable.ic_transient_taskbar_all_apps_search_button
         else R.drawable.ic_taskbar_all_apps_search_button
     }

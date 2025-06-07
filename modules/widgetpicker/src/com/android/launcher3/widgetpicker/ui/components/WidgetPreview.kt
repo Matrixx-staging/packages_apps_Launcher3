@@ -18,45 +18,72 @@ package com.android.launcher3.widgetpicker.ui.components
 
 import android.appwidget.AppWidgetProviderInfo
 import android.graphics.Bitmap
+import android.graphics.Rect
+import android.view.View
+import android.view.View.DragShadowBuilder
+import android.widget.FrameLayout
 import android.widget.RemoteViews
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.coerceAtMost
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.android.launcher3.widgetpicker.shared.model.WidgetId
 import com.android.launcher3.widgetpicker.shared.model.WidgetPreview
 import com.android.launcher3.widgetpicker.shared.model.WidgetSizeInfo
+import com.android.launcher3.widgetpicker.ui.WidgetInteractionInfo
+import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
+import kotlin.math.roundToInt
 
 /** Renders a different types of preview for an appwidget. */
 @Composable
 fun WidgetPreview(
+    id: WidgetId,
     sizeInfo: WidgetSizeInfo,
     preview: WidgetPreview,
     appwidgetInfo: AppWidgetProviderInfo,
     modifier: Modifier = Modifier,
+    showDragShadow: Boolean,
+    onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
+    onAddButtonToggle: (WidgetId) -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val haptic = LocalHapticFeedback.current
+
     val widgetRadius = dimensionResource(android.R.dimen.system_app_widget_background_radius)
 
     val density = LocalDensity.current
@@ -65,7 +92,17 @@ fun WidgetPreview(
             DpSize(sizeInfo.containerWidthPx.toDp(), sizeInfo.containerHeightPx.toDp())
         }
 
-    Box(modifier = modifier.wrapContentSize()) {
+    Box(
+        modifier = modifier
+            .wrapContentSize()
+            .clickable(
+                interactionSource = interactionSource,
+                // no ripples for preview taps that toggle the add button.
+                indication = null
+            ) {
+                haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                onAddButtonToggle(id)
+            }) {
         when (preview) {
             is WidgetPreview.PlaceholderWidgetPreview ->
                 PlaceholderWidgetPreview(size = containerSize, widgetRadius = widgetRadius)
@@ -75,6 +112,9 @@ fun WidgetPreview(
                     bitmap = preview.bitmap,
                     size = containerSize,
                     widgetRadius = widgetRadius,
+                    widgetInfo = appwidgetInfo,
+                    showDragShadow = showDragShadow,
+                    onWidgetInteraction = onWidgetInteraction,
                 )
 
             is WidgetPreview.RemoteViewsWidgetPreview ->
@@ -83,6 +123,8 @@ fun WidgetPreview(
                     widgetInfo = appwidgetInfo,
                     sizeInfo = sizeInfo,
                     widgetRadius = widgetRadius,
+                    showDragShadow = showDragShadow,
+                    onWidgetInteraction = onWidgetInteraction,
                 )
 
             is WidgetPreview.ProviderInfoWidgetPreview ->
@@ -91,6 +133,8 @@ fun WidgetPreview(
                     widgetInfo = appwidgetInfo,
                     sizeInfo = sizeInfo,
                     widgetRadius = widgetRadius,
+                    showDragShadow = showDragShadow,
+                    onWidgetInteraction = onWidgetInteraction,
                 )
         }
     }
@@ -101,65 +145,154 @@ private fun PlaceholderWidgetPreview(size: DpSize, widgetRadius: Dp) {
     Box(
         contentAlignment = Alignment.Center,
         modifier =
-            Modifier.width(size.width)
+            Modifier
+                .width(size.width)
                 .height(size.height)
                 .background(
-                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    color = WidgetPickerTheme.colors.widgetPlaceholderBackground,
                     shape = RoundedCornerShape(widgetRadius),
                 ),
     ) {
-        CircularProgressIndicator()
+        CircularProgressIndicator(color = WidgetPickerTheme.colors.widgetPlaceholderContent)
     }
 }
 
 @Composable
-private fun BitmapWidgetPreview(bitmap: Bitmap, size: DpSize, widgetRadius: Dp) {
+private fun BitmapWidgetPreview(
+    bitmap: Bitmap,
+    size: DpSize,
+    widgetInfo: AppWidgetProviderInfo,
+    widgetRadius: Dp,
+    showDragShadow: Boolean,
+    onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
+) {
+    val context = LocalContext.current
     val density = LocalDensity.current
+    val haptic = LocalHapticFeedback.current
 
-    val imageScale by
-        remember(bitmap) {
-            derivedStateOf {
-                with(density) {
-                    val bitmapHeight = bitmap.height.toDp()
-                    val bitmapWidth = bitmap.width.toDp()
-                    val bitmapAspectRatio = bitmapWidth / bitmapHeight
-                    val containerAspectRatio: Float = size.width / size.height
+    val scaledBitmapDimensions by remember(bitmap, density, size) {
+        derivedStateOf { bitmap.calculateScaledDimensions(density, size, widgetRadius) }
+    }
 
-                    // Scale by width if image has larger aspect ratio than the container else by
-                    // height; and avoid cropping the previews.
-                    if (bitmapAspectRatio > containerAspectRatio) {
-                        size.width / bitmapWidth
-                    } else {
-                        size.height / bitmapHeight
-                    }
+    val dragState by remember(widgetInfo, showDragShadow) {
+        derivedStateOf {
+            DragState(
+                widgetInfo,
+                if (showDragShadow) {
+                    ImageBitmapDragShadowBuilder(context, bitmap, scaledBitmapDimensions)
+                } else {
+                    TransparentDragShadowBuilder
                 }
-            }
+            )
         }
-    val imageSize by
-        remember(imageScale) {
-            derivedStateOf {
-                with(density) {
-                    val bitmapHeight = bitmap.height.toDp()
-                    val bitmapWidth = bitmap.width.toDp()
-                    DpSize(bitmapWidth * imageScale, bitmapHeight * imageScale)
-                }
-            }
-        }
-    val scaledCornerRadius by
-        remember(imageScale) {
-            derivedStateOf { (widgetRadius * imageScale).coerceAtMost(widgetRadius) }
-        }
+    }
+
+    var imagePositionInParent by remember { mutableStateOf(Offset.Zero) }
+
+    // A view to start drag and drop; the compose drag and drop doesn't provide pre-drag hooks.
+    // So, we simulate a drag and drop with a backing view.
+    val dragView: View = remember(widgetInfo) { FrameLayout(context) }
+    AndroidView(factory = { dragView })
 
     Image(
         bitmap = bitmap.asImageBitmap(),
         contentDescription = null, // only visual (widget details provides the readable info)
         contentScale = ContentScale.FillBounds,
         modifier =
-            Modifier.width(imageSize.width)
-                .height(imageSize.height)
-                .clip(shape = RoundedCornerShape(scaledCornerRadius)),
+            Modifier
+                .onGloballyPositioned { coordinates ->
+                    imagePositionInParent = coordinates.positionInParent()
+                }
+                .pointerInput(bitmap) {
+                    detectDragGesturesAfterLongPress(
+                        onDrag = { change, _ -> change.consume() },
+                        onDragStart = { offset ->
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+
+                            dragState.startDrag(dragView)
+
+                            val bounds =
+                                calculateImageDragBounds(
+                                    scaledBitmapDimensions = scaledBitmapDimensions,
+                                    imagePositionInParent = imagePositionInParent,
+                                    offset = offset
+                                )
+                            onWidgetInteraction(
+                                WidgetInteractionInfo.WidgetDragInfo(
+                                    mimeType = dragState.pickerMimeType,
+                                    providerInfo = widgetInfo,
+                                    bounds = bounds,
+                                    widthPx = scaledBitmapDimensions.scaledSizePx.width,
+                                    heightPx = scaledBitmapDimensions.scaledSizePx.height,
+                                    previewInfo = WidgetPreview.BitmapWidgetPreview(
+                                        bitmap = bitmap,
+                                    ),
+                                )
+                            )
+                        }
+                    )
+                }
+                .width(scaledBitmapDimensions.scaledSizeDp.width)
+                .height(scaledBitmapDimensions.scaledSizeDp.height)
+                .clip(shape = RoundedCornerShape(scaledBitmapDimensions.scaledRadiusDp)),
     )
 }
+
+/** Returns the visual bounds of image offset by the touch point represented by [offset]. */
+private fun calculateImageDragBounds(
+    scaledBitmapDimensions: ImageScaledDimensions,
+    imagePositionInParent: Offset,
+    offset: Offset
+): Rect {
+    val bounds = Rect()
+    bounds.left = 0
+    bounds.top = 0
+    bounds.right = scaledBitmapDimensions.scaledSizePx.width
+    bounds.bottom = scaledBitmapDimensions.scaledSizePx.height
+    val xOffset: Int =
+        (imagePositionInParent.x - offset.x).roundToInt()
+    val yOffset: Int =
+        (imagePositionInParent.y - offset.y).roundToInt()
+    bounds.offset(xOffset, yOffset)
+    return bounds
+}
+
+private fun Bitmap.calculateScaledDimensions(
+    density: Density,
+    size: DpSize,
+    widgetRadius: Dp
+) =
+    with(density) {
+        val bitmapSize = DpSize(width = width.toDp(), height = height.toDp())
+        val bitmapAspectRatio = bitmapSize.width / bitmapSize.height
+        val containerAspectRatio: Float = size.width / size.height
+
+        // Scale by width if image has larger aspect ratio than the container else by
+        // height; and avoid cropping the previews.
+        val scale = if (bitmapAspectRatio > containerAspectRatio) {
+            size.width / bitmapSize.width
+        } else {
+            size.height / bitmapSize.height
+        }
+
+        val scaledDpSize = DpSize(
+            width = bitmapSize.width * scale,
+            height = bitmapSize.height * scale
+        )
+        val scaledPxSize = IntSize(
+            width = scaledDpSize.width.roundToPx(),
+            height = scaledDpSize.height.roundToPx()
+        )
+        val scaledRadius = (widgetRadius * scale).coerceAtMost(widgetRadius).value.roundToInt().dp
+
+        ImageScaledDimensions(
+            scale = scale,
+            scaledSizePx = scaledPxSize,
+            scaledSizeDp = scaledDpSize,
+            scaledRadiusDp = scaledRadius,
+            scaledRadiusPx = scaledRadius.toPx()
+        )
+    }
 
 @Composable
 private fun RemoteViewsWidgetPreview(
@@ -168,22 +301,74 @@ private fun RemoteViewsWidgetPreview(
     widgetInfo: AppWidgetProviderInfo,
     sizeInfo: WidgetSizeInfo,
     widgetRadius: Dp,
+    onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
+    showDragShadow: Boolean,
 ) {
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
+
     val appWidgetHostView by
-        remember(sizeInfo) {
-            derivedStateOf {
-                WidgetPreviewHostView(context).apply {
-                    setContainerSizePx(
-                        IntSize(sizeInfo.containerWidthPx, sizeInfo.containerHeightPx)
-                    )
-                }
+    remember(sizeInfo, widgetInfo) {
+        derivedStateOf {
+            WidgetPreviewHostView(context).apply {
+                setContainerSizePx(
+                    IntSize(sizeInfo.containerWidthPx, sizeInfo.containerHeightPx)
+                )
             }
         }
+    }
 
-    key(sizeInfo) {
+    val dragState by remember {
+        derivedStateOf {
+            DragState(
+                widgetInfo = widgetInfo,
+                dragShadowBuilder = if (showDragShadow) {
+                    DragShadowBuilder(appWidgetHostView)
+                } else {
+                    TransparentDragShadowBuilder
+                }
+            )
+        }
+    }
+
+    key(appWidgetHostView) {
         AndroidView(
-            modifier = Modifier.wrapContentSize().clip(RoundedCornerShape(widgetRadius)),
+            modifier = Modifier
+                .pointerInput(appWidgetHostView) {
+                    detectDragGesturesAfterLongPress(
+                        onDrag = { change, _ -> change.consume() },
+                        onDragStart = { offset ->
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            dragState.startDrag(appWidgetHostView)
+
+                            onWidgetInteraction(
+                                WidgetInteractionInfo.WidgetDragInfo(
+                                    mimeType = dragState.pickerMimeType,
+                                    providerInfo = widgetInfo,
+                                    bounds = appWidgetHostView.getDragBoundsForOffset(offset),
+                                    widthPx = appWidgetHostView.measuredWidth,
+                                    heightPx = appWidgetHostView.measuredHeight,
+                                    previewInfo = when {
+                                        remoteViews != null ->
+                                            WidgetPreview.RemoteViewsWidgetPreview(
+                                                remoteViews = remoteViews,
+                                            )
+
+                                        previewLayoutProviderInfo != null ->
+                                            WidgetPreview.ProviderInfoWidgetPreview(
+                                                providerInfo = previewLayoutProviderInfo
+                                            )
+
+                                        else ->
+                                            throw IllegalStateException("No preview during drag")
+                                    }
+                                )
+                            )
+                        },
+                    )
+                }
+                .wrapContentSize()
+                .clip(RoundedCornerShape(widgetRadius)),
             factory = { appWidgetHostView },
             update = { view ->
                 // if preview.remoteViews is null, initial layout will render.

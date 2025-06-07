@@ -80,6 +80,8 @@ import androidx.test.uiautomator.By;
 import androidx.test.uiautomator.BySelector;
 import androidx.test.uiautomator.Configurator;
 import androidx.test.uiautomator.Direction;
+import androidx.test.uiautomator.SearchCondition;
+import androidx.test.uiautomator.Searchable;
 import androidx.test.uiautomator.StaleObjectException;
 import androidx.test.uiautomator.UiDevice;
 import androidx.test.uiautomator.UiObject2;
@@ -183,6 +185,11 @@ public final class LauncherInstrumentation {
     private static final String APPS_RES_ID = "apps_view";
     private static final String OVERVIEW_RES_ID = "overview_panel";
     private static final String WIDGETS_RES_ID = "primary_widgets_list_view";
+    private static final String WIDGET_PICKER_MODULE_PACKAGE = "com.android.launcher3.widgetpicker";
+
+    // Composable test tag served as resource ID.
+    private static final String WIDGETS_CATALOG_RES_ID = "widgets_catalog";
+
     private static final String CONTEXT_MENU_RES_ID = "popup_container";
     private static final String OPEN_FOLDER_RES_ID = "folder_content";
     static final String TASKBAR_RES_ID = "taskbar_view";
@@ -262,7 +269,7 @@ public final class LauncherInstrumentation {
         mInstrumentation = instrumentation;
         mDevice = UiDevice.getInstance(instrumentation);
         mUiModeManager = (UiModeManager) mInstrumentation.getContext()
-                        .getSystemService(Context.UI_MODE_SERVICE);
+                .getSystemService(Context.UI_MODE_SERVICE);
 
         // Launcher should run in test harness so that custom accessibility protocol between
         // Launcher and TAPL is enabled. In-process tests enable this protocol with a direct call
@@ -716,7 +723,10 @@ public final class LauncherInstrumentation {
     private String getVisibleStateMessage() {
         if (hasLauncherObject(CONTEXT_MENU_RES_ID)) return "Context Menu";
         if (hasLauncherObject(OPEN_FOLDER_RES_ID)) return "Open Folder";
-        if (hasLauncherObject(WIDGETS_RES_ID)) return "Widgets";
+        if (hasLauncherObject(WIDGETS_RES_ID) || mDevice.hasObject(
+                By.res(WIDGET_PICKER_MODULE_PACKAGE, WIDGETS_CATALOG_RES_ID))) {
+            return "Widgets";
+        }
         if (hasSystemLauncherObject(OVERVIEW_RES_ID)) return "Overview";
         if (hasLauncherObject(WORKSPACE_RES_ID)) return "Workspace";
         if (hasLauncherObject(APPS_RES_ID)) return "AllApps";
@@ -982,6 +992,8 @@ public final class LauncherInstrumentation {
                 case WORKSPACE: {
                     waitUntilLauncherObjectGone(APPS_RES_ID);
                     waitUntilLauncherObjectGone(WIDGETS_RES_ID);
+                    waitUntilGoneBySelector(
+                            By.res(WIDGET_PICKER_MODULE_PACKAGE, WIDGETS_CATALOG_RES_ID));
                     waitUntilSystemLauncherObjectGone(OVERVIEW_RES_ID);
                     waitUntilSystemLauncherObjectGone(SPLIT_PLACEHOLDER_RES_ID);
                     waitUntilLauncherObjectGone(KEYBOARD_QUICK_SWITCH_RES_ID);
@@ -1001,11 +1013,16 @@ public final class LauncherInstrumentation {
                     waitUntilLauncherObjectGone(KEYBOARD_QUICK_SWITCH_RES_ID);
                     waitUntilSystemLauncherObjectGone(TASKBAR_RES_ID);
 
-                    return waitForLauncherObject(WIDGETS_RES_ID);
+                    return waitForOneOfObjects(
+                            getLauncherObjectSelector(WIDGETS_RES_ID, /* displayId= */ null),
+                            By.res(WIDGET_PICKER_MODULE_PACKAGE, WIDGETS_CATALOG_RES_ID)
+                    );
                 }
                 case TASKBAR_ALL_APPS: {
                     waitUntilLauncherObjectGone(WORKSPACE_RES_ID);
                     waitUntilLauncherObjectGone(WIDGETS_RES_ID);
+                    waitUntilGoneBySelector(
+                            By.res(WIDGET_PICKER_MODULE_PACKAGE, WIDGETS_CATALOG_RES_ID));
                     waitUntilSystemLauncherObjectGone(OVERVIEW_RES_ID);
                     if (isTransientTaskbar()) {
                         waitUntilSystemLauncherObjectGone(TASKBAR_RES_ID, taskbarPrimaryDisplayId);
@@ -1018,6 +1035,8 @@ public final class LauncherInstrumentation {
                 case HOME_ALL_APPS: {
                     waitUntilLauncherObjectGone(WORKSPACE_RES_ID);
                     waitUntilLauncherObjectGone(WIDGETS_RES_ID);
+                    waitUntilGoneBySelector(
+                            By.res(WIDGET_PICKER_MODULE_PACKAGE, WIDGETS_CATALOG_RES_ID));
                     waitUntilSystemLauncherObjectGone(OVERVIEW_RES_ID);
                     waitUntilLauncherObjectGone(KEYBOARD_QUICK_SWITCH_RES_ID);
 
@@ -1041,6 +1060,8 @@ public final class LauncherInstrumentation {
                     waitUntilLauncherObjectGone(APPS_RES_ID);
                     waitUntilLauncherObjectGone(WORKSPACE_RES_ID);
                     waitUntilLauncherObjectGone(WIDGETS_RES_ID);
+                    waitUntilGoneBySelector(
+                            By.res(WIDGET_PICKER_MODULE_PACKAGE, WIDGETS_CATALOG_RES_ID));
                     if (isTablet() && !is3PLauncher()) {
                         waitForSystemLauncherObject(TASKBAR_RES_ID, taskbarPrimaryDisplayId);
                     } else {
@@ -1055,6 +1076,8 @@ public final class LauncherInstrumentation {
                     waitUntilLauncherObjectGone(APPS_RES_ID);
                     waitUntilLauncherObjectGone(WORKSPACE_RES_ID);
                     waitUntilLauncherObjectGone(WIDGETS_RES_ID);
+                    waitUntilGoneBySelector(
+                            By.res(WIDGET_PICKER_MODULE_PACKAGE, WIDGETS_CATALOG_RES_ID));
                     if (isTablet()) {
                         waitForSystemLauncherObject(TASKBAR_RES_ID, taskbarPrimaryDisplayId);
                     } else {
@@ -1069,6 +1092,8 @@ public final class LauncherInstrumentation {
                     waitUntilLauncherObjectGone(WORKSPACE_RES_ID);
                     waitUntilLauncherObjectGone(APPS_RES_ID);
                     waitUntilLauncherObjectGone(WIDGETS_RES_ID);
+                    waitUntilGoneBySelector(
+                            By.res(WIDGET_PICKER_MODULE_PACKAGE, WIDGETS_CATALOG_RES_ID));
                     waitUntilSystemLauncherObjectGone(OVERVIEW_RES_ID);
                     waitUntilSystemLauncherObjectGone(SPLIT_PLACEHOLDER_RES_ID);
                     waitUntilLauncherObjectGone(KEYBOARD_QUICK_SWITCH_RES_ID);
@@ -1682,6 +1707,20 @@ public final class LauncherInstrumentation {
 
     private BySelector makeLauncherSelector(BySelector selector) {
         return By.copy(selector).pkg(getLauncherPackageName());
+    }
+
+    UiObject2 waitForOneOfObjects(BySelector selectorOne, BySelector selectorTwo) {
+        SearchCondition<UiObject2> searchCondition = new SearchCondition<>() {
+            @Override
+            public UiObject2 apply(Searchable args) {
+                UiObject2 newObject = args.findObject(selectorTwo);
+                if (newObject != null) {
+                    return newObject;
+                }
+                return args.findObject(selectorOne);
+            }
+        };
+        return mDevice.wait(searchCondition, WAIT_TIME_MS);
     }
 
     @NonNull

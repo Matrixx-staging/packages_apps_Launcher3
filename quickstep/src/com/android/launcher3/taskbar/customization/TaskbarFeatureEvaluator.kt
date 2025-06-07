@@ -44,9 +44,10 @@ private constructor(private val taskbarActivityContext: TaskbarActivityContext) 
         get() = taskbarActivityContext.isTaskbarInMinimalState
 
     val supportsPinningPopup: Boolean
-        // TODO(b/381535785): Allow pinning for desktop taskbar when desktop mode transient behavior
-        //     gets updated to retain pinned UI, but translate the taskbar offscreen.
         get() = !hasNavButtons
+
+    val supportsTransitionToTransientTaskbar: Boolean
+        get() = !hasNavButtons && !taskbarActivityContext.showDesktopTaskbarForFreeformDisplay()
 
     fun onDestroy() {
         taskbarFeatureEvaluator = null

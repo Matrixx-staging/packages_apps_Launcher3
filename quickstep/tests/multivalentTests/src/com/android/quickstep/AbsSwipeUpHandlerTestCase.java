@@ -37,6 +37,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -83,6 +84,7 @@ import com.android.wm.shell.shared.split.SplitBounds;
 import com.google.android.msdl.data.model.MSDLToken;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -369,6 +371,24 @@ public abstract class AbsSwipeUpHandlerTestCase<
     }
 
     @Test
+    @Ignore("b/418979038")
+    public void invalidateHandlerWithLauncher_runsGestureAnimationEndCallback() {
+        SWIPE_HANDLER handler = createSwipeHandler();
+        Runnable onGestureAnimationEndCallback = mock(Runnable.class);
+        handler.setGestureAnimationEndCallback(onGestureAnimationEndCallback);
+        handler.onActivityInit(true); // Sets STATE_LAUNCHER_PRESENT
+
+        // Use onConsumerAboutToBeSwitched to call reset(),to sets STATE_HANDLER_INVALIDATED. This
+        // will then call invalidateHandlerWithLauncher. This will hit the reset() in the else
+        // condition of onConsumerAboutToBeSwitched, as the gesture state is a mock and will
+        // return false for the booleans checked in the if-condition.
+        handler.onConsumerAboutToBeSwitched();
+
+        verify(getRecentsView()).onGestureAnimationEnd();
+        verify(onGestureAnimationEndCallback).run();
+    }
+
+    @Test
     @EnableFlags(com.android.launcher3.Flags.FLAG_MSDL_FEEDBACK)
     public void onMotionPauseDetected_playsSwipeThresholdToken() {
         SWIPE_HANDLER handler = createSwipeHandler();
@@ -404,6 +424,14 @@ public abstract class AbsSwipeUpHandlerTestCase<
                 .unregister(eq("AbsSwipeUpHandler.mLauncherOnDestroyCallback")));
     }
 
+    @Test
+    public void test_noActivityInit_doesNotThrowException() {
+        // Do not trigger onActivityInit to ensure AbsSwipeUpHandler.mRecentsView and
+        // AbsSwipeUpHandler.mContainer are null
+        createSwipeUpHandlerForGesture(
+                GestureState.GestureEndTarget.HOME, /* triggerOnActivityInit= */ false);
+    }
+
     /**
      * Verifies that RecentsAnimationController#finish() is called, and captures and runs any
      * callback that was passed to it. This ensures that STATE_CURRENT_TASK_FINISHED is correctly
@@ -425,13 +453,20 @@ public abstract class AbsSwipeUpHandlerTestCase<
     }
 
     private SWIPE_HANDLER createSwipeUpHandlerForGesture(GestureState.GestureEndTarget endTarget) {
+        return createSwipeUpHandlerForGesture(endTarget, true);
+    }
+
+    private SWIPE_HANDLER createSwipeUpHandlerForGesture(
+            GestureState.GestureEndTarget endTarget, boolean triggerOnActivityInit) {
         boolean isQuickSwitch = endTarget == GestureState.GestureEndTarget.NEW_TASK;
 
         doReturn(mState).when(mActivityInterface).stateFromGestureEndTarget(any());
 
         SWIPE_HANDLER swipeHandler = createSwipeHandler(SystemClock.uptimeMillis(), isQuickSwitch);
 
-        swipeHandler.onActivityInit(/* alreadyOnHome= */ false);
+        if (triggerOnActivityInit) {
+            swipeHandler.onActivityInit(/* alreadyOnHome= */ false);
+        }
         swipeHandler.onGestureStarted(isQuickSwitch);
         onRecentsAnimationStart(swipeHandler);
 
@@ -452,7 +487,7 @@ public abstract class AbsSwipeUpHandlerTestCase<
 
     private void onRecentsAnimationStart(SWIPE_HANDLER absSwipeUpHandler) {
         runOnMainSync(() -> absSwipeUpHandler.onRecentsAnimationStart(
-                mRecentsAnimationController, mRecentsAnimationTargets, /* transitionInfo= */null));
+                mRecentsAnimationController, mRecentsAnimationTargets, /* transitionInfo= */ null));
     }
 
     protected static void runOnMainSync(Runnable runnable) {

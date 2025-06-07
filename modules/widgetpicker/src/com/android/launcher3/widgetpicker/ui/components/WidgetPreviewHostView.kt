@@ -18,8 +18,10 @@ package com.android.launcher3.widgetpicker.ui.components
 
 import android.appwidget.AppWidgetHostView
 import android.content.Context
+import android.graphics.Rect
 import android.view.MotionEvent
 import android.view.View
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntSize
 import kotlin.math.roundToInt
 
@@ -30,6 +32,7 @@ import kotlin.math.roundToInt
  */
 class WidgetPreviewHostView(context: Context) : AppWidgetHostView(context) {
     private var previewContainerSizePx: IntSize? = null
+    private var contentScale = 1f
 
     init {
         clipToPadding = false
@@ -64,6 +67,7 @@ class WidgetPreviewHostView(context: Context) : AppWidgetHostView(context) {
 
             child.scaleX = scale
             child.scaleY = scale
+            contentScale = scale
 
             setMeasuredDimension(
                 (scale * childWidth).roundToInt(),
@@ -99,5 +103,23 @@ class WidgetPreviewHostView(context: Context) : AppWidgetHostView(context) {
 
         measureChild(child, widgetSpec, heightSpec)
         return Pair(child.measuredWidth.toFloat(), child.measuredHeight.toFloat())
+    }
+
+    /**
+     * Returns visual bounds of this preview offset by the provided [offset] and considering the
+     * scale of preview.
+     */
+    fun getDragBoundsForOffset(offset: Offset): Rect {
+        val width: Int = (measuredWidth)
+        val height: Int = (measuredHeight)
+        val bounds = Rect(0, 0, width, height)
+
+        val xOffset: Int =
+            left - (offset.x * contentScale).toInt()
+        val yOffset: Int =
+            top - (offset.y * contentScale).toInt()
+        bounds.offset(xOffset, yOffset)
+
+        return bounds
     }
 }

@@ -80,8 +80,6 @@ import static com.android.quickstep.views.TaskView.SPLIT_ALPHA;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
-import android.animation.LayoutTransition;
-import android.animation.LayoutTransition.TransitionListener;
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
 import android.animation.ValueAnimator;
@@ -122,7 +120,6 @@ import android.view.MotionEvent;
 import android.view.RemoteAnimationTarget;
 import android.view.View;
 import android.view.ViewDebug;
-import android.view.ViewGroup;
 import android.view.ViewTreeObserver.OnScrollChangedListener;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -660,11 +657,9 @@ public abstract class RecentsView<
                 return;
             }
 
-            // If PiP2 is enabled, we will trigger the reload only after the Transition is finished.
-            if (!PipFlags.isPip2ExperimentEnabled()) {
-                reloadIfNeeded();
-            }
-            enableLayoutTransitions();
+            // Only invalidate task list but don't trigger the reload, so that the list is only
+            // updated the next time user enters Overview
+            invalidateTaskList();
         }
 
         @Override
@@ -733,8 +728,6 @@ public abstract class RecentsView<
 
     @Nullable
     private PendingAnimation mPendingAnimation;
-    @Nullable
-    private LayoutTransition mLayoutTransition;
 
     @ViewDebug.ExportedProperty(category = "launcher")
     protected float mContentAlpha = 1;
@@ -949,7 +942,13 @@ public abstract class RecentsView<
                 mContainer.getDisplay())) {
             mAddDesktopButton = (AddDesktopButton) LayoutInflater.from(context).inflate(
                     R.layout.overview_add_desktop_button, this, false);
-            mAddDesktopButton.setOnClickListener(this::createDesk);
+            mAddDesktopButton.setOnClickListener(view -> {
+                AddDesktopButton button = (AddDesktopButton) view;
+                button.animateVisibility(/* toVisible = */ false, () -> {
+                    createDesk(view);
+                    button.animateVisibility(/* toVisible = */ true);
+                });
+            });
 
             mDesktopVisibilityController = DesktopVisibilityController.INSTANCE.get(mContext);
             // Update its visibility based on whether we can create a desk or not.
@@ -3566,34 +3565,6 @@ public abstract class RecentsView<
         }
     }
 
-    private void enableLayoutTransitions() {
-        if (mLayoutTransition == null) {
-            mLayoutTransition = new LayoutTransition();
-            mLayoutTransition.enableTransitionType(LayoutTransition.APPEARING);
-            mLayoutTransition.setDuration(ADDITION_TASK_DURATION);
-            mLayoutTransition.setStartDelay(LayoutTransition.APPEARING, 0);
-
-            mLayoutTransition.addTransitionListener(new TransitionListener() {
-                @Override
-                public void startTransition(LayoutTransition transition, ViewGroup viewGroup,
-                        View view, int i) {
-                }
-
-                @Override
-                public void endTransition(LayoutTransition transition, ViewGroup viewGroup,
-                        View view, int i) {
-                    // When the unpinned task is added, snap to first page and disable transitions
-                    if (view instanceof TaskView) {
-                        snapToPage(0);
-                        setLayoutTransition(null);
-                    }
-
-                }
-            });
-        }
-        setLayoutTransition(mLayoutTransition);
-    }
-
     public void setSwipeDownShouldLaunchApp(boolean swipeDownShouldLaunchApp) {
         mSwipeDownShouldLaunchApp = swipeDownShouldLaunchApp;
     }
@@ -4598,14 +4569,21 @@ public abstract class RecentsView<
             return super.dispatchKeyEvent(event);
         }
 
-        if (mUtils.shouldInterceptKeyEvent(event)) {
+        if (mUtils.taskMenuIsOpen()) {
             return super.dispatchKeyEvent(event);
         }
 
         switch (event.getKeyCode()) {
-            case KeyEvent.KEYCODE_TAB:
-                return snapToPageRelative(event.isShiftPressed() ? -1 : 1, true /* cycle */,
-                        TaskGridNavHelper.TaskNavDirection.TAB);
+            case KeyEvent.KEYCODE_TAB: {
+                View currentFocus = findFocus();
+                if (currentFocus == null) return super.dispatchKeyEvent(event);
+
+                View nextFocus = focusSearch(currentFocus,
+                        event.isShiftPressed() ? FOCUS_BACKWARD : FOCUS_FORWARD);
+                if (nextFocus != null) {
+                    return nextFocus.requestFocus();
+                }
+            }
             case KeyEvent.KEYCODE_DPAD_RIGHT:
                 return snapToPageRelative(mIsRtl ? -1 : 1, true /* cycle */,
                         TaskGridNavHelper.TaskNavDirection.RIGHT);
@@ -5039,7 +5017,8 @@ public abstract class RecentsView<
      *
      * @param offsetProgress From 0 to 1 where 0 means no offset and 1 means offset offscreen.
      */
-    private float getHorizontalOffsetSize(int childIndex, int midpointIndex, float offsetProgress) {
+    protected float getHorizontalOffsetSize(int childIndex, int midpointIndex,
+            float offsetProgress) {
         if (offsetProgress == 0) {
             // Don't bother calculating everything below if we won't offset anyway.
             return 0;
@@ -6911,16 +6890,6 @@ public abstract class RecentsView<
                 // Hide the task bar when leaving PiP to prevent it from flickering once
                 // the app settles in full-screen mode.
                 mRecentsView.mContainerInterface.getTaskbarController().onExpandPip();
-            });
-        }
-
-        @Override
-        public void onExitPip() {
-            MAIN_EXECUTOR.execute(() -> {
-                if (mRecentsView == null || !PipFlags.isPip2ExperimentEnabled()) {
-                    return;
-                }
-                mRecentsView.reloadIfNeeded();
             });
         }
     }

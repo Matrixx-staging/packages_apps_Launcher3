@@ -43,6 +43,7 @@ import com.android.launcher3.LauncherModel;
 import com.android.launcher3.R;
 import com.android.launcher3.allapps.ActivityAllAppsContainerView;
 import com.android.launcher3.allapps.AllAppsStore;
+import com.android.launcher3.deviceprofile.AllAppsProfile;
 import com.android.launcher3.dragndrop.DragController;
 import com.android.launcher3.dragndrop.DragOptions;
 import com.android.launcher3.dragndrop.DraggableView;
@@ -99,7 +100,10 @@ public class SecondaryDisplayLauncher extends BaseActivity
 
         mDeviceProfile = InvariantDeviceProfile.INSTANCE.get(this)
                 .createDeviceProfileForSecondaryDisplay(this);
-        mDeviceProfile.autoResizeAllAppsCells();
+        // TODO(b/420948290) Remove this!
+        mDeviceProfile.setAllAppsProfile(AllAppsProfile
+                .Factory
+                .autoResizeAllAppsCells(mDeviceProfile.getAllAppsProfile()));
 
         setContentView(R.layout.secondary_launcher);
         mDragLayer = findViewById(R.id.drag_layer);

@@ -33,10 +33,11 @@
 
     <declare-styleable name="TaskContentView">
         <!--
-             Border color for a focused TaskContentView. This is used when the TaskContentView is
-             used for a desktop task.
+             Border color for a focused or hovered TaskContentView. This is used when the
+             TaskContentView is used for a desktop task.
          -->
-        <attr name="focusBorderColor" />
+        <attr name="focusBorderColor"/>
+        <attr name="hoverBorderColor"/>
     </declare-styleable>
 
     <declare-styleable name="ClearAllButton">

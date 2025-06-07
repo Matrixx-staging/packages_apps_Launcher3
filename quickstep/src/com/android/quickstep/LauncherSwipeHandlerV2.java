@@ -87,8 +87,13 @@ public class LauncherSwipeHandlerV2 extends AbsSwipeUpHandler<
             RemoteAnimationTarget runningTaskTarget,
             @Nullable TaskView targetTaskView) {
         if (mContainer == null) {
-            mStateCallback.addChangeListener(STATE_LAUNCHER_PRESENT | STATE_HANDLER_INVALIDATED,
-                    isPresent -> mRecentsView.startHome());
+            mStateCallback.addChangeListener(
+                    STATE_LAUNCHER_PRESENT | STATE_HANDLER_INVALIDATED,
+                    isPresent -> {
+                        if (mRecentsView != null) {
+                            mRecentsView.startHome();
+                        }
+                    });
             return new HomeAnimationFactory() {
                 @Override
                 public AnimatorPlaybackController createActivityAnimationToHome() {
@@ -322,7 +327,9 @@ public class LauncherSwipeHandlerV2 extends AbsSwipeUpHandler<
 
     @Override
     protected void finishRecentsControllerToHome(Runnable callback) {
-        mRecentsView.cleanupRemoteTargets();
+        if (mRecentsView != null) {
+            mRecentsView.cleanupRemoteTargets();
+        }
         mRecentsAnimationController.finish(
                 true /* toRecents */, callback, true /* sendUserLeaveHint */);
     }

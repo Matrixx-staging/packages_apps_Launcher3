@@ -91,6 +91,9 @@ public abstract class LauncherState implements BaseState<LauncherState> {
     // Flag indicating that hotseat and its contents are not accessible.
     public static final int FLAG_HOTSEAT_INACCESSIBLE = BaseState.getFlag(7);
 
+    // Flag indicating that this state should not be announced by Talkback when reached
+    public static final int FLAG_SKIP_STATE_ANNOUNCEMENT = BaseState.getFlag(8);
+
 
     public static final float NO_OFFSET = 0;
     public static final float NO_SCALE = 1;

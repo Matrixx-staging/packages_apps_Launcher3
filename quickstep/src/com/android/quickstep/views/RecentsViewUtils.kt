@@ -23,17 +23,21 @@ import android.graphics.Rect
 import android.util.FloatProperty
 import android.util.Log
 import android.util.Property
-import android.view.KeyEvent
 import android.view.View
 import android.view.View.LAYOUT_DIRECTION_LTR
 import android.view.View.LAYOUT_DIRECTION_RTL
 import androidx.core.view.children
 import androidx.core.view.isInvisible
+import androidx.dynamicanimation.animation.FloatPropertyCompat
+import androidx.dynamicanimation.animation.SpringAnimation
+import androidx.dynamicanimation.animation.SpringForce
 import com.android.launcher3.AbstractFloatingView.TYPE_TASK_MENU
 import com.android.launcher3.AbstractFloatingView.getTopOpenViewWithType
 import com.android.launcher3.Flags.enableDesktopExplodedView
 import com.android.launcher3.Flags.enableLargeDesktopWindowingTile
 import com.android.launcher3.Flags.enableOverviewOnConnectedDisplays
+import com.android.launcher3.PagedView.INVALID_PAGE
+import com.android.launcher3.R
 import com.android.launcher3.Utilities.getPivotsForScalingRectToRect
 import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.statehandlers.DesktopVisibilityController.Companion.INACTIVE_DESK_ID
@@ -58,6 +62,7 @@ import com.android.systemui.shared.recents.model.Task
 import com.android.systemui.shared.recents.model.ThumbnailData
 import com.android.wm.shell.shared.GroupedTaskInfo
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus.enableMultipleDesktops
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.function.BiConsumer
 import kotlin.math.min
 import kotlin.reflect.KMutableProperty1
@@ -68,6 +73,18 @@ import kotlin.reflect.KMutableProperty1
  */
 class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisibilityListener {
     val taskViews = TaskViewsIterable(recentsView)
+
+    /** Callback to be invoked when a new desk is added. */
+    interface OnDeskAddedListener {
+        /**
+         * Called when a new desk is added.
+         *
+         * @param desktopTaskView The [DesktopTaskView] of the new desk.
+         */
+        fun onDeskAdded(desktopTaskView: DesktopTaskView)
+    }
+
+    private val onDeskAddedListeners = CopyOnWriteArrayList<OnDeskAddedListener>()
 
     /** Takes a screenshot of all [taskView] and return map of taskId to the screenshot */
     fun screenshotTasks(taskView: TaskView): Map<Int, ThumbnailData> {
@@ -256,6 +273,44 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
         recentsView.addDeskButton?.isInvisible = !canCreateDesks
     }
 
+    private fun animateDesktopTaskViewSpringIn(desktopTaskView: DesktopTaskView) {
+        val taskDismissFloatProperty =
+            FloatPropertyCompat.createFloatPropertyCompat(
+                desktopTaskView.primaryDismissTranslationProperty
+            )
+
+        with(recentsView) {
+            // Calculate initial translation to bring it offscreen.
+            val desktopTaskViewIndex = indexOfChild(desktopTaskView)
+            val midpointIndex =
+                if (getTaskViewAt(desktopTaskViewIndex + 1) != null) desktopTaskViewIndex + 1
+                else INVALID_PAGE
+            var offscreenTranslationX =
+                getHorizontalOffsetSize(desktopTaskViewIndex, midpointIndex, 1f)
+
+            // Add 40dp to the offscreen translation.
+            val additionalOffsetPx =
+                context.resources.getDimensionPixelSize(
+                    R.dimen.newly_created_desktop_offscreen_position
+                )
+            offscreenTranslationX += if (isRtl) additionalOffsetPx else -additionalOffsetPx
+            desktopTaskView.primaryDismissTranslationProperty.set(
+                desktopTaskView,
+                offscreenTranslationX,
+            )
+            desktopTaskView.isInvisible = false
+
+            val dampingRatio =
+                context.resources.getFloat(R.dimen.newly_created_desktop_spring_damping_ratio)
+            val stiffness =
+                context.resources.getFloat(R.dimen.newly_created_desktop_spring_stiffness)
+
+            SpringAnimation(desktopTaskView, taskDismissFloatProperty)
+                .setSpring(SpringForce(0f).setDampingRatio(dampingRatio).setStiffness(stiffness))
+                .start()
+        }
+    }
+
     override fun onDeskAdded(displayId: Int, deskId: Int) {
         with(recentsView) {
             // Ignore desk changes that don't belong to this display.
@@ -278,15 +333,19 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
                 pagedViewOrientedState,
                 taskOverlayFactory,
             )
+            desktopTaskView.isInvisible = true
 
             val insertionIndex = 1 + indexOfChild(addDeskButton!!)
             addView(desktopTaskView, insertionIndex)
             updateTaskSize()
             updateChildTaskOrientations()
             updateScrollSynchronously()
+            animateDesktopTaskViewSpringIn(desktopTaskView)
 
             // Set Current Page based on the stored TaskView.
             currentTaskView?.let { setCurrentPage(indexOfChild(it)) }
+
+            onDeskAddedListeners.forEach { it.onDeskAdded(desktopTaskView) }
         }
     }
 
@@ -443,9 +502,9 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
     private fun getTaskMenu(): TaskMenuView? =
         getTopOpenViewWithType(recentsView.mContainer, TYPE_TASK_MENU) as? TaskMenuView
 
-    fun shouldInterceptKeyEvent(event: KeyEvent): Boolean {
+    fun taskMenuIsOpen(): Boolean {
         if (enableOverviewIconMenu()) {
-            return getTaskMenu()?.isOpen == true || event.keyCode == KeyEvent.KEYCODE_TAB
+            return getTaskMenu()?.isOpen == true
         }
         return false
     }
@@ -679,6 +738,24 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
 
     fun resetShareUIState() {
         taskViews.flatMap { it.taskContainers }.forEach { it.overlay.resetShareUI() }
+    }
+
+    /**
+     * Adds a listener to be notified when a new desk is added.
+     *
+     * @param onDeskAddedListener The listener to add.
+     */
+    fun addOnDeskAddedListener(onDeskAddedListener: OnDeskAddedListener) {
+        onDeskAddedListeners += onDeskAddedListener
+    }
+
+    /**
+     * Removes a listener that was previously added to be notified when a new desk is added.
+     *
+     * @param onDeskAddedListener The listener to remove.
+     */
+    fun removeOnDeskAddedListener(onDeskAddedListener: OnDeskAddedListener) {
+        onDeskAddedListeners -= onDeskAddedListener
     }
 
     companion object {

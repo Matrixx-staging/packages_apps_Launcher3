@@ -26,6 +26,7 @@ import androidx.annotation.Nullable;
 
 import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.AbstractFloatingViewHelper;
+import com.android.launcher3.DropTargetHandler;
 import com.android.launcher3.Flags;
 import com.android.launcher3.LauncherSettings;
 import com.android.launcher3.R;
@@ -67,17 +68,31 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
     protected final T mTarget;
     protected final ItemInfo mItemInfo;
     protected final View mOriginalView;
+    protected final boolean mIsCollapsible;
 
     private final AbstractFloatingViewHelper mAbstractFloatingViewHelper;
 
     public SystemShortcut(int iconResId, int labelResId, T target, ItemInfo itemInfo,
             View originalView) {
         this(iconResId, labelResId, target, itemInfo, originalView,
-                new AbstractFloatingViewHelper());
+                new AbstractFloatingViewHelper(), /* isCollapsible */ true);
+    }
+
+    public SystemShortcut(int iconResId, int labelResId, T target, ItemInfo itemInfo,
+            View originalView, boolean isCollapsible) {
+        this(iconResId, labelResId, target, itemInfo, originalView,
+                new AbstractFloatingViewHelper(), isCollapsible);
     }
 
     public SystemShortcut(int iconResId, int labelResId, T target, ItemInfo itemInfo,
             View originalView, AbstractFloatingViewHelper abstractFloatingViewHelper) {
+        this(iconResId, labelResId, target, itemInfo, originalView, abstractFloatingViewHelper,
+                /* isCollapsible */ true);
+    }
+
+    public SystemShortcut(int iconResId, int labelResId, T target, ItemInfo itemInfo,
+            View originalView, AbstractFloatingViewHelper abstractFloatingViewHelper,
+            boolean isCollapsible) {
         mIconResId = iconResId;
         mLabelResId = labelResId;
         mAccessibilityActionId = labelResId;
@@ -85,6 +100,7 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
         mItemInfo = itemInfo;
         mOriginalView = originalView;
         mAbstractFloatingViewHelper = abstractFloatingViewHelper;
+        mIsCollapsible = isCollapsible;
     }
 
     public void setIconAndLabelFor(View iconView, TextView labelView) {
@@ -127,7 +143,8 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
     public static class Widgets<T extends ActivityContext> extends SystemShortcut<T> {
 
         public Widgets(T target, ItemInfo itemInfo, @NonNull View originalView) {
-            super(getDrawableId(), R.string.widget_button_text, target, itemInfo, originalView);
+            super(getDrawableId(), R.string.widget_button_text, target, itemInfo, originalView,
+                    false);
         }
 
         /**
@@ -228,6 +245,25 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
                 this.taskTitle = taskTitle;
                 this.nodeId = nodeId;
             }
+        }
+    }
+
+    public static final Factory<ActivityContext> REMOVE = RemoveApp::new;
+
+    public static class RemoveApp<T extends ActivityContext> extends SystemShortcut<T> {
+
+        public RemoveApp(T target, ItemInfo itemInfo, @NonNull View originalView) {
+            super(R.drawable.ic_remove_no_shadow, R.string.remove_drop_target_label, target,
+                    itemInfo, originalView, false);
+        }
+
+        @Override
+        public void onClick(View view) {
+            AbstractFloatingView.closeAllOpenViews(mTarget);
+            DropTargetHandler dropTargetHandler =
+                    ActivityContext.lookupContext(view.getContext()).getDropTargetHandler();
+            dropTargetHandler.prepareToUndoDelete();
+            dropTargetHandler.onDeleteComplete(mItemInfo, mOriginalView);
         }
     }
 

@@ -216,6 +216,7 @@ public abstract class AbsSwipeUpHandler<
     protected @Nullable RECENTS_CONTAINER mContainer;
     protected @Nullable RECENTS_VIEW mRecentsView;
     protected Runnable mGestureEndCallback;
+    protected Runnable mGestureAnimationEndCallback;
     protected MultiStateCallback mStateCallback;
     protected boolean mCanceled;
     private boolean mRecentsViewScrollLinked = false;
@@ -597,7 +598,7 @@ public abstract class AbsSwipeUpHandler<
 
     private void onLauncherStart() {
         final RECENTS_CONTAINER container = mContainerInterface.getCreatedContainer();
-        if (container == null || mContainer != container) {
+        if (container == null || mContainer != container || mRecentsView == null) {
             return;
         }
         if (mStateCallback.hasStates(STATE_HANDLER_INVALIDATED)) {
@@ -1017,9 +1018,11 @@ public abstract class AbsSwipeUpHandler<
                     .getOrientationState();
             DeviceProfile dp = orientationState.getLauncherDeviceProfile(
                     mGestureState.getDisplayId());
-            if (targets.minimizedHomeBounds != null && primaryTaskTarget != null) {
-                Rect overviewStackBounds = mContainerInterface
-                        .getOverviewWindowBounds(targets.minimizedHomeBounds, primaryTaskTarget);
+            Rect overviewStackBounds = mContainerInterface.getOverviewWindowBounds(
+                    targets.minimizedHomeBounds, primaryTaskTarget);
+            if (overviewStackBounds != null
+                    && !overviewStackBounds.isEmpty()
+                    && primaryTaskTarget != null) {
                 dp = dp.getMultiWindowProfile(mContext,
                         new WindowBounds(overviewStackBounds, targets.homeContentInsets));
             } else {
@@ -2174,6 +2177,9 @@ public abstract class AbsSwipeUpHandler<
         if (mRecentsView != null) {
             mRecentsView.onGestureAnimationEnd();
         }
+        if (mGestureAnimationEndCallback != null) {
+            mGestureAnimationEndCallback.run();
+        }
         resetLauncherListeners();
     }
 
@@ -2392,6 +2398,10 @@ public abstract class AbsSwipeUpHandler<
 
     public void setGestureEndCallback(Runnable gestureEndCallback) {
         mGestureEndCallback = gestureEndCallback;
+    }
+
+    public void setGestureAnimationEndCallback(Runnable gestureAnimationEndCallback) {
+        mGestureAnimationEndCallback = gestureAnimationEndCallback;
     }
 
     protected void linkRecentsViewScroll() {

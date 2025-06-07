@@ -74,6 +74,7 @@ import com.android.quickstep.util.SystemUiFlagUtils;
 import java.io.PrintWriter;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.function.LongPredicate;
 
@@ -297,7 +298,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
 
     // Used to mark whether we are in test mode to mark whether the nav bar shows in SUW
     @VisibleForTesting
-    boolean mShouldHideNavbarForTest;
+    Boolean mNavbarHiddenOverrideForTest = null;
 
     public TaskbarStashController(TaskbarActivityContext activity) {
         mActivity = activity;
@@ -564,11 +565,12 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
     /**
      * Returns whether the navigation bar is visible during the Setup Wizard.
      *
-     * {@link #mShouldHideNavbarForTest} is only used by tests
+     * {@link #mNavbarHiddenOverrideForTest} is only used by tests
      */
     private boolean isNavbarHiddeninSUW() {
-        return mShouldHideNavbarForTest
-                || mControllers.navbarButtonsViewController.isNavbarHiddenInSUW();
+        // Check if a test override is active
+        return Objects.requireNonNullElseGet(mNavbarHiddenOverrideForTest,
+                () -> mControllers.navbarButtonsViewController.isNavbarHiddenInSUW());
     }
 
     /**

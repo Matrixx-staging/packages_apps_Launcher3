@@ -269,7 +269,11 @@ class TaskbarRecentAppsController(
                 desktopTasks = allRecentTasks.filterIsInstance<DesktopTask>().flatMap { it.tasks }
                 val runningTasksChanged = oldRunningTaskdIds != runningTaskIds
                 val minimizedTasksChanged = oldMinimizedTaskIds != minimizedTaskIds
-                if (onRecentsOrHotseatChanged() || runningTasksChanged || minimizedTasksChanged) {
+
+                if (
+                    (onRecentsOrHotseatChanged() || runningTasksChanged || minimizedTasksChanged) &&
+                        !controllers.taskbarDesktopModeController.isLauncherAnimationRunning
+                ) {
                     controllers.taskbarViewController.commitRunningAppsToUI()
                 }
                 if (needsRecentsTasksReload) {

@@ -159,4 +159,50 @@ class DepthControllerTest {
         `when`(stateManager.state).thenReturn(LauncherState.OVERVIEW)
         assertFalse(underTest.blurWorkspaceDepthTargets())
     }
+
+    @Test
+    @EnableFlags(Flags.FLAG_ALL_APPS_BLUR)
+    fun test_blurWorkspaceDepthTargets_withTargetState() {
+        // Transitioning to ALL_APPS from any state should blur the workspace depth targets.
+
+        `when`(stateManager.currentStableState).thenReturn(LauncherState.NORMAL)
+        `when`(stateManager.targetState).thenReturn(LauncherState.ALL_APPS)
+        assertTrue(underTest.blurWorkspaceDepthTargets())
+
+        `when`(stateManager.currentStableState).thenReturn(LauncherState.ALL_APPS)
+        `when`(stateManager.targetState).thenReturn(LauncherState.ALL_APPS)
+        assertTrue(underTest.blurWorkspaceDepthTargets())
+
+        `when`(stateManager.currentStableState).thenReturn(LauncherState.SPRING_LOADED)
+        `when`(stateManager.targetState).thenReturn(LauncherState.ALL_APPS)
+        assertTrue(underTest.blurWorkspaceDepthTargets())
+
+        `when`(stateManager.currentStableState).thenReturn(LauncherState.EDIT_MODE)
+        `when`(stateManager.targetState).thenReturn(LauncherState.ALL_APPS)
+        assertTrue(underTest.blurWorkspaceDepthTargets())
+
+        `when`(stateManager.currentStableState).thenReturn(LauncherState.BACKGROUND_APP)
+        `when`(stateManager.targetState).thenReturn(LauncherState.ALL_APPS)
+        assertTrue(underTest.blurWorkspaceDepthTargets())
+
+        // Returning from ALL_APPS to NORMAL should continue blurring the workspace depth targets.
+
+        `when`(stateManager.currentStableState).thenReturn(LauncherState.ALL_APPS)
+        `when`(stateManager.targetState).thenReturn(LauncherState.NORMAL)
+        assertTrue(underTest.blurWorkspaceDepthTargets())
+
+        // Exiting ALL_APPS to other states such as drag-and-drop should not blur the workspace.
+
+        `when`(stateManager.currentStableState).thenReturn(LauncherState.ALL_APPS)
+        `when`(stateManager.targetState).thenReturn(LauncherState.SPRING_LOADED)
+        assertFalse(underTest.blurWorkspaceDepthTargets())
+
+        `when`(stateManager.currentStableState).thenReturn(LauncherState.ALL_APPS)
+        `when`(stateManager.targetState).thenReturn(LauncherState.EDIT_MODE)
+        assertFalse(underTest.blurWorkspaceDepthTargets())
+
+        `when`(stateManager.currentStableState).thenReturn(LauncherState.ALL_APPS)
+        `when`(stateManager.targetState).thenReturn(LauncherState.OVERVIEW)
+        assertFalse(underTest.blurWorkspaceDepthTargets())
+    }
 }

@@ -361,17 +361,19 @@ class TaskbarStashControllerTest {
     @TaskbarMode(PINNED)
     @UserSetupMode
     fun testGetContentHeightToReportToApps_pinnedInSetupMode_setupWizardInsets() {
+        stashController.mNavbarHiddenOverrideForTest = false
         assertThat(stashController.contentHeightToReportToApps)
             .isEqualTo(context.resources.getDimensionPixelSize(R.dimen.taskbar_suw_insets))
+        stashController.mNavbarHiddenOverrideForTest = null
     }
 
     @Test
     @UserSetupMode
     fun testGetContentHeightToReportToApps_inExpressiveTheme_setupWizardInsets() {
-        stashController.mShouldHideNavbarForTest = true
+        stashController.mNavbarHiddenOverrideForTest = true
         assertThat(stashController.contentHeightToReportToApps)
             .isEqualTo(stashController.stashedHeight)
-        stashController.mShouldHideNavbarForTest = false
+        stashController.mNavbarHiddenOverrideForTest = null
     }
 
     @Test

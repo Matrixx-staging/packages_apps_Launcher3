@@ -21,7 +21,6 @@ import static android.platform.test.flag.junit.SetFlagsRule.DefaultInitValueType
 
 import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
 
-import static com.android.launcher3.testing.shared.TestProtocol.ICON_MISSING;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 
 import static org.junit.Assert.assertEquals;
@@ -503,8 +502,6 @@ public abstract class BaseLauncherTaplTest {
 
     protected HomeAppIcon createShortcutIfNotExist(String name, int cellX, int cellY) {
         HomeAppIcon homeAppIcon = mLauncher.getWorkspace().tryGetWorkspaceAppIcon(name);
-        Log.d(ICON_MISSING, "homeAppIcon: " + homeAppIcon + " name: " + name
-                + " cell: " + cellX + ", " + cellY);
         if (homeAppIcon == null) {
             HomeAllApps allApps = mLauncher.getWorkspace().switchToAllApps();
             allApps.freeze();

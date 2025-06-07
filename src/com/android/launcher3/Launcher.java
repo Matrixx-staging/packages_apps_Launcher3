@@ -29,6 +29,7 @@ import static com.android.launcher3.AbstractFloatingView.getTopOpenViewWithType;
 import static com.android.launcher3.Flags.allAppsBlur;
 import static com.android.launcher3.Flags.enableAddAppWidgetViaConfigActivityV2;
 import static com.android.launcher3.Flags.enableWorkspaceInflation;
+import static com.android.launcher3.Flags.enableLongPressRemoveShortcut;
 import static com.android.launcher3.LauncherAnimUtils.HOTSEAT_SCALE_PROPERTY_FACTORY;
 import static com.android.launcher3.LauncherAnimUtils.SCALE_INDEX_WIDGET_TRANSITION;
 import static com.android.launcher3.LauncherAnimUtils.SPRING_LOADED_EXIT_DELAY;
@@ -56,6 +57,7 @@ import static com.android.launcher3.LauncherConstants.TraceEvents.ON_START_EVT;
 import static com.android.launcher3.LauncherConstants.TraceEvents.SINGLE_TRACE_COOKIE;
 import static com.android.launcher3.LauncherPrefs.FIXED_LANDSCAPE_MODE;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP;
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPLICATION;
 import static com.android.launcher3.LauncherState.ALL_APPS;
 import static com.android.launcher3.LauncherState.EDIT_MODE;
@@ -90,6 +92,7 @@ import static com.android.launcher3.model.ItemInstallQueue.FLAG_ACTIVITY_PAUSED;
 import static com.android.launcher3.model.ItemInstallQueue.FLAG_DRAG_AND_DROP;
 import static com.android.launcher3.popup.SystemShortcut.APP_INFO;
 import static com.android.launcher3.popup.SystemShortcut.INSTALL;
+import static com.android.launcher3.popup.SystemShortcut.REMOVE;
 import static com.android.launcher3.popup.SystemShortcut.WIDGETS;
 import static com.android.launcher3.states.RotationHelper.REQUEST_LOCK;
 import static com.android.launcher3.states.RotationHelper.REQUEST_NONE;
@@ -1172,7 +1175,10 @@ public class Launcher extends StatefulActivity<LauncherState>
             getAllAppsExitEvent().ifPresent(getStatsLogManager().logger()::log);
             mAllAppsSessionLogId = null;
         }
+        setTitle(state);
+    }
 
+    protected void setTitle(@NonNull LauncherState state) {
         // Set screen title for Talkback
         setTitle(state.getTitle());
     }
@@ -2860,7 +2866,17 @@ public class Launcher extends StatefulActivity<LauncherState>
         return new RectF(x - halfSize, y - halfSize, x + halfSize, y + halfSize);
     }
 
-    public Stream<SystemShortcut.Factory> getSupportedShortcuts() {
+    /**
+     * Gets the system shortcuts that are supported by launcher in a given container.
+     *
+     * @param container is the container of the item as derived from ItemInfo.
+     * @return a stream of supported system shortcuts.
+     */
+    public Stream<SystemShortcut.Factory> getSupportedShortcuts(int container) {
+        if (enableLongPressRemoveShortcut()
+                && (container == CONTAINER_DESKTOP || container == CONTAINER_HOTSEAT)) {
+            return Stream.of(APP_INFO, WIDGETS, INSTALL, REMOVE);
+        }
         return Stream.of(APP_INFO, WIDGETS, INSTALL);
     }
 

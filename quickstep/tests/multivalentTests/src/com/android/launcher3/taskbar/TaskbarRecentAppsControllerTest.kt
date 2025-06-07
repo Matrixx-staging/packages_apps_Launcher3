@@ -119,6 +119,7 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
             recentTasksChangedListener = null
             it
         }
+        whenever(taskbarDesktopModeController.isLauncherAnimationRunning).thenReturn(false)
         recentAppsController = TaskbarRecentAppsController(mockContext, mockRecentsModel)
         recentAppsController.canShowRunningApps = canShowRunningAndRecentAppsAtInit
         recentAppsController.canShowRecentApps = canShowRunningAndRecentAppsAtInit

@@ -25,11 +25,15 @@ import android.os.UserHandle
  * @param description an optional 1-2 line description to be shown below the title. If not set, no
  * description is shown.
  * @param constraints constraints around which widgets can be shown in the picker.
+ * @param showDragShadow indicates whether to show drag shadow for the widgets when dragging them;
+ * can be set to false if host manages drag shadow on its own (e.g. home screen to animate the
+ * shadow with actual content)
  */
 data class WidgetHostInfo(
     val title: String? = null,
     val description: String? = null,
     val constraints: List<HostConstraint> = emptyList(),
+    val showDragShadow: Boolean = true
 )
 
 /** Various constraints for the widget host. */

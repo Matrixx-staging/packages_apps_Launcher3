@@ -91,6 +91,7 @@
     <dimen name="task_thumbnail_header_padding_start_end">12dp</dimen>
     <dimen name="task_thumbnail_header_margin_between_views">8dp</dimen>
     <dimen name="task_thumbnail_header_icon_size">18dp</dimen>
+    <dimen name="task_header_close_button_size">20dp</dimen>
     <dimen name="task_thumbnail_header_close_button_hit_rect_size">32dp</dimen>
     <dimen name="task_thumbnail_header_round_corner_radius">16dp</dimen>
     <!-- The size for non-overlapping layout in desktop tile -->
@@ -101,6 +102,8 @@
     <dimen name="desktop_top_margin_multi_rows">72dp</dimen>
     <dimen name="desktop_bottom_margin_multi_rows">24dp</dimen>
     <dimen name="desktop_left_right_margin_multi_rows">24dp</dimen>
+    <!-- The length of the fading edge (gradient) of the task header title -->
+    <dimen name="task_header_title_fading_edge_length">28dp</dimen>
 
     <!--  How much a task being dragged for dismissal can undershoot the origin when dragged back to its start position.  -->
     <dimen name="task_dismiss_max_undershoot">25dp</dimen>
@@ -304,6 +307,7 @@
     <dimen name="allset_page_padding_horizontal">40dp</dimen>
     <dimen name="allset_page_allset_text_size">36sp</dimen>
     <dimen name="allset_page_swipe_up_text_size">14sp</dimen>
+    <dimen name="allset_page_swipe_up_text_size_expressive">16sp</dimen>
 
     <dimen name="allset_title_margin_top">24dp</dimen>
     <dimen name="allset_title_icon_margin_top">32dp</dimen>
@@ -589,4 +593,12 @@
     <dimen name="nudge_exit_y_delta">-10dp</dimen>
 
     <dimen name="nudge_default_position_side_spacing">16dp</dimen>
+
+    <!-- Add Desktop Button -->
+    <integer name="add_desktop_button_fade_duration">50</integer>
+    <integer name="add_desktop_button_fade_delay">33</integer>
+    <dimen name="newly_created_desktop_offscreen_position">40dp</dimen>
+    <item name="newly_created_desktop_spring_damping_ratio" format="float" type="dimen">0.8</item>
+    <item name="newly_created_desktop_spring_stiffness" format="float" type="dimen">380</item>
+
 </resources>

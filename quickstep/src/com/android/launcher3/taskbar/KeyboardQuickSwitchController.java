@@ -42,6 +42,7 @@ import com.android.quickstep.util.SingleTask;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.recents.model.ThumbnailData;
 import com.android.systemui.shared.system.ActivityManagerWrapper;
+import com.android.wm.shell.shared.desktopmode.DesktopState;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -66,9 +67,6 @@ public final class KeyboardQuickSwitchController implements
     // Callback used to notify when the KQS view is closed.
     @Nullable private Runnable mOnClosed;
 
-    // Initialized on init
-    @Nullable private RecentsModel mModel;
-
     // Used to keep track of the last requested task list id, so that we do not request to load the
     // tasks again if we have already requested it and the task list has not changed
     private int mTaskListChangeId = -1;
@@ -83,6 +81,8 @@ public final class KeyboardQuickSwitchController implements
 
     // Initialized in init
     private TaskbarControllers mControllers;
+    @Nullable private RecentsModel mModel;
+    private boolean mIsProjectedMode;
 
     @Nullable private KeyboardQuickSwitchViewController mQuickSwitchViewController;
     @Nullable private TaskbarOverlayContext mOverlayContext;
@@ -94,6 +94,8 @@ public final class KeyboardQuickSwitchController implements
     public void init(@NonNull TaskbarControllers controllers) {
         mControllers = controllers;
         mModel = RecentsModel.INSTANCE.get(controllers.taskbarActivityContext);
+        mIsProjectedMode = DesktopState.fromContext(
+                mControllers.taskbarActivityContext).isProjectedMode();
     }
 
     void onConfigurationChanged(@ActivityInfo.Config int configChanges) {
@@ -169,7 +171,7 @@ public final class KeyboardQuickSwitchController implements
                             shouldShowDesktopTasks ? RecentsFilterState.EMPTY_FILTER
                                     : RecentsFilterState.getDesktopTaskFilter(),
                             (tasks) -> {
-                                processLoadedTasks(tasks, taskIdsToExclude);
+                                processLoadedTasks(wasOpenedFromTaskbar, tasks, taskIdsToExclude);
                                 mQuickSwitchViewController.updateQuickSwitchView(
                                         mTasks,
                                         wasOpenedFromTaskbar ? 0 : mNumHiddenTasks,
@@ -223,34 +225,37 @@ public final class KeyboardQuickSwitchController implements
         }
 
         mExcludedTaskIds = taskIdsToExclude;
-        mTaskListChangeId = mModel.getTasks(shouldShowDesktopTasks ? RecentsFilterState.EMPTY_FILTER
-                : RecentsFilterState.getDesktopTaskFilter(), (tasks) -> {
-            processLoadedTasks(tasks, taskIdsToExclude);
-            // Check if the first task is running after the recents model has updated so that we use
-            // the correct index.
-            mQuickSwitchViewController.openQuickSwitchView(
-                    mTasks,
-                    wasOpenedFromTaskbar ? 0 : mNumHiddenTasks,
-                    /* updateTasks= */ true,
-                    currentFocusedIndex == -1 && !mControllerCallbacks.isFirstTaskRunning()
-                            ? 0 : currentFocusedIndex,
-                    shouldShowDesktopTasks,
-                    mHasDesktopTask,
-                    mWasDesktopTaskFilteredOut,
-                    wasOpenedFromTaskbar);
-            });
+        mTaskListChangeId = mModel.getTasks(
+                shouldShowDesktopTasks ? RecentsFilterState.EMPTY_FILTER
+                        : RecentsFilterState.getDesktopTaskFilter(),
+                (tasks) -> {
+                    processLoadedTasks(wasOpenedFromTaskbar, tasks, taskIdsToExclude);
+                    // Check if the first task is running after the recents model has updated so
+                    // that we use the correct index.
+                    mQuickSwitchViewController.openQuickSwitchView(
+                            mTasks,
+                            wasOpenedFromTaskbar ? 0 : mNumHiddenTasks,
+                            /* updateTasks= */ true,
+                            currentFocusedIndex == -1 && !mControllerCallbacks.isFirstTaskRunning()
+                                    ? 0 : currentFocusedIndex,
+                            shouldShowDesktopTasks,
+                            mHasDesktopTask,
+                            mWasDesktopTaskFilteredOut,
+                            wasOpenedFromTaskbar);
+                });
     }
 
-    private boolean shouldExcludeTask(GroupTask task, Set<Integer> taskIdsToExclude) {
-        return ENABLE_TASKBAR_OVERFLOW.isTrue()
-                && task.getTasks().stream().anyMatch(t -> taskIdsToExclude.contains(t.key.id));
+    private boolean shouldIncludeTask(GroupTask task, Set<Integer> taskIdsToExclude) {
+        return !ENABLE_TASKBAR_OVERFLOW.isTrue()
+                || task.getTasks().stream().noneMatch(t -> taskIdsToExclude.contains(t.key.id));
     }
 
-    private void processLoadedTasks(List<GroupTask> tasks, Set<Integer> taskIdsToExclude) {
+    private void processLoadedTasks(boolean openedFromTaskbar, List<GroupTask> tasks,
+            Set<Integer> taskIdsToExclude) {
         mHasDesktopTask = false;
         mWasDesktopTaskFilteredOut = false;
 
-        if (enableAltTabKqsFlatenning.isTrue()) {
+        if (enableAltTabKqsFlatenning.isTrue() && !openedFromTaskbar) {
             processLoadedTasksCombined(tasks, taskIdsToExclude);
         } else if (mControllers.taskbarDesktopModeController.shouldShowDesktopTasksInTaskbar()) {
             processLoadedTasksOnDesktop(tasks, taskIdsToExclude);
@@ -272,7 +277,8 @@ public final class KeyboardQuickSwitchController implements
 
                     return Stream.of(task);
                 })
-                .filter(task -> !shouldExcludeTask(task, taskIdsToExclude))
+                .filter(task -> shouldIncludeTask(task, taskIdsToExclude))
+                .filter(this::shouldIncludeTaskBasedOnProjectedMode)
                 .toList();
 
         mTasks = allTasks.stream()
@@ -280,6 +286,24 @@ public final class KeyboardQuickSwitchController implements
                 .limit(MAX_TASKS)
                 .toList();
         mNumHiddenTasks = Math.max(0, allTasks.size() - MAX_TASKS);
+    }
+
+    private boolean shouldIncludeTaskBasedOnProjectedMode(GroupTask task) {
+        // When not in projected mode, include tasks from all displays
+        if (!mIsProjectedMode) {
+            return true;
+        }
+
+        int primaryDisplayId = mControllers.taskbarActivityContext.getPrimaryDisplayId();
+
+        // When on primary device in projected mode, only show tasks from the primary device.
+        if (mControllers.taskbarActivityContext.isPrimaryDisplay()) {
+            return task.getDisplayId() == primaryDisplayId;
+        }
+
+        // When on connected display with primary device in projected mode, only include tasks that
+        // are not on primary device.
+        return task.getDisplayId() != primaryDisplayId;
     }
 
     private static Comparator<GroupTask> combinedTasksComparator() {
@@ -298,7 +322,7 @@ public final class KeyboardQuickSwitchController implements
         Collections.reverse(tasks);
         mTasks = tasks.stream()
                 .filter(task -> !(task instanceof DesktopTask)
-                        && !shouldExcludeTask(task, taskIdsToExclude))
+                        && shouldIncludeTask(task, taskIdsToExclude))
                 .limit(MAX_TASKS)
                 .collect(Collectors.toList());
 
@@ -331,14 +355,14 @@ public final class KeyboardQuickSwitchController implements
             mTasks = desktopTasks.stream()
                     .flatMap(t -> t.getTasks().stream())
                     .map(SingleTask::new)
-                    .filter(task -> !shouldExcludeTask(task, taskIdsToExclude))
+                    .filter(task -> shouldIncludeTask(task, taskIdsToExclude))
                     .collect(Collectors.toList());
 
             mNumHiddenTasks = Math.max(0, tasks.size() - desktopTasks.size());
         } else if (!desktopTasks.isEmpty()) {
             mTasks = desktopTasks.get(0).getTasks().stream()
                     .map(SingleTask::new)
-                    .filter(task -> !shouldExcludeTask(task, taskIdsToExclude))
+                    .filter(task -> shouldIncludeTask(task, taskIdsToExclude))
                     .collect(Collectors.toList());
             // All other tasks, apart from the grouped desktop task, are hidden
             mNumHiddenTasks = Math.max(0, tasks.size() - 1);

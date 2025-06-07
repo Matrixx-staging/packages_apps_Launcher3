@@ -15,7 +15,6 @@
  */
 package com.android.launcher3.preview;
 
-import static android.app.WallpaperManager.FLAG_SYSTEM;
 import static android.view.View.MeasureSpec.EXACTLY;
 import static android.view.View.MeasureSpec.makeMeasureSpec;
 import static android.view.View.VISIBLE;
@@ -27,8 +26,6 @@ import static com.android.launcher3.model.ModelUtils.currentScreenContentFilter;
 import static java.util.Comparator.comparingDouble;
 
 import android.app.Fragment;
-import android.app.WallpaperColors;
-import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
@@ -46,6 +43,8 @@ import android.view.ViewGroup;
 import android.widget.TextClock;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.UiThread;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 
@@ -55,29 +54,34 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Hotseat;
 import com.android.launcher3.InsettableFrameLayout;
 import com.android.launcher3.InvariantDeviceProfile;
+import com.android.launcher3.LauncherModel;
 import com.android.launcher3.R;
+import com.android.launcher3.Workspace;
 import com.android.launcher3.WorkspaceLayoutManager;
 import com.android.launcher3.celllayout.CellLayoutLayoutParams;
 import com.android.launcher3.celllayout.CellPosMapper;
 import com.android.launcher3.dagger.LauncherComponentProvider;
+import com.android.launcher3.dragndrop.SimpleDragLayer;
 import com.android.launcher3.graphics.FragmentWithPreview;
 import com.android.launcher3.model.BgDataModel;
 import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.model.data.WorkspaceData;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.util.BaseContext;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.IntSet;
 import com.android.launcher3.util.ItemInflater;
-import com.android.launcher3.util.Themes;
+import com.android.launcher3.util.LauncherBindableItemsContainer;
 import com.android.launcher3.util.window.WindowManagerProxy;
 import com.android.launcher3.views.BaseDragLayer;
 import com.android.launcher3.widget.LauncherWidgetHolder;
-import com.android.launcher3.widget.LocalColorExtractor;
-import com.android.systemui.shared.Flags;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Utility class for generating the preview of Launcher for a given InvariantDeviceProfile.
@@ -88,37 +92,33 @@ import java.util.Map;
  *   4) Measure and draw the view on a canvas
  */
 public class LauncherPreviewRenderer extends BaseContext
-        implements WorkspaceLayoutManager, LayoutInflater.Factory2 {
+        implements WorkspaceLayoutManager, LayoutInflater.Factory2,
+        LauncherBindableItemsContainer, BgDataModel.Callbacks {
+
+    public final CompletableFuture<View> initialRender = new CompletableFuture<>();
 
     private final Handler mUiHandler;
     private final InvariantDeviceProfile mIdp;
     private final DeviceProfile mDp;
-    private final Rect mInsets;
     private final LayoutInflater mHomeElementInflater;
-    private final InsettableFrameLayout mRootView;
+    private final LauncherPreviewLayout mRootView;
     private final Hotseat mHotseat;
     private final Map<Integer, CellLayout> mWorkspaceScreens = new HashMap<>();
     private final ItemInflater<LauncherPreviewRenderer> mItemInflater;
 
     public LauncherPreviewRenderer(Context context,
-            InvariantDeviceProfile idp,
-            WallpaperColors wallpaperColorsOverride,
-            int workspaceScreenId) {
-        this(context, idp, null, wallpaperColorsOverride, workspaceScreenId);
-    }
+            int workspaceScreenId,
+            @Nullable SparseIntArray wallpaperColorResources,
+            LauncherModel model,
+            int themeRes) {
 
-    public LauncherPreviewRenderer(Context context,
-            InvariantDeviceProfile idp,
-            SparseIntArray previewColorOverride,
-            WallpaperColors wallpaperColorsOverride,
-            int workspaceScreenId) {
-
-        super(context, Themes.getActivityThemeRes(context));
+        super(context, themeRes);
         mUiHandler = new Handler(Looper.getMainLooper());
-        mIdp = idp;
-        mDp = getDeviceProfileForPreview(context).toBuilder(context).build();
-        mInsets = getInsets(context);
-        mDp.updateInsets(mInsets);
+        mIdp = InvariantDeviceProfile.INSTANCE.get(context);
+        mDp = getDeviceProfileForPreview(context).toBuilder(context)
+                .setViewScaleProvider(new PreviewScaleProvider(this)).build();
+        Rect insets = getInsets(context);
+        mDp.updateInsets(insets);
 
         mHomeElementInflater = LayoutInflater.from(
                 new ContextThemeWrapper(this, R.style.HomeScreenElementTheme));
@@ -127,9 +127,9 @@ public class LauncherPreviewRenderer extends BaseContext
         int layoutRes = mDp.getDeviceProperties().isTwoPanels()
                 ? R.layout.launcher_preview_two_panel_layout
                 : R.layout.launcher_preview_layout;
-        mRootView = (InsettableFrameLayout) mHomeElementInflater.inflate(
+        mRootView = (LauncherPreviewLayout) mHomeElementInflater.inflate(
                 layoutRes, null, false);
-        mRootView.setInsets(mInsets);
+        mRootView.setInsets(insets);
         measureAndLayoutRootView();
 
         mHotseat = mRootView.findViewById(R.id.hotseat);
@@ -160,31 +160,6 @@ public class LauncherPreviewRenderer extends BaseContext
             mWorkspaceScreens.put(workspaceScreenId, firstScreen);
         }
 
-        SparseIntArray wallpaperColorResources;
-        if (Flags.newCustomizationPickerUi()) {
-            if (previewColorOverride != null) {
-                wallpaperColorResources = previewColorOverride;
-            } else if (wallpaperColorsOverride != null) {
-                wallpaperColorResources = LocalColorExtractor.newInstance(
-                        context).generateColorsOverride(wallpaperColorsOverride);
-            } else {
-                WallpaperColors wallpaperColors = WallpaperManager.getInstance(
-                        context).getWallpaperColors(FLAG_SYSTEM);
-                wallpaperColorResources = wallpaperColors != null
-                        ? LocalColorExtractor.newInstance(context).generateColorsOverride(
-                        wallpaperColors)
-                        : null;
-            }
-        } else {
-            WallpaperColors wallpaperColors = wallpaperColorsOverride != null
-                    ? wallpaperColorsOverride
-                    : WallpaperManager.getInstance(context).getWallpaperColors(FLAG_SYSTEM);
-            wallpaperColorResources = wallpaperColors != null
-                    ? LocalColorExtractor.newInstance(context).generateColorsOverride(
-                    wallpaperColors)
-                    : null;
-        }
-
         LauncherWidgetHolder widgetHolder = LauncherComponentProvider.get(this)
                 .getWidgetHolderFactory().newInstance(this);
         if (wallpaperColorResources != null) {
@@ -200,9 +175,11 @@ public class LauncherPreviewRenderer extends BaseContext
                 mHotseat
         );
         onViewCreated();
+        model.addCallbacksAndLoad(this);
         getLifecycle().addObserver(new DefaultLifecycleObserver() {
             @Override
             public void onDestroy(@NonNull LifecycleOwner owner) {
+                model.removeCallbacks(LauncherPreviewRenderer.this);
                 widgetHolder.destroy();
             }
         });
@@ -211,6 +188,27 @@ public class LauncherPreviewRenderer extends BaseContext
     @Override
     public InsettableFrameLayout getRootView() {
         return mRootView;
+    }
+
+    @NonNull
+    @Override
+    public LauncherBindableItemsContainer getContent() {
+        return this;
+    }
+
+    @Override
+    public BaseDragLayer getDragLayer() {
+        return mRootView;
+    }
+
+    @Override
+    public DeviceProfile getDeviceProfile() {
+        return mDp;
+    }
+
+    @Override
+    public Hotseat getHotseat() {
+        return mHotseat;
     }
 
     /**
@@ -226,20 +224,6 @@ public class LauncherPreviewRenderer extends BaseContext
                 config.screenHeightDp * density,
                 WindowManagerProxy.INSTANCE.get(context).getRotation(context)
         );
-    }
-
-    /**
-     * Returns the insets of the screen closest to the display given by the context
-     */
-    private Rect getInsets(Context context) {
-        Display display = context.getDisplay();
-        return DisplayController.INSTANCE.get(context).getInfo().supportedBounds.stream()
-                .filter(w -> w.rotationHint == display.getRotation())
-                .min(comparingDouble(w ->
-                        Math.pow(display.getWidth() - w.availableSize.x, 2)
-                        + Math.pow(display.getHeight() - w.availableSize.y, 2)))
-                .map(w -> new Rect(w.insets))
-                .orElse(new Rect());
     }
 
     @Override
@@ -274,38 +258,22 @@ public class LauncherPreviewRenderer extends BaseContext
         return onCreateView(null, name, context, attrs);
     }
 
-    @Override
-    public BaseDragLayer getDragLayer() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public DeviceProfile getDeviceProfile() {
-        return mDp;
-    }
-
-    @Override
-    public Hotseat getHotseat() {
-        return mHotseat;
-    }
-
     /**
      * Hides the components in the bottom row.
      *
      * @param hide True to hide and false to show.
      */
+    @UiThread
     public void hideBottomRow(boolean hide) {
-        mUiHandler.post(() -> {
-            if (mDp.isTaskbarPresent) {
-                // hotseat icons on bottom
-                mHotseat.setIconsAlpha(hide ? 0 : 1, ALPHA_CHANNEL_PREVIEW_RENDERER);
-                if (mDp.isQsbInline) {
-                    mHotseat.setQsbAlpha(hide ? 0 : 1, ALPHA_CHANNEL_PREVIEW_RENDERER);
-                }
-            } else {
+        if (mDp.isTaskbarPresent) {
+            // hotseat icons on bottom
+            mHotseat.setIconsAlpha(hide ? 0 : 1, ALPHA_CHANNEL_PREVIEW_RENDERER);
+            if (mDp.isQsbInline) {
                 mHotseat.setQsbAlpha(hide ? 0 : 1, ALPHA_CHANNEL_PREVIEW_RENDERER);
             }
-        });
+        } else {
+            mHotseat.setQsbAlpha(hide ? 0 : 1, ALPHA_CHANNEL_PREVIEW_RENDERER);
+        }
     }
 
     @Override
@@ -316,6 +284,18 @@ public class LauncherPreviewRenderer extends BaseContext
     @Override
     public CellPosMapper getCellPosMapper() {
         return CellPosMapper.DEFAULT;
+    }
+
+    private List<CellLayout> getAllLayouts() {
+        List<CellLayout> screens = new ArrayList<>(mWorkspaceScreens.values());
+        screens.add(getHotseat());
+        return screens;
+    }
+
+    @Nullable
+    @Override
+    public View mapOverItems(@NonNull ItemOperator op) {
+        return Workspace.mapOverCellLayouts(getAllLayouts().toArray(new CellLayout[0]), op);
     }
 
     private void dispatchVisibilityAggregated(View view, boolean isVisible) {
@@ -335,14 +315,15 @@ public class LauncherPreviewRenderer extends BaseContext
         }
     }
 
-    /** Populate preview and render it. */
-    public void populate(BgDataModel dataModel) {
+    @Override
+    public void bindCompleteModel(@NonNull WorkspaceData itemIdMap, boolean isBindingSync) {
+        getAllLayouts().forEach(CellLayout::removeAllViews);
+
         // Separate the items that are on the current screen, and the other remaining items.
-        dataModel.itemsIdMap.stream()
+        itemIdMap.stream()
                 .filter(currentScreenContentFilter(IntSet.wrap(mWorkspaceScreens.keySet())))
                 .forEach(this::inflateAndAdd);
-        populateHotseatPredictions(dataModel);
-
+        populateHotseatPredictions(itemIdMap);
 
         // Add first page QSB
         if (BuildConfig.QSB_ON_FIRST_SCREEN) {
@@ -357,17 +338,21 @@ public class LauncherPreviewRenderer extends BaseContext
                 firstScreen.addViewToCellLayout(qsb, 0, R.id.search_container_workspace, lp, true);
             }
         }
-
         measureAndLayoutRootView();
         dispatchVisibilityAggregated(mRootView, true);
         measureAndLayoutRootView();
         // Additional measure for views which use auto text size API
         measureAndLayoutRootView();
+        initialRender.complete(mRootView);
     }
 
-    private void populateHotseatPredictions(BgDataModel dataModel) {
-        List<ItemInfo> predictions = dataModel.itemsIdMap
-                .getPredictedContents(CONTAINER_HOTSEAT_PREDICTION);
+    @Override
+    public void bindItemsUpdated(@NonNull Set<ItemInfo> updates) {
+        updateContainerItems(updates, this);
+    }
+
+    private void populateHotseatPredictions(WorkspaceData itemIdMap) {
+        List<ItemInfo> predictions = itemIdMap.getPredictedContents(CONTAINER_HOTSEAT_PREDICTION);
         int predictionIndex = 0;
         for (int rank = 0; rank < mDp.numShownHotseatIcons; rank++) {
             if (predictions.size() <= predictionIndex) continue;
@@ -401,8 +386,22 @@ public class LauncherPreviewRenderer extends BaseContext
         mRootView.layout(0, 0, width, height);
     }
 
+    /**
+     * Returns the insets of the screen closest to the display given by the context
+     */
+    private static Rect getInsets(Context context) {
+        Display display = context.getDisplay();
+        return DisplayController.INSTANCE.get(context).getInfo().supportedBounds.stream()
+                .filter(w -> w.rotationHint == display.getRotation())
+                .min(comparingDouble(w ->
+                        Math.pow(display.getWidth() - w.availableSize.x, 2)
+                                + Math.pow(display.getHeight() - w.availableSize.y, 2)))
+                .map(w -> new Rect(w.insets))
+                .orElse(new Rect());
+    }
+
     /** Root layout for launcher preview that intercepts all touch events. */
-    public static class LauncherPreviewLayout extends InsettableFrameLayout {
+    public static class LauncherPreviewLayout extends SimpleDragLayer<LauncherPreviewRenderer> {
         public LauncherPreviewLayout(Context context, AttributeSet attrs) {
             super(context, attrs);
         }

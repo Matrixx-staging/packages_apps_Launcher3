@@ -271,15 +271,18 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
             setCenterVertically(mDeviceProfile.iconCenterVertically);
         } else if (mDisplay == DISPLAY_ALL_APPS || mDisplay == DISPLAY_PREDICTION_ROW
                 || mDisplay == DISPLAY_SEARCH_RESULT_APP_ROW) {
-            setTextSize(TypedValue.COMPLEX_UNIT_PX, mDeviceProfile.allAppsIconTextSizePx);
-            setCompoundDrawablePadding(mDeviceProfile.allAppsIconDrawablePaddingPx);
-            defaultIconSize = mDeviceProfile.allAppsIconSizePx;
+            setTextSize(TypedValue.COMPLEX_UNIT_PX,
+                    mDeviceProfile.getAllAppsProfile().getIconTextSizePx());
+            setCompoundDrawablePadding(
+                    mDeviceProfile.getAllAppsProfile().getIconDrawablePaddingPx());
+            defaultIconSize = mDeviceProfile.getAllAppsProfile().getIconSizePx();
         } else if (mDisplay == DISPLAY_FOLDER) {
             setTextSize(TypedValue.COMPLEX_UNIT_PX, mDeviceProfile.folderChildTextSizePx);
             setCompoundDrawablePadding(mDeviceProfile.folderChildDrawablePaddingPx);
             defaultIconSize = mDeviceProfile.folderChildIconSizePx;
         } else if (mDisplay == DISPLAY_SEARCH_RESULT) {
-            setTextSize(TypedValue.COMPLEX_UNIT_PX, mDeviceProfile.allAppsIconTextSizePx);
+            setTextSize(TypedValue.COMPLEX_UNIT_PX,
+                    mDeviceProfile.getAllAppsProfile().getIconTextSizePx());
             defaultIconSize = getResources().getDimensionPixelSize(R.dimen.search_row_icon_size);
         } else if (mDisplay == DISPLAY_SEARCH_RESULT_SMALL) {
             defaultIconSize = getResources().getDimensionPixelSize(
@@ -574,7 +577,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
 
         switch (mDisplay) {
             case DISPLAY_ALL_APPS, DISPLAY_PREDICTION_ROW -> {
-                return mDeviceProfile.maxAllAppsTextLineCount;
+                return mDeviceProfile.getAllAppsProfile().getMaxAllAppsTextLineCount();
             }
             case DISPLAY_WORKSPACE -> {
                 return mDeviceProfile.maxIconTextLineCount;
@@ -959,8 +962,8 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         // Only apply two line for all_apps and device search only if necessary.
         if (shouldUseTwoLine() && (mLastOriginalText != null)) {
             int allowedVerticalSpace = height - getPaddingTop() - getPaddingBottom()
-                    - mDeviceProfile.allAppsIconSizePx
-                    - mDeviceProfile.allAppsIconDrawablePaddingPx;
+                    - mDeviceProfile.getAllAppsProfile().getIconSizePx()
+                    - mDeviceProfile.getAllAppsProfile().getIconDrawablePaddingPx();
             CharSequence modifiedString = modifyTitleToSupportMultiLine(
                     MeasureSpec.getSize(widthMeasureSpec) - getCompoundPaddingLeft()
                             - getCompoundPaddingRight(),

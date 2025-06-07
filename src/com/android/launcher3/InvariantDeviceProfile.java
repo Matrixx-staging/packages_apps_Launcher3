@@ -635,6 +635,10 @@ public class InvariantDeviceProfile {
         //     the change in display size changes the grid size.
         boolean matchAgainstDefaultDpSize = displayInfo.getDeviceType() == TYPE_DESKTOP
                 && enableScalabilityForDesktopExperience();
+        float stableDensityScale =
+                matchAgainstDefaultDpSize
+                        ? displayInfo.getStableDensityScaleFactor() : 1.0f;
+
         try (XmlResourceParser parser = resourceHelper.getXml()) {
             final int depth = parser.getDepth();
             int type;
@@ -643,7 +647,7 @@ public class InvariantDeviceProfile {
                 if ((type == XmlPullParser.START_TAG)
                         && "GridSize".equals(parser.getName())) {
                     gridSizes.add(new GridSize(context, Xml.asAttributeSet(parser),
-                            matchAgainstDefaultDpSize));
+                            stableDensityScale));
                 }
             }
         } catch (IOException | XmlPullParserException e) {
@@ -660,6 +664,12 @@ public class InvariantDeviceProfile {
             Info displayInfo) {
         ArrayList<AllAppsSize> allAppsSizes = new ArrayList<>();
 
+        boolean matchAgainstDefaultDpSize = displayInfo.getDeviceType() == TYPE_DESKTOP
+                && enableScalabilityForDesktopExperience();
+        float stableDensityScale =
+                matchAgainstDefaultDpSize
+                        ? displayInfo.getStableDensityScaleFactor() : 1.0f;
+
         try (XmlResourceParser parser = resourceHelper.getXml()) {
             final int depth = parser.getDepth();
             int type;
@@ -667,7 +677,8 @@ public class InvariantDeviceProfile {
                     || parser.getDepth() > depth) && type != XmlPullParser.END_DOCUMENT) {
                 if ((type == XmlPullParser.START_TAG)
                         && "AllAppsSize".equals(parser.getName())) {
-                    allAppsSizes.add(new AllAppsSize(context, Xml.asAttributeSet(parser)));
+                    allAppsSizes.add(new AllAppsSize(context, Xml.asAttributeSet(parser),
+                            stableDensityScale));
                 }
             }
         } catch (IOException | XmlPullParserException e) {
@@ -1352,20 +1363,16 @@ public class InvariantDeviceProfile {
         final String mDbFile;
         final int mDefaultLayoutId;
 
-        GridSize(Context context, AttributeSet attrs, boolean matchAgainstDefaultDpSize) {
+        GridSize(Context context, AttributeSet attrs, float stableDensityScale) {
             TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.GridSize);
 
             mNumRows = (int) a.getFloat(R.styleable.GridSize_numGridRows, 0);
             mNumColumns = (int) a.getFloat(R.styleable.GridSize_numGridColumns, 0);
 
-            float defaultScale =
-                    matchAgainstDefaultDpSize
-                            ? (float) DisplayMetrics.DENSITY_DEVICE_STABLE
-                                / DisplayMetrics.DENSITY_DEFAULT
-                            : 1.0f;
-            mMinDeviceWidthPx = a.getInt(R.styleable.GridSize_minDeviceWidthPx, 0) * defaultScale;
+            mMinDeviceWidthPx = a.getInt(R.styleable.GridSize_minDeviceWidthPx, 0)
+                    * stableDensityScale;
             mMinDeviceHeightPx = a.getInt(R.styleable.GridSize_minDeviceHeightPx, 0)
-                    * defaultScale;
+                    * stableDensityScale;
 
             mDbFile = a.getString(R.styleable.GridSize_dbFile);
             mDefaultLayoutId = a.getResourceId(
@@ -1389,12 +1396,12 @@ public class InvariantDeviceProfile {
         // The minimum device pixel width to which the spec can be applied.
         final float mMinDeviceWidthPx;
 
-        AllAppsSize(Context context, AttributeSet attrs) {
+        AllAppsSize(Context context, AttributeSet attrs, float stableDensityScale) {
             TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.AllAppsSize);
 
             mAlignWithWorkspaceRow =  a.getInt(R.styleable.AllAppsSize_alignWithWorkspaceRow, -1);
             mMinDeviceWidthPx = a.getFloat(R.styleable.AllAppsSize_minDeviceWidthDp, 0)
-                    * DisplayMetrics.DENSITY_DEVICE_STABLE / DisplayMetrics.DENSITY_DEFAULT;
+                    * stableDensityScale;
 
             a.recycle();
         }

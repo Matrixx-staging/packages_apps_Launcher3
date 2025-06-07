@@ -122,6 +122,7 @@ dependencies {
 
     // Shared testing libs
     testImplementation(project(":RobolectricLib"))
+    testImplementation(project(":SharedTestLib"))
     androidTestImplementation(project(":SharedTestLib"))
     androidTestImplementation(project(":PlatformParameterizedLib"))
     androidTestImplementation(project(":ScreenshotLib"))

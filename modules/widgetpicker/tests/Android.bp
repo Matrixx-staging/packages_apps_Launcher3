@@ -49,6 +49,7 @@ android_test {
     ],
     platform_apis: true,
     static_libs: [
+        "widget_picker_ui_theme",
         "widget_picker_ui_components",
         "collector-device-lib-platform",
         "widget_picker_window_size_class",
@@ -96,6 +97,7 @@ filegroup {
         "multivalentTests/src/com/android/launcher3/widgetpicker/repository/FakeWidgetAppIconsRepository.kt",
         "multivalentTests/src/com/android/launcher3/widgetpicker/ui/fullcatalog/screens/landing/LandingScreenSinglePaneTest.kt",
         "multivalentTests/src/com/android/launcher3/widgetpicker/ui/fullcatalog/screens/landing/LandingScreenTwoPaneTest.kt",
+        "multivalentTests/src/com/android/launcher3/widgetpicker/ui/components/WidgetInteractionsTest.kt",
     ],
 }
 
@@ -105,6 +107,7 @@ android_test {
     srcs: [":widget-picker-multivalent-tests-src"],
     platform_apis: true,
     static_libs: [
+        "widget_picker_ui_theme",
         "widget_picker_ui",
         "widget_picker_ui_components",
         "widget_picker_domain_layer",
@@ -149,6 +152,7 @@ android_robolectric_test {
     srcs: [":widget-picker-multivalent-tests-src"],
     java_resource_dirs: ["config"],
     static_libs: [
+        "widget_picker_ui_theme",
         "widget_picker_ui",
         "widget_picker_ui_components",
         "widget_picker_domain_layer",

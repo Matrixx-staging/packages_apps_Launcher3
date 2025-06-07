@@ -19,11 +19,15 @@ package com.android.launcher3.widgetpicker
 import android.appwidget.AppWidgetProviderInfo
 import android.appwidget.AppWidgetProviderInfo.WIDGET_CATEGORY_HOME_SCREEN
 import android.content.ComponentName
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
 import android.os.UserHandle
 import com.android.launcher3.widgetpicker.shared.model.PickableWidget
 import com.android.launcher3.widgetpicker.shared.model.WidgetApp
 import com.android.launcher3.widgetpicker.shared.model.WidgetAppId
 import com.android.launcher3.widgetpicker.shared.model.WidgetId
+import com.android.launcher3.widgetpicker.shared.model.WidgetPreview
 import com.android.launcher3.widgetpicker.shared.model.WidgetSizeInfo
 import com.android.launcher3.widgetpicker.shared.model.WidgetUserProfile
 import com.android.launcher3.widgetpicker.shared.model.WidgetUserProfileType
@@ -114,7 +118,10 @@ object TestUtils {
             appId = finalWidgetAppId,
             label = providerClassName,
             description = null,
-            appWidgetProviderInfo = AppWidgetProviderInfo().apply { widgetCategory = category },
+            appWidgetProviderInfo = AppWidgetProviderInfo().apply {
+                widgetCategory = category
+                provider = ComponentName.createRelative(PACKAGE_NAME, providerClassName)
+            },
             sizeInfo =
                 WidgetSizeInfo(
                     spanX = 2,
@@ -127,5 +134,16 @@ object TestUtils {
                     containerHeightPx = 200,
                 ),
         )
+    }
+
+    fun createBitmapPreview(
+        width: Int = 200,
+        height: Int = 200,
+        color: Int = Color.RED,
+    ): WidgetPreview.BitmapWidgetPreview {
+        val bitmap: Bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        Canvas(bitmap).drawColor(color)
+
+        return WidgetPreview.BitmapWidgetPreview(bitmap = bitmap)
     }
 }

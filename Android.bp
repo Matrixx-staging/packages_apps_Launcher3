@@ -62,6 +62,27 @@ filegroup {
 }
 
 filegroup {
+    name: "launcher-compose-test-helpers-src",
+    srcs: [
+        "compose/tests/com/android/launcher3/helper/TestHelper.kt",
+    ],
+}
+
+filegroup {
+    name: "launcher-compose-ui-tests-src",
+    srcs: [], // Placeholder for compose/tests/com/android/launcher3/ui/.. tests.
+}
+
+// Tests for features that are enabled only when compose dependency is enabled & run as part of
+// Launcher3Tests
+filegroup {
+    name: "launcher-compose-unit-tests-src",
+    srcs: [
+        "compose/tests/com/android/launcher3/widget/AddWidgetConfigTest.kt",
+    ],
+}
+
+filegroup {
     name: "launcher-compose-tests-src",
     srcs: [
         "compose/tests/**/*.kt",
@@ -136,7 +157,6 @@ java_genrule {
         "--protolog-class com.android.internal.protolog.common.ProtoLog " +
         "--loggroups-class com.android.quickstep.util.QuickstepProtoLogGroup " +
         "--loggroups-jar $(location :launcher-quickstep_protolog-groups) " +
-        "--viewer-config-type proto " +
         "--viewer-config $(out) " +
         "$(locations :launcher-quickstep-unprocessed-protolog-src)",
     out: ["launcher.quickstep.protolog.pb"],
@@ -260,7 +280,8 @@ launcher_compose_tests_java_defaults {
     soong_config_variables: {
         release_enable_compose_in_launcher: {
             srcs: [
-                ":launcher-compose-tests-src",
+                ":launcher-compose-test-helpers-src",
+                ":launcher-compose-unit-tests-src",
             ],
             // Compose dependencies
             static_libs: [

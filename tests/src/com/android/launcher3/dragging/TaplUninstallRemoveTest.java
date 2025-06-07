@@ -15,7 +15,6 @@
  */
 package com.android.launcher3.dragging;
 
-import static com.android.launcher3.testing.shared.TestProtocol.ICON_MISSING;
 import static com.android.launcher3.util.TestConstants.AppNames.DUMMY_APP_NAME;
 import static com.android.launcher3.util.TestConstants.AppNames.GMAIL_APP_NAME;
 import static com.android.launcher3.util.TestConstants.AppNames.MAPS_APP_NAME;
@@ -26,7 +25,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import android.graphics.Point;
 import android.platform.test.annotations.PlatinumTest;
-import android.util.Log;
 import android.view.View;
 
 import com.android.launcher3.Launcher;
@@ -134,7 +132,6 @@ public class TaplUninstallRemoveTest extends AbstractLauncherUiTest<Launcher, Vi
         for (Point p : gridPositions) {
             sb.append(p).append(", ");
         }
-        Log.d(ICON_MISSING, "allGridPositions: " + sb);
         try {
             installDummyAppAndWaitForUIUpdate();
 

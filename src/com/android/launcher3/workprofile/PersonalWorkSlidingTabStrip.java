@@ -97,7 +97,8 @@ public class PersonalWorkSlidingTabStrip extends LinearLayout implements PageInd
      */
     public static int getTabWidth(Context context, int totalWidth) {
         DeviceProfile grid = ActivityContext.lookupContext(context).getDeviceProfile();
-        int iconPadding = totalWidth / grid.numShownAllAppsColumns - grid.allAppsIconSizePx;
+        int iconPadding = totalWidth / grid.numShownAllAppsColumns
+                - grid.getAllAppsProfile().getIconSizePx();
         return totalWidth - iconPadding;
     }
 
