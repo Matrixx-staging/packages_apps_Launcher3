@@ -147,7 +147,7 @@ class TaskbarRecentAppsController(
         return allRecentTasks.any { task ->
             task is SingleTask &&
                 packageName == task.task.key.packageName &&
-                    task.task.key.userId == itemInfo.user.identifier
+                task.task.key.userId == itemInfo.user.identifier
         }
     }
 
@@ -253,6 +253,10 @@ class TaskbarRecentAppsController(
         }
 
         return shownHotseatItems.toTypedArray()
+    }
+
+    fun getDesktopTaskWithId(id: Int): Task? {
+        return desktopTasks.find { it.key.id == id }
     }
 
     private fun getOrderedAndWrappedDesktopTasks(): List<SingleTask> {

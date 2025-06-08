@@ -1501,7 +1501,8 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             RecentsView recents,
             Runnable runnableToRun) {
         if (recents == null || !isTaskbarShowingDesktopTasks()
-                || !mControllers.uiController.isInOverviewUi()) {
+                || !mControllers.uiController.isInOverviewUi()
+                || recents.isSplitSelectionActive()) {
             return false;
         }
 
@@ -1533,7 +1534,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                             Cuj.CUJ_DESKTOP_MODE_APP_LAUNCH_FROM_ICON)
                             : null;
             Runnable launchTask = () -> handleGroupTaskLaunch(singleTask, remoteTransition,
-                    isTaskbarShowingDesktopTasks(), DesktopTaskToFrontReason.TASKBAR_TAP);
+                    isTaskbarShowingDesktopTasks(), DesktopTaskToFrontReason.TASKBAR_TAP, view);
             if (!runAfterLaunchingDesktopTaskIfInOverview(recents, launchTask)) {
                 launchTask.run();
             }
@@ -1555,19 +1556,28 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                 mControllers.taskbarStashController.updateAndAnimateTransientTaskbar(true);
             }
         } else if (tag instanceof TaskItemInfo info) {
-            RemoteTransition remoteTransition = canUnminimizeDesktopTask(info.getTaskId())
-                    ? createDesktopAppLaunchRemoteTransition(
-                            AppLaunchType.UNMINIMIZE, Cuj.CUJ_DESKTOP_MODE_APP_LAUNCH_FROM_ICON)
-                    : null;
+            Task task = null;
+            if (DesktopExperienceFlags.ENABLE_TASKBAR_RUNNING_TASKS_IN_SPLITSCREEN_SELECT_BUGFIX
+                        .isTrue()
+                    && recents != null && recents.isSplitSelectionActive()
+                    && (task = getControllers().taskbarRecentAppsController.getDesktopTaskWithId(
+                                info.getTaskId())) != null) {
+                taskbarUIController.moveRunningTaskToSplitSelection(task, info, view);
+            } else {
+                RemoteTransition remoteTransition = canUnminimizeDesktopTask(info.getTaskId())
+                        ? createDesktopAppLaunchRemoteTransition(
+                                AppLaunchType.UNMINIMIZE, Cuj.CUJ_DESKTOP_MODE_APP_LAUNCH_FROM_ICON)
+                        : null;
 
-            Runnable launchTask = () ->
-                    SystemUiProxy.INSTANCE.get(this).showDesktopApp(
-                            info.getTaskId(), remoteTransition,
-                            DesktopTaskToFrontReason.TASKBAR_TAP);
-            if (!runAfterLaunchingDesktopTaskIfInOverview(recents, launchTask)) {
-                UI_HELPER_EXECUTOR.execute(launchTask);
+                Runnable launchTask = () ->
+                        SystemUiProxy.INSTANCE.get(this).showDesktopApp(
+                                info.getTaskId(), remoteTransition,
+                                DesktopTaskToFrontReason.TASKBAR_TAP);
+                if (!runAfterLaunchingDesktopTaskIfInOverview(recents, launchTask)) {
+                    UI_HELPER_EXECUTOR.execute(launchTask);
+                }
+
             }
-
             mControllers.taskbarStashController.updateAndAnimateTransientTaskbar(
                     /* stash= */ true);
         } else if (tag instanceof WorkspaceItemInfo) {
@@ -1669,22 +1679,34 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             GroupTask task,
             @Nullable RemoteTransition remoteTransition,
             boolean onDesktop,
-            DesktopTaskToFrontReason toFrontReason) {
+            DesktopTaskToFrontReason toFrontReason,
+            View startingView) {
         if (task instanceof DesktopTask) {
             UI_HELPER_EXECUTOR.execute(
                     () -> SystemUiProxy.INSTANCE.get(this).showDesktopApps(getDisplayId(),
                             remoteTransition));
             return;
         }
-        if (onDesktop && task instanceof SingleTask singleTask) {
-            boolean useRemoteTransition = canUnminimizeDesktopTask(singleTask.getTask().key.id);
-            UI_HELPER_EXECUTOR.execute(() -> {
-                SystemUiProxy.INSTANCE.get(this).showDesktopApp(singleTask.getTask().key.id,
-                        useRemoteTransition ? remoteTransition : null, toFrontReason);
-            });
-            return;
-        }
+
         if (task instanceof SingleTask singleTask) {
+            TaskbarUIController taskbarUIController = mControllers.uiController;
+            RecentsView recents = taskbarUIController.getRecentsView();
+
+            if (DesktopExperienceFlags.ENABLE_TASKBAR_RUNNING_TASKS_IN_SPLITSCREEN_SELECT_BUGFIX
+                    .isTrue() && recents != null && recents.isSplitSelectionActive()) {
+                taskbarUIController.moveRunningTaskToSplitSelection(singleTask.getTask(), null,
+                        startingView);
+                return;
+            }
+
+            if (onDesktop) {
+                boolean useRemoteTransition = canUnminimizeDesktopTask(singleTask.getTask().key.id);
+                UI_HELPER_EXECUTOR.execute(() -> {
+                    SystemUiProxy.INSTANCE.get(this).showDesktopApp(singleTask.getTask().key.id,
+                            useRemoteTransition ? remoteTransition : null, toFrontReason);
+                });
+                return;
+            }
             UI_HELPER_EXECUTOR.execute(() -> {
                 ActivityOptions activityOptions =
                         makeDefaultActivityOptions(SPLASH_SCREEN_STYLE_UNDEFINED).options;
@@ -1695,6 +1717,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             });
             return;
         }
+
         assert task instanceof SplitTask;
         mControllers.uiController.launchSplitTasks((SplitTask) task, remoteTransition);
     }
