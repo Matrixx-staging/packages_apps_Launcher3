@@ -24,6 +24,7 @@ import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.widget.picker.util.WidgetPreviewContainerSize
 import com.android.launcher3.widgetpicker.shared.model.PickableWidget
 import com.android.launcher3.widgetpicker.shared.model.WidgetApp
+import com.android.launcher3.widgetpicker.shared.model.isAppWidget
 import java.util.Arrays
 import java.util.stream.Collectors
 import javax.inject.Inject
@@ -31,47 +32,61 @@ import javax.inject.Inject
 /**
  * An implementation of [FeaturedWidgetsDataSource] that provides featured widgets based on a static
  * configuration from resources and pre-defined size templates.
+ *
+ * Only appwidgets; no shortcuts
  */
 @LauncherAppSingleton
-class ConfigResourceFeaturedWidgetsDataSource @Inject constructor(
+class ConfigResourceFeaturedWidgetsDataSource
+@Inject
+constructor(
     @ApplicationContext private val appContext: Context,
-    private val idp: InvariantDeviceProfile
+    private val idp: InvariantDeviceProfile,
 ) : FeaturedWidgetsDataSource {
     // the package part in component name e.g. "com.example" in {com.example/widget.Provider}
     private var eligiblePackages: Set<String> = emptySet()
 
     override suspend fun initialize() {
         if (eligiblePackages.isEmpty()) {
-            eligiblePackages = Arrays.stream(
-                appContext.resources.getStringArray(R.array.default_featured_widget_apps)
-            ).collect(Collectors.toSet())
+            eligiblePackages =
+                Arrays.stream(
+                        appContext.resources.getStringArray(R.array.default_featured_widget_apps)
+                    )
+                    .collect(Collectors.toSet())
         }
     }
 
     override suspend fun getFeaturedWidgets(widgetApps: List<WidgetApp>): List<PickableWidget> {
-        val widgetsByContainerSize = widgetApps
-            .shuffled()
-            // pick only one of user profiles
-            .distinctBy { Pair(it.id.packageName, it.id.category) }
-            .flatMap { it.widgets }
-            .filter { eligiblePackages.contains(it.id.componentName.packageName) }
-            .groupBy {
-                WidgetPreviewContainerSize(
-                    it.sizeInfo.containerSpanX,
-                    it.sizeInfo.containerSpanY
-                )
-            }
+        val widgetsByContainerSize =
+            widgetApps
+                .shuffled()
+                // pick only one of user profiles
+                .distinctBy { Pair(it.id.packageName, it.id.category) }
+                .flatMap { it.widgets }
+                .filter {
+                    eligiblePackages.isEmpty() ||
+                        eligiblePackages.contains(it.id.componentName.packageName)
+                }
+                .groupBy {
+                    WidgetPreviewContainerSize(
+                        it.sizeInfo.containerSpanX,
+                        it.sizeInfo.containerSpanY,
+                    )
+                }
 
         val selected: MutableList<PickableWidget> = mutableListOf()
         val usedAppIds: MutableSet<String> = mutableSetOf()
 
-        val sizesToPick = WidgetPreviewContainerSize.pickTemplateForFeaturedWidgets(
-            idp.getDeviceProfile(appContext)
-        )
+        val sizesToPick =
+            WidgetPreviewContainerSize.pickTemplateForFeaturedWidgets(
+                idp.getDeviceProfile(appContext)
+            )
         for (sizeToPick in sizesToPick) {
             widgetsByContainerSize[sizeToPick]?.shuffled()?.let { items ->
                 for (item in items) {
-                    if (!usedAppIds.contains(item.appId.packageName)) {
+                    if (
+                        item.widgetInfo.isAppWidget() &&
+                            !usedAppIds.contains(item.appId.packageName)
+                    ) {
                         selected.add(item)
                         usedAppIds.add(item.appId.packageName)
                         break

@@ -17,6 +17,11 @@
 package com.android.launcher3.widgetpicker.shared.model
 
 import android.appwidget.AppWidgetProviderInfo
+import android.content.pm.LauncherActivityInfo
+import com.android.launcher3.widgetpicker.shared.model.WidgetInfo.AppWidgetInfo
+import com.android.launcher3.widgetpicker.shared.model.WidgetInfo.ShortcutInfo
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
 /**
  * Raw information about a widget that can be considered for display in widget picker list.
@@ -28,22 +33,22 @@ import android.appwidget.AppWidgetProviderInfo
  * @property appId a unique identifier for the app group that this widget could belong to
  * @property label a user friendly label for the widget.
  * @property description a user friendly description for the widget
- * @property appWidgetProviderInfo widget info associated with the widget as configured by the
- *   developer; note: this should be a local clone and not the object that was received from
- *   appwidget manager.
+ * @property widgetInfo info associated with the widget as configured by the developer shared with
+ *   host when adding a widget; note: this should be a local clone and not the object that was
+ *   received from appwidget manager or package manager.
  */
 data class PickableWidget(
     val id: WidgetId,
     val appId: WidgetAppId,
     val label: String,
     val description: CharSequence?,
-    val appWidgetProviderInfo: AppWidgetProviderInfo,
+    val widgetInfo: WidgetInfo,
     val sizeInfo: WidgetSizeInfo,
 ) {
     // Custom toString to account for the appWidgetProviderInfo.
     override fun toString(): String =
         "PickableWidget(id=$id,appId=$appId,label=$label,description=$description," +
-            "sizeInfo=$sizeInfo,provider=${appWidgetProviderInfo.provider})"
+            "sizeInfo=$sizeInfo,widgetInfo=${widgetInfo})"
 }
 
 /**
@@ -73,3 +78,40 @@ data class WidgetSizeInfo(
     val containerWidthPx: Int,
     val containerHeightPx: Int,
 )
+
+/** Information of the widget as configured by the developer. */
+sealed class WidgetInfo {
+    /**
+     * @param appWidgetProviderInfo metadata of an installed widgets as received from the appwidget
+     *   manager.
+     */
+    data class AppWidgetInfo(val appWidgetProviderInfo: AppWidgetProviderInfo) : WidgetInfo()
+
+    /**
+     * @param launcherActivityInfo metadata of an installed deep shortcut as received from the
+     *   package manager.
+     */
+    data class ShortcutInfo(val launcherActivityInfo: LauncherActivityInfo) : WidgetInfo()
+
+    override fun toString(): String {
+        when (this) {
+            is AppWidgetInfo -> "WidgetInfo(provider=${this.appWidgetProviderInfo.provider})"
+            is ShortcutInfo -> "WidgetInfo(activityInfo=${this.launcherActivityInfo.componentName})"
+        }
+        return super.toString()
+    }
+}
+
+/** Returns true if the info is about an app widget. */
+@OptIn(ExperimentalContracts::class)
+fun WidgetInfo.isAppWidget(): Boolean {
+    contract { returns(true) implies (this@isAppWidget is AppWidgetInfo) }
+    return this is AppWidgetInfo
+}
+
+/** Returns true if the info is about a deep shortcut. */
+@OptIn(ExperimentalContracts::class)
+fun WidgetInfo.isShortcut(): Boolean {
+    contract { returns(true) implies (this@isShortcut is ShortcutInfo) }
+    return this is ShortcutInfo
+}

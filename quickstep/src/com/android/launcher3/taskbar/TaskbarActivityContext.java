@@ -1844,7 +1844,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                     return;
                 }
             }
-            if (shouldLaunchInDesktop(displayId)) {
+            if (shouldLaunchInDesktop(displayId, info)) {
                 launchDesktopApp(intent, info, displayId);
             } else {
                 startActivity(intent, null);
@@ -1856,8 +1856,14 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         }
     }
 
-    private boolean shouldLaunchInDesktop(int displayId) {
+    private boolean shouldLaunchInDesktop(int displayId, ItemInfo info) {
         if (!DesktopModeFlags.ENABLE_DESKTOP_APP_LAUNCH_TRANSITIONS_BUGFIX.isTrue()) {
+            return false;
+        }
+        if (DesktopExperienceFlags.ENABLE_DESKTOP_FIRST_FULLSCREEN_REFOCUS_BUGFIX.isTrue()
+                && DisplayController.isInDesktopFirstMode(this)
+                && mControllers.taskbarRecentAppsController.hasSingleTask(info)) {
+            // Keep the fullscreen mode in desktop-first mode.
             return false;
         }
         // Always launch in freeform if in external display.

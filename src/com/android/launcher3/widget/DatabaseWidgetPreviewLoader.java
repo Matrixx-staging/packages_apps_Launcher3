@@ -51,7 +51,6 @@ import com.android.launcher3.pm.ShortcutConfigActivityInfo;
 import com.android.launcher3.util.CancellableTask;
 import com.android.launcher3.util.Executors;
 import com.android.launcher3.util.LooperExecutor;
-import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.widget.util.WidgetSizes;
 
 import java.util.concurrent.ExecutionException;
@@ -272,8 +271,7 @@ public class DatabaseWidgetPreviewLoader {
 
     private Bitmap generateShortcutPreview(
             ShortcutConfigActivityInfo info, int maxWidth, int maxHeight) {
-        int iconSize = ActivityContext.lookupContext(
-                mContext).getDeviceProfile().getAllAppsProfile().getIconSizePx();
+        int iconSize = mDeviceProfile.getAllAppsProfile().getIconSizePx();
         int padding = mContext.getResources()
                 .getDimensionPixelSize(R.dimen.widget_preview_shortcut_padding);
 

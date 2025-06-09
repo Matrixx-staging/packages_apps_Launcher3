@@ -21,8 +21,9 @@ import com.android.launcher3.widgetpicker.WidgetPickerSingleton
 import com.android.launcher3.widgetpicker.shared.model.HostConstraint
 import com.android.launcher3.widgetpicker.shared.model.PickableWidget
 import com.android.launcher3.widgetpicker.shared.model.WidgetHostInfo
+import com.android.launcher3.widgetpicker.shared.model.isAppWidget
+import com.android.launcher3.widgetpicker.shared.model.isShortcut
 import javax.inject.Inject
-import javax.inject.Named
 
 /**
  * A usecase that hosts the business logic of filtering widgets based on host constraints and
@@ -34,16 +35,28 @@ class FilterWidgetsForHostUseCase
 constructor(@WidgetPickerHostInfo private val hostInfo: WidgetHostInfo) {
     operator fun invoke(widgets: List<PickableWidget>) =
         widgets.filter { widget ->
+            val widgetInfo = widget.widgetInfo
+
             val eligibleForHost =
                 hostInfo.constraints.all { constraint ->
                     when (constraint) {
+                        is HostConstraint.NoShortcutsConstraint -> !widgetInfo.isShortcut()
+
                         is HostConstraint.HostUserConstraint ->
                             !constraint.userFilters.contains(widget.id.userHandle)
 
                         is HostConstraint.HostCategoryConstraint -> {
-                            val widgetCategory = widget.appWidgetProviderInfo.widgetCategory
-                            matchesCategory(constraint.categoryInclusionMask, widgetCategory) &&
-                                matchesCategory(constraint.categoryExclusionMask, widgetCategory)
+                            // category applies only to widgets
+                            if (widgetInfo.isAppWidget()) {
+                                val widgetCategory = widgetInfo.appWidgetProviderInfo.widgetCategory
+                                matchesCategory(constraint.categoryInclusionMask, widgetCategory) &&
+                                    matchesCategory(
+                                        constraint.categoryExclusionMask,
+                                        widgetCategory,
+                                    )
+                            } else {
+                                true
+                            }
                         }
                     }
                 }

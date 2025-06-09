@@ -138,6 +138,19 @@ class TaskbarRecentAppsController(
         }
     }
 
+    /**
+     * Returns `true` if recents has the single task (i.e., fullscreen) represented by the given
+     * [itemInfo].
+     */
+    fun hasSingleTask(itemInfo: ItemInfo?): Boolean {
+        val packageName = itemInfo?.targetPackage ?: return false
+        return allRecentTasks.any { task ->
+            task is SingleTask &&
+                packageName == task.task.key.packageName &&
+                    task.task.key.userId == itemInfo.user.identifier
+        }
+    }
+
     @VisibleForTesting
     val runningTaskIds: Set<Int>
         /**

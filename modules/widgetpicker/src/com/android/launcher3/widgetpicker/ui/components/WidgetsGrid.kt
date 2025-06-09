@@ -61,10 +61,10 @@ import kotlin.math.max
  * @param appIcons optional map containing app icons to show in the widget details besides the label
  *   (when showing the widgets outside of app context e.g. recommendations)
  * @param showDragShadow indicates if in a drag and drop session, widget picker should show drag
- * shadow containing the preview; if not set, a transparent shadow is rendered and host should
- * manage providing a shadow on its own.
+ *   shadow containing the preview; if not set, a transparent shadow is rendered and host should
+ *   manage providing a shadow on its own.
  * @param onWidgetInteraction callback invoked when a widget is being dragged and picker has started
- * global drag and drop session.
+ *   global drag and drop session.
  * @param modifier modifier with parent constraints and additional modifications
  */
 @Composable
@@ -93,12 +93,13 @@ fun WidgetsGrid(
                 addButtonWidgetId = addButtonWidgetId,
                 onWidgetInteraction = onWidgetInteraction,
                 onAddButtonToggle = { id ->
-                    addButtonWidgetId = if (id != addButtonWidgetId) {
-                        id
-                    } else {
-                        null
-                    }
-                }
+                    addButtonWidgetId =
+                        if (id != addButtonWidgetId) {
+                            id
+                        } else {
+                            null
+                        }
+                },
             )
         }
     }
@@ -155,7 +156,7 @@ private fun WidgetsFlowRow(
                 appIcons = appIcons,
                 addButtonWidgetId = addButtonWidgetId,
                 onWidgetInteraction = onWidgetInteraction,
-                onAddButtonToggle = onAddButtonToggle
+                onAddButtonToggle = onAddButtonToggle,
             )
         },
         previewContainerWidthPx = widgetSizeGroup.previewContainerWidthPx,
@@ -184,21 +185,19 @@ private fun Previews(
         Box(
             contentAlignment = Alignment.BottomCenter,
             modifier =
-                Modifier
-                    .fillMaxSize()
-                    .clearAndSetSemantics {
-                        traversalIndex = index.toFloat()
-                        testTag = buildWidgetPickerTestTag(WIDGET_PREVIEW_TEST_TAG)
-                    },
+                Modifier.fillMaxSize().clearAndSetSemantics {
+                    traversalIndex = index.toFloat()
+                    testTag = buildWidgetPickerTestTag(WIDGET_PREVIEW_TEST_TAG)
+                },
         ) {
             WidgetPreview(
                 id = widgetItem.id,
                 sizeInfo = widgetItem.sizeInfo,
                 preview = widgetPreview,
-                appwidgetInfo = widgetItem.appWidgetProviderInfo,
+                widgetInfo = widgetItem.widgetInfo,
                 showDragShadow = showDragShadow,
                 onWidgetInteraction = onWidgetInteraction,
-                onAddButtonToggle = onAddButtonToggle
+                onAddButtonToggle = onAddButtonToggle,
             )
         }
     }
@@ -211,7 +210,7 @@ private fun Details(
     addButtonWidgetId: WidgetId?,
     appIcons: Map<WidgetAppId, WidgetAppIcon>,
     onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
-    onAddButtonToggle: (WidgetId) -> Unit
+    onAddButtonToggle: (WidgetId) -> Unit,
 ) {
     widgets.forEachIndexed { index, widgetItem ->
         val appId = widgetItem.appId
@@ -376,8 +375,8 @@ private fun Placeable.PlacementScope.placeRows(
         // Move to next row
         yPosition +=
             measuredRow.tallestPreviewHeight +
-                    measuredRow.tallestDetailsHeight +
-                    rowVerticalSpacingPx
+                measuredRow.tallestDetailsHeight +
+                rowVerticalSpacingPx
     }
 }
 

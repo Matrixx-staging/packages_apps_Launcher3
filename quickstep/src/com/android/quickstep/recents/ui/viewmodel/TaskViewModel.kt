@@ -94,15 +94,16 @@ class TaskViewModel(
         }
 
     private val overlayEnabled =
-        if (taskViewType == TaskViewType.DESKTOP) {
-            flowOf(false)
-        } else {
-            combine(recentsViewData.overlayEnabled, recentsViewData.settledFullyVisibleTaskIds) {
-                    isOverlayEnabled,
-                    settledFullyVisibleTaskIds ->
-                    isOverlayEnabled && settledFullyVisibleTaskIds.any { it in taskIds.value }
-                }
-                .distinctUntilChanged()
+        when (taskViewType) {
+            TaskViewType.SINGLE ->
+                combine(
+                        recentsViewData.overlayEnabled,
+                        recentsViewData.settledFullyVisibleTaskIds,
+                    ) { isOverlayEnabled, settledFullyVisibleTaskIds ->
+                        isOverlayEnabled && settledFullyVisibleTaskIds.any { it in taskIds.value }
+                    }
+                    .distinctUntilChanged()
+            else -> flowOf(false)
         }
 
     private val preThreadingImprovedState: Flow<TaskTileUiState> =
@@ -126,10 +127,11 @@ class TaskViewModel(
             val taskIds = taskModels.map { it.first }.toSet()
             val isCentralTask = taskIds == centralTaskIds
             val overlayEnabled =
-                if (taskViewType == TaskViewType.DESKTOP) {
-                    false
-                } else {
-                    isOverlayEnabled && settledFullyVisibleTaskIds.any { it in taskIds }
+                when (taskViewType) {
+                    TaskViewType.SINGLE -> {
+                        isOverlayEnabled && settledFullyVisibleTaskIds.any { it in taskIds }
+                    }
+                    else -> false
                 }
             val isLiveTile = runningTaskIds == taskIds && !runningTaskShowScreenshot
             val taskData = mapToTaskData(taskModels, isLiveTile)

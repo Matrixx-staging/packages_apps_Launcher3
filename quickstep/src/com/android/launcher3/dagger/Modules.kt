@@ -16,6 +16,7 @@
 
 package com.android.launcher3.dagger
 
+import com.android.launcher3.backuprestore.LauncherRestoreEventLogger
 import com.android.launcher3.icons.LauncherIconProvider
 import com.android.launcher3.icons.LauncherIconProviderImpl
 import com.android.launcher3.logging.StatsLogManager.StatsLogManagerFactory
@@ -29,6 +30,7 @@ import com.android.launcher3.util.window.RefreshRateTracker
 import com.android.launcher3.util.window.WindowManagerProxy
 import com.android.launcher3.widget.LauncherWidgetHolder.WidgetHolderFactory
 import com.android.quickstep.InstantAppResolverImpl
+import com.android.quickstep.LauncherRestoreEventLoggerImpl
 import com.android.quickstep.logging.StatsLogCompatManager.StatsLogCompatManagerFactory
 import com.android.quickstep.util.ChoreographerFrameRateTracker
 import com.android.quickstep.util.GestureExclusionManager
@@ -58,6 +60,11 @@ abstract class ApiWrapperModule {
     abstract fun bindIconProvider(iconProviderImpl: LauncherIconProviderImpl): LauncherIconProvider
 
     @Binds abstract fun bindInstantAppResolver(impl: InstantAppResolverImpl): InstantAppResolver
+
+    @Binds
+    abstract fun bindRestoreEventLogger(
+        impl: LauncherRestoreEventLoggerImpl
+    ): LauncherRestoreEventLogger
 }
 
 @Module

@@ -1,5 +1,6 @@
 package com.android.launcher3.popup;
 
+import static com.android.launcher3.AbstractFloatingView.TYPE_FOLDER;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_DISMISS_PREDICTION_UNDO;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_PRIVATE_SPACE_INSTALL_SYSTEM_SHORTCUT_TAP;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_PRIVATE_SPACE_UNINSTALL_SYSTEM_SHORTCUT_TAP;
@@ -259,7 +260,7 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
 
         @Override
         public void onClick(View view) {
-            AbstractFloatingView.closeAllOpenViews(mTarget);
+            AbstractFloatingView.closeAllOpenViewsExcept(mTarget, TYPE_FOLDER);
             DropTargetHandler dropTargetHandler =
                     ActivityContext.lookupContext(view.getContext()).getDropTargetHandler();
             dropTargetHandler.prepareToUndoDelete();

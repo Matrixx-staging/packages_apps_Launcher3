@@ -1118,6 +1118,61 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
             .containsExactlyElementsIn(listOf(1, 2, 3, 4))
     }
 
+    @Test
+    fun hasSingleTask_noTargetPackage_returnsFalse() {
+        prepareHotseatAndRunningAndRecentApps(
+            hotseatPackages = emptyList(),
+            runningTasks = emptyList(),
+            recentTaskPackages = listOf(RECENT_PACKAGE_1),
+        )
+        assertThat(recentAppsController.hasSingleTask(ItemInfo())).isFalse()
+    }
+
+    @Test
+    fun hasSingleTask_noRecentTasks_returnsFalse() {
+        prepareHotseatAndRunningAndRecentApps(
+            hotseatPackages = emptyList(),
+            runningTasks = emptyList(),
+            recentTaskPackages = emptyList(),
+        )
+        val itemInfo = createItemInfo(RECENT_PACKAGE_1)
+        assertThat(recentAppsController.hasSingleTask(itemInfo)).isFalse()
+    }
+
+    @Test
+    fun hasSingleTask_noMatchingSingleTask_returnsFalse() {
+        prepareHotseatAndRunningAndRecentApps(
+            hotseatPackages = emptyList(),
+            runningTasks = emptyList(),
+            recentTaskPackages = listOf(RECENT_PACKAGE_1),
+        )
+        val itemInfo = createItemInfo(RECENT_PACKAGE_2)
+        assertThat(recentAppsController.hasSingleTask(itemInfo)).isFalse()
+    }
+
+    @Test
+    fun hasSingleTask_matchingSingleTask_returnsTrue() {
+        prepareHotseatAndRunningAndRecentApps(
+            hotseatPackages = emptyList(),
+            runningTasks = emptyList(),
+            recentTaskPackages = listOf(RECENT_PACKAGE_1, RECENT_PACKAGE_2),
+        )
+        val itemInfo = createItemInfo(RECENT_PACKAGE_1)
+        assertThat(recentAppsController.hasSingleTask(itemInfo)).isTrue()
+    }
+
+    @Test
+    fun hasSingleTask_matchingSingleTaskDifferentUser_returnsFalse() {
+        prepareHotseatAndRunningAndRecentApps(
+            hotseatPackages = emptyList(),
+            runningTasks = emptyList(),
+            recentTaskPackages = listOf(RECENT_PACKAGE_1),
+        )
+        // RECENT_PACKAGE_1 is created with myUserHandle in createRecentTasksFromPackageNames
+        val itemInfo = createItemInfo(RECENT_PACKAGE_1, USER_HANDLE_1)
+        assertThat(recentAppsController.hasSingleTask(itemInfo)).isFalse()
+    }
+
     private fun prepareHotseatAndRunningAndRecentApps(
         hotseatPackages: List<String>,
         runningTasks: List<Task>,

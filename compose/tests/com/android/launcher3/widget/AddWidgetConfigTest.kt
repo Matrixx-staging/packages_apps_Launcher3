@@ -34,6 +34,7 @@ import com.android.launcher3.util.ui.PortraitLandscapeRunner.PortraitLandscape
 import com.android.launcher3.util.ui.TestViewHelpers
 import com.android.launcher3.util.workspace.FavoriteItemsTransaction
 import com.android.launcher3.widgetpicker.listeners.WidgetPickerAddItemListener
+import com.android.launcher3.widgetpicker.shared.model.WidgetInfo
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -83,10 +84,10 @@ class AddWidgetConfigTest : BaseLauncherActivityTest<Launcher>() {
 
         // Add widget to home screen
         val monitor = WidgetConfigStartupMonitor()
-        launcherActivity.executeOnLauncher({ l: Launcher ->
-            val addItemListener = WidgetPickerAddItemListener(widgetInfo)
+        launcherActivity.executeOnLauncher { l: Launcher ->
+            val addItemListener = WidgetPickerAddItemListener(WidgetInfo.AppWidgetInfo(widgetInfo))
             addItemListener.init(l, /* isHomeStarted= */ true)
-        })
+        }
 
         uiDevice.waitForIdle()
 

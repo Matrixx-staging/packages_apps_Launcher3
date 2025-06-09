@@ -27,6 +27,7 @@ import com.android.launcher3.widgetpicker.shared.model.PickableWidget
 import com.android.launcher3.widgetpicker.shared.model.WidgetApp
 import com.android.launcher3.widgetpicker.shared.model.WidgetAppId
 import com.android.launcher3.widgetpicker.shared.model.WidgetId
+import com.android.launcher3.widgetpicker.shared.model.WidgetInfo
 import com.android.launcher3.widgetpicker.shared.model.WidgetPreview
 import com.android.launcher3.widgetpicker.shared.model.WidgetSizeInfo
 import com.android.launcher3.widgetpicker.shared.model.WidgetUserProfile
@@ -118,10 +119,13 @@ object TestUtils {
             appId = finalWidgetAppId,
             label = providerClassName,
             description = null,
-            appWidgetProviderInfo = AppWidgetProviderInfo().apply {
-                widgetCategory = category
-                provider = ComponentName.createRelative(PACKAGE_NAME, providerClassName)
-            },
+            widgetInfo =
+                WidgetInfo.AppWidgetInfo(
+                    AppWidgetProviderInfo().apply {
+                        widgetCategory = category
+                        provider = ComponentName.createRelative(PACKAGE_NAME, providerClassName)
+                    }
+                ),
             sizeInfo =
                 WidgetSizeInfo(
                     spanX = 2,

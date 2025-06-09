@@ -116,6 +116,13 @@ public class WindowManagerProxy {
     }
 
     /**
+     * Returns if the display is in desktop-first mode.
+     */
+    public boolean isDisplayDesktopFirst(Context displayInfoContext) {
+        return false;
+    }
+
+    /**
      * Returns if the pinned taskbar should be shown when home is visible.
      */
     public boolean showLockedTaskbarOnHome(Context displayInfoContext) {

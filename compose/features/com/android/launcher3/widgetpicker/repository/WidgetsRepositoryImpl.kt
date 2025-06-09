@@ -24,6 +24,7 @@ import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.model.WidgetItem
 import com.android.launcher3.model.WidgetsModel
 import com.android.launcher3.model.data.PackageItemInfo
+import com.android.launcher3.pm.ShortcutConfigActivityInfo.ShortcutConfigActivityInfoVO
 import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import com.android.launcher3.widget.DatabaseWidgetPreviewLoader
@@ -36,8 +37,11 @@ import com.android.launcher3.widgetpicker.shared.model.PickableWidget
 import com.android.launcher3.widgetpicker.shared.model.WidgetApp
 import com.android.launcher3.widgetpicker.shared.model.WidgetAppId
 import com.android.launcher3.widgetpicker.shared.model.WidgetId
+import com.android.launcher3.widgetpicker.shared.model.WidgetInfo
 import com.android.launcher3.widgetpicker.shared.model.WidgetPreview
 import com.android.launcher3.widgetpicker.shared.model.WidgetSizeInfo
+import javax.inject.Inject
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -51,76 +55,73 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
-import kotlin.coroutines.CoroutineContext
 
 /**
  * An implementation of the [WidgetsRepository] that provides widgets for widget picker using the
  * [WidgetsModel], [FeaturedWidgetsDataSource] & enables search using the provided
  * [WidgetsSearchAlgorithm].
  */
-class WidgetsRepositoryImpl @Inject constructor(
+class WidgetsRepositoryImpl
+@Inject
+constructor(
     @ApplicationContext private val appContext: Context,
     idp: InvariantDeviceProfile,
     private val widgetsModel: WidgetsModel,
     private val featuredWidgetsDataSource: FeaturedWidgetsDataSource,
     private val searchAlgorithm: WidgetsSearchAlgorithm,
-    @BackgroundContext
-    private val backgroundContext: CoroutineContext,
+    @BackgroundContext private val backgroundContext: CoroutineContext,
 ) : WidgetsRepository {
     private val deviceProfile = idp.getDeviceProfile(appContext)
-    private val backgroundScope = CoroutineScope(
-        SupervisorJob() + backgroundContext + CoroutineName("WidgetsRepository")
-    )
+    private val backgroundScope =
+        CoroutineScope(SupervisorJob() + backgroundContext + CoroutineName("WidgetsRepository"))
 
-    private val _widgetItemsByPackage =
-        MutableStateFlow<List<WidgetApp>>(emptyList())
+    private val _widgetItemsByPackage = MutableStateFlow<List<WidgetApp>>(emptyList())
     private val databaseWidgetPreviewLoader = DatabaseWidgetPreviewLoader(appContext, deviceProfile)
 
     override fun initialize() {
         // TODO(b/419495339): Remove the model executor requirement from widgets model and replace
         // with scope.launch
         MODEL_EXECUTOR.execute {
-            widgetsModel.update(/*packageUser=*/ null)
+            widgetsModel.update(/* packageUser= */ null)
             _widgetItemsByPackage.update {
                 widgetsModel.widgetsByPackageItemForPicker.toPickableWidgets(deviceProfile)
             }
         }
 
-        backgroundScope.launch {
-            featuredWidgetsDataSource.initialize()
-        }
+        backgroundScope.launch { featuredWidgetsDataSource.initialize() }
     }
 
     override fun observeWidgets(): Flow<List<WidgetApp>> = _widgetItemsByPackage.asStateFlow()
 
     override suspend fun getWidgetPreview(id: WidgetId): WidgetPreview {
         val componentKey = ComponentKey(id.componentName, id.userHandle)
-        val widgetItem = widgetsModel.widgetsByComponentKey[componentKey]
-            ?: return WidgetPreview.PlaceholderWidgetPreview
+        val widgetItem =
+            widgetsModel.widgetsByComponentKey[componentKey]
+                ?: return WidgetPreview.PlaceholderWidgetPreview
 
         val previewSizePx =
             WidgetSizes.getWidgetSizePx(deviceProfile, widgetItem.spanX, widgetItem.spanY)
-        val preview = withContext(backgroundContext) {
-            val result =
-                databaseWidgetPreviewLoader.generatePreviewInfoBg(
-                    widgetItem,
-                    previewSizePx.width,
-                    previewSizePx.height
-                )
-            when {
-                result.remoteViews != null ->
-                    WidgetPreview.RemoteViewsWidgetPreview(result.remoteViews)
+        val preview =
+            withContext(backgroundContext) {
+                val result =
+                    databaseWidgetPreviewLoader.generatePreviewInfoBg(
+                        widgetItem,
+                        previewSizePx.width,
+                        previewSizePx.height,
+                    )
+                when {
+                    result.remoteViews != null ->
+                        WidgetPreview.RemoteViewsWidgetPreview(result.remoteViews)
 
-                result.providerInfo != null ->
-                    WidgetPreview.ProviderInfoWidgetPreview(result.providerInfo)
+                    result.providerInfo != null ->
+                        WidgetPreview.ProviderInfoWidgetPreview(result.providerInfo)
 
-                result.previewBitmap != null ->
-                    WidgetPreview.BitmapWidgetPreview(result.previewBitmap)
+                    result.previewBitmap != null ->
+                        WidgetPreview.BitmapWidgetPreview(result.previewBitmap)
 
-                else -> WidgetPreview.PlaceholderWidgetPreview
+                    else -> WidgetPreview.PlaceholderWidgetPreview
+                }
             }
-        }
 
         return preview
     }
@@ -138,29 +139,32 @@ class WidgetsRepositoryImpl @Inject constructor(
     }
 
     override fun getFeaturedWidgets(): Flow<List<PickableWidget>> {
-        return _widgetItemsByPackage.map { widgets ->
-            featuredWidgetsDataSource.getFeaturedWidgets(widgets)
-        }.flowOn(backgroundContext)
+        return _widgetItemsByPackage
+            .map { widgets -> featuredWidgetsDataSource.getFeaturedWidgets(widgets) }
+            .flowOn(backgroundContext)
     }
 
     companion object {
-        private fun Map<PackageItemInfo, List<WidgetItem>>.toPickableWidgets(deviceProfile: DeviceProfile) =
-            map { (packageItemInfo, widgetItems) ->
-                val widgetAppId = WidgetAppId(
+        private fun Map<PackageItemInfo, List<WidgetItem>>.toPickableWidgets(
+            deviceProfile: DeviceProfile
+        ) = map { (packageItemInfo, widgetItems) ->
+            val widgetAppId =
+                WidgetAppId(
                     packageName = packageItemInfo.packageName,
                     userHandle = packageItemInfo.user,
-                    category = packageItemInfo.widgetCategory
+                    category = packageItemInfo.widgetCategory,
                 )
 
-                WidgetApp(
-                    id = widgetAppId,
-                    title = packageItemInfo.title,
-                    widgets = widgetItems.filter { it.widgetInfo != null }.map { widgetItem ->
+            WidgetApp(
+                id = widgetAppId,
+                title = packageItemInfo.title,
+                widgets =
+                    widgetItems.map { widgetItem ->
                         val previewSize =
                             WidgetSizes.getWidgetSizePx(
                                 deviceProfile,
                                 widgetItem.spanX,
-                                widgetItem.spanY
+                                widgetItem.spanY,
                             )
                         val containerSpan =
                             WidgetPreviewContainerSize.forItem(widgetItem, deviceProfile)
@@ -168,31 +172,43 @@ class WidgetsRepositoryImpl @Inject constructor(
                             WidgetSizes.getWidgetSizePx(
                                 deviceProfile,
                                 containerSpan.spanX,
-                                containerSpan.spanY
+                                containerSpan.spanY,
                             )
 
                         PickableWidget(
-                            id = WidgetId(
-                                componentName = widgetItem.componentName,
-                                userHandle = widgetItem.user
-                            ),
+                            id =
+                                WidgetId(
+                                    componentName = widgetItem.componentName,
+                                    userHandle = widgetItem.user,
+                                ),
                             appId = widgetAppId,
                             label = widgetItem.label,
                             description = widgetItem.description,
-                            appWidgetProviderInfo = widgetItem.widgetInfo.clone(),
-                            sizeInfo = WidgetSizeInfo(
-                                spanX = widgetItem.widgetInfo.spanX,
-                                spanY = widgetItem.widgetInfo.spanY,
-                                widthPx = previewSize.width,
-                                heightPx = previewSize.height,
-                                containerSpanX = containerSpan.spanX,
-                                containerSpanY = containerSpan.spanY,
-                                containerWidthPx = containerSize.width,
-                                containerHeightPx = containerSize.height
-                            )
+                            widgetInfo =
+                                if (widgetItem.widgetInfo != null) {
+                                    WidgetInfo.AppWidgetInfo(
+                                        appWidgetProviderInfo = widgetItem.widgetInfo.clone()
+                                    )
+                                } else {
+                                    check(widgetItem.activityInfo is ShortcutConfigActivityInfoVO)
+                                    WidgetInfo.ShortcutInfo(
+                                        launcherActivityInfo = widgetItem.activityInfo.mInfo
+                                    )
+                                },
+                            sizeInfo =
+                                WidgetSizeInfo(
+                                    spanX = widgetItem.spanX,
+                                    spanY = widgetItem.spanY,
+                                    widthPx = previewSize.width,
+                                    heightPx = previewSize.height,
+                                    containerSpanX = containerSpan.spanX,
+                                    containerSpanY = containerSpan.spanY,
+                                    containerWidthPx = containerSize.width,
+                                    containerHeightPx = containerSize.height,
+                                ),
                         )
-                    }
-                )
-            }
+                    },
+            )
+        }
     }
 }

@@ -21,6 +21,7 @@ import static android.view.View.MeasureSpec.makeMeasureSpec;
 
 import static com.android.launcher3.LauncherAnimUtils.VIEW_ALPHA;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET;
+import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT;
 import static com.android.launcher3.icons.FastBitmapDrawable.getDisabledColorFilter;
 import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
 
@@ -635,7 +636,8 @@ public abstract class DragView<T extends Context & ActivityContext> extends Fram
                 // When widgets are dropped from another window, we don't want to remove the
                 // dragView on resume of launcher.
                 if (Flags.enableWidgetPickerRefactor()
-                        && ((DragView<?>) child).mItemType != ITEM_TYPE_APPWIDGET) {
+                        && ((DragView<?>) child).mItemType != ITEM_TYPE_APPWIDGET
+                        && ((DragView<?>) child).mItemType != ITEM_TYPE_DEEP_SHORTCUT) {
                     dragLayer.removeView(child);
                 }
             }

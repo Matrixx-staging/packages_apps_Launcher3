@@ -53,11 +53,9 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 @AllowedDevices(allowed = [DeviceProduct.CF_PHONE])
 class WidgetInteractionsTest {
-    @get:Rule
-    val limitDevicesRule = LimitDevicesRule()
+    @get:Rule val limitDevicesRule = LimitDevicesRule()
 
-    @get:Rule
-    val composeTestRule = createAndroidComposeRule<ComponentActivity>()
+    @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
     fun tapPreview_andClickAdd() {
@@ -66,7 +64,8 @@ class WidgetInteractionsTest {
         composeTestRule.waitForIdle()
 
         // tap on preview for widget 1
-        composeTestRule.onAllNodesWithTag(PREVIEW_TEST_TAG)
+        composeTestRule
+            .onAllNodesWithTag(PREVIEW_TEST_TAG)
             .assertCountEquals(2)
             .onFirst()
             .performClick()
@@ -74,18 +73,19 @@ class WidgetInteractionsTest {
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithText(WIDGET_ONE.label).isNotDisplayed() // label text not shown
         composeTestRule.onAllNodesWithText(ADD_BUTTON_TEXT).assertCountEquals(1)
-        composeTestRule.onNodeWithContentDescription(WIDGET_ONE_ADD_BUTTON_CONTENT_DESC)
+        composeTestRule
+            .onNodeWithContentDescription(WIDGET_ONE_ADD_BUTTON_CONTENT_DESC)
             .assertExists()
             .performClick()
 
         composeTestRule.waitForIdle()
 
         // widget interaction callback invoked and correct provider info returned.
-        composeTestRule.onNodeWithText(WIDGET_ONE.appWidgetProviderInfo.provider.toString())
-            .assertExists()
+        composeTestRule.onNodeWithText(WIDGET_ONE.widgetInfo.toString()).assertExists()
 
         // tap again on preview for widget 1
-        composeTestRule.onAllNodesWithTag(PREVIEW_TEST_TAG)
+        composeTestRule
+            .onAllNodesWithTag(PREVIEW_TEST_TAG)
             .assertCountEquals(2)
             .onFirst()
             .performClick()
@@ -103,7 +103,8 @@ class WidgetInteractionsTest {
         composeTestRule.waitForIdle()
 
         // tap on preview for widget 1
-        composeTestRule.onAllNodesWithTag(PREVIEW_TEST_TAG)
+        composeTestRule
+            .onAllNodesWithTag(PREVIEW_TEST_TAG)
             .assertCountEquals(2)
             .onFirst()
             .performClick()
@@ -114,11 +115,13 @@ class WidgetInteractionsTest {
         composeTestRule.onNodeWithText(WIDGET_ONE.label).isNotDisplayed()
         composeTestRule.onNodeWithText(WIDGET_TWO.label).isNotDisplayed()
         composeTestRule.onAllNodesWithText(ADD_BUTTON_TEXT).assertCountEquals(1)
-        composeTestRule.onNodeWithContentDescription(WIDGET_ONE_ADD_BUTTON_CONTENT_DESC)
+        composeTestRule
+            .onNodeWithContentDescription(WIDGET_ONE_ADD_BUTTON_CONTENT_DESC)
             .assertExists()
 
         // tap on preview for widget 2
-        composeTestRule.onAllNodesWithTag(PREVIEW_TEST_TAG)
+        composeTestRule
+            .onAllNodesWithTag(PREVIEW_TEST_TAG)
             .assertCountEquals(2)
             .onLast()
             .performClick()
@@ -129,10 +132,10 @@ class WidgetInteractionsTest {
         composeTestRule.onNodeWithText(WIDGET_ONE.label).isDisplayed()
         composeTestRule.onNodeWithText(WIDGET_TWO.label).isNotDisplayed()
         composeTestRule.onAllNodesWithText(ADD_BUTTON_TEXT).assertCountEquals(1)
-        composeTestRule.onNodeWithContentDescription(WIDGET_TWO_ADD_BUTTON_CONTENT_DESC)
+        composeTestRule
+            .onNodeWithContentDescription(WIDGET_TWO_ADD_BUTTON_CONTENT_DESC)
             .assertExists()
     }
-
 
     @Composable
     fun TapToAddTestComposable() {
@@ -149,7 +152,7 @@ class WidgetInteractionsTest {
                 showDragShadow = false,
                 onWidgetInteraction = { widgetInteractionInfo ->
                     if (widgetInteractionInfo is WidgetInteractionInfo.WidgetAddInfo) {
-                        provider = widgetInteractionInfo.providerInfo.provider.toString()
+                        provider = widgetInteractionInfo.widgetInfo.toString()
                     }
                 },
             )
@@ -160,16 +163,18 @@ class WidgetInteractionsTest {
         private val WIDGET_ONE = PERSONAL_TEST_APPS[0].widgets[0]
         private val WIDGET_TWO = PERSONAL_TEST_APPS[1].widgets[0]
 
-        private val TEST_WIDGET_GROUP = WidgetSizeGroup(
-            previewContainerHeightPx = 200,
-            previewContainerWidthPx = 200,
-            widgets = listOf(WIDGET_ONE, WIDGET_TWO)
-        )
+        private val TEST_WIDGET_GROUP =
+            WidgetSizeGroup(
+                previewContainerHeightPx = 200,
+                previewContainerWidthPx = 200,
+                widgets = listOf(WIDGET_ONE, WIDGET_TWO),
+            )
 
-        private val PREVIEWS = mapOf(
-            WIDGET_ONE.id to TestUtils.createBitmapPreview(),
-            WIDGET_TWO.id to TestUtils.createBitmapPreview()
-        )
+        private val PREVIEWS =
+            mapOf(
+                WIDGET_ONE.id to TestUtils.createBitmapPreview(),
+                WIDGET_TWO.id to TestUtils.createBitmapPreview(),
+            )
 
         private val PREVIEW_TEST_TAG = buildWidgetPickerTestTag("widget_preview")
         private const val ADD_BUTTON_TEXT = "Add"

@@ -139,13 +139,6 @@
 
     <string-array name="filtered_components" ></string-array>
     <string-array name="default_featured_widget_apps" translatable="false">
-        <item>com.google.android.calendar</item>
-        <item>com.google.android.deskclock</item>
-        <item>com.google.android.apps.maps</item>
-        <item>com.google.android.contacts</item>
-        <item>com.google.android.apps.chromecast.app</item>
-        <item>com.google.android.gm</item>
-        <item>com.google.android.videos</item>
     </string-array>
 
     <!-- Swipe back to home related -->

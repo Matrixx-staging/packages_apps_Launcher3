@@ -16,13 +16,13 @@
 
 package com.android.launcher3.widgetpicker.ui
 
-import android.appwidget.AppWidgetProviderInfo
 import android.graphics.Rect
+import com.android.launcher3.widgetpicker.shared.model.WidgetInfo
 import com.android.launcher3.widgetpicker.shared.model.WidgetPreview
 
 /**
- * General interface that clients can implement to listen to events from different types of
- * widget picker.
+ * General interface that clients can implement to listen to events from different types of widget
+ * picker.
  */
 interface WidgetPickerEventListeners {
     /** Called when the widget picker is dismissed. */
@@ -37,7 +37,7 @@ sealed class WidgetInteractionInfo {
     /**
      * Information passed in event listener when a widget is dragged.
      *
-     * @param providerInfo metadata for the provider of the widget being dragged.
+     * @param widgetInfo metadata for the provider of the widget being dragged.
      * @param bounds current bounds of the widget's preview considering the drag offset and scale.
      * @param widthPx measured width of the preview.
      * @param heightPx measured height of the preview.
@@ -45,7 +45,7 @@ sealed class WidgetInteractionInfo {
      * @param mimeType a unique mime type set on clip data for the drag session
      */
     data class WidgetDragInfo(
-        val providerInfo: AppWidgetProviderInfo,
+        val widgetInfo: WidgetInfo,
         val bounds: Rect,
         val widthPx: Int,
         val heightPx: Int,
@@ -56,9 +56,7 @@ sealed class WidgetInteractionInfo {
     /**
      * Information passed in event listener when a widget is added using tap to add.
      *
-     * @param providerInfo metadata for the provider of the widget being added.
+     * @param widgetInfo metadata for the provider of the widget being added.
      */
-    data class WidgetAddInfo(
-        val providerInfo: AppWidgetProviderInfo
-    ) : WidgetInteractionInfo()
+    data class WidgetAddInfo(val widgetInfo: WidgetInfo) : WidgetInteractionInfo()
 }

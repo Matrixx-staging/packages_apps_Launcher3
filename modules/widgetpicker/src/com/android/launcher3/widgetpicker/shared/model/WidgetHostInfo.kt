@@ -23,17 +23,17 @@ import android.os.UserHandle
  *
  * @param title an optional title that should be shown in place of default "Widgets" title.
  * @param description an optional 1-2 line description to be shown below the title. If not set, no
- * description is shown.
+ *   description is shown.
  * @param constraints constraints around which widgets can be shown in the picker.
  * @param showDragShadow indicates whether to show drag shadow for the widgets when dragging them;
- * can be set to false if host manages drag shadow on its own (e.g. home screen to animate the
- * shadow with actual content)
+ *   can be set to false if host manages drag shadow on its own (e.g. home screen to animate the
+ *   shadow with actual content)
  */
 data class WidgetHostInfo(
     val title: String? = null,
     val description: String? = null,
     val constraints: List<HostConstraint> = emptyList(),
-    val showDragShadow: Boolean = true
+    val showDragShadow: Boolean = true,
 )
 
 /** Various constraints for the widget host. */
@@ -60,4 +60,7 @@ sealed class HostConstraint {
      *   such case, the profile tab shows a generic no widgets available message.
      */
     data class HostUserConstraint(val userFilters: List<UserHandle>) : HostConstraint()
+
+    /** Indicates that the host doesn't support shortcuts. */
+    data object NoShortcutsConstraint : HostConstraint()
 }

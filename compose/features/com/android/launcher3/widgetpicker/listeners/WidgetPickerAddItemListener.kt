@@ -16,14 +16,17 @@
 
 package com.android.launcher3.widgetpicker.listeners
 
-import android.appwidget.AppWidgetProviderInfo
 import android.view.View
 import com.android.launcher3.Launcher
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_WIDGETS_TRAY
+import com.android.launcher3.PendingAddItemInfo
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent
+import com.android.launcher3.pm.ShortcutConfigActivityInfo.ShortcutConfigActivityInfoVO
 import com.android.launcher3.util.ContextTracker.SchedulerCallback
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo
+import com.android.launcher3.widget.PendingAddShortcutInfo
 import com.android.launcher3.widget.PendingAddWidgetInfo
+import com.android.launcher3.widgetpicker.shared.model.WidgetInfo
 
 /**
  * A callback listener (for tap-to-add flow) that handles adding a widget from a separate widget
@@ -31,26 +34,38 @@ import com.android.launcher3.widget.PendingAddWidgetInfo
  *
  * Also logs to stats logger once widget is added.
  */
-class WidgetPickerAddItemListener(private val providerInfo: AppWidgetProviderInfo) :
+class WidgetPickerAddItemListener(private val widgetInfo: WidgetInfo) :
     SchedulerCallback<Launcher> {
     override fun init(launcher: Launcher?, isHomeStarted: Boolean): Boolean {
         checkNotNull(launcher)
 
-        val launcherProviderInfo =
-            LauncherAppWidgetProviderInfo.fromProviderInfo(launcher, providerInfo)
-        val pendingAddWidgetInfo =
-            PendingAddWidgetInfo(launcherProviderInfo, CONTAINER_WIDGETS_TRAY)
+        val pendingAddItemInfo: PendingAddItemInfo =
+            when (widgetInfo) {
+                is WidgetInfo.AppWidgetInfo -> {
+                    val launcherProviderInfo =
+                        LauncherAppWidgetProviderInfo.fromProviderInfo(
+                            launcher,
+                            widgetInfo.appWidgetProviderInfo,
+                        )
+                    PendingAddWidgetInfo(launcherProviderInfo, CONTAINER_WIDGETS_TRAY)
+                }
+
+                is WidgetInfo.ShortcutInfo ->
+                    PendingAddShortcutInfo(
+                        ShortcutConfigActivityInfoVO(widgetInfo.launcherActivityInfo)
+                    )
+            }
 
         val view = View(launcher)
-        view.tag = pendingAddWidgetInfo
+        view.tag = pendingAddItemInfo
 
         launcher.accessibilityDelegate?.addToWorkspace(
-            /*item=*/ pendingAddWidgetInfo,
-            /*accessibility=*/ false
+            /*item=*/ pendingAddItemInfo,
+            /*accessibility=*/ false,
         ) {
             launcher.statsLogManager
                 .logger()
-                .withItemInfo(pendingAddWidgetInfo)
+                .withItemInfo(pendingAddItemInfo)
                 .log(LauncherEvent.LAUNCHER_WIDGET_ADD_BUTTON_TAP)
         }
         return false // don't receive any more callbacks as we got launcher and handled it

@@ -16,15 +16,16 @@
 
 package com.android.launcher3.widgetpicker.ui.components
 
-import android.appwidget.AppWidgetProviderInfo
 import android.content.ClipData
 import android.content.ClipDescription
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Point
 import android.graphics.Rect
+import android.os.UserHandle
 import android.view.View
 import android.view.View.DragShadowBuilder
 import androidx.compose.ui.unit.Dp
@@ -32,33 +33,31 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntSize
 import androidx.core.graphics.drawable.RoundedBitmapDrawable
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
+import com.android.launcher3.widgetpicker.shared.model.WidgetInfo
 import java.util.UUID
 
-/**
- * Information about the image's dimensions post scaling.
- */
+/** Information about the image's dimensions post scaling. */
 data class ImageScaledDimensions(
     val scale: Float,
     val scaledSizeDp: DpSize,
     val scaledSizePx: IntSize,
     val scaledRadiusDp: Dp,
-    val scaledRadiusPx: Float
+    val scaledRadiusPx: Float,
 )
 
-/**
- * A [DragShadowBuilder] that draws drag shadow using the provided bitmap and image dimensions.
- */
+/** A [DragShadowBuilder] that draws drag shadow using the provided bitmap and image dimensions. */
 class ImageBitmapDragShadowBuilder(
     context: Context,
     bitmap: Bitmap,
-    imageScaledDimensions: ImageScaledDimensions
+    imageScaledDimensions: ImageScaledDimensions,
 ) : DragShadowBuilder() {
     private val shadowWidth = imageScaledDimensions.scaledSizePx.width
     private val shadowHeight = imageScaledDimensions.scaledSizePx.height
 
     private val shadowDrawable: RoundedBitmapDrawable =
-        RoundedBitmapDrawableFactory.create(context.resources, bitmap)
-            .apply { cornerRadius = imageScaledDimensions.scaledRadiusPx }
+        RoundedBitmapDrawableFactory.create(context.resources, bitmap).apply {
+            cornerRadius = imageScaledDimensions.scaledRadiusPx
+        }
 
     override fun onProvideShadowMetrics(outShadowSize: Point?, outShadowTouchPoint: Point?) {
         outShadowSize?.set(shadowWidth, shadowHeight)
@@ -84,48 +83,62 @@ object TransparentDragShadowBuilder : DragShadowBuilder() {
     private const val SHADOW_SIZE = 10
 
     override fun onDrawShadow(canvas: Canvas) {}
+
     override fun onProvideShadowMetrics(outShadowSize: Point, outShadowTouchPoint: Point) {
-        outShadowSize.set(SHADOW_SIZE, SHADOW_SIZE);
-        outShadowTouchPoint.set(SHADOW_SIZE / 2, SHADOW_SIZE / 2);
+        outShadowSize.set(SHADOW_SIZE, SHADOW_SIZE)
+        outShadowTouchPoint.set(SHADOW_SIZE / 2, SHADOW_SIZE / 2)
     }
 }
 
-/**  State containing information to start a drag for a widget. */
+/** State containing information to start a drag for a widget. */
 class DragState(
-    private val widgetInfo: AppWidgetProviderInfo,
-    private val dragShadowBuilder: DragShadowBuilder
+    private val widgetInfo: WidgetInfo,
+    private val dragShadowBuilder: DragShadowBuilder,
 ) {
     private val uniqueId = UUID.randomUUID().toString()
     val pickerMimeType = "com.android.launcher3.widgetpicker.drag_and_drop/$uniqueId"
 
     fun startDrag(view: View) {
-        val clipData = ClipData(
-            ClipDescription(
-                // not displayed anywhere; so, set to empty.
-                /* label= */ "",
-                arrayOf(
-                    // unique picker specific mime type.
-                    pickerMimeType,
-                    // indicates that the clip item contains an intent (with extras about widget
-                    // info).
-                    ClipDescription.MIMETYPE_TEXT_INTENT
-                )
-            ),
-            ClipData.Item(
-                Intent()
-                    .putExtra(Intent.EXTRA_USER, widgetInfo.profile)
-                    .putExtra(
-                        Intent.EXTRA_COMPONENT_NAME,
-                        widgetInfo.provider
-                    )
+        val clipData =
+            ClipData(
+                ClipDescription(
+                    // not displayed anywhere; so, set to empty.
+                    /* label= */ "",
+                    arrayOf(
+                        // unique picker specific mime type.
+                        pickerMimeType,
+                        // indicates that the clip item contains an intent (with extras about widget
+                        // info).
+                        ClipDescription.MIMETYPE_TEXT_INTENT,
+                    ),
+                ),
+                ClipData.Item(
+                    when (widgetInfo) {
+                        is WidgetInfo.AppWidgetInfo ->
+                            buildIntentForClipData(
+                                user = widgetInfo.appWidgetProviderInfo.profile,
+                                componentName = widgetInfo.appWidgetProviderInfo.provider,
+                            )
+
+                        is WidgetInfo.ShortcutInfo ->
+                            buildIntentForClipData(
+                                user = widgetInfo.launcherActivityInfo.user,
+                                componentName = widgetInfo.launcherActivityInfo.componentName,
+                            )
+                    }
+                ),
             )
-        )
 
         view.startDragAndDrop(
             clipData,
             /*shadowBuilder=*/ dragShadowBuilder,
             /*myLocalState=*/ null,
-            View.DRAG_FLAG_GLOBAL
+            View.DRAG_FLAG_GLOBAL,
         )
     }
+
+    private fun buildIntentForClipData(user: UserHandle, componentName: ComponentName): Intent =
+        Intent()
+            .putExtra(Intent.EXTRA_USER, user)
+            .putExtra(Intent.EXTRA_COMPONENT_NAME, componentName)
 }
