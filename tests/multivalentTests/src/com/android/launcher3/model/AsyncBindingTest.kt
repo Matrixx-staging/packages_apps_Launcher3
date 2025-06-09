@@ -98,7 +98,7 @@ class AsyncBindingTest {
                 View(context)
             }
             .whenever(itemInflater)
-            .inflateItem(any(), isNull())
+            .inflateItem(any(), isNull(), any())
 
         doReturn(itemInflater).whenever(launcher).itemInflater
         doReturn(InvariantDeviceProfile.INSTANCE.get(context).getDeviceProfile(context))

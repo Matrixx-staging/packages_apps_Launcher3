@@ -2906,8 +2906,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             mLauncher.getStateManager().goToState(NORMAL, SPRING_LOADED_EXIT_DELAY);
             // TODO(b/414409465) We could just create a new info making a copy with all the new
             //  needed values instead of choosing on each case what to modify.
-            info.container = container;
-            View view = mLauncher.getItemInflater().inflateItem(info, cellLayout);
+            View view = mLauncher.getItemInflater().inflateItem(info, cellLayout, container);
             d.dragInfo = info = (ItemInfo) view.getTag();
 
             // First we find the cell nearest to point at which the item is
