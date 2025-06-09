@@ -28,6 +28,7 @@ import com.android.launcher3.compose.core.widgetpicker.NoOpWidgetPickerModule
 import com.android.launcher3.concurrent.ExecutorsModule
 import com.android.launcher3.dagger.ApiWrapperModule
 import com.android.launcher3.dagger.AppModule
+import com.android.launcher3.dagger.DesktopStateModule
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
@@ -165,6 +166,7 @@ constructor(
                 ExecutorsModule::class,
                 LauncherExecutorsModule::class,
                 NoOpWidgetPickerModule::class,
+                DesktopStateModule::class,
             ]
     )
     interface PreviewAppComponent : LauncherAppComponent {
