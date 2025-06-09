@@ -245,6 +245,7 @@ public class AllSetActivity extends Activity {
                 Map.of(LOTTIE_PRIMARY_COLOR_TOKEN, R.color.all_set_bg_primary,
                         LOTTIE_TERTIARY_COLOR_TOKEN, R.color.all_set_bg_tertiary),
                 getTheme());
+        mAnimatedBackground.setScaleX(Utilities.isRtl(getResources()) ? -1f : 1f);
 
         mBackgroundAnimationToggledOn = savedInstanceState == null
                 || savedInstanceState.getBoolean(KEY_BACKGROUND_ANIMATION_TOGGLED_ON, true);
