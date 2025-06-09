@@ -617,7 +617,9 @@ class TaskbarStashControllerTest {
     @Test
     @TaskbarMode(PINNED)
     fun testAnimatePinnedTaskbar_imeShown_replacesIconsWithHandle() {
-        assume().that(activityContext.isHardwareKeyboard).isFalse()
+        assume()
+          .withMessage("Ignoring test because hardware keyboard is present")
+          .that(activityContext.isHardwareKeyboard).isFalse()
 
         getInstrumentation().runOnMainSync {
             stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, false)
@@ -630,7 +632,9 @@ class TaskbarStashControllerTest {
     @Test
     @TaskbarMode(PINNED)
     fun testAnimatePinnedTaskbar_imeHidden_replacesHandleWithIcons() {
-        assume().that(activityContext.isHardwareKeyboard).isFalse()
+        assume()
+          .withMessage("Ignoring test because hardware keyboard is present")
+          .that(activityContext.isHardwareKeyboard).isFalse()
 
         getInstrumentation().runOnMainSync {
             stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, true)
@@ -648,7 +652,9 @@ class TaskbarStashControllerTest {
     @Test
     @TaskbarMode(PINNED)
     fun testAnimatePinnedTaskbar_imeHidden_verifyAnimationDuration() {
-        assume().that(activityContext.isHardwareKeyboard).isFalse()
+        assume()
+          .withMessage("Ignoring test because hardware keyboard is present")
+          .that(activityContext.isHardwareKeyboard).isFalse()
 
         // Start with IME shown.
         getInstrumentation().runOnMainSync {
@@ -675,7 +681,9 @@ class TaskbarStashControllerTest {
     @Test
     @TaskbarMode(THREE_BUTTONS)
     fun testAnimateThreeButtonsTaskbar_imeShown_hidesIconsAndBg() {
-        assume().that(activityContext.isHardwareKeyboard).isFalse()
+        assume()
+          .withMessage("Ignoring test because hardware keyboard is present")
+          .that(activityContext.isHardwareKeyboard).isFalse()
 
         getInstrumentation().runOnMainSync {
             stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, false)
@@ -688,7 +696,9 @@ class TaskbarStashControllerTest {
     @Test
     @TaskbarMode(THREE_BUTTONS)
     fun testAnimateThreeButtonsTaskbar_imeHidden_showsIconsAndBg() {
-        assume().that(activityContext.isHardwareKeyboard).isFalse()
+        assume()
+          .withMessage("Ignoring test because hardware keyboard is present")
+          .that(activityContext.isHardwareKeyboard).isFalse()
 
         getInstrumentation().runOnMainSync {
             stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, false)
@@ -708,7 +718,9 @@ class TaskbarStashControllerTest {
     @Test
     @TaskbarMode(PINNED)
     fun testSetSystemGestureInProgress_whileImeShown_unstashesTaskbar() {
-        assume().that(activityContext.isHardwareKeyboard).isFalse()
+        assume()
+          .withMessage("Ignoring test because hardware keyboard is present")
+          .that(activityContext.isHardwareKeyboard).isFalse()
 
         getInstrumentation().runOnMainSync {
             stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, true)

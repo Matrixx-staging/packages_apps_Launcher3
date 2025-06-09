@@ -66,7 +66,8 @@ public class TaplTestsKeyboardQuickSwitch extends AbstractQuickStepTest {
 
     @Override
     public void setUp() throws Exception {
-        Assume.assumeTrue(mLauncher.isTablet());
+        Assume.assumeTrue("Ignoring test because device is not a tablet",
+            mLauncher.isTablet());
         super.setUp();
         startAppFast(CALCULATOR_APP_PACKAGE);
         startTestActivity(2);

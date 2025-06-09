@@ -47,7 +47,7 @@ public class AbstractTaplTestsTaskbar extends AbstractQuickStepTest {
 
     @Override
     public void setUp() throws Exception {
-        Assume.assumeTrue(mLauncher.isTablet());
+        Assume.assumeTrue("Ignoring test because device is not a tablet", mLauncher.isTablet());
         super.setUp();
 
         LauncherLayoutBuilder layoutBuilder = new LauncherLayoutBuilder().atHotseat(0).putApp(
