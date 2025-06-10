@@ -623,7 +623,7 @@ public abstract class RecentsView<
     private long mScrollLastHapticTimestamp;
 
     private int mKeyboardTaskFocusSnapAnimationDuration;
-    private int mKeyboardTaskFocusIndex = INVALID_PAGE;
+    private KeyboardFocusTask mKeyboardFocusTask = KeyboardFocusTask.unfocused;
 
     protected Map<TaskView, Integer> mTaskViewsDismissPrimaryTranslations = new HashMap<>();
 
@@ -3267,8 +3267,8 @@ public abstract class RecentsView<
         int largeTaskWidthAndSpacing = 0;
         int snappedTaskRowWidth = 0;
         int expectedCurrentTaskRowWidth = 0;
-        int snappedPage = isKeyboardTaskFocusPending() ? mKeyboardTaskFocusIndex : getNextPage();
-        TaskView snappedTaskView = getTaskViewAt(snappedPage);
+        TaskView snappedTaskView = isKeyboardTaskFocusPending()
+                ? getKeyboardFocusTaskView() : getNextPageTaskView();
         TaskView homeTaskView = getHomeTaskView();
         // Determine the currentTaskView when going from Home to Overview, and ensure it can be
         // snapped to its expected position.
@@ -6286,7 +6286,7 @@ public abstract class RecentsView<
             return getScrollOffset(getRunningTaskIndex());
         }
         return getPagedOrientationHandler().getPrimaryScroll(this)
-                - getScrollForPage(mKeyboardTaskFocusIndex)
+                - getScrollForPage(indexOfChild(getKeyboardFocusTaskView()))
                 + getScrollOffset(getRunningTaskIndex());
     }
 
@@ -6781,17 +6781,26 @@ public abstract class RecentsView<
      * Prepares this RecentsView to scroll properly for an upcoming child view focus request from
      * keyboard quick switching
      */
-    public void setKeyboardTaskFocusIndex(int taskIndex) {
-        mKeyboardTaskFocusIndex = taskIndex;
+    public void setKeyboardFocusTask(@NonNull KeyboardFocusTask keyboardFocusTask) {
+        mKeyboardFocusTask = keyboardFocusTask;
+    }
+
+    /**
+     * Returns the TaskView that will be focused for an upcoming child view focus request from
+     * keyboard quick switching
+     */
+    @Nullable
+    public TaskView getKeyboardFocusTaskView() {
+        return mUtils.getKeyboardFocusTask(mKeyboardFocusTask);
     }
 
     /** Returns whether this RecentsView will be scrolling to a child view for a focus request */
     public boolean isKeyboardTaskFocusPending() {
-        return mKeyboardTaskFocusIndex != INVALID_PAGE;
+        return mKeyboardFocusTask != KeyboardFocusTask.unfocused;
     }
 
     private boolean isKeyboardTaskFocusPendingForChild(View child) {
-        return isKeyboardTaskFocusPending() && mKeyboardTaskFocusIndex == indexOfChild(child);
+        return isKeyboardTaskFocusPending() && getKeyboardFocusTaskView() == child;
     }
 
     @Override

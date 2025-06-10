@@ -33,7 +33,6 @@ import com.android.app.displaylib.PerDisplayRepository
 import com.android.app.tracing.traceSection
 import com.android.internal.jank.Cuj
 import com.android.launcher3.DeviceProfile
-import com.android.launcher3.PagedView
 import com.android.launcher3.logger.LauncherAtom
 import com.android.launcher3.logging.StatsLogManager
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_OVERVIEW_SHOW_OVERVIEW_FROM_3_BUTTON
@@ -54,6 +53,7 @@ import com.android.quickstep.OverviewCommandHelper.CommandType.TOGGLE
 import com.android.quickstep.OverviewCommandHelper.CommandType.TOGGLE_OVERVIEW_PREVIOUS
 import com.android.quickstep.util.ActiveGestureLog
 import com.android.quickstep.util.ActiveGestureProtoLogProxy
+import com.android.quickstep.views.KeyboardFocusTask
 import com.android.quickstep.views.RecentsView
 import com.android.quickstep.views.TaskView
 import com.android.quickstep.window.RecentsWindowManager
@@ -96,7 +96,7 @@ constructor(
      * not lose the focus across multiple calls of [OverviewCommandHelper.executeCommand] for the
      * same command
      */
-    private var keyboardTaskFocusIndex = -1
+    private var keyboardFocusTask: KeyboardFocusTask = KeyboardFocusTask.Unfocused
 
     private val lastToggleInfo = mutableMapOf<Int, ToggleInfo>()
 
@@ -259,7 +259,7 @@ constructor(
                 if (recentsView.isHandlingTouch) {
                     true
                 } else {
-                    keyboardTaskFocusIndex = PagedView.INVALID_PAGE
+                    keyboardFocusTask = KeyboardFocusTask.Unfocused
                     val currentPage = recentsView.nextPage
                     val taskView = recentsView.getTaskViewAt(currentPage)
                     launchTask(recentsView, taskView, command, onCallbackResult)
@@ -380,9 +380,12 @@ constructor(
                 ) {
                     return true
                 }
-                keyboardTaskFocusIndex = taskbarUIController.launchFocusedTask()
+                val focusedTaskIds = taskbarUIController.launchFocusedTask()
+                keyboardFocusTask =
+                    if (focusedTaskIds == null) KeyboardFocusTask.Unfocused
+                    else KeyboardFocusTask.TaskViewWithIds(focusedTaskIds)
 
-                if (keyboardTaskFocusIndex == -1) return true
+                if (keyboardFocusTask is KeyboardFocusTask.Unfocused) return true
             }
 
             SHOW_ALT_TAB ->
@@ -393,7 +396,7 @@ constructor(
                     taskbarUIController.openQuickSwitchView()
                     return true
                 } else {
-                    keyboardTaskFocusIndex = 0
+                    keyboardFocusTask = KeyboardFocusTask.CurrentPageTaskView
                 }
 
             HOME -> {
@@ -414,16 +417,13 @@ constructor(
                 // when overview is triggered via the keyboard overview button or Action+Tab
                 // keys (Not Alt+Tab which is KQS). The overview button on-screen in 3-button
                 // nav is TYPE_TOGGLE.
-                keyboardTaskFocusIndex = 0
+                keyboardFocusTask = KeyboardFocusTask.CurrentPageTaskView
 
             TOGGLE,
             TOGGLE_OVERVIEW_PREVIOUS -> {}
         }
 
-        recentsView?.setKeyboardTaskFocusIndex(
-            recentsView.indexOfChild(recentsView.taskViews.elementAtOrNull(keyboardTaskFocusIndex))
-                ?: -1
-        )
+        recentsView?.setKeyboardFocusTask(keyboardFocusTask)
 
         // Handle recents view focus when launching from home
         val animatorListener: Animator.AnimatorListener =
@@ -622,13 +622,7 @@ constructor(
         }
         // Ensure that recents view has focus so that it receives the followup key inputs
         // Stops requesting focused after first view gets focused.
-        recentsView
-            .getTaskViewAt(
-                recentsView.indexOfChild(
-                    recentsView.taskViews.elementAtOrNull(keyboardTaskFocusIndex)
-                )
-            )
-            .requestFocus() ||
+        recentsView.keyboardFocusTaskView.requestFocus() ||
             recentsView.nextTaskView.requestFocus() ||
             recentsView.firstTaskView.requestFocus() ||
             recentsView.requestFocus()
@@ -636,13 +630,12 @@ constructor(
 
     private fun onRecentsViewFocusUpdated(command: CommandInfo) {
         val recentsView: RecentsView<*, *> = getVisibleRecentsView(command.displayId) ?: return
-        if (command.type != HIDE_ALT_TAB || keyboardTaskFocusIndex == PagedView.INVALID_PAGE) {
+        if (command.type != HIDE_ALT_TAB || keyboardFocusTask is KeyboardFocusTask.Unfocused) {
             return
         }
-        recentsView.setKeyboardTaskFocusIndex(PagedView.INVALID_PAGE)
-        recentsView.currentPage =
-            recentsView.indexOfChild(recentsView.taskViews.elementAtOrNull(keyboardTaskFocusIndex))
-        keyboardTaskFocusIndex = PagedView.INVALID_PAGE
+        recentsView.currentPage = recentsView.indexOfChild(recentsView.keyboardFocusTaskView)
+        recentsView.setKeyboardFocusTask(KeyboardFocusTask.Unfocused)
+        keyboardFocusTask = KeyboardFocusTask.Unfocused
     }
 
     private fun View?.requestFocus(): Boolean {
@@ -682,7 +675,7 @@ constructor(
         if (commandQueue.isNotEmpty()) {
             pw.println("    pendingCommandType=${commandQueue.first().type}")
         }
-        pw.println("  keyboardTaskFocusIndex=$keyboardTaskFocusIndex")
+        pw.println("  keyboardFocusTask=$keyboardFocusTask")
     }
 
     @VisibleForTesting

@@ -72,6 +72,7 @@ public final class KeyboardQuickSwitchController implements
     private int mTaskListChangeId = -1;
     // Only empty before the recent tasks list has been loaded the first time
     @NonNull private List<GroupTask> mTasks = new ArrayList<>();
+    @Nullable private Set<Integer> mFirstHiddenTaskIds;
     // Set of task IDs filtered out of tasks in recents model to generate list of tasks to show in
     // the Keyboard Quick Switch view. Non empty only if the view has been shown in response to
     // toggling taskbar overflow button.
@@ -149,6 +150,8 @@ public final class KeyboardQuickSwitchController implements
     private void openQuickSwitchView(int currentFocusedIndex,
             @NonNull Set<Integer> taskIdsToExclude,
             boolean wasOpenedFromTaskbar) {
+        final boolean shouldShowDesktopTasks =
+                mControllers.taskbarDesktopModeController.shouldShowDesktopTasksInTaskbar();
         if (mQuickSwitchViewController != null) {
             if (!mQuickSwitchViewController.isCloseAnimationRunning()) {
                 if (mQuickSwitchViewController.wasOpenedFromTaskbar() == wasOpenedFromTaskbar) {
@@ -164,14 +167,16 @@ public final class KeyboardQuickSwitchController implements
                 // Skip the task reload if the list is not changed.
                 if (!mModel.isTaskListValid(mTaskListChangeId) || !taskIdsToExclude.equals(
                         mExcludedTaskIds)) {
-                    final boolean shouldShowDesktopTasks = mControllers.taskbarDesktopModeController
-                            .shouldShowDesktopTasksInTaskbar();
                     mExcludedTaskIds = taskIdsToExclude;
                     mTaskListChangeId = mModel.getTasks(
                             shouldShowDesktopTasks ? RecentsFilterState.EMPTY_FILTER
                                     : RecentsFilterState.getDesktopTaskFilter(),
                             (tasks) -> {
-                                processLoadedTasks(wasOpenedFromTaskbar, tasks, taskIdsToExclude);
+                                processLoadedTasks(
+                                        wasOpenedFromTaskbar,
+                                        shouldShowDesktopTasks,
+                                        tasks,
+                                        taskIdsToExclude);
                                 mQuickSwitchViewController.updateQuickSwitchView(
                                         mTasks,
                                         wasOpenedFromTaskbar ? 0 : mNumHiddenTasks,
@@ -204,9 +209,6 @@ public final class KeyboardQuickSwitchController implements
         mQuickSwitchViewController = new KeyboardQuickSwitchViewController(
                 mControllers, mOverlayContext, keyboardQuickSwitchView, mControllerCallbacks);
 
-        final boolean shouldShowDesktopTasks = mControllers.taskbarDesktopModeController
-                .shouldShowDesktopTasksInTaskbar();
-
         if (mModel.isTaskListValid(mTaskListChangeId)
                 && taskIdsToExclude.equals(mExcludedTaskIds)) {
             // When we are opening the KQS with no focus override, check if the first task is
@@ -229,7 +231,8 @@ public final class KeyboardQuickSwitchController implements
                 shouldShowDesktopTasks ? RecentsFilterState.EMPTY_FILTER
                         : RecentsFilterState.getDesktopTaskFilter(),
                 (tasks) -> {
-                    processLoadedTasks(wasOpenedFromTaskbar, tasks, taskIdsToExclude);
+                    processLoadedTasks(
+                            wasOpenedFromTaskbar, shouldShowDesktopTasks, tasks, taskIdsToExclude);
                     // Check if the first task is running after the recents model has updated so
                     // that we use the correct index.
                     mQuickSwitchViewController.openQuickSwitchView(
@@ -250,18 +253,35 @@ public final class KeyboardQuickSwitchController implements
                 || task.getTasks().stream().noneMatch(t -> taskIdsToExclude.contains(t.key.id));
     }
 
-    private void processLoadedTasks(boolean openedFromTaskbar, List<GroupTask> tasks,
+    private void processLoadedTasks(
+            boolean openedFromTaskbar,
+            boolean shouldShowDesktopTasks,
+            List<GroupTask> tasks,
             Set<Integer> taskIdsToExclude) {
         mHasDesktopTask = false;
         mWasDesktopTaskFilteredOut = false;
 
         if (enableAltTabKqsFlatenning.isTrue() && !openedFromTaskbar) {
             processLoadedTasksCombined(tasks, taskIdsToExclude);
-        } else if (mControllers.taskbarDesktopModeController.shouldShowDesktopTasksInTaskbar()) {
+        } else if (shouldShowDesktopTasks) {
             processLoadedTasksOnDesktop(tasks, taskIdsToExclude);
         } else {
             processLoadedTasksOutsideDesktop(tasks, taskIdsToExclude);
         }
+
+        // Find the non-desktop tasks that were excluded from mTasks.
+        // These are the tasks we want to refer to in the overview button.
+        List<GroupTask> hiddenTasks = tasks.stream()
+                .filter(task -> !mTasks.contains(task) && !(task instanceof DesktopTask))
+                .sorted(combinedTasksComparator())
+                .toList();
+
+        mFirstHiddenTaskIds = hiddenTasks.isEmpty() ? null : hiddenTasks.get(0)
+                .getTasks()
+                .stream()
+                .map(task -> task.key.id)
+                .collect(Collectors.toSet());
+        mNumHiddenTasks = hiddenTasks.size();
     }
 
     private void processLoadedTasksCombined(List<GroupTask> tasks, Set<Integer> taskIdsToExclude) {
@@ -285,7 +305,6 @@ public final class KeyboardQuickSwitchController implements
                 .sorted(combinedTasksComparator())
                 .limit(MAX_TASKS)
                 .toList();
-        mNumHiddenTasks = Math.max(0, allTasks.size() - MAX_TASKS);
     }
 
     private boolean shouldIncludeTaskBasedOnProjectedMode(GroupTask task) {
@@ -335,9 +354,6 @@ public final class KeyboardQuickSwitchController implements
                 break;
             }
         }
-
-        mNumHiddenTasks = Math.max(0,
-                tasks.size() - (mWasDesktopTaskFilteredOut ? 1 : 0) - MAX_TASKS);
     }
 
     private void processLoadedTasksOnDesktop(List<GroupTask> tasks, Set<Integer> taskIdsToExclude) {
@@ -357,19 +373,14 @@ public final class KeyboardQuickSwitchController implements
                     .map(SingleTask::new)
                     .filter(task -> shouldIncludeTask(task, taskIdsToExclude))
                     .collect(Collectors.toList());
-
-            mNumHiddenTasks = Math.max(0, tasks.size() - desktopTasks.size());
         } else if (!desktopTasks.isEmpty()) {
             mTasks = desktopTasks.get(0).getTasks().stream()
                     .map(SingleTask::new)
                     .filter(task -> shouldIncludeTask(task, taskIdsToExclude))
                     .collect(Collectors.toList());
-            // All other tasks, apart from the grouped desktop task, are hidden
-            mNumHiddenTasks = Math.max(0, tasks.size() - 1);
         } else {
             // Desktop tasks were visible, but the recents entry is missing. Fall back to empty list
             mTasks = Collections.emptyList();
-            mNumHiddenTasks = tasks.size();
         }
     }
 
@@ -387,11 +398,12 @@ public final class KeyboardQuickSwitchController implements
     /**
      * See {@link TaskbarUIController#launchFocusedTask()}
      */
-    int launchFocusedTask() {
-        // Return -1 so that the RecentsView is not incorrectly opened when the user closes the
+    @Nullable
+    Set<Integer> launchFocusedTask() {
+        // Return null so that the RecentsView is not incorrectly opened when the user closes the
         // quick switch view by tapping the screen or when there are no recent tasks.
         return mQuickSwitchViewController == null || mTasks.isEmpty()
-                ? -1 : mQuickSwitchViewController.launchFocusedTask();
+                ? null : mQuickSwitchViewController.launchFocusedTask();
     }
 
     @Override
@@ -528,6 +540,11 @@ public final class KeyboardQuickSwitchController implements
         boolean isAspectRatioSquare() {
             return mControllers != null && LayoutUtils.isAspectRatioSquare(
                     mControllers.taskbarActivityContext.getDeviceProfile().getDeviceProperties().getAspectRatio());
+        }
+
+        @Nullable
+        Set<Integer> getFirstHiddenTaskIds() {
+            return mFirstHiddenTaskIds;
         }
     }
 }

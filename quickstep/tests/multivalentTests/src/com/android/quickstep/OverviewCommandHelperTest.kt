@@ -21,10 +21,11 @@ import android.view.Display.DEFAULT_DISPLAY
 import androidx.test.filters.SmallTest
 import com.android.app.displaylib.DisplayRepository
 import com.android.app.displaylib.fakes.FakePerDisplayRepository
-import com.android.app.displaylib.PerDisplayRepository
 import com.android.launcher3.LauncherState
 import com.android.launcher3.statemanager.StateManager
 import com.android.launcher3.statemanager.StatefulActivity
+import com.android.launcher3.taskbar.TaskbarManager
+import com.android.launcher3.taskbar.TaskbarUIController
 import com.android.launcher3.uioverrides.QuickstepLauncher
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.RunnableList
@@ -33,6 +34,7 @@ import com.android.quickstep.OverviewCommandHelper.CommandInfo
 import com.android.quickstep.OverviewCommandHelper.CommandInfo.CommandStatus
 import com.android.quickstep.OverviewCommandHelper.CommandType
 import com.android.quickstep.OverviewCommandHelper.Companion.TOGGLE_PREVIOUS_TIMEOUT_MS
+import com.android.quickstep.views.KeyboardFocusTask
 import com.android.quickstep.views.RecentsView
 import com.android.quickstep.views.TaskView
 import com.google.common.truth.Truth.assertThat
@@ -49,11 +51,13 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.spy
 import org.mockito.kotlin.any
-import org.mockito.kotlin.doNothing
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
@@ -75,6 +79,9 @@ class OverviewCommandHelperTest {
     private val containerInterface: BaseActivityInterface<LauncherState, QuickstepLauncher> = mock()
     private val taskAnimationManager: TaskAnimationManager = mock()
     private val touchInteractionService: TouchInteractionService = mock()
+    private val taskbarManager: TaskbarManager = mock()
+    private val taskbarUIController: TaskbarUIController = mock()
+    private val launcher: QuickstepLauncher = mock()
     private var elapsedRealtime = 100L
 
     private fun setupDefaultDisplay() {
@@ -100,6 +107,12 @@ class OverviewCommandHelperTest {
         whenever(taskAnimationManager.maybeStartHomeAction(any())).thenAnswer { invocation ->
             invocation.getArgument<Runnable>(0).run()
         }
+        whenever(launcher.getOverviewPanel<RecentsView<*, *>>()).thenReturn(recentView)
+        whenever(containerInterface.createdContainer).thenReturn(launcher)
+        whenever(containerInterface.taskbarController).thenReturn(taskbarUIController)
+        whenever(taskbarUIController.launchFocusedTask())
+            .thenReturn(REQUESTED_KEYBOARD_FOCUS_TASK_IDS)
+        whenever(taskbarManager.getUIControllerForDisplay(anyInt())).thenReturn(taskbarUIController)
 
         sut =
             spy(
@@ -108,7 +121,7 @@ class OverviewCommandHelperTest {
                     overviewComponentObserver = overviewComponentObserver,
                     dispatcherProvider = TestDispatcherProvider(dispatcher),
                     displayRepository = displayRepository,
-                    taskbarManager = mock(),
+                    taskbarManager = taskbarManager,
                     taskAnimationManagerRepository =
                         FakePerDisplayRepository<TaskAnimationManager> { _ -> taskAnimationManager },
                     elapsedRealtime = ::elapsedRealtime,
@@ -426,8 +439,76 @@ class OverviewCommandHelperTest {
             verify(touchInteractionService).startActivity(any())
         }
 
+    @Test
+    fun hideAltTabCommand_onSmallScreenDefaultDisplay_neverSetsKeyboardFocusTask() =
+        testScope.runTest {
+            whenever(containerInterface.getVisibleRecentsView<RecentsView<*, *>>()).thenReturn(null)
+            val command = sut.addCommand(CommandType.HIDE_ALT_TAB)!!
+            runCurrent()
+            assertThat(command.status).isEqualTo(CommandStatus.COMPLETED)
+            verify(taskbarUIController, never()).launchFocusedTask()
+            verify(recentView, never()).setKeyboardFocusTask(any())
+        }
+
+    @Test
+    fun hideAltTabCommand_onSmallScreenExternalDisplay_setsKeyboardFocusTaskToTaskViewWithIds() =
+        testScope.runTest {
+            whenever(containerInterface.getVisibleRecentsView<RecentsView<*, *>>()).thenReturn(null)
+            val command = sut.addCommand(CommandType.HIDE_ALT_TAB, EXTERNAL_DISPLAY_ID)!!
+            runCurrent()
+            assertThat(command.status).isEqualTo(CommandStatus.PROCESSING)
+            verify(taskbarUIController).launchFocusedTask()
+            verify(recentView).setKeyboardFocusTask(
+                KeyboardFocusTask.TaskViewWithIds(REQUESTED_KEYBOARD_FOCUS_TASK_IDS))
+        }
+
+    @Test
+    fun hideAltTabCommand_withoutRequestedKeyboardFocusTaskIds_neverSetsKeyboardFocusTask() =
+        testScope.runTest {
+            whenever(containerInterface.getVisibleRecentsView<RecentsView<*, *>>()).thenReturn(null)
+            whenever(taskbarUIController.launchFocusedTask()).thenReturn(null)
+            val command = sut.addCommand(CommandType.HIDE_ALT_TAB, EXTERNAL_DISPLAY_ID)!!
+            runCurrent()
+            assertThat(command.status).isEqualTo(CommandStatus.COMPLETED)
+            verify(taskbarUIController).launchFocusedTask()
+            verify(recentView, never()).setKeyboardFocusTask(any())
+        }
+
+    @Test
+    fun showAltTabCommand_onSmallScreenDefaultDisplay_opensOverviewWithCurrentPageFocus() =
+        testScope.runTest {
+            whenever(containerInterface.getVisibleRecentsView<RecentsView<*, *>>()).thenReturn(null)
+            val command = sut.addCommand(CommandType.SHOW_ALT_TAB)!!
+            runCurrent()
+            assertThat(command.status).isEqualTo(CommandStatus.PROCESSING)
+            verify(taskbarUIController, never()).openQuickSwitchView()
+            verify(recentView).setKeyboardFocusTask(eq(KeyboardFocusTask.CurrentPageTaskView))
+        }
+
+    @Test
+    fun showAltTabCommand_onSmallScreenExternalDisplay_opensQuickSwitchView() =
+        testScope.runTest {
+            whenever(containerInterface.getVisibleRecentsView<RecentsView<*, *>>()).thenReturn(null)
+            val command = sut.addCommand(CommandType.SHOW_ALT_TAB, EXTERNAL_DISPLAY_ID)!!
+            runCurrent()
+            assertThat(command.status).isEqualTo(CommandStatus.COMPLETED)
+            verify(taskbarUIController).openQuickSwitchView()
+            verify(recentView, never()).setKeyboardFocusTask(any())
+        }
+
+    @Test
+    fun showWithFocusCommand_setsKeyboardFocusTaskToCurrentTask() =
+        testScope.runTest {
+            whenever(containerInterface.getVisibleRecentsView<RecentsView<*, *>>()).thenReturn(null)
+            sut.addCommand(CommandType.SHOW_WITH_FOCUS)!!
+            runCurrent()
+            verify(recentView).setKeyboardFocusTask(eq(KeyboardFocusTask.CurrentPageTaskView))
+        }
+
     private companion object {
         const val QUEUE_TIMEOUT = 5001L
         const val EXTERNAL_DISPLAY_ID = 1
+        const val TASK_ID = 10
+        val REQUESTED_KEYBOARD_FOCUS_TASK_IDS = setOf(TASK_ID)
     }
 }
