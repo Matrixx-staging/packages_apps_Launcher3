@@ -60,7 +60,6 @@ import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.icons.GraphicsUtils;
 import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.TestProtocol;
-import com.android.launcher3.util.Themes;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.util.DesktopTask;
 import com.android.quickstep.util.GroupTask;
@@ -109,8 +108,7 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
     private static final long CONTENT_ALPHA_ANIMATION_DURATION_MS = 83;
     private static final long CONTENT_ALPHA_ANIMATION_START_DELAY_MS = 83;
 
-    private static final int DARK_THEME_STROKE_ALPHA = 51;
-    private static final int LIGHT_THEME_STROKE_ALPHA = 41;
+    private static final int STROKE_ALPHA = 51;
     private static final int DARK_THEME_SHADOW_ALPHA = 51;
     private static final int LIGHT_THEME_SHADOW_ALPHA = 25;
 
@@ -205,8 +203,8 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
 
         mBackgroundPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
         mBackgroundPaint.setStyle(Paint.Style.FILL);
-        mBackgroundPaint.setColor(
-                Themes.getAttrColor(getContext(), R.attr.overviewScrimColorFallback));
+        mBackgroundPaint.setColor(resources.getColor(
+                R.color.materialColorSurfaceBright, getContext().getTheme()));
         mBackgroundShadowBlur = resources.getDimension(R.dimen.transient_taskbar_shadow_blur);
         mBackgroundShadowDistance = resources.getDimension(
                 R.dimen.transient_taskbar_key_shadow_distance);
@@ -229,7 +227,7 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
         super.onDraw(canvas);
 
         boolean isDarkTheme = Utilities.isDarkTheme(getContext());
-        mStrokePaint.setAlpha(isDarkTheme ? DARK_THEME_STROKE_ALPHA : LIGHT_THEME_STROKE_ALPHA);
+        mStrokePaint.setAlpha(STROKE_ALPHA);
 
         // Draw shadow.
         mBackgroundPaint.setShadowLayer(
