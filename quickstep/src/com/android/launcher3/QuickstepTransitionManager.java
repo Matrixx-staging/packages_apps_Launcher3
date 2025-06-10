@@ -2054,7 +2054,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                     };
 
             return new ContainerAnimationRunner(
-                    new ActivityTransitionAnimator.AnimationDelegate(
+                    new ActivityTransitionAnimator.LegacyAnimationDelegate(
                             MAIN_EXECUTOR, controller, callback, listener));
         }
 
