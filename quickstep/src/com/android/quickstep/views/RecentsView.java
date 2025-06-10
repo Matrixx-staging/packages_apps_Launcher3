@@ -19,7 +19,6 @@ package com.android.quickstep.views;
 import static android.app.ActivityTaskManager.INVALID_TASK_ID;
 import static android.os.Trace.traceBegin;
 import static android.os.Trace.traceEnd;
-import static android.view.Surface.ROTATION_0;
 import static android.view.View.MeasureSpec.EXACTLY;
 import static android.view.View.MeasureSpec.makeMeasureSpec;
 
@@ -2347,10 +2346,10 @@ public abstract class RecentsView<
             }
         }
 
-        boolean isInLandscape = mOrientationState.getTouchRotation() != ROTATION_0
-                || mOrientationState.getRecentsActivityRotation() != ROTATION_0;
-        mActionsView.updateHiddenFlags(HIDDEN_NON_ZERO_ROTATION,
-                !mOrientationState.isRecentsActivityRotationAllowed() && isInLandscape);
+        mActionsView.updateHiddenFlags(
+                HIDDEN_NON_ZERO_ROTATION,
+                mOrientationState.shouldHideActionButtons()
+        );
 
         // Recalculate DeviceProfile dependent layout.
         updateSizeAndPadding();
@@ -6601,9 +6600,10 @@ public abstract class RecentsView<
             getCurrentPageTaskView().setModalness(modalness);
         }
         // Only show actions view when it's modal for in-place landscape mode.
-        boolean inPlaceLandscape = !mOrientationState.isRecentsActivityRotationAllowed()
-                && mOrientationState.getTouchRotation() != ROTATION_0;
-        mActionsView.updateHiddenFlags(HIDDEN_NON_ZERO_ROTATION, modalness < 1 && inPlaceLandscape);
+        mActionsView.updateHiddenFlags(
+                HIDDEN_NON_ZERO_ROTATION, modalness < 1
+                        && mOrientationState.shouldHideActionButtons()
+        );
     }
 
     @Nullable
