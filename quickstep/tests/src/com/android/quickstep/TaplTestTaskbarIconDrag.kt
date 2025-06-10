@@ -37,7 +37,8 @@ class TaplTestTaskbarIconDrag : AbstractQuickStepTest() {
     private var mLauncherLayout: AutoCloseable? = null
 
     override fun setUp() {
-        Assume.assumeTrue(mLauncher.isTablet)
+        Assume.assumeTrue("Ignoring test because device is not a tablet",
+            mLauncher.isTablet)
         super.setUp()
         val layoutBuilder =
             LauncherLayoutBuilder()

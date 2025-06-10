@@ -105,7 +105,8 @@ public class TaplOpenCloseAllAppsTest extends AbstractLauncherUiTest<Launcher, V
     @Test
     @PortraitLandscape
     public void testAllAppsDeadzoneForTablet() {
-        assumeTrue(mLauncher.isTablet());
+        assumeTrue("Ignoring test because device is not a tablet",
+            mLauncher.isTablet());
 
         mLauncher.getWorkspace().switchToAllApps().dismissByTappingOutsideForTablet(
                 true /* tapRight */);

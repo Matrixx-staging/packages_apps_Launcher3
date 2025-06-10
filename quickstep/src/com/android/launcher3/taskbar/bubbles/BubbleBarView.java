@@ -1568,6 +1568,7 @@ public class BubbleBarView extends FrameLayout {
     /** Dumps the current state of BubbleBarView. */
     public void dump(PrintWriter pw) {
         pw.println("BubbleBarView state:");
+        pw.println("  bubbleBarLocation: " + mBubbleBarLocation);
         pw.println("  visibility: " + getVisibility());
         pw.println("  alpha: " + getAlpha());
         pw.println("  translationY: " + getTranslationY());

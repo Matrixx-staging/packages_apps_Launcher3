@@ -73,7 +73,8 @@ public class TaplTestsTrackpad extends AbstractQuickStepTest {
     //  need to figure out a way to emulate that in the test, or bypass the logic altogether.
     @NavigationModeSwitch(mode = ZERO_BUTTON)
     public void pressBack() throws Exception {
-        assumeTrue(mLauncher.isTablet());
+        assumeTrue("Ignoring test because device is not a tablet",
+            mLauncher.isTablet());
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
 
         try {

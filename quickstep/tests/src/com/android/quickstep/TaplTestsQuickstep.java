@@ -302,7 +302,8 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
     @Test
     @TaskbarModeSwitch
     public void testQuickSwitchToPreviousAppForTablet() throws Exception {
-        assumeTrue(mLauncher.isTablet());
+        assumeTrue("Ignoring test because device is not a tablet",
+            mLauncher.isTablet());
         startTestActivity(2);
         startImeTestActivity();
 
@@ -389,7 +390,8 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
     @PortraitLandscape
     @TaskbarModeSwitch
     public void testTaskbarDeadzonesForTablet() throws Exception {
-        assumeTrue(mLauncher.isTablet());
+        assumeTrue("Ignoring test because device is not a tablet",
+            mLauncher.isTablet());
 
         startTestAppsWithCheck();
 
@@ -476,7 +478,8 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
     @PortraitLandscape
     @EnableFlags(value = Flags.FLAG_ENABLE_GRID_ONLY_OVERVIEW)
     public void testDismissBottomRow() throws Exception {
-        assumeTrue(mLauncher.isTablet());
+        assumeTrue("Ignoring test because device is not a tablet",
+            mLauncher.isTablet());
         clearAllRecentTasks();
         startTestAppsWithCheck();
 
@@ -498,7 +501,8 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
     @PortraitLandscape
     @EnableFlags(value = Flags.FLAG_ENABLE_GRID_ONLY_OVERVIEW)
     public void testDismissLastGridRow() throws Exception {
-        assumeTrue(mLauncher.isTablet());
+        assumeTrue("Ignoring test because device is not a tablet",
+            mLauncher.isTablet());
         clearAllRecentTasks();
         startTestAppsWithCheck();
         startTestActivity(3);
@@ -537,7 +541,8 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
     // When dismissing multiple apps, the apps off screen should "re-balance" i.e. re-arrange
     // themselves evenly across both top and bottom rows.
     public void gridRebalancesOffScreenAfterDismissingMultipleApps() throws Exception {
-        assumeTrue(mLauncher.isTablet());
+        assumeTrue("Ignoring test because device is not a tablet",
+            mLauncher.isTablet());
         clearAllRecentTasks();
         // Launch enough apps so some are offscreen.
         for (int i = 2; i <= 12; i++) {
@@ -569,7 +574,8 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
     // 2 apps from the top row, will move the top row along 2 and so it will not be balanced
     // across the bottom row.
     public void gridDoesNotRebalanceOnScreenAfterDismissingMultipleApps() throws Exception {
-        assumeTrue(mLauncher.isTablet());
+        assumeTrue("Ignoring test because device is not a tablet",
+            mLauncher.isTablet());
         clearAllRecentTasks();
         // Launch 6 apps so 3 are in each row.
         int appsInBothRowsCount = 6;
