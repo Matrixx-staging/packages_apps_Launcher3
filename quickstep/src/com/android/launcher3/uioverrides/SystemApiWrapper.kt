@@ -37,7 +37,7 @@ import android.util.ArrayMap
 import android.view.SurfaceControlViewHost
 import android.widget.Toast
 import android.window.RemoteTransition
-import android.window.ScreenCapture
+import android.window.ScreenCaptureInternal
 import com.android.launcher3.BaseActivity
 import com.android.launcher3.Flags.enablePrivateSpace
 import com.android.launcher3.Flags.privateSpaceSysAppsSeparation
@@ -209,8 +209,8 @@ open class SystemApiWrapper @Inject constructor(@ApplicationContext context: Con
         shortcutInfo.hasIconFile() || shortcutInfo.hasIconUri()
 
     override fun captureSnapshot(host: SurfaceControlViewHost, width: Int, height: Int): Bitmap =
-        ScreenCapture.captureLayers(
-                ScreenCapture.LayerCaptureArgs.Builder(host.surfacePackage!!.surfaceControl)
+        ScreenCaptureInternal.captureLayers(
+                ScreenCaptureInternal.LayerCaptureArgs.Builder(host.surfacePackage!!.surfaceControl)
                     .setSourceCrop(Rect(0, 0, width, height))
                     .setAllowProtected(true)
                     .setHintForSeamlessTransition(true)
