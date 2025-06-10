@@ -170,6 +170,9 @@ class SandboxApplication private constructor(private val base: SandboxApplicatio
      */
     fun withModelDependency() = this.apply { lockModelThreadOnDestroy = true }
 
+    /** Returns `true` if [displayId] is different from this display's ID. */
+    fun isSecondaryDisplay(displayId: Int): Boolean = displayId != this.displayId
+
     override fun apply(statement: Statement, description: Description): Statement {
         return object : ExternalResource() {
                 override fun before() = init()
