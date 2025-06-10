@@ -1954,6 +1954,7 @@ public abstract class RecentsView<
                     GroupTask::toString).toList());
         }
         mLoadPlanEverApplied = true;
+        mPageScrolls = null;
         if (taskGroups == null || taskGroups.isEmpty()) {
             removeAllTaskViews();
             onTaskStackUpdated();
