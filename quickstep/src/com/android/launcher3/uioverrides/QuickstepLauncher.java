@@ -20,7 +20,6 @@ import static android.os.Trace.TRACE_TAG_APP;
 import static android.view.Display.DEFAULT_DISPLAY;
 import static android.view.WindowManager.LayoutParams.PRIVATE_FLAG_OPTIMIZE_MEASURE;
 import static android.view.accessibility.AccessibilityEvent.TYPE_VIEW_FOCUSED;
-import static android.window.DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY;
 
 import static com.android.app.animation.Interpolators.EMPHASIZED;
 import static com.android.internal.jank.Cuj.CUJ_LAUNCHER_LAUNCH_APP_PAIR_FROM_WORKSPACE;
@@ -1082,15 +1081,6 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
     @Override
     public void setResumed() {
-        DesktopVisibilityController desktopVisibilityController =
-                DesktopVisibilityController.INSTANCE.get(this);
-        if (!ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY.isTrue()
-                && desktopVisibilityController.isInDesktopModeAndNotInOverview(getDisplayId())
-                && !desktopVisibilityController.isRecentsGestureInProgress()) {
-            // Return early to skip setting activity to appear as resumed
-            // TODO: b/333533253 - Remove after flag rollout
-            return;
-        }
         super.setResumed();
     }
 

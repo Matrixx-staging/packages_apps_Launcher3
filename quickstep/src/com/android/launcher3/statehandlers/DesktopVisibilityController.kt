@@ -16,12 +16,10 @@
 package com.android.launcher3.statehandlers
 
 import android.content.Context
-import android.os.Debug
 import android.util.Log
 import android.util.Slog
 import android.util.SparseArray
 import android.view.Display.DEFAULT_DISPLAY
-import android.window.DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY
 import androidx.core.util.forEach
 import com.android.internal.util.LatencyTracker
 import com.android.launcher3.LauncherState
@@ -30,14 +28,11 @@ import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.statemanager.BaseState
-import com.android.launcher3.statemanager.StatefulActivity
-import com.android.launcher3.uioverrides.QuickstepLauncher
 import com.android.launcher3.util.DaggerSingletonObject
 import com.android.launcher3.util.DaggerSingletonTracker
 import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.window.WindowManagerProxy.DesktopVisibilityListener
-import com.android.quickstep.GestureState.GestureEndTarget
 import com.android.quickstep.SystemUiProxy
 import com.android.quickstep.fallback.RecentsState
 import com.android.wm.shell.desktopmode.DisplayDeskState
@@ -149,30 +144,10 @@ constructor(
                         isNotifyingDesktopVisibilityPending = true
                     }
                 }
-
-                if (
-                    !ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY.isTrue && wasVisible != isVisible
-                ) {
-                    // TODO: b/333533253 - Remove after flag rollout
-                    if (field > 0) {
-                        if (!inOverviewState) {
-                            // When desktop tasks are visible & we're not in overview, we want
-                            // launcher
-                            // to appear paused, this ensures that taskbar displays.
-                            markLauncherPaused()
-                        }
-                    } else {
-                        // If desktop tasks aren't visible, ensure that launcher appears resumed to
-                        // behave normally.
-                        markLauncherResumed()
-                    }
-                }
             }
         }
 
     private var inOverviewState = false
-    private var backgroundStateEnabled = false
-    private var gestureInProgress = false
 
     private var desktopTaskListener: DesktopTaskListenerImpl?
 
@@ -295,7 +270,6 @@ constructor(
         if (DEBUG) {
             Log.d(TAG, "onLauncherStateChanged: newState=$state")
         }
-        setBackgroundStateEnabled(isBackgroundAppState)
         // Desktop visibility tracks overview and background state separately
         setOverviewStateEnabled(!isBackgroundAppState && isRecentsViewVisible)
     }
@@ -331,19 +305,6 @@ constructor(
                         )
                     }
                 }
-            }
-
-            if (ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY.isTrue) {
-                return
-            }
-
-            // TODO: b/333533253 - Clean up after flag rollout
-            if (inOverviewState) {
-                markLauncherResumed()
-            } else if (areDesktopTasksVisibleNow && !gestureInProgress) {
-                // Switching out of overview state and gesture finished.
-                // If desktop tasks are still visible, hide launcher again.
-                markLauncherPaused()
             }
         }
     }
@@ -437,72 +398,6 @@ constructor(
 
         for (listener in desktopVisibilityListeners) {
             listener.onActiveDeskChanged(displayId, newActiveDesk, oldActiveDesk)
-        }
-    }
-
-    /** TODO: b/333533253 - Remove after flag rollout */
-    private fun setBackgroundStateEnabled(backgroundStateEnabled: Boolean) {
-        if (DEBUG) {
-            Log.d(
-                TAG,
-                ("setBackgroundStateEnabled: enabled=" +
-                    backgroundStateEnabled +
-                    " currentValue=" +
-                    this.backgroundStateEnabled),
-            )
-        }
-        if (backgroundStateEnabled != this.backgroundStateEnabled) {
-            this.backgroundStateEnabled = backgroundStateEnabled
-            if (this.backgroundStateEnabled) {
-                markLauncherResumed()
-            } else if (areDesktopTasksVisibleAndNotInOverview() && !gestureInProgress) {
-                // Switching out of background state. If desktop tasks are visible, pause launcher.
-                markLauncherPaused()
-            }
-        }
-    }
-
-    var isRecentsGestureInProgress: Boolean
-        /**
-         * Whether recents gesture is currently in progress.
-         *
-         * TODO: b/333533253 - Remove after flag rollout
-         */
-        get() = gestureInProgress
-        /** TODO: b/333533253 - Remove after flag rollout */
-        private set(gestureInProgress) {
-            if (gestureInProgress != this.gestureInProgress) {
-                this.gestureInProgress = gestureInProgress
-            }
-        }
-
-    /**
-     * Notify controller that recents gesture has started.
-     *
-     * TODO: b/333533253 - Remove after flag rollout
-     */
-    fun setRecentsGestureStart() {
-        if (DEBUG) {
-            Log.d(TAG, "setRecentsGestureStart")
-        }
-        isRecentsGestureInProgress = true
-    }
-
-    /**
-     * Notify controller that recents gesture finished with the given
-     * [com.android.quickstep.GestureState.GestureEndTarget]
-     *
-     * TODO: b/333533253 - Remove after flag rollout
-     */
-    fun setRecentsGestureEnd(endTarget: GestureEndTarget?) {
-        if (DEBUG) {
-            Log.d(TAG, "setRecentsGestureEnd: endTarget=$endTarget")
-        }
-        isRecentsGestureInProgress = false
-
-        if (endTarget == null) {
-            // Gesture did not result in a new end target. Ensure launchers gets paused again.
-            markLauncherPaused()
         }
     }
 
@@ -614,45 +509,12 @@ constructor(
         }
     }
 
-    /** TODO: b/333533253 - Remove after flag rollout */
-    private fun markLauncherPaused() {
-        if (ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY.isTrue) {
-            return
-        }
-        if (DEBUG) {
-            Log.d(TAG, "markLauncherPaused " + Debug.getCaller())
-        }
-        val activity: StatefulActivity<LauncherState>? =
-            QuickstepLauncher.ACTIVITY_TRACKER.getCreatedContext()
-        activity?.setPaused()
-    }
-
-    /** TODO: b/333533253 - Remove after flag rollout */
-    private fun markLauncherResumed() {
-        if (ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY.isTrue) {
-            return
-        }
-        if (DEBUG) {
-            Log.d(TAG, "markLauncherResumed " + Debug.getCaller())
-        }
-        val activity: StatefulActivity<LauncherState>? =
-            QuickstepLauncher.ACTIVITY_TRACKER.getCreatedContext()
-        // Check activity state before calling setResumed(). Launcher may have been actually
-        // paused (eg fullscreen task moved to front).
-        // In this case we should not mark the activity as resumed.
-        if (activity != null && activity.isResumed) {
-            activity.setResumed()
-        }
-    }
-
     fun dumpLogs(prefix: String, pw: PrintWriter) {
         pw.println(prefix + "DesktopVisibilityController:")
 
         pw.println("$prefix\tdesktopVisibilityListeners=$desktopVisibilityListeners")
         pw.println("$prefix\tvisibleDesktopTasksCount=$visibleDesktopTasksCountDeprecated")
         pw.println("$prefix\tinOverviewState=$inOverviewState")
-        pw.println("$prefix\tbackgroundStateEnabled=$backgroundStateEnabled")
-        pw.println("$prefix\tgestureInProgress=$gestureInProgress")
         pw.println("$prefix\tdesktopTaskListener=$desktopTaskListener")
         pw.println("$prefix\tcontext=$context")
     }
