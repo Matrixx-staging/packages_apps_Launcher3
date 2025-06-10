@@ -75,20 +75,6 @@ constructor(
     }
 
     /**
-     * [OnDeskAddedListener] which launches the new desk right after it is created.
-     *
-     * This is mainly used for clearing all desks via the clear all button in the recent view or the
-     * removal of the last task in a desk.
-     */
-    private val launchNewDeskListener =
-        object : OnDeskAddedListener {
-            override fun onDeskAdded(desktopTaskView: DesktopTaskView) {
-                desktopTaskView.launchWithAnimation()
-                recentsView.mUtils.removeOnDeskAddedListener(this)
-            }
-        }
-
-    /**
      * Runs the default spring animation when a dismissed task view in overview is released.
      *
      * <p>When a task dismiss is cancelled, the task will return to its original position via a
@@ -331,7 +317,22 @@ constructor(
                     // tasks), and closing all tasks on a desk doesn't always necessarily mean that
                     // the desk will be removed. So, there are no guarantees that the below call to
                     // `ActivityManagerWrapper::removeAllRecentTasks()` will be enough.
-                    if (areMultiDesksFlagsEnabled() && context.displayId.isExternalDisplay) {
+                    val switchToNewDesk =
+                        areMultiDesksFlagsEnabled() && context.displayId.isExternalDisplay
+                    if (switchToNewDesk) {
+                        val launchNewDeskListener =
+                            object : OnDeskAddedListener {
+                                override fun onDeskAdded(desktopTaskView: DesktopTaskView) {
+                                    desktopTaskView.launchWithAnimation()?.apply {
+                                        add {
+                                            InteractionJankMonitorWrapper.end(
+                                                Cuj.CUJ_LAUNCHER_OVERVIEW_CLEAR_ALL
+                                            )
+                                        }
+                                    }
+                                    recentsView.mUtils.removeOnDeskAddedListener(this)
+                                }
+                            }
                         mUtils.addOnDeskAddedListener(launchNewDeskListener)
                     }
                     systemUiProxy.removeAllDesks()
@@ -340,8 +341,9 @@ constructor(
                     finishRecentsAnimation(/* toRecents */ true, /* shouldPip */ false) {
                         uiHelperExecutor.execute { activityManagerWrapper.removeAllRecentTasks() }
                         removeAllTaskViews()
-                        if (context.displayId.isDefaultDisplay || !areMultiDesksFlagsEnabled()) {
+                        if (!switchToNewDesk) {
                             startHome()
+                            InteractionJankMonitorWrapper.end(Cuj.CUJ_LAUNCHER_OVERVIEW_CLEAR_ALL)
                         }
                     }
                 }
@@ -903,8 +905,18 @@ constructor(
 
                 // Denote if any task has been dismissed for grid rebalancing.
                 mAnyTaskHasBeenDismissed = true
-                // Cache group task before removing.
-                handleGroupTaskRemoval(dismissedTaskView, shouldRemoveTask)
+                val switchToNewDesk: Boolean
+                if (shouldRemoveTask && dismissedTaskView != null) {
+                    switchToNewDesk =
+                        areMultiDesksFlagsEnabled() &&
+                            context.displayId.isExternalDisplay &&
+                            taskViewCount == 1 &&
+                            contains(dismissedTaskView)
+                    // Cache group task before removing.
+                    handleGroupTaskRemoval(dismissedTaskView, switchToNewDesk)
+                } else {
+                    switchToNewDesk = false
+                }
 
                 // Get page to snap to before removing dismissed task.
                 val dismissedTaskViewId = dismissedTaskView?.taskViewId ?: INVALID_TASK_ID
@@ -929,7 +941,7 @@ constructor(
                 // Update the UI after removal and snap to page.
                 updateUiAfterTaskRemoval(dismissedTaskView, pageToSnapTo)
 
-                if (!dismissingForSplitSelection) {
+                if (!dismissingForSplitSelection && !switchToNewDesk) {
                     InteractionJankMonitorWrapper.end(Cuj.CUJ_LAUNCHER_OVERVIEW_TASK_DISMISS)
                 }
             }
@@ -952,35 +964,39 @@ constructor(
      * removeViewInLayout called on the dismissed task. It might happen before
      * removeGroupTaskInternal which runs on a helper thread.
      */
-    private fun handleGroupTaskRemoval(dismissedTaskView: TaskView?, shouldRemoveTask: Boolean) {
+    private fun handleGroupTaskRemoval(dismissedTaskView: TaskView, switchToNewDesk: Boolean) {
         with(recentsView) {
-            if (shouldRemoveTask && dismissedTaskView != null) {
-                val groupTask = dismissedTaskView.groupTask
-                if (groupTask != null) {
-                    // For the multi desk case, the launcher should switch to the new desk once the
-                    // last task of the previous desk is removed.
-                    if (
-                        areMultiDesksFlagsEnabled() &&
-                            context.displayId.isExternalDisplay &&
-                            taskViewCount == 1 &&
-                            contains(dismissedTaskView)
-                    ) {
-                        mUtils.addOnDeskAddedListener(launchNewDeskListener)
-                    }
-                    if (dismissedTaskView.isRunningTask) {
-                        finishRecentsAnimation(/* toRecents */ true, /* shouldPip */ false) {
-                            removeGroupTaskInternal(groupTask)
+            val groupTask = dismissedTaskView.groupTask ?: return
+            // For the multi desk case, the launcher should switch to the new desk once the
+            // last task of the previous desk is removed.
+            if (switchToNewDesk) {
+                val launchNewDeskListener =
+                    object : OnDeskAddedListener {
+                        override fun onDeskAdded(desktopTaskView: DesktopTaskView) {
+                            desktopTaskView.launchWithAnimation()?.apply {
+                                add {
+                                    InteractionJankMonitorWrapper.end(
+                                        Cuj.CUJ_LAUNCHER_OVERVIEW_TASK_DISMISS
+                                    )
+                                }
+                            }
+                            recentsView.mUtils.removeOnDeskAddedListener(this)
                         }
-                    } else {
-                        removeGroupTaskInternal(groupTask)
                     }
-                    (mContainer as ActivityContext)
-                        .statsLogManager
-                        .logger()
-                        .withItemInfo(dismissedTaskView.itemInfo)
-                        .log(LauncherEvent.LAUNCHER_TASK_DISMISS_SWIPE_UP)
-                }
+                mUtils.addOnDeskAddedListener(launchNewDeskListener)
             }
+            if (dismissedTaskView.isRunningTask) {
+                finishRecentsAnimation(/* toRecents */ true, /* shouldPip */ false) {
+                    removeGroupTaskInternal(groupTask)
+                }
+            } else {
+                removeGroupTaskInternal(groupTask)
+            }
+            (mContainer as ActivityContext)
+                .statsLogManager
+                .logger()
+                .withItemInfo(dismissedTaskView.itemInfo)
+                .log(LauncherEvent.LAUNCHER_TASK_DISMISS_SWIPE_UP)
         }
     }
 
