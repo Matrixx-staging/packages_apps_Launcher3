@@ -16,8 +16,9 @@
 
 package com.android.launcher3.popup
 
-import android.content.Intent
+import android.view.View
 import com.android.launcher3.model.data.ItemInfo
+import com.android.launcher3.views.ActivityContext
 import java.util.stream.Stream
 
 /**
@@ -33,7 +34,7 @@ enum class PopupCategory {
 data class PopupData(
     val iconResId: Int,
     val labelResId: Int,
-    val intent: Intent,
+    val popupAction: (context: ActivityContext, itemInfo: ItemInfo, view: View) -> Unit,
     val category: PopupCategory,
 )
 
@@ -50,7 +51,7 @@ interface PopupDataRepository {
      *   type of shortcut (e.g: only show long press shortcuts that belong to Folder type).
      * @return a stream of popup data belonging to that type.
      */
-    fun getPopupDataByType(type: PoppableType): Stream<PopupData>
+    fun getPopupDataByType(type: PoppableType): Stream<PopupData>?
 
     /** Factory for creating a popup data repository */
     companion object PopupDataRepositoryFactory {
@@ -61,7 +62,7 @@ interface PopupDataRepository {
          * @return a new PopupDataRepository.
          */
         fun createRepository(vararg itemInfo: ItemInfo): PopupDataRepository {
-            return TODO("Provide the return value")
+            return PopupDataRepositoryImpl(itemInfo, popupDataSource = PopupDataSource())
         }
     }
 }
