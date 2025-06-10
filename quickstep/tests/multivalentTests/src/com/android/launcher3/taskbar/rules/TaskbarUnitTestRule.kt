@@ -99,7 +99,7 @@ class TaskbarUnitTestRule(
 
                 // Only run test when Taskbar is enabled.
                 instrumentation.runOnMainSync {
-                    assumeTrue(
+                    assumeTrue("Ignoring test because taskbar is not present",
                         LauncherAppState.getIDP(context).getDeviceProfile(context).isTaskbarPresent
                     )
                 }

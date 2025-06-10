@@ -76,7 +76,8 @@ public class TaplTwoPanelWorkspaceTest extends AbstractLauncherUiTest<Launcher, 
                         "com.android.vending", "com.android.vending.AssetBrowserActivity");
         mLauncherLayout = TestUtil.setLauncherDefaultLayout(mTargetContext, builder);
         AbstractLauncherUiTest.initialize(this);
-        assumeTrue(mLauncher.isTwoPanels());
+        assumeTrue("Ignoring test because Launcher doesn't have two panels",
+            mLauncher.isTwoPanels());
 
         // Pre verifying the screens
         executeOnLauncher(launcher -> {
