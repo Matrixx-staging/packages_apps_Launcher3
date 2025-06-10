@@ -323,7 +323,12 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
                 return
             }
 
-            val currentTaskView = currentPageTaskView
+            val currentPageChild = getChildAt(currentPage)
+            // Compute [mCurrentPageScrollDiff] to be used for adjusting the scroll to guarantee
+            // the existing tasks remain in their previous position after creating the desktop.
+            val primaryScroll = pagedOrientationHandler.getPrimaryScroll(this)
+            val currentPageScroll = getScrollForPage(currentPage)
+            currentPageScrollDiff = primaryScroll - currentPageScroll
 
             // We assume that a newly added desk is always empty and gets added to the left of the
             // `AddNewDesktopButton`.
@@ -342,8 +347,8 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
             updateScrollSynchronously()
             animateDesktopTaskViewSpringIn(desktopTaskView)
 
-            // Set Current Page based on the stored TaskView.
-            currentTaskView?.let { setCurrentPage(indexOfChild(it)) }
+            // Set Current Page based on the stored View.
+            currentPageChild?.let { setCurrentPage(indexOfChild(it)) }
 
             onDeskAddedListeners.forEach { it.onDeskAdded(desktopTaskView) }
         }
