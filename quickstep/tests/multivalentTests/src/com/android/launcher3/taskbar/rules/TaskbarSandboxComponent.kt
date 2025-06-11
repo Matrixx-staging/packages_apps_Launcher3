@@ -48,7 +48,7 @@ import com.android.quickstep.RecentsAnimationDeviceState
 import com.android.quickstep.RotationTouchHelper
 import com.android.quickstep.SystemUiProxy
 import com.android.quickstep.TaskAnimationManager
-import com.android.quickstep.fallback.window.RecentsWindowManager
+import com.android.quickstep.window.RecentsWindowManager
 import dagger.Binds
 import dagger.BindsInstance
 import dagger.Component

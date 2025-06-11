@@ -199,7 +199,6 @@ import com.android.quickstep.TaskOverlayFactory;
 import com.android.quickstep.TaskViewUtils;
 import com.android.quickstep.TopTaskTracker;
 import com.android.quickstep.ViewUtils;
-import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
 import com.android.quickstep.recents.data.AppTimersRepository;
 import com.android.quickstep.recents.data.AppTimersRepositoryImpl;
@@ -231,6 +230,7 @@ import com.android.quickstep.util.TaskViewSimulator;
 import com.android.quickstep.util.TaskVisualsChangeListener;
 import com.android.quickstep.util.TransformParams;
 import com.android.quickstep.util.VibrationConstants;
+import com.android.quickstep.window.RecentsWindowManager;
 import com.android.systemui.plugins.ResourceProvider;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.recents.model.Task.TaskKey;
@@ -5510,7 +5510,7 @@ public abstract class RecentsView<
 
         // Recents doesn't receive activity callback, so we cleanup manually
         if (mContainer instanceof RecentsWindowManager manager) {
-            manager.cleanupRecentsWindow();
+            manager.hideRecentsWindow();
         }
     }
 

@@ -41,7 +41,7 @@ import static com.android.quickstep.InputConsumer.TYPE_CURSOR_HOVER;
 import static com.android.quickstep.InputConsumer.createNoOpInputConsumer;
 import static com.android.quickstep.InputConsumerUtils.newConsumer;
 import static com.android.quickstep.InputConsumerUtils.tryCreateAssistantInputConsumer;
-import static com.android.quickstep.fallback.window.RecentsWindowFlags.enableOverviewOnConnectedDisplays;
+import static com.android.quickstep.window.RecentsWindowFlags.enableOverviewOnConnectedDisplays;
 import static com.android.systemui.shared.system.ActivityManagerWrapper.CLOSE_SYSTEM_WINDOWS_REASON_RECENTS;
 
 import android.app.ActivityManager;
@@ -106,9 +106,6 @@ import com.android.quickstep.OverviewCommandHelper.CommandType;
 import com.android.quickstep.OverviewComponentObserver.OverviewChangeListener;
 import com.android.quickstep.actioncorner.ActionCornerHandler;
 import com.android.quickstep.fallback.RecentsState;
-import com.android.quickstep.fallback.window.RecentsWindowFlags;
-import com.android.quickstep.fallback.window.RecentsWindowManager;
-import com.android.quickstep.fallback.window.RecentsWindowSwipeHandler;
 import com.android.quickstep.input.QuickstepKeyGestureEventsManager;
 import com.android.quickstep.input.QuickstepKeyGestureEventsManager.OverviewGestureHandler;
 import com.android.quickstep.inputconsumers.BubbleBarInputConsumer;
@@ -121,6 +118,9 @@ import com.android.quickstep.util.ActivityPreloadUtil;
 import com.android.quickstep.util.ContextualSearchInvoker;
 import com.android.quickstep.util.ContextualSearchStateManager;
 import com.android.quickstep.views.RecentsViewContainer;
+import com.android.quickstep.window.RecentsWindowFlags;
+import com.android.quickstep.window.RecentsWindowManager;
+import com.android.quickstep.window.RecentsWindowSwipeHandler;
 import com.android.systemui.shared.recents.ILauncherProxy;
 import com.android.systemui.shared.recents.ISystemUiProxy;
 import com.android.systemui.shared.statusbar.phone.BarTransitions;
@@ -921,7 +921,7 @@ public class TouchInteractionService extends Service {
         }
         if (RecentsWindowFlags.getEnableOverviewInWindow()) {
             mRecentsWindowManagerRepository.forEach(
-                    /* createIfAbsent= */ false, RecentsWindowManager::cleanupRecentsWindow);
+                    /* createIfAbsent= */ false, RecentsWindowManager::hideRecentsWindow);
             if (isHomeAndOverviewSame) {
                 TaskStackChangeListeners.getInstance().unregisterTaskStackListener(
                         mHomeIntentStartedListener);

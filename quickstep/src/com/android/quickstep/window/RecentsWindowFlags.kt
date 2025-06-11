@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.quickstep.fallback.window
+package com.android.quickstep.window
 
 import android.window.DesktopExperienceFlags.DesktopExperienceFlag
 import com.android.launcher3.Flags

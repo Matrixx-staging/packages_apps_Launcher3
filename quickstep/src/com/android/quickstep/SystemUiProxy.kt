@@ -1248,8 +1248,8 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
     //
     // Recents
     //
-    /** Starts the recents activity. The caller should manage the thread on which this is called. */
-    fun startRecentsActivity(
+    /** Starts the recents animation. The caller should manage the thread on which this is called. */
+    fun startRecentsTransition(
         intent: Intent?,
         options: ActivityOptions,
         listener: RecentsAnimationListener,

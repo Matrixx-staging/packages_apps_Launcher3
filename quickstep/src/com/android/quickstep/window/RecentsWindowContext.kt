@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.quickstep.fallback.window
+package com.android.quickstep.window
 
 import android.content.Context
 import android.graphics.PixelFormat

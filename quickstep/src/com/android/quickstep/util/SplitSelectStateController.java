@@ -937,7 +937,7 @@ public class SplitSelectStateController {
                             ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_ALWAYS);
                     options.setTransientLaunch();
                     SystemUiProxy.INSTANCE.get(mLauncher.getApplicationContext())
-                            .startRecentsActivity(
+                            .startRecentsTransition(
                                     mOverviewComponentObserver.getOverviewIntent(), options,
                                     callbacks, false /* useSyntheticRecentsTransition */,
                                     withRecentsWct,

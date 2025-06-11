@@ -24,10 +24,10 @@ import com.android.launcher3.AbstractFloatingViewHelper
 import com.android.launcher3.R
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent
 import com.android.launcher3.popup.SystemShortcut
-import com.android.quickstep.fallback.window.RecentsWindowFlags.enableDesktopMenuOnSecondaryDisplay
 import com.android.quickstep.views.RecentsView
 import com.android.quickstep.views.RecentsViewContainer
 import com.android.quickstep.views.TaskContainer
+import com.android.quickstep.window.RecentsWindowFlags.enableDesktopMenuOnSecondaryDisplay
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus
 import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource

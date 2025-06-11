@@ -23,7 +23,6 @@ import com.android.launcher3.statemanager.BaseState
 import com.android.launcher3.statemanager.StatefulContainer
 import com.android.launcher3.taskbar.TaskbarManager
 import com.android.launcher3.util.LockedUserState.Companion.get
-import com.android.quickstep.fallback.window.RecentsWindowManager
 import com.android.quickstep.inputconsumers.AccessibilityInputConsumer
 import com.android.quickstep.inputconsumers.AssistantInputConsumer
 import com.android.quickstep.inputconsumers.BubbleBarInputConsumer
@@ -44,6 +43,7 @@ import com.android.quickstep.util.ActiveGestureLog
 import com.android.quickstep.util.ActiveGestureLog.CompoundString
 import com.android.quickstep.util.ActiveGestureProtoLogProxy
 import com.android.quickstep.views.RecentsViewContainer
+import com.android.quickstep.window.RecentsWindowManager
 import com.android.systemui.shared.system.InputChannelCompat
 import com.android.systemui.shared.system.InputMonitorCompat
 import com.android.wm.shell.Flags
