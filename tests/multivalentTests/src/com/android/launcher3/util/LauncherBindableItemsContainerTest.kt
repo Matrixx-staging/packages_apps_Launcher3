@@ -26,10 +26,9 @@ import android.view.View
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.android.launcher3.BubbleTextView
-import com.android.launcher3.graphics.PreloadIconDrawable
+import com.android.launcher3.graphics.PreloadIconDelegate
 import com.android.launcher3.icons.BitmapInfo
-import com.android.launcher3.icons.FastBitmapDrawable
-import com.android.launcher3.icons.PlaceHolderIconDrawable
+import com.android.launcher3.icons.PlaceHolderDrawableDelegate
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.AppInfo.makeLaunchIntent
 import com.android.launcher3.model.data.ItemInfo
@@ -61,35 +60,34 @@ class LauncherBindableItemsContainerTest {
         container.addIcon(icon2)
         container.addIcon(icon3)
 
-        assertThat(container.getAppIcon(icon1).icon)
-            .isInstanceOf(PlaceHolderIconDrawable::class.java)
-        assertThat(container.getAppIcon(icon2).icon)
-            .isInstanceOf(PlaceHolderIconDrawable::class.java)
-        assertThat(container.getAppIcon(icon3).icon)
-            .isInstanceOf(PlaceHolderIconDrawable::class.java)
+        assertThat(container.getAppIcon(icon1).icon.delegate)
+            .isInstanceOf(PlaceHolderDrawableDelegate::class.java)
+        assertThat(container.getAppIcon(icon2).icon.delegate)
+            .isInstanceOf(PlaceHolderDrawableDelegate::class.java)
+        assertThat(container.getAppIcon(icon3).icon.delegate)
+            .isInstanceOf(PlaceHolderDrawableDelegate::class.java)
 
         icon2.bitmap = BitmapInfo.fromBitmap(Bitmap.createBitmap(200, 200, ARGB_8888))
         TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {
             container.updateContainerItems(setOf(icon2), container)
         }
 
-        assertThat(container.getAppIcon(icon1).icon)
-            .isInstanceOf(PlaceHolderIconDrawable::class.java)
-        assertThat(container.getAppIcon(icon3).icon)
-            .isInstanceOf(PlaceHolderIconDrawable::class.java)
-        assertThat(container.getAppIcon(icon2).icon)
-            .isNotInstanceOf(PlaceHolderIconDrawable::class.java)
-        assertThat(container.getAppIcon(icon2).icon).isInstanceOf(FastBitmapDrawable::class.java)
+        assertThat(container.getAppIcon(icon1).icon.delegate)
+            .isInstanceOf(PlaceHolderDrawableDelegate::class.java)
+        assertThat(container.getAppIcon(icon3).icon.delegate)
+            .isInstanceOf(PlaceHolderDrawableDelegate::class.java)
+        assertThat(container.getAppIcon(icon2).icon.delegate)
+            .isNotInstanceOf(PlaceHolderDrawableDelegate::class.java)
     }
 
     @Test
     fun `icon download progress updated`() {
         container.addIcon(icon1)
         container.addIcon(icon2)
-        assertThat(container.getAppIcon(icon1).icon)
-            .isInstanceOf(PlaceHolderIconDrawable::class.java)
-        assertThat(container.getAppIcon(icon2).icon)
-            .isInstanceOf(PlaceHolderIconDrawable::class.java)
+        assertThat(container.getAppIcon(icon1).icon.delegate)
+            .isInstanceOf(PlaceHolderDrawableDelegate::class.java)
+        assertThat(container.getAppIcon(icon2).icon.delegate)
+            .isInstanceOf(PlaceHolderDrawableDelegate::class.java)
 
         icon1.status = WorkspaceItemInfo.FLAG_RESTORED_ICON
         icon1.bitmap = BitmapInfo.fromBitmap(Bitmap.createBitmap(200, 200, ARGB_8888))
@@ -98,11 +96,11 @@ class LauncherBindableItemsContainerTest {
             container.updateContainerItems(setOf(icon1), container)
         }
 
-        assertThat(container.getAppIcon(icon2).icon)
-            .isInstanceOf(PlaceHolderIconDrawable::class.java)
-        assertThat(container.getAppIcon(icon1).icon).isInstanceOf(PreloadIconDrawable::class.java)
-        val oldIcon = container.getAppIcon(icon1).icon as PreloadIconDrawable
-        assertThat(oldIcon.level).isEqualTo(30)
+        assertThat(container.getAppIcon(icon2).icon.delegate)
+            .isInstanceOf(PlaceHolderDrawableDelegate::class.java)
+        assertThat(container.getAppIcon(icon1).icon.delegate)
+            .isInstanceOf(PreloadIconDelegate::class.java)
+        assertThat(container.getAppIcon(icon1).icon.level).isEqualTo(30)
     }
 
     private fun getLAI(className: String): WorkspaceItemInfo =

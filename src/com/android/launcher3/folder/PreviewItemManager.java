@@ -23,9 +23,8 @@ import static com.android.launcher3.folder.ClippedFolderIconLayoutRule.ENTER_IND
 import static com.android.launcher3.folder.ClippedFolderIconLayoutRule.EXIT_INDEX;
 import static com.android.launcher3.folder.ClippedFolderIconLayoutRule.MAX_NUM_ITEMS_IN_PREVIEW;
 import static com.android.launcher3.folder.FolderIcon.DROP_IN_ANIMATION_DURATION;
-import static com.android.launcher3.graphics.PreloadIconDrawable.newPendingIcon;
+import static com.android.launcher3.graphics.PreloadIconDelegate.newPendingIcon;
 import static com.android.launcher3.icons.BitmapInfo.FLAG_THEMED;
-import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_SHOW_DOWNLOAD_PROGRESS_MASK;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -44,7 +43,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.BubbleTextView;
-import com.android.launcher3.Flags;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.apppairs.AppPairIcon;
@@ -447,8 +445,8 @@ public class PreviewItemManager {
     @VisibleForTesting
     public void setDrawable(PreviewItemDrawingParams p, ItemInfo item) {
         if (item instanceof WorkspaceItemInfo wii) {
-            if (isActivePendingIcon(wii)) {
-                p.drawable = newPendingIcon(mContext, wii);
+            if (wii.shouldShowPendingIcon()) {
+                p.drawable = newPendingIcon(wii, mContext, FLAG_THEMED);
             } else {
                 p.drawable = wii.newIcon(mContext, FLAG_THEMED);
             }
@@ -476,15 +474,5 @@ public class PreviewItemManager {
                         }
                     }, info, DESKTOP_ICON_FLAG);
         }
-    }
-
-    /**
-     * Returns true if item is a Promise Icon or actively downloading, and the item is not an
-     * inactive archived app.
-     */
-    private boolean isActivePendingIcon(WorkspaceItemInfo item) {
-        return (item.hasPromiseIconUi()
-                || (item.runtimeStatusFlags & FLAG_SHOW_DOWNLOAD_PROGRESS_MASK) != 0)
-                && !(Flags.useNewIconForArchivedApps() && item.isInactiveArchive());
     }
 }

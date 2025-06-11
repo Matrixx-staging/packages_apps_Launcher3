@@ -20,7 +20,7 @@ import static android.graphics.Paint.ANTI_ALIAS_FLAG;
 import static android.graphics.Paint.DITHER_FLAG;
 import static android.graphics.Paint.FILTER_BITMAP_FLAG;
 
-import static com.android.launcher3.graphics.PreloadIconDrawable.newPendingIcon;
+import static com.android.launcher3.graphics.PreloadIconDelegate.newPendingIcon;
 import static com.android.launcher3.model.data.LauncherAppWidgetInfo.FLAG_PROVIDER_NOT_READY;
 import static com.android.launcher3.icons.cache.CacheLookupFlag.DEFAULT_LOOKUP_FLAG;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
@@ -316,7 +316,7 @@ public class PendingAppWidgetHostView extends LauncherAppWidgetHostView
 
             mDragFlags |= FLAG_DRAW_SETTINGS | FLAG_DRAW_LABEL;
         } else {
-            mCenterDrawable = newPendingIcon(getContext(), info);
+            mCenterDrawable = newPendingIcon(info, getContext());
             mSettingIconDrawable = null;
             applyState();
         }

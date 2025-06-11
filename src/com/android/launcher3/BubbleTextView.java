@@ -20,12 +20,14 @@ import static android.graphics.fonts.FontStyle.FONT_WEIGHT_BOLD;
 import static android.graphics.fonts.FontStyle.FONT_WEIGHT_NORMAL;
 import static android.text.Layout.Alignment.ALIGN_NORMAL;
 
-import static com.android.launcher3.BubbleTextView.RunningAppState.RUNNING;
 import static com.android.launcher3.BubbleTextView.RunningAppState.MINIMIZED;
+import static com.android.launcher3.BubbleTextView.RunningAppState.RUNNING;
 import static com.android.launcher3.Flags.enableContrastTiles;
 import static com.android.launcher3.Flags.enableScalabilityForDesktopExperience;
 import static com.android.launcher3.allapps.AlphabeticalAppsList.PRIVATE_SPACE_PACKAGE;
-import static com.android.launcher3.graphics.PreloadIconDrawable.newPendingIcon;
+import static com.android.launcher3.graphics.PreloadIconDelegate.extractPreloadDelegate;
+import static com.android.launcher3.graphics.PreloadIconDelegate.hasPendingAnimationCompleted;
+import static com.android.launcher3.graphics.PreloadIconDelegate.newPendingIcon;
 import static com.android.launcher3.icons.BitmapInfo.FLAG_NO_BADGE;
 import static com.android.launcher3.icons.BitmapInfo.FLAG_SKIP_USER_BADGE;
 import static com.android.launcher3.icons.BitmapInfo.FLAG_THEMED;
@@ -70,7 +72,6 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.TextView;
 
 import androidx.annotation.DrawableRes;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 import androidx.annotation.VisibleForTesting;
@@ -81,11 +82,12 @@ import com.android.launcher3.dot.DotInfo;
 import com.android.launcher3.dragndrop.DragOptions.PreDragCondition;
 import com.android.launcher3.dragndrop.DraggableView;
 import com.android.launcher3.folder.FolderIcon;
-import com.android.launcher3.graphics.PreloadIconDrawable;
+import com.android.launcher3.graphics.PreloadIconDelegate;
+import com.android.launcher3.icons.BitmapInfo.DrawableCreationFlags;
 import com.android.launcher3.icons.DotRenderer;
 import com.android.launcher3.icons.FastBitmapDrawable;
 import com.android.launcher3.icons.IconCache.ItemInfoUpdateReceiver;
-import com.android.launcher3.icons.PlaceHolderIconDrawable;
+import com.android.launcher3.icons.PlaceHolderDrawableDelegate;
 import com.android.launcher3.icons.cache.CacheLookupFlag;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfo;
@@ -482,7 +484,8 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     @UiThread
     public void applyIconAndLabel(ItemInfoWithIcon info) {
         FastBitmapDrawable oldIcon = mIcon;
-        if (!canReuseIcon(info)) {
+        // Check if we can reuse icon so that any animation is preserved
+        if (hasPendingAnimationCompleted(mIcon) || !mIcon.isSameInfo(info.bitmap)) {
             setNonPendingIcon(info);
         }
         applyLabel(info);
@@ -490,41 +493,39 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     }
 
     /**
-     * Check if we can reuse icon so that any animation is preserved
-     */
-    private boolean canReuseIcon(ItemInfoWithIcon info) {
-        return mIcon instanceof PreloadIconDrawable p
-                && p.hasNotCompleted() && p.isSameInfo(info.bitmap);
-    }
-
-    /**
      * Apply progress level to the icon if necessary
      */
     private void maybeApplyProgressLevel(ItemInfoWithIcon info, FastBitmapDrawable oldIcon) {
-        if (!shouldApplyProgressLevel(info, oldIcon)) {
+        if (!info.shouldShowPendingIcon() && hasPendingAnimationCompleted(oldIcon)) {
             return;
         }
-        PreloadIconDrawable pendingIcon = applyProgressLevel(info);
+
+        PreloadIconDelegate pendingIcon = applyProgressLevel(info);
         boolean isNoLongerPending = info instanceof WorkspaceItemInfo wii
                 ? !wii.hasPromiseIconUi() : !info.isArchived();
         if (isNoLongerPending && info.getProgressLevel() == 100 && pendingIcon != null) {
-            pendingIcon.maybePerformFinishedAnimation(
-                    (oldIcon instanceof PreloadIconDrawable p) ? p : pendingIcon,
+            pendingIcon.maybePerformFinishedAnimation(oldIcon,
                     () -> setNonPendingIcon(
                             (getTag() instanceof ItemInfoWithIcon iiwi) ? iiwi : info));
         }
     }
 
-    /**
-     * Check if progress level should be applied to the icon
-     */
-    private boolean shouldApplyProgressLevel(ItemInfoWithIcon info, FastBitmapDrawable oldIcon) {
-        return (info.runtimeStatusFlags & FLAG_SHOW_DOWNLOAD_PROGRESS_MASK) != 0
-                || (info instanceof WorkspaceItemInfo wii && wii.hasPromiseIconUi())
-                || (oldIcon instanceof PreloadIconDrawable p && p.hasNotCompleted());
+    private void setNonPendingIcon(ItemInfoWithIcon info) {
+        FastBitmapDrawable iconDrawable =
+                info.newIcon(getContext(), getIconCreationFlagsForInfo(info));
+        mDotParams.appColor = iconDrawable.getIconColor();
+        mDotParams.dotColor = Themes.getAttrColor(getContext(), R.attr.notificationDotColor);
+        if (Objects.equals(info.getTargetPackage(), PRIVATE_SPACE_PACKAGE)) {
+            iconDrawable.setAnimationEnabled(false);
+        }
+        setIcon(iconDrawable);
     }
 
-    private void setNonPendingIcon(ItemInfoWithIcon info) {
+    /**
+     * Returns the creation flags to be used when generating icons for this view
+     */
+    @DrawableCreationFlags
+    public int getIconCreationFlagsForInfo(ItemInfoWithIcon info) {
         boolean isPrivateSpaceIcon = Objects.equals(info.getTargetPackage(), PRIVATE_SPACE_PACKAGE);
         // Set nonPendingIcon acts as a restart which should refresh the flag state when applicable.
         int flags = isPrivateSpaceIcon
@@ -536,13 +537,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         if (mSkipUserBadge) {
             flags |= FLAG_SKIP_USER_BADGE;
         }
-        FastBitmapDrawable iconDrawable = info.newIcon(getContext(), flags);
-        mDotParams.appColor = iconDrawable.getIconColor();
-        mDotParams.dotColor = Themes.getAttrColor(getContext(), R.attr.notificationDotColor);
-        if (isPrivateSpaceIcon) {
-            iconDrawable.setAnimationEnabled(false);
-        }
-        setIcon(iconDrawable);
+        return flags;
     }
 
     protected boolean shouldUseTheme() {
@@ -1185,11 +1180,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
 
     /** Applies the given progress level to the this icon's progress bar. */
     @Nullable
-    private PreloadIconDrawable applyProgressLevel(ItemInfoWithIcon info) {
-        if (info.isInactiveArchive()) {
-            return null;
-        }
-
+    private PreloadIconDelegate applyProgressLevel(ItemInfoWithIcon info) {
         int progressLevel = info.getProgressLevel();
         if (progressLevel >= 100) {
             setContentDescription(info.contentDescription != null
@@ -1200,45 +1191,15 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
             setContentDescription(getContext()
                     .getString(R.string.app_waiting_download_title, info.title));
         }
-        PreloadIconDrawable pid;
-        if (mIcon instanceof PreloadIconDrawable p) {
-            pid = p;
-            pid.setLevel(progressLevel);
-            pid.setDisabled(isIconDisabled(info));
+        PreloadIconDelegate pid = extractPreloadDelegate(mIcon);
+        if (pid != null) {
+            pid.reapplyProgress(info);
         } else {
-            pid = makePreloadIcon(info);
-            setIcon(pid);
+            setIcon(newPendingIcon(info, getContext(), getIconCreationFlagsForInfo(info)));
+            pid = extractPreloadDelegate(mIcon);
         }
         return pid;
     }
-
-    /**
-     * Creates a PreloadIconDrawable with the appropriate progress level without mutating this
-     * object.
-     */
-    @Nullable
-    public PreloadIconDrawable makePreloadIcon() {
-        return getTag() instanceof ItemInfoWithIcon info ? makePreloadIcon(info) : null;
-    }
-
-    @NonNull
-    private PreloadIconDrawable makePreloadIcon(ItemInfoWithIcon info) {
-        int progressLevel = info.getProgressLevel();
-        final PreloadIconDrawable preloadDrawable = newPendingIcon(getContext(), info);
-
-        preloadDrawable.setLevel(progressLevel);
-        preloadDrawable.setDisabled(isIconDisabled(info));
-        return preloadDrawable;
-    }
-
-    /**
-     * Returns true to grey the icon if the icon is either suspended or if the icon is pending
-     * download
-     */
-    public boolean isIconDisabled(ItemInfoWithIcon info) {
-        return info.isDisabled() || info.isPendingDownload();
-    }
-
 
     public void applyDotState(ItemInfo itemInfo, boolean animate) {
         if (mIcon != null) {
@@ -1282,7 +1243,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     private void setDownloadStateContentDescription(ItemInfoWithIcon info, int progressLevel) {
         if ((info.runtimeStatusFlags & ItemInfoWithIcon.FLAG_ARCHIVED) != 0
                 && progressLevel == 0) {
-            if (mIcon instanceof PreloadIconDrawable) {
+            if (info.shouldShowPendingIcon()) {
                 // Tell user that download is pending and not to tap to download again.
                 setContentDescription(getContext().getString(
                         R.string.app_waiting_download_title, info.title));
@@ -1358,9 +1319,9 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
 
         // If the current icon is a placeholder color, animate its update.
         if (mIcon != null
-                && mIcon instanceof PlaceHolderIconDrawable
+                && (mIcon.getDelegate() instanceof PlaceHolderDrawableDelegate delegate)
                 && mHighResUpdateInProgress) {
-            ((PlaceHolderIconDrawable) mIcon).animateIconUpdate(icon);
+            delegate.animateIconUpdate(icon);
         }
 
         mDisableRelayout = false;
