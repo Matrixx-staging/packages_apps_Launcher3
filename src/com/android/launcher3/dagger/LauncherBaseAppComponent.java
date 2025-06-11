@@ -23,6 +23,7 @@ import androidx.annotation.Nullable;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherPrefs;
+import com.android.launcher3.MainProcessInitializer;
 import com.android.launcher3.RemoveAnimationSettingsTracker;
 import com.android.launcher3.backuprestore.LauncherRestoreEventLogger;
 import com.android.launcher3.compose.core.widgetpicker.WidgetPickerComposeWrapper;
@@ -105,6 +106,7 @@ public interface LauncherBaseAppComponent {
     ActivityContextComponent.Builder getActivityContextComponentBuilder();
     WidgetPickerComposeWrapper getWidgetPickerComposeWrapper();
     WidgetSizeHandler getWidgetSizeHandler();
+    MainProcessInitializer getMainProcessInitializer();
 
 
     /** Builder for LauncherBaseAppComponent. */
