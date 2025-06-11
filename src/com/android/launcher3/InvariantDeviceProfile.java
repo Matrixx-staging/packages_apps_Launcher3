@@ -1171,10 +1171,14 @@ public class InvariantDeviceProfile {
                         R.styleable.GridDisplayOption_defaultLayoutId, 0);
             }
 
+            int numAllAppsColumnsFromAllAppsSizeSpec = -1;
             if (mAllAppsSizeSpecId != INVALID_RESOURCE_HANDLE) {
                 ResourceHelper resourceHelper = new ResourceHelper(context, mAllAppsSizeSpecId);
                 AllAppsSize allAppsSize = getAllAppsSize(resourceHelper, context, displayInfo);
                 mAllAppsAlignedWithWorkspaceRow = allAppsSize.mAlignWithWorkspaceRow;
+                if (allAppsSize.mNumColumns > 0) {
+                    numAllAppsColumnsFromAllAppsSizeSpec = allAppsSize.mNumColumns;
+                }
             } else {
                 mAllAppsAlignedWithWorkspaceRow = -1;
             }
@@ -1184,8 +1188,9 @@ public class InvariantDeviceProfile {
 
             allAppsStyle = a.getResourceId(R.styleable.GridDisplayOption_allAppsStyle,
                     R.style.AllAppsStyleDefault);
-            numAllAppsColumns = a.getInt(
-                    R.styleable.GridDisplayOption_numAllAppsColumns, numColumns);
+            numAllAppsColumns = numAllAppsColumnsFromAllAppsSizeSpec > 0
+                    ? numAllAppsColumnsFromAllAppsSizeSpec
+                    : a.getInt(R.styleable.GridDisplayOption_numAllAppsColumns, numColumns);
             numDatabaseAllAppsColumns = a.getInt(
                     R.styleable.GridDisplayOption_numExtendedAllAppsColumns, 2 * numAllAppsColumns);
 
@@ -1393,6 +1398,10 @@ public class InvariantDeviceProfile {
         // Negative value will be ignored, and cause all apps container to fill up vertical space.
         final int mAlignWithWorkspaceRow;
 
+        // Number of columns to be shown in all apps. Negative value indicates that default value
+        // should be used (i.e. the number of columns defined as part of grid-option spec).
+        final int mNumColumns;
+
         // The minimum device pixel width to which the spec can be applied.
         final float mMinDeviceWidthPx;
 
@@ -1400,6 +1409,7 @@ public class InvariantDeviceProfile {
             TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.AllAppsSize);
 
             mAlignWithWorkspaceRow =  a.getInt(R.styleable.AllAppsSize_alignWithWorkspaceRow, -1);
+            mNumColumns = a.getInt(R.styleable.AllAppsSize_numColumns, -1);
             mMinDeviceWidthPx = a.getFloat(R.styleable.AllAppsSize_minDeviceWidthDp, 0)
                     * stableDensityScale;
 
