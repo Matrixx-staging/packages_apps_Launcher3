@@ -22,9 +22,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import com.android.launcher3.widgetpicker.ui.WidgetPickerEventListeners
-import com.android.launcher3.widgetpicker.ui.components.ModalBottomSheetHeightStyle
-import com.android.launcher3.widgetpicker.ui.components.TitledBottomSheet
-import com.android.launcher3.widgetpicker.ui.components.TitledBottomSheetDefaults
+import com.android.launcher3.widgetpicker.ui.components.bottomsheet.ModalBottomSheetHeightStyle
+import com.android.launcher3.widgetpicker.ui.components.bottomsheet.TitledBottomSheet
+import com.android.launcher3.widgetpicker.ui.components.bottomsheet.TitledBottomSheetDefaults
 import com.android.launcher3.widgetpicker.ui.components.widgetPickerTestTag
 import com.android.launcher3.widgetpicker.ui.components.widgetPickerTestTagContainer
 import com.android.launcher3.widgetpicker.ui.fullcatalog.FullWidgetsCatalogViewModel.Screen
@@ -40,15 +40,12 @@ import javax.inject.Inject
  * When opened, first shows a landing page that comprises of the featured widgets and the list of
  * apps hosting widgets. User can enter search mode by tapping the search bar and see matching
  * results.
- *
  */
-class FullWidgetsCatalog @Inject constructor(
-    private val viewModelFactory: FullWidgetsCatalogViewModel.Factory,
-) {
+class FullWidgetsCatalog
+@Inject
+constructor(private val viewModelFactory: FullWidgetsCatalogViewModel.Factory) {
     @Composable
-    fun Content(
-        eventListeners: WidgetPickerEventListeners,
-    ) {
+    fun Content(eventListeners: WidgetPickerEventListeners) {
         val viewModel: FullWidgetsCatalogViewModel =
             rememberViewModel(
                 animationDelay = TitledBottomSheetDefaults.SLIDE_IN_ANIMATION_DURATION
@@ -64,13 +61,12 @@ class FullWidgetsCatalog @Inject constructor(
         TitledBottomSheet(
             title = viewModel.title.takeIf { !isCompactHeight },
             modifier =
-                Modifier
-                .widgetPickerTestTagContainer()
-                .widgetPickerTestTag(WIDGET_CATALOG_TEST_TAG),
+                Modifier.widgetPickerTestTagContainer()
+                    .widgetPickerTestTag(WIDGET_CATALOG_TEST_TAG),
             description = viewModel.description,
             heightStyle = ModalBottomSheetHeightStyle.FILL_HEIGHT,
             showDragHandle = true,
-            onDismissRequest = { eventListeners.onClose() },
+            onDismissSheet = { eventListeners.onClose() },
         ) {
             when (viewModel.activeScreen) {
                 Screen.LANDING -> {
