@@ -314,13 +314,6 @@ flag {
 }
 
 flag {
-    name: "grid_migration_refactor"
-    namespace: "launcher"
-    description: "Refactor grid migration such that the code is simpler to understand and update"
-    bug: "358399271"
-}
-
-flag {
     name: "accessibility_scroll_on_allapps"
     namespace: "launcher"
     description: "Scroll to item position if accessibility focused"

@@ -96,28 +96,16 @@ class GridMigrationTest {
     }
 
     private fun migrate(src: GridMigrationData, dst: GridMigrationData) {
-        if (Flags.gridMigrationRefactor()) {
-            val gridSizeMigrationLogic = GridSizeMigrationLogic()
-            gridSizeMigrationLogic.migrateGrid(
-                phoneContext,
-                src.gridState,
-                dst.gridState,
-                dst.dbHelper,
-                src.dbHelper.readableDatabase,
-                true,
-                modelDelegate,
-            )
-        } else {
-            GridSizeMigrationDBController.migrateGridIfNeeded(
-                phoneContext,
-                src.gridState,
-                dst.gridState,
-                dst.dbHelper,
-                src.dbHelper.readableDatabase,
-                true,
-                modelDelegate,
-            )
-        }
+        val gridSizeMigrationLogic = GridSizeMigrationLogic()
+        gridSizeMigrationLogic.migrateGrid(
+            phoneContext,
+            src.gridState,
+            dst.gridState,
+            dst.dbHelper,
+            src.dbHelper.readableDatabase,
+            true,
+            modelDelegate,
+        )
     }
 
     /**

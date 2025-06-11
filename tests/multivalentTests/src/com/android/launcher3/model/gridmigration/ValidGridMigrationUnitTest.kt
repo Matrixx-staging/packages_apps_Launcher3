@@ -20,13 +20,10 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.graphics.Point
 import android.os.Process
-import android.platform.test.annotations.DisableFlags
-import android.platform.test.annotations.EnableFlags
 import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import androidx.test.platform.app.InstrumentationRegistry
-import com.android.launcher3.Flags
 import com.android.launcher3.GridType.Companion.GRID_TYPE_ANY
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherSettings.Favorites
@@ -142,54 +139,30 @@ class ValidGridMigrationUnitTest {
         addItemsToDb(dbHelper.writableDatabase, dstGrid)
 
         LauncherDbUtils.SQLiteTransaction(dbHelper.writableDatabase).use {
-            if (Flags.gridMigrationRefactor()) {
-                val gridSizeMigrationLogic = GridSizeMigrationLogic()
-                val idsInUse = mutableListOf<Int>()
-                gridSizeMigrationLogic.migrateHotseat(
-                    srcGrid.size.x,
-                    dstGrid.size.x,
-                    GridSizeMigrationDBController.DbReader(it.db, srcGrid.tableName, context),
-                    GridSizeMigrationDBController.DbReader(it.db, dstGrid.tableName, context),
-                    dbHelper,
-                    idsInUse,
-                )
-                gridSizeMigrationLogic.migrateWorkspace(
-                    GridSizeMigrationDBController.DbReader(it.db, srcGrid.tableName, context),
-                    GridSizeMigrationDBController.DbReader(it.db, dstGrid.tableName, context),
-                    dbHelper,
-                    dstGrid.size,
-                    idsInUse,
-                )
-            } else {
-                GridSizeMigrationDBController.migrate(
-                    dbHelper,
-                    GridSizeMigrationDBController.DbReader(it.db, srcGrid.tableName, context),
-                    GridSizeMigrationDBController.DbReader(it.db, dstGrid.tableName, context),
-                    srcGrid.size.x,
-                    dstGrid.size.x,
-                    dstGrid.size,
-                    srcGrid.toGridState(),
-                    dstGrid.toGridState(),
-                )
-            }
+            val gridSizeMigrationLogic = GridSizeMigrationLogic()
+            val idsInUse = mutableListOf<Int>()
+            gridSizeMigrationLogic.migrateHotseat(
+                srcGrid.size.x,
+                dstGrid.size.x,
+                GridSizeMigrationDBController.DbReader(it.db, srcGrid.tableName, context),
+                GridSizeMigrationDBController.DbReader(it.db, dstGrid.tableName, context),
+                dbHelper,
+                idsInUse,
+            )
+            gridSizeMigrationLogic.migrateWorkspace(
+                GridSizeMigrationDBController.DbReader(it.db, srcGrid.tableName, context),
+                GridSizeMigrationDBController.DbReader(it.db, dstGrid.tableName, context),
+                dbHelper,
+                dstGrid.size,
+                idsInUse,
+            )
             it.commit()
         }
         return readDb(dstGrid.tableName, dbHelper.readableDatabase)
     }
 
     @Test
-    @EnableFlags(Flags.FLAG_GRID_MIGRATION_REFACTOR)
-    fun runTestCaseRefactorFlagEnabled() {
-        runTestCase()
-    }
-
-    @Test
-    @DisableFlags(Flags.FLAG_GRID_MIGRATION_REFACTOR)
-    fun runTestCaseRefactorFlagDisabled() {
-        runTestCase()
-    }
-
-    private fun runTestCase() {
+    fun runTestCase() {
         val caseGenerator = ValidGridMigrationTestCaseGenerator(Random(SEED.toLong()))
         for (i in 0..SMALL_TEST_SIZE) {
             val testCase = caseGenerator.generateTestCase(isDestEmpty = true)
@@ -207,18 +180,7 @@ class ValidGridMigrationUnitTest {
     }
 
     @Test
-    @EnableFlags(Flags.FLAG_GRID_MIGRATION_REFACTOR)
-    fun mergeBoardsRefactorFlagEnabled() {
-        mergeBoards()
-    }
-
-    @Test
-    @DisableFlags(Flags.FLAG_GRID_MIGRATION_REFACTOR)
-    fun mergeBoardsRefactorFlagDisabled() {
-        mergeBoards()
-    }
-
-    private fun mergeBoards() {
+    fun mergeBoards() {
         val caseGenerator = ValidGridMigrationTestCaseGenerator(Random(SEED.toLong()))
         for (i in 0..SMALL_TEST_SIZE) {
             val testCase = caseGenerator.generateTestCase(isDestEmpty = false)
@@ -242,20 +204,7 @@ class ValidGridMigrationUnitTest {
     // This test takes about 4 minutes, there is no need to run it in presubmit.
     @Stability(flavors = TestStabilityRule.LOCAL or TestStabilityRule.PLATFORM_POSTSUBMIT)
     @Test
-    @EnableFlags(Flags.FLAG_GRID_MIGRATION_REFACTOR)
-    fun runExtensiveTestCasesRefactorFlagEnabled() {
-        runExtensiveTestCases()
-    }
-
-    // This test takes about 4 minutes, there is no need to run it in presubmit.
-    @Stability(flavors = TestStabilityRule.LOCAL or TestStabilityRule.PLATFORM_POSTSUBMIT)
-    @Test
-    @DisableFlags(Flags.FLAG_GRID_MIGRATION_REFACTOR)
-    fun runExtensiveTestCasesRefactorFlagDisabled() {
-        runExtensiveTestCases()
-    }
-
-    private fun runExtensiveTestCases() {
+    fun runExtensiveTestCases() {
         val caseGenerator = ValidGridMigrationTestCaseGenerator(Random(SEED.toLong()))
         for (i in 0..LARGE_TEST_SIZE) {
             val testCase = caseGenerator.generateTestCase(isDestEmpty = true)

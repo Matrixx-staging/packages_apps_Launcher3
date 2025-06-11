@@ -17,12 +17,9 @@
 package com.android.launcher3.backuprestore
 
 import android.database.sqlite.SQLiteDatabase
-import android.platform.test.annotations.DisableFlags
-import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
-import com.android.launcher3.Flags
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.model.ModelDelegate
@@ -76,24 +73,11 @@ class BackupAndRestoreDBSelectionTest {
 
     val modelDelegate = mock<ModelDelegate>()
 
-    @EnableFlags(Flags.FLAG_GRID_MIGRATION_REFACTOR)
-    fun oldDatabasesNotPresentAfterRestoreRefactorFlagEnabled() {
-        oldDatabasesNotPresentAfterRestore()
-    }
-
-    @DisableFlags(Flags.FLAG_GRID_MIGRATION_REFACTOR)
-    fun oldDatabasesNotPresentAfterRestoreRefactorFlagDisabled() {
-        oldDatabasesNotPresentAfterRestore()
-    }
-
     @Test
     fun oldDatabasesNotPresentAfterRestore() {
         val dbController = LauncherAppState.getInstance(context).model.modelDbController
-        if (Flags.gridMigrationRefactor()) {
-            dbController.attemptMigrateDb(null, modelDelegate)
-        } else {
-            dbController.tryMigrateDB(null, modelDelegate)
-        }
+        dbController.attemptMigrateDb(null, modelDelegate)
+
         TestUtil.runOnExecutorSync(MODEL_EXECUTOR) {
             assert(backAndRestoreRule.getDatabaseFiles().size == 1) {
                 "There should only be one database after restoring, the last one used. Actual databases ${backAndRestoreRule.getDatabaseFiles()}"
