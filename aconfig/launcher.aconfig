@@ -418,16 +418,6 @@ flag {
 }
 
 flag {
-  name: "predictive_back_to_home_polish"
-  namespace: "launcher"
-  description: "Enables workspace reveal animation for predictive back-to-home"
-  bug: "382453424"
-  metadata {
-    purpose: PURPOSE_BUGFIX
-  }
-}
-
-flag {
   name: "predictive_back_to_home_blur"
   namespace: "launcher"
   description: "Adds blur for predictive back-to-home"

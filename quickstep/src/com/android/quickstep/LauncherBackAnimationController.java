@@ -95,8 +95,7 @@ import java.lang.ref.WeakReference;
  */
 public class LauncherBackAnimationController {
     private static final int SCRIM_FADE_DURATION = 233;
-    private static final float MIN_WINDOW_SCALE =
-            Flags.predictiveBackToHomePolish() ? 0.75f : 0.85f;
+    private static final float MIN_WINDOW_SCALE = 0.75f;
     private static final float MAX_SCRIM_ALPHA_DARK = 0.8f;
     private static final float MAX_SCRIM_ALPHA_LIGHT = 0.2f;
     private static final int MIN_BLUR_RADIUS_PRE_COMMIT = 10;
@@ -307,7 +306,7 @@ public class LauncherBackAnimationController {
 
     private void onCancelFinished() {
         customizeStatusBarAppearance(false);
-        if (Flags.predictiveBackToHomePolish() && !mLauncher.getWorkspace().isOverlayShown()
+        if (!mLauncher.getWorkspace().isOverlayShown()
                 && !mLauncher.isInState(LauncherState.ALL_APPS)) {
             setLauncherScale(ScalingWorkspaceRevealAnim.MAX_SIZE);
         }
@@ -362,7 +361,7 @@ public class LauncherBackAnimationController {
                 new RemoteAnimationTarget[]{ mBackTarget });
         setLauncherTargetViewVisible(false);
         mCurrentRect.set(mStartRect);
-        if (Flags.predictiveBackToHomePolish() && !mLauncher.getWorkspace().isOverlayShown()
+        if (!mLauncher.getWorkspace().isOverlayShown()
                 && !mLauncher.isInState(LauncherState.ALL_APPS)) {
             Animations.cancelOngoingAnimation(mLauncher.getWorkspace());
             Animations.cancelOngoingAnimation(mLauncher.getHotseat());
@@ -586,8 +585,7 @@ public class LauncherBackAnimationController {
         if (mScrimLayer != null) {
             removeScrimLayer();
         }
-        if (Flags.predictiveBackToHomePolish() && Flags.predictiveBackToHomeBlur()
-                && !mLauncher.getWorkspace().isOverlayShown()
+        if (Flags.predictiveBackToHomeBlur() && !mLauncher.getWorkspace().isOverlayShown()
                 && !mLauncher.isInState(LauncherState.ALL_APPS)) {
             mLauncher.getDepthController().pauseBlursOnWindows(false);
         }
