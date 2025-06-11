@@ -278,7 +278,7 @@ public class PreviewSurfaceRenderer {
                 mPreviewContext, Themes.getActivityThemeRes(mPreviewContext));
         if (mDarkMode != null) {
             Configuration configuration = new Configuration(
-                    context.getResources().getConfiguration());
+                    mPreviewContext.getResources().getConfiguration());
             if (mDarkMode) {
                 configuration.uiMode &= ~UI_MODE_NIGHT_NO;
                 configuration.uiMode |= UI_MODE_NIGHT_YES;
