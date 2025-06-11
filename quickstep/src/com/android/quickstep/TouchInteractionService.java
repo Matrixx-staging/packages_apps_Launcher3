@@ -25,6 +25,7 @@ import static android.view.MotionEvent.ACTION_POINTER_UP;
 import static android.view.MotionEvent.ACTION_UP;
 
 import static com.android.launcher3.Flags.enableCursorHoverStates;
+import static com.android.launcher3.Flags.enableTaskbarForDirectBoot;
 import static com.android.launcher3.LauncherPrefs.backedUpItem;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMotionEvent;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMultiFingerSwipe;
@@ -880,6 +881,7 @@ public class TouchInteractionService extends Service {
         onOverviewTargetChanged(mOverviewComponentObserver.isHomeAndOverviewSame());
 
         mTaskbarManager.onUserUnlocked();
+        mAllAppsActionManager.onUserUnlocked();
         mQuickstepKeyGestureEventsHandler.registerOverviewKeyGestureEvent(
                 createOverviewGestureHandler());
     }
@@ -933,8 +935,8 @@ public class TouchInteractionService extends Service {
 
     @UiThread
     private void onSystemUiFlagsChanged(@SystemUiStateFlags long lastSysUIFlags, int displayId) {
+        RecentsAnimationDeviceState deviceState = mDeviceStateRepository.get(displayId);
         if (LockedUserState.get(this).isUserUnlocked()) {
-            RecentsAnimationDeviceState deviceState = mDeviceStateRepository.get(displayId);
             TaskAnimationManager taskAnimationManager = mTaskAnimationManagerRepository.get(
                     displayId);
             if (deviceState != null && taskAnimationManager != null) {
@@ -949,6 +951,8 @@ public class TouchInteractionService extends Service {
                     taskAnimationManager.onSystemUiFlagsChanged(lastSysUIFlags, systemUiStateFlags);
                 }
             }
+        } else if (enableTaskbarForDirectBoot() && deviceState != null) {
+            mTaskbarManager.onSystemUiFlagsChanged(deviceState.getSysuiStateFlags(), displayId);
         }
     }
 

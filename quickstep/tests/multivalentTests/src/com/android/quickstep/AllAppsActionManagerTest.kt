@@ -72,7 +72,7 @@ class AllAppsActionManagerTest {
         }
 
     @Before
-    fun setUp() {
+    fun initDaggerGraph() {
         context.initDaggerComponent(
             DaggerAllAppsActionManagerTestComponent.builder()
                 .bindSettingsCache(settingsCacheSandbox.cache)
@@ -81,6 +81,8 @@ class AllAppsActionManagerTest {
         doNothing().whenever(inputManager).registerKeyGestureEventHandler(any(), any())
         doNothing().whenever(inputManager).unregisterKeyGestureEventHandler(any())
     }
+
+    @Before fun unlockUser() = allAppsActionManager.onUserUnlocked()
 
     @After fun destroyManager() = allAppsActionManager.onDestroy()
 
