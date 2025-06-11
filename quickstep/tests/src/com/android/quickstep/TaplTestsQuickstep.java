@@ -424,7 +424,8 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
 
     @Test
     public void testDisableRotationCheckForPhone() throws Exception {
-        assumeFalse(mLauncher.isTablet());
+        assumeFalse("Ignoring test because device is not a phone",
+            mLauncher.isTablet());
         try {
             mLauncher.setExpectedRotationCheckEnabled(false);
             mLauncher.setEnableRotation(false);

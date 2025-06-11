@@ -92,7 +92,8 @@ public class TaplAddWidgetTest extends AbstractLauncherUiTest<Launcher, View> {
     public void testDragCustomShortcut() throws Throwable {
         // TODO(b/322820039): Enable test for tablets - the picker UI has changed and test needs to
         //  be updated to look for appropriate UI elements.
-        Assume.assumeFalse(mLauncher.isTablet());
+        Assume.assumeFalse("Ignoring test because device is not a phone",
+            mLauncher.isTablet());
         commitTransactionAndLoadHome(new FavoriteItemsTransaction(mTargetContext));
 
         mLauncher.getWorkspace().openAllWidgets()
