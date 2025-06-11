@@ -99,8 +99,7 @@ constructor(
             widgetsModel.widgetsByComponentKey[componentKey]
                 ?: return WidgetPreview.PlaceholderWidgetPreview
 
-        val previewSizePx =
-            WidgetSizes.getWidgetSizePx(deviceProfile, widgetItem.spanX, widgetItem.spanY)
+        val previewSizePx = WidgetSizes.getWidgetItemSizePx(appContext, deviceProfile, widgetItem)
         val preview =
             withContext(backgroundContext) {
                 val result =
