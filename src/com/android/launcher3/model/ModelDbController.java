@@ -68,6 +68,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 
 /**
  * Utility class which maintains an instance of Launcher database and provides utility methods
@@ -88,6 +89,7 @@ public class ModelDbController {
     private final LauncherPrefs mPrefs;
     private final UserCache mUserCache;
     private final LayoutParserFactory mLayoutParserFactory;
+    private final Provider<GridSizeMigrationLogic> mMigrationLogicFactory;
 
     @Inject
     ModelDbController(
@@ -95,12 +97,14 @@ public class ModelDbController {
             InvariantDeviceProfile idp,
             LauncherPrefs prefs,
             UserCache userCache,
-            LayoutParserFactory layoutParserFactory) {
+            LayoutParserFactory layoutParserFactory,
+            Provider<GridSizeMigrationLogic> migrationLogicFactory) {
         mContext = context;
         mIdp = idp;
         mPrefs = prefs;
         mUserCache = userCache;
         mLayoutParserFactory = layoutParserFactory;
+        mMigrationLogicFactory = migrationLogicFactory;
     }
 
     private synchronized void createDbIfNotExists() {
@@ -353,7 +357,7 @@ public class ModelDbController {
 
             boolean isAfterRestore =
                     LauncherPrefs.get(mContext).get(LauncherPrefs.IS_FIRST_LOAD_AFTER_RESTORE);
-            GridSizeMigrationLogic gridSizeMigrationLogic = new GridSizeMigrationLogic();
+            GridSizeMigrationLogic gridSizeMigrationLogic = mMigrationLogicFactory.get();
 
             // Check if the migration path from source to destination is valid before migrating.
             GridMigrationOption sourceGridMigrationOption =
@@ -366,7 +370,7 @@ public class ModelDbController {
                     && sourceGridMigrationOption.canMigrate(destinationGridMigrationOption,
                     isAfterRestore)) {
                 mOpenHelper = createDatabaseHelper(true, new DeviceGridState(mIdp).getDbFile());
-                gridSizeMigrationLogic.migrateGrid(mContext, srcDeviceState, destDeviceState,
+                gridSizeMigrationLogic.migrateGrid(srcDeviceState, destDeviceState,
                         mOpenHelper, oldHelper.getWritableDatabase(), isDestNewDb, modelDelegate);
             } else {
                 Log.e(TAG, "Cannot migrate from source: " + srcDeviceState

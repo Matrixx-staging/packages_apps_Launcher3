@@ -26,6 +26,7 @@ import com.android.launcher3.GridType.Companion.GRID_TYPE_ANY
 import com.android.launcher3.InvariantDeviceProfile.TYPE_PHONE
 import com.android.launcher3.LauncherSettings.Favorites.TABLE_NAME
 import com.android.launcher3.celllayout.board.CellLayoutBoard
+import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.util.rule.TestToPhoneFileCopier
 import com.android.launcher3.util.rule.setFlags
@@ -96,9 +97,8 @@ class GridMigrationTest {
     }
 
     private fun migrate(src: GridMigrationData, dst: GridMigrationData) {
-        val gridSizeMigrationLogic = GridSizeMigrationLogic()
+        val gridSizeMigrationLogic = phoneContext.appComponent.createNewGridSizeMigrationLogic()
         gridSizeMigrationLogic.migrateGrid(
-            phoneContext,
             src.gridState,
             dst.gridState,
             dst.dbHelper,

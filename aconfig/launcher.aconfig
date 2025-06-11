@@ -628,3 +628,10 @@ flag {
         purpose: PURPOSE_BUGFIX
     }
 }
+
+flag {
+    name: "injectable_model_items"
+    namespace: "launcher"
+    description: "Enable model items to be provided by dagger"
+    bug: "423957181"
+}
