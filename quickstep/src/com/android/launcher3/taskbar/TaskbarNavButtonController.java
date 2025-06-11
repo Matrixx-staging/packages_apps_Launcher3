@@ -34,7 +34,6 @@ import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCH
 import static com.android.systemui.shared.system.ActivityManagerWrapper.CLOSE_SYSTEM_WINDOWS_REASON_HOME_KEY;
 import static com.android.systemui.shared.system.ActivityManagerWrapper.CLOSE_SYSTEM_WINDOWS_REASON_RECENTS;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_SCREEN_PINNING;
-import static com.android.window.flags.Flags.predictiveBackThreeButtonNav;
 
 import android.content.Context;
 import android.graphics.Rect;
@@ -144,7 +143,7 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
         if (buttonType == BUTTON_SPACE) {
             return;
         }
-        if (predictiveBackThreeButtonNav() && mLastSentBackAction == ACTION_DOWN) {
+        if (mLastSentBackAction == ACTION_DOWN) {
             Log.i(TAG, "Button click ignored while back button is pressed");
             // prevent interactions with other buttons while back button is pressed
             return;
@@ -189,8 +188,8 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
         if (buttonType == BUTTON_SPACE) {
             return false;
         }
-        if (predictiveBackThreeButtonNav() && mLastSentBackAction == ACTION_DOWN
-                && buttonType != BUTTON_BACK && buttonType != BUTTON_RECENTS) {
+        if (mLastSentBackAction == ACTION_DOWN && buttonType != BUTTON_BACK
+                && buttonType != BUTTON_RECENTS) {
             // prevent interactions with other buttons while back button is pressed (except back
             // and recents button for screen-unpin action).
             Log.i(TAG, "Button long click ignored while back button is pressed");
