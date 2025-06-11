@@ -39,7 +39,7 @@ class ListenableHostViewTest {
         var wasNotifiedOfUpdate = false
         val updateListener = Runnable { wasNotifiedOfUpdate = true }
         hostView.addUpdateListener(updateListener)
-        hostView.beginDeferringUpdates()
+        hostView.setUpdatesDeferred(true)
         hostView.updateAppWidget(null)
         Truth.assertThat(wasNotifiedOfUpdate).isTrue()
     }
