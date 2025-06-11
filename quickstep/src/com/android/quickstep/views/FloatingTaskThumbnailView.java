@@ -41,6 +41,7 @@ public class FloatingTaskThumbnailView extends View {
 
     private @Nullable BitmapShader mBitmapShader;
     private @Nullable Bitmap mBitmap;
+    private boolean mFitXY = false;
 
     public FloatingTaskThumbnailView(Context context) {
         this(context, null);
@@ -60,10 +61,11 @@ public class FloatingTaskThumbnailView extends View {
             return;
         }
 
-        // Scale down the bitmap to fix x, and crop in y.
-        float scale = 1.0f * getMeasuredWidth() / mBitmap.getWidth();
+        float scaleX = 1.0f * getMeasuredWidth() / mBitmap.getWidth();
+        float scaleY = 1.0f * getMeasuredHeight() / mBitmap.getHeight();
         mMatrix.reset();
-        mMatrix.postScale(scale, scale);
+        // Either scale to fit x and y, or fit x and crop in y.
+        mMatrix.postScale(scaleX, mFitXY ? scaleY : scaleX);
         mBitmapShader.setLocalMatrix(mMatrix);
 
         FloatingTaskView parent = (FloatingTaskView) getParent();
@@ -76,5 +78,10 @@ public class FloatingTaskThumbnailView extends View {
             mBitmapShader = new BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
             mPaint.setShader(mBitmapShader);
         }
+    }
+
+    /** Scale the thumbnail in both x and y. */
+    public void setFitXY() {
+        mFitXY = true;
     }
 }

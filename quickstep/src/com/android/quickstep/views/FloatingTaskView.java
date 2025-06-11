@@ -362,6 +362,11 @@ public class FloatingTaskView extends FrameLayout {
         transitionAnimator.addUpdateListener(listener);
     }
 
+    /** Scale the thumbnail image so that the task view looks just like the original task. */
+    public void setUseFitXYThumbnailScale() {
+        mThumbnailView.setFitXY();
+    }
+
     void fadeInSplitPlaceholder(PendingAnimation animation, SplitAnimationTimings timings) {
         animation.setViewAlpha(mSplitPlaceholderView, 1, clampToProgress(LINEAR,
                 timings.getPlaceholderFadeInStartOffset(),
