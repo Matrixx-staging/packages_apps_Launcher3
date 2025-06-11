@@ -31,6 +31,7 @@ import androidx.core.view.isInvisible
 import androidx.dynamicanimation.animation.FloatPropertyCompat
 import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.dynamicanimation.animation.SpringForce
+import com.android.app.animation.Interpolators.LINEAR
 import com.android.launcher3.AbstractFloatingView.TYPE_TASK_MENU
 import com.android.launcher3.AbstractFloatingView.getTopOpenViewWithType
 import com.android.launcher3.Flags.enableDesktopExplodedView
@@ -271,6 +272,17 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
 
     override fun onCanCreateDesksChanged(canCreateDesks: Boolean) {
         recentsView.addDeskButton?.isInvisible = !canCreateDesks
+    }
+
+    /** Animates the alpha of the AddDesktopButton when a gesture ends. */
+    fun startAddDesktopButtonFadeInOnGestureComplete() {
+        val addDesktopButton = recentsView.addDeskButton ?: return
+        ObjectAnimator.ofFloat(addDesktopButton, AddDesktopButton.GESTURE_ALPHA, 1f)
+            .apply {
+                duration = TaskView.FADE_IN_ICON_DURATION
+                interpolator = LINEAR
+            }
+            .start()
     }
 
     private fun animateDesktopTaskViewSpringIn(desktopTaskView: DesktopTaskView) {

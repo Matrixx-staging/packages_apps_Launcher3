@@ -2756,6 +2756,9 @@ public abstract class RecentsView<
         setFocusedTaskViewId(INVALID_TASK_ID);
         mAnyTaskHasBeenDismissed = false;
         setTaskIconVisible(true);
+        if (mAddDesktopButton != null) {
+            mAddDesktopButton.setGestureAlpha(1f);
+        }
 
         if (enableRefactorTaskThumbnail()) {
             // TODO(b/353917593): RecentsView is never destroyed, so its dependencies need to
@@ -2930,6 +2933,9 @@ public abstract class RecentsView<
         setEnableDrawingLiveTile(false);
         setRunningTaskHidden(true);
         setTaskIconVisible(false);
+        if (mAddDesktopButton != null) {
+            mAddDesktopButton.setGestureAlpha(0f);
+        }
     }
 
     /**
@@ -3013,6 +3019,7 @@ public abstract class RecentsView<
         setRunningTaskHidden(false);
         startIconFadeInOnGestureComplete();
         setTaskIconVisible(true);
+        mUtils.startAddDesktopButtonFadeInOnGestureComplete();
         animateActionsViewIn();
 
         if (mEnableDrawingLiveTile) {
