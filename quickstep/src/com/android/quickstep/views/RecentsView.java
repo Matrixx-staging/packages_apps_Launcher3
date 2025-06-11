@@ -19,7 +19,6 @@ package com.android.quickstep.views;
 import static android.app.ActivityTaskManager.INVALID_TASK_ID;
 import static android.os.Trace.traceBegin;
 import static android.os.Trace.traceEnd;
-import static android.view.Surface.ROTATION_0;
 import static android.view.View.MeasureSpec.EXACTLY;
 import static android.view.View.MeasureSpec.makeMeasureSpec;
 
@@ -200,7 +199,6 @@ import com.android.quickstep.TaskOverlayFactory;
 import com.android.quickstep.TaskViewUtils;
 import com.android.quickstep.TopTaskTracker;
 import com.android.quickstep.ViewUtils;
-import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
 import com.android.quickstep.recents.data.AppTimersRepository;
 import com.android.quickstep.recents.data.AppTimersRepositoryImpl;
@@ -232,6 +230,7 @@ import com.android.quickstep.util.TaskViewSimulator;
 import com.android.quickstep.util.TaskVisualsChangeListener;
 import com.android.quickstep.util.TransformParams;
 import com.android.quickstep.util.VibrationConstants;
+import com.android.quickstep.window.RecentsWindowManager;
 import com.android.systemui.plugins.ResourceProvider;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.recents.model.Task.TaskKey;
@@ -1954,6 +1953,7 @@ public abstract class RecentsView<
                     GroupTask::toString).toList());
         }
         mLoadPlanEverApplied = true;
+        mPageScrolls = null;
         if (taskGroups == null || taskGroups.isEmpty()) {
             removeAllTaskViews();
             onTaskStackUpdated();
@@ -2346,10 +2346,10 @@ public abstract class RecentsView<
             }
         }
 
-        boolean isInLandscape = mOrientationState.getTouchRotation() != ROTATION_0
-                || mOrientationState.getRecentsActivityRotation() != ROTATION_0;
-        mActionsView.updateHiddenFlags(HIDDEN_NON_ZERO_ROTATION,
-                !mOrientationState.isRecentsActivityRotationAllowed() && isInLandscape);
+        mActionsView.updateHiddenFlags(
+                HIDDEN_NON_ZERO_ROTATION,
+                mOrientationState.shouldHideActionButtons()
+        );
 
         // Recalculate DeviceProfile dependent layout.
         updateSizeAndPadding();
@@ -5510,7 +5510,7 @@ public abstract class RecentsView<
 
         // Recents doesn't receive activity callback, so we cleanup manually
         if (mContainer instanceof RecentsWindowManager manager) {
-            manager.cleanupRecentsWindow();
+            manager.hideRecentsWindow();
         }
     }
 
@@ -6600,9 +6600,10 @@ public abstract class RecentsView<
             getCurrentPageTaskView().setModalness(modalness);
         }
         // Only show actions view when it's modal for in-place landscape mode.
-        boolean inPlaceLandscape = !mOrientationState.isRecentsActivityRotationAllowed()
-                && mOrientationState.getTouchRotation() != ROTATION_0;
-        mActionsView.updateHiddenFlags(HIDDEN_NON_ZERO_ROTATION, modalness < 1 && inPlaceLandscape);
+        mActionsView.updateHiddenFlags(
+                HIDDEN_NON_ZERO_ROTATION, modalness < 1
+                        && mOrientationState.shouldHideActionButtons()
+        );
     }
 
     @Nullable

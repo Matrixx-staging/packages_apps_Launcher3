@@ -281,6 +281,29 @@ public class TaskbarUIController implements BubbleBarController.BubbleBarLocatio
     }
 
     /**
+     * Adds the provided `task` as a second app in splitscreen.
+     */
+    public void moveRunningTaskToSplitSelection(@NonNull Task task, @Nullable ItemInfo itemInfo,
+            View startingView) {
+        // When launching from Taskbar, set FLAG_IN_APP immediately to reduce potential visual noise
+        // during the app open transition.
+        if (mControllers.taskbarStashController != null) {
+            mControllers.taskbarStashController.updateStateForFlag(FLAG_IN_APP, true);
+            mControllers.taskbarStashController.applyState();
+        }
+
+        getRecentsView().confirmSplitSelect(
+                null /* containerTaskView */,
+                task /* task */,
+                task.icon,
+                startingView,
+                task.thumbnail != null ? task.thumbnail.getThumbnail() : null /* thumbnail */,
+                null /* intent */,
+                null /* user */,
+                itemInfo);
+    }
+
+    /**
      * Uses the clicked Taskbar icon to launch a second app for splitscreen.
      */
     public void triggerSecondAppForSplit(ItemInfoWithIcon info, Intent intent, View startingView) {

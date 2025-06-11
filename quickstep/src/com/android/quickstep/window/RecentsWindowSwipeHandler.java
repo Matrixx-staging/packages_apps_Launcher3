@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.quickstep.fallback.window;
+package com.android.quickstep.window;
 
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_HOME;
 import static android.content.Intent.EXTRA_COMPONENT_NAME;
@@ -285,7 +285,8 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
         @Override
         public AnimatorPlaybackController createActivityAnimationToHome() {
             // copied from {@link LauncherSwipeHandlerV2.LauncherHomeAnimationFactory}
-            long accuracy = 2 * Math.max(mDp.getDeviceProperties().getWidthPx(), mDp.getDeviceProperties().getHeightPx());
+            long accuracy = 2 * Math.max(mDp.getDeviceProperties().getWidthPx(),
+                    mDp.getDeviceProperties().getHeightPx());
             return mRecentsWindowManager
                     .getStateManager()
                     .createAnimationToNewWorkspace(

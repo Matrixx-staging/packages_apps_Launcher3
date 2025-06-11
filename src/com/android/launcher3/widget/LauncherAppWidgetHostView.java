@@ -46,12 +46,13 @@ import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.BaseDragLayer;
 import com.android.launcher3.views.BaseDragLayer.TouchCompleteListener;
+import com.android.launcher3.views.UpdateDeferrableView;
 
 /**
  * {@inheritDoc}
  */
 public class LauncherAppWidgetHostView extends BaseLauncherAppWidgetHostView
-        implements TouchCompleteListener, View.OnLongClickListener {
+        implements TouchCompleteListener, View.OnLongClickListener, UpdateDeferrableView {
 
     private static final String TAG = "LauncherAppWidgetHostView";
 
@@ -197,7 +198,7 @@ public class LauncherAppWidgetHostView extends BaseLauncherAppWidgetHostView
     /**
      * Returns true if the application of {@link RemoteViews} through {@link #updateAppWidget} are
      * currently being deferred.
-     * @see #beginDeferringUpdates()
+     * @see #setUpdatesDeferred
      */
     private boolean isDeferringUpdates() {
         return SystemClock.uptimeMillis() < mDeferUpdatesUntilMillis;
@@ -205,21 +206,18 @@ public class LauncherAppWidgetHostView extends BaseLauncherAppWidgetHostView
 
     /**
      * Begin deferring the application of any {@link RemoteViews} updates made through
-     * {@link #updateAppWidget} until {@link #endDeferringUpdates()} has been called or the next
+     * {@link #updateAppWidget} until deferring has been stopped or the next
      * {@link #updateAppWidget} call after {@link #UPDATE_LOCK_TIMEOUT_MILLIS} have elapsed.
      */
-    public void beginDeferringUpdates() {
-        mDeferUpdatesUntilMillis = SystemClock.uptimeMillis() + UPDATE_LOCK_TIMEOUT_MILLIS;
-    }
-
-    /**
-     * Stop deferring the application of {@link RemoteViews} updates made through
-     * {@link #updateAppWidget} and apply any deferred updates.
-     */
-    public void endDeferringUpdates() {
-        mDeferUpdatesUntilMillis = 0;
-        if (mReapplyOnResumeUpdates) {
-            updateAppWidget(mLastRemoteViews);
+    @Override
+    public void setUpdatesDeferred(boolean isDeferred) {
+        if (isDeferred) {
+            mDeferUpdatesUntilMillis = SystemClock.uptimeMillis() + UPDATE_LOCK_TIMEOUT_MILLIS;
+        } else {
+            mDeferUpdatesUntilMillis = 0;
+            if (mReapplyOnResumeUpdates) {
+                updateAppWidget(mLastRemoteViews);
+            }
         }
     }
 

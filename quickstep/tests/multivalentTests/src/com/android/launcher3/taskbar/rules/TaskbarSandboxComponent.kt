@@ -39,6 +39,7 @@ import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.util.DaggerSingletonTracker
 import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.FakePrefsModule
+import com.android.launcher3.util.SandboxWmProxyModule
 import com.android.launcher3.util.SettingsCache
 import com.android.launcher3.util.dagger.LauncherExecutorsModule
 import com.android.launcher3.util.window.WindowManagerProxy
@@ -47,7 +48,7 @@ import com.android.quickstep.RecentsAnimationDeviceState
 import com.android.quickstep.RotationTouchHelper
 import com.android.quickstep.SystemUiProxy
 import com.android.quickstep.TaskAnimationManager
-import com.android.quickstep.fallback.window.RecentsWindowManager
+import com.android.quickstep.window.RecentsWindowManager
 import dagger.Binds
 import dagger.BindsInstance
 import dagger.Component
@@ -84,7 +85,7 @@ interface TaskbarSandboxComponent : LauncherAppComponent {
             LauncherExecutorsModule::class,
             FakePrefsModule::class,
             DisplayControllerModule::class,
-            TaskbarSandboxWmProxyModule::class,
+            SandboxWmProxyModule::class,
             TaskbarPerDisplayReposModule::class,
             DesktopVisibilityControllerModule::class,
             NoOpWidgetPickerModule::class,

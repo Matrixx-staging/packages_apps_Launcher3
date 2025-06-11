@@ -22,9 +22,11 @@ import android.content.res.Resources;
 import android.graphics.Insets;
 import android.graphics.Rect;
 import android.util.ArrayMap;
+import android.view.DisplayInfo;
 import android.view.WindowInsets;
 
 import com.android.launcher3.util.DisplayController.Info;
+import com.android.launcher3.util.SandboxApplication;
 import com.android.launcher3.util.WindowBounds;
 import com.android.launcher3.util.launcheremulator.models.DeviceEmulationData;
 import com.android.launcher3.util.window.CachedDisplayInfo;
@@ -75,9 +77,23 @@ public class TestWindowManagerProxy extends WindowManagerProxy {
 
     @Override
     public WindowBounds getRealBounds(Context displayInfoContext, CachedDisplayInfo info) {
+        if (displayInfoContext.getApplicationContext() instanceof SandboxApplication sa
+                && sa.isSecondaryDisplay(displayInfoContext.getDisplayId())) {
+            return getSecondaryDisplayRealBounds(displayInfoContext);
+        }
         List<WindowBounds> windowBounds = estimateInternalDisplayBounds(displayInfoContext).get(
                 getDisplayInfo(displayInfoContext).normalize(this));
         return windowBounds.get(getDisplay(displayInfoContext).getRotation());
+    }
+
+    // Workaround for having external displays have the correct bounds in Robolectric. Otherwise,
+    // the bounds would match the emulated device.
+    private WindowBounds getSecondaryDisplayRealBounds(Context displayInfoContext) {
+        DisplayInfo displayInfo = new DisplayInfo();
+        displayInfoContext.getDisplay().getDisplayInfo(displayInfo);
+        return new WindowBounds(
+                new Rect(0, 0, displayInfo.getNaturalWidth(), displayInfo.getNaturalHeight()),
+                /* insets = */ new Rect());
     }
 
     @Override

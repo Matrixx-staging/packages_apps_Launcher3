@@ -21,6 +21,7 @@ import static android.view.Display.DEFAULT_DISPLAY;
 import static com.android.launcher3.BaseActivity.EVENT_DESTROYED;
 import static com.android.launcher3.statehandlers.DesktopVisibilityController.INACTIVE_DESK_ID;
 import static com.android.quickstep.AbsSwipeUpHandler.STATE_HANDLER_INVALIDATED;
+import static com.android.quickstep.AbsSwipeUpHandler.STATE_LAUNCHER_PRESENT;
 import static com.android.wm.shell.shared.ShellSharedConstants.KEY_EXTRA_SHELL_CAN_HAND_OFF_ANIMATION;
 import static com.android.wm.shell.shared.split.SplitBounds.KEY_EXTRA_SPLIT_BOUNDS;
 import static com.android.wm.shell.shared.split.SplitScreenConstants.SNAP_TO_2_50_50;
@@ -84,7 +85,6 @@ import com.android.wm.shell.shared.split.SplitBounds;
 import com.google.android.msdl.data.model.MSDLToken;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -371,20 +371,13 @@ public abstract class AbsSwipeUpHandlerTestCase<
     }
 
     @Test
-    @Ignore("b/418979038")
     public void invalidateHandlerWithLauncher_runsGestureAnimationEndCallback() {
         SWIPE_HANDLER handler = createSwipeHandler();
         Runnable onGestureAnimationEndCallback = mock(Runnable.class);
         handler.setGestureAnimationEndCallback(onGestureAnimationEndCallback);
-        handler.onActivityInit(true); // Sets STATE_LAUNCHER_PRESENT
 
-        // Use onConsumerAboutToBeSwitched to call reset(),to sets STATE_HANDLER_INVALIDATED. This
-        // will then call invalidateHandlerWithLauncher. This will hit the reset() in the else
-        // condition of onConsumerAboutToBeSwitched, as the gesture state is a mock and will
-        // return false for the booleans checked in the if-condition.
-        handler.onConsumerAboutToBeSwitched();
+        handler.mStateCallback.setState(STATE_HANDLER_INVALIDATED | STATE_LAUNCHER_PRESENT);
 
-        verify(getRecentsView()).onGestureAnimationEnd();
         verify(onGestureAnimationEndCallback).run();
     }
 

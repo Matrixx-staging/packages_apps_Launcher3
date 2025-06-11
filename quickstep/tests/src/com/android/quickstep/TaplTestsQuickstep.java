@@ -49,6 +49,7 @@ import com.android.launcher3.tapl.SelectModeButtons;
 import com.android.launcher3.tapl.Workspace;
 import com.android.launcher3.util.TestUtil;
 import com.android.launcher3.util.Wait;
+import com.android.launcher3.util.rule.ScreenRecordRule;
 import com.android.launcher3.util.ui.PortraitLandscapeRunner.PortraitLandscape;
 import com.android.quickstep.NavigationModeSwitchRule.NavigationModeSwitch;
 import com.android.quickstep.TaskbarModeSwitchRule.TaskbarModeSwitch;
@@ -477,6 +478,7 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
     @Test
     @PortraitLandscape
     @EnableFlags(value = Flags.FLAG_ENABLE_GRID_ONLY_OVERVIEW)
+    @ScreenRecordRule.ScreenRecord // TODO(b/415092715)
     public void testDismissBottomRow() throws Exception {
         assumeTrue("Ignoring test because device is not a tablet",
             mLauncher.isTablet());

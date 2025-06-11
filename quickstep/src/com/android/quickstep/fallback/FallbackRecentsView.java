@@ -43,7 +43,6 @@ import com.android.launcher3.util.SplitConfigurationOptions;
 import com.android.launcher3.util.SplitConfigurationOptions.SplitSelectSource;
 import com.android.quickstep.GestureState;
 import com.android.quickstep.RemoteTargetGluer.RemoteTargetHandle;
-import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.util.GroupTask;
 import com.android.quickstep.util.SingleTask;
 import com.android.quickstep.util.SplitSelectStateController;
@@ -52,6 +51,7 @@ import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
 import com.android.quickstep.views.TaskContainer;
 import com.android.quickstep.views.TaskView;
+import com.android.quickstep.window.RecentsWindowManager;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.wm.shell.shared.GroupedTaskInfo;
 
@@ -265,8 +265,9 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
 
         resetShareUIState();
 
-        // Set border after select mode changes to avoid showing border during state transition
-        if (!toState.isRecentsViewVisible() || toState == MODAL_TASK) {
+        // Set border state changes to avoid showing border during state transitions
+        if (!toState.isRecentsViewVisible() || toState == MODAL_TASK
+                || toState == OVERVIEW_SPLIT_SELECT) {
             setTaskBorderEnabled(false);
         }
 

@@ -98,10 +98,10 @@ import com.android.quickstep.OverviewComponentObserver;
 import com.android.quickstep.RecentsActivity;
 import com.android.quickstep.SystemDecorationChangeObserver;
 import com.android.quickstep.SystemUiProxy;
-import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.util.ContextualSearchInvoker;
 import com.android.quickstep.util.GroupTask;
 import com.android.quickstep.views.RecentsViewContainer;
+import com.android.quickstep.window.RecentsWindowManager;
 import com.android.server.am.Flags;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.statusbar.phone.BarTransitions;
@@ -160,6 +160,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
             Settings.Secure.NAV_BAR_KIDS_MODE);
 
     private final Context mBaseContext;
+    private final WindowManager mBaseWindowManager;
     private final int mPrimaryDisplayId;
     private final TaskbarNavButtonCallbacks mNavCallbacks;
     // TODO: Remove this during the connected displays lifecycle refactor.
@@ -461,6 +462,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
             DisplaysWithDecorationsRepositoryCompat displaysWithDecorationsRepositoryCompat,
             CoroutineDispatcher dispatcher) {
         mBaseContext = context;
+        mBaseWindowManager = mBaseContext.getSystemService(WindowManager.class);
         mPrimaryDisplayId = mBaseContext.getDisplayId();
         mAllAppsActionManager = allAppsActionManager;
         mNavCallbacks = navCallbacks;
@@ -1048,8 +1050,9 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
         if (newWindowContext != null) {
             debugTaskbarManager("onDisplayAddSystemDecorations: add new windowContext to map!",
                     displayId);
-            WindowManager wm = newWindowContext.getSystemService(WindowManager.class);
-            if (wm == null || !wm.shouldShowSystemDecors(displayId)) {
+            WindowManager wm = mBaseWindowManager;
+            if ((wm == null || !wm.shouldShowSystemDecors(displayId))
+                    && !DesktopExperienceFlags.ENABLE_SYS_DECORS_CALLBACKS_VIA_WM.isTrue()) {
                 String wmStatus = wm == null ? "WindowManager is null!" : "WindowManager exists";
                 boolean showDecor = wm != null && wm.shouldShowSystemDecors(displayId);
                 debugTaskbarManager(
@@ -1314,6 +1317,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
      * @return The {@link TaskbarActivityContext} for the specified display, or
      * {@code null} if no taskbar is associated with that display.
      */
+    @Nullable
     public TaskbarActivityContext getTaskbarForDisplay(int displayId) {
         return mTaskbars.get(displayId);
     }

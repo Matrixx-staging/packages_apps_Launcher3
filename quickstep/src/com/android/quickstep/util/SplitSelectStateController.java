@@ -16,6 +16,8 @@
 
 package com.android.quickstep.util;
 
+import static android.app.WindowConfiguration.ACTIVITY_TYPE_HOME;
+
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_DESKTOP_MODE_SPLIT_LEFT_TOP;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_DESKTOP_MODE_SPLIT_RIGHT_BOTTOM;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SPLIT_SELECTED_SECOND_APP;
@@ -39,6 +41,7 @@ import static com.android.wm.shell.shared.split.SplitScreenConstants.SNAP_TO_2_5
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
 import android.annotation.NonNull;
 import android.annotation.UiThread;
 import android.app.ActivityManager;
@@ -48,6 +51,7 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ShortcutInfo;
+import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
@@ -57,8 +61,10 @@ import android.os.RemoteException;
 import android.os.UserHandle;
 import android.util.Log;
 import android.util.Pair;
+import android.view.RemoteAnimationTarget;
 import android.view.SurfaceControl;
 import android.view.View;
+import android.window.DesktopExperienceFlags;
 import android.window.IRemoteTransitionFinishedCallback;
 import android.window.RemoteTransition;
 import android.window.RemoteTransitionStub;
@@ -89,6 +95,7 @@ import com.android.quickstep.RecentsAnimationCallbacks;
 import com.android.quickstep.RecentsAnimationController;
 import com.android.quickstep.RecentsAnimationTargets;
 import com.android.quickstep.RecentsModel;
+import com.android.quickstep.RemoteAnimationTargets;
 import com.android.quickstep.SplitSelectionListener;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.views.FloatingTaskView;
@@ -849,6 +856,8 @@ public class SplitSelectStateController {
 
     public class SplitFromDesktopController {
         private static final String TAG = "SplitFromDesktopController";
+        private static final boolean isBugfixFlagEnabled =
+                DesktopExperienceFlags.ENABLE_DESKTOP_SPLITSCREEN_TRANSITION_BUGFIX.isTrue();
 
         private final QuickstepLauncher mLauncher;
         private final OverviewComponentObserver mOverviewComponentObserver;
@@ -857,6 +866,8 @@ public class SplitSelectStateController {
         private ActivityManager.RunningTaskInfo mTaskInfo;
         private DesktopSplitSelectListenerImpl mSplitSelectListener;
         private Drawable mAppIcon;
+        @Nullable
+        private RecentsAnimationController mRecentsAnimationController;
 
         public SplitFromDesktopController(QuickstepLauncher launcher) {
             mLauncher = launcher;
@@ -911,12 +922,12 @@ public class SplitSelectStateController {
                     public void onRecentsAnimationStart(RecentsAnimationController controller,
                             RecentsAnimationTargets targets,
                             @Nullable TransitionInfo transitionInfo) {
-                        animation.start(() -> {
+                        mRecentsAnimationController = controller;
+                        animation.start(targets, () ->
                             controller.finish(
                                     true /* toRecents */,
                                     updateTaskbarRunnable,
-                                    false /* sendUserLeaveHint */);
-                        });
+                                    false /* sendUserLeaveHint */));
                     }
                 });
                 UI_HELPER_EXECUTOR.execute(() -> {
@@ -926,14 +937,14 @@ public class SplitSelectStateController {
                             ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_ALWAYS);
                     options.setTransientLaunch();
                     SystemUiProxy.INSTANCE.get(mLauncher.getApplicationContext())
-                            .startRecentsActivity(
+                            .startRecentsTransition(
                                     mOverviewComponentObserver.getOverviewIntent(), options,
                                     callbacks, false /* useSyntheticRecentsTransition */,
                                     withRecentsWct,
                                     ExternalDisplaysKt.getSafeDisplayId(taskInfo));
                 });
             } else {
-                animation.start(updateTaskbarRunnable);
+                animation.start(/* targets= */null, updateTaskbarRunnable);
             }
         }
 
@@ -941,13 +952,17 @@ public class SplitSelectStateController {
             private final Rect mTempRect = new Rect();
             private final RectF mTaskBounds = new RectF();
             private final int mSplitPosition;
+            private final SurfaceTransactionApplier mSurfaceApplier =
+                    new SurfaceTransactionApplier(mLauncher.getDragLayer());
 
             DesktopSplitRecentsAnimation(int splitPosition, Rect taskBounds) {
                 mSplitPosition = splitPosition;
                 mTaskBounds.set(taskBounds);
             }
 
-            void start(@NonNull Runnable onAnimationStart) {
+            void start(
+                    @Nullable RecentsAnimationTargets targets,
+                    @NonNull Runnable finishController) {
                 final StatsLogManager.LauncherEvent launcherDesktopSplitEvent =
                         mSplitPosition == STAGE_POSITION_BOTTOM_OR_RIGHT ?
                                 LAUNCHER_DESKTOP_MODE_SPLIT_RIGHT_BOTTOM :
@@ -962,40 +977,100 @@ public class SplitSelectStateController {
 
                 final PendingAnimation anim = new PendingAnimation(
                         SplitAnimationTimings.TABLET_HOME_TO_SPLIT.getDuration());
+                Bitmap thumbnail = getTaskThumbnail(mTaskInfo);
                 final FloatingTaskView floatingTaskView = FloatingTaskView.getFloatingTaskView(
-                        mLauncher, mLauncher.getDragLayer(),
-                        null /* thumbnail */,
-                        mAppIcon, new RectF());
+                        mLauncher, mLauncher.getDragLayer(), thumbnail, mAppIcon,
+                        /* positionOut= */new RectF());
                 floatingTaskView.setOnClickListener(view ->
                         getSplitAnimationController()
                                 .playAnimPlaceholderToFullscreen(mContainer, view,
                                         Optional.of(() -> resetState())));
+                if (isBugfixFlagEnabled) {
+                    floatingTaskView.setUseFitXYThumbnailScale();
+                }
                 floatingTaskView.setAlpha(1);
                 floatingTaskView.addStagingAnimation(anim, mTaskBounds, mTempRect,
-                        false /* fadeWithThumbnail */, true /* isStagedTask */);
+                        isBugfixFlagEnabled /* fadeWithThumbnail */, true /* isStagedTask */);
                 setFirstFloatingTaskView(floatingTaskView);
 
                 anim.addListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationStart(Animator animation) {
-                        onAnimationStart.run();
+                        if (!isBugfixFlagEnabled) {
+                            finishController.run();
+                            return;
+                        }
+                        if (targets == null) {
+                            return;
+                        }
+                        SurfaceTransaction transaction = new SurfaceTransaction();
+                        hideFreeformTargets(transaction, targets.apps);
+                        showHomeTarget(transaction, targets);
+                        mSurfaceApplier.scheduleApply(transaction);
                     }
                     @Override
                     public void onAnimationEnd(Animator animation) {
                         SystemUiProxy.INSTANCE.get(mLauncher.getApplicationContext())
                                 .onDesktopSplitSelectAnimComplete(mTaskInfo);
+                        if (isBugfixFlagEnabled) {
+                            finishController.run();
+                        }
                     }
                     @Override
                     public void onAnimationCancel(Animator animation) {
                         mLauncher.getDragLayer().removeView(floatingTaskView);
                         getSplitAnimationController()
                                 .removeSplitInstructionsView(mLauncher);
+                        if (isBugfixFlagEnabled) {
+                            finishController.run();
+                        }
                         resetState();
                     }
                 });
                 anim.add(getSplitAnimationController()
                         .getShowSplitInstructionsAnim(mLauncher).buildAnim());
+                if (isBugfixFlagEnabled) {
+                    anim.add(createHomeRevealAnimation());
+                }
                 anim.buildAnim().start();
+            }
+
+            private @Nullable Bitmap getTaskThumbnail(ActivityManager.RunningTaskInfo taskInfo) {
+                if (taskInfo == null) return null;
+                if (!isBugfixFlagEnabled) return null;
+                if (mRecentsAnimationController == null) return null;
+                return mRecentsAnimationController.screenshotTask(mTaskInfo.taskId).getThumbnail();
+            }
+
+            private AnimatorSet createHomeRevealAnimation() {
+                return new ScalingWorkspaceRevealAnim(mLauncher, /* siblingAnimation= */ null,
+                        /* windowTargetRect= */ null, true /* playAlphaReveal */)
+                        .getAnimators();
+            }
+
+            private static void showHomeTarget(
+                    SurfaceTransaction transaction, RemoteAnimationTargets targets) {
+                RemoteAnimationTarget homeTarget = Arrays.stream(targets.unfilteredApps)
+                        .filter(target -> target.taskInfo != null
+                                && target.taskInfo.topActivityType == ACTIVITY_TYPE_HOME)
+                        .findAny()
+                        .orElse(null);
+                if (homeTarget == null) return;
+                transaction.getTransaction().show(homeTarget.leash);
+            }
+
+            private void hideFreeformTargets(
+                    SurfaceTransaction transaction, RemoteAnimationTarget[] appTargets) {
+                List<RemoteAnimationTarget> freeformTargets = Arrays.stream(appTargets)
+                        .filter(target ->
+                                target.taskInfo != null && target.taskInfo.isFreeform())
+                        .toList();
+                if (freeformTargets.isEmpty()) {
+                    return;
+                }
+                for (RemoteAnimationTarget target : freeformTargets) {
+                    transaction.getTransaction().hide(target.leash);
+                }
             }
         }
     }

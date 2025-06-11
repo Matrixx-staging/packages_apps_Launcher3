@@ -420,6 +420,20 @@ public class RecentsOrientedState implements LauncherPrefChangeListener {
     }
 
     /**
+     * Returns if we should show the action buttons on the recent view based on the orientation
+     * state.
+     */
+    public boolean shouldHideActionButtons() {
+        // In fixed landscape always show the action buttons
+        return !isLauncherFixedLandscape()
+                // When not in fixed landscape, do not show actions buttons when using
+                // fake landscape which happens when the rotation is not ROTATION_0 unless
+                // rotation is allowed
+                && (getTouchRotation() != ROTATION_0 || getRecentsActivityRotation() != ROTATION_0)
+                && !isRecentsActivityRotationAllowed();
+    }
+
+    /**
      * Enables or disables the rotation watcher for listening to rotation callbacks
      */
     public void setRotationWatcherEnabled(boolean isEnabled) {

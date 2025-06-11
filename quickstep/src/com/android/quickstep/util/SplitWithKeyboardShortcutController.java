@@ -98,7 +98,7 @@ public class SplitWithKeyboardShortcutController {
                         ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_ALWAYS);
                 options.setTransientLaunch();
                 SystemUiProxy.INSTANCE.get(mLauncher.getApplicationContext())
-                        .startRecentsActivity(mOverviewComponentObserver.getOverviewIntent(),
+                        .startRecentsTransition(mOverviewComponentObserver.getOverviewIntent(),
                                 ActivityOptions.makeBasic(), callbacks,
                                 false /* useSyntheticRecentsTransition */, null, displayId);
             });

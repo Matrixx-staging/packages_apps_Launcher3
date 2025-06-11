@@ -306,7 +306,8 @@ public class KeyboardQuickSwitchViewController {
                 task,
                 remoteTransition,
                 mOnDesktop,
-                DesktopTaskToFrontReason.ALT_TAB);
+                DesktopTaskToFrontReason.ALT_TAB,
+                mKeyboardQuickSwitchView.getTaskAt(index));
         return -1;
     }
 

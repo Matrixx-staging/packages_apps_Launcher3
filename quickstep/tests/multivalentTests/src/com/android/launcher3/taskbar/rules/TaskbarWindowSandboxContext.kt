@@ -22,15 +22,19 @@ import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.view.Display
 import android.view.Display.DEFAULT_DISPLAY
+import android.view.WindowManager
+import android.window.DesktopExperienceFlags
 import androidx.test.core.app.ApplicationProvider
 import com.android.launcher3.util.SandboxApplication
 import com.android.launcher3.util.SettingsCacheSandbox
+import com.android.launcher3.util.VirtualDisplaysRule
 import com.android.quickstep.SystemUiProxy
 import org.junit.rules.ExternalResource
 import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
+import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 
 /**
@@ -42,27 +46,28 @@ import org.mockito.kotlin.whenever
 class TaskbarWindowSandboxContext
 private constructor(
     private val base: SandboxApplication,
-    val virtualDisplay: VirtualDisplay,
+    val virtualDisplayRule: VirtualDisplaysRule,
     private val params: SandboxParams,
 ) : ContextWrapper(base), TestRule {
 
     val settingsCacheSandbox = SettingsCacheSandbox()
 
-    private val virtualDisplayRule =
-        object : ExternalResource() {
-            override fun after() = virtualDisplay.release()
-        }
-
-    // Filter out DEFAULT_DISPLAY in case code accesses displays property. The primary virtual
-    // display has a different ID.
-    private val sandboxDisplayManagerRule =
+    private val sandboxSpyServicesRule =
         object : ExternalResource() {
             override fun before() {
+                // Filter out DEFAULT_DISPLAY in case code accesses displays property. The primary
+                // virtual display has a different ID.
                 val dm = base.spyService(DisplayManager::class.java)
                 whenever(dm.displays).thenAnswer { i ->
                     @Suppress("UNCHECKED_CAST")
                     val displays = i.callRealMethod() as? Array<Display> ?: emptyArray<Display>()
                     displays.filter { it.displayId != DEFAULT_DISPLAY }.toTypedArray()
+                }
+
+                // Have displays appear as if they support Taskbar.
+                if (!DesktopExperienceFlags.ENABLE_SYS_DECORS_CALLBACKS_VIA_WM.isTrue) {
+                    val wm = base.spyService(WindowManager::class.java)
+                    whenever(wm.shouldShowSystemDecors(any())).thenReturn(true)
                 }
             }
         }
@@ -82,34 +87,26 @@ private constructor(
     override fun apply(statement: Statement, description: Description): Statement {
         return RuleChain.outerRule(virtualDisplayRule)
             .around(base)
-            .around(sandboxDisplayManagerRule)
+            .around(sandboxSpyServicesRule)
             .around(singletonSetupRule)
             .apply(statement, description)
     }
 
     companion object {
-        private const val VIRTUAL_DISPLAY_NAME = "TaskbarSandboxDisplay"
-
         /** Creates a [SandboxApplication] for Taskbar tests. */
         fun create(params: SandboxParams = SandboxParams()): TaskbarWindowSandboxContext {
             val base = ApplicationProvider.getApplicationContext<Context>()
-            val displayManager = checkNotNull(base.getSystemService(DisplayManager::class.java))
-            // Create virtual display to avoid clashing with Taskbar on default display.
-            val virtualDisplay =
-                base.resources.displayMetrics.let {
-                    displayManager.createVirtualDisplay(
-                        VIRTUAL_DISPLAY_NAME,
-                        it.widthPixels,
-                        it.heightPixels,
-                        it.densityDpi,
-                        /* surface= */ null,
-                        /* flags= */ 0,
-                    )
-                }
-
+            val virtualDisplaysRule = VirtualDisplaysRule(base)
+            val defaultDisplay =
+                checkNotNull(
+                    base.resources.displayMetrics.let {
+                        virtualDisplaysRule[
+                            virtualDisplaysRule.add(it.widthPixels, it.heightPixels, it.densityDpi)]
+                    }
+                )
             return TaskbarWindowSandboxContext(
-                SandboxApplication(base = base.createDisplayContext(virtualDisplay.display)),
-                virtualDisplay,
+                SandboxApplication(base = base.createDisplayContext(defaultDisplay.display)),
+                virtualDisplaysRule,
                 params,
             )
         }
