@@ -74,6 +74,7 @@ import com.android.quickstep.window.RecentsWindowManager;
 import com.android.systemui.animation.ViewRootSync;
 import com.android.systemui.shared.recents.model.ThumbnailData;
 import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags;
+import com.android.wm.shell.shared.bubbles.BubbleAnythingFlagHelper;
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation;
 
 import java.io.PrintWriter;
@@ -606,11 +607,20 @@ public class TaskbarLauncherStateController {
 
             taskbarVisibility.setDuration(duration);
             if (isHidden) {
-                // Stash the transient taskbar once the taskbar is not visible. This reduces
+                // Stash the transient taskbar once the hide animation completes. This reduces
                 // visual noise when unlocking the device afterwards.
                 animatorSet.addListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
+                        // If the taskbar is no longer hidden when the animation ends (e.g. quick
+                        // power button double tap), then we should no longer stash the taskbar.
+                        if (BubbleAnythingFlagHelper.enableCreateAnyBubble()
+                                && !hasAnyFlag(FLAG_TASKBAR_HIDDEN)) {
+                            if (DEBUG) {
+                                Log.d(TAG, "Skip stashing taskbar, it's visible again.");
+                            }
+                            return;
+                        }
                         TaskbarStashController stashController =
                                 mControllers.taskbarStashController;
                         stashController.updateAndAnimateTransientTaskbar(
