@@ -19,6 +19,7 @@ package com.android.launcher3.widgetpicker
 import android.app.Activity.RESULT_OK
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.DisposableEffect
@@ -145,6 +146,7 @@ constructor(
     }
 
     companion object {
+        private const val TAG = "WidgetPickerComposeWrapperImpl"
         private const val HOME_SCREEN_WIDGET_INTERACTION_REASON_STRING =
             "WidgetPickerActivity.OnWidgetInteraction"
 
@@ -154,6 +156,7 @@ constructor(
         ) =
             object : WidgetPickerEventListeners {
                 override fun onClose() {
+                    Log.d(TAG, "Closing widget picker")
                     finish()
                 }
 

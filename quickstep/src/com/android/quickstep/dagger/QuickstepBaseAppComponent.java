@@ -35,6 +35,7 @@ import com.android.quickstep.SimpleOrientationTouchTransformer;
 import com.android.quickstep.SystemDecorationChangeObserver;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.TaskAnimationManager;
+import com.android.quickstep.TaskOverlayFactory;
 import com.android.quickstep.TopTaskTracker;
 import com.android.quickstep.actioncorner.ActionCornerHandler;
 import com.android.quickstep.inputconsumers.NavHandleLongPressHandler;
@@ -104,4 +105,6 @@ public interface QuickstepBaseAppComponent extends LauncherBaseAppComponent {
     TaskbarViewCallbacksFactory getTaskbarViewCallbacksFactory();
 
     TaskbarOverlayContextFactory getTaskbarOverlayContextFactory();
+
+    TaskOverlayFactory getTaskOverlayFactory();
 }
