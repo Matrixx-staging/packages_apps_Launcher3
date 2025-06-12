@@ -58,6 +58,7 @@ class DragToBubbleController(private val context: Context, bubbleBarContainer: F
     private lateinit var bubbleBarLocationListener: BubbleBarLocationListener
     private lateinit var systemUiProxy: SystemUiProxy
     private lateinit var bubbleBarViewController: BubbleBarViewController
+    private val bubbleDropController: BubbleBarDropTargetController = createDropController()
 
     // Two DropTargetManagers are needed because the drag call chain has
     // conflicting states that require showing different targets:
@@ -79,10 +80,9 @@ class DragToBubbleController(private val context: Context, bubbleBarContainer: F
         this.bubbleBarViewController = bubbleBarViewController
         this.systemUiProxy = systemUiProxy
         this.bubbleBarLocationListener = bubbleBarLocationListener
-        val dropController: BubbleBarDropTargetController = createDropController()
         dragZoneFactory = createDragZoneFactory(bubbleBarPropertiesProvider)
-        bubbleBarLeftDropTarget = createDropTarget(dropController, isLeftDropTarget = true)
-        bubbleBarRightDropTarget = createDropTarget(dropController, isLeftDropTarget = false)
+        bubbleBarLeftDropTarget = createDropTarget(bubbleDropController, isLeftDropTarget = true)
+        bubbleBarRightDropTarget = createDropTarget(bubbleDropController, isLeftDropTarget = false)
     }
 
     /** Adds bubble bar locations drop zones to the drag controller. */
@@ -135,7 +135,12 @@ class DragToBubbleController(private val context: Context, bubbleBarContainer: F
 
     override fun onDragStart(dragObject: DragObject, options: DragOptions) {
         isItemDropHandled = false
-        onDragStarted(showDropTarget = true, launcherDropTargetManager)
+        val isDropCanBeAccepted = canAcceptDrop(dragObject)
+        bubbleBarLeftDropTarget.isDropCanBeAccepted = isDropCanBeAccepted
+        bubbleBarRightDropTarget.isDropCanBeAccepted = isDropCanBeAccepted
+        if (isDropCanBeAccepted) {
+            onDragStarted(showDropTarget = true, launcherDropTargetManager)
+        }
     }
 
     override fun onDragEnd() {
@@ -203,18 +208,21 @@ class DragToBubbleController(private val context: Context, bubbleBarContainer: F
         )
     }
 
+    private fun canAcceptDrop(dragObject: DragObject): Boolean {
+        val itemInfo = dragObject.dragInfo
+        return itemInfo != null && (hasShortcutInfo(itemInfo) || itemInfo.intent?.component != null)
+    }
+
+    private fun hasShortcutInfo(itemInfo: ItemInfo): Boolean {
+        return itemInfo is WorkspaceItemInfo && itemInfo.deepShortcutInfo != null
+    }
+
     private fun createDropController(): BubbleBarDropTargetController {
         return object : BubbleBarDropTargetController {
-            override fun onDrop(itemInfo: ItemInfo, isLeftDropTarget: Boolean) {
+
+            override fun onDrop(dragObject: DragObject, isLeftDropTarget: Boolean) {
+                val itemInfo = dragObject.dragInfo ?: return
                 isItemDropHandled = handleDrop(itemInfo, isLeftDropTarget)
-            }
-
-            override fun acceptDrop(itemInfo: ItemInfo): Boolean {
-                return hasShortcutInfo(itemInfo) || itemInfo.intent?.component != null
-            }
-
-            fun hasShortcutInfo(itemInfo: ItemInfo): Boolean {
-                return itemInfo is WorkspaceItemInfo && itemInfo.deepShortcutInfo != null
             }
 
             private fun handleDrop(itemInfo: ItemInfo, isLeftDropTarget: Boolean): Boolean {
