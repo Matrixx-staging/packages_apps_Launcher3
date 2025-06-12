@@ -249,6 +249,7 @@ import com.android.launcher3.widget.PendingAddWidgetInfo;
 import com.android.launcher3.widget.PendingAppWidgetHostView;
 import com.android.launcher3.widget.WidgetAddFlowHandler;
 import com.android.launcher3.widget.WidgetManagerHelper;
+import com.android.launcher3.widget.WidgetVisibilityTracker;
 import com.android.launcher3.widget.custom.CustomWidgetManager;
 import com.android.launcher3.widget.model.WidgetsListBaseEntry;
 import com.android.launcher3.widget.picker.WidgetsFullSheet;
@@ -326,6 +327,7 @@ public class Launcher extends StatefulActivity<LauncherState>
 
     private WidgetManagerHelper mAppWidgetManager;
     private LauncherWidgetHolder mAppWidgetHolder;
+    private WidgetVisibilityTracker mWidgetVisibilityTracker;
     private ItemInflater<Launcher> mItemInflater;
 
     private final int[] mTmpAddItemCellCoordinates = new int[2];
@@ -454,6 +456,8 @@ public class Launcher extends StatefulActivity<LauncherState>
         mAppWidgetHolder.addProviderChangeListener(() -> refreshAndBindWidgetsForPackageUser(null));
         mItemInflater = new ItemInflater<>(this, mAppWidgetHolder, getItemOnClickListener(),
                 mFocusHandler, new CellLayout(mWorkspace.getContext(), mWorkspace));
+        mWidgetVisibilityTracker = new WidgetVisibilityTracker(this, mAppWidgetHolder, mWorkspace,
+            mStateManager);
 
         mPopupDataProvider = new PopupDataProvider(this);
         mWidgetPickerDataProvider = new WidgetPickerDataProvider();
@@ -1460,6 +1464,9 @@ public class Launcher extends StatefulActivity<LauncherState>
             final LauncherAppWidgetHostView launcherHostView = (LauncherAppWidgetHostView) hostView;
             showWidgetResizeFrame(launcherHostView, launcherInfo, presenterPos);
         }
+        if (mWidgetVisibilityTracker != null) {
+            mWidgetVisibilityTracker.onWidgetAdded();
+        }
     }
 
     /** Show widget resize frame. */
@@ -1701,6 +1708,7 @@ public class Launcher extends StatefulActivity<LauncherState>
 
         mAppWidgetHolder.stopListening();
         mAppWidgetHolder.destroy();
+        mWidgetVisibilityTracker.destroy();
         mWidgetPickerDataProvider.destroy();
 
         TextKeyListener.getInstance().release();
@@ -2550,6 +2558,9 @@ public class Launcher extends StatefulActivity<LauncherState>
 
     public void onDragLayerHierarchyChanged() {
         updateDisallowBack();
+        if (mWidgetVisibilityTracker != null) {
+            mWidgetVisibilityTracker.onDragLayerHierarchyChanged();
+        }
     }
 
     protected void addBackAnimationCallback(BackPressHandler callback) {
