@@ -46,7 +46,6 @@ import static com.android.launcher3.BaseActivity.INVISIBLE_ALL;
 import static com.android.launcher3.BaseActivity.INVISIBLE_BY_APP_TRANSITIONS;
 import static com.android.launcher3.BaseActivity.INVISIBLE_BY_PENDING_FLAGS;
 import static com.android.launcher3.BaseActivity.PENDING_INVISIBLE_BY_WALLPAPER_ANIMATION;
-import static com.android.launcher3.Flags.enableContainerReturnAnimations;
 import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.Flags.syncAppLaunchWithTaskbarStash;
 import static com.android.launcher3.LauncherAnimUtils.SCALE_PROPERTY;
@@ -1698,8 +1697,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
             float startWindowCornerRadius,
             boolean fromPredictiveBack) {
         View launcherView = findLauncherView(appTargets);
-        if (checkReturnAnimationsFlags()
-                && launcherView != null
+        if (launcherView != null
                 && launcherView.getTag() instanceof ItemInfo info
                 && info.shouldUseBackgroundAnimation()) {
             // Try to create a return animation
@@ -1856,10 +1854,6 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         }
     }
 
-    private static boolean checkReturnAnimationsFlags() {
-        return enableContainerReturnAnimations();
-    }
-
     /**
      * Remote animation runner for animation from the app to Launcher, including recents.
      */
@@ -1998,12 +1992,6 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 StartingWindowListener startingWindowListener,
                 RunnableList onEndCallback,
                 @Nullable WindowAnimationState windowState) {
-            if (!forLaunch && !checkReturnAnimationsFlags()) {
-                throw new IllegalStateException(
-                        "forLaunch cannot be false when the enableContainerReturnAnimations or "
-                                + "returnAnimationFrameworkLibrary flag is disabled");
-            }
-
             // First the controller is created. This is used by the runner to animate the
             // origin/target view.
             ActivityTransitionAnimator.Controller controller =
