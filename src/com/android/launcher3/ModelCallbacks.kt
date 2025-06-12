@@ -18,7 +18,6 @@ import com.android.launcher3.config.FeatureFlags
 import com.android.launcher3.model.BgDataModel
 import com.android.launcher3.model.ItemInstallQueue
 import com.android.launcher3.model.ItemInstallQueue.FLAG_LOADER_RUNNING
-import com.android.launcher3.model.ModelUtils.WIDGET_FILTER
 import com.android.launcher3.model.ModelUtils.currentScreenContentFilter
 import com.android.launcher3.model.StringCache
 import com.android.launcher3.model.data.AppInfo
@@ -101,14 +100,6 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         synchronouslyBoundPages = boundPages
         pagesToBindSynchronously = LIntSet()
         clearPendingBinds()
-        if (!launcher.isInState(LauncherState.ALL_APPS) && !Flags.enableWorkspaceInflation()) {
-            launcher.appsView.appsStore.enableDeferUpdates(AllAppsStore.DEFER_UPDATES_NEXT_DRAW)
-            pendingTasks.add {
-                launcher.appsView.appsStore.disableDeferUpdates(
-                    AllAppsStore.DEFER_UPDATES_NEXT_DRAW
-                )
-            }
-        }
         val executor =
             ViewOnDrawExecutor(pendingTasks) {
                 if (pendingExecutor == it) {
@@ -117,13 +108,8 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
             }
         pendingExecutor = executor
 
-        if (Flags.enableWorkspaceInflation()) {
-            // Finish the executor as soon as the pending inflation is completed
-            onCompleteSignal.add(executor::markCompleted)
-        } else {
-            // Pending executor is already completed, wait until first draw to run the tasks
-            executor.attachTo(launcher)
-        }
+        // Finish the executor as soon as the pending inflation is completed
+        onCompleteSignal.add(executor::markCompleted)
         launcher.bindComplete(workspaceItemCount, isBindSync)
     }
 
@@ -199,8 +185,8 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
      * Copies LauncherModel's map of activities to shortcut counts to Launcher's. This is necessary
      * because LauncherModel's map is updated in the background, while Launcher runs on the UI.
      */
-    override fun bindDeepShortcutMap(deepShortcutMapCopy: HashMap<ComponentKey, Int>) {
-        launcher.popupDataProvider.setDeepShortcutMap(deepShortcutMapCopy)
+    override fun bindDeepShortcutMap(deepShortcutMap: HashMap<ComponentKey, Int>) {
+        launcher.popupDataProvider.setDeepShortcutMap(deepShortcutMap)
     }
 
     override fun bindIncrementalDownloadProgressUpdated(app: AppInfo) {
@@ -244,8 +230,8 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         PopupContainerWithArrow.dismissInvalidPopup(launcher)
     }
 
-    override fun bindAllWidgets(allWidgets: List<WidgetsListBaseEntry>) {
-        launcher.widgetPickerDataProvider.setWidgets(allWidgets)
+    override fun bindAllWidgets(widgets: List<WidgetsListBaseEntry>) {
+        launcher.widgetPickerDataProvider.setWidgets(widgets)
     }
 
     /** Returns the ids of the workspaces to bind. */
@@ -402,7 +388,6 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
     override fun bindCompleteModelAsync(itemIdMap: WorkspaceData, isBindingSync: Boolean) {
         val taskTracker = CancellationSignal()
         activeBindTask.getAndSet(taskTracker).cancel()
-
         val inflater = launcher.itemInflater
 
         fun executeCallbacksTask(executor: Executor = MAIN_EXECUTOR, task: () -> Unit) {
@@ -428,18 +413,6 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
                 executeCallbacksTask(executor) { launcher.bindInflatedItems(bindItems, null) }
         }
 
-        fun bindItemsInChunks(items: List<ItemInfo>, chuckSize: Int, executor: Executor) {
-            // Bind the workspace items
-            val itemCount = items.size
-            var i = 0
-            while (i < itemCount) {
-                val start = i
-                val end = (start + chuckSize).coerceAtMost(itemCount)
-                executeCallbacksTask(executor) { bindItems(items.subList(start, end), false) }
-                i = end
-            }
-        }
-
         MAIN_EXECUTOR.execute { clearPendingBinds() }
 
         val orderedScreenIds = itemIdMap.collectWorkspaceScreens()
@@ -455,22 +428,15 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         // Separate the items that are on the current screen, and all the other remaining items
         val currentWorkspaceItems = ArrayList<ItemInfo>()
         val otherWorkspaceItems = ArrayList<ItemInfo>()
-        val currentAppWidgets = ArrayList<ItemInfo>()
-        val otherAppWidgets = ArrayList<ItemInfo>()
 
         val currentScreenCheck = currentScreenContentFilter(currentScreenIds)
         itemIdMap.forEach { item: ItemInfo ->
             if (currentScreenCheck.test(item)) {
-                (if (WIDGET_FILTER.test(item)) currentAppWidgets else currentWorkspaceItems).add(
-                    item
-                )
+                currentWorkspaceItems.add(item)
             } else if (item.container == CONTAINER_DESKTOP) {
-                (if (WIDGET_FILTER.test(item)) otherAppWidgets else otherWorkspaceItems).add(item)
+                otherWorkspaceItems.add(item)
             }
         }
-
-        sortWorkspaceItemsSpatially(currentWorkspaceItems)
-        sortWorkspaceItemsSpatially(otherWorkspaceItems)
 
         // Tell the workspace that we're about to start binding items
         executeCallbacksTask {
@@ -482,13 +448,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         executeCallbacksTask { bindScreens(orderedScreenIds) }
 
         // Load items on the current page.
-        if (Flags.enableWorkspaceInflation()) {
-            inflateAsyncAndBind(currentWorkspaceItems, MAIN_EXECUTOR)
-            inflateAsyncAndBind(currentAppWidgets, MAIN_EXECUTOR)
-        } else {
-            bindItemsInChunks(currentWorkspaceItems, ITEMS_CHUNK, MAIN_EXECUTOR)
-            bindItemsInChunks(currentAppWidgets, 1, MAIN_EXECUTOR)
-        }
+        inflateAsyncAndBind(currentWorkspaceItems, MAIN_EXECUTOR)
 
         itemIdMap
             .mapNotNull { if (it is PredictedContainerInfo) it else null }
@@ -500,31 +460,18 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         val onCompleteSignal = RunnableList()
         onCompleteSignal.add { Log.d(TAG, "Calling onCompleteSignal") }
 
-        if (Flags.enableWorkspaceInflation()) {
-            Log.d(TAG, "Starting async inflation")
-            Executors.MODEL_EXECUTOR.execute {
-                inflateAsyncAndBind(otherWorkspaceItems, pendingExecutor)
-                inflateAsyncAndBind(otherAppWidgets, pendingExecutor)
-                setupPendingBind(pendingExecutor)
-
-                // Wait for the async inflation to complete and then notify the completion
-                // signal on UI thread.
-                MAIN_EXECUTOR.execute { onCompleteSignal.executeAllAndDestroy() }
-            }
-        } else {
-            Log.d(TAG, "Starting sync inflation")
-            bindItemsInChunks(otherWorkspaceItems, ITEMS_CHUNK, pendingExecutor)
-            bindItemsInChunks(otherAppWidgets, 1, pendingExecutor)
+        Log.d(TAG, "Starting async inflation")
+        Executors.MODEL_EXECUTOR.execute {
+            inflateAsyncAndBind(otherWorkspaceItems, pendingExecutor)
             setupPendingBind(pendingExecutor)
-            onCompleteSignal.executeAllAndDestroy()
+
+            // Wait for the async inflation to complete and then notify the completion
+            // signal on UI thread.
+            MAIN_EXECUTOR.execute { onCompleteSignal.executeAllAndDestroy() }
         }
 
         // Only include the first level items on desktop (excluding folder contents) for item count
-        val workspaceItemCount =
-            currentWorkspaceItems.size +
-                otherWorkspaceItems.size +
-                currentAppWidgets.size +
-                otherAppWidgets.size
+        val workspaceItemCount = currentWorkspaceItems.size + otherWorkspaceItems.size
         executeCallbacksTask {
             onInitialBindComplete(
                 currentScreenIds,
@@ -536,34 +483,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         }
     }
 
-    /**
-     * Sorts the set of items by hotseat, workspace (spatially from top to bottom, left to right)
-     */
-    private fun sortWorkspaceItemsSpatially(workspaceItems: MutableList<ItemInfo>) {
-        val idp = launcher.deviceProfile.inv
-        val screenCols = idp.numColumns
-        val screenCellCount = idp.numColumns * idp.numRows
-        workspaceItems.sortWith { lhs: ItemInfo, rhs: ItemInfo ->
-            when {
-                // Between containers, order by hotseat, desktop
-                lhs.container != rhs.container -> lhs.container.compareTo(rhs.container)
-
-                // Within workspace, order by their spatial position in that container
-                lhs.container == CONTAINER_DESKTOP ->
-                    compareValuesBy(lhs, rhs) {
-                        it.screenId * screenCellCount + it.cellY * screenCols + it.cellX
-                    }
-
-                // We currently use the screen id as the rank
-                lhs.container == CONTAINER_HOTSEAT -> lhs.screenId.compareTo(rhs.screenId)
-
-                else -> 0
-            }
-        }
-    }
-
     companion object {
         private const val TAG = "ModelCallbacks"
-        private const val ITEMS_CHUNK: Int = 6 // batch size for the workspace icons
     }
 }

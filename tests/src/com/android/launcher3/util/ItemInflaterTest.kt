@@ -21,7 +21,6 @@ import android.content.Context
 import android.content.pm.LauncherApps
 import android.os.Bundle
 import android.os.Process
-import android.platform.test.flag.junit.SetFlagsRule
 import android.view.View.OnClickListener
 import android.view.View.OnFocusChangeListener
 import android.widget.FrameLayout
@@ -30,7 +29,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import androidx.test.platform.app.InstrumentationRegistry
 import com.android.launcher3.BubbleTextView
-import com.android.launcher3.Flags
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APP_PAIR
 import com.android.launcher3.apppairs.AppPairIcon
 import com.android.launcher3.folder.FolderIcon
@@ -72,7 +70,6 @@ import org.mockito.kotlin.verifyNoMoreInteractions
 @RunWith(AndroidJUnit4::class)
 class ItemInflaterTest {
 
-    @get:Rule val setFlagsRule = SetFlagsRule()
     @get:Rule val grantWidgetRule = ShellCommandRule.grantWidgetBind()
 
     private val clickListener = OnClickListener {}
@@ -125,8 +122,6 @@ class ItemInflaterTest {
 
     @Test
     fun test_workspace_item_inflated_on_BG() {
-        setFlagsRule.enableFlags(Flags.FLAG_ENABLE_WORKSPACE_INFLATION)
-
         val itemInfo = workspaceItemInfo()
         val view =
             VIEW_PREINFLATION_EXECUTOR.submit(Callable { underTest.inflateItem(itemInfo) }).get()
@@ -150,8 +145,6 @@ class ItemInflaterTest {
 
     @Test
     fun test_folder_inflated_on_BG() {
-        setFlagsRule.enableFlags(Flags.FLAG_ENABLE_WORKSPACE_INFLATION)
-
         val itemInfo = FolderInfo()
         itemInfo.add(workspaceItemInfo())
         itemInfo.add(workspaceItemInfo())
@@ -179,8 +172,6 @@ class ItemInflaterTest {
 
     @Test
     fun test_app_pair_inflated_on_BG() {
-        setFlagsRule.enableFlags(Flags.FLAG_ENABLE_WORKSPACE_INFLATION)
-
         val itemInfo = AppPairInfo()
         itemInfo.itemType = ITEM_TYPE_APP_PAIR
         itemInfo.add(workspaceItemInfo())
@@ -205,8 +196,6 @@ class ItemInflaterTest {
 
     @Test
     fun test_pending_widget_inflated_on_BG() {
-        setFlagsRule.enableFlags(Flags.FLAG_ENABLE_WORKSPACE_INFLATION)
-
         val itemInfo = widgetItemInfo(true)
         val view =
             VIEW_PREINFLATION_EXECUTOR.submit(Callable { underTest.inflateItem(itemInfo) }).get()
@@ -231,7 +220,6 @@ class ItemInflaterTest {
 
     @Test
     fun test_widget_restored_and_inflated_on_BG() {
-        setFlagsRule.enableFlags(Flags.FLAG_ENABLE_WORKSPACE_INFLATION)
         val itemInfo = widgetItemInfo(false)
 
         val view =

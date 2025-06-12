@@ -17,14 +17,10 @@
 package com.android.launcher3.model
 
 import android.os.Looper
-import android.platform.test.annotations.DisableFlags
-import android.platform.test.annotations.EnableFlags
-import android.platform.test.flag.junit.SetFlagsRule
 import android.util.SparseArray
 import android.view.View
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
-import com.android.launcher3.Flags
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.Launcher
 import com.android.launcher3.LauncherAppState
@@ -56,7 +52,6 @@ import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argThat
-import org.mockito.kotlin.atLeastOnce
 import org.mockito.kotlin.clearInvocations
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
@@ -72,7 +67,6 @@ import org.mockito.kotlin.whenever
 @RunWith(AndroidJUnit4::class)
 class AsyncBindingTest {
 
-    @get:Rule val setFlagsRule = SetFlagsRule()
     @get:Rule val context = SandboxApplication().withModelDependency()
     @get:Rule val layoutProvider = LayoutProviderRule(context)
 
@@ -126,16 +120,6 @@ class AsyncBindingTest {
     }
 
     @Test
-    @DisableFlags(Flags.FLAG_ENABLE_WORKSPACE_INFLATION)
-    fun test_bind_normally_without_itemInflater() {
-        MAIN_EXECUTOR.execute { model.addCallbacksAndLoad(callbacks) }
-        waitForLoaderAndTempMainThread()
-
-        verify(callbacks, atLeastOnce()).bindItems(any(), any())
-    }
-
-    @Test
-    @EnableFlags(Flags.FLAG_ENABLE_WORKSPACE_INFLATION)
     fun test_bind_inflates_item_on_background() {
         MAIN_EXECUTOR.execute { model.addCallbacksAndLoad(callbacks) }
         waitForLoaderAndTempMainThread()
@@ -151,7 +135,6 @@ class AsyncBindingTest {
     }
 
     @Test
-    @EnableFlags(Flags.FLAG_ENABLE_WORKSPACE_INFLATION)
     fun test_bind_sync_partially_inflates_on_background() {
         model.loadModelSync()
         assertTrue(model.isModelLoaded())
