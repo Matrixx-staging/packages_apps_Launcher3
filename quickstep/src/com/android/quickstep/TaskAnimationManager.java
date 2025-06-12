@@ -437,8 +437,9 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
         boolean isLocked = SystemUiFlagUtils.isLocked(newSysUIFlags);
         if (wasLocked != isLocked && isLocked) {
             // Finish the running recents animation when locking the device.
-            finishRunningRecentsAnimation(
-                    mController != null && mController.getFinishTargetIsLauncher());
+            finishRunningRecentsAnimation(/* toHome */
+                    (mController != null && mController.getFinishTargetIsLauncher())
+                            || mDisplayId != DEFAULT_DISPLAY);
         }
     }
 
