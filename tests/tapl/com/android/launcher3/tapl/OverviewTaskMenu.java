@@ -54,7 +54,7 @@ public class OverviewTaskMenu {
             final List<Integer> actualEvents = new ArrayList<>();
             mLauncher.executeAndWaitForLauncherEvent(
                     () -> mLauncher.clickLauncherObject(
-                            mLauncher.findObjectInContainer(mMenu, By.textStartsWith("Split"))),
+                            mLauncher.waitForObjectInContainer(mMenu, By.textStartsWith("Split"))),
                     event -> {
                         // Wait for state changed to Split Select.
                         if (!isSplitState[0] && mLauncher.isSwitchToStateEvent(event,
