@@ -27,10 +27,10 @@ import static com.android.wm.shell.shared.split.SplitBounds.KEY_EXTRA_SPLIT_BOUN
 import static com.android.wm.shell.shared.split.SplitScreenConstants.SNAP_TO_2_50_50;
 
 import static junit.framework.Assert.assertNotNull;
+import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.assertTrue;
-import static junit.framework.TestCase.assertEquals;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -366,8 +366,7 @@ public abstract class AbsSwipeUpHandlerTestCase<
                 GestureState.GestureEndTarget.HOME, target);
     }
 
-    @EnableFlags({Flags.FLAG_RETURN_ANIMATION_FRAMEWORK_LIBRARY,
-            Flags.FLAG_RETURN_ANIMATION_FRAMEWORK_LONG_LIVED})
+    @EnableFlags({Flags.FLAG_RETURN_ANIMATION_FRAMEWORK_LONG_LIVED})
     @Test
     public void testHomeGesture_handsOffAnimation() {
         createSwipeUpHandlerForGesture(GestureState.GestureEndTarget.HOME);
@@ -378,8 +377,7 @@ public abstract class AbsSwipeUpHandlerTestCase<
         });
     }
 
-    @DisableFlags({Flags.FLAG_RETURN_ANIMATION_FRAMEWORK_LIBRARY,
-            Flags.FLAG_RETURN_ANIMATION_FRAMEWORK_LONG_LIVED})
+    @DisableFlags({Flags.FLAG_RETURN_ANIMATION_FRAMEWORK_LONG_LIVED})
     @Test
     public void testHomeGesture_doesNotHandOffAnimation_withFlagsDisabled() {
         createSwipeUpHandlerForGesture(GestureState.GestureEndTarget.HOME);

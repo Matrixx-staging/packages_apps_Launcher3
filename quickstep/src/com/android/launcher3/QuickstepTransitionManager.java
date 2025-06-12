@@ -66,7 +66,6 @@ import static com.android.launcher3.views.FloatingIconView.getFloatingIconView;
 import static com.android.quickstep.TaskViewUtils.findTaskViewToLaunch;
 import static com.android.quickstep.util.AnimUtils.clampToDuration;
 import static com.android.quickstep.util.AnimUtils.completeRunnableListCallback;
-import static com.android.systemui.shared.Flags.returnAnimationFrameworkLibrary;
 import static com.android.systemui.shared.system.QuickStepContract.getWindowCornerRadius;
 import static com.android.systemui.shared.system.QuickStepContract.supportsRoundedCornersOnWindows;
 import static com.android.wm.shell.Flags.enableDynamicInsetsForAppLaunch;
@@ -1858,7 +1857,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
     }
 
     private static boolean checkReturnAnimationsFlags() {
-        return enableContainerReturnAnimations() && returnAnimationFrameworkLibrary();
+        return enableContainerReturnAnimations();
     }
 
     /**
