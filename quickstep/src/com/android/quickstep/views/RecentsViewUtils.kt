@@ -34,7 +34,6 @@ import androidx.dynamicanimation.animation.SpringForce
 import com.android.launcher3.AbstractFloatingView.TYPE_TASK_MENU
 import com.android.launcher3.AbstractFloatingView.getTopOpenViewWithType
 import com.android.launcher3.Flags.enableDesktopExplodedView
-import com.android.launcher3.Flags.enableLargeDesktopWindowingTile
 import com.android.launcher3.Flags.enableOverviewOnConnectedDisplays
 import com.android.launcher3.PagedView.INVALID_PAGE
 import com.android.launcher3.R
@@ -191,9 +190,7 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
             .getActiveDeskId(recentsView.mContainer.display.displayId)
 
     /** Returns the expected focus task. */
-    fun getFirstNonDesktopTaskView(): TaskView? =
-        if (enableLargeDesktopWindowingTile()) taskViews.firstOrNull { it !is DesktopTaskView }
-        else taskViews.firstOrNull()
+    fun getFirstNonDesktopTaskView(): TaskView? = taskViews.firstOrNull { it !is DesktopTaskView }
 
     fun getLastDesktopTaskView(): TaskView? = taskViews.lastOrNull { it is DesktopTaskView }
 
@@ -232,7 +229,7 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
         val firstTaskViewIndex = recentsView.indexOfChild(getFirstTaskView())
         return if (getDeviceProfile().deviceProperties.isTablet) {
             var index = firstTaskViewIndex
-            if (enableLargeDesktopWindowingTile() && runningTaskView !is DesktopTaskView) {
+            if (runningTaskView !is DesktopTaskView) {
                 // For fullsreen tasks, skip over Desktop tasks in its section
                 index +=
                     if (runningTaskView.isExternalDisplay) {
@@ -730,9 +727,7 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
                     if (endState.showTaskThumbnailSplash()) 1f else 0f,
                 )
             )
-            if (enableLargeDesktopWindowingTile()) {
-                animatorSet.play(ObjectAnimator.ofFloat(this, DESKTOP_CAROUSEL_DETACH_PROGRESS, 0f))
-            }
+            animatorSet.play(ObjectAnimator.ofFloat(this, DESKTOP_CAROUSEL_DETACH_PROGRESS, 0f))
 
             if (enableGridOnlyOverview()) {
                 // Reload visible tasks according to new [mCurrentGestureEndTarget] value.

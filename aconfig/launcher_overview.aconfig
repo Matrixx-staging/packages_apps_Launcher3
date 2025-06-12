@@ -33,13 +33,6 @@ flag {
 }
 
 flag {
-    name: "enable_large_desktop_windowing_tile"
-    namespace: "launcher_overview"
-    description: "Makes the desktop tiles larger and moves them to the front of the list in Overview."
-    bug: "357860832"
-}
-
-flag {
     name: "enable_desktop_exploded_view"
     namespace: "launcher_overview"
     description: "Enables the non-overlapping layout for desktop windows in Overview mode."
