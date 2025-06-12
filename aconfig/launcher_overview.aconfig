@@ -104,3 +104,10 @@ flag {
     description: "Enable Overview to launch and exit simultaneously on default and external displays wherever it was triggered or quit from"
     bug:  "421128035"
 }
+
+flag {
+    name: "enable_predictive_back_in_overview"
+    namespace: "launcher_overview"
+    description: "Enables predictive back animation in Overview on back navigation"
+    bug: "421292121"
+}
