@@ -50,6 +50,10 @@ android {
                     "$widgetPickerDir/tests/multivalentTestsForDevice/src",
                 )
             )
+            res.setSrcDirs(listOf(
+                "$widgetPickerDir/tests/multivalentScreenshotTests/res",
+                "$widgetPickerDir/res"
+            ))
             manifest.srcFile("$widgetPickerDir/tests/AndroidManifest.xml")
         }
         named("test") {
