@@ -1409,7 +1409,7 @@ public class InvariantDeviceProfile {
             TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.AllAppsSize);
 
             mAlignWithWorkspaceRow =  a.getInt(R.styleable.AllAppsSize_alignWithWorkspaceRow, -1);
-            mNumColumns = a.getInt(R.styleable.AllAppsSize_numColumns, -1);
+            mNumColumns = a.getInt(R.styleable.AllAppsSize_allAppsColumns, -1);
             mMinDeviceWidthPx = a.getFloat(R.styleable.AllAppsSize_minDeviceWidthDp, 0)
                     * stableDensityScale;
 
