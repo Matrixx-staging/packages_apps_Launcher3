@@ -56,7 +56,6 @@ import com.android.quickstep.util.TaskViewSimulator;
 import com.android.quickstep.views.FloatingWidgetView;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.TaskView;
-import com.android.systemui.animation.TransitionAnimator;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.system.InputConsumerController;
 
@@ -118,9 +117,7 @@ public class LauncherSwipeHandlerV2 extends AbsSwipeUpHandler<
 
         mContainer.getRootView().setForceHideBackArrow(true);
 
-        boolean handOffAnimation = TransitionAnimator.Companion.longLivedReturnAnimationsEnabled()
-                && mHandOffAnimationToHome;
-        if (handOffAnimation || !canUseWorkspaceView || appCanEnterPip || mIsSwipeForSplit) {
+        if (mHandOffAnimationToHome || !canUseWorkspaceView || appCanEnterPip || mIsSwipeForSplit) {
             return new LauncherHomeAnimationFactory() {
 
                 @Nullable

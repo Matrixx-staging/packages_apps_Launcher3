@@ -34,7 +34,6 @@ import com.android.internal.os.IResultReceiver;
 import com.android.launcher3.util.Preconditions;
 import com.android.launcher3.util.RunnableList;
 import com.android.quickstep.util.ActiveGestureProtoLogProxy;
-import com.android.systemui.animation.TransitionAnimator;
 import com.android.systemui.shared.recents.model.ThumbnailData;
 import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
@@ -93,12 +92,7 @@ public class RecentsAnimationController {
 
     @UiThread
     public void handOffAnimation(RemoteAnimationTarget[] targets, WindowAnimationState[] states) {
-        if (TransitionAnimator.Companion.longLivedReturnAnimationsEnabled()) {
-            UI_HELPER_EXECUTOR.execute(() -> mController.handOffAnimation(targets, states));
-        } else {
-            Log.e(TAG, "Tried to hand off the animation, but the feature is disabled",
-                    new Exception());
-        }
+        UI_HELPER_EXECUTOR.execute(() -> mController.handOffAnimation(targets, states));
     }
 
     @UiThread
