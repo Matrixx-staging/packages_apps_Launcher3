@@ -145,7 +145,6 @@ android_library {
     srcs: [
         "src/com/android/launcher3/widgetpicker/ui/components/ScrollableFloatingToolbar.kt",
         "src/com/android/launcher3/widgetpicker/ui/components/LeadingIconToolbarTab.kt",
-        "src/com/android/launcher3/widgetpicker/ui/components/TitledBottomSheet.kt",
         "src/com/android/launcher3/widgetpicker/ui/components/TwoPaneLayout.kt",
         "src/com/android/launcher3/widgetpicker/ui/components/SinglePaneLayout.kt",
         "src/com/android/launcher3/widgetpicker/ui/components/WidgetsSearchBar.kt",
@@ -160,6 +159,10 @@ android_library {
         "src/com/android/launcher3/widgetpicker/ui/components/WidgetAppsListHeader.kt",
         "src/com/android/launcher3/widgetpicker/ui/components/WidgetAppsList.kt",
         "src/com/android/launcher3/widgetpicker/ui/components/TestTag.kt",
+        "src/com/android/launcher3/widgetpicker/ui/components/bottomsheet/BottomSheetDismissModifiers.kt",
+        "src/com/android/launcher3/widgetpicker/ui/components/bottomsheet/BottomSheetDismissState.kt",
+        "src/com/android/launcher3/widgetpicker/ui/components/bottomsheet/BottomSheetNestedScrollConnection.kt",
+        "src/com/android/launcher3/widgetpicker/ui/components/bottomsheet/TitledBottomSheet.kt",
     ],
     static_libs: [
         "widget_picker_event_listeners",
