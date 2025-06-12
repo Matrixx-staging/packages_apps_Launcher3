@@ -50,8 +50,7 @@ import java.util.function.Supplier;
  */
 public abstract class AbstractQuickStepTest
         extends AbstractLauncherUiTest<QuickstepLauncher, RecentsView<?, ?>> {
-    public static final boolean ENABLE_SHELL_TRANSITIONS =
-            SystemProperties.getBoolean("persist.wm.debug.shell_transit", true);
+
     @Override
     protected TestRule getRulesInsideActivityMonitor() {
         return RuleChain.
