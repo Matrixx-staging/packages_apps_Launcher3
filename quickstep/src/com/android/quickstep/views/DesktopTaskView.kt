@@ -431,7 +431,10 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
 
         if (enableRefactorTaskThumbnail()) {
             viewModel =
-                DesktopTaskViewModel(organizeDesktopTasksUseCase = RecentsDependencies.get(context))
+                DesktopTaskViewModel(
+                    organizeDesktopTasksUseCase = RecentsDependencies.get(context),
+                    removeTaskAndRebalanceLayoutUseCase = RecentsDependencies.get(context),
+                )
         }
     }
 
@@ -621,7 +624,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
             // Store the current organized positions before computing new ones. This allows us to
             // animate from the current layout to the new.
             previousOrganizedDesktopTaskPositions = viewModel!!.organizedDesktopTaskPositions
-            updateTaskPositions()
+            updateTaskPositions(taskId)
         }
     }
 
@@ -636,7 +639,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         }
     }
 
-    private fun updateTaskPositions() {
+    private fun updateTaskPositions(dismissedTaskId: Int? = null) {
         BaseContainerInterface.getTaskDimension(mContext, container.deviceProfile, tempPointF)
         val desktopSize = Size(tempPointF.x.toInt(), tempPointF.y.toInt())
         DEFAULT_BOUNDS.set(0, 0, desktopSize.width / 4, desktopSize.height / 4)
@@ -681,8 +684,11 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                                 heightScale)
                             .toInt(),
                 )
-
-            viewModel?.organizeDesktopTasks(desktopSize, fullscreenTaskPositions, layoutConfig)
+            if (dismissedTaskId != null) {
+                viewModel?.removeTaskAndRebalanceLayout(dismissedTaskId, layoutConfig)
+            } else {
+                viewModel?.organizeDesktopTasks(desktopSize, fullscreenTaskPositions, layoutConfig)
+            }
         }
         positionTaskWindows(updateLayout = true)
     }
