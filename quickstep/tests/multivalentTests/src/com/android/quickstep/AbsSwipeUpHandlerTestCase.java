@@ -206,7 +206,6 @@ public abstract class AbsSwipeUpHandlerTestCase<
                 new RemoteAnimationTarget[] {mRemoteAnimationRightBottom},
                 new RemoteAnimationTarget[] {mRemoteAnimationTarget},
                 /* homeContentInsets= */ new Rect(),
-                /* minimizedHomeBounds= */ null,
                 extras);
     }
 

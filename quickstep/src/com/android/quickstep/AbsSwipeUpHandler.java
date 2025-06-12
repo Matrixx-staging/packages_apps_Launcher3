@@ -1027,28 +1027,15 @@ public abstract class AbsSwipeUpHandler<
         // Only initialize the device profile, if it has not been initialized before, as in some
         // configurations targets.homeContentInsets may not be correct.
         if (mContainer == null) {
-            RemoteAnimationTarget primaryTaskTarget = targets.apps[0];
             // orientation state is independent of which remote target handle we use since both
             // should be pointing to the same one. Just choose index 0 for now since that works for
             // both split and non-split
             RecentsOrientedState orientationState = mRemoteTargetHandles[0].getTaskViewSimulator()
                     .getOrientationState();
             DeviceProfile dp = orientationState.getLauncherDeviceProfile(
-                    mGestureState.getDisplayId());
-            Rect overviewStackBounds = mContainerInterface.getOverviewWindowBounds(
-                    targets.minimizedHomeBounds, primaryTaskTarget);
-            if (overviewStackBounds != null
-                    && !overviewStackBounds.isEmpty()
-                    && primaryTaskTarget != null) {
-                dp = dp.getMultiWindowProfile(mContext,
-                        new WindowBounds(overviewStackBounds, targets.homeContentInsets));
-            } else {
-                // If we are not in multi-window mode, home insets should be same as system insets.
-                dp = dp.copy(mContext);
-            }
+                    mGestureState.getDisplayId()).copy(mContext);
             dp.updateInsets(targets.homeContentInsets);
             initTransitionEndpoints(dp);
-            orientationState.setMultiWindowMode(dp.getDeviceProperties().isMultiWindowMode());
         }
 
         // Notify when the animation starts

@@ -267,7 +267,6 @@ public class DeviceProfile {
                 false,
                 false,
                 false,
-                false,
                 false
         );
         mBottomSheetProfile = new BottomSheetProfile(0, 0, 0, 0f, 0f);
@@ -317,12 +316,10 @@ public class DeviceProfile {
         mAllAppsProfile = new AllAppsProfile(new Point(0, 0), 0, 0, 0f, 0, 0, 0);
     }
 
-    /** TODO: Once we fully migrate to staged split, remove "isMultiWindowMode" */
     DeviceProfile(Context context, InvariantDeviceProfile inv, Info info,
             WindowManagerProxy wmProxy, ThemeManager themeManager, WindowBounds windowBounds,
             SparseArray<DotRenderer> dotRendererCache, boolean isExternalDisplay,
-            boolean isMultiWindowMode, boolean transposeLayoutWithOrientation,
-            boolean isMultiDisplay, boolean isGestureMode,
+            boolean transposeLayoutWithOrientation, boolean isMultiDisplay, boolean isGestureMode,
             @NonNull final ViewScaleProvider viewScaleProvider,
             @NonNull final Consumer<DeviceProfile> dimensionOverrideProvider,
             boolean isTransientTaskbar, DisplayOptionSpec displayOptionSpec) {
@@ -335,7 +332,6 @@ public class DeviceProfile {
                 transposeLayoutWithOrientation,
                 isMultiDisplay,
                 isExternalDisplay,
-                isMultiWindowMode,
                 isGestureMode
         );
 
@@ -350,8 +346,7 @@ public class DeviceProfile {
                 && inv.workspaceCellSpecsId != INVALID_RESOURCE_HANDLE
                 && inv.allAppsCellSpecsId != INVALID_RESOURCE_HANDLE;
 
-        mIsScalableGrid = inv.isScalable && !isVerticalBarLayout()
-                && !isMultiWindowMode && !isExternalDisplay;
+        mIsScalableGrid = inv.isScalable && !isVerticalBarLayout() && !isExternalDisplay;
         // Determine device posture.
         mInfo = info;
         boolean taskbarOrBubbleBarOnPhones = enableTinyTaskbar()
@@ -957,7 +952,6 @@ public class DeviceProfile {
         return inv.newDPBuilder(context, mInfo)
                 .setWindowBounds(bounds)
                 .setIsMultiDisplay(mDeviceProperties.isMultiDisplay())
-                .setMultiWindowMode(mDeviceProperties.isMultiWindowMode())
                 .setExternalDisplay(mDeviceProperties.isExternalDisplay())
                 .setDotRendererCache(dotRendererCache)
                 .setGestureMode(mDeviceProperties.isGestureMode())
@@ -966,31 +960,6 @@ public class DeviceProfile {
 
     public DeviceProfile copy(Context context) {
         return toBuilder(context).build();
-    }
-
-    /**
-     * TODO: Move this to the builder as part of setMultiWindowMode
-     */
-    public DeviceProfile getMultiWindowProfile(Context context, WindowBounds windowBounds) {
-        DeviceProfile profile = toBuilder(context)
-                .setWindowBounds(windowBounds)
-                .setMultiWindowMode(true)
-                .build();
-
-        // We use these scales to measure and layout the widgets using their full invariant profile
-        // sizes and then draw them scaled and centered to fit in their multi-window mode cellspans.
-        float appWidgetScaleX = (float) profile.getCellSize().x / getCellSize().x;
-        float appWidgetScaleY = (float) profile.getCellSize().y / getCellSize().y;
-        if (appWidgetScaleX != 1 || appWidgetScaleY != 1) {
-            final PointF p = new PointF(appWidgetScaleX, appWidgetScaleY);
-            profile = profile.toBuilder(context)
-                    .setViewScaleProvider(i -> p)
-                    .build();
-        }
-
-        profile.hideWorkspaceLabelsIfNotEnoughSpace();
-
-        return profile;
     }
 
     /**
@@ -2014,7 +1983,6 @@ public class DeviceProfile {
         writer.println(prefix + "\tisGestureMode:" + mDeviceProperties.isGestureMode());
 
         writer.println(prefix + "\tisLandscape:" + mDeviceProperties.isLandscape());
-        writer.println(prefix + "\tisMultiWindowMode:" + mDeviceProperties.isMultiWindowMode());
         writer.println(prefix + "\tisExternalDisplay:" + mDeviceProperties.isExternalDisplay());
         writer.println(prefix + "\tisTwoPanels:" + mDeviceProperties.isTwoPanels());
         writer.println(prefix + "\tisLeftRightSplit:" + isLeftRightSplit);
@@ -2344,7 +2312,6 @@ public class DeviceProfile {
         private boolean mIsMultiDisplay;
 
         private boolean mIsExternalDisplay = false;
-        private boolean mIsMultiWindowMode = false;
         private Boolean mTransposeLayoutWithOrientation;
         private Boolean mIsGestureMode;
         private ViewScaleProvider mViewScaleProvider = null;
@@ -2368,11 +2335,6 @@ public class DeviceProfile {
 
         public Builder setExternalDisplay(boolean isExternalDisplay) {
             mIsExternalDisplay = isExternalDisplay;
-            return this;
-        }
-
-        public Builder setMultiWindowMode(boolean isMultiWindowMode) {
-            mIsMultiWindowMode = isMultiWindowMode;
             return this;
         }
 
@@ -2471,7 +2433,7 @@ public class DeviceProfile {
             }
             return new DeviceProfile(mContext, mInv, mInfo, mWMProxy, mThemeManager,
                     mWindowBounds, mDotRendererCache, mIsExternalDisplay,
-                    mIsMultiWindowMode, mTransposeLayoutWithOrientation, mIsMultiDisplay,
+                    mTransposeLayoutWithOrientation, mIsMultiDisplay,
                     mIsGestureMode, mViewScaleProvider, mOverrideProvider, mIsTransientTaskbar,
                     mDisplayOptionSpec);
         }

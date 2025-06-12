@@ -94,8 +94,8 @@ public class RecentsOrientedState implements LauncherPrefChangeListener {
     private static final int FLAG_HOME_ROTATION_ALLOWED_IN_PREFS = 1 << 2;
     // If the user has enabled system rotation
     private static final int FLAG_SYSTEM_ROTATION_ALLOWED = 1 << 3;
-    // Multiple orientation is not supported in multiwindow mode
-    private static final int FLAG_MULTIWINDOW_ROTATION_ALLOWED = 1 << 4;
+    // 1 << 4 is deprecated
+    // private static final int FLAG_MULTIWINDOW_ROTATION_ALLOWED = 1 << 4;
     // Whether to rotation sensor is supported on the device
     private static final int FLAG_ROTATION_WATCHER_SUPPORTED = 1 << 5;
     // Whether to enable rotation watcher when multi-rotation is supported
@@ -197,13 +197,6 @@ public class RecentsOrientedState implements LauncherPrefChangeListener {
     public boolean setRecentsRotation(@SurfaceRotation int recentsRotation) {
         mRecentsRotation = recentsRotation;
         return updateHandler();
-    }
-
-    /**
-     * Sets if the host is in multi-window mode
-     */
-    public void setMultiWindowMode(boolean isMultiWindow) {
-        setFlag(FLAG_MULTIWINDOW_ROTATION_ALLOWED, isMultiWindow);
     }
 
     /**
@@ -415,7 +408,6 @@ public class RecentsOrientedState implements LauncherPrefChangeListener {
                 != MASK_MULTIPLE_ORIENTATION_SUPPORTED_BY_DEVICE)
                 || (mFlags & (FLAG_IGNORE_ALLOW_HOME_ROTATION_PREF
                 | FLAG_HOME_ROTATION_ALLOWED_IN_PREFS
-                | FLAG_MULTIWINDOW_ROTATION_ALLOWED
                 | FLAG_HOME_ROTATION_FORCE_ENABLED_FOR_TESTING)) != 0;
     }
 

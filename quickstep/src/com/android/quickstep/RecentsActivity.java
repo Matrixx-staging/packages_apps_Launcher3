@@ -190,12 +190,6 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
     }
 
     @Override
-    public void onMultiWindowModeChanged(boolean isInMultiWindowMode, Configuration newConfig) {
-        onHandleConfigurationChanged();
-        super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig);
-    }
-
-    @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         ACTIVITY_TRACKER.handleNewIntent(this);
@@ -223,9 +217,7 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
 
         // In case we are reusing IDP, create a copy so that we don't conflict with Launcher
         // activity.
-        return (mDragLayer != null) && isInMultiWindowMode()
-                ? dp.getMultiWindowProfile(this, getMultiWindowDisplaySize())
-                : dp.copy(this);
+        return dp.copy(this);
     }
 
     @Override

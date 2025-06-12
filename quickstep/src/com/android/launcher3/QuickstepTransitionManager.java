@@ -796,8 +796,6 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         final float initialWindowRadius = supportsRoundedCornersOnWindows(mLauncher.getResources())
                 ? Math.max(crop.width(), crop.height()) / 2f
                 : 0f;
-        final float finalWindowRadius = mDeviceProfile.getDeviceProperties().isMultiWindowMode()
-                ? 0 : getWindowCornerRadius(mLauncher);
         final float finalShadowRadius = appTargetsAreTranslucent ? 0 : mMaxShadowRadius;
 
         MultiValueUpdateListener listener = new MultiValueUpdateListener() {
@@ -810,8 +808,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                     clampToDuration(LINEAR, APP_LAUNCH_ALPHA_START_DELAY, APP_LAUNCH_ALPHA_DURATION,
                             APP_LAUNCH_DURATION));
 
-            FloatProp mWindowRadius = new FloatProp(initialWindowRadius, finalWindowRadius,
-                    mOpeningInterpolator);
+            FloatProp mWindowRadius = new FloatProp(initialWindowRadius,
+                    getWindowCornerRadius(mLauncher), mOpeningInterpolator);
             FloatProp mShadowRadius = new FloatProp(0, finalShadowRadius,
                     mOpeningInterpolator);
 
@@ -1026,8 +1024,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                     FloatingWidgetView.getDefaultBackgroundColor(mLauncher, openingTarget);
         }
 
-        final float finalWindowRadius = mDeviceProfile.getDeviceProperties().isMultiWindowMode()
-                ? 0 : getWindowCornerRadius(mLauncher);
+        final float finalWindowRadius = getWindowCornerRadius(mLauncher);
         final FloatingWidgetView floatingView = FloatingWidgetView.getFloatingWidgetView(mLauncher,
                 v, widgetBackgroundBounds,
                 new Size(windowTargetBounds.width(), windowTargetBounds.height()),
@@ -1454,8 +1451,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                     FloatingWidgetView.getDefaultBackgroundColor(mLauncher, runningTaskTarget);
             floatingWidget = FloatingWidgetView.getFloatingWidgetView(mLauncher,
                     (LauncherAppWidgetHostView) launcherView, targetRect, windowSize,
-                    mDeviceProfile.getDeviceProperties().isMultiWindowMode() ? 0 : getWindowCornerRadius(mLauncher),
-                    isTransluscent, fallbackBackgroundColor);
+                    getWindowCornerRadius(mLauncher), isTransluscent, fallbackBackgroundColor);
         } else if (launcherView != null && !RemoveAnimationSettingsTracker.INSTANCE.get(
                 mLauncher).isRemoveAnimationEnabled()) {
             floatingIconView = getFloatingIconView(mLauncher, launcherView, null,
@@ -1563,8 +1559,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         Rect tmpRect = new Rect();
         ValueAnimator closingAnimator = ValueAnimator.ofFloat(0, 1);
         int duration = CLOSING_TRANSITION_DURATION_MS;
-        float windowCornerRadius = mDeviceProfile.getDeviceProperties().isMultiWindowMode()
-                ? 0 : getWindowCornerRadius(mLauncher);
+        float windowCornerRadius = getWindowCornerRadius(mLauncher);
         float startShadowRadius = areAllTargetsTranslucent(appTargets) ? 0 : mMaxShadowRadius;
         closingAnimator.setDuration(duration);
         boolean isFreeform = isFreeformAnimation(appTargets);

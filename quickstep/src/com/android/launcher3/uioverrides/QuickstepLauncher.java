@@ -737,10 +737,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
                 break;
         }
 
-        if (!getDeviceProfile().getDeviceProperties().isMultiWindowMode()) {
-            list.add(new StatusBarTouchController(
-                    this, () -> this.isInState(LauncherState.NORMAL)));
-        }
+        list.add(new StatusBarTouchController(this, () -> this.isInState(LauncherState.NORMAL)));
 
         if (enableExpressiveDismissTaskMotion()) {
             list.add(new TaskViewLaunchTouchController<>(this, mTaskViewRecentsTouchContext));
@@ -763,7 +760,6 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
             mPendingSplitSelectInfo = ObjectWrapper.unwrap(
                     savedInstanceState.getIBinder(PENDING_SPLIT_SELECT_INFO));
         }
-        addMultiWindowModeChangedListener(mDepthController);
         initUnfoldTransitionProgressProvider();
         mViewCapture = ViewCaptureFactory.getInstance(this).startCapture(getWindow());
         getWindow().addPrivateFlags(PRIVATE_FLAG_OPTIMIZE_MEASURE);

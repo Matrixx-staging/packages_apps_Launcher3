@@ -76,7 +76,6 @@ abstract class FakeInvariantDeviceProfileTest {
             windowBounds,
             SparseArray(),
             /*isExternalDisplay=*/ false,
-            /*isMultiWindowMode=*/ false,
             transposeLayoutWithOrientation,
             useTwoPanels,
             isGestureMode,

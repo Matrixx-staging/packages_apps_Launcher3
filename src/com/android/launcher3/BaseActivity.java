@@ -103,8 +103,6 @@ public abstract class BaseActivity extends Activity implements ActivityContext,
     }
 
     private final ArrayList<OnDeviceProfileChangeListener> mDPChangeListeners = new ArrayList<>();
-    private final ArrayList<MultiWindowModeChangedListener> mMultiWindowModeChangedListeners =
-            new ArrayList<>();
 
     private final SavedStateRegistryController mSavedStateRegistryController =
             SavedStateRegistryController.create(this);
@@ -278,14 +276,6 @@ public abstract class BaseActivity extends Activity implements ActivityContext,
     }
 
     @Override
-    public void onMultiWindowModeChanged(boolean isInMultiWindowMode, Configuration newConfig) {
-        super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig);
-        for (int i = mMultiWindowModeChangedListeners.size() - 1; i >= 0; i--) {
-            mMultiWindowModeChangedListeners.get(i).onMultiWindowModeChanged(isInMultiWindowMode);
-        }
-    }
-
-    @Override
     protected void onStop() {
         removeActivityFlags(ACTIVITY_STATE_STARTED | ACTIVITY_STATE_USER_ACTIVE);
         mForceInvisible = 0;
@@ -395,14 +385,6 @@ public abstract class BaseActivity extends Activity implements ActivityContext,
     protected void onActivityFlagsChanged(int changeBits) {
     }
 
-    public void addMultiWindowModeChangedListener(MultiWindowModeChangedListener listener) {
-        mMultiWindowModeChangedListeners.add(listener);
-    }
-
-    public void removeMultiWindowModeChangedListener(MultiWindowModeChangedListener listener) {
-        mMultiWindowModeChangedListeners.remove(listener);
-    }
-
     /**
      * Used to set the override visibility state, used only to handle the transition home with the
      * recents animation.
@@ -438,10 +420,6 @@ public abstract class BaseActivity extends Activity implements ActivityContext,
     /** Removes a previously added callback */
     public void removeEventCallback(@ActivityEvent int event, Runnable callback) {
         mEventCallbacks[event].remove(callback);
-    }
-
-    public interface MultiWindowModeChangedListener {
-        void onMultiWindowModeChanged(boolean isInMultiWindowMode);
     }
 
     protected void dumpMisc(String prefix, PrintWriter writer) {
@@ -493,10 +471,6 @@ public abstract class BaseActivity extends Activity implements ActivityContext,
                 ActivityContext.super.makeDefaultActivityOptions(splashScreenStyle);
         addEventCallback(EVENT_RESUMED, wrapper.onEndCallback::executeAllAndDestroy);
         return wrapper;
-    }
-
-    protected WindowBounds getMultiWindowDisplaySize() {
-        return WindowBounds.fromWindowMetrics(getWindowManager().getCurrentWindowMetrics());
     }
 
     @Override

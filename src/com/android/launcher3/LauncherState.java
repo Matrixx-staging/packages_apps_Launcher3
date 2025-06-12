@@ -350,20 +350,6 @@ public abstract class LauncherState implements BaseState<LauncherState> {
      */
     public final  <DEVICE_PROFILE_CONTEXT extends Context & ActivityContext>
             float getDepth(DEVICE_PROFILE_CONTEXT context) {
-        return getDepth(context,
-                ActivityContext.lookupContext(context).getDeviceProfile().getDeviceProperties().isMultiWindowMode());
-    }
-
-    /**
-     * Returns the amount of blur and wallpaper zoom for this state with {@param isMultiWindowMode}.
-     *
-     * @see #getDepth(Context).
-     */
-    public final <DEVICE_PROFILE_CONTEXT extends Context & ActivityContext>
-            float getDepth(DEVICE_PROFILE_CONTEXT context, boolean isMultiWindowMode) {
-        if (isMultiWindowMode) {
-            return 0;
-        }
         return getDepthUnchecked(context);
     }
 
