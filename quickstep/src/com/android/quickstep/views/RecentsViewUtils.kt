@@ -740,6 +740,14 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
         taskViews.flatMap { it.taskContainers }.forEach { it.overlay.resetShareUI() }
     }
 
+    fun getKeyboardFocusTask(keyboardFocusTask: KeyboardFocusTask): TaskView? =
+        when (keyboardFocusTask) {
+            is KeyboardFocusTask.Unfocused -> null
+            is KeyboardFocusTask.CurrentPageTaskView -> recentsView.currentPageTaskView
+            is KeyboardFocusTask.TaskViewWithIds ->
+                recentsView.getTaskViewByTaskIds(keyboardFocusTask.taskIds.toIntArray())
+        }
+
     /**
      * Adds a listener to be notified when a new desk is added.
      *

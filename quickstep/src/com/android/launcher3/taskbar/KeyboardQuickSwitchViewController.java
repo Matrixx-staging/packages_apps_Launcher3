@@ -59,6 +59,7 @@ import com.android.wm.shell.shared.desktopmode.DesktopTaskToFrontReason;
 
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -239,7 +240,8 @@ public class KeyboardQuickSwitchViewController {
      * If the index is not -1, then the {@link com.android.quickstep.views.TaskView} at the returned
      * index will be focused.
      */
-    protected int launchFocusedTask() {
+    @Nullable
+    protected Set<Integer> launchFocusedTask() {
         if (mCurrentFocusIndex != -1) {
             return launchTaskAt(mCurrentFocusIndex);
         }
@@ -248,15 +250,14 @@ public class KeyboardQuickSwitchViewController {
                 && mKeyboardQuickSwitchView.getTaskCount() > 1 ? 1 : 0);
     }
 
-    private int launchTaskAt(int index) {
+    @Nullable
+    private Set<Integer> launchTaskAt(int index) {
         if (isCloseAnimationRunning()) {
             // Ignore taps on task views and alt key unpresses while the close animation is running.
-            return -1;
+            return null;
         }
         if (index == mKeyboardQuickSwitchView.getOverviewTaskIndex()) {
-            // If there is a desktop task view, then we should account for it when focusing the
-            // first hidden non-desktop task view in recents view
-            return mOnDesktop ? 1 : (mWasDesktopTaskFilteredOut ? index + 1 : index);
+            return mControllerCallbacks.getFirstHiddenTaskIds();
         }
         TaskbarActivityContext context = mControllers.taskbarActivityContext;
         final RemoteTransition slideInTransition = new RemoteTransition(new SlideInRemoteTransition(
@@ -274,24 +275,24 @@ public class KeyboardQuickSwitchViewController {
                             .showDesktopApps(
                                     mKeyboardQuickSwitchView.getDisplay().getDisplayId(),
                                     slideInTransition));
-            return -1;
+            return null;
         }
         // Even with a valid index, this can be null if the user tries to quick switch before the
         // views have been added in the KeyboardQuickSwitchView.
         GroupTask task = mControllerCallbacks.getTaskAt(index);
         if (task == null) {
-            return mOnDesktop ? 1 : Math.max(0, index);
+            return mControllerCallbacks.getFirstHiddenTaskIds();
         }
 
         if (enableAltTabKqsFlatenning.isTrue()
                 && tryLaunchingCombinedTask(task, slideInTransition, systemUiProxy)) {
-            return -1;
+            return null;
         }
 
         // TODO b/414410702: move this check to before tryLaunchingCombinedTask() call.
         if (mControllerCallbacks.isTaskRunning(task)) {
             // Ignore attempts to run the selected task if it is already running.
-            return -1;
+            return null;
         }
 
         RemoteTransition remoteTransition = slideInTransition;
@@ -308,7 +309,7 @@ public class KeyboardQuickSwitchViewController {
                 mOnDesktop,
                 DesktopTaskToFrontReason.ALT_TAB,
                 mKeyboardQuickSwitchView.getTaskAt(index));
-        return -1;
+        return null;
     }
 
     private boolean tryLaunchingCombinedTask(GroupTask task, RemoteTransition slideInTransition,

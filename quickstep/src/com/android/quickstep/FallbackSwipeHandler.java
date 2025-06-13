@@ -418,7 +418,8 @@ public class FallbackSwipeHandler extends
                 }
 
                 Bundle gestureNavContract = new Bundle();
-                gestureNavContract.putBoolean(EXTRA_ENABLE_GESTURE_CONTRACT, !mIsSwipeForSplit);
+                gestureNavContract.putBoolean(
+                        EXTRA_ENABLE_GESTURE_CONTRACT, mRemoteTargetHandles.length <= 1);
                 gestureNavContract.putParcelable(EXTRA_COMPONENT_NAME, key.getComponent());
                 gestureNavContract.putParcelable(EXTRA_USER, UserHandle.of(key.userId));
                 gestureNavContract.putParcelable(

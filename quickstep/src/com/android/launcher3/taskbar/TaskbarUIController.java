@@ -51,6 +51,7 @@ import com.android.wm.shell.shared.bubbles.BubbleBarLocation;
 
 import java.io.PrintWriter;
 import java.util.Collections;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -374,12 +375,15 @@ public class TaskbarUIController implements BubbleBarController.BubbleBarLocatio
      * If the overlay or view are closed, or the overview task is focused, then Overview is
      * launched. If the overview task is launched, then the first hidden task is focused.
      *
-     * @return the index of what task should be focused in ; -1 iff Overview shouldn't be launched
+     * @return the set of task ids associated with the task view that should be focused; null iff
+     *         overview shouldn't be launched
      */
-    public int launchFocusedTask() {
-        int focusedTaskIndex = mControllers.keyboardQuickSwitchController.launchFocusedTask();
+    @Nullable
+    public Set<Integer> launchFocusedTask() {
+        Set<Integer> focusedTaskIds =
+                mControllers.keyboardQuickSwitchController.launchFocusedTask();
         mControllers.keyboardQuickSwitchController.closeQuickSwitchView();
-        return focusedTaskIndex;
+        return focusedTaskIds;
     }
 
     /**
