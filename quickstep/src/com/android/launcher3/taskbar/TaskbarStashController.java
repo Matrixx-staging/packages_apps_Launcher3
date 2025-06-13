@@ -1249,43 +1249,29 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
     }
 
     /**
-     * We stash when the IME is visible.
-     *
-     * <p>Do not stash if in small screen, with 3 button nav, and in landscape (or seascape).
-     * <p>Do not stash if taskbar is transient.
-     * <p>Do not stash if hardware keyboard is attached and taskbar is pinned and IME is docked.
-     * <p>Do not stash if a system gesture is started.
+     * Whether the Taskbar should be stashed when the IME is visible. This is {@code false} if:
+     * <ul>
+     *     <li>IME is not visible
+     *     <li>A system gesture (e.g. quick switching apps) is in progress.
+     *     <li>Device is a phone (non-large screen)
+     *     <li>Taskbar is transient
+     *     <li>IME is not docked
+     * </ul>
      */
     private boolean shouldStashForIme() {
-        if (mActivity.isTransientTaskbar()) {
+        if (!mIsImeVisible) {
             return false;
         }
-        // Do not stash if in small screen, with 3 button nav, and in landscape.
-        if (mActivity.isPhoneMode() && mActivity.isThreeButtonNav()
-                && mActivity.getDeviceProfile().getDeviceProperties().isLandscape()) {
-            return false;
-        }
-
-        // Do not stash if pinned taskbar, hardware keyboard is attached and no IME is docked
-        if (mActivity.isHardwareKeyboard() && mActivity.isPinnedTaskbar()
-                && !mActivity.isImeDocked()) {
-            return false;
-        }
-
-        // Do not stash if hardware keyboard is attached, in 3 button nav and desktop windowing mode
-        if (mActivity.isHardwareKeyboard()
-                && mActivity.isThreeButtonNav()
-                && mControllers.taskbarDesktopModeController
-                    .isInDesktopModeAndNotInOverview(mActivity.getDisplayId())) {
-            return false;
-        }
-
-        // Do not stash if a gesture started.
         if (mIsSystemGestureInProgress) {
             return false;
         }
-
-        return mIsImeVisible;
+        if (mActivity.isPhoneMode()) {
+            return false;
+        }
+        if (mActivity.isTransientTaskbar()) {
+            return false;
+        }
+        return mActivity.isImeDocked();
     }
 
     /**

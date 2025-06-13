@@ -87,8 +87,6 @@ import android.window.RemoteTransition;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
-import androidx.core.graphics.Insets;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.android.internal.jank.Cuj;
 import com.android.launcher3.AbstractFloatingView;
@@ -237,6 +235,13 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
 
     private NavigationMode mNavMode;
     private boolean mImeDrawsImeNavBar;
+
+    /**
+     * Static return value of {@link #isImeDocked}, used for testing only. A {@code null} value will
+     * revert back to the actual return value of {@link #isImeDocked}.
+     */
+    @Nullable
+    private Boolean mImeDockedOverrideForTest;
 
     private final boolean mIsSafeModeEnabled;
     private boolean mIsUserSetupComplete;
@@ -656,25 +661,41 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     }
 
     /**
-     * Returns if software keyboard is docked or input toolbar is placed at the taskbar area
+     * Checks whether the IME is visible and docked (i.e. there are large enough IME insets).
+     *
+     * <p>This is {@code false} if the IME is not visible, floating, or small, for example (but not
+     * limited to) hiding the software keyboard keys when a hardware keyboard is connected.
+     *
+     * <p>Note, IME insets visibility is updated slightly faster than
+     * {@link com.android.systemui.shared.system.QuickStepContract#SYSUI_STATE_IME_VISIBLE}.
      */
     public boolean isImeDocked() {
-        View dragLayer = getDragLayer();
-        WindowInsets insets = dragLayer.getRootWindowInsets();
-        if (insets == null) {
-            return false;
+        if (mImeDockedOverrideForTest != null) {
+            return mImeDockedOverrideForTest;
         }
+        final var windowInsets = mWindowManager.getCurrentWindowMetrics().getWindowInsets();
+        // IME insets implicitly include navigation bar and display cutout bottom insets.
+        final var systemBarDisplayCutoutInsets = windowInsets
+                .getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
+        // An approximation for the space below the IME InputView.
+        final int imeNavBarHeight = getResources().getDimensionPixelSize(
+                com.android.internal.R.dimen.input_method_navigation_bar_height);
+        // The space below the InputView plus the smallest InputView considered docked.
+        final int threshold = Math.max(systemBarDisplayCutoutInsets.bottom, imeNavBarHeight)
+                + getResources().getDimensionPixelSize(R.dimen.ime_docked_threshold);
+        final var imeInsets = windowInsets.getInsets(WindowInsets.Type.ime());
+        return imeInsets.bottom >= threshold;
+    }
 
-        WindowInsetsCompat insetsCompat =
-                WindowInsetsCompat.toWindowInsetsCompat(insets, dragLayer.getRootView());
-
-        if (insetsCompat.isVisible(WindowInsetsCompat.Type.ime())) {
-            Insets imeInsets = insetsCompat.getInsets(WindowInsetsCompat.Type.ime());
-            return imeInsets.bottom >= getResources().getDimensionPixelSize(
-                    R.dimen.floating_ime_inset_height);
-        } else {
-            return false;
-        }
+    /**
+     * Sets an override return value for {@link #isImeDocked}, to be used in testing.
+     *
+     * @param docked whether the IME should be considered docked or not. {@code null} reverts to the
+     *               actual return value of {@link #isImeDocked}.
+     */
+    @VisibleForTesting
+    public void setImeDockedOverrideForTest(@Nullable Boolean docked) {
+        mImeDockedOverrideForTest = docked;
     }
 
     /**
