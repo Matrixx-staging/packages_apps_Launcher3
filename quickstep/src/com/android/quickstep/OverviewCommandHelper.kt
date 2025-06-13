@@ -17,9 +17,9 @@ package com.android.quickstep
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
+import android.annotation.ElapsedRealtimeLong
 import android.content.Intent
 import android.graphics.PointF
-import android.os.SystemClock
 import android.os.Trace
 import android.util.Log
 import android.view.Display.DEFAULT_DISPLAY
@@ -45,7 +45,6 @@ import com.android.launcher3.util.OverviewCommandHelperProtoLogProxy
 import com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview
 import com.android.launcher3.util.RunnableList
 import com.android.launcher3.util.coroutines.DispatcherProvider
-import com.android.launcher3.util.coroutines.ProductionDispatchers
 import com.android.quickstep.OverviewCommandHelper.CommandInfo.CommandStatus
 import com.android.quickstep.OverviewCommandHelper.CommandType.HIDE_ALT_TAB
 import com.android.quickstep.OverviewCommandHelper.CommandType.HOME
@@ -61,6 +60,9 @@ import com.android.quickstep.window.RecentsWindowManager
 import com.android.systemui.shared.recents.model.ThumbnailData
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper
 import com.android.wm.shell.Flags.enableShellTopTaskTracking
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import java.io.PrintWriter
 import java.util.concurrent.ConcurrentLinkedDeque
 import java.util.concurrent.TimeUnit
@@ -74,15 +76,15 @@ import kotlinx.coroutines.withTimeout
 
 /** Helper class to handle various atomic commands for switching between Overview. */
 class OverviewCommandHelper
-@JvmOverloads
+@AssistedInject
 constructor(
-    private val touchInteractionService: TouchInteractionService,
+    @Assisted private val touchInteractionService: TouchInteractionService,
     private val overviewComponentObserver: OverviewComponentObserver,
-    private val dispatcherProvider: DispatcherProvider = ProductionDispatchers,
+    private val dispatcherProvider: DispatcherProvider,
     private val displayRepository: DisplayRepository,
-    private val taskbarManager: TaskbarManager,
+    @Assisted private val taskbarManager: TaskbarManager,
     private val taskAnimationManagerRepository: PerDisplayRepository<TaskAnimationManager>,
-    private val elapsedRealtime: () -> Long = SystemClock::elapsedRealtime,
+    @ElapsedRealtimeLong private val elapsedRealtime: () -> Long,
 ) {
     private val coroutineScope =
         CoroutineScope(SupervisorJob() + dispatcherProvider.lightweightBackground)
@@ -727,6 +729,14 @@ constructor(
     }
 
     data class ToggleInfo(val createTime: Long, val taskIds: Set<Int>)
+
+    @AssistedFactory
+    interface Factory {
+        fun create(
+            touchInteractionService: TouchInteractionService,
+            taskbarManager: TaskbarManager,
+        ): OverviewCommandHelper
+    }
 
     companion object {
         private const val TAG = "OverviewCommandHelper"

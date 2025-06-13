@@ -27,6 +27,7 @@ import com.android.launcher3.taskbar.TaskbarModelCallbacksFactory;
 import com.android.launcher3.taskbar.TaskbarViewCallbacksFactory;
 import com.android.launcher3.taskbar.overlay.TaskbarOverlayContextFactory;
 import com.android.quickstep.FallbackWindowInterface;
+import com.android.quickstep.OverviewCommandHelper;
 import com.android.quickstep.OverviewComponentObserver;
 import com.android.quickstep.RecentsAnimationDeviceState;
 import com.android.quickstep.RecentsModel;
@@ -94,8 +95,9 @@ public interface QuickstepBaseAppComponent extends LauncherBaseAppComponent {
     DisplayRepository getDisplayRepository();
     NavHandleLongPressHandler getNavHandleLongPressHandler();
 
-    /** Gets the factory to create a new ActionCornerHandlerFactory */
     ActionCornerHandler.Factory getActionCornerHandlerFactory();
+
+    OverviewCommandHelper.Factory getOverviewCommandHelperFactory();
 
     DisplaysWithDecorationsRepositoryCompat getDisplaysWithDecorationsRepositoryCompat();
 
