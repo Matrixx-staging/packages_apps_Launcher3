@@ -71,10 +71,13 @@ class DragToBubbleControllerTest {
     private lateinit var dragToBubbleController: DragToBubbleController
 
     private val dropTargetView: DropTargetView
-        get() = dragToBubbleController.dropTargetManager.dropTargetView
+        get() = dragToBubbleController.launcherDropTargetManager.dropTargetView
 
     private val secondDropTargetView: DropTargetView?
-        get() = dragToBubbleController.dropTargetManager.secondDropTargetView
+        get() = dragToBubbleController.launcherDropTargetManager.secondDropTargetView
+
+    private val shellDropTargetView: DropTargetView?
+        get() = dragToBubbleController.shellDropTargetManager.secondDropTargetView
 
     private val bubbleBarLeftDropTarget: DropTarget
         get() = dragToBubbleController.bubbleBarLeftDropTarget
@@ -130,7 +133,7 @@ class DragToBubbleControllerTest {
 
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             dragToBubbleController.onDragEnd()
-            animatorTestRule.advanceTimeBy(250)
+            animatorTestRule.advanceTimeBy(ANIMATION_DELAY_MS)
         }
 
         assertThat(container.childCount).isEqualTo(0)
@@ -143,7 +146,7 @@ class DragToBubbleControllerTest {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             dragObject.updateXYToCenterOf(rightDropTargetRect)
             bubbleBarRightDropTarget.onDragEnter(dragObject)
-            animatorTestRule.advanceTimeBy(250)
+            animatorTestRule.advanceTimeBy(ANIMATION_DELAY_MS)
         }
 
         assertThat(dropTargetView.alpha).isEqualTo(1f)
@@ -159,7 +162,7 @@ class DragToBubbleControllerTest {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             dragObject.updateXYToCenterOf(rightDropTargetRect)
             bubbleBarRightDropTarget.onDragEnter(dragObject)
-            animatorTestRule.advanceTimeBy(250)
+            animatorTestRule.advanceTimeBy(ANIMATION_DELAY_MS)
         }
 
         assertThat(dropTargetView.alpha).isEqualTo(1f)
@@ -174,7 +177,7 @@ class DragToBubbleControllerTest {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             dragObject.updateXYToCenterOf(rightDropTargetRect)
             bubbleBarRightDropTarget.onDragEnter(dragObject)
-            animatorTestRule.advanceTimeBy(250)
+            animatorTestRule.advanceTimeBy(ANIMATION_DELAY_MS)
         }
         verify(bubbleBarViewController, never()).animateBubbleBarLocation(any())
     }
@@ -216,7 +219,7 @@ class DragToBubbleControllerTest {
         assertThat(container.childCount).isEqualTo(DROP_VIEWS_COUNT)
 
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
-            animatorTestRule.advanceTimeBy(250)
+            animatorTestRule.advanceTimeBy(ANIMATION_DELAY_MS)
         }
         assertThat(container.childCount).isEqualTo(0)
     }
@@ -404,6 +407,105 @@ class DragToBubbleControllerTest {
             .onBubbleBarLocationAnimated(BubbleBarLocation.RIGHT)
     }
 
+    @Test
+    fun onShellDragStateChanged_true_preparesShellDragManager() {
+        // When
+        dragToBubbleController.onShellDragStateChanged(true)
+
+        // Then
+        assertThat(shellDropTargetView!!.alpha).isEqualTo(0f)
+        assertThat(shellDropTargetView!!.parent).isEqualTo(container)
+    }
+
+    @Test
+    fun onShellDragStateChanged_false_endsShellDragManager() {
+        // Given
+        dragToBubbleController.onShellDragStateChanged(true)
+
+        // When, end the drag state
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            dragToBubbleController.onShellDragStateChanged(false)
+            animatorTestRule.advanceTimeBy(
+                ANIMATION_DELAY_MS
+            ) // Advance time for fade out animation
+        }
+
+        // Then drop target view should be removed from container
+        assertThat(container.childCount).isEqualTo(0)
+        assertThat(shellDropTargetView).isNull()
+    }
+
+    @Test
+    fun showShellBubbleBarDropTargetAt_leftLocation_showsLeftDropTarget() {
+        // Given
+        dragToBubbleController.onShellDragStateChanged(true)
+        // When
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            dragToBubbleController.showShellBubbleBarDropTargetAt(BubbleBarLocation.LEFT)
+            animatorTestRule.advanceTimeBy(ANIMATION_DELAY_MS)
+        }
+        // Then view should be visible
+        assertThat(shellDropTargetView!!.alpha).isEqualTo(1f)
+        assertThat(shellDropTargetView!!.parent).isEqualTo(container)
+    }
+
+    @Test
+    fun showShellBubbleBarDropTargetAt_rightLocation_showsRightDropTarget() {
+        // Given
+        dragToBubbleController.onShellDragStateChanged(true)
+        // When
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            dragToBubbleController.showShellBubbleBarDropTargetAt(BubbleBarLocation.RIGHT)
+            animatorTestRule.advanceTimeBy(ANIMATION_DELAY_MS)
+        }
+        // Then view should be visible
+        assertThat(shellDropTargetView!!.alpha).isEqualTo(1f)
+        assertThat(shellDropTargetView!!.parent).isEqualTo(container)
+    }
+
+    @Test
+    fun showShellBubbleBarDropTargetAtLeft_nullLocation_hidesDropTarget() {
+        // Given
+        dragToBubbleController.onShellDragStateChanged(true)
+        // When show LEFT drop target
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            dragToBubbleController.showShellBubbleBarDropTargetAt(BubbleBarLocation.LEFT)
+            animatorTestRule.advanceTimeBy(ANIMATION_DELAY_MS)
+        }
+        // Then view should be visible
+        assertThat(shellDropTargetView!!.alpha).isEqualTo(1f)
+
+        // When show null location
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            dragToBubbleController.showShellBubbleBarDropTargetAt(null)
+            animatorTestRule.advanceTimeBy(ANIMATION_DELAY_MS)
+        }
+        // Then view should be hidden
+        assertThat(shellDropTargetView!!.alpha).isEqualTo(0f)
+    }
+
+    @Test
+    fun showShellBubbleBarDropTargetAt_consecutiveCallsSameLocation_noCallsToListener() {
+        // Given
+        prepareBubbleBarViewController(bubbleBarLocation = BubbleBarLocation.LEFT)
+        dragToBubbleController.onShellDragStateChanged(true)
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            dragToBubbleController.showShellBubbleBarDropTargetAt(BubbleBarLocation.RIGHT)
+            animatorTestRule.advanceTimeBy(ANIMATION_DELAY_MS)
+        }
+        verify(bubbleBarLocationListener).onBubbleBarLocationAnimated(BubbleBarLocation.RIGHT)
+        clearInvocations(bubbleBarLocationListener)
+
+        // When calling again with the same location
+        repeat(10) {
+            InstrumentationRegistry.getInstrumentation().runOnMainSync {
+                dragToBubbleController.showShellBubbleBarDropTargetAt(BubbleBarLocation.RIGHT)
+            }
+        }
+        // Then no new calls to onDragUpdated
+        verify(bubbleBarLocationListener, never()).onBubbleBarLocationAnimated(any())
+    }
+
     private fun prepareBubbleBarViewController(
         hasBubbles: Boolean = false,
         bubbleBarLocation: BubbleBarLocation = BubbleBarLocation.RIGHT,
@@ -459,5 +561,6 @@ class DragToBubbleControllerTest {
         const val SCREEN_HEIGHT = 1000
         const val DROP_VIEWS_COUNT = 1
         const val DROP_VIEWS_COUNT_NO_BUBBLE_BAR = 2
+        const val ANIMATION_DELAY_MS = 250L
     }
 }
