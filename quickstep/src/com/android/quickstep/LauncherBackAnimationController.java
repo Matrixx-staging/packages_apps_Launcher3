@@ -26,7 +26,6 @@ import static com.android.launcher3.BaseActivity.INVISIBLE_ALL;
 import static com.android.launcher3.BaseActivity.INVISIBLE_BY_PENDING_FLAGS;
 import static com.android.launcher3.BaseActivity.PENDING_INVISIBLE_BY_WALLPAPER_ANIMATION;
 import static com.android.launcher3.Flags.enableOverviewBackgroundWallpaperBlur;
-import static com.android.window.flags.Flags.predictiveBackThreeButtonNav;
 import static com.android.window.flags.Flags.removeDepartTargetFromMotion;
 
 import android.animation.Animator;
@@ -352,7 +351,7 @@ public class LauncherBackAnimationController {
         mStartRect.set(mBackTarget.windowConfiguration.getMaxBounds());
 
         // inset bottom in case of taskbar being present
-        if (!predictiveBackThreeButtonNav() || mLauncher.getDeviceProfile().isTaskbarPresent
+        if (mLauncher.getDeviceProfile().isTaskbarPresent
                 || DisplayController.getNavigationMode(mLauncher) == NavigationMode.NO_BUTTON) {
             mStartRect.inset(0, 0, 0, mBackTarget.contentInsets.bottom);
         }

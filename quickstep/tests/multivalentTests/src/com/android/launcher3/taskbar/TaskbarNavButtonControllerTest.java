@@ -15,7 +15,6 @@ import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_IM
 import static com.android.launcher3.taskbar.TaskbarNavButtonController.BUTTON_RECENTS;
 import static com.android.launcher3.taskbar.TaskbarNavButtonController.SCREEN_PIN_LONG_PRESS_THRESHOLD;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_SCREEN_PINNING;
-import static com.android.window.flags.Flags.FLAG_PREDICTIVE_BACK_THREE_BUTTON_NAV;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -31,7 +30,6 @@ import static org.mockito.Mockito.when;
 
 import android.graphics.Rect;
 import android.os.Handler;
-import android.platform.test.annotations.RequiresFlagsEnabled;
 import android.platform.test.flag.junit.CheckFlagsRule;
 import android.platform.test.flag.junit.DeviceFlagsValueProvider;
 import android.view.KeyEvent;
@@ -343,7 +341,6 @@ public class TaskbarNavButtonControllerTest {
     }
 
     @Test
-    @RequiresFlagsEnabled(FLAG_PREDICTIVE_BACK_THREE_BUTTON_NAV)
     public void testPredictiveBackInvoked() {
         mNavButtonController.init(mockTaskbarControllers);
         ArgumentCaptor<KeyEvent> keyEventCaptor = ArgumentCaptor.forClass(KeyEvent.class);
@@ -355,7 +352,6 @@ public class TaskbarNavButtonControllerTest {
     }
 
     @Test
-    @RequiresFlagsEnabled(FLAG_PREDICTIVE_BACK_THREE_BUTTON_NAV)
     public void testPredictiveBackCancelled() {
         mNavButtonController.init(mockTaskbarControllers);
         ArgumentCaptor<KeyEvent> keyEventCaptor = ArgumentCaptor.forClass(KeyEvent.class);
@@ -367,7 +363,6 @@ public class TaskbarNavButtonControllerTest {
     }
 
     @Test
-    @RequiresFlagsEnabled(FLAG_PREDICTIVE_BACK_THREE_BUTTON_NAV)
     public void testButtonsDisabledWhileBackPressed() {
         mNavButtonController.init(mockTaskbarControllers);
         mNavButtonController.sendBackKeyEvent(KeyEvent.ACTION_DOWN, false);

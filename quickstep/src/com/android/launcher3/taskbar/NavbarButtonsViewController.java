@@ -51,7 +51,6 @@ import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_Q
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_SCREEN_PINNING;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_SHORTCUT_HELPER_SHOWING;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_VOICE_INTERACTION_WINDOW_SHOWING;
-import static com.android.window.flags.Flags.predictiveBackThreeButtonNav;
 
 import android.animation.Animator;
 import android.animation.ArgbEvaluator;
@@ -750,11 +749,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         if (mBackButton == null) {
             return;
         }
-        if (predictiveBackThreeButtonNav()) {
-            setupBackButtonAccessibility(mBackButton, accessibilityDelegate);
-        } else {
-            mBackButton.setAccessibilityDelegate(accessibilityDelegate);
-        }
+        setupBackButtonAccessibility(mBackButton, accessibilityDelegate);
     }
 
     public void setWallpaperVisible(boolean isVisible) {
@@ -945,7 +940,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         buttonView.setImageResource(drawableId);
         buttonView.setContentDescription(parent.getContext().getString(
                 navButtonController.getButtonContentDescription(buttonType)));
-        if (predictiveBackThreeButtonNav() && buttonType == BUTTON_BACK) {
+        if (buttonType == BUTTON_BACK) {
             // set up special touch listener for back button to support predictive back
             setupBackButtonAccessibility(buttonView, null);
             setBackButtonTouchListener(buttonView, navButtonController);
