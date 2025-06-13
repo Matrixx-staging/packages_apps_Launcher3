@@ -16,19 +16,9 @@
 
 package com.android.launcher3.model;
 
-import static com.android.launcher3.BuildConfig.QSB_ON_FIRST_SCREEN;
 import static com.android.launcher3.GridType.GRID_TYPE_NON_ONE_GRID;
 import static com.android.launcher3.GridType.GRID_TYPE_ONE_GRID;
 import static com.android.launcher3.InvariantDeviceProfile.TYPE_TABLET;
-import static com.android.launcher3.LauncherSettings.Favorites.TABLE_NAME;
-import static com.android.launcher3.LauncherSettings.Favorites.TMP_TABLE;
-import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ROW_SHIFT_GRID_MIGRATION;
-import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ROW_SHIFT_ONE_GRID_MIGRATION;
-import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_STANDARD_GRID_MIGRATION;
-import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_STANDARD_ONE_GRID_MIGRATION;
-import static com.android.launcher3.provider.LauncherDbUtils.copyTable;
-import static com.android.launcher3.provider.LauncherDbUtils.dropTable;
-import static com.android.launcher3.provider.LauncherDbUtils.shiftWorkspaceByXCells;
 
 import android.content.ComponentName;
 import android.content.ContentValues;
@@ -40,29 +30,20 @@ import android.graphics.Point;
 import android.util.ArrayMap;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
-import com.android.launcher3.Flags;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherSettings;
 import com.android.launcher3.Utilities;
-import com.android.launcher3.logging.StatsLogManager;
-import com.android.launcher3.provider.LauncherDbUtils.SQLiteTransaction;
-import com.android.launcher3.util.GridOccupancy;
 import com.android.launcher3.util.IntArray;
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo;
 import com.android.launcher3.widget.WidgetManagerHelper;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * This class takes care of shrinking the workspace (by maximum of one row and one column), as a
@@ -109,232 +90,11 @@ public class GridSizeMigrationDBController {
         return result;
     }
 
-    /**
-     * When migrating the grid, we copy the table
-     * {@link LauncherSettings.Favorites#TABLE_NAME} from {@code source} into
-     * {@link LauncherSettings.Favorites#TMP_TABLE}, run the grid size migration algorithm
-     * to migrate the later to the former, and load the workspace from the default
-     * {@link LauncherSettings.Favorites#TABLE_NAME}.
-     *
-     * @return false if the migration failed.
-     */
-    public static boolean migrateGridIfNeeded(
-            @NonNull Context context,
-            @NonNull DeviceGridState srcDeviceState,
-            @NonNull DeviceGridState destDeviceState,
-            @NonNull DatabaseHelper target,
-            @NonNull SQLiteDatabase source,
-            boolean isDestNewDb,
-            ModelDelegate modelDelegate) {
-
-        if (!needsToMigrate(srcDeviceState, destDeviceState)) {
-            return true;
-        }
-
-        StatsLogManager statsLogManager = StatsLogManager.newInstance(context);
-
-        boolean shouldMigrateToStrictlyTallerGrid = (Flags.oneGridSpecs() || isDestNewDb)
-                && srcDeviceState.getColumns().equals(destDeviceState.getColumns())
-                && srcDeviceState.getRows() < destDeviceState.getRows();
-        if (shouldMigrateToStrictlyTallerGrid) {
-            copyTable(source, TABLE_NAME, target.getWritableDatabase(), TABLE_NAME, context);
-        } else {
-            copyTable(source, TABLE_NAME, target.getWritableDatabase(), TMP_TABLE, context);
-        }
-
-        long migrationStartTime = System.currentTimeMillis();
-        try (SQLiteTransaction t = new SQLiteTransaction(target.getWritableDatabase())) {
-
-            if (shouldMigrateToStrictlyTallerGrid) {
-                // We want to add the extra row(s) to the top of the screen, so we shift the grid
-                // down.
-                if (Flags.oneGridSpecs()) {
-                    shiftWorkspaceByXCells(
-                            target.getWritableDatabase(),
-                            (destDeviceState.getRows() - srcDeviceState.getRows()),
-                            TABLE_NAME);
-                }
-
-                // Save current configuration, so that the migration does not run again.
-                destDeviceState.writeToPrefs(context);
-                t.commit();
-                if (isOneGridMigration(srcDeviceState, destDeviceState)) {
-                    statsLogManager.logger().log(LAUNCHER_ROW_SHIFT_ONE_GRID_MIGRATION);
-                }
-                statsLogManager.logger().log(LAUNCHER_ROW_SHIFT_GRID_MIGRATION);
-                return true;
-            }
-
-            DbReader srcReader = new DbReader(t.getDb(), TMP_TABLE, context);
-            DbReader destReader = new DbReader(t.getDb(), TABLE_NAME, context);
-
-            Point targetSize = new Point(destDeviceState.getColumns(), destDeviceState.getRows());
-            migrate(target, srcReader, destReader, srcDeviceState.getNumHotseat(),
-                    destDeviceState.getNumHotseat(), targetSize, srcDeviceState, destDeviceState);
-            dropTable(t.getDb(), TMP_TABLE);
-            t.commit();
-            if (isOneGridMigration(srcDeviceState, destDeviceState)) {
-                statsLogManager.logger().log(LAUNCHER_STANDARD_ONE_GRID_MIGRATION);
-            }
-            statsLogManager.logger().log(LAUNCHER_STANDARD_GRID_MIGRATION);
-            return true;
-        } catch (Exception e) {
-            Log.e(TAG, "Error during grid migration", e);
-            return false;
-        } finally {
-            Log.v(TAG, "Workspace migration completed in "
-                    + (System.currentTimeMillis() - migrationStartTime));
-
-            // Save current configuration, so that the migration does not run again.
-            destDeviceState.writeToPrefs(context);
-            // Notify if we've migrated successfully
-            modelDelegate.gridMigrationComplete(srcDeviceState, destDeviceState);
-        }
-    }
-
-    public static boolean migrate(
-            @NonNull DatabaseHelper helper,
-            @NonNull final DbReader srcReader, @NonNull final DbReader destReader,
-            final int srcHotseatSize, final int destHotseatSize, @NonNull final Point targetSize,
-            @NonNull final DeviceGridState srcDeviceState,
-            @NonNull final DeviceGridState destDeviceState) {
-
-        final List<DbEntry> srcHotseatItems = srcReader.loadHotseatEntries();
-        final List<DbEntry> srcWorkspaceItems = srcReader.loadAllWorkspaceEntries();
-        final List<DbEntry> dstHotseatItems = destReader.loadHotseatEntries();
-        // We want to filter out the hotseat items that are placed beyond the size of the source
-        // grid as we always want to keep those extra items from the destination grid.
-        List<DbEntry> filteredDstHotseatItems = dstHotseatItems;
-        if (srcHotseatSize < destHotseatSize) {
-            filteredDstHotseatItems = filteredDstHotseatItems.stream()
-                    .filter(entry -> entry.screenId < srcHotseatSize)
-                    .collect(Collectors.toList());
-        }
-        final List<DbEntry> dstWorkspaceItems = destReader.loadAllWorkspaceEntries();
-        final List<DbEntry> hotseatToBeAdded = new ArrayList<>(1);
-        final List<DbEntry> workspaceToBeAdded = new ArrayList<>(1);
-        final IntArray toBeRemoved = new IntArray();
-
-        calcDiff(srcHotseatItems, filteredDstHotseatItems, hotseatToBeAdded, toBeRemoved);
-        calcDiff(srcWorkspaceItems, dstWorkspaceItems, workspaceToBeAdded, toBeRemoved);
-
-        final int trgX = targetSize.x;
-        final int trgY = targetSize.y;
-
-        if (DEBUG) {
-            Log.d(TAG, "Start migration:"
-                    + "\n Source Device:"
-                    + srcWorkspaceItems.stream().map(DbEntry::toString).collect(
-                    Collectors.joining(",\n", "[", "]"))
-                    + "\n Target Device:"
-                    + dstWorkspaceItems.stream().map(DbEntry::toString).collect(
-                    Collectors.joining(",\n", "[", "]"))
-                    + "\n Removing Items:"
-                    + dstWorkspaceItems.stream().filter(entry ->
-                    toBeRemoved.contains(entry.id)).map(DbEntry::toString).collect(
-                    Collectors.joining(",\n", "[", "]"))
-                    + "\n Adding Workspace Items:"
-                    + workspaceToBeAdded.stream().map(DbEntry::toString).collect(
-                    Collectors.joining(",\n", "[", "]"))
-                    + "\n Adding Hotseat Items:"
-                    + hotseatToBeAdded.stream().map(DbEntry::toString).collect(
-                    Collectors.joining(",\n", "[", "]"))
-            );
-        }
-        if (!toBeRemoved.isEmpty()) {
-            removeEntryFromDb(destReader.mDb, destReader.mTableName, toBeRemoved);
-        }
-        if (hotseatToBeAdded.isEmpty() && workspaceToBeAdded.isEmpty()) {
-            return false;
-        }
-
-        // Sort the items by the reading order.
-        Collections.sort(hotseatToBeAdded);
-        Collections.sort(workspaceToBeAdded);
-
-        List<DbEntry> remainingDstHotseatItems = destReader.loadHotseatEntries();
-        List<DbEntry> remainingDstWorkspaceItems = destReader.loadAllWorkspaceEntries();
-        List<Integer> idsInUse = remainingDstHotseatItems.stream()
-                .map(entry -> entry.id)
-                .collect(Collectors.toList());
-        idsInUse.addAll(remainingDstWorkspaceItems.stream()
-                .map(entry -> entry.id)
-                .collect(Collectors.toList()));
-
-
-        // Migrate hotseat
-        solveHotseatPlacement(helper, destHotseatSize,
-                srcReader, destReader, remainingDstHotseatItems, hotseatToBeAdded, idsInUse);
-
-        // Migrate workspace.
-        // First we create a collection of the screens
-        List<Integer> screens = new ArrayList<>();
-        for (int screenId = 0; screenId <= destReader.mLastScreenId; screenId++) {
-            screens.add(screenId);
-        }
-
-        // Then we place the items on the screens
-        for (int screenId : screens) {
-            if (DEBUG) {
-                Log.d(TAG, "Migrating " + screenId);
-            }
-            solveGridPlacement(helper, srcReader,
-                    destReader, screenId, trgX, trgY, workspaceToBeAdded, idsInUse);
-            if (workspaceToBeAdded.isEmpty()) {
-                break;
-            }
-        }
-
-        // In case the new grid is smaller, there might be some leftover items that don't fit on
-        // any of the screens, in this case we add them to new screens until all of them are placed.
-        int screenId = destReader.mLastScreenId + 1;
-        while (!workspaceToBeAdded.isEmpty()) {
-            solveGridPlacement(helper, srcReader, destReader, screenId, trgX, trgY,
-                    workspaceToBeAdded,
-                    srcWorkspaceItems.stream().map(entry -> entry.id).collect(Collectors.toList()));
-            screenId++;
-        }
-
-        return true;
-    }
-
     protected static boolean isOneGridMigration(DeviceGridState srcDeviceState,
             DeviceGridState destDeviceState) {
         return srcDeviceState.getDeviceType() != TYPE_TABLET
                 && srcDeviceState.getGridType() == GRID_TYPE_NON_ONE_GRID
                 && destDeviceState.getGridType() == GRID_TYPE_ONE_GRID;
-    }
-    /**
-     * Calculate the differences between {@code src} (denoted by A) and {@code dest}
-     * (denoted by B).
-     * All DbEntry in A - B will be added to {@code toBeAdded}
-     * All DbEntry.id in B - A will be added to {@code toBeRemoved}
-     */
-    private static void calcDiff(@NonNull final List<DbEntry> src,
-            @NonNull final List<DbEntry> dest, @NonNull final List<DbEntry> toBeAdded,
-            @NonNull final IntArray toBeRemoved) {
-        HashMap<DbEntry, Integer> entryCountDiff = new HashMap<>();
-        src.forEach(entry ->
-                entryCountDiff.put(entry, entryCountDiff.getOrDefault(entry, 0) + 1));
-        dest.forEach(entry ->
-                entryCountDiff.put(entry, entryCountDiff.getOrDefault(entry, 0) - 1));
-
-        src.forEach(entry -> {
-            if (entryCountDiff.get(entry) > 0) {
-                toBeAdded.add(entry);
-                entryCountDiff.put(entry, entryCountDiff.get(entry) - 1);
-            }
-        });
-
-        dest.forEach(entry -> {
-            if (entryCountDiff.get(entry) < 0) {
-                toBeRemoved.add(entry.id);
-                if (entry.itemType == LauncherSettings.Favorites.ITEM_TYPE_FOLDER) {
-                    entry.mFolderItems.values().forEach(ids -> ids.forEach(toBeRemoved::add));
-                }
-                entryCountDiff.put(entry, entryCountDiff.get(entry) + 1);
-            }
-        });
     }
 
     static void insertEntryInDb(DatabaseHelper helper, DbEntry entry,
@@ -389,93 +149,6 @@ public class GridSizeMigrationDBController {
     static void removeEntryFromDb(SQLiteDatabase db, String tableName, IntArray entryIds) {
         db.delete(tableName,
                 Utilities.createDbSelectionQuery(LauncherSettings.Favorites._ID, entryIds), null);
-    }
-
-    private static void solveGridPlacement(@NonNull final DatabaseHelper helper,
-            @NonNull final DbReader srcReader, @NonNull final DbReader destReader,
-            final int screenId, final int trgX, final int trgY,
-            @NonNull final List<DbEntry> sortedItemsToPlace, List<Integer> idsInUse) {
-        final GridOccupancy occupied = new GridOccupancy(trgX, trgY);
-        final Point trg = new Point(trgX, trgY);
-        final Point next = new Point(0,
-                screenId == 0 && QSB_ON_FIRST_SCREEN ? 1 /* smartspace */ : 0);
-        List<DbEntry> existedEntries = destReader.mWorkspaceEntriesByScreenId.get(screenId);
-        if (existedEntries != null) {
-            for (DbEntry entry : existedEntries) {
-                occupied.markCells(entry, true);
-            }
-        }
-        Iterator<DbEntry> iterator = sortedItemsToPlace.iterator();
-        while (iterator.hasNext()) {
-            final DbEntry entry = iterator.next();
-            if (entry.minSpanX > trgX || entry.minSpanY > trgY) {
-                iterator.remove();
-                continue;
-            }
-            if (findPlacementForEntry(entry, next, trg, occupied, screenId)) {
-                insertEntryInDb(
-                        helper, entry, srcReader.mTableName, destReader.mTableName, idsInUse);
-                iterator.remove();
-            }
-        }
-    }
-
-    /**
-     * Search for the next possible placement of an icon. (mNextStartX, mNextStartY) serves as
-     * a memoization of last placement, we can start our search for next placement from there
-     * to speed up the search.
-     */
-    private static boolean findPlacementForEntry(@NonNull final DbEntry entry,
-            @NonNull final Point next, @NonNull final Point trg,
-            @NonNull final GridOccupancy occupied, final int screenId) {
-        for (int y = next.y; y < trg.y; y++) {
-            for (int x = next.x; x < trg.x; x++) {
-                boolean fits = occupied.isRegionVacant(x, y, entry.spanX, entry.spanY);
-                boolean minFits = occupied.isRegionVacant(x, y, entry.minSpanX,
-                        entry.minSpanY);
-                if (minFits) {
-                    entry.spanX = entry.minSpanX;
-                    entry.spanY = entry.minSpanY;
-                }
-                if (fits || minFits) {
-                    entry.screenId = screenId;
-                    entry.cellX = x;
-                    entry.cellY = y;
-                    occupied.markCells(entry, true);
-                    next.set(x + entry.spanX, y);
-                    return true;
-                }
-            }
-            next.set(0, next.y);
-        }
-        return false;
-    }
-
-    private static void solveHotseatPlacement(
-            @NonNull final DatabaseHelper helper,
-            final int dstHotseatSize,
-            @NonNull final DbReader srcReader, @NonNull final DbReader destReader,
-            @NonNull final List<DbEntry> placedHotseatItems,
-            @NonNull final List<DbEntry> itemsToPlace, List<Integer> idsInUse) {
-
-        final boolean[] occupied = new boolean[dstHotseatSize];
-        for (DbEntry entry : placedHotseatItems) {
-            occupied[entry.screenId] = true;
-        }
-
-        for (int i = 0; i < occupied.length; i++) {
-            if (!occupied[i] && !itemsToPlace.isEmpty()) {
-                DbEntry entry = itemsToPlace.remove(0);
-                entry.screenId = i;
-                // These values does not affect the item position, but we should set them
-                // to something other than -1.
-                entry.cellX = i;
-                entry.cellY = 0;
-                insertEntryInDb(
-                        helper, entry, srcReader.mTableName, destReader.mTableName, idsInUse);
-                occupied[entry.screenId] = true;
-            }
-        }
     }
 
     @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
