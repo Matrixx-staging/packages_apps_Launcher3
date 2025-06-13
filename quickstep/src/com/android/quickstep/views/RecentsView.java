@@ -4753,6 +4753,15 @@ public abstract class RecentsView<
         return getTaskViewAt(getNextPage());
     }
 
+    @Override
+    public int getNextPage() {
+        int nextPage = super.getNextPage();
+        if (mDisallowScrollToAddDesk && getPageAt(nextPage) instanceof AddDesktopButton) {
+            nextPage = mUtils.getAlternatePageWithSameScroll(nextPage);
+        }
+        return nextPage;
+    }
+
     protected int getCurrentPageScrollDiff() {
         return mCurrentPageScrollDiff;
     }
@@ -6216,15 +6225,7 @@ public abstract class RecentsView<
         if (addDesktopButtonIndex >= 0 && addDesktopButtonIndex < outPageScrolls.length) {
             int firstViewIndex = getFirstViewIndex();
             if (firstViewIndex >= 0 && firstViewIndex < outPageScrolls.length) {
-                // If we can scroll to [AddDesktopButton], make its page scroll equal to
-                // the first [TaskView]. Otherwise, make its page scroll out of range of
-                // [minScroll, maxScroll].
-                if (!mDisallowScrollToAddDesk) {
-                    outPageScrolls[addDesktopButtonIndex] = outPageScrolls[firstViewIndex];
-                } else {
-                    outPageScrolls[addDesktopButtonIndex] =
-                            outPageScrolls[firstViewIndex] + (mIsRtl ? 1 : -1);
-                }
+                outPageScrolls[addDesktopButtonIndex] = outPageScrolls[firstViewIndex];
             }
 
             if (DEBUG) {

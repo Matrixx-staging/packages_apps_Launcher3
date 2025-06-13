@@ -758,6 +758,16 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
         onDeskAddedListeners -= onDeskAddedListener
     }
 
+    fun getAlternatePageWithSameScroll(page: Int): Int {
+        val pageScroll = recentsView.getScrollForPage(page)
+        recentsView.children.forEachIndexed { index, _ ->
+            if (index != page && recentsView.getScrollForPage(index) == pageScroll) {
+                return index
+            }
+        }
+        return INVALID_PAGE
+    }
+
     companion object {
         class RecentsViewFloatProperty(
             private val utilsProperty: KMutableProperty1<RecentsViewUtils, Float>
