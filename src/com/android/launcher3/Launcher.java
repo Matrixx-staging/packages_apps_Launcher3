@@ -29,7 +29,6 @@ import static com.android.launcher3.AbstractFloatingView.getTopOpenViewWithType;
 import static com.android.launcher3.Flags.allAppsBlur;
 import static com.android.launcher3.Flags.enableAddAppWidgetViaConfigActivityV2;
 import static com.android.launcher3.Flags.enableLongPressRemoveShortcut;
-import static com.android.launcher3.Flags.enableWorkspaceInflation;
 import static com.android.launcher3.LauncherAnimUtils.HOTSEAT_SCALE_PROPERTY_FACTORY;
 import static com.android.launcher3.LauncherAnimUtils.SCALE_INDEX_WIDGET_TRANSITION;
 import static com.android.launcher3.LauncherAnimUtils.SPRING_LOADED_EXIT_DELAY;
@@ -2165,7 +2164,7 @@ public class Launcher extends StatefulActivity<LauncherState>
             if (view == null) {
                 continue;
             }
-            if (enableWorkspaceInflation() && view instanceof LauncherAppWidgetHostView lv) {
+            if (view instanceof LauncherAppWidgetHostView lv) {
                 view = getAppWidgetHolder().attachViewToHostAndGetAttachedView(lv);
             }
             workspace.addInScreenFromBind(view, item);
