@@ -28,8 +28,7 @@
     <string name="recents_empty_message" msgid="7040467240571714191">"最近のアイテムはありません"</string>
     <string name="accessibility_app_usage_settings" msgid="6312864233673544149">"アプリの使用状況の設定"</string>
     <string name="recents_clear_all" msgid="5328176793634888831">"すべてクリア"</string>
-    <!-- no translation found for add_desk_button_content_description (5866025518368823735) -->
-    <skip />
+    <string name="add_desk_button_content_description" msgid="5866025518368823735">"新しいデスクを追加"</string>
     <string name="accessibility_recent_apps" msgid="4058661986695117371">"最近使ったアプリ"</string>
     <string name="task_contents_description_with_remaining_time" msgid="4479688746574672685">"<xliff:g id="TASK_DESCRIPTION">%1$s</xliff:g>、<xliff:g id="REMAINING_TIME">%2$s</xliff:g>"</string>
     <string name="shorter_duration_less_than_one_minute" msgid="4722015666335015336">"1 分未満"</string>
@@ -95,22 +94,14 @@
     <string name="allset_description_generic" msgid="5385500062202019855">"<xliff:g id="DEVICE">%1$s</xliff:g> を使用する準備ができました"</string>
     <string name="allset_description_fallback" msgid="2488751930355201578">"デバイスを使用する準備ができました"</string>
     <string name="allset_navigation_settings" msgid="4713404605961476027"><annotation id="link">"システム ナビゲーションの設定"</annotation></string>
-    <!-- no translation found for allset_title_expressive (474399969304146994) -->
-    <skip />
-    <!-- no translation found for allset_title_expressive_fallback (2829102990606405239) -->
-    <skip />
-    <!-- no translation found for allset_subtitle_expressive (419688197551192358) -->
-    <skip />
-    <!-- no translation found for allset_navigation_settings_expressive (3745595273748356) -->
-    <skip />
-    <!-- no translation found for allset_hint_expressive (756856423510976261) -->
-    <skip />
-    <!-- no translation found for allset_button_hint_expressive (667643693410494225) -->
-    <skip />
-    <!-- no translation found for allset_device_type_tablet (2173392009787325894) -->
-    <skip />
-    <!-- no translation found for allset_device_type_phone (6842334562074507337) -->
-    <skip />
+    <string name="allset_title_expressive" msgid="474399969304146994">"<xliff:g id="DEVICE">%1$s</xliff:g> の準備が\n完了しました"</string>
+    <string name="allset_title_expressive_fallback" msgid="2829102990606405239">"デバイスの準備が\n完了しました"</string>
+    <string name="allset_subtitle_expressive" msgid="419688197551192358">"新しい <xliff:g id="DEVICE">%1$s</xliff:g> をご利用いただけます"</string>
+    <string name="allset_navigation_settings_expressive" msgid="3745595273748356"><annotation id="link">"ナビゲーション方法を選択"</annotation></string>
+    <string name="allset_hint_expressive" msgid="756856423510976261">"上にスワイプ"</string>
+    <string name="allset_button_hint_expressive" msgid="667643693410494225">"ホームボタンをタップ"</string>
+    <string name="allset_device_type_tablet" msgid="2173392009787325894">"タブレット"</string>
+    <string name="allset_device_type_phone" msgid="6842334562074507337">"スマートフォン"</string>
     <string name="action_share" msgid="2648470652637092375">"共有"</string>
     <string name="action_screenshot" msgid="8171125848358142917">"スクリーンショット"</string>
     <string name="action_split" msgid="2098009717623550676">"分割"</string>
@@ -137,7 +128,7 @@
     <string name="taskbar_edu_pinning_title" msgid="210102174154211712">"タスクバーを常に表示"</string>
     <string name="taskbar_edu_pinning_standalone" msgid="2636919474366410467">"タスクバーを画面下部に常に表示するには分割線を長押しします"</string>
     <string name="taskbar_search_edu_title" msgid="5569194922234364530">"画面上の内容を検索するには、アクションキーを長押しします"</string>
-    <string name="taskbar_edu_search_disclosure" msgid="8734536088447779686">"このサービスは、検索する際に画面上で選択された箇所を使用します。Google の<xliff:g id="BEGIN_PRIVACY_LINK">&lt;a href="%1$s"&gt;</xliff:g>プライバシー ポリシー<xliff:g id="END_PRIVACY_LINK">&lt;/a&gt;</xliff:g>と<xliff:g id="BEGIN_TOS_LINK">&lt;a href="%2$s"&gt;</xliff:g>利用規約<xliff:g id="END_TOS_LINK">&lt;/a&gt;</xliff:g>が適用されます。"</string>
+    <string name="taskbar_edu_search_disclosure" msgid="8734536088447779686">"このサービスは、画面上で選択された箇所を使用して検索します。Google の<xliff:g id="BEGIN_PRIVACY_LINK">&lt;a href="%1$s"&gt;</xliff:g>プライバシー ポリシー<xliff:g id="END_PRIVACY_LINK">&lt;/a&gt;</xliff:g>と<xliff:g id="BEGIN_TOS_LINK">&lt;a href="%2$s"&gt;</xliff:g>利用規約<xliff:g id="END_TOS_LINK">&lt;/a&gt;</xliff:g>が適用されます。"</string>
     <string name="taskbar_edu_close" msgid="887022990168191073">"閉じる"</string>
     <string name="taskbar_edu_done" msgid="6880178093977704569">"完了"</string>
     <string name="taskbar_button_home" msgid="2151398979630664652">"ホーム"</string>
@@ -155,8 +146,7 @@
     <string name="always_show_taskbar" msgid="3608801276107751229">"常にタスクバーを表示する"</string>
     <string name="change_navigation_mode" msgid="9088393078736808968">"ナビゲーション モードを変更"</string>
     <string name="taskbar_divider_a11y_title" msgid="6608690309720242080">"タスクバーの区切り"</string>
-    <!-- no translation found for taskbar_overflow_a11y_title (8114045167370723746) -->
-    <skip />
+    <string name="taskbar_overflow_a11y_title" msgid="8114045167370723746">"その他の最近使ったアプリ"</string>
     <string name="move_drop_target_top_or_left" msgid="2988702185049595807">"上 / 左に移動"</string>
     <string name="move_drop_target_bottom_or_right" msgid="5431393418797620162">"下 / 右に移動"</string>
     <string name="open_app_as_a_bubble" msgid="6642626287247807473">"アプリをバブルとして開く"</string>
