@@ -115,6 +115,14 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
     private int mNextViewIndex;
 
+    public int getIgnoreTaskbarIconCount() {
+        return mIgnoreTaskbarIconCount;
+    }
+
+    // TODO: clean it up in follow up cl with removal of taskbar icon alignment.
+    // Only used for edge of 3 button navigation mode, where we need to hide icons which go
+    // beyond the bounds.
+    private int mIgnoreTaskbarIconCount = 0;
     /**
      * Whether the divider is between Hotseat icons and Recents,
      * instead of between All Apps button and Hotseat.
@@ -435,6 +443,9 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         }
         removeView(mQsb);
 
+        mIgnoreTaskbarIconCount = getIgnoreCountForTaskbarIcons(recentTasks.size(),
+                hotseatItemInfos.length);
+
         updateHotseatItems(hotseatItemInfos);
 
         if (mTaskbarDividerContainer != null && !recentTasks.isEmpty()) {
@@ -471,6 +482,9 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         if (getChildAt(mNextViewIndex) == mTaskbarDividerContainer && !mAddedDividerForRecents) {
             mNextViewIndex++;
         }
+
+        mIgnoreTaskbarIconCount = getIgnoreCountForTaskbarIcons(recentTasks.size(),
+                hotseatItemInfos.length);
 
         // Update left section.
         if (mIsRtl) {
@@ -540,6 +554,53 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
     private int getExpectedAllAppsDividerIndex() {
         return mIsRtl ? getChildCount() - mNumStaticViews - 1 : mNumStaticViews;
+    }
+
+    /**
+     * Calculate how many icon we need to not show in Taskbar that are present in hotseat.
+     */
+    private int getIgnoreCountForTaskbarIcons(int recentsIcons, int hotseatIcons) {
+
+        if (!mActivityContext.isThreeButtonNav()
+                || mActivityContext.getTaskbarFeatureEvaluator().isRecentsEnabled()) {
+            return 0;
+        }
+
+        DeviceProfile deviceProfile = mActivityContext.getDeviceProfile();
+
+        // Add icon for all apps.
+        int icons = 1;
+
+        // Only include divider line in count if will be added to Taskbar view which is in
+        // conditions below.
+        if (mActivityContext.isInDesktopMode() && recentsIcons > 0) {
+            icons += 1;
+        } else if (recentsIcons + hotseatIcons != 0) {
+            icons += 1;
+        }
+        int spaceNeeded = getIconLayoutWidth(icons + recentsIcons + hotseatIcons);
+
+        boolean areBubblesVisible =
+                mControllerCallbacks.isBubbleBarEnabled() && mBubbleBarLocation != null;
+        int screenWidth = this.getResources().getDisplayMetrics().widthPixels;
+        int navSpaceNeeded = deviceProfile.getHotseatProfile().getBarEndOffset();
+
+        int ignoreCount = 0;
+        //Screen Width - nav space
+        int amountOfSpaceTaskbarIconsCanHave = screenWidth - navSpaceNeeded;
+        if (areBubblesVisible) {
+            // size of bubbles Icon and margin on the side.
+            int bubbleBarMargin = getResources().getDimensionPixelSize(
+                    R.dimen.transient_taskbar_bottom_margin);
+            amountOfSpaceTaskbarIconsCanHave -= (mIconTouchSize + bubbleBarMargin);
+        }
+        int taskbarIconSpaceNeeded = spaceNeeded;
+        while (amountOfSpaceTaskbarIconsCanHave < taskbarIconSpaceNeeded) {
+            ignoreCount++;
+            int iconSpace = mIconTouchSize + (2 * mItemMarginLeftRight);
+            taskbarIconSpaceNeeded -= iconSpace;
+        }
+        return ignoreCount;
     }
 
     private void updateHotseatItems(ItemInfo[] hotseatItemInfos) {
@@ -832,7 +893,15 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             return 0;
         }
         Rect iconsBounds = getTransientTaskbarIconLayoutBoundsInParent();
-        return getTaskBarIconsEndForBubbleBarLocation(location) - iconsBounds.right;
+
+        int translateXFromIgnoredIcons =
+                mIgnoreTaskbarIconCount * (mIconTouchSize + mItemMarginLeftRight);
+        // If bubble bar or right translate in opposite direction.
+        if (!location.isOnLeft(isLayoutRtl())) {
+            translateXFromIgnoredIcons *= -1;
+        }
+        return getTaskBarIconsEndForBubbleBarLocation(location) - iconsBounds.right
+                + translateXFromIgnoredIcons;
     }
 
     @Override
@@ -905,6 +974,16 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         // translation.
         if (layoutRtl) {
             iconEnd += mAllAppsButtonTranslationOffset;
+        }
+
+        if (mActivityContext.isThreeButtonNav()) {
+            boolean navbarOnLeft = mBubbleBarLocation != null && !mBubbleBarLocation.isOnLeft(
+                    layoutRtl);
+            if (navbarOnLeft && layoutRtl) {
+                iconEnd -= (mIconTouchSize + mItemMarginLeftRight) * mIgnoreTaskbarIconCount;
+            } else if (!navbarOnLeft && !layoutRtl) {
+                iconEnd += (mIconTouchSize + mItemMarginLeftRight) * mIgnoreTaskbarIconCount;
+            }
         }
 
         mControllerCallbacks.onPreLayoutChildren();
@@ -1009,10 +1088,17 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     }
 
     /**
-     * Returns the space used by the icons
+     * Returns the space used by the icons.
      */
     private int getIconLayoutWidth() {
-        int countExcludingQsb = getChildCount();
+        return getIconLayoutWidth(getChildCount());
+    }
+
+    /**
+     * Return the space needed based on the number of taskbar icons supplied vs existing children.
+     */
+    private int getIconLayoutWidth(int expectedNumberOfTaskbarIcons) {
+        int countExcludingQsb = expectedNumberOfTaskbarIcons;
         DeviceProfile deviceProfile = mActivityContext.getDeviceProfile();
         if (deviceProfile.isQsbInline) {
             countExcludingQsb--;
