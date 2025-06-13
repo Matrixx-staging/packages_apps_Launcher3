@@ -16,6 +16,8 @@
 
 package com.android.launcher3.dagger
 
+import android.annotation.ElapsedRealtimeLong
+import android.os.SystemClock
 import com.android.launcher3.backuprestore.LauncherRestoreEventLogger
 import com.android.launcher3.icons.LauncherIconProvider
 import com.android.launcher3.icons.LauncherIconProviderImpl
@@ -95,4 +97,9 @@ object StaticObjectModule {
     @JvmStatic
     fun provideActivityManagerWrapper(): ActivityManagerWrapper =
         ActivityManagerWrapper.getInstance()
+
+    @Provides
+    @JvmStatic
+    @ElapsedRealtimeLong
+    fun provideElapsedRealTime(): () -> Long = SystemClock::elapsedRealtime
 }

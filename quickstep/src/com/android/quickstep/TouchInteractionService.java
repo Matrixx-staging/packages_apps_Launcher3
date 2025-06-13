@@ -858,9 +858,8 @@ public class TouchInteractionService extends Service {
         Log.d(TAG, "onUserUnlocked: userId=" + getUserId()
                 + " instance=" + System.identityHashCode(this));
         mOverviewComponentObserver = OverviewComponentObserver.INSTANCE.get(this);
-        mOverviewCommandHelper = new OverviewCommandHelper(this,
-                mOverviewComponentObserver, mDisplayRepository, mTaskbarManager,
-                mTaskAnimationManagerRepository);
+        mOverviewCommandHelper = LauncherComponentProvider.get(
+                this).getOverviewCommandHelperFactory().create(this, mTaskbarManager);
         mActionCornerHandler = LauncherComponentProvider.get(
                 this).getActionCornerHandlerFactory().create(mOverviewCommandHelper);
         mUserUnlocked = true;
