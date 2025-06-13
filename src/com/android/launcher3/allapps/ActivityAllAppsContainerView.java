@@ -434,21 +434,10 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
 
     public boolean shouldContainerScroll(MotionEvent ev) {
         BaseDragLayer dragLayer = mActivityContext.getDragLayer();
-        // If the MotionEvent is inside the search box, and the container keeps on receiving touch
-        // input, container should move down.
-        if (dragLayer.isEventOverView(mSearchContainer, ev)) {
-            // If the touch was on the edit text, container should move down ONLY when edit text is
-            // already at the top.
-            View editText = mSearchUiManager.getEditText();
-            if (editText != null && dragLayer.isEventOverView(editText, ev)) {
-                boolean canScrollUp = editText.canScrollVertically(-1);
-                return !canScrollUp;
-            }
-            return true;
-        }
-        // If the MotionEvent is inside the handle area, and the container keeps on receiving touch
-        // input, container should move down.
-        if (dragLayer.isEventOverView(mBottomSheetHandleArea, ev)) {
+        // IF the MotionEvent is inside the search box or handle area, and the container keeps on
+        // receiving touch input, container should move down.
+        if (dragLayer.isEventOverView(mSearchContainer, ev)
+                || dragLayer.isEventOverView(mBottomSheetHandleArea, ev)) {
             return true;
         }
         AllAppsRecyclerView rv = getActiveRecyclerView();
