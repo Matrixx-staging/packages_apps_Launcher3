@@ -46,6 +46,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.Display;
+import android.view.DisplayCutout;
 
 import androidx.annotation.AnyThread;
 import androidx.annotation.NonNull;
@@ -514,6 +515,7 @@ public class DisplayController implements DesktopVisibilityListener {
         public final int rotation;
         public final Point currentSize;
         public final Rect cutout;
+        public final DisplayCutout displayCutout;
 
         // Configuration property
         public final float fontScale;
@@ -560,7 +562,9 @@ public class DisplayController implements DesktopVisibilityListener {
             normalizedDisplayInfo = displayInfo.normalize(wmProxy);
             rotation = displayInfo.rotation;
             currentSize = displayInfo.size;
+
             cutout = WindowManagerProxy.getSafeInsets(displayInfo.cutout);
+            displayCutout = displayInfo.cutout;
 
             Configuration config = displayInfoContext.getResources().getConfiguration();
             fontScale = config.fontScale;
