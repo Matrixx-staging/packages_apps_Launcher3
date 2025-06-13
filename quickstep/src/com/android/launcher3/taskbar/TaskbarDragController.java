@@ -352,6 +352,13 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
         }
     }
 
+    /** Returns `true` when taskbar is shown and the home is visible. */
+    private boolean isTaskbarShownOnHome() {
+        return (mControllers.taskbarActivityContext.showDesktopTaskbarForFreeformDisplay()
+                || mControllers.taskbarActivityContext.showLockedTaskbarOnHome())
+                && mControllers.taskbarStashController.isOnHome();
+    }
+
     @Override
     protected void callOnDragStart() {
         super.callOnDragStart();
@@ -359,7 +366,8 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
         // Pre-drag has ended, start the global system drag.
         if (mDisallowGlobalDrag
                 || mControllers.taskbarDesktopModeController
-                    .isInDesktopModeAndNotInOverview(mActivity.getDisplayId())) {
+                    .isInDesktopModeAndNotInOverview(mActivity.getDisplayId())
+                || isTaskbarShownOnHome()) {
             AbstractFloatingView.closeAllOpenViewsExcept(mActivity, TYPE_TASKBAR_ALL_APPS);
             return;
         }
