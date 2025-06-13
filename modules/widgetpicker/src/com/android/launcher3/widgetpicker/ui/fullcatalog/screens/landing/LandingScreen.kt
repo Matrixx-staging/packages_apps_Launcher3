@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.android.launcher3.widgetpicker.shared.model.WidgetAppId
 import com.android.launcher3.widgetpicker.ui.WidgetInteractionInfo
+import com.android.launcher3.widgetpicker.ui.WidgetInteractionSource
 import com.android.launcher3.widgetpicker.ui.components.WidgetsGrid
 import com.android.launcher3.widgetpicker.ui.components.WidgetsSearchBar
 
@@ -111,6 +112,7 @@ private fun LandingScreen(
             appIcons = widgetAppIconsState.icons,
             onWidgetInteraction = onWidgetInteraction,
             showDragShadow = showDragShadow,
+            widgetInteractionSource = WidgetInteractionSource.FEATURED,
         )
     }
 
