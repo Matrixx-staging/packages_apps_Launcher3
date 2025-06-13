@@ -60,8 +60,9 @@ import com.android.launcher3.BubbleTextView;
 import com.android.launcher3.Flags;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.Utilities;
-import com.android.launcher3.graphics.PreloadIconDrawable;
+import com.android.launcher3.graphics.PreloadIconDelegate;
 import com.android.launcher3.icons.BitmapInfo;
+import com.android.launcher3.icons.FastBitmapDrawable;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.pm.PackageInstallInfo;
@@ -494,9 +495,9 @@ public class BubbleTextViewTest {
 
         TestUtil.runOnExecutorSync(MAIN_EXECUTOR,
                 () -> mBubbleTextView.applyIconAndLabel(mItemInfoWithIcon));
-        assertThat(mBubbleTextView.getIcon()).isInstanceOf(PreloadIconDrawable.class);
+        FastBitmapDrawable oldIcon = mBubbleTextView.getIcon();
+        assertThat(oldIcon.getDelegate()).isInstanceOf(PreloadIconDelegate.class);
         assertThat(mBubbleTextView.getIcon().getLevel()).isEqualTo(30);
-        PreloadIconDrawable oldIcon = (PreloadIconDrawable) mBubbleTextView.getIcon();
 
         // Same icon is used when progress changes
         mItemInfoWithIcon.setProgressLevel(50, PackageInstallInfo.STATUS_INSTALLING);
@@ -511,12 +512,13 @@ public class BubbleTextViewTest {
         TestUtil.runOnExecutorSync(MAIN_EXECUTOR, () -> {
             mBubbleTextView.applyIconAndLabel(mItemInfoWithIcon);
             assertThat(mBubbleTextView.getIcon()).isSameInstanceAs(oldIcon);
-            assertThat(oldIcon.getActiveAnimation()).isNotNull();
-            oldIcon.getActiveAnimation().end();
+            PreloadIconDelegate preloadDelegate = (PreloadIconDelegate) oldIcon.getDelegate();
+            assertThat(preloadDelegate.getActiveAnimation()).isNotNull();
+            preloadDelegate.getActiveAnimation().end();
         });
 
         // Assert that the icon is replaced with a non-pending icon
-        assertThat(mBubbleTextView.getIcon()).isNotInstanceOf(PreloadIconDrawable.class);
+        assertThat(mBubbleTextView.getIcon()).isNotInstanceOf(PreloadIconDelegate.class);
     }
 
 }

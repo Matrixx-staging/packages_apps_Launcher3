@@ -38,7 +38,7 @@ class MonoThemedBitmapTest {
                 Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888),
             )
         val d = bitmap.newDrawable(BitmapInfo.LOW_RES_INFO, context)
-        assertTrue(d is ThemedIconDrawable)
+        assertTrue(d.delegate is ThemedIconDelegate)
     }
 
     @Test

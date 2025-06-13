@@ -20,6 +20,7 @@ import static android.view.Gravity.LEFT;
 import static com.android.app.animation.Interpolators.LINEAR;
 import static com.android.launcher3.Utilities.getFullDrawable;
 import static com.android.launcher3.Utilities.mapToRange;
+import static com.android.launcher3.graphics.PreloadIconDelegate.newPendingIcon;
 import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
 import static com.android.launcher3.views.FloatingIconViewCompanion.setPropertiesVisible;
 
@@ -52,7 +53,7 @@ import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.dragndrop.DragLayer;
 import com.android.launcher3.folder.FolderIcon;
-import com.android.launcher3.graphics.PreloadIconDrawable;
+import com.android.launcher3.graphics.PreloadIconDelegate;
 import com.android.launcher3.icons.FastBitmapDrawable;
 import com.android.launcher3.icons.IconNormalizer;
 import com.android.launcher3.model.data.ItemInfo;
@@ -306,7 +307,8 @@ public class FloatingIconView extends FrameLayout implements
             } else {
                 drawable = originalView.getBackground();
             }
-        } else if (btvIcon instanceof PreloadIconDrawable) {
+        } else if (btvIcon instanceof FastBitmapDrawable fbd
+                && fbd.getDelegate() instanceof PreloadIconDelegate) {
             // Force the progress bar to display.
             drawable = btvIcon;
         } else if (originalView instanceof ImageView) {
@@ -559,12 +561,9 @@ public class FloatingIconView extends FrameLayout implements
 
         final FastBitmapDrawable btvIcon;
         final Supplier<Drawable> btvDrawableSupplier;
-        if (v instanceof BubbleTextView) {
-            BubbleTextView btv = (BubbleTextView) v;
-            if (info instanceof ItemInfoWithIcon
-                    && (((ItemInfoWithIcon) info).runtimeStatusFlags
-                    & ItemInfoWithIcon.FLAG_SHOW_DOWNLOAD_PROGRESS_MASK) != 0) {
-                btvIcon = btv.makePreloadIcon();
+        if (v instanceof BubbleTextView btv) {
+            if (info instanceof ItemInfoWithIcon iiwi && iiwi.shouldShowPendingIcon()) {
+                btvIcon = newPendingIcon(iiwi, l, btv.getIconCreationFlagsForInfo(iiwi));
                 btvDrawableSupplier = () -> btvIcon;
             } else {
                 btvIcon = btv.getIcon();

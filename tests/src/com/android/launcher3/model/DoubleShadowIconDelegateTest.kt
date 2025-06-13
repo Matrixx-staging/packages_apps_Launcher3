@@ -31,7 +31,7 @@ import org.mockito.kotlin.verify
 
 @SmallTest
 @RunWith(AndroidJUnit4::class)
-class DoubleShadowIconDrawableTest {
+class DoubleShadowIconDelegateTest {
 
     @Test
     fun `DoubleShadowIconDrawable is setup correctly from given ShadowInfo`() {
