@@ -336,6 +336,16 @@ public abstract class ItemInfoWithIcon extends ItemInfo {
         return drawable;
     }
 
+    /**
+     * Returns true if item is a Promise Icon or actively downloading, and the item is not an
+     * inactive archived app.
+     */
+    public boolean shouldShowPendingIcon() {
+        return (((this instanceof WorkspaceItemInfo wii) && wii.hasPromiseIconUi())
+                || (runtimeStatusFlags & FLAG_SHOW_DOWNLOAD_PROGRESS_MASK) != 0)
+                && !(Flags.useNewIconForArchivedApps() && isInactiveArchive());
+    }
+
     @Override
     protected String dumpProperties() {
         return super.dumpProperties()

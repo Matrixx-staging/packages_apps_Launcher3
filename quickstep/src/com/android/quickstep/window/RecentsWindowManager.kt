@@ -34,6 +34,7 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
 import android.window.RemoteTransition
+import androidx.core.view.isVisible
 import com.android.app.displaylib.PerDisplayInstanceProviderWithTeardown
 import com.android.app.displaylib.PerDisplayRepository
 import com.android.launcher3.AbstractFloatingView
@@ -267,6 +268,7 @@ constructor(
         Executors.MAIN_EXECUTOR.execute {
             onViewDestroyed()
             hideRecentsWindow()
+            windowManager.removeViewImmediate(windowRootView)
             callbacks?.removeListener(recentsAnimationListener)
             homeVisibilityState.removeListener(homeVisibilityListener)
             recentsWindowTracker.onContextDestroyed(this)
@@ -283,42 +285,44 @@ constructor(
         if (windowView == null) {
             windowView =
                 layoutInflater.inflate(R.layout.fallback_recents_activity, windowRootView, false)
-            windowRootView.visibility = View.VISIBLE
-        }
+            windowView?.let {
+                actionsView = it.findViewById(R.id.overview_actions_view)
+                recentsView =
+                    it.findViewById<FallbackRecentsView<RecentsWindowManager>?>(R.id.overview_panel)
+                        ?.apply {
+                            init(
+                                actionsView,
+                                splitSelectStateController,
+                                DesktopRecentsTransitionController(
+                                    stateManager,
+                                    systemUiProxy,
+                                    iApplicationThread,
+                                    /* depthController= */ null,
+                                ),
+                            )
+                        }
+                actionsView?.apply {
+                    updateDimension(getDeviceProfile(), recentsView?.lastComputedTaskSize)
+                    updateVerticalMargin(
+                        DisplayController.getNavigationMode(this@RecentsWindowManager))
+                }
+                scrimView = it.findViewById(R.id.scrim_view)
+                dragLayer = it.findViewById(R.id.drag_layer)
 
-        windowView?.let {
-            actionsView = it.findViewById(R.id.overview_actions_view)
-            recentsView =
-                it.findViewById<FallbackRecentsView<RecentsWindowManager>?>(R.id.overview_panel)
-                    ?.apply {
-                        init(
-                            actionsView,
-                            splitSelectStateController,
-                            DesktopRecentsTransitionController(
-                                stateManager,
-                                systemUiProxy,
-                                iApplicationThread,
-                                /* depthController= */ null,
-                            ),
-                        )
-                    }
-            actionsView?.apply {
-                updateDimension(getDeviceProfile(), recentsView?.lastComputedTaskSize)
-                updateVerticalMargin(DisplayController.getNavigationMode(this@RecentsWindowManager))
+                it.findOnBackInvokedDispatcher()
+                    ?.registerSystemOnBackInvokedCallback(onBackInvokedCallback)
+
+                it.systemUiVisibility =
+                    (View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
+
+                windowRootView.addView(it)
             }
-            scrimView = it.findViewById(R.id.scrim_view)
-            dragLayer = it.findViewById(R.id.drag_layer)
-
-            it.findOnBackInvokedDispatcher()
-                ?.registerSystemOnBackInvokedCallback(onBackInvokedCallback)
-
-            it.systemUiVisibility =
-                (View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
+            systemUiController = SystemUiController(windowView)
         }
+        windowRootView.visibility = View.VISIBLE
 
-        systemUiController = SystemUiController(windowView)
         recentsWindowTracker.handleCreate(this)
 
         this.callbacks = callbacks
@@ -371,7 +375,6 @@ constructor(
         RecentsWindowProtoLogProxy.logCleanup(isShowing())
         if (isShowing()) {
             AbstractFloatingView.closeAllOpenViews(this, /* animate= */ false)
-            windowRootView.removeAllViews()
             windowRootView.visibility = View.GONE
         }
         stateManager.moveToRestState()
@@ -381,7 +384,7 @@ constructor(
     }
 
     private fun isShowing(): Boolean {
-        return windowView?.parent != null
+        return windowView?.parent != null && windowRootView.isVisible
     }
 
     private fun recentAnimationStopped() {

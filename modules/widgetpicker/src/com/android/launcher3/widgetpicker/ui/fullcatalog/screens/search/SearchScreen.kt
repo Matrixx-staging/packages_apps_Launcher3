@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import com.android.launcher3.widgetpicker.R
 import com.android.launcher3.widgetpicker.shared.model.WidgetAppId
 import com.android.launcher3.widgetpicker.ui.WidgetInteractionInfo
+import com.android.launcher3.widgetpicker.ui.WidgetInteractionSource
 import com.android.launcher3.widgetpicker.ui.components.AppHeaderDescriptionStyle
 import com.android.launcher3.widgetpicker.ui.components.SinglePaneLayout
 import com.android.launcher3.widgetpicker.ui.components.TwoPaneLayout
@@ -147,6 +148,7 @@ private fun SearchScreenSinglePane(
                     onWidgetAppClick = { widgetApp -> onSelectedWidgetAppChange(widgetApp.id) },
                     appIcons = appIconsState.icons,
                     widgetPreviews = widgetPreviewsState.previews,
+                    widgetInteractionSource = WidgetInteractionSource.SEARCH,
                     onWidgetInteraction = onWidgetInteraction,
                     showDragShadow = showDragShadow,
                     emptyWidgetsErrorMessage = emptyWidgetsErrorMessage,
@@ -181,6 +183,7 @@ fun SearchScreenTwoPane(
                     appIcons = appIconsState.icons,
                     widgetPreviews = widgetPreviewsState.previews,
                     onWidgetAppClick = { widgetApp -> onSelectedWidgetAppChange(widgetApp.id) },
+                    widgetInteractionSource = WidgetInteractionSource.SEARCH,
                     onWidgetInteraction = onWidgetInteraction,
                     showDragShadow = showDragShadow,
                     emptyWidgetsErrorMessage = emptyWidgetsErrorMessage,
@@ -204,6 +207,7 @@ fun SearchScreenTwoPane(
                     widgetSizeGroups = selectedWidgets,
                     previews = widgetPreviewsState.previews,
                     onWidgetInteraction = onWidgetInteraction,
+                    widgetInteractionSource = WidgetInteractionSource.SEARCH,
                     showDragShadow = showDragShadow,
                 )
             }

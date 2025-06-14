@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import com.android.launcher3.widgetpicker.goldenpathmanager.WidgetPickerGoldenPathManager
 import com.android.launcher3.widgetpicker.shared.model.WidgetId
 import com.android.launcher3.widgetpicker.shared.model.WidgetPreview
+import com.android.launcher3.widgetpicker.ui.WidgetInteractionSource
 import com.android.launcher3.widgetpicker.ui.model.WidgetSizeGroup
 import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 import org.junit.Ignore
@@ -143,7 +144,8 @@ private fun GridPreview(
                 showDragShadow = false,
                 previews = previews,
                 modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                onWidgetInteraction = {}
+                widgetInteractionSource = WidgetInteractionSource.BROWSE,
+                onWidgetInteraction = {},
             )
         }
     }

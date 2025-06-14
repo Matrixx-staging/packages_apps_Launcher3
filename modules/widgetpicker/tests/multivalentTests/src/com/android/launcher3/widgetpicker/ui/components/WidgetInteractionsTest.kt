@@ -44,6 +44,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.launcher3.widgetpicker.TestUtils
 import com.android.launcher3.widgetpicker.TestUtils.PERSONAL_TEST_APPS
 import com.android.launcher3.widgetpicker.ui.WidgetInteractionInfo
+import com.android.launcher3.widgetpicker.ui.WidgetInteractionSource
 import com.android.launcher3.widgetpicker.ui.model.WidgetSizeGroup
 import org.junit.Rule
 import org.junit.Test
@@ -150,8 +151,12 @@ class WidgetInteractionsTest {
                 modifier = Modifier.weight(1f),
                 appIcons = emptyMap(),
                 showDragShadow = false,
+                widgetInteractionSource = WidgetInteractionSource.BROWSE,
                 onWidgetInteraction = { widgetInteractionInfo ->
-                    if (widgetInteractionInfo is WidgetInteractionInfo.WidgetAddInfo) {
+                    if (
+                        widgetInteractionInfo is WidgetInteractionInfo.WidgetAddInfo &&
+                            widgetInteractionInfo.source == WidgetInteractionSource.BROWSE
+                    ) {
                         provider = widgetInteractionInfo.widgetInfo.toString()
                     }
                 },

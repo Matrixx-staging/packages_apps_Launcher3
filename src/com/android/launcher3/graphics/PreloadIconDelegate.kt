@@ -31,37 +31,28 @@ import androidx.annotation.VisibleForTesting
 import androidx.core.graphics.ColorUtils
 import com.android.app.animation.Interpolators
 import com.android.launcher3.Flags
-import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.launcher3.anim.AnimatedFloat
 import com.android.launcher3.anim.AnimatorListeners
+import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
 import com.android.launcher3.icons.BitmapInfo
+import com.android.launcher3.icons.BitmapInfo.DrawableCreationFlags
 import com.android.launcher3.icons.FastBitmapDrawable
+import com.android.launcher3.icons.FastBitmapDrawableDelegate
+import com.android.launcher3.icons.FastBitmapDrawableDelegate.DelegateFactory
 import com.android.launcher3.model.data.ItemInfoWithIcon
-import com.android.launcher3.util.Themes
 import kotlin.math.max
 import kotlin.math.min
 
 /** Extension of [FastBitmapDrawable] which shows a progress bar around the icon. */
-class PreloadIconDrawable(
-    private val item: ItemInfoWithIcon,
-    private val indicatorColor: Int,
-    preloadColors: IntArray,
-    private val isDarkMode: Boolean,
+class PreloadIconDelegate(
+    item: ItemInfoWithIcon,
+    isDarkMode: Boolean,
     // Path in [0, 100] bounds.
     private val shapePath: Path,
-) : FastBitmapDrawable(item.bitmap) {
-
-    constructor(
-        info: ItemInfoWithIcon,
-        context: Context,
-    ) : this(
-        info,
-        IconPalette.getPreloadProgressColor(context, info.bitmap.color),
-        getPreloadColors(context),
-        Utilities.isDarkTheme(context),
-        ThemeManager.INSTANCE[context].iconShape.getPath(DEFAULT_PATH_SIZE.toFloat()),
-    )
+    private val host: FastBitmapDrawable,
+    private val parentDelegate: FastBitmapDrawableDelegate,
+) : FastBitmapDrawableDelegate by parentDelegate {
 
     private val tmpMatrix = Matrix()
     private val pathMeasure = PathMeasure()
@@ -74,9 +65,6 @@ class PreloadIconDrawable(
             strokeCap = ROUND
             alpha = MAX_PAINT_ALPHA
         }
-
-    private val systemAccentColor: Int = preloadColors[PRELOAD_ACCENT_COLOR_INDEX]
-    private val systemBackgroundColor: Int = preloadColors[PRELOAD_BACKGROUND_COLOR_INDEX]
 
     private var progressColor: Int
     private var trackColor: Int
@@ -91,7 +79,7 @@ class PreloadIconDrawable(
     private var internalStateProgress = 0f
 
     // This multiplier is used to animate scale when going from 0 to non-zero and expanding
-    private val invalidateRunnable = Runnable { this.invalidateSelf() }
+    private val invalidateRunnable = Runnable { host.invalidateSelf() }
     private val iconScaleMultiplier = AnimatedFloat(invalidateRunnable)
 
     @get:VisibleForTesting
@@ -122,14 +110,10 @@ class PreloadIconDrawable(
 
         // If it's a pending app we will animate scale and alpha when it's no longer pending.
         iconScaleMultiplier.updateValue((if (item.progressLevel == 0) 0 else 1).toFloat())
-
-        level = item.progressLevel
-        // Set a disabled icon color if the app is suspended or if the app is pending download
-        isDisabled = item.isDisabled || item.isPendingDownload
     }
 
     override fun onBoundsChange(bounds: Rect) {
-        super.onBoundsChange(bounds)
+        parentDelegate.onBoundsChange(bounds)
 
         val progressWidth = bounds.width() * PROGRESS_BOUNDS_SCALE
         val plateGapWidth = bounds.width() * PROGRESS_BOUNDS_SCALE / 2f
@@ -155,33 +139,36 @@ class PreloadIconDrawable(
         setInternalProgress(internalStateProgress)
     }
 
-    public override fun drawInternal(canvas: Canvas, bounds: Rect) {
+    override fun drawContent(info: BitmapInfo, canvas: Canvas, bounds: Rect, paint: Paint) {
         if (ranFinishAnimation) {
-            super.drawInternal(canvas, bounds)
-            return
-        }
-        if (Flags.enableLauncherIconShapes()) {
-            drawShapedProgressIcon(canvas, bounds)
+            parentDelegate.drawContent(info, canvas, bounds, paint)
+        } else if (Flags.enableLauncherIconShapes()) {
+            drawShapedProgressIcon(info, canvas, bounds, paint)
         } else {
-            drawDefaultProgressIcon(canvas, bounds)
+            drawDefaultProgressIcon(info, canvas, bounds, paint)
         }
     }
 
-    private fun drawShapedProgressIcon(canvas: Canvas, bounds: Rect) {
+    private fun drawShapedProgressIcon(
+        info: BitmapInfo,
+        canvas: Canvas,
+        bounds: Rect,
+        paint: Paint,
+    ) {
         if (internalStateProgress > 0f) {
             if (internalStateProgress < 1f) {
                 // Draw icon at scale UNDER the progress and background paths.
-                drawIconAtScale(canvas, bounds)
+                drawIconAtScale(info, canvas, bounds, paint)
             }
             drawBackgroundPlate(canvas, bounds)
             drawTrackAndProgress(canvas)
             if (internalStateProgress >= 1f) {
                 // Draw icon at scale animating OVER the progress and background path.
-                drawIconAtScale(canvas, bounds)
+                drawIconAtScale(info, canvas, bounds, paint)
             }
         } else {
             // Just draw Icon when no progress
-            drawIconAtScale(canvas, bounds)
+            drawIconAtScale(info, canvas, bounds, paint)
         }
     }
 
@@ -213,7 +200,12 @@ class PreloadIconDrawable(
         canvas.restore()
     }
 
-    private fun drawDefaultProgressIcon(canvas: Canvas, bounds: Rect) {
+    private fun drawDefaultProgressIcon(
+        info: BitmapInfo,
+        canvas: Canvas,
+        bounds: Rect,
+        paint: Paint,
+    ) {
         if (internalStateProgress > 0) {
             // Draw background.
             progressPaint.style = FILL
@@ -231,15 +223,15 @@ class PreloadIconDrawable(
             canvas.drawPath(scaledProgressPath, progressPaint)
         }
 
-        drawIconAtScale(canvas, bounds)
+        drawIconAtScale(info, canvas, bounds, paint)
     }
 
     /** Draws just the icon to scale */
-    private fun drawIconAtScale(canvas: Canvas, bounds: Rect) {
+    private fun drawIconAtScale(info: BitmapInfo, canvas: Canvas, bounds: Rect, paint: Paint) {
         canvas.save()
         val scale = 1 - iconScaleMultiplier.value * (1 - SMALL_ICON_SCALE)
         canvas.scale(scale, scale, bounds.exactCenterX(), bounds.exactCenterY())
-        super.drawInternal(canvas, bounds)
+        parentDelegate.drawContent(info, canvas, bounds, paint)
         canvas.restore()
     }
 
@@ -251,13 +243,14 @@ class PreloadIconDrawable(
     }
 
     /** Runs the finish animation if it is has not been run after last call to [.onLevelChange] */
-    fun maybePerformFinishedAnimation(oldIcon: PreloadIconDrawable, onFinishCallback: Runnable?) {
-        progressColor = oldIcon.progressColor
-        trackColor = oldIcon.trackColor
-        plateColor = oldIcon.plateColor
+    fun maybePerformFinishedAnimation(oldIcon: FastBitmapDrawable, onFinishCallback: Runnable?) {
+        val oldDelegate = extractPreloadDelegate(oldIcon) ?: this
+        progressColor = oldDelegate.progressColor
+        trackColor = oldDelegate.trackColor
+        plateColor = oldDelegate.plateColor
 
-        if (oldIcon.internalStateProgress >= 1) {
-            internalStateProgress = oldIcon.internalStateProgress
+        if (oldDelegate.internalStateProgress >= 1) {
+            internalStateProgress = oldDelegate.internalStateProgress
         }
 
         // If the drawable was recently initialized, skip the progress animation.
@@ -267,8 +260,6 @@ class PreloadIconDrawable(
         updateInternalState(1 + COMPLETE_ANIM_FRACTION, true, onFinishCallback)
     }
 
-    fun hasNotCompleted(): Boolean = !ranFinishAnimation
-
     private fun updateInternalState(
         finalProgress: Float,
         isFinish: Boolean,
@@ -277,7 +268,7 @@ class PreloadIconDrawable(
         activeAnimation?.cancel()
         activeAnimation = null
 
-        val animateProgress = finalProgress >= internalStateProgress && bounds.width() > 0
+        val animateProgress = finalProgress >= internalStateProgress && host.bounds.width() > 0
         if (!animateProgress || ranFinishAnimation) {
             setInternalProgress(finalProgress)
             if (isFinish) onFinishCallback?.run()
@@ -350,46 +341,20 @@ class PreloadIconDrawable(
                 )
             }
         }
-        invalidateSelf()
+        host.invalidateSelf()
     }
 
-    public override fun newConstantState(): FastBitmapConstantState {
-        return PreloadIconConstantState(
-            bitmapInfo,
-            item,
-            indicatorColor,
-            intArrayOf(systemAccentColor, systemBackgroundColor),
-            isDarkMode,
-            shapePath,
-        )
-    }
-
-    protected class PreloadIconConstantState(
-        bitmapInfo: BitmapInfo,
-        protected val mInfo: ItemInfoWithIcon,
-        protected val mIndicatorColor: Int,
-        protected val mPreloadColors: IntArray,
-        protected val mIsDarkMode: Boolean,
-        private val mShapePath: Path,
-    ) : FastBitmapConstantState(bitmapInfo) {
-
-        public override fun createDrawable(): PreloadIconDrawable {
-            return PreloadIconDrawable(
-                mInfo,
-                mIndicatorColor,
-                mPreloadColors,
-                mIsDarkMode,
-                mShapePath,
-            )
-        }
+    fun reapplyProgress(item: ItemInfoWithIcon) {
+        host.level = item.progressLevel
+        host.isDisabled = item.isDisabled || item.isPendingDownload
     }
 
     companion object {
-        private val INTERNAL_STATE: FloatProperty<PreloadIconDrawable> =
-            object : FloatProperty<PreloadIconDrawable>("internalStateProgress") {
-                override fun get(obj: PreloadIconDrawable): Float = obj.internalStateProgress
+        private val INTERNAL_STATE: FloatProperty<PreloadIconDelegate> =
+            object : FloatProperty<PreloadIconDelegate>("internalStateProgress") {
+                override fun get(obj: PreloadIconDelegate): Float = obj.internalStateProgress
 
-                override fun setValue(obj: PreloadIconDrawable, value: Float) =
+                override fun setValue(obj: PreloadIconDelegate, value: Float) =
                     obj.setInternalProgress(value)
             }
 
@@ -412,22 +377,62 @@ class PreloadIconDrawable(
         // We use icon scale + 2 * plate gap width. This is the same as icon scale + progress scale.
         private const val PLATE_SCALE = SMALL_ICON_SCALE + PROGRESS_STROKE_SCALE
 
-        private const val PRELOAD_ACCENT_COLOR_INDEX = 0
-        private const val PRELOAD_BACKGROUND_COLOR_INDEX = 1
-
-        private fun getPreloadColors(context: Context): IntArray {
-            val preloadColors = IntArray(2)
-            preloadColors[PRELOAD_ACCENT_COLOR_INDEX] =
-                Themes.getAttrColor(context, R.attr.preloadIconAccentColor)
-            preloadColors[PRELOAD_BACKGROUND_COLOR_INDEX] =
-                Themes.getAttrColor(context, R.attr.preloadIconBackgroundColor)
-            return preloadColors
+        /** Returns a FastBitmapDrawable with a pending icon delegate. */
+        @JvmStatic
+        @JvmOverloads
+        fun ItemInfoWithIcon.newPendingIcon(
+            context: Context,
+            @DrawableCreationFlags creationFlags: Int = 0,
+        ): FastBitmapDrawable {
+            val originalState = newIcon(context, creationFlags).constantState
+            val newState =
+                originalState.copy(
+                    // Set a disabled icon color if the app is suspended or is pending download
+                    isDisabled = isDisabled || isPendingDownload,
+                    level = progressLevel,
+                    delegateFactory =
+                        PreloadIconFactory(
+                            info = this,
+                            isDarkTheme = Utilities.isDarkTheme(context),
+                            shape =
+                                context.appComponent.themeManager.iconShape.getPath(
+                                    DEFAULT_PATH_SIZE.toFloat()
+                                ),
+                            parentFactory = originalState.delegateFactory,
+                        ),
+                )
+            return newState.newDrawable()
         }
 
-        /** Returns a FastBitmapDrawable with the icon. */
         @JvmStatic
-        fun newPendingIcon(context: Context, info: ItemInfoWithIcon): PreloadIconDrawable {
-            return PreloadIconDrawable(info, context)
+        fun extractPreloadDelegate(icon: FastBitmapDrawable?): PreloadIconDelegate? =
+            icon?.delegate as? PreloadIconDelegate
+
+        @JvmStatic
+        fun FastBitmapDrawable?.hasPendingAnimationCompleted(): Boolean =
+            (this?.delegate as? PreloadIconDelegate)?.ranFinishAnimation ?: true
+    }
+
+    class PreloadIconFactory(
+        private val info: ItemInfoWithIcon,
+        private val isDarkTheme: Boolean,
+        private val shape: Path,
+        private val parentFactory: DelegateFactory,
+    ) : DelegateFactory {
+
+        override fun newDelegate(
+            bitmapInfo: BitmapInfo,
+            paint: Paint,
+            host: FastBitmapDrawable,
+        ): FastBitmapDrawableDelegate {
+
+            return PreloadIconDelegate(
+                info,
+                isDarkTheme,
+                shape,
+                host,
+                parentFactory.newDelegate(bitmapInfo, paint, host),
+            )
         }
     }
 }

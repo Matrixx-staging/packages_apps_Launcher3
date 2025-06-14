@@ -18,6 +18,7 @@ package com.android.launcher3.folder
 
 import android.R
 import android.content.ComponentName
+import android.graphics.drawable.Drawable
 import android.os.Process
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
@@ -27,13 +28,13 @@ import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.LauncherSettings.Favorites.DESKTOP_ICON_FLAG
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
-import com.android.launcher3.graphics.PreloadIconDrawable
+import com.android.launcher3.graphics.PreloadIconDelegate
 import com.android.launcher3.graphics.ThemeManager
 import com.android.launcher3.icons.BitmapInfo
 import com.android.launcher3.icons.FastBitmapDrawable
 import com.android.launcher3.icons.IconCache
 import com.android.launcher3.icons.IconCache.ItemInfoUpdateReceiver
-import com.android.launcher3.icons.PlaceHolderIconDrawable
+import com.android.launcher3.icons.PlaceHolderDrawableDelegate
 import com.android.launcher3.icons.UserBadgeDrawable
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.FolderInfo
@@ -218,7 +219,8 @@ class PreviewItemManagerTest {
         // When
         previewItemManager.setDrawable(drawingParams, archivedApp)
         // Then
-        assertThat(drawingParams.drawable).isNotInstanceOf(PreloadIconDrawable::class.java)
+        assertThat(drawingParams.drawable.getDelegate())
+            .isNotInstanceOf(PreloadIconDelegate::class.java)
     }
 
     @Test
@@ -236,7 +238,8 @@ class PreviewItemManagerTest {
             previewItemManager.setDrawable(drawingParams, archivedApp)
         }
         // Then
-        assertThat(drawingParams.drawable).isInstanceOf(PreloadIconDrawable::class.java)
+        assertThat(drawingParams.drawable.getDelegate())
+            .isInstanceOf(PreloadIconDelegate::class.java)
     }
 
     @Test
@@ -246,7 +249,8 @@ class PreviewItemManagerTest {
         folderItems[3].bitmap = BitmapInfo.LOW_RES_INFO
 
         previewItemManager.setDrawable(drawingParams, folderItems[3])
-        assertThat(drawingParams.drawable).isInstanceOf(PlaceHolderIconDrawable::class.java)
+        assertThat(drawingParams.drawable.getDelegate())
+            .isInstanceOf(PlaceHolderDrawableDelegate::class.java)
 
         val callbackCaptor = argumentCaptor<ItemInfoUpdateReceiver>()
         verify(iconCache)
@@ -257,12 +261,13 @@ class PreviewItemManagerTest {
 
         // Calling with a different item info will ignore the update
         callbackCaptor.firstValue.reapplyItemInfo(folderItems[2])
-        assertThat(drawingParams.drawable).isInstanceOf(PlaceHolderIconDrawable::class.java)
+        assertThat(drawingParams.drawable.getDelegate())
+            .isInstanceOf(PlaceHolderDrawableDelegate::class.java)
 
         // Calling with correct value will update the drawable to high-res
         callbackCaptor.firstValue.reapplyItemInfo(folderItems[3])
-        assertThat(drawingParams.drawable).isNotInstanceOf(PlaceHolderIconDrawable::class.java)
-        assertThat(drawingParams.drawable).isInstanceOf(FastBitmapDrawable::class.java)
+        assertThat(drawingParams.drawable.getDelegate())
+            .isNotInstanceOf(PlaceHolderDrawableDelegate::class.java)
     }
 
     private fun profileFlagOp(type: Int) =
@@ -275,6 +280,11 @@ class PreviewItemManagerTest {
                 iconCache.getTitleAndIcon(this, DESKTOP_ICON_FLAG)
             }
         }
+
+    private fun Drawable?.getDelegate() = let {
+        assertThat(it).isInstanceOf(FastBitmapDrawable::class.java)
+        (it as FastBitmapDrawable).delegate
+    }
 }
 
 class ThemeStateRule : TestRule {

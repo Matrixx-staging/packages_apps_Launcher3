@@ -377,6 +377,8 @@ public class PrivateProfileManager extends UserProfileManager {
         assert lockPill != null;
         mLockText = lockPill.findViewById(R.id.lock_text);
         assert mLockText != null;
+        ViewGroup.MarginLayoutParams lockTextLayoutParams =
+                (ViewGroup.MarginLayoutParams) mLockText.getLayoutParams();
         mPrivateSpaceSettingsButton = mPSHeader.findViewById(R.id.ps_settings_button);
         assert mPrivateSpaceSettingsButton != null;
         //Add image for private space transitioning view
@@ -394,9 +396,15 @@ public class PrivateProfileManager extends UserProfileManager {
                     mLockText.setVisibility(VISIBLE);
                     mLockText.setAlpha(1);
                     mLockText.setHorizontallyScrolling(false);
+                    mLockText.measure(0,0);
+                    lockTextLayoutParams.width = mLockText.getMeasuredWidth();
+                    lockTextLayoutParams.setMarginStart(mLockTextMarginStart);
+                    lockTextLayoutParams.setMarginEnd(mLockTextMarginEnd);
+
                     mPrivateSpaceSettingsButton.setVisibility(
                             isPrivateSpaceSettingsAvailable() ? VISIBLE : GONE);
                     mPrivateSpaceSettingsButton.setClickable(isPrivateSpaceSettingsAvailable());
+                    mPrivateSpaceSettingsButton.setAlpha(1f);
                 }
                 lockPill.setVisibility(VISIBLE);
                 lockPill.setOnClickListener(view -> lockingAction(/* lock */ true));
@@ -414,12 +422,16 @@ public class PrivateProfileManager extends UserProfileManager {
                 mLockText.setVisibility(GONE);
                 mLockText.setAlpha(0);
                 mLockText.setHorizontallyScrolling(false);
+                lockTextLayoutParams.width = 0;
+                lockTextLayoutParams.setMarginStart(0);
+                lockTextLayoutParams.setMarginEnd(0);
                 lockPill.setVisibility(VISIBLE);
                 lockPill.setOnClickListener(view -> lockingAction(/* lock */ false));
                 lockPill.setContentDescription(mLockedStateContentDesc);
 
                 mPrivateSpaceSettingsButton.setVisibility(GONE);
                 mPrivateSpaceSettingsButton.setClickable(false);
+                mPrivateSpaceSettingsButton.setAlpha(0f);
                 transitionView.setVisibility(GONE);
             }
             case STATE_TRANSITION -> {
@@ -427,6 +439,7 @@ public class PrivateProfileManager extends UserProfileManager {
                 lockPill.setVisibility(GONE);
             }
         }
+        mLockText.setLayoutParams(lockTextLayoutParams);
         mPSHeader.invalidate();
         Trace.endSection();
     }

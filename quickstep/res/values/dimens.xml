@@ -376,7 +376,7 @@
     <dimen name="taskbar_suw_frame">96dp</dimen>
     <dimen name="taskbar_hotseat_nav_spacing">24dp</dimen>
     <dimen name="taskbar_contextual_buttons_size">35dp</dimen>
-    <dimen name="taskbar_stashed_size">24dp</dimen>
+    <dimen name="taskbar_stashed_size">@*android:dimen/taskbar_stashed_size</dimen>
     <dimen name="taskbar_stashed_handle_width">220dp</dimen>
     <dimen name="taskbar_stashed_small_screen">108dp</dimen>
     <dimen name="taskbar_unstash_input_area">316dp</dimen>
