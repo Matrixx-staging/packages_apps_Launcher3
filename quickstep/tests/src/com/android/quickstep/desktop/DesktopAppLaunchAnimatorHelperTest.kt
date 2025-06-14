@@ -45,6 +45,7 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.ArgumentMatchers.anyFloat
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -72,7 +73,7 @@ class DesktopAppLaunchAnimatorHelperTest {
             )
         whenever(transactionSupplier.get()).thenReturn(transaction)
         whenever(transaction.setCrop(any(), any())).thenReturn(transaction)
-        whenever(transaction.setCornerRadius(any(), any())).thenReturn(transaction)
+        whenever(transaction.setCornerRadius(any(), anyFloat())).thenReturn(transaction)
         whenever(transaction.setScale(any(), any(), any())).thenReturn(transaction)
         whenever(transaction.setPosition(any(), any(), any())).thenReturn(transaction)
         whenever(transaction.setAlpha(any(), any())).thenReturn(transaction)
