@@ -443,4 +443,13 @@ public class WorkUtilityView extends LinearLayout implements Insettable,
     ImageButton getSchedulerButton() {
         return mSchedulerButton;
     }
+
+    /**
+     * Returns the measured height of this view containing the workFAB and the scheduler button.
+     */
+    int getTotalHeight() {
+        // Measure the parent layout so the child views have a measure height.
+        mWorkUtilityView.measure(0,0);
+        return mWorkFAB.getMeasuredHeight() + mSchedulerButton.getMeasuredHeight();
+    }
 }

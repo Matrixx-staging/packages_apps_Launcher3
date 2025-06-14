@@ -1665,7 +1665,8 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
             if (mRecyclerView != null) {
                 int bottomOffset = 0;
                 if (isWork() && mWorkManager.getWorkUtilityView() != null) {
-                    bottomOffset = mInsets.bottom + mWorkManager.getWorkUtilityView().getHeight();
+                    bottomOffset =
+                            mInsets.bottom + mWorkManager.getWorkUtilityView().getTotalHeight();
                 } else if (isMain() && mPrivateProfileManager != null) {
                     Optional<AdapterItem> privateSpaceHeaderItem = mAppsList.getAdapterItems()
                             .stream()
