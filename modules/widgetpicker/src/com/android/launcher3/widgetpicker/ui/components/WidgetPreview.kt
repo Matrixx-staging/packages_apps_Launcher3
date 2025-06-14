@@ -68,6 +68,7 @@ import com.android.launcher3.widgetpicker.shared.model.WidgetPreview
 import com.android.launcher3.widgetpicker.shared.model.WidgetSizeInfo
 import com.android.launcher3.widgetpicker.shared.model.isAppWidget
 import com.android.launcher3.widgetpicker.ui.WidgetInteractionInfo
+import com.android.launcher3.widgetpicker.ui.WidgetInteractionSource
 import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 import kotlin.math.roundToInt
 
@@ -80,6 +81,7 @@ fun WidgetPreview(
     widgetInfo: WidgetInfo,
     modifier: Modifier = Modifier,
     showDragShadow: Boolean,
+    widgetInteractionSource: WidgetInteractionSource,
     onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
     onAddButtonToggle: (WidgetId) -> Unit,
 ) {
@@ -116,6 +118,7 @@ fun WidgetPreview(
                     widgetRadius = widgetRadius,
                     widgetInfo = widgetInfo,
                     showDragShadow = showDragShadow,
+                    widgetInteractionSource = widgetInteractionSource,
                     onWidgetInteraction = onWidgetInteraction,
                 )
 
@@ -127,6 +130,7 @@ fun WidgetPreview(
                     sizeInfo = sizeInfo,
                     widgetRadius = widgetRadius,
                     showDragShadow = showDragShadow,
+                    widgetInteractionSource = widgetInteractionSource,
                     onWidgetInteraction = onWidgetInteraction,
                 )
             }
@@ -139,6 +143,7 @@ fun WidgetPreview(
                     sizeInfo = sizeInfo,
                     widgetRadius = widgetRadius,
                     showDragShadow = showDragShadow,
+                    widgetInteractionSource = widgetInteractionSource,
                     onWidgetInteraction = onWidgetInteraction,
                 )
             }
@@ -169,6 +174,7 @@ private fun BitmapWidgetPreview(
     widgetInfo: WidgetInfo,
     widgetRadius: Dp,
     showDragShadow: Boolean,
+    widgetInteractionSource: WidgetInteractionSource,
     onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
 ) {
     val context = LocalContext.current
@@ -225,6 +231,7 @@ private fun BitmapWidgetPreview(
                                 )
                             onWidgetInteraction(
                                 WidgetInteractionInfo.WidgetDragInfo(
+                                    source = widgetInteractionSource,
                                     mimeType = dragState.pickerMimeType,
                                     widgetInfo = widgetInfo,
                                     bounds = bounds,
@@ -299,6 +306,7 @@ private fun RemoteViewsWidgetPreview(
     widgetInfo: WidgetInfo.AppWidgetInfo,
     sizeInfo: WidgetSizeInfo,
     widgetRadius: Dp,
+    widgetInteractionSource: WidgetInteractionSource,
     onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
     showDragShadow: Boolean,
 ) {
@@ -342,6 +350,7 @@ private fun RemoteViewsWidgetPreview(
 
                                 onWidgetInteraction(
                                     WidgetInteractionInfo.WidgetDragInfo(
+                                        source = widgetInteractionSource,
                                         mimeType = dragState.pickerMimeType,
                                         widgetInfo = widgetInfo,
                                         bounds = appWidgetHostView.getDragBoundsForOffset(offset),

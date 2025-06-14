@@ -44,6 +44,7 @@ import com.android.launcher3.widgetpicker.R
 import com.android.launcher3.widgetpicker.shared.model.WidgetAppId
 import com.android.launcher3.widgetpicker.shared.model.WidgetUserProfile
 import com.android.launcher3.widgetpicker.ui.WidgetInteractionInfo
+import com.android.launcher3.widgetpicker.ui.WidgetInteractionSource
 import com.android.launcher3.widgetpicker.ui.components.AppHeaderDescriptionStyle
 import com.android.launcher3.widgetpicker.ui.components.LeadingIconToolbarTab
 import com.android.launcher3.widgetpicker.ui.components.ScrollableFloatingToolbar
@@ -146,6 +147,7 @@ fun LandingScreenSinglePane(
                                 },
                                 appIcons = widgetAppIconsState.icons,
                                 widgetPreviews = personalWidgetPreviewsState.previews,
+                                widgetInteractionSource = WidgetInteractionSource.BROWSE,
                                 onWidgetInteraction = onWidgetInteraction,
                                 showDragShadow = showDragShadow,
                                 bottomContentSpacing = contentBottomEdgeSpacing,
@@ -171,6 +173,7 @@ fun LandingScreenSinglePane(
                                     onWidgetInteraction = onWidgetInteraction,
                                     showDragShadow = showDragShadow,
                                     bottomContentSpacing = contentBottomEdgeSpacing,
+                                    widgetInteractionSource = WidgetInteractionSource.BROWSE,
                                     emptyWidgetsErrorMessage =
                                         browseWidgetsState.workProfile?.let { workProfile ->
                                             workProfile.pausedProfileMessage.takeIf {

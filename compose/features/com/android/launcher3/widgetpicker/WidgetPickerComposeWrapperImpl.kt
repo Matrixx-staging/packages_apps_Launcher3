@@ -28,6 +28,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalView
 import com.android.launcher3.Launcher
+import com.android.launcher3.LauncherSettings.Favorites
 import com.android.launcher3.R
 import com.android.launcher3.compose.ComposeFacade
 import com.android.launcher3.compose.core.widgetpicker.WidgetPickerComposeWrapper
@@ -46,6 +47,7 @@ import com.android.launcher3.widgetpicker.shared.model.isAppWidget
 import com.android.launcher3.widgetpicker.theme.darkWidgetPickerColors
 import com.android.launcher3.widgetpicker.theme.lightWidgetPickerColors
 import com.android.launcher3.widgetpicker.ui.WidgetInteractionInfo
+import com.android.launcher3.widgetpicker.ui.WidgetInteractionSource
 import com.android.launcher3.widgetpicker.ui.WidgetPickerEventListeners
 import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 import javax.inject.Inject
@@ -187,6 +189,7 @@ constructor(
                 when (interactionInfo) {
                     is WidgetInteractionInfo.WidgetDragInfo ->
                         WidgetPickerDragItemListener(
+                            container = interactionInfo.source.toContainer(),
                             mimeType = interactionInfo.mimeType,
                             widgetInfo = interactionInfo.widgetInfo,
                             widgetPreview = interactionInfo.previewInfo,
@@ -195,7 +198,10 @@ constructor(
                         )
 
                     is WidgetInteractionInfo.WidgetAddInfo ->
-                        WidgetPickerAddItemListener(interactionInfo.widgetInfo)
+                        WidgetPickerAddItemListener(
+                            container = interactionInfo.source.toContainer(),
+                            widgetInfo = interactionInfo.widgetInfo,
+                        )
                 }
             Launcher.ACTIVITY_TRACKER.registerCallback(
                 interactionListener,
@@ -266,5 +272,12 @@ constructor(
                 )
             }
         }
+
+        private fun WidgetInteractionSource.toContainer(): Int =
+            when (this) {
+                WidgetInteractionSource.FEATURED -> Favorites.CONTAINER_WIDGETS_PREDICTION
+                WidgetInteractionSource.SEARCH,
+                WidgetInteractionSource.BROWSE -> Favorites.CONTAINER_WIDGETS_TRAY
+            }
     }
 }

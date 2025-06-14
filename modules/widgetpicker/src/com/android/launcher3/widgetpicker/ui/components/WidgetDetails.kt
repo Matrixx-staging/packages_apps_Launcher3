@@ -60,6 +60,7 @@ import com.android.launcher3.widgetpicker.R
 import com.android.launcher3.widgetpicker.shared.model.PickableWidget
 import com.android.launcher3.widgetpicker.shared.model.WidgetId
 import com.android.launcher3.widgetpicker.ui.WidgetInteractionInfo
+import com.android.launcher3.widgetpicker.ui.WidgetInteractionSource
 import com.android.launcher3.widgetpicker.ui.components.AddButtonDefaults.TOGGLE_ANIMATION_DURATION
 import com.android.launcher3.widgetpicker.ui.components.WidgetDetailsDimensions.INVISIBLE_ALPHA
 import com.android.launcher3.widgetpicker.ui.components.WidgetDetailsDimensions.VISIBLE_ALPHA
@@ -74,6 +75,7 @@ import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
  * @param showAllDetails when set, besides the widget label, also shows widget spans and 1-3 line
  *   long description
  * @param showAddButton when set, displays the add button instead of details.
+ * @param widgetInteractionSource section in which this widget is being displayed
  * @param onWidgetAddClick callback when user clicks on the add button to add the widget
  * @param modifier modifier for the top level composable.
  */
@@ -83,6 +85,7 @@ fun WidgetDetails(
     appIcon: (@Composable () -> Unit)?,
     showAllDetails: Boolean,
     showAddButton: Boolean,
+    widgetInteractionSource: WidgetInteractionSource,
     onWidgetAddClick: (WidgetInteractionInfo.WidgetAddInfo) -> Unit,
     onAddButtonToggle: (WidgetId) -> Unit,
     modifier: Modifier,
@@ -151,7 +154,12 @@ fun WidgetDetails(
             AddButton(
                 widget = widget,
                 onClick = {
-                    onWidgetAddClick(WidgetInteractionInfo.WidgetAddInfo(widget.widgetInfo))
+                    onWidgetAddClick(
+                        WidgetInteractionInfo.WidgetAddInfo(
+                            source = widgetInteractionSource,
+                            widgetInfo = widget.widgetInfo,
+                        )
+                    )
                     haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                 },
             )

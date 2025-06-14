@@ -41,6 +41,7 @@ import com.android.launcher3.widgetpicker.shared.model.WidgetAppId
 import com.android.launcher3.widgetpicker.shared.model.WidgetId
 import com.android.launcher3.widgetpicker.shared.model.WidgetPreview
 import com.android.launcher3.widgetpicker.ui.WidgetInteractionInfo
+import com.android.launcher3.widgetpicker.ui.WidgetInteractionSource
 import com.android.launcher3.widgetpicker.ui.model.DisplayableWidgetApp
 import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 
@@ -59,6 +60,7 @@ fun WidgetAppsList(
     onWidgetAppClick: (DisplayableWidgetApp) -> Unit,
     appIcons: Map<WidgetAppId, WidgetAppIcon>,
     widgetPreviews: Map<WidgetId, WidgetPreview>,
+    widgetInteractionSource: WidgetInteractionSource,
     onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
     showDragShadow: Boolean,
     bottomContentSpacing: Dp = 0.dp,
@@ -113,6 +115,7 @@ fun WidgetAppsList(
                             description = description,
                             widgetPreviews = widgetPreviews,
                             onWidgetAppClick = onWidgetAppClick,
+                            widgetInteractionSource = widgetInteractionSource,
                             onWidgetInteraction = onWidgetInteraction,
                             showDragShadow = showDragShadow,
                         )
@@ -162,6 +165,7 @@ private fun ExpandableWidgetAppHeader(
     description: String,
     widgetPreviews: Map<WidgetId, WidgetPreview>,
     onWidgetAppClick: (DisplayableWidgetApp) -> Unit,
+    widgetInteractionSource: WidgetInteractionSource,
     onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
     showDragShadow: Boolean,
 ) {
@@ -173,6 +177,7 @@ private fun ExpandableWidgetAppHeader(
                     showAllWidgetDetails = true,
                     previews = widgetPreviews,
                     modifier = Modifier.fillMaxWidth(),
+                    widgetInteractionSource = widgetInteractionSource,
                     onWidgetInteraction = onWidgetInteraction,
                     showDragShadow = showDragShadow,
                 )

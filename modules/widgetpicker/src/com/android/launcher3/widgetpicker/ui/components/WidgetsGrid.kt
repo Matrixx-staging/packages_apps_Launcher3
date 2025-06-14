@@ -47,6 +47,7 @@ import com.android.launcher3.widgetpicker.shared.model.WidgetAppId
 import com.android.launcher3.widgetpicker.shared.model.WidgetId
 import com.android.launcher3.widgetpicker.shared.model.WidgetPreview
 import com.android.launcher3.widgetpicker.ui.WidgetInteractionInfo
+import com.android.launcher3.widgetpicker.ui.WidgetInteractionSource
 import com.android.launcher3.widgetpicker.ui.components.WidgetGridDimensions.MAX_ITEMS_PER_ROW
 import com.android.launcher3.widgetpicker.ui.model.WidgetSizeGroup
 import kotlin.math.max
@@ -63,6 +64,7 @@ import kotlin.math.max
  * @param showDragShadow indicates if in a drag and drop session, widget picker should show drag
  *   shadow containing the preview; if not set, a transparent shadow is rendered and host should
  *   manage providing a shadow on its own.
+ * @param widgetInteractionSource the section of widget picker that this grid is hosted in
  * @param onWidgetInteraction callback invoked when a widget is being dragged and picker has started
  *   global drag and drop session.
  * @param modifier modifier with parent constraints and additional modifications
@@ -75,6 +77,7 @@ fun WidgetsGrid(
     modifier: Modifier,
     appIcons: Map<WidgetAppId, WidgetAppIcon> = emptyMap(),
     showDragShadow: Boolean,
+    widgetInteractionSource: WidgetInteractionSource,
     onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
 ) {
     var addButtonWidgetId by remember { mutableStateOf<WidgetId?>(null) }
@@ -91,6 +94,7 @@ fun WidgetsGrid(
                 previews = previews,
                 showDragShadow = showDragShadow,
                 addButtonWidgetId = addButtonWidgetId,
+                widgetInteractionSource = widgetInteractionSource,
                 onWidgetInteraction = onWidgetInteraction,
                 onAddButtonToggle = { id ->
                     addButtonWidgetId =
@@ -131,6 +135,7 @@ private fun WidgetsFlowRow(
     appIcons: Map<WidgetAppId, WidgetAppIcon>,
     previews: Map<WidgetId, WidgetPreview>,
     showDragShadow: Boolean,
+    widgetInteractionSource: WidgetInteractionSource,
     onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
     onAddButtonToggle: (WidgetId) -> Unit,
     cellHorizontalPadding: Dp = WidgetGridDimensions.cellHorizontalPadding,
@@ -145,6 +150,7 @@ private fun WidgetsFlowRow(
                 widgets = items,
                 previews = previews,
                 showDragShadow = showDragShadow,
+                widgetInteractionSource = widgetInteractionSource,
                 onWidgetInteraction = onWidgetInteraction,
                 onAddButtonToggle = onAddButtonToggle,
             )
@@ -155,6 +161,7 @@ private fun WidgetsFlowRow(
                 widgets = items,
                 appIcons = appIcons,
                 addButtonWidgetId = addButtonWidgetId,
+                widgetInteractionSource = widgetInteractionSource,
                 onWidgetInteraction = onWidgetInteraction,
                 onAddButtonToggle = onAddButtonToggle,
             )
@@ -171,6 +178,7 @@ private fun Previews(
     widgets: List<PickableWidget>,
     previews: Map<WidgetId, WidgetPreview>,
     showDragShadow: Boolean,
+    widgetInteractionSource: WidgetInteractionSource,
     onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
     onAddButtonToggle: (WidgetId) -> Unit,
 ) {
@@ -196,6 +204,7 @@ private fun Previews(
                 preview = widgetPreview,
                 widgetInfo = widgetItem.widgetInfo,
                 showDragShadow = showDragShadow,
+                widgetInteractionSource = widgetInteractionSource,
                 onWidgetInteraction = onWidgetInteraction,
                 onAddButtonToggle = onAddButtonToggle,
             )
@@ -209,6 +218,7 @@ private fun Details(
     widgets: List<PickableWidget>,
     addButtonWidgetId: WidgetId?,
     appIcons: Map<WidgetAppId, WidgetAppIcon>,
+    widgetInteractionSource: WidgetInteractionSource,
     onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
     onAddButtonToggle: (WidgetId) -> Unit,
 ) {
@@ -223,6 +233,7 @@ private fun Details(
             showAllDetails = showAllWidgetDetails,
             showAddButton = addButtonWidgetId == widgetItem.id,
             appIcon = appIcon,
+            widgetInteractionSource = widgetInteractionSource,
             onWidgetAddClick = onWidgetInteraction,
             onAddButtonToggle = onAddButtonToggle,
             modifier =

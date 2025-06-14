@@ -44,6 +44,7 @@ import com.android.launcher3.widgetpicker.R
 import com.android.launcher3.widgetpicker.shared.model.WidgetAppId
 import com.android.launcher3.widgetpicker.shared.model.WidgetUserProfile
 import com.android.launcher3.widgetpicker.ui.WidgetInteractionInfo
+import com.android.launcher3.widgetpicker.ui.WidgetInteractionSource
 import com.android.launcher3.widgetpicker.ui.components.AppHeaderDescriptionStyle
 import com.android.launcher3.widgetpicker.ui.components.LeadingIconToolbarTab
 import com.android.launcher3.widgetpicker.ui.components.ScrollableFloatingToolbar
@@ -226,6 +227,7 @@ private fun RightPaneContent(
                     showAllWidgetDetails = true,
                     widgetSizeGroups = selectedPersonalWidgets,
                     previews = personalWidgetPreviewsState.previews,
+                    widgetInteractionSource = WidgetInteractionSource.BROWSE,
                     onWidgetInteraction = onWidgetInteraction,
                     showDragShadow = showDragShadow,
                 )
@@ -249,6 +251,7 @@ private fun RightPaneContent(
                     widgetSizeGroups = selectedWorkWidgets,
                     previews = workWidgetPreviewsState.previews,
                     onWidgetInteraction = onWidgetInteraction,
+                    widgetInteractionSource = WidgetInteractionSource.BROWSE,
                     showDragShadow = showDragShadow,
                 )
             }
@@ -357,6 +360,7 @@ private fun PersonalSection(
             onWidgetAppClick = { widgetApp -> onPersonalWidgetAppToggle(widgetApp.id) },
             onWidgetInteraction = onWidgetInteraction,
             showDragShadow = showDragShadow,
+            widgetInteractionSource = WidgetInteractionSource.BROWSE,
             bottomContentSpacing = bottomContentSpacing,
         )
     }
@@ -386,6 +390,7 @@ private fun WorkSection(
             onWidgetInteraction = onWidgetInteraction,
             showDragShadow = showDragShadow,
             bottomContentSpacing = bottomContentSpacing,
+            widgetInteractionSource = WidgetInteractionSource.BROWSE,
             emptyWidgetsErrorMessage =
                 browseWidgetsState.workProfile?.let { workProfile ->
                     workProfile.pausedProfileMessage.takeIf { workProfile.paused }
