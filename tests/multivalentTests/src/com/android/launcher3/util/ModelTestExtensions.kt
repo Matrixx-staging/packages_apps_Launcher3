@@ -5,7 +5,6 @@ import android.database.sqlite.SQLiteDatabase
 import android.os.Process
 import android.util.SparseArray
 import androidx.test.platform.app.InstrumentationRegistry
-import com.android.launcher3.Flags
 import com.android.launcher3.LauncherModel
 import com.android.launcher3.LauncherSettings.Favorites.APPWIDGET_ID
 import com.android.launcher3.LauncherSettings.Favorites.APPWIDGET_PROVIDER
@@ -39,9 +38,7 @@ object ModelTestExtensions {
         loadModelSync()
         TestUtil.runOnExecutorSync(Executors.MODEL_EXECUTOR) {
             modelDbController.run {
-                if (Flags.gridMigrationRefactor())
-                    attemptMigrateDb(null /* restoreEventLogger */, modelDelegate)
-                else tryMigrateDB(null /* restoreEventLogger */, modelDelegate)
+                attemptMigrateDb(null /* restoreEventLogger */, modelDelegate)
                 createEmptyDB()
                 clearEmptyDbFlag()
             }

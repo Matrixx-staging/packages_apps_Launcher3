@@ -739,7 +739,10 @@ class TaskbarStashControllerTest {
     @Test
     @TaskbarMode(PINNED)
     fun testSysuiStateImeShowingInApp_hardwareKeyboardWithPinnedMode_notStashedForIme() {
-        assume().that(activityContext.isHardwareKeyboard).isTrue()
+        assume()
+           .withMessage("Ignoring test because hardware keyboard is not present")
+           .that(activityContext.isHardwareKeyboard)
+           .isTrue()
 
         getInstrumentation().runOnMainSync {
             stashController.updateStateForFlag(FLAG_IN_APP, true)

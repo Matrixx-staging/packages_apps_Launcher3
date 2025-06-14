@@ -30,6 +30,7 @@ import com.android.quickstep.recents.domain.usecase.GetTaskUseCase
 import com.android.quickstep.recents.domain.usecase.GetThumbnailPositionUseCase
 import com.android.quickstep.recents.domain.usecase.IsThumbnailValidUseCase
 import com.android.quickstep.recents.domain.usecase.OrganizeDesktopTasksUseCase
+import com.android.quickstep.recents.domain.usecase.RemoveTaskAndRebalanceLayoutUseCase
 import com.android.quickstep.recents.viewmodel.RecentsViewData
 import com.android.systemui.shared.recents.utilities.PreviewPositionHelper.PreviewPositionHelperFactory
 import kotlinx.coroutines.CoroutineName
@@ -211,6 +212,8 @@ private constructor(appContext: Context, dispatcherProvider: DispatcherProvider)
                         previewPositionHelperFactory = PreviewPositionHelperFactory(),
                     )
                 OrganizeDesktopTasksUseCase::class.java -> OrganizeDesktopTasksUseCase()
+                RemoveTaskAndRebalanceLayoutUseCase::class.java ->
+                    RemoveTaskAndRebalanceLayoutUseCase()
                 else -> {
                     log("Factory for ${modelClass.simpleName} not defined!", Log.ERROR)
                     error("Factory for ${modelClass.simpleName} not defined!")

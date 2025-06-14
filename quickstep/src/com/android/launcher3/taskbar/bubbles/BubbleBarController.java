@@ -121,6 +121,7 @@ public class BubbleBarController extends IBubblesListener.Stub {
     private BubbleStashController mBubbleStashController;
     private Optional<BubbleStashedHandleViewController> mBubbleStashedHandleViewController;
     private BubblePinController mBubblePinController;
+    private DragToBubbleController mDragToBubbleController;
     private BubbleCreator mBubbleCreator;
     private BubbleBarLocationListener mBubbleBarLocationListener;
 
@@ -208,6 +209,7 @@ public class BubbleBarController extends IBubblesListener.Stub {
         mBubbleStashedHandleViewController = bubbleControllers.bubbleStashedHandleViewController;
         mBubblePinController = bubbleControllers.bubblePinController;
         mBubbleCreator = bubbleControllers.bubbleCreator;
+        mDragToBubbleController = bubbleControllers.dragToBubbleController;
         mBubbleBarLocationListener = bubbleBarLocationListener;
 
         bubbleControllers.runAfterInit(() -> {
@@ -626,6 +628,7 @@ public class BubbleBarController extends IBubblesListener.Stub {
 
     @Override
     public void animateBubbleBarLocation(BubbleBarLocation bubbleBarLocation) {
+        //TODO(b/411505605) need to add arg whether bubble bar should be set to showing drop target
         MAIN_EXECUTOR.execute(
                 () -> {
                     mBubbleBarViewController.animateBubbleBarLocation(bubbleBarLocation);
@@ -635,9 +638,8 @@ public class BubbleBarController extends IBubblesListener.Stub {
 
     @Override
     public void showBubbleBarPillowAt(@Nullable BubbleBarLocation location) {
-        MAIN_EXECUTOR.execute(() -> {
-            //TODO(b/411505605) add logic to show pillow and update taskbar
-        });
+        MAIN_EXECUTOR.execute(
+                () -> mDragToBubbleController.showShellBubbleBarDropTargetAt(location));
     }
 
     /** Notifies WMShell to show the expanded view. */

@@ -77,7 +77,7 @@ import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.popup.PopupContainerWithArrow;
 import com.android.launcher3.shortcuts.DeepShortcutView;
 import com.android.launcher3.shortcuts.ShortcutDragPreviewProvider;
-import com.android.launcher3.taskbar.bubbles.BubbleBarViewController;
+import com.android.launcher3.taskbar.bubbles.DragToBubbleController;
 import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.TestProtocol;
 import com.android.launcher3.util.IntSet;
@@ -122,6 +122,7 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
     private ValueAnimator mReturnAnimator;
     private boolean mDisallowGlobalDrag;
     private boolean mDisallowLongClick;
+    private @Nullable DragToBubbleController mDragToBubbleController;
 
     public TaskbarDragController(BaseTaskbarContext activity) {
         super(activity);
@@ -131,8 +132,13 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
 
     public void init(TaskbarControllers controllers) {
         mControllers = controllers;
-        mControllers.runAfterInit(() -> mControllers.bubbleControllers.ifPresent(
-                c -> c.dragToBubbleController.addBubbleBarDropTargets(this)));
+        mControllers.runAfterInit(() ->
+                mControllers.bubbleControllers
+                        .map(bubbleControllers -> bubbleControllers.dragToBubbleController)
+                        .ifPresent(dragToBubbleController -> {
+                            mDragToBubbleController = dragToBubbleController;
+                            mDragToBubbleController.addBubbleBarDropTargets(this);
+                        }));
     }
 
     /** Called when the controller is destroyed. */
@@ -484,6 +490,7 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
             if (btv.startDragAndDrop(clipData, shadowBuilder, null /* localState */,
                     View.DRAG_FLAG_GLOBAL | View.DRAG_FLAG_OPAQUE
                             | View.DRAG_FLAG_REQUEST_SURFACE_FOR_RETURN_ANIMATION)) {
+                notifyDragToBubbleController(/* dragInProgress = */ true);
                 onSystemDragStarted(btv);
 
                 mActivity.getStatsLogManager().logger().withItemInfo(mDragObject.dragInfo)
@@ -513,6 +520,7 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
                         //TODO(b/399678274): hide drop target in shell
                         notifyBubbleBarItemDragCanceled();
                     }
+                    notifyDragToBubbleController(/* dragInProgress = */ false);
                     mActivity.getDragLayer().setOnDragListener(null);
 
                     return true;
@@ -540,7 +548,7 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
             mActivity.onDragEnd();
             // If an item is dropped on the bubble bar, the bubble bar handles the drop,
             // so it should not collapse along with the taskbar.
-            boolean droppedOnBubbleBar = notifyBubbleBarItemDropped();
+            boolean droppedOnBubbleBar = isBubbleBarShowingDropTarget();
             if (mReturnAnimator == null) {
                 // Upon successful drag, immediately stash taskbar.
                 // Note, this must be done last to ensure no AutohideSuspendFlags are active, as
@@ -556,19 +564,13 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
     }
 
     /**
-     * Exits the Bubble Bar drop target mode if applicable.
+     * Checks whether bubble bar is showing drop target.
      *
      * @return {@code true} if drop target mode was active.
      */
-    private boolean notifyBubbleBarItemDropped() {
-        return mControllers.bubbleControllers.map(bc -> {
-            BubbleBarViewController bubbleBarViewController = bc.bubbleBarViewController;
-            boolean showingDropTarget = bubbleBarViewController.isShowingDropTarget();
-            if (showingDropTarget) {
-                bubbleBarViewController.onItemDragCompleted();
-            }
-            return showingDropTarget;
-        }).orElse(false);
+    private boolean isBubbleBarShowingDropTarget() {
+        return mControllers.bubbleControllers.map(
+                bc -> bc.bubbleBarViewController.isShowingDropTarget()).orElse(false);
     }
 
     private void notifyBubbleBarItemDragCanceled() {
@@ -620,6 +622,12 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
     protected void callOnDragEnd() {
         super.callOnDragEnd();
         maybeOnDragEnd();
+    }
+
+    private void notifyDragToBubbleController(boolean dragInProgress) {
+        if (mDragToBubbleController != null) {
+            mDragToBubbleController.onShellDragStateChanged(dragInProgress);
+        }
     }
 
     private void animateGlobalDragViewToOriginalPosition(BubbleTextView btv,

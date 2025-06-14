@@ -21,9 +21,13 @@ import android.util.Size
 import com.android.quickstep.recents.domain.model.DesktopLayoutConfig
 import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData
 import com.android.quickstep.recents.domain.usecase.OrganizeDesktopTasksUseCase
+import com.android.quickstep.recents.domain.usecase.RemoveTaskAndRebalanceLayoutUseCase
 
 /** ViewModel used for [com.android.quickstep.views.DesktopTaskView]. */
-class DesktopTaskViewModel(private val organizeDesktopTasksUseCase: OrganizeDesktopTasksUseCase) {
+class DesktopTaskViewModel(
+    private val organizeDesktopTasksUseCase: OrganizeDesktopTasksUseCase,
+    private val removeTaskAndRebalanceLayoutUseCase: RemoveTaskAndRebalanceLayoutUseCase,
+) {
     /** Positions for desktop tasks as calculated by [organizeDesktopTasksUseCase] */
     var organizedDesktopTaskPositions = emptyList<DesktopTaskBoundsData>()
         private set
@@ -46,6 +50,15 @@ class DesktopTaskViewModel(private val organizeDesktopTasksUseCase: OrganizeDesk
             organizeDesktopTasksUseCase(
                 desktopBounds = Rect(0, 0, desktopSize.width, desktopSize.height),
                 taskBounds = defaultPositions,
+                layoutConfig = layoutConfig,
+            )
+    }
+
+    fun removeTaskAndRebalanceLayout(taskIdToRemove: Int, layoutConfig: DesktopLayoutConfig) {
+        organizedDesktopTaskPositions =
+            removeTaskAndRebalanceLayoutUseCase(
+                currentLayout = organizedDesktopTaskPositions,
+                taskIdToRemove = taskIdToRemove,
                 layoutConfig = layoutConfig,
             )
     }

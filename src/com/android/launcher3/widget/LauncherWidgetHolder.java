@@ -18,7 +18,6 @@ package com.android.launcher3.widget;
 import static android.app.Activity.RESULT_CANCELED;
 
 import static com.android.launcher3.BuildConfig.WIDGETS_ENABLED;
-import static com.android.launcher3.Flags.enableWorkspaceInflation;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.widget.LauncherAppWidgetProviderInfo.fromProviderInfo;
 import static com.android.launcher3.widget.ListenableAppWidgetHost.getWidgetHolderExecutor;
@@ -380,7 +379,7 @@ public class LauncherWidgetHolder {
         LauncherAppWidgetHostView view = createViewInternal(appWidgetId, appWidget);
         if (mOnViewCreationCallback != null) mOnViewCreationCallback.accept(view);
         // Do not update mViews on a background thread call, as the holder is not thread safe.
-        if (!enableWorkspaceInflation() || Looper.myLooper() == Looper.getMainLooper()) {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
             mViews.put(appWidgetId, view);
         }
         return view;
@@ -446,7 +445,7 @@ public class LauncherWidgetHolder {
             // RemoteViews from system process.
             return new PendingAppWidgetHostView(mContext, this, appWidgetId, appWidget);
         } else {
-            if (enableWorkspaceInflation() && Looper.myLooper() != Looper.getMainLooper()) {
+            if (Looper.myLooper() != Looper.getMainLooper()) {
                 // Widget is being inflated a background thread, just create and
                 // return a placeholder view
                 ListenableHostView hostView = new ListenableHostView(mContext);
@@ -522,6 +521,14 @@ public class LauncherWidgetHolder {
      */
     protected boolean shouldListen(int flags) {
         return (flags & FLAGS_SHOULD_LISTEN) == FLAGS_SHOULD_LISTEN;
+    }
+
+    /**
+     * Get the widget views, mapped by widget ID. This should only be called on the main thread.
+     */
+    @NonNull
+    public SparseArray<LauncherAppWidgetHostView> getViews() {
+        return mViews;
     }
 
     /**

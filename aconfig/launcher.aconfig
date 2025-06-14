@@ -122,13 +122,6 @@ flag {
 }
 
 flag {
-    name: "enable_workspace_inflation"
-    namespace: "launcher"
-    description: "Enables asnc inflation of workspace icons"
-    bug: "318539160"
-}
-
-flag {
     name: "enable_unfold_state_animation"
     namespace: "launcher"
     description: "Tie unfold animation with state animation"
@@ -314,13 +307,6 @@ flag {
 }
 
 flag {
-    name: "grid_migration_refactor"
-    namespace: "launcher"
-    description: "Refactor grid migration such that the code is simpler to understand and update"
-    bug: "358399271"
-}
-
-flag {
     name: "accessibility_scroll_on_allapps"
     namespace: "launcher"
     description: "Scroll to item position if accessibility focused"
@@ -415,16 +401,6 @@ flag {
   namespace: "launcher"
   description: "Enable launcher icon shape customizations"
   bug: "348708061"
-}
-
-flag {
-  name: "predictive_back_to_home_polish"
-  namespace: "launcher"
-  description: "Enables workspace reveal animation for predictive back-to-home"
-  bug: "382453424"
-  metadata {
-    purpose: PURPOSE_BUGFIX
-  }
 }
 
 flag {
@@ -641,4 +617,14 @@ flag {
   metadata {
     purpose: PURPOSE_BUGFIX
   }
+}
+
+flag {
+    namespace: "multitasking"
+    name: "avoid_display_cutout_bubble_bar"
+    description: "Use the DisplayCutout insets to avoid intersecting with the bubble bar."
+    bug: "329903073"
+    metadata {
+        purpose: PURPOSE_BUGFIX
+    }
 }

@@ -32,23 +32,30 @@ import android.util.AttributeSet;
 import android.util.FloatProperty;
 import android.util.LayoutDirection;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.DisplayCutout;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.view.WindowMetrics;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
 
 import com.android.app.animation.Interpolators;
+import com.android.launcher3.Flags;
 import com.android.launcher3.R;
 import com.android.launcher3.anim.AnimatorListeners;
 import com.android.launcher3.taskbar.BarsLocationAnimatorHelper;
 import com.android.launcher3.taskbar.bubbles.animation.BubbleAnimator;
+import com.android.launcher3.util.DisplayController;
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -110,6 +117,14 @@ public class BubbleBarView extends FrameLayout {
 
     private final BubbleBarBackground mBubbleBarBackground;
 
+    /**
+     * The default margin applied to the {@link BubbleBarView}.
+     */
+    private final int mDefaultMargin;
+    /**
+     * The additional padding from a cutout.
+     */
+    private final int mCutoutPadding;
     /**
      * The current bounds of all the bubble bar. Note that these bounds may not account for
      * translation. The bounds should be retrieved using {@link #getBubbleBarBounds()} which
@@ -184,6 +199,8 @@ public class BubbleBarView extends FrameLayout {
 
     private int mPreviousLayoutDirection = LayoutDirection.UNDEFINED;
 
+    private final WindowManager mWindowManager;
+
     public BubbleBarView(Context context) {
         this(context, null);
     }
@@ -208,6 +225,11 @@ public class BubbleBarView extends FrameLayout {
         mDragElevation = getResources().getDimensionPixelSize(R.dimen.dragged_bubble_elevation);
         mPointerSize = getResources()
                 .getDimensionPixelSize(R.dimen.bubblebar_pointer_visible_size);
+        mDefaultMargin = getResources()
+                .getDimensionPixelSize(R.dimen.transient_taskbar_bottom_margin);
+        mWindowManager = Objects.requireNonNull(context.getSystemService(WindowManager.class));
+        mCutoutPadding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16,
+                getResources().getDisplayMetrics());
 
         setClipToPadding(false);
 
@@ -430,6 +452,11 @@ public class BubbleBarView extends FrameLayout {
         mRelativePivotX = onLeft ? 0f : 1f;
         LayoutParams lp = (LayoutParams) getLayoutParams();
         lp.gravity = Gravity.BOTTOM | (onLeft ? Gravity.LEFT : Gravity.RIGHT);
+        if (Flags.avoidDisplayCutoutBubbleBar()) {
+            WindowMetrics windowMetrics = mWindowManager.getCurrentWindowMetrics();
+            lp.leftMargin = computeMargin(lp.leftMargin, windowMetrics, /* isLeftSide */ true);
+            lp.rightMargin = computeMargin(lp.rightMargin, windowMetrics, /* isLeftSide */ false);
+        }
         setLayoutParams(lp); // triggers a relayout
         updateBubbleAccessibilityStates();
     }
@@ -992,8 +1019,109 @@ public class BubbleBarView extends FrameLayout {
         LayoutParams lp = (FrameLayout.LayoutParams) getLayoutParams();
         lp.height = (int) getBubbleBarExpandedHeight();
         lp.width = (int) (mIsBarExpanded ? expandedWidth() : collapsedWidth());
+
+        if (Flags.avoidDisplayCutoutBubbleBar()) {
+            WindowMetrics windowMetrics = mWindowManager.getCurrentWindowMetrics();
+            lp.leftMargin = computeMargin(lp.leftMargin, windowMetrics, /* isLeftSide */ true);
+            lp.rightMargin = computeMargin(lp.rightMargin, windowMetrics, /* isLeftSide */ false);
+        }
+
         setLayoutParams(lp);
     }
+
+    /**
+     * Computes the horizontal margin for the bubble bar, taking display cutouts into account.
+     *
+     * <p>A {@link DisplayCutout} might overlap with the bubble bar. The algorithm is to shift the
+     * {@link BubbleBarView} toward the center of the screen if it overlaps with a cutout. This
+     * method handles calculations for both the left and right margins to avoid code duplication.
+     *
+     * The current margin from the {@link android.view.ViewGroup.LayoutParams} is passed in so
+     * that we do not needlessly update it. An initial thought might be to use the default margin
+     * if the view avoids the {@link DisplayCutout}, but this can cause issues. When you update the
+     * margin the first time to avoid a cutout, subsequent checks might find no intersection,
+     * potentially leading to an incorrect reset to the default margin. Using the original margin
+     * as a fallback prevents this.
+     *
+     * The opposite margin is calculated to avoid the cutout. An initial thought might be to use
+     * the default margin but this causes a bug when the bubble bar is being moved around. The bug
+     * is that the margin where the cutout is has not taken the cutout into account so the preview
+     * will overlap the cutout but after the position is changed the bubble bar will not overlap.
+     *
+     * @param originalMargin The current margin of the {@link android.view.View}.
+     * @param windowMetrics  The current {@link WindowMetrics} of the root
+     *                       {@link android.view.View}.
+     * @return The calculated margin in pixels that will avoid any overlapping display cutouts.
+     */
+    private int computeMargin(int originalMargin, @NonNull WindowMetrics windowMetrics,
+            boolean isLeftSide) {
+        boolean isLayoutRtl = isLayoutRtl();
+        DisplayCutout displayCutout = getDisplayCutout();
+        if (displayCutout == null) {
+            return mDefaultMargin;
+        }
+        List<Rect> displayCutoutRects = displayCutout.getBoundingRects();
+        if (displayCutoutRects.isEmpty()) {
+            return mDefaultMargin;
+        }
+
+        Rect windowBounds = windowMetrics.getBounds();
+        Rect boundsOnScreen = mTempRect;
+        getBoundsOnScreen(boundsOnScreen);
+
+        // The opposite margin avoids the cutout during a preview of changing the bubble bar
+        // location. We flip the coordinates to calculate where the bubble bar will be when it
+        // is moved and have the appropriate margin.
+        boolean shouldFlipCoordinates = switch (mBubbleBarLocation) {
+            case LEFT -> !isLeftSide;
+            case RIGHT -> isLeftSide;
+            case DEFAULT -> (isLayoutRtl && isLeftSide) || (!isLayoutRtl && !isLeftSide);
+        };
+
+        if (shouldFlipCoordinates) {
+            int distanceFromLeft = boundsOnScreen.left - windowBounds.left;
+            int distanceFromRight = windowBounds.right - boundsOnScreen.right;
+            boundsOnScreen.left = windowBounds.left + distanceFromRight;
+            boundsOnScreen.right = windowBounds.right - distanceFromLeft;
+        }
+
+        int midpoint = windowBounds.centerX();
+        int cutoutMargin;
+
+        if (isLeftSide) {
+            int rightMostBound = windowBounds.left;
+            for (Rect rect : displayCutoutRects) {
+                if (rect.left < midpoint && Rect.intersects(boundsOnScreen, rect)) {
+                    rightMostBound = Math.max(rightMostBound, rect.right);
+                }
+            }
+            cutoutMargin = rightMostBound - windowBounds.left;
+        } else { // is on the right
+            int leftMostBound = windowBounds.right;
+            for (Rect rect : displayCutoutRects) {
+                if (rect.right > midpoint && Rect.intersects(boundsOnScreen, rect)) {
+                    leftMostBound = Math.min(leftMostBound, rect.left);
+                }
+            }
+            cutoutMargin = windowBounds.right - leftMostBound;
+        }
+
+        if (cutoutMargin > 0) {
+            return cutoutMargin + mCutoutPadding;
+        }
+        return originalMargin;
+    }
+
+    private DisplayCutout getDisplayCutout() {
+        Context context = getContext();
+        DisplayController controller = DisplayController.INSTANCE.get(context);
+
+        if (controller != null) {
+            return controller.getInfo().displayCutout;
+        }
+        return mWindowManager.getCurrentWindowMetrics().getWindowInsets().getDisplayCutout();
+    }
+
 
     private float getBubbleBarHeight() {
         return mIsBarExpanded ? getBubbleBarExpandedHeight()
@@ -1413,7 +1541,7 @@ public class BubbleBarView extends FrameLayout {
                 : getScaledIconSize() + horizontalPadding;
     }
 
-    float getCollapsedWidthWithMaxVisibleBubbles()  {
+    float getCollapsedWidthWithMaxVisibleBubbles() {
         return getScaledIconSize() + mIconOverlapAmount + 2 * mBubbleBarPadding;
     }
 
@@ -1593,7 +1721,7 @@ public class BubbleBarView extends FrameLayout {
         pw.println("  translationY: " + getTranslationY());
         pw.println("  childCount: " + getChildCount());
         pw.println("  hasOverflow:  " + hasOverflow());
-        for (BubbleView bubbleView: getBubbles()) {
+        for (BubbleView bubbleView : getBubbles()) {
             BubbleBarItem bubble = bubbleView.getBubble();
             String key = bubble == null ? "null" : bubble.getKey();
             pw.println("    bubble key: " + key);

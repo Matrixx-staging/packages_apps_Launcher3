@@ -117,4 +117,8 @@ class SetupNavLayoutter(
             a11yButton.layoutParams = getParamsToCenterView()
         }
     }
+
+    override fun addThreeButtons() {
+        // No-op
+    }
 }

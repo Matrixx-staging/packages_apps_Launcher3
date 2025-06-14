@@ -48,7 +48,6 @@ import com.android.launcher3.AbstractFloatingView
 import com.android.launcher3.Flags.enableCoroutineThreadingImprovements
 import com.android.launcher3.Flags.enableCursorHoverStates
 import com.android.launcher3.Flags.enableDesktopExplodedView
-import com.android.launcher3.Flags.enableLargeDesktopWindowingTile
 import com.android.launcher3.Flags.enableRefactorDigitalWellbeingToast
 import com.android.launcher3.Flags.enableRefactorTaskContentView
 import com.android.launcher3.Flags.enableRefactorTaskThumbnail
@@ -172,7 +171,7 @@ constructor(
     val isLargeTile: Boolean
         get() =
             this == recentsView?.focusedTaskView ||
-                (enableLargeDesktopWindowingTile() && type == TaskViewType.DESKTOP) ||
+                type == TaskViewType.DESKTOP ||
                 (isExternalDisplay && !enableOverviewOnConnectedDisplays())
 
     val recentsView: RecentsView<*, *>?

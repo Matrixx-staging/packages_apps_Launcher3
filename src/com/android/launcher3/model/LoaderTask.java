@@ -431,15 +431,13 @@ public class LoaderTask implements Runnable {
         final WidgetInflater widgetInflater = new WidgetInflater(mContext, mIsSafeModeEnabled);
 
         ModelDbController dbController = mModel.getModelDbController();
-        if (Flags.gridMigrationRefactor()) {
-            try {
-                dbController.attemptMigrateDb(restoreEventLogger, mModelDelegate);
-            } catch (Exception e) {
-                FileLog.e(TAG, "Failed to migrate grid", e);
-            }
-        } else {
-            dbController.tryMigrateDB(restoreEventLogger, mModelDelegate);
+
+        try {
+            dbController.attemptMigrateDb(restoreEventLogger, mModelDelegate);
+        } catch (Exception e) {
+            FileLog.e(TAG, "Failed to migrate grid", e);
         }
+
         Log.d(TAG, "loadWorkspace: loading default favorites if necessary");
         dbController.loadDefaultFavoritesIfNecessary();
 

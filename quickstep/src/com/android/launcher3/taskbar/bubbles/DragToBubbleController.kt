@@ -43,11 +43,13 @@ import com.android.wm.shell.shared.bubbles.DraggedObject.LauncherIcon
 import com.android.wm.shell.shared.bubbles.DropTargetManager
 import com.android.wm.shell.shared.bubbles.DropTargetManager.DragZoneChangedListener
 import com.google.common.annotations.VisibleForTesting
+import kotlin.math.min
 
 class DragToBubbleController(private val context: Context, bubbleBarContainer: FrameLayout) :
     DragController.DragListener {
 
-    @VisibleForTesting val dropTargetManager: DropTargetManager
+    @VisibleForTesting val launcherDropTargetManager: DropTargetManager
+    @VisibleForTesting val shellDropTargetManager: DropTargetManager
     @VisibleForTesting lateinit var bubbleBarLeftDropTarget: BubbleBarLocationDropTarget
     @VisibleForTesting lateinit var bubbleBarRightDropTarget: BubbleBarLocationDropTarget
     @VisibleForTesting lateinit var dragZoneFactory: DragZoneFactory
@@ -57,8 +59,15 @@ class DragToBubbleController(private val context: Context, bubbleBarContainer: F
     private lateinit var systemUiProxy: SystemUiProxy
     private lateinit var bubbleBarViewController: BubbleBarViewController
 
+    // Two DropTargetManagers are needed because the drag call chain has
+    // conflicting states that require showing different targets:
+    // - Launcher#onDragStart() -> Shows 2 drop targets.
+    // - Shell#onShellDragStateChanged(true) -> Shows only the secondary target.
+    // It is not possible to alter drop targets (drag zones) in runtime, because they are data
+    // classes so the only way is to restart the drag.
     init {
-        dropTargetManager = createDropTargetManager(bubbleBarContainer)
+        launcherDropTargetManager = createDropTargetManager(bubbleBarContainer)
+        shellDropTargetManager = createDropTargetManager(bubbleBarContainer)
     }
 
     fun init(
@@ -96,18 +105,51 @@ class DragToBubbleController(private val context: Context, bubbleBarContainer: F
      * immediately.
      */
     fun runAfterDropTargetsHidden(afterHiddenAction: Runnable) {
-        dropTargetManager.onDropTargetRemoved(afterHiddenAction)
+        launcherDropTargetManager.onDropTargetRemoved(afterHiddenAction)
+    }
+
+    fun onShellDragStateChanged(started: Boolean) {
+        if (started) {
+            onDragStarted(showDropTarget = false, shellDropTargetManager)
+        } else {
+            shellDropTargetManager.onDragEnded()
+        }
+        // TODO(b/411505605) remove once properly notified from shell
+        bubbleBarViewController.isShowingDropTarget = started
+    }
+
+    fun showShellBubbleBarDropTargetAt(location: BubbleBarLocation?) {
+        if (location == null) {
+            val leftDropRect = dragZoneFactory.getBubbleBarDropRect(isLeftSide = true)
+            val rightDropRect = dragZoneFactory.getBubbleBarDropRect(isLeftSide = false)
+            // drag to no zones, so bubble bar drop target view is hidden
+            val x = (leftDropRect.right + rightDropRect.left) / 2
+            val y = min(leftDropRect.top, rightDropRect.top) - 1
+            shellDropTargetManager.onDragUpdated(x, y)
+            return
+        }
+        val dropRect = dragZoneFactory.getBubbleBarDropRect(location.isOnLeft(context.isRtl))
+        // drag to the zone center, so bubble bar drop target view is shown
+        shellDropTargetManager.onDragUpdated(dropRect.centerX(), dropRect.centerY())
     }
 
     override fun onDragStart(dragObject: DragObject, options: DragOptions) {
         isItemDropHandled = false
-        val launcherIcon: DraggedObject = LauncherIcon(bubbleBarViewController.hasBubbles()) {}
-        val dragZones: List<DragZone> = dragZoneFactory.createSortedDragZones(launcherIcon)
-        dropTargetManager.onDragStarted(launcherIcon, dragZones)
+        onDragStarted(showDropTarget = true, launcherDropTargetManager)
     }
 
     override fun onDragEnd() {
-        dropTargetManager.onDragEnded()
+        launcherDropTargetManager.onDragEnded()
+    }
+
+    private fun onDragStarted(showDropTarget: Boolean, dropTargetManager: DropTargetManager) {
+        val launcherIcon: DraggedObject =
+            LauncherIcon(
+                showDropTarget = showDropTarget,
+                bubbleBarHasBubbles = bubbleBarViewController.hasBubbles(),
+            ) {}
+        val dragZones: List<DragZone> = dragZoneFactory.createSortedDragZones(launcherIcon)
+        dropTargetManager.onDragStarted(launcherIcon, dragZones)
     }
 
     private fun createDropTargetManager(bubbleBarContainer: FrameLayout): DropTargetManager {
@@ -203,7 +245,7 @@ class DragToBubbleController(private val context: Context, bubbleBarContainer: F
         BubbleBarLocationDropTarget(
             dropController,
             dragZoneFactory,
-            dropTargetManager,
+            launcherDropTargetManager,
             isLeftDropTarget,
         )
 }

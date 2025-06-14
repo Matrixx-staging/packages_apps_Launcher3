@@ -32,7 +32,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.launcher3.DeviceProfile;
-import com.android.launcher3.Flags;
 import com.android.launcher3.Hotseat;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.Utilities;
@@ -244,10 +243,6 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
     private int getTaskbarAnimationDuration(boolean isVisible) {
         // fast animation duration since we will not be playing workspace reveal animation.
         boolean shouldOverrideToFastAnimation = !isHotseatIconOnTopWhenAligned();
-        if (!Flags.predictiveBackToHomePolish()) {
-            shouldOverrideToFastAnimation |= mLauncher.getPredictiveBackToHomeInProgress();
-        }
-
         boolean isPinned = mControllers.taskbarActivityContext.isPinnedTaskbar();
         if (isVisible || isPinned) {
             return getTaskbarToHomeDuration(shouldOverrideToFastAnimation, isPinned);

@@ -51,7 +51,6 @@ import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_Q
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_SCREEN_PINNING;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_SHORTCUT_HELPER_SHOWING;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_VOICE_INTERACTION_WINDOW_SHOWING;
-import static com.android.window.flags.Flags.predictiveBackThreeButtonNav;
 
 import android.animation.Animator;
 import android.animation.ArgbEvaluator;
@@ -64,6 +63,7 @@ import android.content.Context;
 import android.content.pm.ActivityInfo.Config;
 import android.content.res.ColorStateList;
 import android.content.res.Resources;
+import android.database.ContentObserver;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -73,9 +73,12 @@ import android.graphics.Region.Op;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.PaintDrawable;
 import android.graphics.drawable.RotateDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemProperties;
+import android.provider.Settings;
 import android.util.Property;
 import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
@@ -233,6 +236,9 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
 
     private final Rect mFloatingRotationButtonBounds = new Rect();
 
+    private final Uri mButtonOrderChangedUri = Settings.Secure.getUriFor(
+            Settings.Secure.NAV_BAR_ORDER);
+
     // Initialized in init.
     private TaskbarControllers mControllers;
     private boolean mIsImeRenderingNavButtons;
@@ -259,6 +265,15 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
     private @BarTransitions.TransitionMode int mTransitionMode;
 
     private final Runnable mAutoDim = () -> mTaskbarTransitions.setAutoDim(true);
+
+    private final ContentObserver mButtonOrderObserver =
+            new ContentObserver(new Handler(Looper.getMainLooper())) {
+                @Override
+                public void onChange(boolean selfChange) {
+                    // Force update to button order
+                    getLayoutterForCurrentState().addThreeButtons();
+                }
+            };
 
     public NavbarButtonsViewController(TaskbarActivityContext context,
             @Nullable Context navigationBarPanelContext, NearestTouchFrame navButtonsView,
@@ -527,6 +542,12 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         mSpace.setOnClickListener(view -> navButtonController.onButtonClick(BUTTON_SPACE, view));
         mSpace.setOnLongClickListener(view ->
                 navButtonController.onButtonLongClick(BUTTON_SPACE, view));
+
+        if (android.view.accessibility.Flags.navbarFlipOrderOption()) {
+            navContainer.getContext().getContentResolver().registerContentObserver(
+                    mButtonOrderChangedUri, false,
+                    mButtonOrderObserver);
+        }
     }
 
     /**
@@ -728,11 +749,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         if (mBackButton == null) {
             return;
         }
-        if (predictiveBackThreeButtonNav()) {
-            setupBackButtonAccessibility(mBackButton, accessibilityDelegate);
-        } else {
-            mBackButton.setAccessibilityDelegate(accessibilityDelegate);
-        }
+        setupBackButtonAccessibility(mBackButton, accessibilityDelegate);
     }
 
     public void setWallpaperVisible(boolean isVisible) {
@@ -923,7 +940,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         buttonView.setImageResource(drawableId);
         buttonView.setContentDescription(parent.getContext().getString(
                 navButtonController.getButtonContentDescription(buttonType)));
-        if (predictiveBackThreeButtonNav() && buttonType == BUTTON_BACK) {
+        if (buttonType == BUTTON_BACK) {
             // set up special touch listener for back button to support predictive back
             setupBackButtonAccessibility(buttonView, null);
             setBackButtonTouchListener(buttonView, navButtonController);
@@ -1096,11 +1113,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         boolean isInKidsMode = mContext.isNavBarKidsModeActive();
 
         if (ENABLE_TASKBAR_NAVBAR_UNIFICATION) {
-            NavButtonLayoutter navButtonLayoutter =
-                    NavButtonLayoutFactory.Companion.getUiLayoutter(
-                            dp, mNavButtonsView, mImeSwitcherButton,
-                            mA11yButton, mSpace, res, isInKidsMode, isInSetup, isThreeButtonNav,
-                            mContext.isPhoneMode(), mWindowManagerProxy.getRotation(mContext));
+            NavButtonLayoutter navButtonLayoutter = getLayoutterForCurrentState();
             navButtonLayoutter.layoutButtons(mContext, isA11yButtonPersistent());
             updateButtonsBackground();
             updateNavButtonColor();
@@ -1219,6 +1232,15 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         }
     }
 
+    private NavButtonLayoutter getLayoutterForCurrentState() {
+        return NavButtonLayoutFactory.Companion.getUiLayoutter(
+                        mContext.getDeviceProfile(), mNavButtonsView, mImeSwitcherButton,
+                        mA11yButton, mSpace, mContext.getResources(),
+                        mContext.isNavBarKidsModeActive(),
+                        !mContext.isUserSetupComplete(), mContext.isThreeButtonNav(),
+                        mContext.isPhoneMode(), mWindowManagerProxy.getRotation(mContext));
+    }
+
     private void updateButtonsBackground() {
         boolean clipped = !mContext.isPhoneButtonNavMode();
         mNavButtonContainer.setClipToPadding(clipped);
@@ -1242,9 +1264,12 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
 
     public void onDestroy() {
         mPropertyHolders.clear();
-        mControllers.rotationButtonController.unregisterListeners();
         if (mFloatingRotationButton != null) {
             mFloatingRotationButton.hide();
+            mFloatingRotationButton = null;
+        }
+        if (mButtonOrderObserver != null) {
+            mContext.getContentResolver().unregisterContentObserver(mButtonOrderObserver);
         }
 
         moveNavButtonsBackToTaskbarWindow();
