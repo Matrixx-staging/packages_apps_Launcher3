@@ -641,7 +641,7 @@ public class BubbleBarController extends IBubblesListener.Stub {
 
     @Override
     public void showBubbleBarDropTargetAt(@Nullable BubbleBarLocation location) {
-        //TODO(b/411505605) implement
+        MAIN_EXECUTOR.execute(() -> mBubbleBarViewController.showBubbleBarDropTargetAt(location));
     }
 
 
