@@ -19,7 +19,6 @@ package com.android.quickstep.recents.ui.viewmodel
 import android.annotation.ColorInt
 import android.util.Log
 import androidx.core.graphics.ColorUtils
-import com.android.launcher3.Flags.enableCoroutineThreadingImprovements
 import com.android.launcher3.util.coroutines.DispatcherProvider
 import com.android.quickstep.recents.domain.model.TaskId
 import com.android.quickstep.recents.domain.model.TaskModel
@@ -38,7 +37,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 
@@ -58,31 +56,6 @@ class TaskViewModel(
 ) {
     private val taskIds = MutableStateFlow(emptySet<Int>())
 
-    private val isLiveTile =
-        combine(
-                taskIds,
-                recentsViewData.runningTaskIds,
-                recentsViewData.runningTaskShowScreenshot,
-            ) { taskIds, runningTaskIds, runningTaskShowScreenshot ->
-                runningTaskIds == taskIds && !runningTaskShowScreenshot
-            }
-            .distinctUntilChanged()
-
-    private val isCentralTask =
-        combine(taskIds, recentsViewData.centralTaskIds) { taskIds, centralTaskIds ->
-                taskIds == centralTaskIds
-            }
-            .distinctUntilChanged()
-
-    private val taskData =
-        taskIds.flatMapLatest { ids ->
-            // Combine Tasks requests
-            val taskFlows =
-                ids.map { id -> getTaskUseCase(id).map { taskModel -> id to taskModel } }
-            val combinedTaskFlows = combine(taskFlows) { taskArray -> taskArray }
-            combine(combinedTaskFlows, isLiveTile, ::mapToTaskData)
-        }
-
     private val taskModels =
         taskIds.flatMapLatest { ids ->
             // Combine Tasks requests
@@ -93,58 +66,36 @@ class TaskViewModel(
             combine(taskFlows) { taskArray -> taskArray }
         }
 
-    private val overlayEnabled =
-        when (taskViewType) {
-            TaskViewType.SINGLE ->
-                combine(
-                        recentsViewData.overlayEnabled,
-                        recentsViewData.settledFullyVisibleTaskIds,
-                    ) { isOverlayEnabled, settledFullyVisibleTaskIds ->
-                        isOverlayEnabled && settledFullyVisibleTaskIds.any { it in taskIds.value }
-                    }
-                    .distinctUntilChanged()
-            else -> flowOf(false)
-        }
-
-    private val preThreadingImprovedState: Flow<TaskTileUiState> =
-        combine(taskData, overlayEnabled, isCentralTask, ::mapToTaskTile)
-
-    private val threadingImprovedState: Flow<TaskTileUiState> =
-        com.android.launcher3.util.coroutines.combine(
-            taskModels,
-            recentsViewData.runningTaskIds,
-            recentsViewData.runningTaskShowScreenshot,
-            recentsViewData.overlayEnabled,
-            recentsViewData.settledFullyVisibleTaskIds,
-            recentsViewData.centralTaskIds,
-        ) {
-            taskModels: Array<Pair<Int, TaskModel?>>,
-            runningTaskIds: Set<Int>,
-            runningTaskShowScreenshot: Boolean,
-            isOverlayEnabled: Boolean,
-            settledFullyVisibleTaskIds: Set<Int>,
-            centralTaskIds: Set<Int> ->
-            val taskIds = taskModels.map { it.first }.toSet()
-            val isCentralTask = taskIds == centralTaskIds
-            val overlayEnabled =
-                when (taskViewType) {
-                    TaskViewType.SINGLE -> {
-                        isOverlayEnabled && settledFullyVisibleTaskIds.any { it in taskIds }
-                    }
-                    else -> false
-                }
-            val isLiveTile = runningTaskIds == taskIds && !runningTaskShowScreenshot
-            val taskData = mapToTaskData(taskModels, isLiveTile)
-
-            mapToTaskTile(taskData, overlayEnabled, isCentralTask)
-        }
-
-    private val taskTileUiStateFlow =
-        if (enableCoroutineThreadingImprovements()) threadingImprovedState
-        else preThreadingImprovedState
-
     val state: Flow<TaskTileUiState> =
-        taskTileUiStateFlow
+        com.android.launcher3.util.coroutines
+            .combine(
+                taskModels,
+                recentsViewData.runningTaskIds,
+                recentsViewData.runningTaskShowScreenshot,
+                recentsViewData.overlayEnabled,
+                recentsViewData.settledFullyVisibleTaskIds,
+                recentsViewData.centralTaskIds,
+            ) {
+                taskModels: Array<Pair<Int, TaskModel?>>,
+                runningTaskIds: Set<Int>,
+                runningTaskShowScreenshot: Boolean,
+                isOverlayEnabled: Boolean,
+                settledFullyVisibleTaskIds: Set<Int>,
+                centralTaskIds: Set<Int> ->
+                val taskIds = taskModels.map { it.first }.toSet()
+                val isCentralTask = taskIds == centralTaskIds
+                val overlayEnabled =
+                    when (taskViewType) {
+                        TaskViewType.SINGLE -> {
+                            isOverlayEnabled && settledFullyVisibleTaskIds.any { it in taskIds }
+                        }
+                        else -> false
+                    }
+                val isLiveTile = runningTaskIds == taskIds && !runningTaskShowScreenshot
+                val taskData = mapToTaskData(taskModels, isLiveTile)
+
+                mapToTaskTile(taskData, overlayEnabled, isCentralTask)
+            }
             .distinctUntilChanged()
             .debounce { state ->
                 // Debouncing only when thumbnails are not present gives the best results.

@@ -18,7 +18,6 @@ package com.android.quickstep
 import android.content.Context
 import androidx.annotation.VisibleForTesting
 import androidx.annotation.WorkerThread
-import com.android.launcher3.Flags.enableCoroutineThreadingImprovements
 import com.android.launcher3.R
 import com.android.launcher3.util.CancellableTask
 import com.android.launcher3.util.Executors
@@ -114,9 +113,6 @@ internal constructor(
             // Get thumbnail from system
             var thumbnailData =
                 ActivityManagerWrapper.getInstance().getTaskThumbnail(task.key.id, lowResolution)
-            if (thumbnailData.thumbnail == null && !enableCoroutineThreadingImprovements()) {
-                thumbnailData = ActivityManagerWrapper.getInstance().takeTaskThumbnail(task.key.id)
-            }
 
             // Avoid an async timing issue that a low res entry replaces an existing high
             // res entry in high res enabled state, so we check before putting it to cache

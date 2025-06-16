@@ -34,7 +34,6 @@ import static com.android.app.animation.Interpolators.LINEAR;
 import static com.android.app.animation.Interpolators.clampToProgress;
 import static com.android.launcher3.AbstractFloatingView.TYPE_REBIND_SAFE;
 import static com.android.launcher3.BaseActivity.STATE_HANDLER_INVISIBILITY_FLAGS;
-import static com.android.launcher3.Flags.enableCoroutineThreadingImprovements;
 import static com.android.launcher3.Flags.enableDesktopExplodedView;
 import static com.android.launcher3.Flags.enableExpressiveDismissTaskMotion;
 import static com.android.launcher3.Flags.enableOverviewBackgroundWallpaperBlur;
@@ -2783,7 +2782,7 @@ public abstract class RecentsView<
         }
         mBlurUtils.setDrawLiveTileBelowRecents(false);
 
-        if (enableCoroutineThreadingImprovements()) {
+        if (enableRefactorTaskThumbnail()) {
             // TODO(b/391842220): This should not need to be explicitly called from here. When TVs
             //  are added and removed with the RecentsView lifecycle, this can be removed.
             //  This is was added because without it cancelling jobs was happening after work was
