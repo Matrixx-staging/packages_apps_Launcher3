@@ -229,7 +229,7 @@ enum class AppHeaderDescriptionStyle {
 private const val SPACER_LIST_ITEM_TYPE = "spacer"
 
 private object WidgetAppsListDimensions {
-    val itemSpacing = 4.dp
+    val itemSpacing = 2.dp
 
     val largeRadius = 24.dp
     val smallRadius = 4.dp

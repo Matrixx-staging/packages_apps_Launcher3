@@ -39,7 +39,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.collapse
+import androidx.compose.ui.semantics.expand
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -72,6 +76,8 @@ fun ExpandableListHeader(
     onClick: () -> Unit,
     shape: RoundedCornerShape,
 ) {
+    val haptic = LocalHapticFeedback.current
+
     val finalModifier =
         modifier
             .clip(shape = shape)
@@ -79,7 +85,25 @@ fun ExpandableListHeader(
 
     Column(modifier = finalModifier) {
         WidgetAppHeader(
-            modifier = Modifier.clickable { onClick() },
+            modifier =
+                Modifier
+                    .clickable {
+                        haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                        onClick()
+                    }
+                    .semantics {
+                        if (expanded) {
+                            collapse {
+                                onClick()
+                                true
+                            }
+                        } else {
+                            expand {
+                                onClick()
+                                true
+                            }
+                        }
+                    },
             leadingIcon = { leadingAppIcon() },
             title = title,
             subTitle = subTitle,
@@ -243,7 +267,7 @@ private fun CenterText(title: String, subTitle: String, selected: Boolean, modif
             text = subTitle,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            color =  WidgetPickerTheme.colors.listHeaderSubTitle,
+            color = WidgetPickerTheme.colors.listHeaderSubTitle,
             style =
                 if (selected) {
                     WidgetPickerTheme.typography.selectedListHeaderSubTitle
