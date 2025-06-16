@@ -58,15 +58,13 @@ class GridSizeMigrationLogic {
         isDestNewDb: Boolean,
         modelDelegate: ModelDelegate,
     ) {
-
-        val isAfterRestore = get(context).get(LauncherPrefs.IS_FIRST_LOAD_AFTER_RESTORE)
-
         if (!GridSizeMigrationDBController.needsToMigrate(srcDeviceState, destDeviceState)) {
             return
         }
 
         val statsLogManager: StatsLogManager = StatsLogManager.newInstance(context)
 
+        val isAfterRestore = get(context).get(LauncherPrefs.IS_FIRST_LOAD_AFTER_RESTORE)
         FileLog.d(
             TAG,
             "Begin grid migration. isAfterRestore: $isAfterRestore\nsrcDeviceState: " +
