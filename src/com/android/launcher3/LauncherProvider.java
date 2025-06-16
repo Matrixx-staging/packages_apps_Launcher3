@@ -103,7 +103,7 @@ public class LauncherProvider extends ContentProvider {
 
     // Method API For Provider#call method.
     private static final String METHOD_EXPORT_LAYOUT_XML = "EXPORT_LAYOUT_XML";
-    private static final String METHOD_IMPORT_LAYOUT_XML = "IMPORT_LAYOUT_XML";
+    public static final String METHOD_IMPORT_LAYOUT_XML = "IMPORT_LAYOUT_XML";
     private static final String KEY_RESULT = "KEY_RESULT";
     private static final String KEY_LAYOUT = "KEY_LAYOUT";
     private static final String SUCCESS = "success";
@@ -213,8 +213,8 @@ public class LauncherProvider extends ContentProvider {
         // access the "call" method at all. We also enforce the appropriate per-method permissions.
         switch(method) {
             case METHOD_EXPORT_LAYOUT_XML:
-                if (getContext().checkCallingOrSelfPermission(getReadPermission())
-                        != PackageManager.PERMISSION_GRANTED) {
+                if (getReadPermission() != null && getContext().checkCallingOrSelfPermission(
+                        getReadPermission()) != PackageManager.PERMISSION_GRANTED) {
                     throw new SecurityException("Caller doesn't have read permission");
                 }
 
@@ -229,8 +229,8 @@ public class LauncherProvider extends ContentProvider {
                 return b;
 
             case METHOD_IMPORT_LAYOUT_XML:
-                if (getContext().checkCallingOrSelfPermission(getWritePermission())
-                        != PackageManager.PERMISSION_GRANTED) {
+                if (getWritePermission() != null && getContext().checkCallingOrSelfPermission(
+                        getWritePermission()) != PackageManager.PERMISSION_GRANTED) {
                     throw new SecurityException("Caller doesn't have write permission");
                 }
 
