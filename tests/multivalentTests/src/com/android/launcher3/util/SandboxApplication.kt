@@ -21,6 +21,7 @@ import android.content.ContentResolver
 import android.content.Context
 import android.content.ContextParams
 import android.content.ContextWrapper
+import android.content.SharedPreferences
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.content.pm.ProviderInfo
@@ -28,6 +29,7 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.os.IBinder
 import android.os.UserHandle
+import android.os.UserManager
 import android.provider.Settings.Global
 import android.provider.Settings.Secure
 import android.provider.Settings.System
@@ -142,6 +144,16 @@ class SandboxApplication private constructor(private val base: SandboxApplicatio
 
     override fun getSystemService(name: String): Any? =
         spiedServices[name] ?: super.getSystemService(name)
+
+    override fun getSharedPreferences(name: String?, mode: Int): SharedPreferences? {
+        checkUnlockedIfCredentialProtectedStorage()
+        return super.getSharedPreferences(name, mode)
+    }
+
+    override fun getSharedPreferences(file: File?, mode: Int): SharedPreferences? {
+        checkUnlockedIfCredentialProtectedStorage()
+        return super.getSharedPreferences(file, mode)
+    }
 
     fun <T> spyService(tClass: Class<T>): T {
         val name = getSystemServiceName(tClass)
@@ -262,5 +274,29 @@ private class SandboxApplicationWrapper(base: Context, var app: Context? = null)
 
     override fun createTokenContext(token: IBinder, display: Display): Context {
         return SandboxApplicationWrapper(super.createTokenContext(token, display), app)
+    }
+
+    override fun getSharedPreferences(name: String?, mode: Int): SharedPreferences? {
+        checkUnlockedIfCredentialProtectedStorage()
+        return super.getSharedPreferences(name, mode)
+    }
+
+    override fun getSharedPreferences(file: File?, mode: Int): SharedPreferences? {
+        checkUnlockedIfCredentialProtectedStorage()
+        return super.getSharedPreferences(file, mode)
+    }
+}
+
+/**
+ * Emulates preconditions in `ContextImpl#getSharedPreferences(File, Int)`.
+ *
+ * Only stubbing [UserManager] is insufficient because `ContextImpl` maintains a static cache for
+ * [SharedPreferences], which may populate before creating the stub.
+ */
+private fun Context.checkUnlockedIfCredentialProtectedStorage() {
+    if (!isCredentialProtectedStorage) return
+    val userManager = checkNotNull(applicationContext.getSystemService(UserManager::class.java))
+    if (!userManager.isUserUnlockingOrUnlocked(UserHandle.myUserId())) {
+        throw IllegalStateException("Encrypted SharedPreferences accessed while locked")
     }
 }
