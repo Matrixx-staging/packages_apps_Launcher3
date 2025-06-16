@@ -1417,7 +1417,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     }
 
     private class TransitionEndBoundsChangedNotifier implements TransitionListener {
-        private boolean mIsCanceled;
+        private boolean mIsCanceled = true; // Start as disabled.
 
         @Override
         public void startTransition(
