@@ -18,6 +18,8 @@ package com.android.launcher3.taskbar.navbutton
 
 import android.content.res.Resources
 import android.graphics.drawable.RotateDrawable
+import android.net.Uri
+import android.provider.Settings.Secure.NAV_BAR_ORDER
 import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -28,6 +30,7 @@ import com.android.launcher3.DeviceProfile
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.launcher3.taskbar.navbutton.NavButtonLayoutFactory.NavButtonLayoutter
+import com.android.launcher3.util.SettingsCache
 
 /**
  * Meant to be a simple container for data subclasses will need
@@ -54,6 +57,7 @@ abstract class AbstractNavButtonLayoutter(
 ) : NavButtonLayoutter {
 
     open val orientation: Int = LinearLayout.HORIZONTAL
+    private val orderUri: Uri = android.provider.Settings.Secure.getUriFor(NAV_BAR_ORDER)
 
     init {
         // setup back button drawable
@@ -124,11 +128,7 @@ abstract class AbstractNavButtonLayoutter(
     open fun shouldFlipButtonOrder(): Boolean {
         val isFlipEnabledBySetting =
             android.view.accessibility.Flags.navbarFlipOrderOption() &&
-                android.provider.Settings.Secure.getInt(
-                    navButtonContainer.context.contentResolver,
-                    android.provider.Settings.Secure.NAV_BAR_ORDER,
-                    0,
-                ) != 0
+                SettingsCache.INSTANCE.get(navButtonContainer.context).getValue(orderUri)
 
         return Utilities.isRtl(resources) xor isFlipEnabledBySetting
     }

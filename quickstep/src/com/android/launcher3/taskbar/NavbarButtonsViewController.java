@@ -64,7 +64,6 @@ import android.content.Context;
 import android.content.pm.ActivityInfo.Config;
 import android.content.res.ColorStateList;
 import android.content.res.Resources;
-import android.database.ContentObserver;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -77,7 +76,6 @@ import android.graphics.drawable.RotateDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.SystemProperties;
 import android.provider.Settings;
 import android.util.Property;
@@ -113,6 +111,7 @@ import com.android.launcher3.taskbar.navbutton.NearestTouchFrame;
 import com.android.launcher3.util.DimensionUtils;
 import com.android.launcher3.util.MultiPropertyFactory.MultiProperty;
 import com.android.launcher3.util.MultiValueAlpha;
+import com.android.launcher3.util.SettingsCache;
 import com.android.launcher3.util.TouchController;
 import com.android.launcher3.util.window.WindowManagerProxy;
 import com.android.launcher3.views.BaseDragLayer;
@@ -267,14 +266,9 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
 
     private final Runnable mAutoDim = () -> mTaskbarTransitions.setAutoDim(true);
 
-    private final ContentObserver mButtonOrderObserver =
-            new ContentObserver(new Handler(Looper.getMainLooper())) {
-                @Override
-                public void onChange(boolean selfChange) {
-                    // Force update to button order
-                    getLayoutterForCurrentState().addThreeButtons();
-                }
-            };
+    private final SettingsCache.OnChangeListener mButtonOrderListener = isEnabled -> {
+        getLayoutterForCurrentState().addThreeButtons();
+    };
 
     public NavbarButtonsViewController(TaskbarActivityContext context,
             @Nullable Context navigationBarPanelContext, NearestTouchFrame navButtonsView,
@@ -545,9 +539,8 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
                 navButtonController.onButtonLongClick(BUTTON_SPACE, view));
 
         if (android.view.accessibility.Flags.navbarFlipOrderOption()) {
-            navContainer.getContext().getContentResolver().registerContentObserver(
-                    mButtonOrderChangedUri, false,
-                    mButtonOrderObserver);
+            SettingsCache.INSTANCE.get(mContext).register(
+                    mButtonOrderChangedUri, mButtonOrderListener);
         }
     }
 
@@ -1273,9 +1266,8 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         if (mFloatingRotationButton != null) {
             mFloatingRotationButton.hide();
         }
-        if (mButtonOrderObserver != null) {
-            mContext.getContentResolver().unregisterContentObserver(mButtonOrderObserver);
-        }
+        SettingsCache.INSTANCE.get(mContext).unregister(
+                    mButtonOrderChangedUri, mButtonOrderListener);
 
         moveNavButtonsBackToTaskbarWindow();
         mNavButtonContainer.removeAllViews();
