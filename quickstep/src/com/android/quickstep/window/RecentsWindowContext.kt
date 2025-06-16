@@ -19,6 +19,7 @@ package com.android.quickstep.window
 import android.content.Context
 import android.graphics.PixelFormat
 import android.view.Display
+import android.view.KeyEvent
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
@@ -50,6 +51,8 @@ abstract class RecentsWindowContext(windowContext: Context, wallpaperColorHints:
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             windowTitle,
         )
+
+    open fun onRootViewDispatchKeyEvent(event: KeyEvent?): Boolean = false
 
     fun initDeviceProfile() {
         deviceProfile =

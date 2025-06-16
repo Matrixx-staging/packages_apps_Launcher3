@@ -44,7 +44,6 @@ import android.os.Process;
 import android.os.UserHandle;
 import android.util.Log;
 import android.view.Display;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.AccessibilityDelegate;
@@ -575,14 +574,6 @@ public interface ActivityContext extends SavedStateRegistryOwner {
     /** Returns the current ActivityContext as context */
     default Context asContext() {
         return (Context) this;
-    }
-
-    /**
-     * Allows the current ActivityContext to intercept KeyEvent dispatches.
-     * <p>
-     * Returns true iff the event has been handled. */
-    default boolean onRootViewDispatchKeyEvent(KeyEvent event) {
-        return false;
     }
 
     /**

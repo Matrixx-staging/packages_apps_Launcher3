@@ -32,7 +32,6 @@ import android.view.RemoteAnimationTarget
 import android.view.SurfaceControl
 import android.view.View
 import android.view.WindowManager
-import android.widget.FrameLayout
 import android.window.RemoteTransition
 import androidx.core.view.isVisible
 import com.android.app.displaylib.PerDisplayInstanceProviderWithTeardown
@@ -147,11 +146,11 @@ constructor(
     private val windowManager: WindowManager = getSystemService(WindowManager::class.java)!!
     private var layoutInflater: LayoutInflater = LayoutInflater.from(this).cloneInContext(this)
     private var stateManager: StateManager<RecentsState, RecentsWindowManager> =
-        StateManager<RecentsState, RecentsWindowManager>(this, RecentsState.BG_LAUNCHER)
+        StateManager<RecentsState, RecentsWindowManager>(this, BG_LAUNCHER)
     private var systemUiController: SystemUiController? = null
 
     private var dragLayer: RecentsDragLayer<RecentsWindowManager>? = null
-    private var windowRootView: FrameLayout = FrameLayout(this)
+    private var windowRootView = RecentsWindowRootView(this)
     private var windowView: View? = null
     private var actionsView: OverviewActionsView<*>? = null
     private var scrimView: ScrimView? = null
@@ -247,8 +246,6 @@ constructor(
     init {
         fallbackWindowInterface.setRecentsWindowManager(this)
         homeVisibilityState.addListener(homeVisibilityListener)
-        windowManager.addView(windowRootView, windowLayoutParams)
-        windowRootView.visibility = View.GONE
     }
 
     override fun handleConfigurationChanged(configuration: Configuration?) {
@@ -268,11 +265,15 @@ constructor(
         Executors.MAIN_EXECUTOR.execute {
             onViewDestroyed()
             hideRecentsWindow()
-            windowManager.removeViewImmediate(windowRootView)
+            if (windowRootView.parent != null) {
+                windowManager.removeViewImmediate(windowRootView)
+            }
             callbacks?.removeListener(recentsAnimationListener)
             homeVisibilityState.removeListener(homeVisibilityListener)
             recentsWindowTracker.onContextDestroyed(this)
             recentsView?.destroy()
+            recentsView = null
+            windowView = null
         }
     }
 
@@ -317,6 +318,7 @@ constructor(
                             View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
                             View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
 
+                windowManager.addView(windowRootView, windowLayoutParams)
                 windowRootView.addView(it)
             }
             systemUiController = SystemUiController(windowView)
@@ -473,8 +475,8 @@ constructor(
         return splitSelectStateController
     }
 
-    override fun getRootView(): View? {
-        return windowView
+    override fun getRootView(): View {
+        return windowRootView
     }
 
     override fun getDragLayer(): BaseDragLayer<RecentsWindowManager> {
@@ -482,11 +484,11 @@ constructor(
     }
 
     override fun dispatchGenericMotionEvent(ev: MotionEvent?): Boolean {
-        return windowView?.dispatchGenericMotionEvent(ev) ?: false
+        return windowRootView.dispatchGenericMotionEvent(ev)
     }
 
     override fun dispatchKeyEvent(ev: KeyEvent?): Boolean {
-        return windowView?.dispatchKeyEvent(ev) ?: false
+        return windowRootView.dispatchKeyEvent(ev)
     }
 
     override fun onRootViewDispatchKeyEvent(event: KeyEvent?): Boolean {
@@ -494,7 +496,7 @@ constructor(
         return if (
             event?.action != KeyEvent.ACTION_DOWN || event.keyCode != KeyEvent.KEYCODE_ESCAPE
         ) {
-            super<RecentsWindowContext>.onRootViewDispatchKeyEvent(event)
+            super.onRootViewDispatchKeyEvent(event)
         } else if (isInState(OVERVIEW_SPLIT_SELECT) || isInState(MODAL_TASK)) {
             stateManager.goToState(DEFAULT, true)
             true
@@ -502,7 +504,7 @@ constructor(
             stateManager.goToState(HOME, true)
             true
         } else {
-            super<RecentsWindowContext>.onRootViewDispatchKeyEvent(event)
+            super.onRootViewDispatchKeyEvent(event)
         }
     }
 
