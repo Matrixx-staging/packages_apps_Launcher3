@@ -17,6 +17,7 @@ package com.android.quickstep;
 
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_HOME;
 import static android.app.WindowConfiguration.WINDOWING_MODE_FREEFORM;
+import static android.view.Display.DEFAULT_DISPLAY;
 import static android.view.Surface.ROTATION_0;
 import static android.view.Surface.ROTATION_270;
 import static android.view.Surface.ROTATION_90;
@@ -51,7 +52,9 @@ import static com.android.launcher3.util.SystemUiController.UI_STATE_FULLSCREEN_
 import static com.android.launcher3.util.VibratorWrapper.OVERVIEW_HAPTIC;
 import static com.android.launcher3.util.window.RefreshRateTracker.getSingleFrameMs;
 import static com.android.quickstep.BaseContainerInterface.AnimationFactory;
+import static com.android.quickstep.GestureState.displaySupportsHomeGesture;
 import static com.android.quickstep.GestureState.GestureEndTarget.HOME;
+import static com.android.quickstep.GestureState.GestureEndTarget.REJECT_HOME;
 import static com.android.quickstep.GestureState.GestureEndTarget.LAST_TASK;
 import static com.android.quickstep.GestureState.GestureEndTarget.NEW_TASK;
 import static com.android.quickstep.GestureState.GestureEndTarget.RECENTS;
@@ -281,6 +284,8 @@ public abstract class AbsSwipeUpHandler<
             getNextStateFlag("STATE_CURRENT_TASK_FINISHED");
     private static final int STATE_FINISH_WITH_NO_END =
             getNextStateFlag("STATE_FINISH_WITH_NO_END");
+    private static final int STATE_REJECT_HOME =
+            getNextStateFlag("STATE_REJECT_HOME");
 
     private static final int LAUNCHER_UI_STATES =
             STATE_LAUNCHER_PRESENT | STATE_LAUNCHER_DRAWN | STATE_LAUNCHER_STARTED |
@@ -308,6 +313,7 @@ public abstract class AbsSwipeUpHandler<
      * Used as the page index for logging when we return to the last task at the end of the gesture.
      */
     private static final int LOG_NO_OP_PAGE_INDEX = -1;
+
 
     protected TaskAnimationManager mTaskAnimationManager;
     // Either RectFSpringAnim (if animating home) or ObjectAnimator (from mCurrentShift) otherwise
@@ -480,6 +486,8 @@ public abstract class AbsSwipeUpHandler<
 
         mStateCallback.runOnceAtState(STATE_RESUME_LAST_TASK | STATE_APP_CONTROLLER_RECEIVED,
                 this::resumeLastTask);
+        mStateCallback.runOnceAtState(STATE_REJECT_HOME | STATE_APP_CONTROLLER_RECEIVED,
+                this::finishRejectHome);
         mStateCallback.runOnceAtState(STATE_START_NEW_TASK | STATE_SCREENSHOT_CAPTURED,
                 this::startNewTask);
 
@@ -516,6 +524,8 @@ public abstract class AbsSwipeUpHandler<
         mStateCallback.runOnceAtState(STATE_LAUNCHER_PRESENT | STATE_HANDLER_INVALIDATED,
                 this::invalidateHandlerWithLauncher);
         mStateCallback.runOnceAtState(STATE_HANDLER_INVALIDATED | STATE_RESUME_LAST_TASK,
+                this::resetStateForAnimationCancel);
+        mStateCallback.runOnceAtState(STATE_HANDLER_INVALIDATED | STATE_REJECT_HOME,
                 this::resetStateForAnimationCancel);
         mStateCallback.runOnceAtState(STATE_HANDLER_INVALIDATED | STATE_FINISH_WITH_NO_END,
                 this::resetStateForAnimationCancel);
@@ -610,9 +620,15 @@ public abstract class AbsSwipeUpHandler<
         runActionOnRemoteHandles(remoteTargetHandle -> remoteTargetHandle.getTaskViewSimulator()
                 .setOrientationState(mRecentsView.getPagedViewOrientedState()));
 
-        // If we've already ended the gesture and are going home, don't prepare recents UI,
-        // as that will set the state as BACKGROUND_APP, overriding the animation to NORMAL.
-        if (mGestureState.getEndTarget() != HOME) {
+        boolean shouldPrepareRecents = true;
+        GestureState.GestureEndTarget endTarget = mGestureState.getEndTarget();
+        if (endTarget != null) {
+            shouldPrepareRecents = switch (mGestureState.getEndTarget()) {
+                case HOME, REJECT_HOME -> false;
+                case ALL_APPS, RECENTS, NEW_TASK, LAST_TASK -> true;
+            };
+        }
+        if (shouldPrepareRecents) {
             Runnable initAnimFactory = () -> {
                 mAnimationFactory = mContainerInterface.prepareRecentsUI(
                         mWasLauncherAlreadyVisible, this::onAnimatorPlaybackControllerCreated);
@@ -957,7 +973,8 @@ public abstract class AbsSwipeUpHandler<
                     ||  (quickswitchThresholdPassed && centermostTaskFlags != 0));
             // Provide a hint to WM the direction that we will be settling in case the animation
             // needs to be canceled
-            mRecentsAnimationController.setWillFinishToHome(swipeUpThresholdPassed);
+            mRecentsAnimationController.setWillFinishToHome(
+                    swipeUpThresholdPassed && getHomeTarget() == HOME);
 
             if (mContainer == null) return;
             if (swipeUpThresholdPassed) {
@@ -1219,6 +1236,7 @@ public abstract class AbsSwipeUpHandler<
         // Wait until the given View (if supplied) draws before resuming the last task.
         View postResumeLastTask = mContainerInterface.onSettledOnEndTarget(endTarget);
 
+        // TODO(b/378443899): Add a CUJ for REJECT_HOME
         if (endTarget != NEW_TASK) {
             InteractionJankMonitorWrapper.cancel(Cuj.CUJ_LAUNCHER_QUICK_SWITCH);
         } else {
@@ -1259,6 +1277,9 @@ public abstract class AbsSwipeUpHandler<
                 }
                 // Restore the divider as it resumes the last top-tasks.
                 setDividerShown(true);
+                break;
+            case REJECT_HOME:
+                mStateCallback.setState(STATE_REJECT_HOME);
                 break;
         }
         if (mContainerInterface.getTaskbarController() != null) {
@@ -1341,6 +1362,15 @@ public abstract class AbsSwipeUpHandler<
         return endTarget;
     }
 
+    @VisibleForTesting
+    protected GestureEndTarget getHomeTarget() {
+        // If the user is swiping up to go home but the gesture is on a secondary display, we
+        // should reject the gesture and roll back any in-progress animations.
+        return displaySupportsHomeGesture(mGestureState.getDisplayId())
+                ? HOME
+                : REJECT_HOME;
+    }
+
     private GestureEndTarget calculateEndTargetForFlingY(PointF velocity, float endVelocity) {
         // If swiping at a diagonal, base end target on the faster velocity direction.
         final boolean willGoToNewTask =
@@ -1352,7 +1382,7 @@ public abstract class AbsSwipeUpHandler<
             return willGoToNewTask || isCenteredOnNewTask ? NEW_TASK : LAST_TASK;
         }
 
-        return willGoToNewTask ? NEW_TASK : HOME;
+        return willGoToNewTask ? NEW_TASK : getHomeTarget();
     }
 
     private GestureEndTarget calculateEndTargetForNonFling(
@@ -1372,7 +1402,7 @@ public abstract class AbsSwipeUpHandler<
         } else if (isScrollingToNewTask) {
             return NEW_TASK;
         }
-        return velocity.y < 0 && mCanSlowSwipeGoHome ? HOME : LAST_TASK;
+        return velocity.y < 0 && mCanSlowSwipeGoHome ? getHomeTarget()  : LAST_TASK;
     }
 
     private boolean isScrollingToNewTask() {
@@ -1527,8 +1557,10 @@ public abstract class AbsSwipeUpHandler<
             }
         }
         long finalDuration = duration;
-        runOnRecentsAnimationAndLauncherBound(() -> animateGestureEnd(
-                startShift, endShift, finalDuration, interpolator, endTarget, velocityPxPerMs));
+        runOnRecentsAnimationAndLauncherBound(() -> {
+            animateGestureEnd(
+                startShift, endShift, finalDuration, interpolator, endTarget, velocityPxPerMs);
+        });
     }
 
     @UiThread
@@ -1570,6 +1602,7 @@ public abstract class AbsSwipeUpHandler<
                     }
                 }
                 break;
+            // TODO(b/378443899): add event for the reject home case
             default:
                 events.add(IGNORE);
         }
@@ -1698,6 +1731,7 @@ public abstract class AbsSwipeUpHandler<
                     && runningTaskTarget.taskInfo.pictureInPictureParams != null
                     && runningTaskTarget.taskInfo.pictureInPictureParams.isAutoEnterEnabled()
                     && !swipeUpInDesktopWindowing;
+
             HomeAnimationFactory homeAnimFactory = createHomeAnimationFactory(
                     cookies,
                     duration,
@@ -1788,6 +1822,17 @@ public abstract class AbsSwipeUpHandler<
                         mRemoteTargetHandles, /* isHandlingAtomicEvent= */ true);
                 animatorSet.setDuration(0).start();
             }
+        } else if (mGestureState.getEndTarget() == REJECT_HOME) {
+            ValueAnimator windowAnim = mCurrentShift.animateToValue(start, 0);
+            windowAnim.addListener(new AnimationSuccessListener() {
+                @Override
+                public void onAnimationSuccess(Animator animator) {
+                    mGestureState.setState(STATE_END_TARGET_ANIMATION_FINISHED);
+                }
+            });
+            windowAnim.setDuration(duration).setInterpolator(interpolator);
+            windowAnim.start();
+            mRunningWindowAnim = new RunningWindowAnim[]{RunningWindowAnim.wrap(windowAnim)};
         } else {
             AnimatorSet animatorSet = new AnimatorSet();
             ValueAnimator windowAnim = mCurrentShift.animateToValue(start, end);
@@ -2093,6 +2138,15 @@ public abstract class AbsSwipeUpHandler<
             mRecentsAnimationController.finish(false /* toRecents */, null);
         }
         doLogGesture(LAST_TASK, null);
+        reset();
+    }
+
+    @UiThread
+    private void finishRejectHome() {
+        if (mRecentsAnimationController != null) {
+            mRecentsAnimationController.finish(false /* toRecents */, null);
+        }
+        doLogGesture(REJECT_HOME, null);
         reset();
     }
 

@@ -30,6 +30,7 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.assertEquals;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -111,14 +112,13 @@ public abstract class AbsSwipeUpHandlerTestCase<
     @Rule
     public final SandboxApplication mContext = new SandboxApplication();
 
+    protected int mDisplayId = DEFAULT_DISPLAY;
+
     protected final InputConsumerController mInputConsumerController =
             InputConsumerController.getRecentsAnimationInputConsumer();
     protected final ActivityManager.RunningTaskInfo mRunningTaskInfo =
             new ActivityManager.RunningTaskInfo();
-    protected final TopTaskTracker.CachedTaskInfo mCachedTaskInfo =
-            new TopTaskTracker.CachedTaskInfo(
-                    Collections.singletonList(mRunningTaskInfo), mContext, DEFAULT_DISPLAY,
-                    INACTIVE_DESK_ID);
+
     protected final RemoteAnimationTarget mRemoteAnimationTarget = new RemoteAnimationTarget(
             /* taskId= */ 0,
             /* mode= */ RemoteAnimationTarget.MODE_CLOSING,
@@ -219,13 +219,14 @@ public abstract class AbsSwipeUpHandlerTestCase<
 
     @Before
     public void setUpGestureState() {
-        when(mGestureState.getRunningTask()).thenReturn(mCachedTaskInfo);
+        when(mGestureState.getRunningTask()).thenReturn(getTaskInfo());
         when(mGestureState.getLastAppearedTaskIds()).thenReturn(new int[0]);
         when(mGestureState.getLastStartedTaskIds()).thenReturn(new int[1]);
         when(mGestureState.getHomeIntent()).thenReturn(new Intent(Intent.ACTION_MAIN)
                 .addCategory(Intent.CATEGORY_HOME)
                 .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         doReturn(mActivityInterface).when(mGestureState).getContainerInterface();
+        when(mGestureState.getDisplayId()).thenAnswer(invocation -> mDisplayId);
     }
 
     @Before
@@ -240,7 +241,7 @@ public abstract class AbsSwipeUpHandlerTestCase<
 
     @Before
     public void setUpRecentsContainer() {
-        mTaskAnimationManager = spy(new TaskAnimationManager(mContext, DEFAULT_DISPLAY));
+        mTaskAnimationManager = spy(new TaskAnimationManager(mContext, mDisplayId));
         RECENTS_CONTAINER recentsContainer = getRecentsContainer();
         RECENTS_VIEW recentsView = getRecentsView();
 
@@ -317,6 +318,52 @@ public abstract class AbsSwipeUpHandlerTestCase<
             verify(mRecentsAnimationController).detachNavigationBarFromApp(true);
             verifyRecentsAnimationFinishedAndCallCallback();
         });
+    }
+
+    @Test
+    public void testRejectHomeGesture_finishesCorrectly() {
+        createSwipeUpHandlerForGesture(GestureState.GestureEndTarget.REJECT_HOME);
+
+        runOnMainSync(() -> {
+            verify(mRecentsAnimationController, never()).detachNavigationBarFromApp(anyBoolean());
+            verify(mRecentsAnimationController, never()).handOffAnimation(any(), any());
+            verifyRecentsAnimationFinishedAndCallCallback();
+            assertEquals("Scroll offset should be 0 after animation to REJECT_HOME is done",
+                    0, getRecentsView().getScrollOffset());
+        });
+    }
+
+    @Test
+    @EnableFlags({com.android.window.flags.Flags.FLAG_ENABLE_REJECT_HOME_TRANSITION})
+    public void getHomeTarget_onSecondaryDisplay_withFlagEnabled() {
+        mDisplayId = DEFAULT_DISPLAY + 1; // Simulate a secondary display
+        SWIPE_HANDLER handler = createSwipeHandler();
+
+        GestureState.GestureEndTarget target = handler.getHomeTarget();
+        assertEquals("Expected REJECT_HOME on secondary display when reject home is enabled",
+                GestureState.GestureEndTarget.REJECT_HOME, target);
+    }
+
+    @Test
+    @EnableFlags({com.android.window.flags.Flags.FLAG_ENABLE_REJECT_HOME_TRANSITION})
+    public void getHomeTarget_onDefaultDisplay_withFlagEnabled() {
+        mDisplayId = DEFAULT_DISPLAY;
+        SWIPE_HANDLER handler = createSwipeHandler();
+
+        GestureState.GestureEndTarget target = handler.getHomeTarget();
+        assertEquals("Expected HOME on default display",
+                GestureState.GestureEndTarget.HOME, target);
+    }
+
+    @Test
+    @DisableFlags({com.android.window.flags.Flags.FLAG_ENABLE_REJECT_HOME_TRANSITION})
+    public void getHomeTarget_onSecondaryDisplay_withFlagDisabled() {
+        mDisplayId = DEFAULT_DISPLAY + 1; // Simulate a secondary display
+        SWIPE_HANDLER handler = createSwipeHandler();
+
+        GestureState.GestureEndTarget target = handler.getHomeTarget();
+        assertEquals("Expected HOME on secondary display when reject home is disabled",
+                GestureState.GestureEndTarget.HOME, target);
     }
 
     @EnableFlags({Flags.FLAG_RETURN_ANIMATION_FRAMEWORK_LIBRARY,
@@ -504,4 +551,12 @@ public abstract class AbsSwipeUpHandlerTestCase<
 
     @NonNull
     protected abstract STATE_TYPE getBaseState();
+
+    protected TopTaskTracker.CachedTaskInfo getTaskInfo() {
+        return new TopTaskTracker.CachedTaskInfo(
+                    Collections.singletonList(mRunningTaskInfo),
+                    mContext,
+                    mDisplayId,
+                    INACTIVE_DESK_ID);
+    }
 }
