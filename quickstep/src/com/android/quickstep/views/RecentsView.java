@@ -1947,7 +1947,10 @@ public abstract class RecentsView<
             Log.d(TAG, "applyLoadPlan - taskGroups: " + taskGroups.stream().map(
                     GroupTask::toString).toList());
         }
-        mLoadPlanEverApplied = true;
+        if (!mLoadPlanEverApplied) {
+            mLoadPlanEverApplied = true;
+            mPageScrolls = null;
+        }
         if (taskGroups == null || taskGroups.isEmpty()) {
             removeAllTaskViews();
             onTaskStackUpdated();

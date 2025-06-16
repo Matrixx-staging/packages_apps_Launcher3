@@ -54,7 +54,11 @@ class ItemInflater<T>(
         WidgetInflater(context, LauncherAppState.getInstance(context).isSafeModeEnabled)
 
     @JvmOverloads
-    fun inflateItem(item: ItemInfo, nullableParent: ViewGroup? = null): View? {
+    fun inflateItem(
+        item: ItemInfo,
+        nullableParent: ViewGroup? = null,
+        container: Int = item.container,
+    ): View? {
         val parent = nullableParent ?: defaultParent
         when (item.itemType) {
             Favorites.ITEM_TYPE_APPLICATION,
@@ -66,11 +70,11 @@ class ItemInflater<T>(
                         is WorkspaceItemInfo -> item
                         else -> return null
                     }
-                if (info.container == Favorites.CONTAINER_ALL_APPS_PREDICTION) {
+                if (container == Favorites.CONTAINER_ALL_APPS_PREDICTION) {
                     // Came from all apps prediction row -- make a copy
                     info = WorkspaceItemInfo(info)
                 }
-                return createShortcut(info, parent)
+                return createShortcut(info, parent, container)
             }
             Favorites.ITEM_TYPE_FOLDER ->
                 return FolderIcon.inflateFolderAndIcon(
@@ -103,10 +107,9 @@ class ItemInflater<T>(
      * @param info The data structure describing the shortcut.
      * @return A View inflated from layoutResId.
      */
-    private fun createShortcut(info: WorkspaceItemInfo, parent: ViewGroup): View {
+    private fun createShortcut(info: WorkspaceItemInfo, parent: ViewGroup, container: Int): View {
         val layout =
-            if (info.container == Favorites.CONTAINER_HOTSEAT_PREDICTION)
-                R.layout.predicted_app_icon
+            if (container == Favorites.CONTAINER_HOTSEAT_PREDICTION) R.layout.predicted_app_icon
             else R.layout.app_icon
         val favorite =
             LayoutInflater.from(parent.context).inflate(layout, parent, false) as BubbleTextView
@@ -114,7 +117,7 @@ class ItemInflater<T>(
         favorite.setOnClickListener(clickListener)
         favorite.onFocusChangeListener = focusListener
 
-        if (info.container == Favorites.CONTAINER_HOTSEAT_PREDICTION) favorite.verifyHighRes()
+        if (container == Favorites.CONTAINER_HOTSEAT_PREDICTION) favorite.verifyHighRes()
         return favorite
     }
 
