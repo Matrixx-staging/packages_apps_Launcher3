@@ -81,7 +81,6 @@ import com.android.quickstep.fallback.RecentsState
 import com.android.quickstep.fallback.RecentsState.BACKGROUND_APP
 import com.android.quickstep.fallback.RecentsState.BG_LAUNCHER
 import com.android.quickstep.fallback.RecentsState.DEFAULT
-import com.android.quickstep.fallback.RecentsState.HOME
 import com.android.quickstep.fallback.RecentsState.MODAL_TASK
 import com.android.quickstep.fallback.RecentsState.OVERVIEW_SPLIT_SELECT
 import com.android.quickstep.fallback.toLauncherStateOrdinal
@@ -304,7 +303,8 @@ constructor(
                 actionsView?.apply {
                     updateDimension(getDeviceProfile(), recentsView?.lastComputedTaskSize)
                     updateVerticalMargin(
-                        DisplayController.getNavigationMode(this@RecentsWindowManager))
+                        DisplayController.getNavigationMode(this@RecentsWindowManager)
+                    )
                 }
                 scrimView = it.findViewById(R.id.scrim_view)
                 dragLayer = it.findViewById(R.id.drag_layer)
@@ -314,8 +314,8 @@ constructor(
 
                 it.systemUiVisibility =
                     (View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
+                        View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                        View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
 
                 windowRootView.addView(it)
             }
@@ -499,7 +499,7 @@ constructor(
             stateManager.goToState(DEFAULT, true)
             true
         } else if (isInState(DEFAULT)) {
-            stateManager.goToState(HOME, true)
+            startHome()
             true
         } else {
             super<RecentsWindowContext>.onRootViewDispatchKeyEvent(event)
