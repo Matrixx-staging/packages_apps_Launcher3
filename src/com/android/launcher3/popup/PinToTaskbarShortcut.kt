@@ -28,6 +28,7 @@ import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
 import com.android.launcher3.R
 import com.android.launcher3.Workspace.mapOverCellLayouts
 import com.android.launcher3.model.BgDataModel
+import com.android.launcher3.model.ModelWriter
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.popup.SystemShortcut.Factory
@@ -95,18 +96,78 @@ constructor(
         val dp: DeviceProfile = mTarget.deviceProfile
         var targetIdx = -1
 
-        for (i in 0 until dp.numShownHotseatIcons) {
+        // Reorder the hotseat only if we can't find a space that is to the right of all other
+        // items.
+        if (mPinnedInfoList[dp.numShownHotseatIcons - 1] != null) {
+            compactHotseatItems(writer)
+        }
+
+        // Find the first available space that has larger index than all other items.
+        for (i in dp.numShownHotseatIcons - 1 downTo 0) {
             if (mPinnedInfoList[i] == null) {
                 targetIdx = i
+            } else {
                 break
             }
         }
 
-        val cellX = if (dp.isVerticalBarLayout()) 0 else targetIdx
-        val cellY = if (dp.isVerticalBarLayout()) (dp.numShownHotseatIcons - (targetIdx + 1)) else 0
+        val (cellX, cellY) = getCellCoordinates(targetIdx)
 
         writer.addItemToDatabase(newInfo, CONTAINER_HOTSEAT, mItemInfo.screenId, cellX, cellY)
         mOnClickCallback?.run()
+    }
+
+    /**
+     * Moves all the hotseat items to the front so that spaces that don't have a pinned item will be
+     * at the end of the hotseat. This can ensure that the newly pinned app will be appended to the
+     * end of the hotseat/taskbar.
+     */
+    private fun compactHotseatItems(writer: ModelWriter) {
+        if (mIsPin && mPinnedInfoList.size() > 0) {
+            val dp: DeviceProfile = mTarget!!.deviceProfile
+            val nonNullItems = mutableListOf<ItemInfo>()
+            // Collect existing non-null items in their current order (based on SparseArray keys)
+            for (i in 0 until dp.numShownHotseatIcons) {
+                mPinnedInfoList.get(i)?.let { nonNullItems.add(it) }
+            }
+            // Update database for moved items
+            for (newScreenId in nonNullItems.indices) {
+                val itemToUpdate = nonNullItems[newScreenId]
+
+                // Calculate new cellX, cellY based on newScreenId
+                val (newCellX, newCellY) = getCellCoordinates(newScreenId)
+
+                if (
+                    itemToUpdate.screenId != newScreenId ||
+                        itemToUpdate.cellX != newCellX ||
+                        itemToUpdate.cellY != newCellY
+                ) {
+                    itemToUpdate.screenId = newScreenId
+                    itemToUpdate.cellX = newCellX
+                    itemToUpdate.cellY = newCellY
+                    // container remains CONTAINER_HOTSEAT
+                    writer.updateItemInDatabase(itemToUpdate)
+                }
+            }
+
+            // Update the mPinnedInfoList in memory to reflect the new state
+            mPinnedInfoList.clear()
+            for (i in nonNullItems.indices) {
+                mPinnedInfoList.put(i, nonNullItems[i])
+            }
+            for (i in nonNullItems.size until dp.numShownHotseatIcons) {
+                mPinnedInfoList.put(i, null)
+            }
+        }
+    }
+
+    /** This should be the same as how Hotseat calculates cellX and cellY from a rank. */
+    private fun getCellCoordinates(targetIdx: Int): Pair<Int, Int> {
+        val dp: DeviceProfile = mTarget!!.deviceProfile
+        val cellX = if (dp.isVerticalBarLayout) 0 else targetIdx
+        val cellY = if (dp.isVerticalBarLayout) (dp.numShownHotseatIcons - (targetIdx + 1)) else 0
+
+        return Pair(cellX, cellY)
     }
 
     companion object {
