@@ -716,11 +716,11 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
             return;
         }
         AnimatorSet focusAnimation = new AnimatorSet();
-        focusAnimation.play(focusedTask.getFocusAnimator(true));
+        focusedTask.addFocusAnimation(true, focusAnimation);
 
         KeyboardQuickSwitchTaskView previouslyFocusedTask = getTaskAt(fromIndex);
         if (previouslyFocusedTask != null) {
-            focusAnimation.play(previouslyFocusedTask.getFocusAnimator(false));
+            previouslyFocusedTask.addFocusAnimation(false, focusAnimation);
         }
 
         focusAnimation.addListener(new AnimatorListenerAdapter() {
