@@ -51,10 +51,10 @@ class PopupDataSource {
     // Popup data for remove shortcut.
     val removePopupData =
         PopupData(
-            R.drawable.ic_remove_no_shadow,
-            R.string.remove_drop_target_label,
-            handleRemove,
-            PopupCategory.SYSTEM_SHORTCUT_FIXED,
+            iconResId = R.drawable.ic_remove_no_shadow,
+            labelResId = R.string.remove_drop_target_label,
+            popupAction = handleRemove,
+            category = PopupCategory.SYSTEM_SHORTCUT_FIXED,
         )
 
     // Handles action from tapping widget settings.
@@ -69,10 +69,10 @@ class PopupDataSource {
     // Popup data for widget settings shortcut.
     val widgetSettingsPopupData =
         PopupData(
-            R.drawable.ic_setting,
-            R.string.widget_settings,
-            handleWidgetSettings,
-            PopupCategory.SYSTEM_SHORTCUT_FIXED,
+            iconResId = R.drawable.ic_setting,
+            labelResId = R.string.widget_settings,
+            popupAction = handleWidgetSettings,
+            category = PopupCategory.SYSTEM_SHORTCUT_FIXED,
         )
 
     // Handles action from tapping widgets shortcut.
@@ -94,11 +94,12 @@ class PopupDataSource {
     // Popup data for widgets shortcut.
     val widgetsPopupData =
         PopupData(
-            if (Flags.enableLauncherVisualRefresh()) R.drawable.widgets_24px
-            else R.drawable.ic_widget,
-            R.string.widget_button_text,
-            handleWidgets,
-            PopupCategory.SYSTEM_SHORTCUT_FIXED,
+            iconResId =
+                if (Flags.enableLauncherVisualRefresh()) R.drawable.widgets_24px
+                else R.drawable.ic_widget,
+            labelResId = R.string.widget_button_text,
+            popupAction = handleWidgets,
+            category = PopupCategory.SYSTEM_SHORTCUT_FIXED,
         )
 
     // Handle action from tapping app info shortcut.
@@ -125,11 +126,12 @@ class PopupDataSource {
     // Popup data for app info shortcut.
     val appInfoPopupData =
         PopupData(
-            if (Flags.enableLauncherVisualRefresh()) R.drawable.info_24px
-            else R.drawable.ic_info_no_shadow,
-            R.string.app_info_drop_target_label,
-            handleAppInfo,
-            PopupCategory.SYSTEM_SHORTCUT,
+            iconResId =
+                if (Flags.enableLauncherVisualRefresh()) R.drawable.info_24px
+                else R.drawable.ic_info_no_shadow,
+            labelResId = R.string.app_info_drop_target_label,
+            popupAction = handleAppInfo,
+            category = PopupCategory.SYSTEM_SHORTCUT,
         )
 
     // Handle action from tapping private profile install shortcut.
@@ -153,10 +155,10 @@ class PopupDataSource {
     // Popup data for private profile install shortcut.
     val privateProfileInstallPopupData =
         PopupData(
-            R.drawable.ic_remove_no_shadow,
-            R.string.remove_drop_target_label,
-            handlePrivateProfileInstall,
-            PopupCategory.SYSTEM_SHORTCUT,
+            iconResId = R.drawable.ic_remove_no_shadow,
+            labelResId = R.string.remove_drop_target_label,
+            popupAction = handlePrivateProfileInstall,
+            category = PopupCategory.SYSTEM_SHORTCUT,
         )
 
     // Handles action from tapping install shortcut.
@@ -174,10 +176,10 @@ class PopupDataSource {
     // Popup data for install shortcut.
     val installPopupData =
         PopupData(
-            R.drawable.ic_install_no_shadow,
-            R.string.install_drop_target_label,
-            handleInstall,
-            PopupCategory.SYSTEM_SHORTCUT,
+            iconResId = R.drawable.ic_install_no_shadow,
+            labelResId = R.string.install_drop_target_label,
+            popupAction = handleInstall,
+            category = PopupCategory.SYSTEM_SHORTCUT,
         )
 
     // Handles action from tapping "don't suggest app" shortcut.
@@ -207,10 +209,10 @@ class PopupDataSource {
     // Popup data the "don't suggest app" shortcut.
     val dontSuggestAppPopupData =
         PopupData(
-            R.drawable.ic_block_no_shadow,
-            R.string.dismiss_prediction_label,
-            handleDontSuggestApp,
-            PopupCategory.SYSTEM_SHORTCUT,
+            iconResId = R.drawable.ic_block_no_shadow,
+            labelResId = R.string.dismiss_prediction_label,
+            popupAction = handleDontSuggestApp,
+            category = PopupCategory.SYSTEM_SHORTCUT,
         )
 
     // Handles action when tapping uninstall app shortcut.
@@ -228,10 +230,10 @@ class PopupDataSource {
     // Popup data for uninstall app shortcut.
     val uninstallAppPopupData =
         PopupData(
-            R.drawable.ic_uninstall_no_shadow,
-            R.string.uninstall_private_system_shortcut_label,
-            handleUninstallApp,
-            PopupCategory.SYSTEM_SHORTCUT,
+            iconResId = R.drawable.ic_uninstall_no_shadow,
+            labelResId = R.string.uninstall_private_system_shortcut_label,
+            popupAction = handleUninstallApp,
+            category = PopupCategory.SYSTEM_SHORTCUT,
         )
 
     // Handles action when tapping bubble shortcut.
@@ -269,10 +271,10 @@ class PopupDataSource {
     // Popup data for bubble shortcut
     val bubblePopupData =
         PopupData(
-            R.drawable.ic_bubble_button,
-            R.string.bubble,
-            handleBubbleShortcut,
-            PopupCategory.SYSTEM_SHORTCUT,
+            iconResId = R.drawable.ic_bubble_button,
+            labelResId = R.string.bubble,
+            popupAction = handleBubbleShortcut,
+            category = PopupCategory.SYSTEM_SHORTCUT,
         )
 
     private fun dismissTaskMenuView(activityContext: ActivityContext) {
