@@ -28,6 +28,7 @@ import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.launcher3.BubbleTextView;
@@ -41,6 +42,9 @@ import com.android.launcher3.dragndrop.DraggableView;
 import com.android.launcher3.icons.IconCache;
 import com.android.launcher3.model.data.AppPairInfo;
 import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.popup.Poppable;
+import com.android.launcher3.popup.PoppableType;
+import com.android.launcher3.popup.PopupController;
 import com.android.launcher3.util.MultiTranslateDelegate;
 import com.android.launcher3.views.ActivityContext;
 
@@ -53,7 +57,7 @@ import java.util.function.Predicate;
  * The app pair icon is two parallel background rectangles with rounded corners. Icons of the two
  * member apps are set into these rectangles.
  */
-public class AppPairIcon extends FrameLayout implements DraggableView, Reorderable {
+public class AppPairIcon extends FrameLayout implements DraggableView, Reorderable, Poppable {
     private static final String TAG = "AppPairIcon";
 
     // The duration of the scaling animation on hover enter/exit.
@@ -89,6 +93,7 @@ public class AppPairIcon extends FrameLayout implements DraggableView, Reorderab
     // Required for Reorderable -- handles translation and bouncing movements
     private final MultiTranslateDelegate mTranslateDelegate = new MultiTranslateDelegate(this);
     private float mScaleForReorderBounce = 1f;
+    private PopupController mPopupController;
 
     public AppPairIcon(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -282,5 +287,22 @@ public class AppPairIcon extends FrameLayout implements DraggableView, Reorderab
                         hovered ? HOVER_SCALE_MAX : HOVER_SCALE_DEFAULT)
                 .setDuration(HOVER_SCALE_DURATION)
                 .start();
+    }
+
+    @Nullable
+    @Override
+    public PopupController getPopupController() {
+        return mPopupController;
+    }
+
+    @Override
+    public void setPopupController(@NonNull PopupController popupController) {
+        mPopupController = popupController;
+    }
+
+    @NonNull
+    @Override
+    public PoppableType getPoppableType() {
+        return PoppableType.APP_PAIR;
     }
 }
