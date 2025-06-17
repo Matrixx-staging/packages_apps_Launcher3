@@ -387,6 +387,18 @@ public class HotseatPredictionController implements DragController.DragListener,
         fillGapsWithPrediction(true);
     }
 
+    /**
+     * Called when an item is pinned using the context menu.
+     * This action directly refreshes all predicted apps without animations to ensure the
+     * predictions are updated with the newly pinned item.
+     */
+    public void onItemPinnedFromContextMenu() {
+        for (PredictedAppIcon icon : getPredictedIcons()) {
+            removeIconWithoutNotify(icon);
+        }
+        fillGapsWithPrediction();
+    }
+
     @Nullable
     @Override
     public SystemShortcut<QuickstepLauncher> getShortcut(QuickstepLauncher activity,

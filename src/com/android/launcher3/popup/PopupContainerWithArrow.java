@@ -212,8 +212,10 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
                 .map(s -> s.getShortcut(launcher, item, icon))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+
         container = (PopupContainerWithArrow) launcher.getLayoutInflater().inflate(
                 R.layout.popup_container, launcher.getDragLayer(), false);
+
         container.configureForLauncher(launcher, item);
         boolean shouldHideSystemShortcuts = enableMovingContentIntoPrivateSpace()
                 && Objects.equals(item.getTargetPackage(), PRIVATE_SPACE_PACKAGE);
