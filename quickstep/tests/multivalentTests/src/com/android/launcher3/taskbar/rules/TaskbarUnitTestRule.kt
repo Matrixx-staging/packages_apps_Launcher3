@@ -19,6 +19,7 @@ package com.android.launcher3.taskbar.rules
 import android.app.Instrumentation
 import android.app.PendingIntent
 import android.content.IIntentSender
+import android.os.UserManager
 import android.provider.Settings.Secure.NAV_BAR_KIDS_MODE
 import android.provider.Settings.Secure.USER_SETUP_COMPLETE
 import android.provider.Settings.Secure.getUriFor
@@ -46,9 +47,11 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.spy
+import org.mockito.kotlin.stub
 import org.mockito.kotlin.whenever
 
 /**
@@ -125,6 +128,13 @@ class TaskbarUnitTestRule(
                 doNothing()
                     .whenever(quickstepKeyGestureEventsManagerSpy)
                     .unregisterOverviewKeyGestureEvent()
+
+                val isUserUnlocked = description.getAnnotation(UserLocked::class.java) == null
+                context.base.spyService(UserManager::class.java).stub {
+                    on { isUserUnlocked(any<Int>()) } doAnswer { isUserUnlocked }
+                    on { isUserUnlockingOrUnlocked(any<Int>()) } doAnswer { isUserUnlocked }
+                }
+
                 taskbarManager =
                     TestUtil.getOnUiThread {
                         object :
@@ -145,24 +155,12 @@ class TaskbarUnitTestRule(
                             ) {
                             override fun recreateTaskbars() {
                                 super.recreateTaskbars()
-                                if (currentActivityContext != null) {
-                                    injectControllers()
-                                    // TODO(b/346394875): we should test a non-default uiController.
-                                    activityContext.setUIController(TaskbarUIController.DEFAULT)
-                                    controllerInjectionCallback.invoke()
-                                }
+                                injectControllers()
                             }
 
                             override fun recreateTaskbarForDisplay(displayId: Int, duration: Int) {
                                 super.recreateTaskbarForDisplay(displayId, duration)
-                                if (
-                                    displayId == context.displayId && currentActivityContext != null
-                                ) {
-                                    injectControllers()
-                                    // TODO(b/346394875): we should test a non-default uiController.
-                                    activityContext.setUIController(TaskbarUIController.DEFAULT)
-                                    controllerInjectionCallback.invoke()
-                                }
+                                if (displayId == context.displayId) injectControllers()
                             }
                         }
                     }
@@ -179,9 +177,7 @@ class TaskbarUnitTestRule(
                 }
 
                 try {
-                    // Required to complete initialization.
-                    instrumentation.runOnMainSync { taskbarManager.onUserUnlocked() }
-
+                    if (isUserUnlocked) unlockUser()
                     base.evaluate()
                 } finally {
                     instrumentation.runOnMainSync { taskbarManager.destroy() }
@@ -194,7 +190,13 @@ class TaskbarUnitTestRule(
     /** Simulates Taskbar recreation lifecycle. */
     fun recreateTaskbar() = instrumentation.runOnMainSync { taskbarManager.recreateTaskbars() }
 
-    private fun injectControllers() {
+    /** Simulates unlocking the user for the first time. */
+    fun unlockUser() = instrumentation.runOnMainSync { taskbarManager.onUserUnlocked() }
+
+    // Don't use TaskbarManager property, because the function can be called before initialization.
+    private fun TaskbarManagerImpl.injectControllers() {
+        val activityContext = currentActivityContext ?: return
+
         val bubbleControllerTypes =
             BubbleControllers::class.java.fields.map { f ->
                 if (f.type == Optional::class.java) {
@@ -216,6 +218,10 @@ class TaskbarUnitTestRule(
                     }
                 injectController(it, testInstance, controllers)
             }
+
+        // TODO(b/346394875): we should test a non-default uiController.
+        activityContext.setUIController(TaskbarUIController.DEFAULT)
+        controllerInjectionCallback.invoke()
     }
 
     private fun injectController(field: Field, testInstance: Any, controllers: Any) {
@@ -253,6 +259,11 @@ class TaskbarUnitTestRule(
     @Retention(AnnotationRetention.RUNTIME)
     @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
     annotation class ForceRtl
+
+    /** Simulate direct boot for tests, where the user is still locked. */
+    @Retention(AnnotationRetention.RUNTIME)
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+    annotation class UserLocked
 }
 
 private val RTL_LOCALE = Locale.of("ar", "XB")
