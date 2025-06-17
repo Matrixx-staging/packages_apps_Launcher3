@@ -38,6 +38,7 @@ public class AbstractTaplTestsTaskbar extends AbstractQuickStepTest {
 
     protected static final String TEST_APP_PACKAGE =
             getInstrumentation().getContext().getPackageName();
+    protected static final String CALCULATOR_APP_NAME = "Calculator";
     protected static final String CALCULATOR_APP_PACKAGE =
             resolveSystemApp(Intent.CATEGORY_APP_CALCULATOR);
 

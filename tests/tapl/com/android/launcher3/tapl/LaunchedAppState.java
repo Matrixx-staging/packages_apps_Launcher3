@@ -30,10 +30,13 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.SystemClock;
 import android.view.InputDevice;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.ViewConfiguration;
 
 import androidx.annotation.NonNull;
+import androidx.test.uiautomator.By;
+import androidx.test.uiautomator.BySelector;
 import androidx.test.uiautomator.Condition;
 import androidx.test.uiautomator.UiDevice;
 import androidx.test.uiautomator.UiObject2;
@@ -168,6 +171,54 @@ public final class LaunchedAppState extends Background {
             return new Taskbar(mLauncher, TaskbarLocation.LAUNCHED_APP);
         } finally {
             mLauncher.getTestInfo(REQUEST_DISABLE_BLOCK_TIMEOUT);
+        }
+    }
+
+    /**
+     * Uses keyboard shortcut to move focused desktop task to fullscreen.
+     * <p>
+     * Expects that the target activity - identified by the package name and text it contains, is
+     * initially visible, and that the window with desktop mode caption exists.
+     * <p>
+     * After keyboard shortcut is triggered, verifies that desktop mode caption disappears, and the
+     * target activity is still visible.
+     *
+     * @param packageName Identifies the package name of the activity expected to be focused.
+     * @param activityText Identifies text content of the activity expected to be focused.
+     */
+    public void moveFocusedActivityToFullscreen(String packageName, String activityText) {
+        BySelector activitySelector = By.pkg(packageName).text(activityText);
+        try (LauncherInstrumentation.Closable c1 = mLauncher.addContextLayer(
+                "Verify test activity active")) {
+            mLauncher.waitForSystemUiObject("desktop_mode_caption");
+            mLauncher.waitForObjectBySelector(activitySelector);
+        }
+
+        try (LauncherInstrumentation.Closable c2 = mLauncher.addContextLayer(
+                "Move focused activity to fullscreen")) {
+            mLauncher.pressAndHoldKeyCode(KeyEvent.KEYCODE_DPAD_UP,
+                    KeyEvent.META_CTRL_ON | KeyEvent.META_META_ON);
+            mLauncher.unpressKeyCode(KeyEvent.KEYCODE_DPAD_UP,
+                    KeyEvent.META_CTRL_ON | KeyEvent.META_META_ON);
+
+            mLauncher.waitUntilSystemUiObjectGone("desktop_mode_caption");
+            mLauncher.waitForObjectBySelector(activitySelector);
+        }
+    }
+
+    /**
+     * Verifies that a desktop mode caption object exists, indicating that desktop mode window is
+     * shown, and that an activity with the provided package name has focus.
+     * @param expectedFocusedPackageName The package name of the activity expected to have focus.
+     */
+    public void assertAppInDesktop(String expectedFocusedPackageName) {
+        try (LauncherInstrumentation.Closable c1 = mLauncher.addContextLayer(
+                "Wait for desktop mode caption")) {
+            mLauncher.waitForSystemUiObject("desktop_mode_caption");
+        }
+        try (LauncherInstrumentation.Closable c2 = mLauncher.addContextLayer(
+                "Verify expected package has focus")) {
+            mLauncher.waitForObjectBySelector(By.pkg(expectedFocusedPackageName).focused(true));
         }
     }
 
