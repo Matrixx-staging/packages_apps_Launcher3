@@ -632,11 +632,18 @@ public class BubbleBarController extends IBubblesListener.Stub {
                 });
     }
 
+    //TODO(b/411505605) remove this code
     @Override
     public void showBubbleBarPillowAt(@Nullable BubbleBarLocation location) {
         MAIN_EXECUTOR.execute(
                 () -> mDragToBubbleController.showShellBubbleBarDropTargetAt(location));
     }
+
+    @Override
+    public void showBubbleBarDropTargetAt(@Nullable BubbleBarLocation location) {
+        //TODO(b/411505605) implement
+    }
+
 
     /** Notifies WMShell to show the expanded view. */
     void showExpandedView() {
