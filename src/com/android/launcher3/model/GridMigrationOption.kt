@@ -38,7 +38,10 @@ sealed class GridMigrationOption(val columns: Int, val rows: Int) {
      * @return a boolean that lets us know whether we can migrate from source to destination.
      */
     fun canMigrate(destGridMigrationOption: GridMigrationOption, isAfterRestore: Boolean): Boolean {
-        return validDestinations.contains(destGridMigrationOption) && !isAfterRestore
+        // We check if the destination grid is a valid destination for the current grid, or if
+        // we're in a restore scenario, in which case we allow any existing grid as a
+        // destination.
+        return validDestinations.contains(destGridMigrationOption) || isAfterRestore
     }
 
     private val validDestinations: List<GridMigrationOption>

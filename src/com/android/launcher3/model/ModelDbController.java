@@ -369,7 +369,7 @@ public class ModelDbController {
                 gridSizeMigrationLogic.migrateGrid(mContext, srcDeviceState, destDeviceState,
                         mOpenHelper, oldHelper.getWritableDatabase(), isDestNewDb, modelDelegate);
             } else {
-                Log.e(TAG, "Cannot migrate from source: " + srcDeviceState
+                FileLog.e(TAG, "Cannot migrate from source: " + srcDeviceState
                         + " to destination: " + destDeviceState);
             }
         } catch (Exception e) {

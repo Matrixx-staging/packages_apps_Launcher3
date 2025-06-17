@@ -36,8 +36,8 @@ class GridMigrationOptionUnitTest {
             sourceGridMigrationOption != null &&
                 destGridMigrationOption != null &&
                 sourceGridMigrationOption.canMigrate(
-                    destGridMigrationOption, /* isAfterRestore */
-                    false,
+                    destGridMigrationOption,
+                    isAfterRestore = false,
                 )
         ) {
             "Going from 4x5 to 5x5 with isAfterRestore as false caused canMigrate() to return false"
@@ -53,8 +53,8 @@ class GridMigrationOptionUnitTest {
             sourceGridMigrationOption != null &&
                 destGridMigrationOption != null &&
                 sourceGridMigrationOption.canMigrate(
-                    destGridMigrationOption, /* isAfterRestore */
-                    false,
+                    destGridMigrationOption,
+                    isAfterRestore = false,
                 )
         ) {
             "Going from 4x5 to 4x6 with isAfterRestore as false caused canMigrate() to return false"
@@ -89,8 +89,8 @@ class GridMigrationOptionUnitTest {
             sourceGridMigrationOption != null &&
                 destGridMigrationOption != null &&
                 !sourceGridMigrationOption.canMigrate(
-                    destGridMigrationOption, /* isAfterRestore */
-                    false,
+                    destGridMigrationOption,
+                    isAfterRestore = false,
                 )
         ) {
             "Going from 6x5 to 2x2 with isAfterRestore as false caused canMigrate() to return true"
@@ -107,8 +107,8 @@ class GridMigrationOptionUnitTest {
             sourceGridMigrationOption != null &&
                 destGridMigrationOption != null &&
                 sourceGridMigrationOption.canMigrate(
-                    destGridMigrationOption, /* isAfterRestore */
-                    false,
+                    destGridMigrationOption,
+                    isAfterRestore = false,
                 )
         ) {
             "Going from 6x5 to 6x5 with isAfterRestore as false caused canMigrate() to return false"
@@ -117,18 +117,35 @@ class GridMigrationOptionUnitTest {
 
     /* Here we're going from a phone grid to another phone grid and isAfterRestore is true */
     @Test
-    fun canMigrateFrom4x5To4x6AfterRestoreShouldReturnFalse() {
+    fun canMigrateFrom4x5To4x6AfterRestoreShouldReturnTrue() {
         val sourceGridMigrationOption = GridMigrationOption.from(4, 5)
         val destGridMigrationOption = GridMigrationOption.from(4, 6)
         assert(
             sourceGridMigrationOption != null &&
                 destGridMigrationOption != null &&
-                !sourceGridMigrationOption.canMigrate(
-                    destGridMigrationOption, /* isAfterRestore */
-                    true,
+                sourceGridMigrationOption.canMigrate(
+                    destGridMigrationOption,
+                    isAfterRestore = true,
                 )
         ) {
-            "Going from 4x5 to 4x6 with isAfterRestore as true caused canMigrate() to return true"
+            "Going from 4x5 to 4x6 with isAfterRestore as true caused canMigrate() to return false"
+        }
+    }
+
+    /* Here we're going from a phone grid to a tablet grid and isAfterRestore is true */
+    @Test
+    fun canMigrateFrom4x5To6x5NotAfterRestoreShouldReturnFalse() {
+        val sourceGridMigrationOption = GridMigrationOption.from(4, 5)
+        val destGridMigrationOption = GridMigrationOption.from(6, 5)
+        assert(
+            sourceGridMigrationOption != null &&
+                destGridMigrationOption != null &&
+                sourceGridMigrationOption.canMigrate(
+                    destGridMigrationOption,
+                    isAfterRestore = true,
+                )
+        ) {
+            "Going from 4x5 to 6x5 with isAfterRestore as true caused canMigrate() to return false"
         }
     }
 }
