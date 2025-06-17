@@ -17,6 +17,8 @@ package com.android.quickstep;
 
 import static androidx.test.InstrumentationRegistry.getInstrumentation;
 
+import static com.android.launcher3.Flags.enableRecentsInTaskbar;
+
 import static junit.framework.TestCase.assertEquals;
 
 import android.content.Context;
@@ -91,12 +93,15 @@ public class AbstractTaplTestsTaskbar extends AbstractQuickStepTest {
         List<String> taskbarIconNames = taskbar.getIconNames();
         List<String> hotseatIconNames = mLauncher.getHotseatIconNames();
 
-        assertEquals("Taskbar and hotseat icon counts do not match",
-                taskbarIconNames.size(), hotseatIconNames.size());
+        // TODO(b/343522351): Re-enable asserts when recents are on home screen too.
+        if (!enableRecentsInTaskbar()) {
+            assertEquals("Taskbar and hotseat icon counts do not match",
+                    taskbarIconNames.size(), hotseatIconNames.size());
 
-        for (int i = 0; i < taskbarIconNames.size(); i++) {
-            assertEquals("Taskbar and Hotseat icons do not match",
-                    taskbarIconNames, hotseatIconNames);
+            for (int i = 0; i < taskbarIconNames.size(); i++) {
+                assertEquals("Taskbar and Hotseat icons do not match",
+                        taskbarIconNames, hotseatIconNames);
+            }
         }
 
         return taskbar;
