@@ -280,12 +280,12 @@ constructor(
             }
             TOGGLE_OVERVIEW_PREVIOUS -> {
                 val taskView = recentsView.runningTaskView
-                if (taskView == null) {
-                    recentsView.startHome()
+                if (taskView != null) {
+                    launchTask(recentsView, taskView, command, onCallbackResult)
                 } else {
-                    taskView.launchWithAnimation()
+                    recentsView.startHome()
+                    true
                 }
-                true
             }
             HOME -> {
                 recentsView.startHome()
