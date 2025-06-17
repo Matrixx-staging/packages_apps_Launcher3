@@ -19,6 +19,7 @@ package com.android.launcher3.dagger;
 import android.content.Context;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherAppState;
@@ -33,6 +34,7 @@ import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.icons.LauncherIcons.IconPool;
 import com.android.launcher3.logging.DumpManager;
 import com.android.launcher3.logging.StatsLogManager;
+import com.android.launcher3.model.GridSizeMigrationLogic;
 import com.android.launcher3.model.ItemInstallQueue;
 import com.android.launcher3.model.LoaderCursor.LoaderCursorFactory;
 import com.android.launcher3.pm.InstallSessionHelper;
@@ -108,6 +110,8 @@ public interface LauncherBaseAppComponent {
     WidgetSizeHandler getWidgetSizeHandler();
     MainProcessInitializer getMainProcessInitializer();
 
+    @VisibleForTesting
+    GridSizeMigrationLogic createNewGridSizeMigrationLogic();
 
     /** Builder for LauncherBaseAppComponent. */
     interface Builder {

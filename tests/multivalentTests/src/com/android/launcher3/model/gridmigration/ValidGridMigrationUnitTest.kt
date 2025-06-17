@@ -29,10 +29,10 @@ import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherSettings.Favorites
 import com.android.launcher3.celllayout.testgenerator.ValidGridMigrationTestCaseGenerator
 import com.android.launcher3.celllayout.testgenerator.generateItemsForTest
+import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
 import com.android.launcher3.model.DatabaseHelper
 import com.android.launcher3.model.DeviceGridState
 import com.android.launcher3.model.GridSizeMigrationDBController
-import com.android.launcher3.model.GridSizeMigrationLogic
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.provider.LauncherDbUtils
 import com.android.launcher3.util.rule.TestStabilityRule
@@ -139,7 +139,7 @@ class ValidGridMigrationUnitTest {
         addItemsToDb(dbHelper.writableDatabase, dstGrid)
 
         LauncherDbUtils.SQLiteTransaction(dbHelper.writableDatabase).use {
-            val gridSizeMigrationLogic = GridSizeMigrationLogic()
+            val gridSizeMigrationLogic = context.appComponent.createNewGridSizeMigrationLogic()
             val idsInUse = mutableListOf<Int>()
             gridSizeMigrationLogic.migrateHotseat(
                 srcGrid.size.x,

@@ -33,6 +33,7 @@ import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
 import com.android.launcher3.dagger.LauncherConcurrencyModule
+import com.android.launcher3.dagger.LauncherModelModule
 import com.android.launcher3.dagger.PerDisplayModule
 import com.android.launcher3.dagger.PluginManagerWrapperModule
 import com.android.launcher3.dagger.StaticObjectModule
@@ -167,6 +168,7 @@ constructor(
                 LauncherExecutorsModule::class,
                 NoOpWidgetPickerModule::class,
                 DesktopStateModule::class,
+                LauncherModelModule::class,
             ]
     )
     interface PreviewAppComponent : LauncherAppComponent {

@@ -111,7 +111,7 @@ class GridSizeMigrationTest {
         idp.numRows = 4
         val srcReader = DbReader(db, TMP_TABLE, context)
         val destReader = DbReader(db, TABLE_NAME, context)
-        val gridSizeMigrationLogic = GridSizeMigrationLogic()
+        var gridSizeMigrationLogic = context.appComponent.createNewGridSizeMigrationLogic()
         val idsInUse = mutableListOf<Int>()
         gridSizeMigrationLogic.migrateHotseat(
             5,
@@ -598,7 +598,7 @@ class GridSizeMigrationTest {
         pointX: Int,
         pointY: Int,
     ) {
-        val gridSizeMigrationLogic = GridSizeMigrationLogic()
+        var gridSizeMigrationLogic = context.appComponent.createNewGridSizeMigrationLogic()
         val idsInUse = mutableListOf<Int>()
         gridSizeMigrationLogic.migrateHotseat(
             srcHotseatSize,

@@ -36,6 +36,7 @@ import dagger.Module;
             LauncherExecutorsModule.class,
             LauncherWidgetPickerModule.class,
             DesktopStateModule.class,
+            LauncherModelModule.class
         },
         subcomponents = ActivityContextComponent.class)
 public class LauncherAppModule { }
