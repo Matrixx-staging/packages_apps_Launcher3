@@ -39,6 +39,7 @@ import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.statehandlers.DepthController;
 import com.android.launcher3.statemanager.BaseState;
 import com.android.launcher3.statemanager.StatefulActivity;
+import com.android.launcher3.statemanager.StatefulContainer;
 import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.NavigationMode;
@@ -109,7 +110,7 @@ public abstract class BaseActivityInterface<STATE_TYPE extends BaseState<STATE_T
         recentsView.switchToScreenshot(thumbnailDatas, runnable);
     }
 
-    class DefaultAnimationFactory implements AnimationFactory {
+    class DefaultAnimationFactory implements AnimationFactory<STATE_TYPE, ACTIVITY_TYPE> {
 
         protected final ACTIVITY_TYPE mActivity;
         private final STATE_TYPE mStartState;
@@ -166,56 +167,16 @@ public abstract class BaseActivityInterface<STATE_TYPE extends BaseState<STATE_T
         }
 
         @Override
-        public void setRecentsAttachedToAppWindow(
-                boolean attached, boolean animate, boolean updateRunningTaskAlpha) {
-            if (mIsAttachedToWindow == attached && animate) {
-                return;
+        public ACTIVITY_TYPE getContainer() {
+            return mActivity;
+        }
+
+        @Override
+        public void onAttachedToWindowStateUpdated(boolean isAttachedToWindow) {
+            mIsAttachedToWindow = isAttachedToWindow;
+            if (isAttachedToWindow) {
+                mHasEverAttachedToWindow = true;
             }
-            mActivity.getStateManager()
-                    .cancelStateElementAnimation(INDEX_RECENTS_FADE_ANIM);
-            mActivity.getStateManager()
-                    .cancelStateElementAnimation(INDEX_RECENTS_TRANSLATE_X_ANIM);
-            if (updateRunningTaskAlpha) {
-                mActivity.getStateManager()
-                        .cancelStateElementAnimation(INDEX_RECENTS_ATTACHED_ALPHA_ANIM);
-            }
-
-            AnimatorSet animatorSet = new AnimatorSet();
-            animatorSet.addListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationStart(Animator animation) {
-                    super.onAnimationStart(animation);
-                    mIsAttachedToWindow = attached;
-                    if (attached) {
-                        mHasEverAttachedToWindow = true;
-                    }
-                }});
-
-            long animationDuration = animate ? RECENTS_ATTACH_DURATION : 0;
-            Animator fadeAnim = mActivity.getStateManager()
-                    .createStateElementAnimation(INDEX_RECENTS_FADE_ANIM, attached ? 1f : 0f);
-            fadeAnim.setInterpolator(attached ? INSTANT : ACCELERATE_2);
-            fadeAnim.setDuration(animationDuration);
-            animatorSet.play(fadeAnim);
-
-            float fromTranslation = ADJACENT_PAGE_HORIZONTAL_OFFSET.get(
-                    mActivity.getOverviewPanel());
-            float toTranslation = attached ? 0f : 1f;
-            Animator translationAnimator = mActivity.getStateManager().createStateElementAnimation(
-                    INDEX_RECENTS_TRANSLATE_X_ANIM, fromTranslation, toTranslation);
-            translationAnimator.setDuration(animationDuration);
-            animatorSet.play(translationAnimator);
-
-            if (updateRunningTaskAlpha) {
-                float fromAlpha = RUNNING_TASK_ATTACH_ALPHA.get(mActivity.getOverviewPanel());
-                float toAlpha = attached ? 1f : 0f;
-                Animator runningTaskAttachAlphaAnimator = mActivity.getStateManager()
-                        .createStateElementAnimation(
-                                INDEX_RECENTS_ATTACHED_ALPHA_ANIM, fromAlpha, toAlpha);
-                runningTaskAttachAlphaAnimator.setDuration(animationDuration);
-                animatorSet.play(runningTaskAttachAlphaAnimator);
-            }
-            animatorSet.start();
         }
 
         @Override
