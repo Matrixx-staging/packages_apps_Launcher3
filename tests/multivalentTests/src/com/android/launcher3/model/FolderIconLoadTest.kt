@@ -27,11 +27,11 @@ import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.util.Executors
 import com.android.launcher3.util.LauncherLayoutBuilder
 import com.android.launcher3.util.LauncherModelHelper.*
+import com.android.launcher3.util.LayoutResource
 import com.android.launcher3.util.ModelTestExtensions.bgDataModel
 import com.android.launcher3.util.ModelTestExtensions.loadModelSync
 import com.android.launcher3.util.SandboxApplication
 import com.android.launcher3.util.TestUtil
-import com.android.launcher3.util.rule.LayoutProviderRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import org.junit.After
@@ -45,7 +45,7 @@ import org.junit.runner.RunWith
 class FolderIconLoadTest {
 
     @get:Rule val context = SandboxApplication()
-    @get:Rule val layoutProvider = LayoutProviderRule(context)
+    @get:Rule val layoutResource = LayoutResource(context)
 
     private val uniqueActivities =
         listOf(
@@ -141,9 +141,7 @@ class FolderIconLoadTest {
                     for (i in 0..itemCount - 1) this.addApp(TEST_PACKAGE, uniqueActivities[i])
                 }
                 .build()
-
-        layoutProvider.setupDefaultLayoutProvider(builder)
-        app.model.loadModelSync()
+        layoutResource.set(builder)
 
         // The first load initializes the DB, load again so that icons are now used from the DB
         // Wait for the icon cache to be updated and then reload

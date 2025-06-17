@@ -43,6 +43,7 @@ import com.android.launcher3.util.Executors.ORDERED_BG_EXECUTOR
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CountDownLatch
 
 object LayoutImportExportHelper {
     fun exportModelDbAsXmlFuture(context: Context): CompletableFuture<String> {
@@ -77,6 +78,21 @@ object LayoutImportExportHelper {
         importModelFromXml(context, xmlString.toByteArray(StandardCharsets.UTF_8))
     }
 
+    /**
+     * The provided XML will be loaded into the launcher's data model via the AutoInstallLayout
+     * mechanism that runs the first time the Launcher is setup. We simulate those conditions by
+     * deleting the launcher's db first, which queries the "default launcher layout" from secure
+     * settings.
+     *
+     * This method is long-lasting and synchronous. It also has the potential to block multiple
+     * threads. This is acceptable because this method is only expected to be called when the user
+     * is not interacting with a launcher, and another operation is waiting on this to completely
+     * finish to begin. Current usages (June 2025) is cross OEM backup - restore and launcher test
+     * setup, both which happen when the launcher is unavailable.
+     *
+     * Internally, LauncherModel.rebindCallbacks() is called to load the updated data into in-memory
+     * data model. This will short-circuit (and not load the new data) if called without callbacks.
+     */
     fun importModelFromXml(context: Context, data: ByteArray) {
         val model = LauncherAppState.getInstance(context).model
 
@@ -85,6 +101,7 @@ object LayoutImportExportHelper {
         val blobManager = context.getSystemService(BlobStoreManager::class.java)!!
 
         val resolver = context.contentResolver
+        val syncLatch = CountDownLatch(1)
 
         blobManager.openSession(blobManager.createSession(handle)).use { session ->
             AutoCloseOutputStream(session.openWrite(0, -1)).use { it.write(data) }
@@ -97,8 +114,10 @@ object LayoutImportExportHelper {
                 MAIN_EXECUTOR.submit { model.forceReload() }.get()
                 MODEL_EXECUTOR.submit {}.get()
                 Secure.putString(resolver, LAYOUT_PROVIDER_KEY, null)
+                syncLatch.countDown()
             }
         }
+        syncLatch.await()
     }
 
     private fun LauncherLayoutBuilder.ItemTarget.addItem(context: Context, info: ItemInfo) {
