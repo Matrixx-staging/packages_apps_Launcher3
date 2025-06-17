@@ -16,6 +16,8 @@
 
 package com.android.launcher3.popup
 
+import android.view.View
+import com.android.launcher3.LauncherSettings
 import com.android.launcher3.model.data.ItemInfo
 
 /**
@@ -28,9 +30,9 @@ interface PopupController {
      *
      * @param popupDataRepository is the repository which has all the data we need to show the
      *   correct long press menu shortcuts.
-     * @return PopupDragController which handles drag related actions due to showing the popup.
+     * @return Popup which handles drag related actions due to showing the popup.
      */
-    fun show(popupDataRepository: PopupDataRepository): Popup?
+    fun show(popupDataRepository: PopupDataRepository, view: View): Popup?
 
     /** Dismisses the popup when called. */
     fun dismiss()
@@ -44,8 +46,19 @@ interface PopupController {
          *   controller.
          * @return a new PopupController.
          */
-        fun createPopupControllerFactory(itemInfo: ItemInfo): PopupController {
-            return TODO("Provide the return value")
+        fun createPopupController(itemInfo: ItemInfo): PopupController? {
+            when (itemInfo.itemType) {
+                LauncherSettings.Favorites.ITEM_TYPE_FOLDER ->
+                    return FolderPopupController(itemInfo)
+                LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET ->
+                    return WidgetPopupController(itemInfo)
+                LauncherSettings.Favorites.ITEM_TYPE_APPLICATION,
+                LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT ->
+                    return AppPopupController(itemInfo)
+                LauncherSettings.Favorites.ITEM_TYPE_APP_PAIR ->
+                    return AppPairPopupController(itemInfo)
+            }
+            return null
         }
     }
 }
