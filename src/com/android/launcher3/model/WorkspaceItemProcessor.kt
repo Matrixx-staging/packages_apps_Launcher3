@@ -687,12 +687,14 @@ class WorkspaceItemProcessor(
             val cellSize = Point()
             for (deviceProfile in idp.supportedProfiles) {
                 deviceProfile.getCellSize(cellSize)
+                val cellLayoutBorderSpacePx =
+                    deviceProfile.workspaceIconProfile.cellLayoutBorderSpacePx
                 FileLog.d(
                     TAG,
                     "DeviceProfile available width: ${deviceProfile.deviceProperties.availableWidthPx}," +
                         " available height: ${deviceProfile.deviceProperties.availableHeightPx}," +
-                        " cellLayoutBorderSpacePx Horizontal: ${deviceProfile.cellLayoutBorderSpacePx.x}," +
-                        " cellLayoutBorderSpacePx Vertical: ${deviceProfile.cellLayoutBorderSpacePx.y}," +
+                        " cellLayoutBorderSpacePx Horizontal: ${cellLayoutBorderSpacePx.x}," +
+                        " cellLayoutBorderSpacePx Vertical: ${cellLayoutBorderSpacePx.y}," +
                         " cellSize: $cellSize",
                 )
             }

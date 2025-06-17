@@ -343,7 +343,6 @@ public class ModelDbController {
                 .filter(dbName -> mContext.getDatabasePath(dbName).exists())
                 .collect(Collectors.toList());
 
-        mOpenHelper = createDatabaseHelper(true, new DeviceGridState(mIdp).getDbFile());
         try {
             // This is the current grid we have, given by the mContext
             DeviceGridState srcDeviceState = new DeviceGridState(mContext);
@@ -351,9 +350,28 @@ public class ModelDbController {
             DeviceGridState destDeviceState = new DeviceGridState(mIdp);
 
             boolean isDestNewDb = !existingDBs.contains(destDeviceState.getDbFile());
+
+            boolean isAfterRestore =
+                    LauncherPrefs.get(mContext).get(LauncherPrefs.IS_FIRST_LOAD_AFTER_RESTORE);
             GridSizeMigrationLogic gridSizeMigrationLogic = new GridSizeMigrationLogic();
-            gridSizeMigrationLogic.migrateGrid(mContext, srcDeviceState, destDeviceState,
-                    mOpenHelper, oldHelper.getWritableDatabase(), isDestNewDb, modelDelegate);
+
+            // Check if the migration path from source to destination is valid before migrating.
+            GridMigrationOption sourceGridMigrationOption =
+                    GridMigrationOption.Companion.from(
+                            srcDeviceState.getColumns(), srcDeviceState.getRows());
+            GridMigrationOption destinationGridMigrationOption =
+                    GridMigrationOption.Companion.from(
+                            destDeviceState.getColumns(), destDeviceState.getRows());
+            if (sourceGridMigrationOption != null && destinationGridMigrationOption != null
+                    && sourceGridMigrationOption.canMigrate(destinationGridMigrationOption,
+                    isAfterRestore)) {
+                mOpenHelper = createDatabaseHelper(true, new DeviceGridState(mIdp).getDbFile());
+                gridSizeMigrationLogic.migrateGrid(mContext, srcDeviceState, destDeviceState,
+                        mOpenHelper, oldHelper.getWritableDatabase(), isDestNewDb, modelDelegate);
+            } else {
+                Log.e(TAG, "Cannot migrate from source: " + srcDeviceState
+                        + " to destination: " + destDeviceState);
+            }
         } catch (Exception e) {
             resetLauncherDb(restoreEventLogger);
             throw new Exception("attemptMigrateDb: Failed to migrate grid", e);

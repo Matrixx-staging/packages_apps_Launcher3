@@ -16,6 +16,7 @@
 package com.android.quickstep;
 
 import static android.app.ActivityTaskManager.INVALID_TASK_ID;
+import static android.view.Display.DEFAULT_DISPLAY;
 
 import static com.android.launcher3.MotionEventsUtils.isTrackpadFourFingerSwipe;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadThreeFingerSwipe;
@@ -23,7 +24,9 @@ import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_ALLAP
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_BACKGROUND;
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_HOME;
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_OVERVIEW;
+import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_UNCHANGED;
 import static com.android.quickstep.MultiStateCallback.DEBUG_STATES;
+import static com.android.quickstep.util.ActiveGestureErrorDetector.GestureEvent.INCORRECT_HOME_GESTURE_REQUEST;
 import static com.android.quickstep.util.ActiveGestureErrorDetector.GestureEvent.SET_END_TARGET_ALL_APPS;
 import static com.android.quickstep.util.ActiveGestureErrorDetector.GestureEvent.SET_END_TARGET_HOME;
 import static com.android.quickstep.util.ActiveGestureErrorDetector.GestureEvent.SET_END_TARGET_NEW_TASK;
@@ -33,6 +36,7 @@ import android.os.SystemClock;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.RemoteAnimationTarget;
+import android.window.DesktopExperienceFlags;
 import android.window.TransitionInfo;
 
 import androidx.annotation.NonNull;
@@ -87,7 +91,9 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
 
         LAST_TASK(false, LAUNCHER_STATE_BACKGROUND, true),
 
-        ALL_APPS(true, LAUNCHER_STATE_ALLAPPS, false);
+        ALL_APPS(true, LAUNCHER_STATE_ALLAPPS, false),
+
+        REJECT_HOME(false, LAUNCHER_STATE_UNCHANGED, false);
 
         GestureEndTarget(boolean isLauncher, int containerType,
                 boolean recentsAttachedToAppWindow) {
@@ -237,6 +243,14 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
             return ActiveGestureErrorDetector.GestureEvent.STATE_RECENTS_ANIMATION_CANCELED;
         }
         return null;
+    }
+
+    public static boolean displaySupportsHomeGesture(int displayId) {
+        if (DesktopExperienceFlags.ENABLE_REJECT_HOME_TRANSITION.isTrue()
+                && displayId != DEFAULT_DISPLAY) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -445,6 +459,14 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
         switch (mEndTarget) {
             case HOME:
                 ActiveGestureLog.INSTANCE.trackEvent(SET_END_TARGET_HOME);
+                if (!displaySupportsHomeGesture(mDisplayId)) {
+                    ActiveGestureLog.INSTANCE.trackEvent(INCORRECT_HOME_GESTURE_REQUEST);
+                }
+                break;
+            case REJECT_HOME:
+                if (displaySupportsHomeGesture(mDisplayId)) {
+                    ActiveGestureLog.INSTANCE.trackEvent(INCORRECT_HOME_GESTURE_REQUEST);
+                }
                 break;
             case NEW_TASK:
                 ActiveGestureLog.INSTANCE.trackEvent(SET_END_TARGET_NEW_TASK);

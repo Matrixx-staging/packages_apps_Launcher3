@@ -474,7 +474,8 @@ constructor(
         springBackAnimation.setDefaultSpringConfig(springConfig)
         springBackAnimation.spring(DynamicAnimation.TRANSLATION_Y, ty)
         springBackAnimation.addEndListener { _, _, _, _, _, _, _ ->
-            if (animatingBubble?.expand == true) {
+            val animatingBubble = animatingBubble ?: return@addEndListener
+            if (animatingBubble.expand) {
                 expandBubbleBar()
                 cancelHideAnimation()
             } else {
@@ -486,8 +487,9 @@ constructor(
         ObjectAnimator.ofFloat(bubbleBarView, View.TRANSLATION_Y, ty - bubbleBarBounceDistanceInPx)
             .withDuration(BUBBLE_BAR_BOUNCE_ANIMATION_DURATION_MS)
             .withEndAction {
+                val animatingBubble = animatingBubble ?: return@withEndAction
                 springBackAnimation.start()
-                if (animatingBubble?.expand == true) expandBubbleBar()
+                if (animatingBubble.expand) expandBubbleBar()
             }
             .start()
     }
@@ -566,6 +568,37 @@ constructor(
             cancelFlyout()
             expandBubbleBar()
             cancelHideAnimation()
+        }
+    }
+
+    fun collapsedWhileAnimating() {
+        val animatingBubble = animatingBubble ?: return
+        // we are collapsing in the middle of animating a bubble in, which means we previously
+        // received a signal to expand. if we already moved on to the IN state, the expand signal
+        // would have already interrupted the animation, so we must still be animating in.
+        if (animatingBubble.state == AnimatingBubble.State.ANIMATING_IN) {
+            clearAnimatingBubble()
+            // cancel the currently running animation
+            PhysicsAnimator.getInstance(bubbleBarView).cancelIfRunning()
+            bubbleStashController.getStashedHandlePhysicsAnimator().cancelIfRunning()
+            scheduler.cancel(animatingBubble.hideAnimation)
+            bubbleBarView.relativePivotY = 1f
+            if (
+                bubbleStashController.isBubblesShowingOnHome ||
+                    bubbleStashController.isBubblesShowingOnOverview
+            ) {
+                bubbleStashController.showBubbleBarImmediate()
+                ObjectAnimator.ofFloat(
+                        bubbleBarView,
+                        View.TRANSLATION_Y,
+                        bubbleStashController.bubbleBarTranslationY,
+                    )
+                    .withDuration(BUBBLE_BAR_BOUNCE_ANIMATION_DURATION_MS)
+                    .start()
+                bubbleBarView.animateExpanded(/* isBarExpanded= */ false)
+            } else {
+                bubbleStashController.stashBubbleBar()
+            }
         }
     }
 

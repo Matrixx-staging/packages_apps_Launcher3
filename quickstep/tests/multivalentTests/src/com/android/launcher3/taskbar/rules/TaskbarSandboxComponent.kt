@@ -28,6 +28,7 @@ import com.android.launcher3.dagger.ApiWrapperModule
 import com.android.launcher3.dagger.AppModule
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.BasePerDisplayModule
+import com.android.launcher3.dagger.DesktopStateModule
 import com.android.launcher3.dagger.DisplayContext
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
@@ -49,6 +50,7 @@ import com.android.quickstep.RotationTouchHelper
 import com.android.quickstep.SystemUiProxy
 import com.android.quickstep.TaskAnimationManager
 import com.android.quickstep.window.RecentsWindowManager
+import com.android.wm.shell.shared.desktopmode.DesktopState
 import dagger.Binds
 import dagger.BindsInstance
 import dagger.Component
@@ -89,6 +91,7 @@ interface TaskbarSandboxComponent : LauncherAppComponent {
             TaskbarPerDisplayReposModule::class,
             DesktopVisibilityControllerModule::class,
             NoOpWidgetPickerModule::class,
+            DesktopStateModule::class,
         ]
 )
 interface AllTaskbarSandboxModules
@@ -175,8 +178,11 @@ object DesktopVisibilityControllerModule {
         @ApplicationContext context: Context,
         systemUiProxy: SystemUiProxy,
         lifecycleTracker: DaggerSingletonTracker,
+        desktopState: DesktopState,
     ): DesktopVisibilityController {
-        return spy(DesktopVisibilityController(context, systemUiProxy, lifecycleTracker))
+        return spy(
+            DesktopVisibilityController(context, systemUiProxy, lifecycleTracker, desktopState)
+        )
     }
 }
 

@@ -16,6 +16,7 @@
 
 package com.android.quickstep.recents.ui.mapper
 
+import android.util.Log
 import android.view.View.OnClickListener
 import com.android.launcher3.Flags.enableDesktopExplodedView
 import com.android.launcher3.R
@@ -78,7 +79,13 @@ object TaskUiStateMapper {
         when {
             taskData !is TaskData.Data -> Uninitialized
             taskData.isLiveTile -> LiveTile
-            isBackgroundOnly(taskData) -> BackgroundOnly(taskData.backgroundColor)
+            isBackgroundOnly(taskData) ->
+                BackgroundOnly(taskData.backgroundColor).also {
+                    Log.d(
+                        "b/417220811",
+                        "Task id: ${taskData.taskId}, thumbnailData: ${taskData.thumbnailData}, isLocked: ${taskData.isLocked}",
+                    )
+                }
             isSnapshotSplash(taskData) ->
                 SnapshotSplash(
                     Snapshot(

@@ -78,3 +78,6 @@ data class DeviceProperties(
         }
     }
 }
+
+fun DeviceProperties.createWindowBounds() =
+    WindowBounds(widthPx, heightPx, availableWidthPx, availableHeightPx, rotationHint)

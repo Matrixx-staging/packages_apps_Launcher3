@@ -988,7 +988,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
         Rect hotseatPadding = launcherDp.getHotseatLayoutPadding(mActivity);
         boolean isTransientTaskbar = mActivity.isTransientTaskbar();
 
-        float scaleUp = ((float) launcherDp.iconSizePx)
+        float scaleUp = ((float) launcherDp.getWorkspaceIconProfile().getIconSizePx())
                 / taskbarDp.getTaskbarProfile().getIconSize();
         int borderSpacing = launcherDp.hotseatBorderSpace;
         int hotseatCellSize = DeviceProfile.calculateCellWidth(
@@ -1417,7 +1417,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     }
 
     private class TransitionEndBoundsChangedNotifier implements TransitionListener {
-        private boolean mIsCanceled;
+        private boolean mIsCanceled = true; // Start as disabled.
 
         @Override
         public void startTransition(

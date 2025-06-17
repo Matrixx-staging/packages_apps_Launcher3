@@ -214,6 +214,10 @@ class TasksRepository(
 
     private fun updateThumbnail(taskId: Int, thumbnail: ThumbnailData?) {
         tasks.update { currentTasks ->
+            Log.d(
+                "b/417220811",
+                "Current thumbnail: ${currentTasks[taskId]?.thumbnail?.thumbnail}, replacing with ${thumbnail?.thumbnail}",
+            )
             currentTasks[taskId]?.thumbnail = thumbnail
             MapForStateFlow(currentTasks)
         }

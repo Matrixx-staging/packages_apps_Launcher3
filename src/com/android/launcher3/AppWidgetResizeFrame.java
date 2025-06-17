@@ -460,8 +460,10 @@ public class AppWidgetResizeFrame extends AbstractFloatingView implements View.O
             return;
         }
         DeviceProfile dp = mLauncher.getDeviceProfile();
-        float xThreshold = mCellLayout.getCellWidth() + dp.cellLayoutBorderSpacePx.x;
-        float yThreshold = mCellLayout.getCellHeight() + dp.cellLayoutBorderSpacePx.y;
+        float xThreshold = mCellLayout.getCellWidth() +
+                dp.getWorkspaceIconProfile().getCellLayoutBorderSpacePx().x;
+        float yThreshold = mCellLayout.getCellHeight() +
+                dp.getWorkspaceIconProfile().getCellLayoutBorderSpacePx().y;
 
         int hSpanInc = getSpanIncrement((mDeltaX + mDeltaXAddOn) / xThreshold - mRunningHInc);
         int vSpanInc = getSpanIncrement((mDeltaY + mDeltaYAddOn) / yThreshold - mRunningVInc);
@@ -549,8 +551,10 @@ public class AppWidgetResizeFrame extends AbstractFloatingView implements View.O
 
     private void onTouchUp() {
         DeviceProfile dp = mLauncher.getDeviceProfile();
-        int xThreshold = mCellLayout.getCellWidth() + dp.cellLayoutBorderSpacePx.x;
-        int yThreshold = mCellLayout.getCellHeight() + dp.cellLayoutBorderSpacePx.y;
+        int xThreshold = mCellLayout.getCellWidth() +
+                dp.getWorkspaceIconProfile().getCellLayoutBorderSpacePx().x;
+        int yThreshold = mCellLayout.getCellHeight() +
+                dp.getWorkspaceIconProfile().getCellLayoutBorderSpacePx().y;
 
         mDeltaXAddOn = mRunningHInc * xThreshold;
         mDeltaYAddOn = mRunningVInc * yThreshold;

@@ -477,8 +477,9 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             // Same QSB width to have a smooth animation
             deviceProfile.hotseatQsbWidth = originDeviceProfile.hotseatQsbWidth;
 
+            deviceProfile.updateWorkspaceIconProfile(
+                    deviceProfile.getTaskbarProfile().getIconSize(), this);
             // Update icon size
-            deviceProfile.iconSizePx = deviceProfile.getTaskbarProfile().getIconSize();
             deviceProfile.updateIconSize(1f, this);
         };
         mDeviceProfile = originDeviceProfile.toBuilder(this)

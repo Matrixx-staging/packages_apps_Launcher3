@@ -38,7 +38,6 @@ import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.LauncherMultivalentJUnit.Companion.isRunningInRobolectric
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNotSame
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assume.assumeFalse
 import org.junit.Rule
@@ -62,8 +61,9 @@ class MonoIconThemeControllerTest {
     @Test
     fun `createThemedBitmap when mono drawable is present`() {
         val icon = AdaptiveIconDrawable(ColorDrawable(Color.BLACK), null, ColorDrawable(Color.RED))
-        assertNotNull(
-            MonoIconThemeController().createThemedBitmap(icon, BitmapInfo.LOW_RES_INFO, iconFactory)
+        assertNotSame(
+            ThemedBitmap.NOT_SUPPORTED,
+            MonoIconThemeController().createThemedBitmap(icon, BitmapInfo.LOW_RES_INFO, iconFactory),
         )
     }
 
@@ -71,8 +71,9 @@ class MonoIconThemeControllerTest {
     @DisableFlags(Flags.FLAG_FORCE_MONOCHROME_APP_ICONS)
     fun `createThemedBitmap when mono generation is disabled`() {
         val icon = AdaptiveIconDrawable(ColorDrawable(Color.BLACK), null, null)
-        assertNull(
-            MonoIconThemeController().createThemedBitmap(icon, BitmapInfo.LOW_RES_INFO, iconFactory)
+        assertSame(
+            ThemedBitmap.NOT_SUPPORTED,
+            MonoIconThemeController().createThemedBitmap(icon, BitmapInfo.LOW_RES_INFO, iconFactory),
         )
     }
 
@@ -81,9 +82,10 @@ class MonoIconThemeControllerTest {
     fun `createThemedBitmap when mono generation is enabled`() {
         ensureBitmapSerializationSupported()
         val icon = AdaptiveIconDrawable(ColorDrawable(Color.BLACK), null, null)
-        assertNotNull(
+        assertNotSame(
+            ThemedBitmap.NOT_SUPPORTED,
             MonoIconThemeController(shouldForceThemeIcon = true)
-                .createThemedBitmap(icon, BitmapInfo.LOW_RES_INFO, iconFactory)
+                .createThemedBitmap(icon, BitmapInfo.LOW_RES_INFO, iconFactory),
         )
     }
 

@@ -18,16 +18,23 @@ package com.android.quickstep.recents.ui.viewmodel
 
 import android.graphics.Rect
 import android.util.Size
+import com.android.launcher3.util.coroutines.DispatcherProvider
+import com.android.quickstep.recents.data.DesktopBackgroundResult
+import com.android.quickstep.recents.data.DesktopTileBackgroundRepository
 import com.android.quickstep.recents.domain.model.DesktopLayoutConfig
 import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData
 import com.android.quickstep.recents.domain.usecase.OrganizeDesktopTasksUseCase
 import com.android.quickstep.recents.domain.usecase.RemoveTaskAndRebalanceLayoutUseCase
+import kotlinx.coroutines.withContext
 
 /** ViewModel used for [com.android.quickstep.views.DesktopTaskView]. */
 class DesktopTaskViewModel(
     private val organizeDesktopTasksUseCase: OrganizeDesktopTasksUseCase,
+    private val desktopTileBackgroundRepository: DesktopTileBackgroundRepository,
     private val removeTaskAndRebalanceLayoutUseCase: RemoveTaskAndRebalanceLayoutUseCase,
+    private val dispatcherProvider: DispatcherProvider,
 ) {
+
     /** Positions for desktop tasks as calculated by [organizeDesktopTasksUseCase] */
     var organizedDesktopTaskPositions = emptyList<DesktopTaskBoundsData>()
         private set
@@ -62,4 +69,9 @@ class DesktopTaskViewModel(
                 layoutConfig = layoutConfig,
             )
     }
+
+    suspend fun getWallpaperBackground(forceRefresh: Boolean): DesktopBackgroundResult =
+        withContext(dispatcherProvider.ioBackground) {
+            desktopTileBackgroundRepository.getWallpaperBackground(forceRefresh)
+        }
 }

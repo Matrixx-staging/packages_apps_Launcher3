@@ -34,10 +34,10 @@ import static com.android.app.animation.Interpolators.LINEAR;
 import static com.android.app.animation.Interpolators.clampToProgress;
 import static com.android.launcher3.AbstractFloatingView.TYPE_REBIND_SAFE;
 import static com.android.launcher3.BaseActivity.STATE_HANDLER_INVISIBILITY_FLAGS;
-import static com.android.launcher3.Flags.enableCoroutineThreadingImprovements;
 import static com.android.launcher3.Flags.enableDesktopExplodedView;
 import static com.android.launcher3.Flags.enableExpressiveDismissTaskMotion;
 import static com.android.launcher3.Flags.enableOverviewBackgroundWallpaperBlur;
+import static com.android.launcher3.Flags.enableOverviewDesktopTileWallpaperBackground;
 import static com.android.launcher3.Flags.enableRefactorTaskThumbnail;
 import static com.android.launcher3.LauncherAnimUtils.SUCCESS_TRANSITION_PROGRESS;
 import static com.android.launcher3.LauncherAnimUtils.VIEW_ALPHA;
@@ -74,6 +74,7 @@ import static com.android.quickstep.views.OverviewActionsView.HIDDEN_NO_TASKS;
 import static com.android.quickstep.views.OverviewActionsView.HIDDEN_SPLIT_SELECT_ACTIVE;
 import static com.android.quickstep.views.RecentsViewUtils.DESK_EXPLODE_PROGRESS;
 import static com.android.quickstep.views.TaskView.SPLIT_ALPHA;
+import static com.android.wm.shell.Flags.enableCreateAnyBubble;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -82,6 +83,7 @@ import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.LocusId;
@@ -689,6 +691,15 @@ public abstract class RecentsView<
                                     mContainer.getDisplayId()));
                         }
                     }));
+        }
+
+        @Override
+        public void onActivityRestartAttempt(ActivityManager.RunningTaskInfo task,
+                boolean homeTaskVisible, boolean clearedTask, boolean wasVisible) {
+            if (enableCreateAnyBubble() && task.isAppBubble) {
+                // Remove task from recents if it moved to a bubble, but keep it running
+                dismissTask(task.taskId, /* animate= */ true, /* removeTask= */ false);
+            }
         }
     };
 
@@ -1306,6 +1317,9 @@ public abstract class RecentsView<
     public void destroy() {
         Log.d(TAG, "destroy");
         if (enableRefactorTaskThumbnail()) {
+            if (enableOverviewDesktopTileWallpaperBackground()) {
+                reset();
+            }
             try {
                 mTaskViewPool.killOngoingInitializations();
                 mGroupedTaskViewPool.killOngoingInitializations();
@@ -2772,7 +2786,7 @@ public abstract class RecentsView<
         }
         mBlurUtils.setDrawLiveTileBelowRecents(false);
 
-        if (enableCoroutineThreadingImprovements()) {
+        if (enableRefactorTaskThumbnail()) {
             // TODO(b/391842220): This should not need to be explicitly called from here. When TVs
             //  are added and removed with the RecentsView lifecycle, this can be removed.
             //  This is was added because without it cancelling jobs was happening after work was

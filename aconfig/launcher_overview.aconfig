@@ -23,16 +23,6 @@ flag {
 }
 
 flag {
-    name: "enable_coroutine_threading_improvements"
-    namespace: "launcher_overview"
-    description: "Enables changes to the threading model of Launcher's coroutines implementation"
-    bug: "416206104"
-    metadata {
-        purpose: PURPOSE_BUGFIX
-    }
-}
-
-flag {
     name: "enable_desktop_exploded_view"
     namespace: "launcher_overview"
     description: "Enables the non-overlapping layout for desktop windows in Overview mode."

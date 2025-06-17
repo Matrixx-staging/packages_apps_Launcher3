@@ -485,6 +485,14 @@ public class TaskbarUIController implements BubbleBarController.BubbleBarLocatio
         mSkipLauncherVisibilityChange = skip;
     }
 
+    /**
+     * @return whether the context menu option to pin an app to the taskbar is enabled.
+     */
+    public boolean canPinAppWithContextMenu() {
+        return TaskbarPopupController.canPinAppWithContextMenu(
+                mControllers.taskbarActivityContext);
+    }
+
     /** Sets whether the hotseat is stashed */
     public void stashHotseat(boolean stash) {
     }

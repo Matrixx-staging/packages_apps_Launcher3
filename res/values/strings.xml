@@ -238,6 +238,10 @@
     <string name="bubble">Bubble</string>
     <!-- Label for widget settings shows in the long press menu for widgets. [CHAR_LIMIT=20] -->
     <string name="widget_settings">Settings</string>
+    <!-- Label for pinning an item to the taskbar. [CHAR_LIMIT=20] -->
+    <string name="pin_to_taskbar">Pin to Taskbar</string>
+    <!-- Label for unpinning an item from the taskbar. [CHAR_LIMIT=20] -->
+    <string name="unpin_from_taskbar">Unpin from Taskbar</string>
 
     <!-- Permissions: -->
     <skip />

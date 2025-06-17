@@ -98,6 +98,7 @@ filegroup {
         "multivalentTests/src/com/android/launcher3/widgetpicker/ui/fullcatalog/screens/landing/LandingScreenSinglePaneTest.kt",
         "multivalentTests/src/com/android/launcher3/widgetpicker/ui/fullcatalog/screens/landing/LandingScreenTwoPaneTest.kt",
         "multivalentTests/src/com/android/launcher3/widgetpicker/ui/components/WidgetInteractionsTest.kt",
+        "multivalentTests/src/com/android/launcher3/widgetpicker/ui/components/WidgetsListHeaderTest.kt",
     ],
 }
 

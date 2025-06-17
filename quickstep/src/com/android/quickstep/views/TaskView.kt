@@ -45,7 +45,6 @@ import androidx.core.view.updateLayoutParams
 import com.android.app.animation.Interpolators
 import com.android.app.tracing.traceSection
 import com.android.launcher3.AbstractFloatingView
-import com.android.launcher3.Flags.enableCoroutineThreadingImprovements
 import com.android.launcher3.Flags.enableCursorHoverStates
 import com.android.launcher3.Flags.enableDesktopExplodedView
 import com.android.launcher3.Flags.enableRefactorDigitalWellbeingToast
@@ -950,7 +949,7 @@ constructor(
             cancelJobs()
         }
 
-    fun cancelJobs() {
+    open fun cancelJobs() {
         if (enableRefactorTaskThumbnail()) {
             // The jobs are being cancelled in the background thread. So we make a copy of the
             // list to prevent cleaning a new job that might be added to this list during
@@ -959,22 +958,20 @@ constructor(
             coroutineJobs.clear()
             if (coroutineJobsToCancel.isEmpty()) return
 
-            if (enableCoroutineThreadingImprovements()) {
-                // TODO(b/391842220): This should ideally be handled in the completion block of the
-                //  jobs above to be cancelled.
-                taskContainers.forEach {
-                    it.setState(
-                        state = null,
-                        hasHeader = false,
-                        canShowAppTimer = false,
-                        clickCloseListener = null,
-                    )
-                    // Do not set icon to null if we are actively in split selection. The task
-                    // appears to have been offloaded as we remove it during split, but we still
-                    // need the icon to show over the split task.
-                    if (enableOverviewIconMenu() && recentsView?.isSplitSelectionActive == false) {
-                        setIconState(it, null)
-                    }
+            // TODO(b/391842220): This should ideally be handled in the completion block of the
+            //  jobs above to be cancelled.
+            taskContainers.forEach {
+                it.setState(
+                    state = null,
+                    hasHeader = false,
+                    canShowAppTimer = false,
+                    clickCloseListener = null,
+                )
+                // Do not set icon to null if we are actively in split selection. The task
+                // appears to have been offloaded as we remove it during split, but we still
+                // need the icon to show over the split task.
+                if (enableOverviewIconMenu() && recentsView?.isSplitSelectionActive == false) {
+                    setIconState(it, null)
                 }
             }
 

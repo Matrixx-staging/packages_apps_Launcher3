@@ -48,3 +48,5 @@ abstract class StaticObjectModule {
 @Module abstract class PerDisplayModule {}
 
 @Module abstract class LauncherConcurrencyModule {}
+
+@Module class DesktopStateModule {}
