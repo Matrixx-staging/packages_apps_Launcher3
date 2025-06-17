@@ -87,7 +87,7 @@ public final class WidgetsListHeader extends LinearLayout implements ItemInfoUpd
         TypedArray a = context.obtainStyledAttributes(attrs,
                 R.styleable.WidgetsListRowHeader, defStyleAttr, /* defStyleRes= */ 0);
         mIconSize = a.getDimensionPixelSize(R.styleable.WidgetsListRowHeader_appIconSize,
-                grid.iconSizePx);
+                grid.getWorkspaceIconProfile().getIconSizePx());
         mIsCollapsable = a.getBoolean(R.styleable.WidgetsListRowHeader_collapsable, true);
     }
 

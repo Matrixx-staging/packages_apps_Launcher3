@@ -73,13 +73,14 @@ class UnitTestCellLayoutBuilderRule : TestWatcher() {
         rows: Int,
         isMulti: Boolean,
         width: Int = 1000,
-        height: Int = 1000
+        height: Int = 1000,
     ): CellLayout {
         val dp = getDeviceProfile()
         // modify the device profile.
         dp.inv.numColumns = if (isMulti) columns / 2 else columns
         dp.inv.numRows = rows
-        dp.cellLayoutBorderSpacePx = Point(0, 0)
+        dp.workspaceIconProfile =
+            dp.workspaceIconProfile.copy(cellLayoutBorderSpacePx = Point(0, 0))
         val cl =
             if (isMulti) MultipageCellLayout(getWrappedContext(applicationContext, dp))
             else CellLayout(getWrappedContext(applicationContext, dp), container)
@@ -87,7 +88,7 @@ class UnitTestCellLayoutBuilderRule : TestWatcher() {
         // need to be exact, just bigger than the sum of cell border
         cl.measure(
             View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
-            View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY)
+            View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY),
         )
         return cl
     }

@@ -100,7 +100,8 @@ public class DropTargetBar extends FrameLayout
             // XXX: If the icon size changes across orientations, we will have to take
             //      that into account here too.
             horizontalMargin = ((widthPx - 2 * deviceProfile.edgeMarginPx
-                    - (deviceProfile.inv.numColumns * deviceProfile.cellWidthPx))
+                    - (deviceProfile.inv.numColumns
+                        * deviceProfile.getWorkspaceIconProfile().getCellWidthPx()))
                     / (2 * (deviceProfile.inv.numColumns + 1)))
                     + deviceProfile.edgeMarginPx;
         } else {

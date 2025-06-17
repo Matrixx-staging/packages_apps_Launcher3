@@ -719,7 +719,8 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
             // Move the icon to align with the center-top of the touch point
             Point iconShift = new Point();
             iconShift.x = mIconLastTouchPos.x - sv.getIconCenter().x;
-            iconShift.y = mIconLastTouchPos.y - mLauncher.getDeviceProfile().iconSizePx;
+            iconShift.y = mIconLastTouchPos.y -
+                    mLauncher.getDeviceProfile().getWorkspaceIconProfile().getIconSizePx();
 
             DraggableView draggableView = DraggableView.ofType(DraggableView.DRAGGABLE_ICON);
             WorkspaceItemInfo itemInfo = sv.getFinalInfo();

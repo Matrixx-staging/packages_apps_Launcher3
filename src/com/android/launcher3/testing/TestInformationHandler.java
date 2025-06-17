@@ -178,7 +178,7 @@ public class TestInformationHandler implements ResourceBasedOverride {
 
             case TestProtocol.REQUEST_CELL_LAYOUT_BOARDER_HEIGHT: {
                 response.putInt(TestProtocol.TEST_INFO_RESPONSE_FIELD,
-                        mDeviceProfile.cellLayoutBorderSpacePx.y);
+                        mDeviceProfile.getWorkspaceIconProfile().getCellLayoutBorderSpacePx().y);
                 return response;
             }
 

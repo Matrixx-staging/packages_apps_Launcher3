@@ -17,6 +17,7 @@
 package com.android.launcher3;
 
 import static com.android.launcher3.Flags.enableMouseInteractionChanges;
+import static com.android.launcher3.folder.ClippedFolderIconLayoutRule.ICON_OVERLAP_FACTOR;
 import static com.android.launcher3.graphics.ShapeDelegate.DEFAULT_PATH_SIZE;
 import static com.android.launcher3.icons.BitmapInfo.FLAG_THEMED;
 import static com.android.launcher3.icons.IconNormalizer.ICON_VISIBLE_AREA_FACTOR;
@@ -524,6 +525,10 @@ public final class Utilities {
 
     public static int pxFromSp(float size, DisplayMetrics metrics) {
         return pxFromSp(size, metrics, 1f);
+    }
+
+    public static int getIconSizeWithOverlap(int iconSize) {
+        return (int) Math.ceil(iconSize * ICON_OVERLAP_FACTOR);
     }
 
     public static int pxFromSp(float size, DisplayMetrics metrics, float scale) {

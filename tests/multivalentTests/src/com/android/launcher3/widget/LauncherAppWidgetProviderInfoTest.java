@@ -151,7 +151,8 @@ public final class LauncherAppWidgetProviderInfoTest {
         AppWidgetHostView.getDefaultPaddingForWidget(mContext, null, padding);
         int maxPadding = Math.max(Math.max(padding.left, padding.right),
                 Math.max(padding.top, padding.bottom));
-        dp.cellLayoutBorderSpacePx.x = dp.cellLayoutBorderSpacePx.y = maxPadding + 1;
+        dp.getWorkspaceIconProfile().getCellLayoutBorderSpacePx().x =
+                dp.getWorkspaceIconProfile().getCellLayoutBorderSpacePx().y = maxPadding + 1;
 
         LauncherAppWidgetProviderInfo info = new LauncherAppWidgetProviderInfo();
         info.minWidth = CELL_SIZE * 3;
@@ -173,7 +174,8 @@ public final class LauncherAppWidgetProviderInfoTest {
         AppWidgetHostView.getDefaultPaddingForWidget(mContext, null, padding);
         int maxPadding = Math.max(Math.max(padding.left, padding.right),
                 Math.max(padding.top, padding.bottom));
-        dp.cellLayoutBorderSpacePx.x = dp.cellLayoutBorderSpacePx.y = maxPadding - 1;
+        dp.getWorkspaceIconProfile().getCellLayoutBorderSpacePx().x =
+                dp.getWorkspaceIconProfile().getCellLayoutBorderSpacePx().y = maxPadding - 1;
         LauncherAppWidgetProviderInfo info = new LauncherAppWidgetProviderInfo();
         info.minWidth = CELL_SIZE * 3;
         info.minHeight = CELL_SIZE * 3;
@@ -255,7 +257,7 @@ public final class LauncherAppWidgetProviderInfoTest {
             return null;
         }).when(profile).getCellSize(any(Point.class));
         Mockito.when(profile.getCellSize()).thenReturn(new Point(CELL_SIZE, CELL_SIZE));
-        profile.cellLayoutBorderSpacePx = new Point(SPACE_SIZE, SPACE_SIZE);
+        profile.getWorkspaceIconProfile().getCellLayoutBorderSpacePx().set(SPACE_SIZE, SPACE_SIZE);
         profile.widgetPadding.setEmpty();
 
         idp.supportedProfiles = Collections.singletonList(profile);
