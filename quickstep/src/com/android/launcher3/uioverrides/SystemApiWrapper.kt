@@ -37,6 +37,7 @@ import android.util.ArrayMap
 import android.view.SurfaceControlViewHost
 import android.widget.Toast
 import android.window.RemoteTransition
+import android.window.ScreenCapture.ScreenCaptureParams
 import android.window.ScreenCaptureInternal
 import com.android.launcher3.BaseActivity
 import com.android.launcher3.Flags.enablePrivateSpace
@@ -212,8 +213,8 @@ open class SystemApiWrapper @Inject constructor(@ApplicationContext context: Con
         ScreenCaptureInternal.captureLayers(
                 ScreenCaptureInternal.LayerCaptureArgs.Builder(host.surfacePackage!!.surfaceControl)
                     .setSourceCrop(Rect(0, 0, width, height))
-                    .setAllowProtected(true)
-                    .setHintForSeamlessTransition(true)
+                    .setProtectedContentPolicy(ScreenCaptureParams.PROTECTED_CONTENT_POLICY_CAPTURE)
+                    .setPreserveDisplayColors(true)
                     .build()
             )
             .asBitmap()
