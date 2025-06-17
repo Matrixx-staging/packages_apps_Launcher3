@@ -610,6 +610,16 @@ flag {
 }
 
 flag {
+  name: "enable_new_all_set_animation"
+  namespace: "launcher"
+  description: "Enables the new animation for the All Set page"
+  bug: "424506400"
+  metadata {
+    purpose: PURPOSE_BUGFIX
+  }
+}
+
+flag {
   name: "enable_long_press_remove_shortcut"
   namespace: "launcher"
   description: "Enables remove app shortcut on long press menu"
