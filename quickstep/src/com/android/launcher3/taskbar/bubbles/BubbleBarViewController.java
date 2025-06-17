@@ -1235,8 +1235,12 @@ public class BubbleBarViewController {
      * from SystemUI.
      */
     public void setExpandedFromSysui(boolean isExpanded, boolean animate) {
-        if (isNewBubbleAnimationRunningOrPending() && isExpanded) {
-            mBubbleBarViewAnimator.expandedWhileAnimating();
+        if (isNewBubbleAnimationRunningOrPending()) {
+            if (isExpanded) {
+                mBubbleBarViewAnimator.expandedWhileAnimating();
+            } else {
+                mBubbleBarViewAnimator.collapsedWhileAnimating();
+            }
             return;
         }
         if (animate) {
