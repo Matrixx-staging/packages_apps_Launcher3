@@ -20,14 +20,15 @@ import com.android.launcher3.FakeLauncherPrefs
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.compose.core.widgetpicker.NoOpWidgetPickerModule
 import com.android.launcher3.concurrent.ExecutorsModule
-import com.android.launcher3.util.dagger.LauncherExecutorsModule
 import com.android.launcher3.dagger.ApiWrapperModule
 import com.android.launcher3.dagger.AppModule
+import com.android.launcher3.dagger.DesktopStateModule
 import com.android.launcher3.dagger.LauncherConcurrencyModule
 import com.android.launcher3.dagger.PerDisplayModule
 import com.android.launcher3.dagger.StaticObjectModule
 import com.android.launcher3.dagger.WidgetModule
 import com.android.launcher3.dagger.WindowManagerProxyModule
+import com.android.launcher3.util.dagger.LauncherExecutorsModule
 import dagger.Binds
 import dagger.Module
 
@@ -48,7 +49,8 @@ abstract class FakePrefsModule {
             LauncherConcurrencyModule::class,
             ExecutorsModule::class,
             LauncherExecutorsModule::class,
-            NoOpWidgetPickerModule::class
+            NoOpWidgetPickerModule::class,
+            DesktopStateModule::class,
         ]
 )
 class CommonModulesForTest

@@ -17,6 +17,7 @@
 package com.android.launcher3.dagger
 
 import android.annotation.ElapsedRealtimeLong
+import android.content.Context
 import android.os.SystemClock
 import com.android.launcher3.backuprestore.LauncherRestoreEventLogger
 import com.android.launcher3.icons.LauncherIconProvider
@@ -38,6 +39,7 @@ import com.android.quickstep.util.ChoreographerFrameRateTracker
 import com.android.quickstep.util.GestureExclusionManager
 import com.android.quickstep.util.SystemWindowManagerProxy
 import com.android.systemui.shared.system.ActivityManagerWrapper
+import com.android.wm.shell.shared.desktopmode.DesktopState
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -102,4 +104,11 @@ object StaticObjectModule {
     @JvmStatic
     @ElapsedRealtimeLong
     fun provideElapsedRealTime(): () -> Long = SystemClock::elapsedRealtime
+}
+
+@Module
+class DesktopStateModule {
+    @Provides
+    fun provideDesktopState(@ApplicationContext context: Context): DesktopState =
+        DesktopState.fromContext(context)
 }

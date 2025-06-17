@@ -26,6 +26,7 @@ import com.android.quickstep.SystemUiProxy
 import com.android.window.flags.Flags.FLAG_ENABLE_MULTIPLE_DESKTOPS_BACKEND
 import com.android.window.flags.Flags.FLAG_ENABLE_MULTIPLE_DESKTOPS_FRONTEND
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus
+import com.android.wm.shell.shared.desktopmode.DesktopState
 import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Rule
@@ -47,6 +48,7 @@ class DesktopVisibilityControllerTest {
     private val context = mock<Context>()
     private val systemUiProxy = mock<SystemUiProxy>()
     private val lifeCycleTracker = mock<DaggerSingletonTracker>()
+    private val desktopState = mock<DesktopState>()
     private lateinit var desktopVisibilityController: DesktopVisibilityController
 
     @Before
@@ -54,7 +56,7 @@ class DesktopVisibilityControllerTest {
         whenever(context.resources).thenReturn(mock())
         whenever(DesktopModeStatus.enableMultipleDesktops(context)).thenReturn(true)
         desktopVisibilityController =
-            DesktopVisibilityController(context, systemUiProxy, lifeCycleTracker)
+            DesktopVisibilityController(context, systemUiProxy, lifeCycleTracker, desktopState)
     }
 
     @Test
