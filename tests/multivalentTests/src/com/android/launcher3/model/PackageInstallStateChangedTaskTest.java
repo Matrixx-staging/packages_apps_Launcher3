@@ -37,10 +37,9 @@ import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.pm.PackageInstallInfo;
 import com.android.launcher3.util.IntSet;
 import com.android.launcher3.util.LauncherLayoutBuilder;
-import com.android.launcher3.util.ModelTestExtensions;
+import com.android.launcher3.util.LayoutResource;
 import com.android.launcher3.util.SandboxApplication;
 import com.android.launcher3.util.rule.InstallerSessionRule;
-import com.android.launcher3.util.rule.LayoutProviderRule;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -58,7 +57,7 @@ public class PackageInstallStateChangedTaskTest {
     private static final String PENDING_APP_2 = TEST_PACKAGE + ".pending2";
 
     @Rule public SandboxApplication mContext = new SandboxApplication();
-    @Rule public LayoutProviderRule mLayoutProvider = new LayoutProviderRule(mContext);
+    @Rule public LayoutResource mLayout = new LayoutResource(mContext);
     @Rule public InstallerSessionRule mInstallerSessionRule = new InstallerSessionRule();
 
     private IntSet mDownloadingApps;
@@ -83,8 +82,7 @@ public class PackageInstallStateChangedTaskTest {
                 .atWorkspace(0, 0, 10).putApp(PENDING_APP_2, TEST_ACTIVITY3);           // 10
 
         mDownloadingApps = IntSet.wrap(4, 5, 6, 7, 8, 9, 10);
-        mLayoutProvider.setupDefaultLayoutProvider(builder);
-        ModelTestExtensions.INSTANCE.loadModelSync(getModel());
+        mLayout.set(builder);
         assertEquals(10, nonPredictedItemCount(getBgDataModel(getModel()).itemsIdMap));
     }
 
