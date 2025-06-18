@@ -1582,7 +1582,7 @@ public abstract class RecentsView<
     @Nullable
     public RunnableList launchRunningDesktopTaskView() {
         TaskView taskView = getRunningTaskView();
-        if (taskView instanceof DesktopTaskView) {
+        if (taskView instanceof DesktopTaskView && isTaskViewVisible(taskView)) {
             return taskView.launchWithAnimation();
         }
         return null;
