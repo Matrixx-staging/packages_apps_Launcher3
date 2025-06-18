@@ -23,6 +23,7 @@ import android.graphics.PointF
 import android.os.Trace
 import android.util.Log
 import android.view.Display.DEFAULT_DISPLAY
+import android.view.KeyEvent
 import android.view.View
 import android.window.TransitionInfo
 import androidx.annotation.BinderThread
@@ -33,6 +34,7 @@ import com.android.app.displaylib.PerDisplayRepository
 import com.android.app.tracing.traceSection
 import com.android.internal.jank.Cuj
 import com.android.launcher3.DeviceProfile
+import com.android.launcher3.Flags
 import com.android.launcher3.logger.LauncherAtom
 import com.android.launcher3.logging.StatsLogManager
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_OVERVIEW_SHOW_OVERVIEW_FROM_3_BUTTON
@@ -85,6 +87,7 @@ constructor(
     @Assisted private val taskbarManager: TaskbarManager,
     private val taskAnimationManagerRepository: PerDisplayRepository<TaskAnimationManager>,
     @ElapsedRealtimeLong private val elapsedRealtime: () -> Long,
+    @Assisted private val systemUiProxy: SystemUiProxy,
 ) {
     private val coroutineScope =
         CoroutineScope(SupervisorJob() + dispatcherProvider.lightweightBackground)
@@ -401,6 +404,10 @@ constructor(
 
             HOME -> {
                 taskAnimationManager.maybeStartHomeAction {
+                    if (Flags.homeButtonUsesKeycodeHome()) {
+                        systemUiProxy.onKeyEvent(KeyEvent.KEYCODE_HOME, command.displayId)
+                        return@maybeStartHomeAction
+                    }
                     // Although IActivityTaskManager$Stub$Proxy.startActivity is a slow binder call,
                     // we should still call it on main thread because launcher is waiting for
                     // ActivityTaskManager to resume it. Also calling startActivity() on bg thread
@@ -728,6 +735,7 @@ constructor(
         fun create(
             touchInteractionService: TouchInteractionService,
             taskbarManager: TaskbarManager,
+            systemUiProxy: SystemUiProxy,
         ): OverviewCommandHelper
     }
 

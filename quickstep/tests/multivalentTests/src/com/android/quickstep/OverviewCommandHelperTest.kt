@@ -17,10 +17,14 @@
 package com.android.quickstep
 
 import android.content.Intent
+import android.platform.test.annotations.DisableFlags
+import android.platform.test.annotations.EnableFlags
+import android.platform.test.flag.junit.SetFlagsRule
 import android.view.Display.DEFAULT_DISPLAY
 import androidx.test.filters.SmallTest
 import com.android.app.displaylib.DisplayRepository
 import com.android.app.displaylib.fakes.FakePerDisplayRepository
+import com.android.launcher3.Flags
 import com.android.launcher3.LauncherState
 import com.android.launcher3.statemanager.StateManager
 import com.android.launcher3.statemanager.StatefulActivity
@@ -49,6 +53,7 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.anyInt
@@ -65,6 +70,9 @@ import org.mockito.kotlin.whenever
 @RunWith(LauncherMultivalentJUnit::class)
 @OptIn(ExperimentalCoroutinesApi::class)
 class OverviewCommandHelperTest {
+
+    @get:Rule val mSetFlagsRule: SetFlagsRule = SetFlagsRule()
+
     private lateinit var sut: OverviewCommandHelper
     private val dispatcher = StandardTestDispatcher()
     private val testScope = TestScope(dispatcher)
@@ -83,6 +91,7 @@ class OverviewCommandHelperTest {
     private val taskbarUIController: TaskbarUIController = mock()
     private val launcher: QuickstepLauncher = mock()
     private var elapsedRealtime = 100L
+    private val systemUiProxy: SystemUiProxy = mock()
 
     private fun setupDefaultDisplay() {
         whenever(displayRepository.displayIds).thenReturn(MutableStateFlow(setOf(DEFAULT_DISPLAY)))
@@ -123,8 +132,11 @@ class OverviewCommandHelperTest {
                     displayRepository = displayRepository,
                     taskbarManager = taskbarManager,
                     taskAnimationManagerRepository =
-                        FakePerDisplayRepository<TaskAnimationManager> { _ -> taskAnimationManager },
+                        FakePerDisplayRepository<TaskAnimationManager> { _ ->
+                            taskAnimationManager
+                        },
                     elapsedRealtime = ::elapsedRealtime,
+                    systemUiProxy = systemUiProxy,
                 )
             )
     }
@@ -431,12 +443,23 @@ class OverviewCommandHelperTest {
         }
 
     @Test
-    fun whenHomeCommandIsAdded_executeHomeAction() =
+    @DisableFlags(Flags.FLAG_HOME_BUTTON_USES_KEYCODE_HOME)
+    fun whenHomeCommandIsAdded_executeHomeAction_withKeycodeHomeDisabled() =
         testScope.runTest {
             sut.addCommand(CommandType.HOME)
             runCurrent()
             verify(taskAnimationManager).maybeStartHomeAction(any())
             verify(touchInteractionService).startActivity(any())
+        }
+
+    @Test
+    @EnableFlags(Flags.FLAG_HOME_BUTTON_USES_KEYCODE_HOME)
+    fun whenHomeCommandIsAdded_executeHomeAction_withKeycodeHomeEnabled() =
+        testScope.runTest {
+            sut.addCommand(CommandType.HOME)
+            runCurrent()
+            verify(taskAnimationManager).maybeStartHomeAction(any())
+            verify(systemUiProxy).onKeyEvent(anyInt(), anyInt())
         }
 
     @Test
@@ -458,8 +481,10 @@ class OverviewCommandHelperTest {
             runCurrent()
             assertThat(command.status).isEqualTo(CommandStatus.PROCESSING)
             verify(taskbarUIController).launchFocusedTask()
-            verify(recentView).setKeyboardFocusTask(
-                KeyboardFocusTask.TaskViewWithIds(REQUESTED_KEYBOARD_FOCUS_TASK_IDS))
+            verify(recentView)
+                .setKeyboardFocusTask(
+                    KeyboardFocusTask.TaskViewWithIds(REQUESTED_KEYBOARD_FOCUS_TASK_IDS)
+                )
         }
 
     @Test
