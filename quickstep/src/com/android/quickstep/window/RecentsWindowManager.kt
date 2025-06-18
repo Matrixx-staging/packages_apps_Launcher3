@@ -310,9 +310,6 @@ constructor(
                 scrimView = it.findViewById(R.id.scrim_view)
                 dragLayer = it.findViewById(R.id.drag_layer)
 
-                it.findOnBackInvokedDispatcher()
-                    ?.registerSystemOnBackInvokedCallback(onBackInvokedCallback)
-
                 it.systemUiVisibility =
                     (View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
                         View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
@@ -320,6 +317,9 @@ constructor(
 
                 windowManager.addView(windowRootView, windowLayoutParams)
                 windowRootView.addView(it)
+
+                it.findOnBackInvokedDispatcher()
+                    ?.registerSystemOnBackInvokedCallback(onBackInvokedCallback)
             }
             systemUiController = SystemUiController(windowView)
         }
