@@ -6,6 +6,7 @@ DeviceProfile:
 	isGestureMode:false
 	isLandscape:true
 	isMultiWindowMode:false
+	isExternalDisplay:false
 	isTwoPanels:true
 	isLeftRightSplit:true
 	windowX: 0.0px (0.0dp)

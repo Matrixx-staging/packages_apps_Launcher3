@@ -36,6 +36,7 @@ data class DeviceProperties(
     val isMultiDisplay: Boolean,
     val isTwoPanels: Boolean,
     val isLandscape: Boolean,
+    val isExternalDisplay: Boolean,
     val isMultiWindowMode: Boolean,
     val isGestureMode: Boolean,
 ) {
@@ -47,6 +48,7 @@ data class DeviceProperties(
             transposeLayoutWithOrientation: Boolean,
             isMultiDisplay: Boolean,
             isMultiWindowMode: Boolean,
+            isExternalDisplay: Boolean,
             isGestureMode: Boolean,
         ): DeviceProperties {
             val isTablet = info.isTablet(windowBounds)
@@ -73,6 +75,7 @@ data class DeviceProperties(
                 isTwoPanels = isTablet && isMultiDisplay,
                 isLandscape = windowBounds.isLandscape,
                 isMultiWindowMode = isMultiWindowMode,
+                isExternalDisplay = isExternalDisplay,
                 isGestureMode = isGestureMode,
             )
         }
