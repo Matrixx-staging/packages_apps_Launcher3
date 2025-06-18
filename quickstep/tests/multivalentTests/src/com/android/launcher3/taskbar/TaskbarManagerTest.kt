@@ -16,11 +16,17 @@
 
 package com.android.launcher3.taskbar
 
+import android.platform.test.annotations.DisableFlags
+import android.platform.test.annotations.EnableFlags
+import android.platform.test.flag.junit.SetFlagsRule
+import com.android.launcher3.Flags.FLAG_ENABLE_TASKBAR_FOR_DIRECT_BOOT
 import com.android.launcher3.taskbar.TaskbarControllerTestUtil.runOnMainSync
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule
+import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.UserLocked
 import com.android.launcher3.taskbar.rules.TaskbarWindowSandboxContext
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.LauncherMultivalentJUnit.EmulatedDevices
+import com.android.launcher3.util.SandboxApplication
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
@@ -30,10 +36,12 @@ import org.junit.runner.RunWith
 @EmulatedDevices(["pixelTablet2023"])
 class TaskbarManagerTest {
 
-    @get:Rule(order = 0) val context = TaskbarWindowSandboxContext.create()
-    @get:Rule(order = 1) val taskbarUnitTestRule = TaskbarUnitTestRule(this, context)
+    @get:Rule(order = 0) val setFlagsRule = SetFlagsRule()
+    @get:Rule(order = 1) val context = TaskbarWindowSandboxContext.create()
+    @get:Rule(order = 2) val taskbarUnitTestRule = TaskbarUnitTestRule(this, context)
 
     private val taskbarManager by taskbarUnitTestRule::taskbarManager
+    private val activityContext by taskbarUnitTestRule::activityContext
 
     @Test
     fun addDisplay_externalActivityContextInitialized() {
@@ -54,5 +62,61 @@ class TaskbarManagerTest {
         assertThat(taskbarManager.getTaskbarForDisplay(displayId)).isNull()
         assertThat(activityContext.dragLayer.isAttachedToWindow).isFalse()
         assertThat(activityContext.isDestroyed).isTrue()
+    }
+
+    @Test
+    @UserLocked
+    @DisableFlags(FLAG_ENABLE_TASKBAR_FOR_DIRECT_BOOT)
+    fun onUserUnlocked_noDirectBootSupport_taskbarCreatedAfterUnlock() {
+        assertThat(taskbarManager.currentActivityContext).isNull()
+        taskbarUnitTestRule.unlockUser()
+        assertThat(taskbarManager.currentActivityContext).isNotNull()
+    }
+
+    @Test
+    @UserLocked
+    @DisableFlags(FLAG_ENABLE_TASKBAR_FOR_DIRECT_BOOT)
+    fun onUserUnlocked_noDirectBootSupport_connectedDisplay_taskbarCreatedAfterUnlock() {
+        val displayId = context.virtualDisplayRule.add()
+        assertThat(taskbarManager.getTaskbarForDisplay(displayId)).isNull()
+        taskbarUnitTestRule.unlockUser()
+        assertThat(taskbarManager.getTaskbarForDisplay(displayId)).isNotNull()
+    }
+
+    @Test
+    @UserLocked
+    @EnableFlags(FLAG_ENABLE_TASKBAR_FOR_DIRECT_BOOT)
+    fun onUserUnlocked_directBootSupport_taskbarRecreatedOutsideBootAppContext() {
+        assertThat(activityContext.applicationContext)
+            .isInstanceOf(TaskbarBootAppContext::class.java)
+        taskbarUnitTestRule.unlockUser()
+        assertThat(activityContext.applicationContext).isInstanceOf(SandboxApplication::class.java)
+    }
+
+    @Test
+    @UserLocked
+    @EnableFlags(FLAG_ENABLE_TASKBAR_FOR_DIRECT_BOOT)
+    fun onUserUnlocked_directBootSupport_connectedDisplay_taskbarRecreatedOutsideBootAppContext() {
+        val displayId = context.virtualDisplayRule.add()
+        var application =
+            checkNotNull(taskbarManager.getTaskbarForDisplay(displayId)).applicationContext
+        assertThat(application).isInstanceOf(TaskbarBootAppContext::class.java)
+
+        taskbarUnitTestRule.unlockUser()
+        application =
+            checkNotNull(taskbarManager.getTaskbarForDisplay(displayId)).applicationContext
+        assertThat(application).isInstanceOf(SandboxApplication::class.java)
+    }
+
+    @Test
+    @UserLocked
+    @EnableFlags(FLAG_ENABLE_TASKBAR_FOR_DIRECT_BOOT)
+    fun onUserUnlocked_directBootSupport_connectedDisplay_deviceProfileCacheCleared() {
+        val displayId = context.virtualDisplayRule.add()
+        val dp1 = checkNotNull(taskbarManager.getTaskbarForDisplay(displayId)).deviceProfile
+
+        taskbarUnitTestRule.unlockUser()
+        val dp2 = checkNotNull(taskbarManager.getTaskbarForDisplay(displayId)).deviceProfile
+        assertThat(dp1).isNotSameInstanceAs(dp2)
     }
 }
