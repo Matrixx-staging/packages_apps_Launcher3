@@ -24,6 +24,7 @@ import android.graphics.Canvas
 import android.graphics.Outline
 import android.graphics.Path
 import android.graphics.Rect
+import android.os.Bundle
 import android.provider.Settings
 import android.util.AttributeSet
 import android.util.FloatProperty
@@ -31,6 +32,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewOutlineProvider
 import android.view.ViewStub
+import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction
 import android.widget.TextView
 import androidx.annotation.IdRes
@@ -157,7 +159,7 @@ class TaskContentView @JvmOverloads constructor(context: Context, attrs: Attribu
     private var outlineExpansionHover by
         MultiPropertyDelegate(outlineExpansionFactory, OutlineExpansion.HOVER)
 
-    var isHoverable: Boolean = false;
+    var isHoverable: Boolean = false
 
     init {
         setWillNotDraw(!enableCursorHoverStates())
@@ -217,6 +219,7 @@ class TaskContentView @JvmOverloads constructor(context: Context, attrs: Attribu
         outlineExpansionHover = 0f
         outlineExpansionFocus = 0f
         hoverBorderVisible = false
+        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
     }
 
     fun doOnSizeChange(action: (width: Int, height: Int) -> Unit) {
@@ -266,6 +269,11 @@ class TaskContentView @JvmOverloads constructor(context: Context, attrs: Attribu
         return super.onHoverEvent(event)
     }
 
+    override fun onInitializeAccessibilityNodeInfo(info: AccessibilityNodeInfo) {
+        super.onInitializeAccessibilityNodeInfo(info)
+        with(info) { taskHeaderView?.getSupportedAccessibilityActions()?.forEach(::addAction) }
+    }
+
     fun onParentAnimationProgress(progress: Float) {
         taskAppTimerToast?.apply { translationY = timerToastHeight * (1f - progress) }
     }
@@ -281,8 +289,16 @@ class TaskContentView @JvmOverloads constructor(context: Context, attrs: Attribu
                 return taskAppTimerToast?.callOnClick() ?: false
             }
         }
-
         return false
+    }
+
+    override fun performAccessibilityAction(action: Int, arguments: Bundle?): Boolean {
+        taskHeaderView?.let {
+            if (it.handleAccessibilityAction(action)) {
+                return true
+            }
+        }
+        return super.performAccessibilityAction(action, arguments)
     }
 
     private fun createHeaderView(taskHeaderState: TaskHeaderUiState) {
@@ -371,7 +387,7 @@ class TaskContentView @JvmOverloads constructor(context: Context, attrs: Attribu
                     )
 
                     timerUsageAccessibilityAction =
-                        appUsageSettingsAccessibilityAction(
+                        createAppUsageSettingsAccessibilityAction(
                             context,
                             state.accessibilityActionId,
                             state.taskDescription,
@@ -416,7 +432,7 @@ class TaskContentView @JvmOverloads constructor(context: Context, attrs: Attribu
                 .putExtra(Intent.EXTRA_PACKAGE_NAME, packageName)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
 
-        private fun appUsageSettingsAccessibilityAction(
+        private fun createAppUsageSettingsAccessibilityAction(
             context: Context,
             @IdRes actionId: Int,
             taskDescription: String?,
