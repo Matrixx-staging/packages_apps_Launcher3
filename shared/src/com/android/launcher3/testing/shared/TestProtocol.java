@@ -134,7 +134,7 @@ public final class TestProtocol {
     public static final String REQUEST_SHELL_DRAG_READY = "shell-drag-ready";
     public static final String REQUEST_GET_ACTIVITIES_CREATED_COUNT =
             "get-activities-created-count";
-    public static final String REQUEST_GET_ACTIVITIES = "get-activities";
+    public static final String REQUEST_GET_UI_SURFACES = "get-ui-surfaces";
     public static final String REQUEST_HAS_TIS = "has-touch-interaction-service";
     public static final String REQUEST_TASKBAR_ALL_APPS_TOP_PADDING =
             "taskbar-all-apps-top-padding";

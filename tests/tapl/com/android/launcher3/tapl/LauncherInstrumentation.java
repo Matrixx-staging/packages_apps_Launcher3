@@ -2646,25 +2646,25 @@ public final class LauncherInstrumentation {
                 .getStringArrayList(TestProtocol.TEST_INFO_RESPONSE_FIELD);
     }
 
-    private String[] getActivities() {
-        return getTestInfo(TestProtocol.REQUEST_GET_ACTIVITIES)
+    private String[] getUiSurfaces() {
+        return getTestInfo(TestProtocol.REQUEST_GET_UI_SURFACES)
                 .getStringArray(TestProtocol.TEST_INFO_RESPONSE_FIELD);
     }
 
-    public String getRootedActivitiesList() {
-        return String.join(", ", getActivities());
+    public String getRootedUiSurfacesList() {
+        return String.join(", ", getUiSurfaces());
     }
 
-    /** Returns whether no leaked activities are detected. */
-    public boolean noLeakedActivities(boolean requireOneActiveActivity) {
-        final String[] activities = getActivities();
+    /** Returns whether no leaked UI surfaces are detected. */
+    public boolean noLeakedUiSurfaces() {
+        final String[] uiSurfaces = getUiSurfaces();
 
-        for (String activity : activities) {
-            if (activity.contains("(destroyed)")) {
+        for (String surface : uiSurfaces) {
+            if (surface.contains("(destroyed)")) {
                 return false;
             }
         }
-        return activities.length <= (requireOneActiveActivity ? 1 : 2);
+        return true;
     }
 
     public int getActivitiesCreated() {

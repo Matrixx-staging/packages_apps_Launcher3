@@ -36,6 +36,7 @@ import com.android.launcher3.DeviceProfile.OnDeviceProfileChangeListener
 import com.android.launcher3.Utilities
 import com.android.launcher3.dagger.ActivityContextComponent
 import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
+import com.android.launcher3.testing.TestInformationHandler
 import com.android.launcher3.views.ActivityContext
 
 /**
@@ -72,6 +73,7 @@ constructor(base: Context, themeResId: Int, private val destroyOnDetach: Boolean
         Executors.MAIN_EXECUTOR.execute {
             savedStateRegistryController.performAttach()
             savedStateRegistryController.performRestore(null)
+            TestInformationHandler.trackUiSurface(this)
         }
     }
 

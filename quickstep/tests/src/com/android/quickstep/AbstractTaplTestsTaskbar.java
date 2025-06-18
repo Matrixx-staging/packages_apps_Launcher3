@@ -113,6 +113,6 @@ public class AbstractTaplTestsTaskbar extends AbstractQuickStepTest {
         launcher.enableTransientTaskbar(expectTransientTaskbar);
         launcher.recreateTaskbar();
         launcher.checkForAnomaly(true, true);
-        AbstractLauncherUiTest.checkDetectedLeaks(launcher, true);
+        AbstractLauncherUiTest.checkDetectedLeaks(launcher);
     }
 }
