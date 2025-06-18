@@ -24,6 +24,7 @@ import android.os.Bundle
 import android.util.SizeF
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.util.Executors
+import java.util.concurrent.Executor
 import javax.inject.Inject
 
 /** Helper class for handling widget updates */
@@ -39,13 +40,15 @@ open class WidgetSizeHandler @Inject constructor(@ApplicationContext private val
      * causes a full widget update, hence two binder calls are preferable over unnecessarily
      * updating the widget options.
      */
+    @JvmOverloads
     open fun updateSizeRangesAsync(
         widgetId: Int,
         info: AppWidgetProviderInfo,
         spanX: Int,
         spanY: Int,
+        executor: Executor = Executors.UI_HELPER_EXECUTOR,
     ) {
-        Executors.UI_HELPER_EXECUTOR.execute {
+        executor.execute {
             val widgetManager = AppWidgetManager.getInstance(context)
             val sizeOptions = WidgetSizes.getWidgetSizeOptions(context, info.provider, spanX, spanY)
             if (

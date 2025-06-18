@@ -53,6 +53,7 @@ import dagger.Component
 import java.io.File
 import java.util.Arrays
 import java.util.UUID
+import java.util.concurrent.Executor
 
 /**
  * Context used just for preview. It also provides a few objects (e.g. UserCache) just for preview
@@ -147,6 +148,7 @@ constructor(
             info: AppWidgetProviderInfo,
             spanX: Int,
             spanY: Int,
+            executor: Executor,
         ) {
             // Ignore
         }

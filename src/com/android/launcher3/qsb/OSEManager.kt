@@ -16,6 +16,7 @@
 
 package com.android.launcher3.qsb
 
+import android.app.SearchManager
 import android.content.Context
 import android.content.Intent
 import android.content.Intent.ACTION_PACKAGE_ADDED
@@ -60,6 +61,9 @@ class OSEManager(
      */
     val oseInfo = mutableOSEInfoRef.asListenable()
 
+    private val defaultSearchPackage =
+        context.getSystemService(SearchManager::class.java)?.globalSearchActivity?.packageName
+
     @Inject
     constructor(
         @ApplicationContext context: Context,
@@ -77,14 +81,14 @@ class OSEManager(
     @VisibleForTesting
     fun reloadOse() {
         Preconditions.assertNonUiThread()
-        val osePkg: String? = settingsObserver.getValue()
+        val osePkg: String? = settingsObserver.getValue() ?: defaultSearchPackage
         val overlayAppsList =
             context.resources.getStringArray(R.array.supported_overlay_apps).asList()
         // Look into the "supported_overlay_apps" Array based on OsePackage and fallback to first
         // entry in overlay or null
         val overlayPkg: String? =
             if (overlayAppsList.contains(osePkg)) osePkg
-            else if (!overlayAppsList.isEmpty()) overlayAppsList.get(0) else null
+            else if (overlayAppsList.isNotEmpty()) overlayAppsList[0] else null
 
         val overlayTarget =
             if (overlayPkg == null) null
@@ -145,7 +149,7 @@ class OSEManager(
 
         const val SEARCH_ENGINE_SETTINGS_KEY = "selected_search_engine"
 
-        private val OSE_LOOPER = LooperExecutor.createAndStartNewLooper("OSEManager")
+        val OSE_LOOPER = LooperExecutor.createAndStartNewLooper("OSEManager")
 
         private const val TAG = "OSEManager"
 
