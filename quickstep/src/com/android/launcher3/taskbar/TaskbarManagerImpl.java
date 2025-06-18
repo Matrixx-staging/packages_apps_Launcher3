@@ -396,7 +396,6 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
     private final SimpleBroadcastReceiver mGrowthBroadcastReceiver;
 
     private final AllAppsActionManager mAllAppsActionManager;
-    private final PerDisplayRepository<RecentsWindowManager> mRecentsWindowManagerRepository;
 
     private final Runnable mActivityOnDestroyCallback = new Runnable() {
         @Override
@@ -466,7 +465,6 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
         mPrimaryDisplayId = mBaseContext.getDisplayId();
         mAllAppsActionManager = allAppsActionManager;
         mNavCallbacks = navCallbacks;
-        mRecentsWindowManagerRepository = recentsWindowManagerRepository;
         mDisplaysWithDecorationsRepositoryCompat = displaysWithDecorationsRepositoryCompat;
 
         // Set up primary display.

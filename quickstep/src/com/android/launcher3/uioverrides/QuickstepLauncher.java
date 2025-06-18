@@ -178,6 +178,7 @@ import com.android.launcher3.util.StableViewInfo;
 import com.android.launcher3.util.StartActivityParams;
 import com.android.launcher3.util.TouchController;
 import com.android.launcher3.views.FloatingIconView;
+import com.android.quickstep.BaseContainerInterface;
 import com.android.quickstep.LauncherActivityInterface;
 import com.android.quickstep.OverviewCommandHelper;
 import com.android.quickstep.OverviewComponentObserver;
@@ -917,9 +918,12 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
             overviewCommandHelper.clearPendingCommands();
         }
         if (RecentsWindowFlags.getEnableOverviewInWindow() && !intentHasGnc) {
-            RecentsWindowManager defaultRecentsWindowManager =
-                    RecentsWindowManager.REPOSITORY_INSTANCE.get(this).get(DEFAULT_DISPLAY);
-            if (defaultRecentsWindowManager != null) {
+            BaseContainerInterface<?, ?> defaultDisplayContainerInterface =
+                    OverviewComponentObserver.INSTANCE.get(this).getContainerInterface(
+                            DEFAULT_DISPLAY);
+            if (defaultDisplayContainerInterface != null
+                    && defaultDisplayContainerInterface.getCreatedContainer()
+                    instanceof RecentsWindowManager defaultRecentsWindowManager) {
                 defaultRecentsWindowManager.hideRecentsWindow();
             }
         }
