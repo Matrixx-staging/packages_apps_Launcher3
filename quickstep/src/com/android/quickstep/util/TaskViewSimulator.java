@@ -15,6 +15,7 @@
  */
 package com.android.quickstep.util;
 
+import static android.app.WindowConfiguration.ACTIVITY_TYPE_HOME;
 import static android.app.WindowConfiguration.WINDOWING_MODE_FULLSCREEN;
 
 import static com.android.launcher3.states.RotationHelper.deltaRotation;
@@ -36,6 +37,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.Log;
 import android.view.RemoteAnimationTarget;
+import android.view.SurfaceControl;
 import android.view.animation.Interpolator;
 
 import androidx.annotation.NonNull;
@@ -49,6 +51,7 @@ import com.android.launcher3.util.TraceHelper;
 import com.android.quickstep.BaseActivityInterface;
 import com.android.quickstep.BaseContainerInterface;
 import com.android.quickstep.DesktopFullscreenDrawParams;
+import com.android.quickstep.FallbackWindowInterface;
 import com.android.quickstep.FullscreenDrawParams;
 import com.android.quickstep.TaskAnimationManager;
 import com.android.quickstep.util.SurfaceTransaction.SurfaceProperties;
@@ -568,7 +571,15 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
         if (mDrawAboveOtherApps != null && mDrawAboveOtherApps) {
             baseLayer += 1000;
         }
-        builder.setLayer(baseLayer);
+        if (mSizeStrategy instanceof FallbackWindowInterface windowInterface
+                && app.taskInfo.getActivityType() != ACTIVITY_TYPE_HOME) {
+            // the Overview surface will live on the overviewOverlayLayer meaning that we
+            // allow taskview simulator be set above/below this layer as needed for animations.
+            SurfaceControl overviewOverlay = windowInterface.getOverviewOverlay();
+            builder.setRelativeLayer(overviewOverlay, baseLayer);
+        } else {
+            builder.setLayer(baseLayer);
+        }
     }
 
     /**

@@ -25,6 +25,7 @@ import android.animation.AnimatorSet;
 import android.content.Context;
 import android.graphics.Rect;
 import android.view.RemoteAnimationTarget;
+import android.view.SurfaceControl;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -117,6 +118,15 @@ public final class FallbackWindowInterface extends BaseWindowInterface {
     public RecentsWindowManager getCreatedContainer() {
         return mRecentsWindowManager;
     }
+
+    @Nullable
+    public SurfaceControl getOverviewOverlay() {
+        if (mRecentsWindowManager == null) {
+            return null;
+        }
+        return mRecentsWindowManager.getOverviewOverlay();
+    }
+
 
     @Override
     public TaskbarUIController getTaskbarController() {
