@@ -72,6 +72,7 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.TextView;
 
 import androidx.annotation.DrawableRes;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 import androidx.annotation.VisibleForTesting;
@@ -93,7 +94,10 @@ import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
+import com.android.launcher3.popup.Poppable;
+import com.android.launcher3.popup.PoppableType;
 import com.android.launcher3.popup.PopupContainerWithArrow;
+import com.android.launcher3.popup.PopupController;
 import com.android.launcher3.search.StringMatcherUtility;
 import com.android.launcher3.util.CancellableTask;
 import com.android.launcher3.util.IntArray;
@@ -115,7 +119,7 @@ import java.util.Objects;
  * too aggressive.
  */
 public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
-        FloatingIconViewCompanion, DraggableView, Reorderable {
+        FloatingIconViewCompanion, DraggableView, Reorderable, Poppable {
 
     public static final String TAG = "BubbleTextView";
 
@@ -143,6 +147,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     private IntArray mBreakPointsIntArray;
     private CharSequence mLastOriginalText;
     private CharSequence mLastModifiedText;
+    private PopupController mPopupController;
 
     private static final Property<BubbleTextView, Float> DOT_SCALE_PROPERTY
             = new Property<BubbleTextView, Float>(Float.TYPE, "dotScale") {
@@ -220,6 +225,23 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
 
     private final String mMinimizedStateDescription;
     private final String mRunningStateDescription;
+
+    @Nullable
+    @Override
+    public PopupController getPopupController() {
+        return mPopupController;
+    }
+
+    @Override
+    public void setPopupController(@NonNull PopupController popupController) {
+        mPopupController = popupController;
+    }
+
+    @NonNull
+    @Override
+    public PoppableType getPoppableType() {
+        return PoppableType.APP;
+    }
 
     /**
      * Various options for the running state of an app.

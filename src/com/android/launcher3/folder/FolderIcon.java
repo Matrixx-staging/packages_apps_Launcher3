@@ -79,6 +79,9 @@ import com.android.launcher3.model.data.FolderInfo.LabelState;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemFactory;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
+import com.android.launcher3.popup.Poppable;
+import com.android.launcher3.popup.PoppableType;
+import com.android.launcher3.popup.PopupController;
 import com.android.launcher3.util.MultiTranslateDelegate;
 import com.android.launcher3.util.Thunk;
 import com.android.launcher3.views.ActivityContext;
@@ -93,7 +96,7 @@ import java.util.function.Predicate;
  * An icon that can appear on in the workspace representing an {@link Folder}.
  */
 public class FolderIcon extends FrameLayout implements FloatingIconViewCompanion,
-        DraggableView, Reorderable {
+        DraggableView, Reorderable, Poppable {
 
     private final MultiTranslateDelegate mTranslateDelegate = new MultiTranslateDelegate(this);
     @Thunk ActivityContext mActivity;
@@ -137,6 +140,7 @@ public class FolderIcon extends FrameLayout implements FloatingIconViewCompanion
     private Rect mTouchArea = new Rect();
 
     private float mScaleForReorderBounce = 1f;
+    private PopupController mPopupController;
 
     private static final Property<FolderIcon, Float> DOT_SCALE_PROPERTY
             = new Property<FolderIcon, Float>(Float.TYPE, "dotScale") {
@@ -788,6 +792,23 @@ public class FolderIcon extends FrameLayout implements FloatingIconViewCompanion
         if (enableCursorHoverStates()) {
             mBackground.setHovered(hovered);
         }
+    }
+
+    @Nullable
+    @Override
+    public PopupController getPopupController() {
+        return mPopupController;
+    }
+
+    @Override
+    public void setPopupController(@NonNull PopupController popupController) {
+        mPopupController = popupController;
+    }
+
+    @NonNull
+    @Override
+    public PoppableType getPoppableType() {
+        return PoppableType.FOLDER;
     }
 
     /**

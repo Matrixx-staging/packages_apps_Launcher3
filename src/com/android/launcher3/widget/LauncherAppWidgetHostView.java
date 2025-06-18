@@ -42,6 +42,9 @@ import com.android.launcher3.CheckLongPressHelper;
 import com.android.launcher3.Flags;
 import com.android.launcher3.R;
 import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.popup.Poppable;
+import com.android.launcher3.popup.PoppableType;
+import com.android.launcher3.popup.PopupController;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.BaseDragLayer;
@@ -52,7 +55,7 @@ import com.android.launcher3.views.UpdateDeferrableView;
  * {@inheritDoc}
  */
 public class LauncherAppWidgetHostView extends BaseLauncherAppWidgetHostView
-        implements TouchCompleteListener, View.OnLongClickListener, UpdateDeferrableView {
+        implements TouchCompleteListener, View.OnLongClickListener, UpdateDeferrableView, Poppable {
 
     private static final String TAG = "LauncherAppWidgetHostView";
 
@@ -86,6 +89,7 @@ public class LauncherAppWidgetHostView extends BaseLauncherAppWidgetHostView
     private boolean mTrackingWidgetUpdate = false;
 
     private int mFocusRectOutsets = 0;
+    private PopupController mPopupController;
 
     public LauncherAppWidgetHostView(Context context) {
         super(context);
@@ -388,6 +392,23 @@ public class LauncherAppWidgetHostView extends BaseLauncherAppWidgetHostView
             return item.spanX == 1 && item.spanY == 1;
         }
         return false;
+    }
+
+    @Nullable
+    @Override
+    public PopupController getPopupController() {
+        return mPopupController;
+    }
+
+    @Override
+    public void setPopupController(@NonNull PopupController popupController) {
+        mPopupController = popupController;
+    }
+
+    @NonNull
+    @Override
+    public PoppableType getPoppableType() {
+        return PoppableType.WIDGET;
     }
 
     /**
