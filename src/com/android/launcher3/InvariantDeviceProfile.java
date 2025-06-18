@@ -920,10 +920,11 @@ public class InvariantDeviceProfile {
     }
 
     public DeviceProfile createDeviceProfileForSecondaryDisplay(Context displayContext) {
-        // Disable transpose layout and use multi-window mode so that the icons are scaled properly
+        // Disable transpose layout and use external display so that the icons are scaled properly
         return newDPBuilder(displayContext, new Info(displayContext))
                 .setIsMultiDisplay(false)
                 .setMultiWindowMode(true)
+                .setExternalDisplay(true)
                 .setWindowBounds(mWMProxy.getRealBounds(
                         displayContext, mWMProxy.getDisplayInfo(displayContext)))
                 .setTransposeLayoutWithOrientation(false)

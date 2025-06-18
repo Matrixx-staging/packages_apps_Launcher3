@@ -267,6 +267,7 @@ public class DeviceProfile {
                 false,
                 false,
                 false,
+                false,
                 false
         );
         mBottomSheetProfile = new BottomSheetProfile(0, 0, 0, 0f, 0f);
@@ -319,8 +320,9 @@ public class DeviceProfile {
     /** TODO: Once we fully migrate to staged split, remove "isMultiWindowMode" */
     DeviceProfile(Context context, InvariantDeviceProfile inv, Info info,
             WindowManagerProxy wmProxy, ThemeManager themeManager, WindowBounds windowBounds,
-            SparseArray<DotRenderer> dotRendererCache, boolean isMultiWindowMode,
-            boolean transposeLayoutWithOrientation, boolean isMultiDisplay, boolean isGestureMode,
+            SparseArray<DotRenderer> dotRendererCache, boolean isExternalDisplay,
+            boolean isMultiWindowMode, boolean transposeLayoutWithOrientation,
+            boolean isMultiDisplay, boolean isGestureMode,
             @NonNull final ViewScaleProvider viewScaleProvider,
             @NonNull final Consumer<DeviceProfile> dimensionOverrideProvider,
             boolean isTransientTaskbar, DisplayOptionSpec displayOptionSpec) {
@@ -332,6 +334,7 @@ public class DeviceProfile {
                 windowBounds,
                 transposeLayoutWithOrientation,
                 isMultiDisplay,
+                isExternalDisplay,
                 isMultiWindowMode,
                 isGestureMode
         );
@@ -347,7 +350,8 @@ public class DeviceProfile {
                 && inv.workspaceCellSpecsId != INVALID_RESOURCE_HANDLE
                 && inv.allAppsCellSpecsId != INVALID_RESOURCE_HANDLE;
 
-        mIsScalableGrid = inv.isScalable && !isVerticalBarLayout() && !isMultiWindowMode;
+        mIsScalableGrid = inv.isScalable && !isVerticalBarLayout()
+                && !isMultiWindowMode && !isExternalDisplay;
         // Determine device posture.
         mInfo = info;
         boolean taskbarOrBubbleBarOnPhones = enableTinyTaskbar()
@@ -954,6 +958,7 @@ public class DeviceProfile {
                 .setWindowBounds(bounds)
                 .setIsMultiDisplay(mDeviceProperties.isMultiDisplay())
                 .setMultiWindowMode(mDeviceProperties.isMultiWindowMode())
+                .setExternalDisplay(mDeviceProperties.isExternalDisplay())
                 .setDotRendererCache(dotRendererCache)
                 .setGestureMode(mDeviceProperties.isGestureMode())
                 .setDisplayOptionSpec(mDisplayOptionSpec);
@@ -2010,6 +2015,7 @@ public class DeviceProfile {
 
         writer.println(prefix + "\tisLandscape:" + mDeviceProperties.isLandscape());
         writer.println(prefix + "\tisMultiWindowMode:" + mDeviceProperties.isMultiWindowMode());
+        writer.println(prefix + "\tisExternalDisplay:" + mDeviceProperties.isExternalDisplay());
         writer.println(prefix + "\tisTwoPanels:" + mDeviceProperties.isTwoPanels());
         writer.println(prefix + "\tisLeftRightSplit:" + isLeftRightSplit);
 
@@ -2337,6 +2343,7 @@ public class DeviceProfile {
         private WindowBounds mWindowBounds;
         private boolean mIsMultiDisplay;
 
+        private boolean mIsExternalDisplay = false;
         private boolean mIsMultiWindowMode = false;
         private Boolean mTransposeLayoutWithOrientation;
         private Boolean mIsGestureMode;
@@ -2357,6 +2364,11 @@ public class DeviceProfile {
             mWMProxy = wmProxy;
             mThemeManager = themeManager;
             mIsTransientTaskbar = info.isTransientTaskbar();
+        }
+
+        public Builder setExternalDisplay(boolean isExternalDisplay) {
+            mIsExternalDisplay = isExternalDisplay;
+            return this;
         }
 
         public Builder setMultiWindowMode(boolean isMultiWindowMode) {
@@ -2458,7 +2470,7 @@ public class DeviceProfile {
                         mIsMultiDisplay, mInv);
             }
             return new DeviceProfile(mContext, mInv, mInfo, mWMProxy, mThemeManager,
-                    mWindowBounds, mDotRendererCache,
+                    mWindowBounds, mDotRendererCache, mIsExternalDisplay,
                     mIsMultiWindowMode, mTransposeLayoutWithOrientation, mIsMultiDisplay,
                     mIsGestureMode, mViewScaleProvider, mOverrideProvider, mIsTransientTaskbar,
                     mDisplayOptionSpec);
