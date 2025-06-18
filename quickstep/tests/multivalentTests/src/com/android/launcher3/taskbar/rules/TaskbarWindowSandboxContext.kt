@@ -45,7 +45,7 @@ import org.mockito.kotlin.whenever
  */
 class TaskbarWindowSandboxContext
 private constructor(
-    private val base: SandboxApplication,
+    val base: SandboxApplication,
     val virtualDisplayRule: VirtualDisplaysRule,
     private val params: SandboxParams,
 ) : ContextWrapper(base), TestRule {

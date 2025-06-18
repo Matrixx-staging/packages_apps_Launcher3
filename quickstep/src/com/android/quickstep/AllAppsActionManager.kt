@@ -84,9 +84,17 @@ class AllAppsActionManager(
     var isActionRegistered = false
         private set
 
+    private var isUserUnlocked = false
+
+    fun onUserUnlocked() {
+        isUserUnlocked = true
+        updateSystemAction()
+    }
+
     private fun updateSystemAction() {
         val isInSetupFlow = isSetupUiVisible || !isUserSetupComplete
-        val shouldRegisterAction = (isHomeAndOverviewSame || isTaskbarPresent) && !isInSetupFlow
+        val shouldRegisterAction =
+            (isHomeAndOverviewSame || isTaskbarPresent) && !isInSetupFlow && isUserUnlocked
         if (isActionRegistered == shouldRegisterAction) return
         isActionRegistered = shouldRegisterAction
 
