@@ -40,9 +40,9 @@ import com.android.launcher3.icons.BitmapInfo;
 import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.util.LauncherLayoutBuilder;
+import com.android.launcher3.util.LayoutResource;
 import com.android.launcher3.util.ModelTestExtensions;
 import com.android.launcher3.util.SandboxApplication;
-import com.android.launcher3.util.rule.LayoutProviderRule;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -58,7 +58,7 @@ import java.util.List;
 public class DefaultLayoutProviderTest {
 
     @Rule public SandboxApplication mTargetContext = new SandboxApplication().withModelDependency();
-    @Rule public LayoutProviderRule mLayoutProvider = new LayoutProviderRule(mTargetContext);
+    @Rule public LayoutResource mLayout = new LayoutResource(mTargetContext);
 
     private List<ItemInfo> getWorkspaceItems() {
         return getBgDataModel(getModel())
@@ -169,7 +169,7 @@ public class DefaultLayoutProviderTest {
     }
 
     private void writeLayoutAndLoad(LauncherLayoutBuilder builder) throws Exception {
-        mLayoutProvider.setupDefaultLayoutProvider(builder);
+        mLayout.set(builder);
         ModelTestExtensions.INSTANCE.loadModelSync(getModel());
     }
 
