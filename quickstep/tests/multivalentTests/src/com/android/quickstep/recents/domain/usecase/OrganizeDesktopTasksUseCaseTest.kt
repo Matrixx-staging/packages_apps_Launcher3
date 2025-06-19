@@ -19,7 +19,6 @@ package com.android.quickstep.recents.domain.usecase
 import android.graphics.Rect
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.quickstep.recents.domain.model.DesktopLayoutConfig
-import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData
 import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData.HiddenDesktopTaskBoundsData
 import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData.RenderedDesktopTaskBoundsData
 import com.google.common.truth.Truth.assertThat
@@ -58,7 +57,7 @@ class OrganizeDesktopTasksUseCaseTest {
     fun test_emptyDesktopBounds_returnsHiddenTaskData() {
         val desktopBounds = Rect(0, 0, 0, 0)
         val taskBounds = listOf(RenderedDesktopTaskBoundsData(1, Rect(0, 0, 100, 100)))
-        val expected = listOf(DesktopTaskBoundsData.HiddenDesktopTaskBoundsData(1))
+        val expected = listOf(HiddenDesktopTaskBoundsData(1))
 
         val result = useCase.invoke(desktopBounds, taskBounds, testLayoutConfig)
 
@@ -194,5 +193,474 @@ class OrganizeDesktopTasksUseCaseTest {
                 HiddenDesktopTaskBoundsData(3),
             )
         assertThat(result).isEqualTo(expected)
+    }
+
+    @Test
+    fun removeTask_fromEmptyLayout_returnsEmptyList_merged() {
+        val currentLayout = emptyList<RenderedDesktopTaskBoundsData>()
+        val taskIdToRemove = 1
+        val desktopBounds = DEFAULT_DESKTOP_BOUNDS
+
+        val result =
+            useCase.invoke(
+                desktopBounds = desktopBounds,
+                allCurrentOriginalTaskBounds = currentLayout,
+                layoutConfig = testLayoutConfig,
+                taskPositionsHint = null,
+                dismissedTaskId = taskIdToRemove,
+            )
+        assertThat(result).isEmpty()
+    }
+
+    @Test
+    fun removeTask_whenTaskNotFoundInSingleItemLayout_returnsOriginalLayout_merged() {
+        val currentLayout = listOf(RenderedDesktopTaskBoundsData(1, Rect(0, 0, 100, 200)))
+        val taskIdToRemove = 2 // Task not in currentLayout
+        val desktopBounds = DEFAULT_DESKTOP_BOUNDS
+
+        val result =
+            useCase.invoke(
+                desktopBounds = desktopBounds,
+                allCurrentOriginalTaskBounds = currentLayout,
+                layoutConfig = testLayoutConfig,
+                dismissedTaskId = taskIdToRemove,
+            )
+        // The new invoke logic might return a full re-organization if task not found for reflow.
+        // If task to remove is not found, performReflowRebalance returns currentLayout.
+        // The orchestrator invoke will call performFullOrganization on currentLayout (all tasks).
+        // So, the result should be the organized version of currentLayout.
+        val expectedResult =
+            useCase.invoke(desktopBounds, currentLayout, testLayoutConfig, dismissedTaskId = null)
+        assertThat(result).isEqualTo(expectedResult)
+    }
+
+    // Before:
+    // [ T1 ]
+    // [ T2 ]
+    // [ T3 ]
+    // After (removing T1):
+    // [ T2 ]
+    // [ T3 ]
+    @Test
+    fun removeFirstRow_fromLayoutWithThreeRowsSingleColumn_rebalancesRemainingTwo_merged() {
+        val currentLayout =
+            listOf(
+                RenderedDesktopTaskBoundsData(1, Rect(0, 0, 100, 200)),
+                RenderedDesktopTaskBoundsData(2, Rect(0, 210, 100, 410)),
+                RenderedDesktopTaskBoundsData(3, Rect(0, 420, 100, 620)),
+            )
+        val taskIdToRemove = 1
+        val desktopBounds = DEFAULT_DESKTOP_BOUNDS
+
+        val result =
+            useCase.invoke(
+                desktopBounds = desktopBounds,
+                allCurrentOriginalTaskBounds = currentLayout,
+                layoutConfig = testLayoutConfig,
+                taskPositionsHint = currentLayout,
+                dismissedTaskId = taskIdToRemove,
+            )
+
+        val expectedResult =
+            listOf(
+                RenderedDesktopTaskBoundsData(2, Rect(0, 105, 100, 305)),
+                RenderedDesktopTaskBoundsData(3, Rect(0, 315, 100, 515)),
+            )
+        assertThat(result).isEqualTo(expectedResult)
+    }
+
+    // Before:
+    // [ T1 ]
+    // [ T2 ]
+    // [ T3 ]
+    // After (removing T2):
+    // [ T1 ]
+    // [ T3 ]
+    @Test
+    fun removeMiddleRow_fromLayoutWithThreeRowsSingleColumn_rebalancesRemainingTwo_merged() {
+        val currentLayout =
+            listOf(
+                RenderedDesktopTaskBoundsData(1, Rect(0, 0, 100, 200)),
+                RenderedDesktopTaskBoundsData(2, Rect(0, 210, 100, 410)),
+                RenderedDesktopTaskBoundsData(3, Rect(0, 420, 100, 620)),
+            )
+        val taskIdToRemove = 2
+        val desktopBounds = DEFAULT_DESKTOP_BOUNDS
+
+        val result =
+            useCase.invoke(
+                desktopBounds = desktopBounds,
+                allCurrentOriginalTaskBounds = currentLayout,
+                layoutConfig = testLayoutConfig,
+                taskPositionsHint = currentLayout,
+                dismissedTaskId = taskIdToRemove,
+            )
+
+        val expectedResult =
+            listOf(
+                RenderedDesktopTaskBoundsData(1, Rect(0, 105, 100, 305)),
+                RenderedDesktopTaskBoundsData(3, Rect(0, 315, 100, 515)),
+            )
+        assertThat(result).isEqualTo(expectedResult)
+    }
+
+    // Before:
+    // [ T1 ]
+    // [ T2 ]
+    // [ T3 ]
+    // After (removing T3):
+    // [ T1 ]
+    // [ T2 ]
+    @Test
+    fun removeLastRow_fromLayoutWithThreeRowsSingleColumn_rebalancesRemainingTwo_merged() {
+        val currentLayout =
+            listOf(
+                RenderedDesktopTaskBoundsData(1, Rect(0, 0, 100, 200)),
+                RenderedDesktopTaskBoundsData(2, Rect(0, 210, 100, 410)),
+                RenderedDesktopTaskBoundsData(3, Rect(0, 420, 100, 620)),
+            )
+        val taskIdToRemove = 3
+        val desktopBounds = DEFAULT_DESKTOP_BOUNDS
+
+        val result =
+            useCase.invoke(
+                desktopBounds = desktopBounds,
+                allCurrentOriginalTaskBounds = currentLayout,
+                layoutConfig = testLayoutConfig,
+                taskPositionsHint = currentLayout,
+                dismissedTaskId = taskIdToRemove,
+            )
+
+        val expectedResult =
+            listOf(
+                RenderedDesktopTaskBoundsData(1, Rect(0, 105, 100, 305)),
+                RenderedDesktopTaskBoundsData(2, Rect(0, 315, 100, 515)),
+            )
+        assertThat(result).isEqualTo(expectedResult)
+    }
+
+    // Before:
+    // [ T1 ] [ T2 ]
+    // [ T3 ]
+    // [ T4 ] [ T5 ]
+    // After (removing T3):
+    // [ T1 ] [ T2 ]
+    // [ T4 ] [ T5 ]
+    @Test
+    fun removeMiddleRowWithSingleTask_fromLayoutWithThreeRowsMixedColumns_rebalancesRemainingTwoRows_merged() {
+        val currentLayout =
+            listOf(
+                RenderedDesktopTaskBoundsData(1, Rect(0, 0, 100, 200)),
+                RenderedDesktopTaskBoundsData(2, Rect(110, 0, 210, 200)),
+                RenderedDesktopTaskBoundsData(3, Rect(0, 210, 100, 410)),
+                RenderedDesktopTaskBoundsData(4, Rect(0, 420, 100, 620)),
+                RenderedDesktopTaskBoundsData(5, Rect(110, 420, 210, 620)),
+            )
+        val taskIdToRemove = 3
+        val desktopBounds = DEFAULT_DESKTOP_BOUNDS
+
+        val result =
+            useCase.invoke(
+                desktopBounds = desktopBounds,
+                allCurrentOriginalTaskBounds = currentLayout,
+                layoutConfig = testLayoutConfig,
+                taskPositionsHint = currentLayout,
+                dismissedTaskId = taskIdToRemove,
+            )
+
+        val expectedResult =
+            listOf(
+                RenderedDesktopTaskBoundsData(1, Rect(0, 105, 100, 305)),
+                RenderedDesktopTaskBoundsData(2, Rect(110, 105, 210, 305)),
+                RenderedDesktopTaskBoundsData(4, Rect(0, 315, 100, 515)),
+                RenderedDesktopTaskBoundsData(5, Rect(110, 315, 210, 515)),
+            )
+        assertThat(result).isEqualTo(expectedResult)
+    }
+
+    // Before:
+    // [ T1 ] [ T2 ] [ T3 ]
+    // After (removing T1):
+    // [ T2 ] [ T3 ]
+    @Test
+    fun removeFirstTask_fromLayoutWithSingleRowThreeColumns_rebalancesRemainingTwo_merged() {
+        val currentLayout =
+            listOf(
+                RenderedDesktopTaskBoundsData(1, Rect(0, 0, 100, 200)),
+                RenderedDesktopTaskBoundsData(2, Rect(110, 0, 210, 200)),
+                RenderedDesktopTaskBoundsData(3, Rect(220, 0, 320, 200)),
+            )
+        val taskIdToRemove = 1
+        val desktopBounds = DEFAULT_DESKTOP_BOUNDS
+
+        val result =
+            useCase.invoke(
+                desktopBounds = desktopBounds,
+                allCurrentOriginalTaskBounds = currentLayout,
+                layoutConfig = testLayoutConfig,
+                taskPositionsHint = currentLayout,
+                dismissedTaskId = taskIdToRemove,
+            )
+
+        val expectedResult =
+            listOf(
+                RenderedDesktopTaskBoundsData(2, Rect(55, 0, 155, 200)),
+                RenderedDesktopTaskBoundsData(3, Rect(165, 0, 265, 200)),
+            )
+        assertThat(result).isEqualTo(expectedResult)
+    }
+
+    // Before:
+    // [ T1 ] [ T2 ] [ T3 ]
+    // After (removing T2):
+    // [ T1 ] [ T3 ]
+    @Test
+    fun removeMiddleTask_fromLayoutWithSingleRowThreeColumns_rebalancesRemainingTwo_merged() {
+        val currentLayout =
+            listOf(
+                RenderedDesktopTaskBoundsData(1, Rect(0, 0, 100, 200)),
+                RenderedDesktopTaskBoundsData(2, Rect(110, 0, 210, 200)),
+                RenderedDesktopTaskBoundsData(3, Rect(220, 0, 320, 200)),
+            )
+        val taskIdToRemove = 2
+        val desktopBounds = DEFAULT_DESKTOP_BOUNDS
+
+        val result =
+            useCase.invoke(
+                desktopBounds = desktopBounds,
+                allCurrentOriginalTaskBounds = currentLayout,
+                layoutConfig = testLayoutConfig,
+                taskPositionsHint = currentLayout,
+                dismissedTaskId = taskIdToRemove,
+            )
+
+        val expectedResult =
+            listOf(
+                RenderedDesktopTaskBoundsData(1, Rect(55, 0, 155, 200)),
+                RenderedDesktopTaskBoundsData(3, Rect(165, 0, 265, 200)),
+            )
+        assertThat(result).isEqualTo(expectedResult)
+    }
+
+    // Before:
+    // [ T1 ] [ T2 ] [ T3 ]
+    // After (removing T3):
+    // [ T1 ] [ T2 ]
+    @Test
+    fun removeLastTask_fromLayoutWithSingleRowThreeColumns_rebalancesRemainingTwo_merged() {
+        val currentLayout =
+            listOf(
+                RenderedDesktopTaskBoundsData(1, Rect(0, 0, 100, 200)),
+                RenderedDesktopTaskBoundsData(2, Rect(110, 0, 210, 200)),
+                RenderedDesktopTaskBoundsData(3, Rect(220, 0, 320, 200)),
+            )
+        val taskIdToRemove = 3
+        val desktopBounds = DEFAULT_DESKTOP_BOUNDS
+
+        val result =
+            useCase.invoke(
+                desktopBounds = desktopBounds,
+                allCurrentOriginalTaskBounds = currentLayout,
+                layoutConfig = testLayoutConfig,
+                taskPositionsHint = currentLayout,
+                dismissedTaskId = taskIdToRemove,
+            )
+
+        val expectedResult =
+            listOf(
+                RenderedDesktopTaskBoundsData(1, Rect(55, 0, 155, 200)),
+                RenderedDesktopTaskBoundsData(2, Rect(165, 0, 265, 200)),
+            )
+        assertThat(result).isEqualTo(expectedResult)
+    }
+
+    private val defaultDesktopBounds = Rect(0, 0, 10000, 10000)
+
+    // Helper for creating RenderedDesktopTaskBoundsData
+    private fun createRenderedData(taskId: Int, l: Int, t: Int, r: Int, b: Int) =
+        RenderedDesktopTaskBoundsData(taskId, Rect(l, t, r, b))
+
+    // Helper for creating HiddenDesktopTaskBoundsData
+    private fun createHiddenData(taskId: Int) = HiddenDesktopTaskBoundsData(taskId)
+
+    @Test
+    fun dismissOnlyTask_resultsInEmptyLayout() {
+        val task1Orig = createRenderedData(1, 0, 0, 100, 100)
+        val allOriginalTasks = listOf(task1Orig)
+        val previousLayout =
+            listOf(createRenderedData(1, 10, 10, 110, 110)) // Organized version of task1Orig
+        val dismissedTaskId = 1
+
+        val result =
+            useCase.invoke(
+                desktopBounds = defaultDesktopBounds,
+                allCurrentOriginalTaskBounds = allOriginalTasks,
+                layoutConfig = testLayoutConfig,
+                taskPositionsHint = previousLayout,
+                dismissedTaskId = dismissedTaskId,
+            )
+
+        assertThat(result).isEmpty()
+    }
+
+    @Test
+    fun dismissTask_whenPreviousLayoutIsEmpty_performsFullOrganizationOnRemaining() {
+        val task1Orig = createRenderedData(1, 0, 0, 100, 100)
+        val task2Orig = createRenderedData(2, 100, 0, 200, 100)
+        val allOriginalTasks = listOf(task1Orig, task2Orig)
+        val dismissedTaskId = 1
+
+        val remainingOriginalTaskBounds = listOf(task2Orig)
+
+        val result =
+            useCase.invoke(
+                desktopBounds = defaultDesktopBounds,
+                allCurrentOriginalTaskBounds = allOriginalTasks,
+                layoutConfig = testLayoutConfig,
+                taskPositionsHint = null,
+                dismissedTaskId = dismissedTaskId,
+            )
+
+        // Expected: performFullOrganization on remainingOriginalTaskBounds ([task2Orig])
+        val expectedResultByFullOrganization =
+            useCase.invoke(
+                desktopBounds = defaultDesktopBounds,
+                allCurrentOriginalTaskBounds = remainingOriginalTaskBounds,
+                layoutConfig = testLayoutConfig,
+                taskPositionsHint = null,
+                dismissedTaskId = null,
+            )
+        assertThat(result).isEqualTo(expectedResultByFullOrganization)
+    }
+
+    @Test
+    fun dismissHiddenTask_returnsRemainingPreviousLayoutWithoutRelayout() {
+        val task1Orig = createRenderedData(1, 0, 0, 200, 200) // Will be rendered
+        val task2Orig = createRenderedData(2, 0, 0, 100, 100) // Will be hidden in previousLayout
+
+        val allOriginalTasks = listOf(task1Orig, task2Orig)
+        // Assume task2 was hidden in the previous layout
+        val previousLayout = listOf(createRenderedData(1, 10, 10, 510, 510), createHiddenData(2))
+        val dismissedTaskId = 2 // Dismissing the hidden task
+
+        val result =
+            useCase.invoke(
+                desktopBounds = defaultDesktopBounds,
+                allCurrentOriginalTaskBounds = allOriginalTasks,
+                layoutConfig = testLayoutConfig,
+                taskPositionsHint = previousLayout,
+                dismissedTaskId = dismissedTaskId,
+            )
+
+        // Expected: remainingPreviousOrganizedTaskPosition, which is [r(1, 10, 10, 510, 510)]
+        assertThat(result).containsExactly(createRenderedData(1, 10, 10, 510, 510))
+    }
+
+    @Test
+    fun dismissRenderedTask_previousHadHidden_relayoutChangesVisibility_performsFullOrganization() {
+        // T1 (small), T2 (small), T3 (large enough to be hidden with T1, T2 present)
+        // Previous: R_T1, R_T2, H_T3. Dismiss T1.
+        // Remaining original: T2, T3. Full org on (T2, T3) should render both.
+        val task1Orig = createRenderedData(1, 0, 0, 100, 100)
+        val task2Orig = createRenderedData(2, 100, 0, 200, 100)
+        val task3Orig = createRenderedData(3, 0, 100, 300, 400) // Large task
+
+        val allOriginalTasks = listOf(task1Orig, task2Orig, task3Orig)
+
+        // Setup previousLayout: T1, T2 are rendered, T3 is hidden.
+        // This requires a desktopBound that would actually hide T3 if T1,T2 are present.
+        // For simplicity, we manually construct previousOrganizedDesktopTaskPositions.
+        // Let's assume T1 and T2 took up all space, forcing T3 to be hidden.
+        val prevRenderedT1 = createRenderedData(1, 10, 10, 110, 110)
+        val prevRenderedT2 = createRenderedData(2, 120, 10, 220, 110)
+        val prevHiddenT3 = createHiddenData(3)
+        val previousLayout = listOf(prevRenderedT1, prevRenderedT2, prevHiddenT3)
+
+        val dismissedTaskId = 1
+        val remainingOriginalTasks = listOf(task2Orig, task3Orig)
+
+        // Mocking the behavior of performFullOrganization for this specific scenario:
+        // Assume that when only T2 and T3 are present, they can both be rendered.
+        // This means the set of rendered tasks changes from {T2} (in remainingPrevious) to {T2,
+        // T3}.
+        // So, the use case should return the result of full organization on remainingOriginalTasks.
+
+        val result =
+            useCase.invoke(
+                desktopBounds = defaultDesktopBounds, // Use large bounds for full re-layout
+                allCurrentOriginalTaskBounds = allOriginalTasks,
+                layoutConfig = testLayoutConfig,
+                taskPositionsHint = previousLayout,
+                dismissedTaskId = dismissedTaskId,
+            )
+
+        // Expected: result of performFullOrganization on remainingOriginalTasks ([task2Orig,
+        // task3Orig])
+        val expectedResultByFullOrganization =
+            useCase.invoke(
+                desktopBounds = defaultDesktopBounds,
+                allCurrentOriginalTaskBounds = remainingOriginalTasks,
+                layoutConfig = testLayoutConfig,
+                taskPositionsHint = null, // Not used for this call path
+                dismissedTaskId = null,
+            )
+
+        assertThat(result).isEqualTo(expectedResultByFullOrganization)
+        // Additionally, verify that T3 is now rendered.
+        assertThat(result.any { it.taskId == 3 && it is RenderedDesktopTaskBoundsData }).isTrue()
+    }
+
+    @Test
+    fun dismissRenderedTask_previousHadHidden_relayoutKeepsSameVisibility_performsReflowAndPreservesHidden() {
+        // T1 (small), T2 (small), T3 (very large, will stay hidden even if T1 is dismissed)
+        // Previous: R_T1, R_T2, H_T3. Dismiss T1.
+        // Remaining original: T2, T3. Full org on (T2, T3) should be R_T2, H_T3.
+        // Rendered set {T2} is same as in remainingPrevious. So, reflow R_T1, R_T2, removing T1.
+        // H_T3 should now be preserved.
+
+        val task1Orig = createRenderedData(1, 0, 0, 100, 100) // Small, will be rendered
+        val task2Orig = createRenderedData(2, 100, 0, 200, 100) // Small, will be rendered
+        // Task3 is very large, assume it will be hidden if T2 is present, even if T1 is gone.
+        val task3Orig = createRenderedData(3, 0, 0, 0, 0) // Force hidden by empty bounds
+
+        val allOriginalTasks = listOf(task1Orig, task2Orig, task3Orig)
+
+        val prevRenderedT1 = createRenderedData(1, 10, 10, 110, 110) // Example organized bounds
+        val prevRenderedT2 = createRenderedData(2, 120, 10, 220, 110) // Example organized bounds
+        val prevHiddenT3 = createHiddenData(3)
+        val previousLayout = listOf(prevRenderedT1, prevRenderedT2, prevHiddenT3)
+
+        val dismissedTaskId = 1
+        val result =
+            useCase.invoke(
+                desktopBounds = defaultDesktopBounds,
+                allCurrentOriginalTaskBounds = allOriginalTasks,
+                layoutConfig = testLayoutConfig,
+                taskPositionsHint = previousLayout,
+                dismissedTaskId = dismissedTaskId,
+            )
+
+        // Expected: Result of performReflowRebalance on [prevRenderedT1, prevRenderedT2] removing
+        // T1.
+        // This would be prevRenderedT2, possibly re-centered.
+        // For this setup (T1 and T2 on same row), T2 should be re-centered.
+        // Original prevRenderedT2: Rect(120, 10, 220, 110) (width 100, height 100)
+        // If T1 (width 100) is removed, T2 (width 100) should be centered in the space previously
+        // occupied by T1 and T2.
+        // Overall bounds of [prevRenderedT1, prevRenderedT2] before removal: union is
+        // Rect(10,10,220,110)
+        // CenterX of this is (10+220)/2 = 115.
+        // T2 width is 100. So new T2 bounds: left = 115 - 100/2 = 65. right = 65 + 100 = 165.
+        // Top, height remain same. So, Rect(65, 10, 165, 110).
+        val expectedReflowedT2 = createRenderedData(2, 65, 10, 165, 110)
+
+        // Verify that the result contains the reflowed T2 and the preserved hidden T3.
+        assertThat(result).hasSize(2)
+        assertThat(result).contains(expectedReflowedT2)
+        assertThat(result).contains(prevHiddenT3)
+    }
+
+    companion object {
+        private val DEFAULT_DESKTOP_BOUNDS = Rect(0, 0, 10000, 10000)
     }
 }

@@ -25,14 +25,12 @@ import com.android.quickstep.recents.domain.model.DesktopLayoutConfig
 import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData
 import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData.RenderedDesktopTaskBoundsData
 import com.android.quickstep.recents.domain.usecase.OrganizeDesktopTasksUseCase
-import com.android.quickstep.recents.domain.usecase.RemoveTaskAndRebalanceLayoutUseCase
 import kotlinx.coroutines.withContext
 
 /** ViewModel used for [com.android.quickstep.views.DesktopTaskView]. */
 class DesktopTaskViewModel(
     private val organizeDesktopTasksUseCase: OrganizeDesktopTasksUseCase,
     private val desktopTileBackgroundRepository: DesktopTileBackgroundRepository,
-    private val removeTaskAndRebalanceLayoutUseCase: RemoveTaskAndRebalanceLayoutUseCase,
     private val dispatcherProvider: DispatcherProvider,
 ) {
 
@@ -46,29 +44,25 @@ class DesktopTaskViewModel(
      * will scale and translate tasks so that they don't overlap.
      *
      * @param desktopSize the size available for organizing the tasks.
-     * @param defaultPositions the tasks and their bounds as they appear on a desktop.
+     * @param defaultPositions the tasks and their bounds as they appear on a desktop. These are
+     *   considered all current tasks for the layout.
      * @param layoutConfig the pre-scaled dimension configuration for the desktop layout.
+     * @param dismissedTaskId Optional ID of a task being dismissed. If provided, the use case will
+     *   decide whether to reflow or fully reorganize.
      */
     fun organizeDesktopTasks(
         desktopSize: Size,
         defaultPositions: List<RenderedDesktopTaskBoundsData>,
         layoutConfig: DesktopLayoutConfig,
+        dismissedTaskId: Int? = null,
     ) {
         organizedDesktopTaskPositions =
             organizeDesktopTasksUseCase(
                 desktopBounds = Rect(0, 0, desktopSize.width, desktopSize.height),
-                taskBounds = defaultPositions,
+                allCurrentOriginalTaskBounds = defaultPositions,
                 layoutConfig = layoutConfig,
-            )
-    }
-
-    fun removeTaskAndRebalanceLayout(taskIdToRemove: Int, layoutConfig: DesktopLayoutConfig) {
-        organizedDesktopTaskPositions =
-            removeTaskAndRebalanceLayoutUseCase(
-                currentLayout =
-                    organizedDesktopTaskPositions.filterIsInstance<RenderedDesktopTaskBoundsData>(),
-                taskIdToRemove = taskIdToRemove,
-                layoutConfig = layoutConfig,
+                taskPositionsHint = organizedDesktopTaskPositions,
+                dismissedTaskId = dismissedTaskId,
             )
     }
 
