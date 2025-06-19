@@ -38,6 +38,7 @@ import com.android.launcher3.icons.BitmapInfo;
 import com.android.launcher3.icons.FastBitmapDrawable;
 import com.android.launcher3.icons.FastBitmapDrawableDelegate;
 import com.android.launcher3.icons.FastBitmapDrawableDelegate.DelegateFactory;
+import com.android.launcher3.icons.IconShape;
 import com.android.launcher3.icons.LauncherIcons;
 import com.android.launcher3.util.MultiTranslateDelegate;
 
@@ -77,7 +78,8 @@ public class IconButtonView extends BubbleTextView {
         }
         try (BaseIconFactory factory = LauncherIcons.obtain(context)) {
             setIcon(new FastBitmapDrawable(
-                    BitmapInfo.of(factory.getWhiteShadowLayer(), 0),
+                    BitmapInfo.of(factory.getWhiteShadowLayer(), 0, IconShape.EMPTY),
+                    IconShape.EMPTY,
                     new IconDelegateFactory(tint, fg)));
         }
     }
@@ -94,7 +96,8 @@ public class IconButtonView extends BubbleTextView {
         int tint = tintList == null ? Color.WHITE : tintList.getDefaultColor();
         try (BaseIconFactory factory = LauncherIcons.obtain(getContext())) {
             setIcon(new FastBitmapDrawable(
-                    BitmapInfo.of(factory.getWhiteShadowLayer(), 0),
+                    BitmapInfo.of(factory.getWhiteShadowLayer(), 0, IconShape.EMPTY),
+                    IconShape.EMPTY,
                     new IconDelegateFactory(tint, drawable)));
         }
     }
@@ -129,9 +132,9 @@ public class IconButtonView extends BubbleTextView {
         }
 
         @Override
-        public void drawContent(@NonNull BitmapInfo info, @NonNull Canvas canvas,
-                @NonNull Rect bounds, @NonNull Paint paint) {
-            FastBitmapDrawableDelegate.super.drawContent(info, canvas, bounds, paint);
+        public void drawContent(@NonNull BitmapInfo info, @NonNull FastBitmapDrawable host,
+                @NonNull Canvas canvas, @NonNull Rect bounds, @NonNull Paint paint) {
+            FastBitmapDrawableDelegate.super.drawContent(info, host, canvas, bounds, paint);
             mFg.draw(canvas);
         }
 
@@ -146,7 +149,8 @@ public class IconButtonView extends BubbleTextView {
         @NonNull
         @Override
         public FastBitmapDrawableDelegate newDelegate(@NonNull BitmapInfo bitmapInfo,
-                @NonNull Paint paint, @NonNull FastBitmapDrawable host) {
+                @NonNull IconShape iconShape, @NonNull Paint paint,
+                @NonNull FastBitmapDrawable host) {
             return new IconDelegate(paint, colorBg, fg);
         }
     }

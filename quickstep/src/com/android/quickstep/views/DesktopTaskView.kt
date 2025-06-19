@@ -428,6 +428,10 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                     if (taskContentView is TaskContentView) {
                         taskContentView.isFocusable = true
                         taskContentView.isHoverable = true
+                        // Desktop tasks should have their own accessibility nodes so specific
+                        // actions can be performed on them.
+                        taskContentView.importantForAccessibility =
+                            View.IMPORTANT_FOR_ACCESSIBILITY_YES
                     }
                 }
 

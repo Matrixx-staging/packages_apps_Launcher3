@@ -104,10 +104,10 @@ data class WorkspaceIconProfile(
             if (
                 iconDrawablePaddingPx > cellPaddingY &&
                     !isVerticalLayout &&
-                    !deviceProperties.isMultiWindowMode
+                    !deviceProperties.isExternalDisplay
             ) {
                 // Ensures that the label is closer to its corresponding icon. This is not an issue
-                // with vertical bar layout or multi-window mode since the issue is handled
+                // with vertical bar layout or external display mode since the issue is handled
                 // separately with their calls to {@link #adjustToHideWorkspaceLabels}.
                 cellHeightPx -= (iconDrawablePaddingPx - cellPaddingY)
                 iconDrawablePaddingPx = cellPaddingY

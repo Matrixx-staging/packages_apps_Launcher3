@@ -41,6 +41,7 @@ import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.R;
 import com.android.launcher3.icons.BitmapInfo;
 import com.android.launcher3.icons.IconCache;
+import com.android.launcher3.icons.IconShape;
 import com.android.launcher3.icons.cache.CachedObject;
 import com.android.launcher3.model.WidgetItem;
 import com.android.launcher3.model.data.PackageItemInfo;
@@ -135,7 +136,8 @@ public final class WidgetsListHeaderViewHolderBinderTest {
             int numOfWidgets) {
         PackageItemInfo appInfo = new PackageItemInfo(packageName, UserHandle.CURRENT);
         appInfo.title = appName;
-        appInfo.bitmap = BitmapInfo.of(Bitmap.createBitmap(10, 10, Bitmap.Config.ALPHA_8), 0);
+        appInfo.bitmap = BitmapInfo.of(
+                Bitmap.createBitmap(10, 10, Bitmap.Config.ALPHA_8), 0, IconShape.EMPTY);
 
         return WidgetsListHeaderEntry.create(appInfo,
                 /* titleSectionName= */ "",

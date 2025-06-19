@@ -45,6 +45,7 @@
     <string name="recent_task_option_aspect_ratio">Change aspect ratio</string>
     <string name="split_app_info_accessibility">App info for %1$s</string>
     <string name="split_app_usage_settings">Usage settings for %1$s</string>
+    <string name="close_task_accessibility">Close %1$s</string>
 
     <!-- Title for an option to open a new window for a given app   -->
     <string name="new_window_option_taskbar">New Window</string>

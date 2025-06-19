@@ -41,7 +41,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
-import com.android.app.displaylib.PerDisplayRepository;
 import com.android.internal.jank.Cuj;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherAppState;
@@ -62,14 +61,15 @@ import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.PackageManagerHelper;
 import com.android.launcher3.util.SplitConfigurationOptions.StagePosition;
 import com.android.launcher3.views.ActivityContext;
+import com.android.quickstep.BaseContainerInterface;
 import com.android.quickstep.OverviewComponentObserver;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.TaskUtils;
 import com.android.quickstep.TopTaskTracker;
 import com.android.quickstep.views.GroupedTaskView;
+import com.android.quickstep.views.RecentsViewContainer;
 import com.android.quickstep.views.TaskContainer;
 import com.android.quickstep.views.TaskView;
-import com.android.quickstep.window.RecentsWindowFlags;
 import com.android.quickstep.window.RecentsWindowManager;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
@@ -231,11 +231,14 @@ public class AppPairsController {
                 if (delegate == null) {
                     return;
                 }
-                if (RecentsWindowFlags.enableLauncherOverviewInWindow.isTrue()) {
-                    PerDisplayRepository<RecentsWindowManager> recentsWindowManagerRepository =
-                            RecentsWindowManager.REPOSITORY_INSTANCE.get(mContext.asContext());
-                    recentsWindowManagerRepository.get(gtv.getDisplayId())
-                            .getStateManager().moveToRestState();
+                BaseContainerInterface<?, ?> containerInterface =
+                        OverviewComponentObserver.INSTANCE.get(
+                                mContext.asContext()).getContainerInterface(gtv.getDisplayId());
+                if (containerInterface != null) {
+                    RecentsViewContainer container = containerInterface.getCreatedContainer();
+                    if (container instanceof RecentsWindowManager recentsWindowManager) {
+                        recentsWindowManager.getStateManager().moveToRestState();
+                    }
                 }
                 delegate.addToWorkspace(newAppPair, true, (success) -> {
                     if (success) {

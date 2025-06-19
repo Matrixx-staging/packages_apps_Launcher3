@@ -321,8 +321,7 @@ public interface TaskShortcutFactory {
      * Does NOT add split options in the following scenarios:
      * * 1. Taskbar is not present AND aren't at least 2 tasks in overview to show split options for
      * * 2. Split isn't supported by the task itself (non resizable activity)
-     * * 3. We aren't currently in multi-window
-     * * 4. The taskView to show split options for is the focused task AND we haven't started
+     * * 3. The taskView to show split options for is the focused task AND we haven't started
      * * scrolling in overview (if we haven't scrolled, there's a split overview action button so
      * * we don't need this menu option)
      */
@@ -342,9 +341,8 @@ public interface TaskShortcutFactory {
                     !deviceProfile.isTaskbarPresent && recentsView.getTaskViewCount() < 2;
             boolean isTaskSplitNotSupported = !task.isDockable ||
                     (intentFlags & FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS) != 0;
-            boolean hideForExistingMultiWindow = container.getDeviceProfile().getDeviceProperties().isMultiWindowMode();
 
-            if (notEnoughTasksToSplit || isTaskSplitNotSupported || hideForExistingMultiWindow) {
+            if (notEnoughTasksToSplit || isTaskSplitNotSupported) {
                 return null;
             }
 

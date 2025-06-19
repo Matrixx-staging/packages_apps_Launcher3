@@ -130,23 +130,6 @@ public interface RecentsViewContainer extends ActivityContext {
     void runOnBindToTouchInteractionService(Runnable r);
 
     /**
-     * @see
-     * BaseActivity#addMultiWindowModeChangedListener(BaseActivity.MultiWindowModeChangedListener)
-     * @param listener {@link BaseActivity.MultiWindowModeChangedListener}
-     */
-    void addMultiWindowModeChangedListener(
-            BaseActivity.MultiWindowModeChangedListener listener);
-
-    /**
-     * @see
-     * BaseActivity#removeMultiWindowModeChangedListener(
-     * BaseActivity.MultiWindowModeChangedListener)
-     * @param listener {@link BaseActivity.MultiWindowModeChangedListener}
-     */
-    void removeMultiWindowModeChangedListener(
-            BaseActivity.MultiWindowModeChangedListener listener);
-
-    /**
      * Begins transition from overview back to homescreen
      */
     void returnToHomescreen();

@@ -90,22 +90,13 @@ public class RecentsAnimationCallbacks implements
         onAnimationCanceled(new HashMap<>());
     }
 
-    // Called only in Q platform
-    @BinderThread
-    @Deprecated
-    public final void onAnimationStart(RecentsAnimationControllerCompat controller,
-            RemoteAnimationTarget[] appTargets, Rect homeContentInsets,
-            Rect minimizedHomeBounds, Bundle extras) {
-        onAnimationStart(controller, appTargets, new RemoteAnimationTarget[0],
-                homeContentInsets, minimizedHomeBounds, extras, /* transitionInfo= */ null);
-    }
-
     // Called only in R+ platform
     @BinderThread
     public final void onAnimationStart(RecentsAnimationControllerCompat animationController,
             RemoteAnimationTarget[] appTargets,
             RemoteAnimationTarget[] wallpaperTargets,
-            Rect homeContentInsets, Rect minimizedHomeBounds, Bundle extras,
+            Rect homeContentInsets,
+            Bundle extras,
             @Nullable TransitionInfo transitionInfo) {
         long appCount = Arrays.stream(appTargets)
                 .filter(app -> app.mode == MODE_CLOSING)
@@ -140,8 +131,7 @@ public class RecentsAnimationCallbacks implements
                 nonAppTargets = new RemoteAnimationTarget[0];
             }
             final RecentsAnimationTargets targets = new RecentsAnimationTargets(appTargets,
-                    wallpaperTargets, nonAppTargets, homeContentInsets, minimizedHomeBounds,
-                    extras);
+                    wallpaperTargets, nonAppTargets, homeContentInsets, extras);
 
             Utilities.postAsyncCallback(MAIN_EXECUTOR.getHandler(), () -> {
                 ActiveGestureProtoLogProxy.logOnRecentsAnimationStart(targets.apps.length);

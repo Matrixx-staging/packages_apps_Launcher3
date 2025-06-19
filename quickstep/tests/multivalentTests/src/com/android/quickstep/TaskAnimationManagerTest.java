@@ -159,7 +159,6 @@ public class TaskAnimationManagerTest {
                     new RemoteAnimationTarget[] { remoteAnimationTarget },
                     new RemoteAnimationTarget[] { remoteAnimationTarget },
                     new Rect(),
-                    new Rect(),
                     new Bundle(),
                     new TransitionInfo(0, 0));
         });

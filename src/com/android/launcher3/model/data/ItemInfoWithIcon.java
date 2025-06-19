@@ -26,11 +26,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.launcher3.Flags;
-import com.android.launcher3.Utilities;
 import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.icons.BitmapInfo;
 import com.android.launcher3.icons.BitmapInfo.DrawableCreationFlags;
 import com.android.launcher3.icons.FastBitmapDrawable;
+import com.android.launcher3.icons.IconShape;
 import com.android.launcher3.icons.cache.CacheLookupFlag;
 import com.android.launcher3.logging.FileLog;
 import com.android.launcher3.pm.PackageInstallInfo;
@@ -322,16 +322,19 @@ public abstract class ItemInfoWithIcon extends ItemInfo {
         return newIcon(context, 0);
     }
 
-    /**
-     * Returns a FastBitmapDrawable with the icon and context theme applied
-     */
     public FastBitmapDrawable newIcon(Context context, @DrawableCreationFlags int creationFlags) {
         ThemeManager themeManager = ThemeManager.INSTANCE.get(context);
+        IconShape iconShape = null;
+        if (Flags.enableLauncherIconShapes()) {
+            if ((creationFlags & FLAG_THEMED) != 0) {
+                iconShape = themeManager.getIconShapeData();
+            }
+        }
         if (!themeManager.isIconThemeEnabled()) {
             creationFlags &= ~FLAG_THEMED;
         }
-        FastBitmapDrawable drawable = bitmap.newIcon(
-                context, creationFlags, Utilities.getIconShapeOrNull(context));
+
+        FastBitmapDrawable drawable = bitmap.newIcon(context, creationFlags, iconShape);
         drawable.setDisabled(isDisabled());
         return drawable;
     }

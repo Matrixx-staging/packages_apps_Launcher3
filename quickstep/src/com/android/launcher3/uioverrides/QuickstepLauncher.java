@@ -178,6 +178,7 @@ import com.android.launcher3.util.StableViewInfo;
 import com.android.launcher3.util.StartActivityParams;
 import com.android.launcher3.util.TouchController;
 import com.android.launcher3.views.FloatingIconView;
+import com.android.quickstep.BaseContainerInterface;
 import com.android.quickstep.LauncherActivityInterface;
 import com.android.quickstep.OverviewCommandHelper;
 import com.android.quickstep.OverviewComponentObserver;
@@ -737,10 +738,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
                 break;
         }
 
-        if (!getDeviceProfile().getDeviceProperties().isMultiWindowMode()) {
-            list.add(new StatusBarTouchController(
-                    this, () -> this.isInState(LauncherState.NORMAL)));
-        }
+        list.add(new StatusBarTouchController(this, () -> this.isInState(LauncherState.NORMAL)));
 
         if (enableExpressiveDismissTaskMotion()) {
             list.add(new TaskViewLaunchTouchController<>(this, mTaskViewRecentsTouchContext));
@@ -763,7 +761,6 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
             mPendingSplitSelectInfo = ObjectWrapper.unwrap(
                     savedInstanceState.getIBinder(PENDING_SPLIT_SELECT_INFO));
         }
-        addMultiWindowModeChangedListener(mDepthController);
         initUnfoldTransitionProgressProvider();
         mViewCapture = ViewCaptureFactory.getInstance(this).startCapture(getWindow());
         getWindow().addPrivateFlags(PRIVATE_FLAG_OPTIMIZE_MEASURE);
@@ -921,9 +918,12 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
             overviewCommandHelper.clearPendingCommands();
         }
         if (RecentsWindowFlags.getEnableOverviewInWindow() && !intentHasGnc) {
-            RecentsWindowManager defaultRecentsWindowManager =
-                    RecentsWindowManager.REPOSITORY_INSTANCE.get(this).get(DEFAULT_DISPLAY);
-            if (defaultRecentsWindowManager != null) {
+            BaseContainerInterface<?, ?> defaultDisplayContainerInterface =
+                    OverviewComponentObserver.INSTANCE.get(this).getContainerInterface(
+                            DEFAULT_DISPLAY);
+            if (defaultDisplayContainerInterface != null
+                    && defaultDisplayContainerInterface.getCreatedContainer()
+                    instanceof RecentsWindowManager defaultRecentsWindowManager) {
                 defaultRecentsWindowManager.hideRecentsWindow();
             }
         }

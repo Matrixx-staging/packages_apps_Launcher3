@@ -493,8 +493,14 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         }
 
         // Recents divider takes priority.
-        if (!mAddedDividerForRecents && !mActivityContext.isTaskbarShowingDesktopTasks()) {
-            updateAllAppsDivider();
+        if (!mAddedDividerForRecents) {
+            boolean allAppsDividerAllowed = !mActivityContext.isTaskbarShowingDesktopTasks();
+            if (allAppsDividerAllowed) {
+                updateAllAppsDivider();
+            } else if (getChildAt(getExpectedAllAppsDividerIndex()) == mTaskbarDividerContainer) {
+                removeView(mTaskbarDividerContainer);
+            }
+
         }
     }
 
@@ -517,8 +523,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
     private void updateAllAppsDivider() {
         // Index where All Apps divider would be if it is already in Taskbar.
-        final int expectedAllAppsDividerIndex =
-                mIsRtl ? getChildCount() - mNumStaticViews - 1 : mNumStaticViews;
+        final int expectedAllAppsDividerIndex = getExpectedAllAppsDividerIndex();
         if (getChildAt(expectedAllAppsDividerIndex) == mTaskbarDividerContainer
                 && getChildCount() == mNumStaticViews + 1) {
             // Only static views with divider so remove divider.
@@ -531,6 +536,10 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                     mTaskbarDividerContainer,
                     mIsRtl ? expectedAllAppsDividerIndex + 1 : expectedAllAppsDividerIndex);
         }
+    }
+
+    private int getExpectedAllAppsDividerIndex() {
+        return mIsRtl ? getChildCount() - mNumStaticViews - 1 : mNumStaticViews;
     }
 
     private void updateHotseatItems(ItemInfo[] hotseatItemInfos) {

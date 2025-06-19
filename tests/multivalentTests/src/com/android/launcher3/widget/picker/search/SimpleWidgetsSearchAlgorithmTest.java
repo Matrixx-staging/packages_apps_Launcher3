@@ -42,6 +42,7 @@ import androidx.test.filters.SmallTest;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.icons.BitmapInfo;
 import com.android.launcher3.icons.IconCache;
+import com.android.launcher3.icons.IconShape;
 import com.android.launcher3.icons.cache.CachedObject;
 import com.android.launcher3.model.WidgetItem;
 import com.android.launcher3.model.data.PackageItemInfo;
@@ -194,7 +195,8 @@ public class SimpleWidgetsSearchAlgorithmTest {
             UserHandle userHandle) {
         PackageItemInfo pInfo = new PackageItemInfo(packageName, userHandle);
         pInfo.title = appName;
-        pInfo.bitmap = BitmapInfo.of(Bitmap.createBitmap(10, 10, Bitmap.Config.ALPHA_8), 0);
+        pInfo.bitmap = BitmapInfo.of(
+                Bitmap.createBitmap(10, 10, Bitmap.Config.ALPHA_8), 0, IconShape.EMPTY);
         return pInfo;
     }
 

@@ -25,7 +25,6 @@ import static android.view.WindowManager.LayoutParams.TYPE_NAVIGATION_BAR_PANEL;
 
 import static com.android.launcher3.BaseActivity.EVENT_DESTROYED;
 import static com.android.launcher3.Flags.enableGrowthNudge;
-import static com.android.launcher3.Flags.enableTaskbarForDirectBoot;
 import static com.android.launcher3.Flags.enableTaskbarUiThread;
 import static com.android.launcher3.Flags.enableUnfoldStateAnimation;
 import static com.android.launcher3.config.FeatureFlags.ENABLE_TASKBAR_NAVBAR_UNIFICATION;
@@ -90,7 +89,6 @@ import com.android.launcher3.taskbar.TaskbarNavButtonController.TaskbarNavButton
 import com.android.launcher3.taskbar.unfold.NonDestroyableScopedUnfoldTransitionProgressProvider;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.DisplayController;
-import com.android.launcher3.util.LockedUserState;
 import com.android.launcher3.util.LooperExecutor;
 import com.android.launcher3.util.SettingsCache;
 import com.android.launcher3.util.SimpleBroadcastReceiver;
@@ -224,9 +222,6 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
     // already in recreate process due to transition callback, don't recreate for
     // DisplayInfoChangeListener.
     private boolean mShouldIgnoreNextDesktopModeChangeFromDisplayControllerForPrimary = false;
-
-    /** Not {@code null} if direct boot support is enabled and not {@link #mUserUnlocked} yet. */
-    private @Nullable TaskbarBootAppContext mBootAppContext;
 
     private class RecreationListener implements DisplayController.DisplayInfoChangeListener {
         @Override
@@ -393,7 +388,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
                 }
             };
 
-    private boolean mUserUnlocked;
+    private boolean mUserUnlocked = false;
 
     private final Map<Integer, SimpleBroadcastReceiver> mTaskbarBroadcastReceivers =
             new ConcurrentHashMap<>();
@@ -401,7 +396,6 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
     private final SimpleBroadcastReceiver mGrowthBroadcastReceiver;
 
     private final AllAppsActionManager mAllAppsActionManager;
-    private final PerDisplayRepository<RecentsWindowManager> mRecentsWindowManagerRepository;
 
     private final Runnable mActivityOnDestroyCallback = new Runnable() {
         @Override
@@ -471,7 +465,6 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
         mPrimaryDisplayId = mBaseContext.getDisplayId();
         mAllAppsActionManager = allAppsActionManager;
         mNavCallbacks = navCallbacks;
-        mRecentsWindowManagerRepository = recentsWindowManagerRepository;
         mDisplaysWithDecorationsRepositoryCompat = displaysWithDecorationsRepositoryCompat;
 
         // Set up primary display.
@@ -524,15 +517,6 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
             TaskStackChangeListeners.getInstance().registerTaskStackListener(mTaskStackListener);
         } else {
             mTaskStackListener = null;
-        }
-
-        // Only initialize this context when the user is truly locked. Thus, check unlock state
-        // separately from mUserUnlocked, which starts at false until TIS calls onUserUnlocked().
-        // TIS can recreate after the user is unlocked, where it notifies unlock immediately. Also,
-        // avoid initializing mUserUnlocked here and instead rely on TIS, because it initializes
-        // several Taskbar dependencies before notifying us.
-        if (enableTaskbarForDirectBoot() && !LockedUserState.get(mBaseContext).isUserUnlocked()) {
-            mBootAppContext = new TaskbarBootAppContext(mBaseContext);
         }
         recreateTaskbarForDisplay(mPrimaryDisplayId, /* duration= */ 0);
 
@@ -669,13 +653,6 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
         mUserUnlocked = true;
         addRecreationListener(mPrimaryDisplayId);
         debugPrimaryTaskbar("onUserUnlocked: recreating all taskbars!");
-
-        if (mBootAppContext != null) {
-            mExternalDeviceProfiles.clear(); // Need to be regenerated with actual app context.
-            mBootAppContext.destroy();
-        }
-        mBootAppContext = null;
-
         // Create DPs for all connected displays if required.
         for (int i = 0; i < mWindowContexts.size(); i++) {
             int displayId = mWindowContexts.keyAt(i);
@@ -1238,8 +1215,6 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
 
     public void dumpLogs(String prefix, PrintWriter pw) {
         pw.println(prefix + "TaskbarManager:");
-        pw.println(prefix + "\tmUserUnlocked=" + mUserUnlocked);
-        pw.println(prefix + "\thasBootAppContext=" + (mBootAppContext != null));
         // iterate through taskbars and do the dump for each
         for (Entry<Integer, TaskbarActivityContext> entry : mTaskbars.entrySet()) {
             int displayId = entry.getKey();
@@ -1418,14 +1393,10 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
                     TYPE_NAVIGATION_BAR_PANEL, null);
         }
 
-        Context windowContext = getWindowContext(displayId);
-        if (mBootAppContext != null) {
-            windowContext = mBootAppContext.wrapWindowContext(windowContext);
-        }
-
-        TaskbarActivityContext newTaskbar = new TaskbarActivityContext(displayId, windowContext,
-                navigationBarPanelContext, dp, getNavButtonController(displayId),
-                mUnfoldProgressProvider, !isExternalDisplay(displayId), getPrimaryDisplayId(),
+        TaskbarActivityContext newTaskbar = new TaskbarActivityContext(displayId,
+                getWindowContext(displayId), navigationBarPanelContext, dp,
+                getNavButtonController(displayId), mUnfoldProgressProvider,
+                !isExternalDisplay(displayId), getPrimaryDisplayId(),
                 SystemUiProxy.INSTANCE.get(mBaseContext));
 
         addTaskbarToMap(displayId, newTaskbar);
@@ -1438,15 +1409,11 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
      * @param displayId The ID of the display.
      */
     private void createExternalDeviceProfile(int displayId) {
-        if (!mUserUnlocked && mBootAppContext == null) {
-            return;
-        }
-        if (displayId == mPrimaryDisplayId) {
+        if (!mUserUnlocked || displayId == mPrimaryDisplayId) {
             return;
         }
 
-        InvariantDeviceProfile idp = LauncherAppState.getIDP(
-                mBootAppContext != null ? mBootAppContext : mPrimaryWindowContext);
+        InvariantDeviceProfile idp = LauncherAppState.getIDP(mPrimaryWindowContext);
         if (idp == null) {
             return;
         }
@@ -1467,12 +1434,11 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
      * @param displayId The ID of the display.
      */
     private @Nullable DeviceProfile getDeviceProfile(int displayId) {
-        if (!mUserUnlocked && mBootAppContext == null) {
+        if (!mUserUnlocked) {
             return null;
         }
 
-        InvariantDeviceProfile idp = LauncherAppState.getIDP(
-                mBootAppContext != null ? mBootAppContext : mPrimaryWindowContext);
+        InvariantDeviceProfile idp = LauncherAppState.getIDP(mPrimaryWindowContext);
         if (idp == null) {
             return null;
         }

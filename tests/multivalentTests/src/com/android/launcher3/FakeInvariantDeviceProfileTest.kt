@@ -75,7 +75,7 @@ abstract class FakeInvariantDeviceProfileTest {
             context.appComponent.themeManager,
             windowBounds,
             SparseArray(),
-            /*isMultiWindowMode=*/ false,
+            /*isExternalDisplay=*/ false,
             transposeLayoutWithOrientation,
             useTwoPanels,
             isGestureMode,
