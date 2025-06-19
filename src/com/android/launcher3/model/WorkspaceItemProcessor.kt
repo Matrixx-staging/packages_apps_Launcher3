@@ -677,6 +677,11 @@ class WorkspaceItemProcessor(
         return loadedItems
     }
 
+    /** Adds provided items to data model */
+    fun processPreloadedItems(items: Set<ItemInfo>) {
+        items.forEach { c.checkAndAddItem(it, loadedItems, memoryLogger) }
+    }
+
     companion object {
         private const val TAG = "WorkspaceItemProcessor"
 

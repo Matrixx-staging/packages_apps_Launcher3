@@ -572,6 +572,16 @@ flag {
 }
 
 flag {
+  name: "home_button_uses_keycode_home"
+  namespace: "launcher"
+  description: "Sends KEYCODE_HOME to framework instead of calling startActivity directly"
+  bug: "381339822"
+  metadata {
+    purpose: PURPOSE_BUGFIX
+  }
+}
+
+flag {
   name: "enable_expressive_folder_expansion"
   namespace: "launcher"
   description: "Enables expressive folder expansion motion"
@@ -610,6 +620,16 @@ flag {
 }
 
 flag {
+  name: "enable_new_all_set_animation"
+  namespace: "launcher"
+  description: "Enables the new animation for the All Set page"
+  bug: "424506400"
+  metadata {
+    purpose: PURPOSE_BUGFIX
+  }
+}
+
+flag {
   name: "enable_long_press_remove_shortcut"
   namespace: "launcher"
   description: "Enables remove app shortcut on long press menu"
@@ -627,4 +647,11 @@ flag {
     metadata {
         purpose: PURPOSE_BUGFIX
     }
+}
+
+flag {
+    name: "injectable_model_items"
+    namespace: "launcher"
+    description: "Enable model items to be provided by dagger"
+    bug: "423957181"
 }

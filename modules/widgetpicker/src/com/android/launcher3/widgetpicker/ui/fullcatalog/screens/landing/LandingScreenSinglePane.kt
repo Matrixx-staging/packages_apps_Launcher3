@@ -33,8 +33,10 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Work
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,7 +54,6 @@ import com.android.launcher3.widgetpicker.ui.components.SinglePaneLayout
 import com.android.launcher3.widgetpicker.ui.components.WidgetAppHeaderStyle
 import com.android.launcher3.widgetpicker.ui.components.WidgetAppsList
 import com.android.launcher3.widgetpicker.ui.components.widgetPickerTestTag
-import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.LandingScreenSinglePaneDimens.DEFAULT_SELECTED_TAB
 import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.LandingScreenSinglePaneDimens.FEATURED_TAB_INDEX
 import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.LandingScreenSinglePaneDimens.PERSONAL_TAB_INDEX
 import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.LandingScreenSinglePaneDimens.TABS_COUNT_WITHOUT_WORK_PROFILE
@@ -68,6 +69,8 @@ import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.Landing
 import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.LandingScreenSinglePaneTestTags.PERSONAL_WIDGETS_TAB_TEST_TAG
 import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.LandingScreenSinglePaneTestTags.WORK_WIDGETS_TAB_TEST_TAG
 import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 /**
@@ -76,6 +79,7 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun LandingScreenSinglePane(
+    selectedSubSection: LandingScreenSubSection,
     searchBarContent: @Composable () -> Unit,
     featuredWidgetsContent: @Composable () -> Unit,
     widgetAppIconsState: AppIconsState,
@@ -88,12 +92,13 @@ fun LandingScreenSinglePane(
     onWorkWidgetAppToggle: (WidgetAppId) -> Unit,
     onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
     showDragShadow: Boolean,
+    onSelectedSubSectionChange: (LandingScreenSubSection) -> Unit,
 ) {
     val hasWorkProfile = remember(browseWidgetsState) { browseWidgetsState.workProfile != null }
 
     val pagerState =
         rememberPagerState(
-            initialPage = DEFAULT_SELECTED_TAB,
+            initialPage = selectedSubSection.toPage(),
             pageCount = {
                 if (hasWorkProfile) {
                     TABS_COUNT_WITH_WORK_PROFILE
@@ -187,6 +192,12 @@ fun LandingScreenSinglePane(
             }
         },
     )
+
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.settledPage }
+            .distinctUntilChanged()
+            .collectLatest { onSelectedSubSectionChange(it.toSubSection()) }
+    }
 }
 
 @Composable
@@ -253,6 +264,21 @@ private fun BottomTabs(
     )
 }
 
+private fun LandingScreenSubSection.toPage() =
+    when (this) {
+        LandingScreenSubSection.FEATURED -> FEATURED_TAB_INDEX
+        LandingScreenSubSection.BROWSE -> PERSONAL_TAB_INDEX
+        LandingScreenSubSection.WORK -> WORK_TAB_INDEX
+    }
+
+private fun Int.toSubSection() =
+    when (this) {
+        FEATURED_TAB_INDEX -> LandingScreenSubSection.FEATURED
+        PERSONAL_TAB_INDEX -> LandingScreenSubSection.BROWSE
+        WORK_TAB_INDEX -> LandingScreenSubSection.WORK
+        else -> throw IllegalStateException("Unknown page index")
+    }
+
 private object LandingScreenSinglePaneDimens {
     const val TABS_COUNT_WITH_WORK_PROFILE = 3
     const val TABS_COUNT_WITHOUT_WORK_PROFILE = 2
@@ -260,7 +286,6 @@ private object LandingScreenSinglePaneDimens {
     const val FEATURED_TAB_INDEX = 0
     const val PERSONAL_TAB_INDEX = 1
     const val WORK_TAB_INDEX = 2
-    const val DEFAULT_SELECTED_TAB = FEATURED_TAB_INDEX
 
     val contentShape = RoundedCornerShape(24.dp)
     val pagerItemsSpacing = 8.dp

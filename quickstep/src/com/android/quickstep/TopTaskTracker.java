@@ -19,6 +19,7 @@ import static android.app.ActivityTaskManager.INVALID_TASK_ID;
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_HOME;
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_RECENTS;
 import static android.app.WindowConfiguration.WINDOWING_MODE_FULLSCREEN;
+import static android.app.WindowConfiguration.WINDOWING_MODE_MULTI_WINDOW;
 import static android.content.Intent.ACTION_CHOOSER;
 import static android.content.Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS;
 import static android.view.Display.DEFAULT_DISPLAY;
@@ -29,6 +30,7 @@ import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITIO
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_TYPE_A;
 import static com.android.wm.shell.Flags.enableShellTopTaskTracking;
 import static com.android.wm.shell.Flags.enableFlexibleSplit;
+import static com.android.wm.shell.Flags.fixBubblesToRecents;
 import static com.android.wm.shell.shared.GroupedTaskInfo.TYPE_DESK;
 import static com.android.wm.shell.shared.GroupedTaskInfo.TYPE_SPLIT;
 import static com.android.launcher3.statehandlers.DesktopVisibilityController.INACTIVE_DESK_ID;
@@ -386,6 +388,9 @@ public class TopTaskTracker extends ISplitScreenListener.Stub implements TaskSta
                 taskStream = taskStream.filter(
                         taskInfo -> !DesksUtils.isDesktopWallpaperTask(taskInfo));
             }
+            if (fixBubblesToRecents()) {
+                taskStream = taskStream.filter(taskInfo -> !isBubbleTask(taskInfo));
+            }
 
             return new CachedTaskInfo(taskStream.toList(), mContext, displayId, activeDeskId);
         }
@@ -399,6 +404,13 @@ public class TopTaskTracker extends ISplitScreenListener.Stub implements TaskSta
     private static boolean isRecentsTask(TaskInfo task) {
         return task != null && task.configuration.windowConfiguration
                 .getActivityType() == ACTIVITY_TYPE_RECENTS;
+    }
+
+    private static boolean isBubbleTask(TaskInfo task) {
+        if (task == null) return false;
+        if (task.isAppBubble) return true;
+        return task.getWindowingMode() == WINDOWING_MODE_MULTI_WINDOW
+                && task.configuration.windowConfiguration.isAlwaysOnTop();
     }
 
     /**

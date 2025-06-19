@@ -99,7 +99,7 @@ public abstract class AbstractLauncherUiTest<LAUNCHER_TYPE extends Launcher,
                 () -> LauncherState.NORMAL);
         waitForResumed("Launcher internal state is still Background");
 
-        checkDetectedLeaks(mLauncher, true);
+        checkDetectedLeaks(mLauncher);
     }
 
     @Override

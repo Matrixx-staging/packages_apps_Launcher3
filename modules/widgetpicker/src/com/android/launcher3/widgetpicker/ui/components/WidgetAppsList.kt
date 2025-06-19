@@ -26,10 +26,12 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -140,6 +142,18 @@ fun WidgetAppsList(
                 }
             }
         }
+
+        // When screen size changes, snap to the currently selected item as it may not end up in
+        // currently visible area.
+        LaunchedEffect(LocalWindowInfo.current.containerSize) {
+            val index = widgetApps.indexOfFirst { it.id == selectedWidgetAppId }
+            if (
+                index != INDEX_NOT_FOUND &&
+                    listState.layoutInfo.visibleItemsInfo.none { it.index == index }
+            ) {
+                listState.scrollToItem(index)
+            }
+        }
     }
 }
 
@@ -232,6 +246,7 @@ enum class AppHeaderDescriptionStyle {
 }
 
 private const val SPACER_LIST_ITEM_TYPE = "spacer"
+private const val INDEX_NOT_FOUND = -1
 
 private object WidgetAppsListDimensions {
     val itemSpacing = 2.dp

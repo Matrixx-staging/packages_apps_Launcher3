@@ -48,6 +48,7 @@ class AddDesktopButton @JvmOverloads constructor(context: Context, attrs: Attrib
     var contentAlpha by MultiPropertyDelegate(addDeskButtonAlpha, Alpha.CONTENT)
     var visibilityAlpha by MultiPropertyDelegate(addDeskButtonAlpha, Alpha.VISIBILITY)
     var clickAlpha by MultiPropertyDelegate(addDeskButtonAlpha, Alpha.CLICK)
+    var gestureAlpha by MultiPropertyDelegate(addDeskButtonAlpha, Alpha.GESTURE)
 
     private val multiTranslationX =
         MultiPropertyFactory(this, VIEW_TRANSLATE_X, TranslationX.entries.size) { a: Float, b: Float
@@ -139,6 +140,7 @@ class AddDesktopButton @JvmOverloads constructor(context: Context, attrs: Attrib
             CONTENT,
             VISIBILITY,
             CLICK,
+            GESTURE,
         }
 
         private enum class TranslationX {
@@ -152,5 +154,9 @@ class AddDesktopButton @JvmOverloads constructor(context: Context, attrs: Attrib
 
         private val CLICK_ALPHA: FloatProperty<AddDesktopButton> =
             KFloatProperty(AddDesktopButton::clickAlpha)
+
+        @JvmField
+        val GESTURE_ALPHA: FloatProperty<AddDesktopButton> =
+            KFloatProperty(AddDesktopButton::gestureAlpha)
     }
 }

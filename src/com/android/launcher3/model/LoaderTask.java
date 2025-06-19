@@ -136,6 +136,7 @@ public class LoaderTask implements Runnable {
     protected final BgDataModel mBgDataModel;
     private final LoaderCursorFactory mLoaderCursorFactory;
     private final LoaderParams mParams;
+    private final Provider<Set<ItemInfo>> mExtraItemsProvider;
 
     private final ModelDelegate mModelDelegate;
     private boolean mIsRestoreFromBackup;
@@ -183,6 +184,7 @@ public class LoaderTask implements Runnable {
             @Assisted @NonNull BaseLauncherBinder launcherBinder,
             @Assisted UserManagerState userManagerState,
             Provider<LauncherRestoreEventLogger> restoreEventLoggerFactory,
+            @Named("MODEL_ITEMS") Provider<Set<ItemInfo>> extraItemsProvider,
             LoaderParams params) {
         mContext = context;
         mIDP = idp;
@@ -203,6 +205,7 @@ public class LoaderTask implements Runnable {
         mInstallingPkgsCached = null;
         mFolderNameProviderFactory = folderNameProviderFactory;
         mRestoreEventLoggerProvider = restoreEventLoggerFactory;
+        mExtraItemsProvider = extraItemsProvider;
         mParams = params;
     }
 
@@ -478,6 +481,9 @@ public class LoaderTask implements Runnable {
                 if (mStopped) {
                     Log.w(TAG, "loadWorkspaceImpl: Loader stopped, skipping item processing");
                 } else {
+                    if (Flags.injectableModelItems()) {
+                        itemProcessor.processPreloadedItems(mExtraItemsProvider.get());
+                    }
                     while (!mStopped && c.moveToNext()) {
                         itemProcessor.processItem();
                     }

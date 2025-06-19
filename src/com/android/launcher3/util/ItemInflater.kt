@@ -33,6 +33,7 @@ import com.android.launcher3.model.ModelWriter
 import com.android.launcher3.model.data.AppPairInfo
 import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.model.data.ItemInfo
+import com.android.launcher3.model.data.ItemViewProvider
 import com.android.launcher3.model.data.LauncherAppWidgetInfo
 import com.android.launcher3.model.data.WorkspaceItemFactory
 import com.android.launcher3.model.data.WorkspaceItemInfo
@@ -60,6 +61,7 @@ class ItemInflater<T>(
         container: Int = item.container,
     ): View? {
         val parent = nullableParent ?: defaultParent
+        if (item is ItemViewProvider) return item.inflateView(context, parent)
         when (item.itemType) {
             Favorites.ITEM_TYPE_APPLICATION,
             Favorites.ITEM_TYPE_DEEP_SHORTCUT,

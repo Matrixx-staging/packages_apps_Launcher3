@@ -15,6 +15,8 @@
  */
 package com.android.launcher3.testing;
 
+import static androidx.lifecycle.Lifecycle.State.DESTROYED;
+
 import static com.android.launcher3.Flags.enableFallbackOverviewInWindow;
 import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 import static com.android.launcher3.Flags.enableLauncherOverviewInWindow;
@@ -40,6 +42,7 @@ import android.view.WindowInsets;
 import androidx.annotation.Keep;
 import androidx.annotation.Nullable;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.LifecycleOwner;
 
 import com.android.launcher3.BubbleTextView;
 import com.android.launcher3.CellLayout;
@@ -86,8 +89,8 @@ public class TestInformationHandler implements ResourceBasedOverride {
 
     private static Collection<String> sEvents;
     private static Application.ActivityLifecycleCallbacks sActivityLifecycleCallbacks;
-    private static final Set<Activity> sActivities =
-            Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+    private static final Set<LifecycleOwner> sUiSurfaces =
+            Collections.newSetFromMap(new WeakHashMap<>());
     private static int sActivitiesCreatedCount = 0;
 
     protected Context mContext;
@@ -100,13 +103,17 @@ public class TestInformationHandler implements ResourceBasedOverride {
             sActivityLifecycleCallbacks = new ActivityLifecycleCallbacksAdapter() {
                 @Override
                 public void onActivityCreated(Activity activity, Bundle bundle) {
-                    sActivities.add(activity);
                     ++sActivitiesCreatedCount;
                 }
             };
             ((Application) context.getApplicationContext())
                     .registerActivityLifecycleCallbacks(sActivityLifecycleCallbacks);
         }
+    }
+
+    /** Starts tracking UI surface for leaks. */
+    public static void trackUiSurface(LifecycleOwner surface) {
+        sUiSurfaces.add(surface);
     }
 
     /**
@@ -444,13 +451,18 @@ public class TestInformationHandler implements ResourceBasedOverride {
                 return response;
             }
 
-            case TestProtocol.REQUEST_GET_ACTIVITIES: {
-                response.putStringArray(TestProtocol.TEST_INFO_RESPONSE_FIELD,
-                        sActivities.stream().map(
-                                        a -> a.getClass().getSimpleName() + " ("
-                                                + (a.isDestroyed() ? "destroyed" : "current") + ")")
-                                .toArray(String[]::new));
-                return response;
+            case TestProtocol.REQUEST_GET_UI_SURFACES: {
+                return getFromExecutorSync(MAIN_EXECUTOR, () -> {
+                    response.putStringArray(TestProtocol.TEST_INFO_RESPONSE_FIELD,
+                            sUiSurfaces.stream()
+                                    .map(
+                                            s -> s.getClass().getSimpleName() + " ("
+                                                    + (
+                                                    s.getLifecycle().getCurrentState() == DESTROYED
+                                                            ? "destroyed" : "current") + ")")
+                                    .toArray(String[]::new));
+                    return response;
+                });
             }
 
             case TestProtocol.REQUEST_MODEL_QUEUE_CLEARED:

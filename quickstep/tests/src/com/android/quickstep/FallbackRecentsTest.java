@@ -179,7 +179,7 @@ public class FallbackRecentsTest {
     public void tearDown() {
         try {
             // Limits UI tests affecting tests running after them.
-            AbstractQuickStepTest.checkDetectedLeaks(mLauncher, true);
+            AbstractQuickStepTest.checkDetectedLeaks(mLauncher);
         } finally {
             mLauncher.onTestFinish();
         }

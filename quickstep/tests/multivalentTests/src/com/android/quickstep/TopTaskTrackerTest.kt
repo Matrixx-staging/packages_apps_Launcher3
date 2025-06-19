@@ -17,10 +17,12 @@
 package com.android.quickstep
 
 import android.app.ActivityManager
+import android.app.ActivityTaskManager.INVALID_TASK_ID
 import android.app.TaskInfo
 import android.app.WindowConfiguration.ACTIVITY_TYPE_STANDARD
 import android.app.WindowConfiguration.WINDOWING_MODE_FREEFORM
 import android.app.WindowConfiguration.WINDOWING_MODE_FULLSCREEN
+import android.app.WindowConfiguration.WINDOWING_MODE_MULTI_WINDOW
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -31,10 +33,13 @@ import android.platform.test.flag.junit.SetFlagsRule
 import android.view.Display.DEFAULT_DISPLAY
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.internal.R
+import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.statehandlers.DesktopVisibilityController.Companion.INACTIVE_DESK_ID
+import com.android.launcher3.util.DaggerSingletonTracker
 import com.android.window.flags.Flags.FLAG_ENABLE_MULTIPLE_DESKTOPS_BACKEND
 import com.android.window.flags.Flags.FLAG_ENABLE_MULTIPLE_DESKTOPS_FRONTEND
 import com.android.wm.shell.Flags.FLAG_ENABLE_SHELL_TOP_TASK_TRACKING
+import com.android.wm.shell.Flags.FLAG_FIX_BUBBLES_TO_RECENTS
 import com.android.wm.shell.shared.GroupedTaskInfo
 import com.android.wm.shell.shared.GroupedTaskInfo.TYPE_DESK
 import com.android.wm.shell.shared.GroupedTaskInfo.TYPE_FULLSCREEN
@@ -58,9 +63,23 @@ class TopTaskTrackerTest {
     private val mockContext = mock<Context>()
     private val mockResources = mock<Resources>()
 
+    private lateinit var topTaskTracker: TopTaskTracker
+
     @Before
     fun setUp() {
         doReturn(mockResources).whenever(mockContext).resources
+
+        val mockDaggerSingletonTracker = mock<DaggerSingletonTracker>()
+        val mockSystemUiProxy = mock<SystemUiProxy>()
+        val mockDesktopVisibilityController = mock<DesktopVisibilityController>()
+
+        topTaskTracker =
+            TopTaskTracker(
+                mockContext,
+                mockDaggerSingletonTracker,
+                mockSystemUiProxy,
+                mockDesktopVisibilityController,
+            )
     }
 
     @Test
@@ -193,7 +212,41 @@ class TopTaskTrackerTest {
         assertThat(result.taskInfo1).isEqualTo(taskInfo)
     }
 
-    private fun createTaskInfo(taskId: Int, displayId: Int): TaskInfo {
+    @Test
+    @EnableFlags(FLAG_FIX_BUBBLES_TO_RECENTS)
+    @DisableFlags(FLAG_ENABLE_SHELL_TOP_TASK_TRACKING)
+    fun getCachedTopTask_filtersOutBubbleTask() {
+        val appBubbleTask = createBubbleTaskInfo(taskId = 100, appBubble = true)
+        val convoBubbleTask = createBubbleTaskInfo(taskId = 101, appBubble = false)
+        val normalTask = createTaskInfo(taskId = 102)
+
+        topTaskTracker.handleTaskMovedToFront(normalTask)
+        topTaskTracker.handleTaskMovedToFront(appBubbleTask)
+        topTaskTracker.handleTaskMovedToFront(convoBubbleTask)
+
+        val topTask =
+            topTaskTracker.getCachedTopTask(/* filterOnlyVisibleRecents= */ false, DEFAULT_DISPLAY)
+
+        assertThat(topTask.taskId).isEqualTo(normalTask.taskId)
+    }
+
+    @Test
+    @EnableFlags(FLAG_FIX_BUBBLES_TO_RECENTS)
+    @DisableFlags(FLAG_ENABLE_SHELL_TOP_TASK_TRACKING)
+    fun getCachedTopTask_allBubbles_noTopTask() {
+        val convoBubbleTask = createBubbleTaskInfo(taskId = 100, appBubble = false)
+        val appBubbleTask = createBubbleTaskInfo(taskId = 101, appBubble = true)
+
+        topTaskTracker.handleTaskMovedToFront(convoBubbleTask)
+        topTaskTracker.handleTaskMovedToFront(appBubbleTask)
+
+        val topTask =
+            topTaskTracker.getCachedTopTask(/* filterOnlyVisibleRecents= */ false, DEFAULT_DISPLAY)
+
+        assertThat(topTask.taskId).isEqualTo(INVALID_TASK_ID)
+    }
+
+    private fun createTaskInfo(taskId: Int, displayId: Int = DEFAULT_DISPLAY): TaskInfo {
         val taskInfo = ActivityManager.RunningTaskInfo()
         taskInfo.taskId = taskId
         taskInfo.displayId = displayId
@@ -207,6 +260,20 @@ class TopTaskTrackerTest {
     private fun createDesktopTaskInfo(taskId: Int, displayId: Int): TaskInfo {
         val taskInfo = createTaskInfo(taskId, displayId)
         taskInfo.configuration.windowConfiguration.setWindowingMode(WINDOWING_MODE_FREEFORM)
+        return taskInfo
+    }
+
+    private fun createBubbleTaskInfo(
+        taskId: Int,
+        appBubble: Boolean,
+        displayId: Int = DEFAULT_DISPLAY,
+    ): TaskInfo {
+        val taskInfo = createTaskInfo(taskId, displayId)
+        taskInfo.isAppBubble = appBubble
+        if (!appBubble) {
+            taskInfo.configuration.windowConfiguration.windowingMode = WINDOWING_MODE_MULTI_WINDOW
+            taskInfo.configuration.windowConfiguration.isAlwaysOnTop = true
+        }
         return taskInfo
     }
 }

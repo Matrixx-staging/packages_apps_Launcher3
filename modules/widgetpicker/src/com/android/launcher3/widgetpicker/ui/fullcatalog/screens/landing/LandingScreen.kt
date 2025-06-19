@@ -57,8 +57,7 @@ fun LandingScreen(
                     onSearch = {},
                     onToggleSearchMode = { enter ->
                         if (enter) {
-                            viewModel.onSelectedPersonalAppToggle(null)
-                            viewModel.onSelectedWorkAppToggle(null)
+                            viewModel.resetSelections()
                             onEnterSearchMode()
                         }
                     },
@@ -69,6 +68,7 @@ fun LandingScreen(
 
         LandingScreen(
             isCompact = isCompact,
+            selectedSubSection = viewModel.selectedSubSection,
             searchBarContent = searchBar,
             featuredWidgetsState = viewModel.featuredWidgetsState,
             featuredWidgetPreviewsState = viewModel.featuredWidgetPreviewsState,
@@ -82,6 +82,7 @@ fun LandingScreen(
             onWorkWidgetAppToggle = viewModel::onSelectedWorkAppToggle,
             onWidgetInteraction = onWidgetInteraction,
             showDragShadow = showDragShadow,
+            onSelectedSubSectionChange = viewModel::onSelectedSubSectionChange,
         )
     }
 }
@@ -89,6 +90,7 @@ fun LandingScreen(
 @Composable
 private fun LandingScreen(
     isCompact: Boolean,
+    selectedSubSection: LandingScreenSubSection,
     searchBarContent: @Composable () -> Unit,
     featuredWidgetsState: FeaturedWidgetsState,
     featuredWidgetPreviewsState: PreviewsState,
@@ -102,6 +104,7 @@ private fun LandingScreen(
     onWorkWidgetAppToggle: (WidgetAppId?) -> Unit,
     onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
     showDragShadow: Boolean,
+    onSelectedSubSectionChange: (LandingScreenSubSection) -> Unit,
 ) {
     val featuredWidgetsContent: @Composable () -> Unit = {
         WidgetsGrid(
@@ -119,6 +122,7 @@ private fun LandingScreen(
     when {
         isCompact ->
             LandingScreenSinglePane(
+                selectedSubSection = selectedSubSection,
                 searchBarContent = searchBarContent,
                 featuredWidgetsContent = featuredWidgetsContent,
                 widgetAppIconsState = widgetAppIconsState,
@@ -131,10 +135,12 @@ private fun LandingScreen(
                 onWorkWidgetAppToggle = onWorkWidgetAppToggle,
                 onWidgetInteraction = onWidgetInteraction,
                 showDragShadow = showDragShadow,
+                onSelectedSubSectionChange = onSelectedSubSectionChange,
             )
 
         else ->
             LandingScreenTwoPane(
+                selectedSubSection = selectedSubSection,
                 searchBar = searchBarContent,
                 featuredWidgets = featuredWidgetsContent,
                 featuredWidgetsCount = featuredWidgetsState.widgetsCount,
@@ -148,6 +154,7 @@ private fun LandingScreen(
                 onWorkWidgetAppToggle = onWorkWidgetAppToggle,
                 onWidgetInteraction = onWidgetInteraction,
                 showDragShadow = showDragShadow,
+                onSelectedSubSectionChange = onSelectedSubSectionChange,
             )
     }
 }
