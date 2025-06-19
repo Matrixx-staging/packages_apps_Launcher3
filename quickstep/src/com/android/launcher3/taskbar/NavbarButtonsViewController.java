@@ -108,7 +108,6 @@ import com.android.launcher3.taskbar.navbutton.NavButtonLayoutFactory;
 import com.android.launcher3.taskbar.navbutton.NavButtonLayoutFactory.NavButtonLayoutter;
 import com.android.launcher3.taskbar.navbutton.NearestTouchFrame;
 import com.android.launcher3.util.DimensionUtils;
-import com.android.launcher3.util.LockedUserState;
 import com.android.launcher3.util.MultiPropertyFactory.MultiProperty;
 import com.android.launcher3.util.MultiValueAlpha;
 import com.android.launcher3.util.SettingsCache;
@@ -270,8 +269,6 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         getLayoutterForCurrentState().addThreeButtons();
     };
 
-    private final boolean mIsUserUnlocked;
-
     public NavbarButtonsViewController(TaskbarActivityContext context,
             @Nullable Context navigationBarPanelContext, NearestTouchFrame navButtonsView,
             Handler handler) {
@@ -296,8 +293,6 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         String SUWTheme = SystemProperties.get(SUW_THEME_SYSTEM_PROPERTY, "");
         mIsExpressiveThemeEnabled = SUWTheme.equals(GLIF_EXPRESSIVE_THEME)
                 || SUWTheme.equals(GLIF_EXPRESSIVE_LIGHT_THEME);
-
-        mIsUserUnlocked = LockedUserState.get(context).isUserUnlocked();
     }
 
     /**
@@ -574,8 +569,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         return ((flags & FLAG_KEYGUARD_VISIBLE) == 0
                 || (flags & FLAG_KEYGUARD_OCCLUDED) != 0)
                 && (flags & FLAG_DISABLE_HOME) == 0
-                && !mContext.isGestureNav()
-                && mIsUserUnlocked;
+                && !mContext.isGestureNav();
     }
 
     private void parseSystemUiFlags(@SystemUiStateFlags long sysUiStateFlags) {

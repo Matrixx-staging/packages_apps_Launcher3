@@ -16,21 +16,14 @@
 
 package com.android.launcher3.util
 
-import android.content.Context
 import android.hardware.display.DisplayManager
-import android.os.UserHandle
-import android.os.UserManager
 import android.view.Display
 import android.view.Display.DEFAULT_DISPLAY
 import android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-import com.android.launcher3.LauncherFiles.SHARED_PREFERENCES_KEY
-import com.android.launcher3.LauncherPrefs.Companion.BOOT_AWARE_PREFS_KEY
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.stub
 
 @RunWith(LauncherMultivalentJUnit::class)
 class SandboxApplicationTest {
@@ -68,51 +61,5 @@ class SandboxApplicationTest {
             assertThat(applicationContext).isEqualTo(this)
             onDestroy()
         }
-    }
-
-    @Test(expected = IllegalStateException::class)
-    fun testGetSharedPreferences_userLocked_throwsException() {
-        app.spyService(UserManager::class.java).stub {
-            on { isUserUnlockingOrUnlocked(UserHandle.myUserId()) } doReturn false
-        }
-        app.createCredentialProtectedStorageContext()
-            .getSharedPreferences(SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE)
-    }
-
-    @Test(expected = IllegalStateException::class)
-    fun testGetSharedPreferences_windowContextAndUserLocked_throwsException() {
-        app.spyService(UserManager::class.java).stub {
-            on { isUserUnlockingOrUnlocked(UserHandle.myUserId()) } doReturn false
-        }
-        val windowContext =
-            app.createCredentialProtectedStorageContext()
-                .createDisplayContext(display)
-                .createWindowContext(TYPE_APPLICATION_OVERLAY, null)
-        windowContext.getSharedPreferences(SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE)
-    }
-
-    @Test
-    fun testGetSharedPreferences_deviceProtectedStorageContextAndUserLocked_returnsPreferences() {
-        app.spyService(UserManager::class.java).stub {
-            on { isUserUnlockingOrUnlocked(UserHandle.myUserId()) } doReturn false
-        }
-        val deviceProtectedStorageContext = app.createDeviceProtectedStorageContext()
-        val sharedPreferences =
-            deviceProtectedStorageContext.getSharedPreferences(
-                BOOT_AWARE_PREFS_KEY,
-                Context.MODE_PRIVATE,
-            )
-        assertThat(sharedPreferences).isNotNull()
-    }
-
-    @Test
-    fun testGetSharedPreferences_userUnlocked_returnsPreferences() {
-        app.spyService(UserManager::class.java).stub {
-            on { isUserUnlockingOrUnlocked(UserHandle.myUserId()) } doReturn true
-        }
-        val sharedPreferences =
-            app.createCredentialProtectedStorageContext()
-                .getSharedPreferences(SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE)
-        assertThat(sharedPreferences).isNotNull()
     }
 }
