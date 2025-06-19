@@ -25,7 +25,10 @@ import java.util.zip.ZipOutputStream;
 
 public class FailureWatcher extends TestWatcher {
     private static final String TAG = "FailureWatcher";
-    private static boolean sSavedBugreport = false;
+    // TODO(b/408279425, b/424390002, b/415353175, b/327532234, b/424287695, b/423924731)
+    // Experimenting with disabling saving bugreport. Sometimes it takes at least 2 min, making the
+    // test to time out.
+    private static boolean sSavedBugreport = true; // false;
     private static Description sDescriptionForLastSavedArtifacts;
 
     private final LauncherInstrumentation mLauncher;
