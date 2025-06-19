@@ -25,8 +25,6 @@ class BubbleBarBubbleIconsFactory(context: Context, bubbleSize: Int) :
     BaseIconFactory(context, context.resources.configuration.densityDpi, bubbleSize) {
 
     /** Creates shadowed icon for the bubble bar. */
-    fun createShadowedIconBitmap(
-        icon: Drawable,
-        scale: Float,
-    ): Bitmap = super.createIconBitmap(icon, scale, MODE_WITH_SHADOW)
+    fun createShadowedIconBitmap(icon: Drawable, scale: Float): Bitmap =
+        super.createIconBitmap(icon, scale, MODE_WITH_SHADOW, mDrawFullBleedIcons)
 }

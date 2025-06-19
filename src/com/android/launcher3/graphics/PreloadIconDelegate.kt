@@ -40,6 +40,7 @@ import com.android.launcher3.icons.BitmapInfo.DrawableCreationFlags
 import com.android.launcher3.icons.FastBitmapDrawable
 import com.android.launcher3.icons.FastBitmapDrawableDelegate
 import com.android.launcher3.icons.FastBitmapDrawableDelegate.DelegateFactory
+import com.android.launcher3.icons.IconShape
 import com.android.launcher3.model.data.ItemInfoWithIcon
 import kotlin.math.max
 import kotlin.math.min
@@ -139,9 +140,15 @@ class PreloadIconDelegate(
         setInternalProgress(internalStateProgress)
     }
 
-    override fun drawContent(info: BitmapInfo, canvas: Canvas, bounds: Rect, paint: Paint) {
+    override fun drawContent(
+        info: BitmapInfo,
+        host: FastBitmapDrawable,
+        canvas: Canvas,
+        bounds: Rect,
+        paint: Paint,
+    ) {
         if (ranFinishAnimation) {
-            parentDelegate.drawContent(info, canvas, bounds, paint)
+            parentDelegate.drawContent(info, host, canvas, bounds, paint)
         } else if (Flags.enableLauncherIconShapes()) {
             drawShapedProgressIcon(info, canvas, bounds, paint)
         } else {
@@ -231,7 +238,7 @@ class PreloadIconDelegate(
         canvas.save()
         val scale = 1 - iconScaleMultiplier.value * (1 - SMALL_ICON_SCALE)
         canvas.scale(scale, scale, bounds.exactCenterX(), bounds.exactCenterY())
-        parentDelegate.drawContent(info, canvas, bounds, paint)
+        parentDelegate.drawContent(info, host, canvas, bounds, paint)
         canvas.restore()
     }
 
@@ -422,6 +429,7 @@ class PreloadIconDelegate(
 
         override fun newDelegate(
             bitmapInfo: BitmapInfo,
+            iconShape: IconShape,
             paint: Paint,
             host: FastBitmapDrawable,
         ): FastBitmapDrawableDelegate {
@@ -429,9 +437,9 @@ class PreloadIconDelegate(
             return PreloadIconDelegate(
                 info,
                 isDarkTheme,
-                shape,
+                Path(iconShape.path),
                 host,
-                parentFactory.newDelegate(bitmapInfo, paint, host),
+                parentFactory.newDelegate(bitmapInfo, iconShape, paint, host),
             )
         }
     }
