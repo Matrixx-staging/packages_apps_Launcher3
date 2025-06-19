@@ -261,8 +261,8 @@ public final class KeyboardQuickSwitchController implements
         mHasDesktopTask = false;
         mWasDesktopTaskFilteredOut = false;
 
-        if (enableAltTabKqsFlatenning.isTrue() && !openedFromTaskbar) {
-            processLoadedTasksCombined(tasks, taskIdsToExclude);
+        if (enableAltTabKqsFlatenning.isTrue()) {
+            processLoadedTasksCombined(tasks, taskIdsToExclude, openedFromTaskbar);
         } else if (shouldShowDesktopTasks) {
             processLoadedTasksOnDesktop(tasks, taskIdsToExclude);
         } else {
@@ -284,8 +284,9 @@ public final class KeyboardQuickSwitchController implements
         mNumHiddenTasks = hiddenTasks.size();
     }
 
-    private void processLoadedTasksCombined(List<GroupTask> tasks, Set<Integer> taskIdsToExclude) {
-        List<GroupTask> allTasks = tasks.stream()
+    private void processLoadedTasksCombined(List<GroupTask> tasks, Set<Integer> taskIdsToExclude,
+            boolean openedFromTaskbar) {
+        Stream<GroupTask> allTasks = tasks.stream()
                 .flatMap(task -> {
                     // In case of DesktopTasks, convert each contained task into a new DesktopTask
                     // this way the view controller will be able to show a thumbnail in KQS view.
@@ -297,14 +298,16 @@ public final class KeyboardQuickSwitchController implements
 
                     return Stream.of(task);
                 })
+                .filter(task -> !openedFromTaskbar || task instanceof DesktopTask)
                 .filter(task -> shouldIncludeTask(task, taskIdsToExclude))
                 .filter(this::shouldIncludeTaskBasedOnProjectedMode)
-                .toList();
+                .sorted(combinedTasksComparator());
 
-        mTasks = allTasks.stream()
-                .sorted(combinedTasksComparator())
-                .limit(MAX_TASKS)
-                .toList();
+        if (!openedFromTaskbar) {
+            allTasks = allTasks.limit(MAX_TASKS);
+        }
+
+        mTasks = allTasks.toList();
     }
 
     private boolean shouldIncludeTaskBasedOnProjectedMode(GroupTask task) {

@@ -24,12 +24,14 @@ import android.os.Process
 import android.platform.test.annotations.DisableFlags
 import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
+import android.window.RemoteTransition
 import androidx.test.core.app.ApplicationProvider
 import com.android.launcher3.BubbleTextView
 import com.android.launcher3.Flags.FLAG_ENABLE_MULTI_INSTANCE_MENU_TASKBAR
 import com.android.launcher3.R
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
+import com.android.launcher3.desktop.DesktopAppLaunchTransition
 import com.android.launcher3.model.BgDataModel
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.TaskItemInfo
@@ -70,6 +72,7 @@ import com.android.window.flags.Flags.FLAG_ENABLE_PINNING_APP_WITH_CONTEXT_MENU
 import com.android.window.flags.Flags.FLAG_ENABLE_TASKBAR_OVERFLOW
 import com.android.wm.shell.Flags.FLAG_ENABLE_BUBBLE_BAR
 import com.android.wm.shell.desktopmode.IDesktopTaskListener
+import com.android.wm.shell.shared.desktopmode.DesktopTaskToFrontReason
 import com.google.common.truth.Truth.assertThat
 import dagger.BindsInstance
 import dagger.Component
@@ -78,9 +81,13 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.spy
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 @RunWith(LauncherMultivalentJUnit::class)
@@ -97,12 +104,15 @@ class TaskbarOverflowTest {
 
     val mockRecentsModelHelper: MockedRecentsModelHelper = MockedRecentsModelHelper()
 
+    private var systemUiProxySpy: SystemUiProxy? = null
+
     @get:Rule(order = 1)
     val context =
         TaskbarWindowSandboxContext.create(
             SandboxParams(
                 {
                     spy(SystemUiProxy(ApplicationProvider.getApplicationContext())) { proxy ->
+                        systemUiProxySpy = proxy
                         doAnswer { desktopTaskListener = it.getArgument(0) }
                             .whenever(proxy)
                             .setDesktopTaskListener(anyOrNull())
@@ -384,6 +394,44 @@ class TaskbarOverflowTest {
         tapOverflowIcon()
         assertThat(keyboardQuickSwitchController.isShown).isFalse()
         assertThat(getOverflowIconTooltipText()).isEqualTo("Other recent apps")
+    }
+
+    @Test
+    @TaskbarMode(PINNED)
+    fun testKeyboardQuickSwitchLaunchesTaskAsDesktopApp() {
+        val maxNumIconViews = maxNumberOfTaskbarIcons
+        // Assume there are at least all apps and divider icon, as they would appear once running
+        // apps are added, even if not present initially.
+        val initialIconCount = currentNumberOfTaskbarIcons.coerceAtLeast(2)
+
+        val targetOverflowSize = 5
+        val createdTasks = maxNumIconViews - initialIconCount + targetOverflowSize
+        createDesktopTask(createdTasks)
+
+        assertThat(taskbarOverflowIconIndex).isEqualTo(initialIconCount)
+
+        tapOverflowIcon()
+        // Keyboard quick switch view is shown only after list of recent task is asynchronously
+        // retrieved from the recents model.
+        runOnMainSync { recentsModel.resolvePendingTaskRequests() }
+
+        assertThat(getOnUiThread { keyboardQuickSwitchController.isShownFromTaskbar }).isTrue()
+        assertThat(getOnUiThread { keyboardQuickSwitchController.shownTaskIds() })
+            .containsExactlyElementsIn(0..targetOverflowSize)
+
+        runOnMainSync { keyboardQuickSwitchController.launchFocusedTask() }
+
+        val taskIdCaptor = argumentCaptor<Int>()
+        val transitionCaptor = argumentCaptor<RemoteTransition>()
+        verify(systemUiProxySpy)
+            ?.showDesktopApp(
+                taskIdCaptor.capture(),
+                transitionCaptor.capture(),
+                eq(DesktopTaskToFrontReason.ALT_TAB),
+            )
+        assertThat(taskIdCaptor.firstValue).isEqualTo(0)
+        assertThat(transitionCaptor.firstValue.remoteTransition)
+            .isInstanceOf(DesktopAppLaunchTransition::class.java)
     }
 
     @Test
