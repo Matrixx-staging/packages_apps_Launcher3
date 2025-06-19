@@ -46,6 +46,7 @@ android_test {
         "multivalentScreenshotTests/src/com/android/launcher3/widgetpicker/ui/components/FloatingToolbarScreenshotTest.kt",
         "multivalentScreenshotTests/src/com/android/launcher3/widgetpicker/ui/components/WidgetsGridScreenshotTest.kt",
         "multivalentScreenshotTests/src/com/android/launcher3/widgetpicker/ui/components/WidgetsGridTestSamples.kt",
+        "multivalentScreenshotTests/src/com/android/launcher3/widgetpicker/ui/components/WidgetAppIconTest.kt",
     ],
     platform_apis: true,
     static_libs: [
