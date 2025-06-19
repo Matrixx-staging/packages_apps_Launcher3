@@ -18,9 +18,6 @@ package com.android.launcher3.graphics
 
 import android.content.Context
 import android.content.res.Resources
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Path
 import com.android.launcher3.EncryptionType
 import com.android.launcher3.Item
 import com.android.launcher3.LauncherPrefChangeListener
@@ -31,13 +28,9 @@ import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.graphics.ShapeDelegate.Companion.pickBestShape
-import com.android.launcher3.icons.BitmapRenderer
-import com.android.launcher3.icons.GraphicsUtils.transformed
-import com.android.launcher3.icons.IconNormalizer.ICON_VISIBLE_AREA_FACTOR
+import com.android.launcher3.icons.GraphicsUtils.generateIconShape
 import com.android.launcher3.icons.IconShape
 import com.android.launcher3.icons.IconThemeController
-import com.android.launcher3.icons.ShadowGenerator
-import com.android.launcher3.icons.ShadowGenerator.BLUR_FACTOR
 import com.android.launcher3.icons.mono.MonoIconThemeController
 import com.android.launcher3.shapes.IconShapeModel.Companion.DEFAULT_ICON_RADIUS
 import com.android.launcher3.shapes.ShapesProvider
@@ -47,8 +40,6 @@ import com.android.launcher3.util.LooperExecutor
 import com.android.launcher3.util.SimpleBroadcastReceiver
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.inject.Inject
-import kotlin.math.ceil
-import kotlin.math.max
 
 /** Centralized class for managing Launcher icon theming */
 @LauncherAppSingleton
@@ -121,29 +112,8 @@ constructor(
      * Generates new IconShape based given [iconSize] and current [iconShape] Allocates new Bitmap
      * via [generateShapedShadowLayer]
      */
-    fun generateIconShape(iconSize: Float) {
-        iconShapeData =
-            IconShape(
-                pathSize = iconSize,
-                path = iconShape.getPath(iconSize),
-                generateShapedShadowLayer(iconSize, iconShape.getPath(iconSize)),
-            )
-    }
-
-    private fun generateShapedShadowLayer(pathSize: Float, path: Path): Bitmap {
-        // need to rescale shadow without offsets
-        val offset =
-            max(
-                ceil((BLUR_FACTOR * pathSize)).toInt(),
-                Math.round(pathSize * (1 - ICON_VISIBLE_AREA_FACTOR) / 2),
-            )
-        val newBounds = pathSize.toInt() + offset * 2
-        return BitmapRenderer.createHardwareBitmap(newBounds, newBounds) { canvas: Canvas ->
-            canvas.transformed {
-                canvas.translate(offset.toFloat(), offset.toFloat())
-                ShadowGenerator(pathSize.toInt()).addPathShadow(path, canvas)
-            }
-        }
+    fun generateIconShape(iconSize: Int) {
+        iconShapeData = iconShape.createIconShape(iconSize)
     }
 
     private fun parseIconState(oldState: IconState?): IconState {
@@ -167,15 +137,7 @@ constructor(
 
         if (oldState?.iconShape != iconShape) {
             // Size should be the same, but need to store new shape.
-            iconShapeData =
-                iconShapeData.copy(
-                    path = iconShape.getPath(iconShapeData.pathSize),
-                    shadowLayer =
-                        generateShapedShadowLayer(
-                            iconShapeData.pathSize,
-                            iconShape.getPath(iconShapeData.pathSize),
-                        ),
-                )
+            iconShapeData = iconShape.createIconShape(iconShapeData.pathSize)
         }
 
         val folderRadius = shapeModel?.folderRadiusRatio ?: 1f
@@ -239,5 +201,8 @@ constructor(
 
         // Use a constant to allow equality check in verifyIconState
         private val MONO_THEME_CONTROLLER = MonoIconThemeController(shouldForceThemeIcon = true)
+
+        private fun ShapeDelegate.createIconShape(size: Int) =
+            generateIconShape(size, getPath(size.toFloat()))
     }
 }

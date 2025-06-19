@@ -34,12 +34,13 @@ import com.android.launcher3.Flags
 import com.android.launcher3.Utilities
 import com.android.launcher3.anim.AnimatedFloat
 import com.android.launcher3.anim.AnimatorListeners
-import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
 import com.android.launcher3.icons.BitmapInfo
 import com.android.launcher3.icons.BitmapInfo.DrawableCreationFlags
 import com.android.launcher3.icons.FastBitmapDrawable
 import com.android.launcher3.icons.FastBitmapDrawableDelegate
 import com.android.launcher3.icons.FastBitmapDrawableDelegate.DelegateFactory
+import com.android.launcher3.icons.GraphicsUtils.resize
+import com.android.launcher3.icons.GraphicsUtils.transformed
 import com.android.launcher3.icons.IconShape
 import com.android.launcher3.model.data.ItemInfoWithIcon
 import kotlin.math.max
@@ -184,19 +185,18 @@ class PreloadIconDelegate(
      * that progress can be overlaid to leave gap.
      */
     private fun drawBackgroundPlate(canvas: Canvas, bounds: Rect) {
-        val width = canvas.width.toFloat()
-        canvas.save()
-        canvas.scale(PLATE_SCALE, PLATE_SCALE, bounds.exactCenterX(), bounds.exactCenterY())
-        progressPaint.style = STROKE
-        progressPaint.strokeWidth = width * TOTAL_STROKE_SCALE
-        progressPaint.color = plateColor
-        canvas.drawPath(scaledPlatePath, progressPaint)
-        canvas.restore()
+        val width = bounds.width().toFloat()
+        canvas.transformed {
+            scale(PLATE_SCALE, PLATE_SCALE, bounds.exactCenterX(), bounds.exactCenterY())
+            progressPaint.style = STROKE
+            progressPaint.strokeWidth = width * TOTAL_STROKE_SCALE
+            progressPaint.color = plateColor
+            drawPath(scaledPlatePath, progressPaint)
+        }
     }
 
     /** Draws track around icon with gap, and draws progress bar according to current progress. */
     private fun drawTrackAndProgress(canvas: Canvas) {
-        canvas.save()
         progressPaint.style = STROKE
         progressPaint.strokeWidth = canvas.width * PROGRESS_STROKE_SCALE
         progressPaint.color = trackColor
@@ -204,7 +204,6 @@ class PreloadIconDelegate(
         progressPaint.alpha = MAX_PAINT_ALPHA
         progressPaint.color = progressColor
         canvas.drawPath(scaledProgressPath, progressPaint)
-        canvas.restore()
     }
 
     private fun drawDefaultProgressIcon(
@@ -235,11 +234,11 @@ class PreloadIconDelegate(
 
     /** Draws just the icon to scale */
     private fun drawIconAtScale(info: BitmapInfo, canvas: Canvas, bounds: Rect, paint: Paint) {
-        canvas.save()
-        val scale = 1 - iconScaleMultiplier.value * (1 - SMALL_ICON_SCALE)
-        canvas.scale(scale, scale, bounds.exactCenterX(), bounds.exactCenterY())
-        parentDelegate.drawContent(info, host, canvas, bounds, paint)
-        canvas.restore()
+        canvas.transformed {
+            val scale = 1 - iconScaleMultiplier.value * (1 - SMALL_ICON_SCALE)
+            scale(scale, scale, bounds.exactCenterX(), bounds.exactCenterY())
+            parentDelegate.drawContent(info, host, canvas, bounds, paint)
+        }
     }
 
     /** Updates the install progress based on the level */
@@ -401,10 +400,6 @@ class PreloadIconDelegate(
                         PreloadIconFactory(
                             info = this,
                             isDarkTheme = Utilities.isDarkTheme(context),
-                            shape =
-                                context.appComponent.themeManager.iconShape.getPath(
-                                    DEFAULT_PATH_SIZE.toFloat()
-                                ),
                             parentFactory = originalState.delegateFactory,
                         ),
                 )
@@ -423,7 +418,6 @@ class PreloadIconDelegate(
     class PreloadIconFactory(
         private val info: ItemInfoWithIcon,
         private val isDarkTheme: Boolean,
-        private val shape: Path,
         private val parentFactory: DelegateFactory,
     ) : DelegateFactory {
 
@@ -437,7 +431,7 @@ class PreloadIconDelegate(
             return PreloadIconDelegate(
                 info,
                 isDarkTheme,
-                Path(iconShape.path),
+                iconShape.path.resize(iconShape.pathSize, DEFAULT_PATH_SIZE),
                 host,
                 parentFactory.newDelegate(bitmapInfo, iconShape, paint, host),
             )

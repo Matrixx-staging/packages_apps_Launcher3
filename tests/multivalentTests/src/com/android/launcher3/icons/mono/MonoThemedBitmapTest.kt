@@ -21,6 +21,7 @@ import android.platform.uiautomatorhelpers.DeviceHelpers.context
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.android.launcher3.icons.BitmapInfo
+import com.android.launcher3.icons.IconShape
 import com.android.launcher3.icons.mono.MonoIconThemeControllerTest.Companion.ensureBitmapSerializationSupported
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -32,23 +33,15 @@ class MonoThemedBitmapTest {
 
     @Test
     fun `newDrawable returns valid drawable`() {
-        val bitmap =
-            MonoThemedBitmap(
-                Bitmap.createBitmap(10, 10, Bitmap.Config.ALPHA_8),
-                Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888),
-            )
-        val d = bitmap.newDrawable(BitmapInfo.LOW_RES_INFO, context)
+        val bitmap = MonoThemedBitmap(Bitmap.createBitmap(10, 10, Bitmap.Config.ALPHA_8))
+        val d = bitmap.newDrawable(BitmapInfo.LOW_RES_INFO, context, IconShape.EMPTY)
         assertTrue(d.delegate is ThemedIconDelegate)
     }
 
     @Test
     fun `serialize returns valid bytes`() {
         ensureBitmapSerializationSupported()
-        val bitmap =
-            MonoThemedBitmap(
-                Bitmap.createBitmap(10, 10, Bitmap.Config.ALPHA_8),
-                Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888),
-            )
+        val bitmap = MonoThemedBitmap(Bitmap.createBitmap(10, 10, Bitmap.Config.ALPHA_8))
         assertTrue(bitmap.serialize().isNotEmpty())
     }
 }
