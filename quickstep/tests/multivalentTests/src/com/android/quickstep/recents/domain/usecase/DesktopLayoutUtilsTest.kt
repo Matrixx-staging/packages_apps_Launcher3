@@ -19,7 +19,7 @@ package com.android.quickstep.recents.domain.usecase
 import android.graphics.Rect
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.quickstep.recents.domain.model.DesktopLayoutConfig
-import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData
+import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData.RenderedDesktopTaskBoundsData
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -43,7 +43,7 @@ class DesktopLayoutUtilsTest {
 
     @Test
     fun getRequiredHeightForMinWidth_minTaskWidthIsZero_returnsDefaultMinHeight() {
-        val taskBounds = listOf(DesktopTaskBoundsData(1, Rect(0, 0, 200, 300), true))
+        val taskBounds = listOf(RenderedDesktopTaskBoundsData(1, Rect(0, 0, 200, 300)))
         val config = testLayoutConfig.copy(minTaskWidth = 0, verticalPaddingBetweenTasks = 50)
         val expectedHeight = config.verticalPaddingBetweenTasks
 
@@ -55,7 +55,7 @@ class DesktopLayoutUtilsTest {
     @Test
     fun getRequiredHeightForMinWidth_singleTask_calculatesHeight() {
         // Task: 200x300, minWidth: 100. Expected height: (100 * 300) / 200 = 150
-        val taskBounds = listOf(DesktopTaskBoundsData(1, Rect(0, 0, 200, 300), true))
+        val taskBounds = listOf(RenderedDesktopTaskBoundsData(1, Rect(0, 0, 200, 300)))
         val config = testLayoutConfig.copy(minTaskWidth = 100, verticalPaddingBetweenTasks = 10)
         val expectedHeight = 150
 
@@ -68,20 +68,17 @@ class DesktopLayoutUtilsTest {
     fun getRequiredHeightForMinWidth_multipleTasks_calculatesMaxHeight() {
         val taskBounds =
             listOf(
-                DesktopTaskBoundsData(
+                RenderedDesktopTaskBoundsData(
                     1,
                     Rect(0, 0, 200, 300),
-                    true,
                 ), // req height for 100 width: 150
-                DesktopTaskBoundsData(
+                RenderedDesktopTaskBoundsData(
                     2,
                     Rect(0, 0, 100, 200),
-                    true,
                 ), // req height for 100 width: 200
-                DesktopTaskBoundsData(
+                RenderedDesktopTaskBoundsData(
                     3,
                     Rect(0, 0, 400, 400),
-                    true,
                 ), // req height for 100 width: 100
             )
         val config = testLayoutConfig.copy(minTaskWidth = 100, verticalPaddingBetweenTasks = 10)
@@ -96,8 +93,8 @@ class DesktopLayoutUtilsTest {
     fun getRequiredHeightForMinWidth_taskWithZeroDimension_usesDefaultMinHeightIfAllInvalid() {
         val taskBounds =
             listOf(
-                DesktopTaskBoundsData(1, Rect(0, 0, 0, 100), true), // Invalid width
-                DesktopTaskBoundsData(2, Rect(0, 0, 100, 0), true), // Invalid height
+                RenderedDesktopTaskBoundsData(1, Rect(0, 0, 0, 100)), // Invalid width
+                RenderedDesktopTaskBoundsData(2, Rect(0, 0, 100, 0)), // Invalid height
             )
         val config = testLayoutConfig.copy(minTaskWidth = 100, verticalPaddingBetweenTasks = 50)
         val expectedHeight = config.verticalPaddingBetweenTasks // 50
@@ -111,13 +108,12 @@ class DesktopLayoutUtilsTest {
     fun getRequiredHeightForMinWidth_taskWithZeroDimension_ignoredIfOthersValid() {
         val taskBounds =
             listOf(
-                DesktopTaskBoundsData(
+                RenderedDesktopTaskBoundsData(
                     1,
                     Rect(0, 0, 200, 300),
-                    true,
                 ), // req height for 100 width: 150
-                DesktopTaskBoundsData(2, Rect(0, 0, 0, 100), true), // Invalid width, ignored
-                DesktopTaskBoundsData(3, Rect(0, 0, 100, 0), true), // Invalid height, ignored
+                RenderedDesktopTaskBoundsData(2, Rect(0, 0, 0, 100)), // Invalid width, ignored
+                RenderedDesktopTaskBoundsData(3, Rect(0, 0, 100, 0)), // Invalid height, ignored
             )
         val config = testLayoutConfig.copy(minTaskWidth = 100, verticalPaddingBetweenTasks = 10)
         val expectedHeight = 150
@@ -131,7 +127,7 @@ class DesktopLayoutUtilsTest {
     fun getRequiredHeightForMinWidth_calculatedHeightLessThanDefault_returnsDefault() {
         // Task: 1000x100, minWidth: 100. Expected height: (100 * 100) / 1000 = 10
         // But verticalPaddingBetweenTasks is 50, so 50 should be returned.
-        val taskBounds = listOf(DesktopTaskBoundsData(1, Rect(0, 0, 1000, 100), true))
+        val taskBounds = listOf(RenderedDesktopTaskBoundsData(1, Rect(0, 0, 1000, 100)))
         val config = testLayoutConfig.copy(minTaskWidth = 100, verticalPaddingBetweenTasks = 50)
         val expectedHeight = 50
 

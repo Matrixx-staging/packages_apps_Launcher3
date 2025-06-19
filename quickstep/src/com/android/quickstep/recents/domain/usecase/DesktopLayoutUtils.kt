@@ -17,8 +17,9 @@
 package com.android.quickstep.recents.domain.usecase
 
 import android.graphics.Rect
+import android.view.Gravity
 import com.android.quickstep.recents.domain.model.DesktopLayoutConfig
-import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData
+import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData.RenderedDesktopTaskBoundsData
 
 /** Utility functions for desktop layout calculations. */
 object DesktopLayoutUtils {
@@ -37,7 +38,7 @@ object DesktopLayoutUtils {
      *   task dimensions are found.
      */
     fun getRequiredHeightForMinWidth(
-        taskBounds: List<DesktopTaskBoundsData>,
+        taskBounds: List<RenderedDesktopTaskBoundsData>,
         layoutConfig: DesktopLayoutConfig,
     ): Int {
         val defaultMinHeight = layoutConfig.verticalPaddingBetweenTasks
@@ -56,6 +57,20 @@ object DesktopLayoutUtils {
             } ?: 0
 
         return Math.max(maxCalculatedHeight, defaultMinHeight)
+    }
+
+    /**
+     * Creates a small, square placeholder Rect centered within the given [desktopBounds]. The size
+     * of the square is determined by `layoutConfig.minTaskWidth`. Used for tasks that cannot be
+     * laid out due to the size constraints.
+     */
+    fun createPlaceholderBounds(desktopBounds: Rect, layoutConfig: DesktopLayoutConfig): Rect {
+        if (desktopBounds.isEmpty) {
+            // If desktopBounds is empty, we can't really center. Return an empty rect.
+            return Rect()
+        }
+        val size = minOf(layoutConfig.minTaskWidth, desktopBounds.width(), desktopBounds.height())
+        return Rect().apply { Gravity.apply(Gravity.CENTER, size, size, desktopBounds, this) }
     }
 
     /** Calculates the maximum possible height for a task window in the desktop tile in Overview. */

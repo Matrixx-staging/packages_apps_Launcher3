@@ -23,6 +23,7 @@ import com.android.quickstep.recents.data.DesktopBackgroundResult
 import com.android.quickstep.recents.data.DesktopTileBackgroundRepository
 import com.android.quickstep.recents.domain.model.DesktopLayoutConfig
 import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData
+import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData.RenderedDesktopTaskBoundsData
 import com.android.quickstep.recents.domain.usecase.OrganizeDesktopTasksUseCase
 import com.android.quickstep.recents.domain.usecase.RemoveTaskAndRebalanceLayoutUseCase
 import kotlinx.coroutines.withContext
@@ -50,7 +51,7 @@ class DesktopTaskViewModel(
      */
     fun organizeDesktopTasks(
         desktopSize: Size,
-        defaultPositions: List<DesktopTaskBoundsData>,
+        defaultPositions: List<RenderedDesktopTaskBoundsData>,
         layoutConfig: DesktopLayoutConfig,
     ) {
         organizedDesktopTaskPositions =
@@ -64,7 +65,8 @@ class DesktopTaskViewModel(
     fun removeTaskAndRebalanceLayout(taskIdToRemove: Int, layoutConfig: DesktopLayoutConfig) {
         organizedDesktopTaskPositions =
             removeTaskAndRebalanceLayoutUseCase(
-                currentLayout = organizedDesktopTaskPositions,
+                currentLayout =
+                    organizedDesktopTaskPositions.filterIsInstance<RenderedDesktopTaskBoundsData>(),
                 taskIdToRemove = taskIdToRemove,
                 layoutConfig = layoutConfig,
             )
