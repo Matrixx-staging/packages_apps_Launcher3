@@ -21,7 +21,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executor
 
 /** Represents a stream of data which supports listening for updates */
-interface ListenableStream<T : Any> {
+interface ListenableStream<T> {
 
     /**
      * Registers a listener for getting all new events from now on. Multiple callbacks on the same
@@ -32,7 +32,7 @@ interface ListenableStream<T : Any> {
 }
 
 /** [ListenableStream] which allows dispatching custom value */
-open class MutableListenableStream<T : Any> : ListenableStream<T> {
+open class MutableListenableStream<T> : ListenableStream<T> {
 
     internal val listeners = ConcurrentHashMap<Executor, CopyOnWriteArrayList<(T) -> Unit>>()
 
@@ -55,13 +55,13 @@ open class MutableListenableStream<T : Any> : ListenableStream<T> {
 }
 
 /** A [ListenableStream] which also holds a reference to the last value */
-interface ListenableRef<T : Any> : ListenableStream<T> {
+interface ListenableRef<T> : ListenableStream<T> {
     /* The current value */
     val value: T
 }
 
 /** [ListenableRef] which allows updating its value */
-class MutableListenableRef<T : Any>(initValue: T) : MutableListenableStream<T>(), ListenableRef<T> {
+class MutableListenableRef<T>(initValue: T) : MutableListenableStream<T>(), ListenableRef<T> {
 
     override var value: T = initValue
         private set
