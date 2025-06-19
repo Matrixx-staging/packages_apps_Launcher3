@@ -244,6 +244,17 @@ class TaskbarViewWithLayoutTransitionTest {
     }
 
     @Test
+    fun testUpdateItems_desktopMode_hotseatItem_noDividerAfterDesktopModeChange() {
+        whenever(desktopVisibilityController.isInDesktopMode(context.displayId)).thenReturn(false)
+        runOnMainSync { taskbarView.updateItems(createHotseatItems(1), emptyList()) }
+
+        whenever(desktopVisibilityController.isInDesktopMode(context.displayId)).thenReturn(true)
+        runOnMainSync { taskbarView.updateItems(createHotseatItems(2), emptyList()) }
+
+        assertThat(taskbarView).hasIconTypes(ALL_APPS, HOTSEAT, HOTSEAT)
+    }
+
+    @Test
     @ForceRtl
     fun testUpdateItems_rtlAndDesktopMode_hotseatItem_noDivider() {
         whenever(desktopVisibilityController.isInDesktopMode(context.displayId)).thenReturn(true)
