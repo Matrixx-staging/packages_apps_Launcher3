@@ -538,16 +538,6 @@ constructor(
         tisBindHelper.runOnBindToTouchInteractionService(r)
     }
 
-    override fun addMultiWindowModeChangedListener(
-        listener: BaseActivity.MultiWindowModeChangedListener?
-    ) {
-        // TODO(b/368408838)
-    }
-
-    override fun removeMultiWindowModeChangedListener(
-        listener: BaseActivity.MultiWindowModeChangedListener?
-    ) {}
-
     override fun returnToHomescreen() {
         startHome()
     }

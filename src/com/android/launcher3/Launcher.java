@@ -644,14 +644,6 @@ public class Launcher extends StatefulActivity<LauncherState>
         mRotationHelper.setCurrentTransitionRequest(REQUEST_NONE);
     }
 
-    @Override
-    public void onMultiWindowModeChanged(boolean isInMultiWindowMode, Configuration newConfig) {
-        super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig);
-        // Always update device profile when multi window mode changed.
-        initDeviceProfile(mDeviceProfile.inv);
-        dispatchDeviceProfileChanged();
-    }
-
     /**
      * Initializes the drag controller.
      */
@@ -718,10 +710,6 @@ public class Launcher extends StatefulActivity<LauncherState>
         }
 
         mDeviceProfile = deviceProfile;
-        if (isInMultiWindowMode()) {
-            mDeviceProfile = mDeviceProfile.getMultiWindowProfile(
-                    this, getMultiWindowDisplaySize());
-        }
 
         if (FOLDABLE_SINGLE_PAGE.get() && mDeviceProfile.getDeviceProperties().isTwoPanels()) {
             mCellPosMapper = new TwoPanelCellPosMapper(mDeviceProfile.inv.numColumns);

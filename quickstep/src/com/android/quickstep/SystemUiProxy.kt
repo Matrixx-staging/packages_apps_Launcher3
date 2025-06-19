@@ -1294,7 +1294,6 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
             apps: Array<RemoteAnimationTarget>?,
             wallpapers: Array<RemoteAnimationTarget>?,
             homeContentInsets: Rect?,
-            minimizedHomeBounds: Rect?,
             extras: Bundle?,
             transitionInfo: TransitionInfo?,
         ) =
@@ -1303,7 +1302,6 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
                 apps,
                 wallpapers,
                 homeContentInsets,
-                minimizedHomeBounds,
                 extras?.apply {
                     // Aidl bundles need to explicitly set class loader
                     // https://developer.android.com/guide/components/aidl#Bundles
