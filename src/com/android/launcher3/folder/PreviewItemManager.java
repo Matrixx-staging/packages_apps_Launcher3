@@ -114,7 +114,7 @@ public class PreviewItemManager {
         mContext = icon.getContext();
         mIcon = icon;
         mIconSize = ActivityContext.lookupContext(
-                mContext).getDeviceProfile().folderChildIconSizePx;
+                mContext).getDeviceProfile().getFolderProfile().getChildIconSizePx();
         mClipThreshold = dpToPx(1f);
     }
 
@@ -160,7 +160,7 @@ public class PreviewItemManager {
             mIcon.mPreviewLayoutRule.init(
                     mIcon.mBackground.previewSize, mIntrinsicIconSize,
                     Utilities.isRtl(mIcon.getResources()),
-                    mIcon.mActivity.getDeviceProfile().numFolderColumns
+                    mIcon.mActivity.getDeviceProfile().getFolderProfile().getNumColumns()
             );
             updatePreviewItems(false);
         }

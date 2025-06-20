@@ -178,7 +178,8 @@ public class ShortcutAndWidgetContainer extends ViewGroup implements FolderIcon.
             boolean noPaddingX =
                     (dp.getWorkspaceIconProfile().getCellLayoutBorderSpacePx().x > 0
                             && mContainerType == WORKSPACE)
-                            || (dp.folderCellLayoutBorderSpacePx.x > 0 && mContainerType == FOLDER)
+                            || (dp.getFolderProfile().getCellLayoutBorderSpacePx().x > 0
+                                && mContainerType == FOLDER)
                             || (dp.hotseatBorderSpace > 0 && mContainerType == HOTSEAT);
             int cellPaddingX = noPaddingX
                     ? 0

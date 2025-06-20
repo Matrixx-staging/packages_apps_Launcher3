@@ -303,9 +303,11 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
                     mDeviceProfile.getAllAppsProfile().getIconDrawablePaddingPx());
             defaultIconSize = mDeviceProfile.getAllAppsProfile().getIconSizePx();
         } else if (mDisplay == DISPLAY_FOLDER) {
-            setTextSize(TypedValue.COMPLEX_UNIT_PX, mDeviceProfile.folderChildTextSizePx);
-            setCompoundDrawablePadding(mDeviceProfile.folderChildDrawablePaddingPx);
-            defaultIconSize = mDeviceProfile.folderChildIconSizePx;
+            setTextSize(TypedValue.COMPLEX_UNIT_PX,
+                    mDeviceProfile.getFolderProfile().getChildTextSizePx());
+            setCompoundDrawablePadding(
+                    mDeviceProfile.getFolderProfile().getChildDrawablePaddingPx());
+            defaultIconSize = mDeviceProfile.getFolderProfile().getChildIconSizePx();
         } else if (mDisplay == DISPLAY_SEARCH_RESULT) {
             setTextSize(TypedValue.COMPLEX_UNIT_PX,
                     mDeviceProfile.getAllAppsProfile().getIconTextSizePx());
@@ -602,7 +604,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
                 return mDeviceProfile.getWorkspaceIconProfile().getMaxIconTextLineCount();
             }
             case DISPLAY_FOLDER -> {
-                return mDeviceProfile.maxFolderChildTextLineCount;
+                return mDeviceProfile.getFolderProfile().getMaxChildTextLineCount();
             }
         }
         return 1;

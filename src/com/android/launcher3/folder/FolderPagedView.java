@@ -288,7 +288,8 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
     private CellLayout createAndAddNewPage() {
         DeviceProfile grid = mFolder.mActivityContext.getDeviceProfile();
         CellLayout page = mViewCache.getView(R.layout.folder_page, getContext(), this);
-        page.setCellDimensions(grid.folderCellWidthPx, grid.folderCellHeightPx);
+        page.setCellDimensions(grid.getFolderProfile().getCellWidthPx(),
+                grid.getFolderProfile().getCellHeightPx());
         page.getShortcutsAndWidgets().setMotionEventSplittingEnabled(false);
         page.setInvertIfRtl(true);
         page.setGridSize(mGridCountX, mGridCountY);
