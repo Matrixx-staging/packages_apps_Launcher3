@@ -38,10 +38,10 @@ import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.WorkspaceData;
 import com.android.launcher3.util.Executors;
 import com.android.launcher3.util.LauncherLayoutBuilder;
+import com.android.launcher3.util.LayoutResource;
 import com.android.launcher3.util.PackageUserKey;
 import com.android.launcher3.util.SandboxApplication;
 import com.android.launcher3.util.TestUtil;
-import com.android.launcher3.util.rule.LayoutProviderRule;
 
 import org.junit.After;
 import org.junit.Rule;
@@ -62,7 +62,7 @@ import java.util.stream.Collectors;
 public class ModelMultiCallbacksTest {
 
     @Rule public SandboxApplication mContext = new SandboxApplication().withModelDependency();
-    @Rule public LayoutProviderRule mLayoutProvider = new LayoutProviderRule(mContext);
+    @Rule public LayoutResource mLayoutProvider = new LayoutResource(mContext);
 
     @After
     public void tearDown() throws Exception {
@@ -161,7 +161,7 @@ public class ModelMultiCallbacksTest {
         for (int i = 0; i < pageCount; i++) {
             builder.atWorkspace(1, 1, i).putApp(TEST_PACKAGE, TEST_PACKAGE);
         }
-        mLayoutProvider.setupDefaultLayoutProvider(builder);
+        mLayoutProvider.set(builder);
     }
 
     private LauncherModel getModel() {

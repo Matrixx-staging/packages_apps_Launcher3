@@ -18,8 +18,10 @@ package com.android.launcher3.util
 import android.app.blob.BlobHandle.createWithSha256
 import android.app.blob.BlobStoreManager
 import android.content.Context
+import android.database.sqlite.SQLiteReadOnlyDatabaseException
 import android.os.ParcelFileDescriptor.AutoCloseOutputStream
 import android.provider.Settings.Secure
+import android.util.Log
 import com.android.launcher3.AutoInstallsLayout
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP
@@ -46,6 +48,8 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 
 object LayoutImportExportHelper {
+    private const val TAG = "LayoutImportExportHelper"
+
     fun exportModelDbAsXmlFuture(context: Context): CompletableFuture<String> {
         val future = CompletableFuture<String>()
         exportModelDbAsXml(context) { xmlString -> future.complete(xmlString) }
@@ -110,7 +114,16 @@ object LayoutImportExportHelper {
             session.commit(ORDERED_BG_EXECUTOR) {
                 Secure.putString(resolver, LAYOUT_PROVIDER_KEY, createBlobProviderKey(digest))
 
-                MODEL_EXECUTOR.submit { model.modelDbController.createEmptyDB() }.get()
+                MODEL_EXECUTOR.submit {
+                        try {
+                            model.modelDbController.createEmptyDB()
+                        } catch (e: SQLiteReadOnlyDatabaseException) {
+                            // This issue has only been observed in tests so far, likely due to less
+                            // strict threading for accessing and writing to the launcher test DB.
+                            Log.w(TAG, "Failed to clear Launcher DB. It was already deleted.", e)
+                        }
+                    }
+                    .get()
                 MAIN_EXECUTOR.submit { model.forceReload() }.get()
                 MODEL_EXECUTOR.submit {}.get()
                 Secure.putString(resolver, LAYOUT_PROVIDER_KEY, null)

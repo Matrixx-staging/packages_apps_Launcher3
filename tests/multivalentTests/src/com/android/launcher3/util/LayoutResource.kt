@@ -30,23 +30,36 @@ import org.junit.rules.ExternalResource
 class LayoutResource(private val ctx: Context) : ExternalResource() {
     // Internally, LauncherModel.rebindCallbacks() is called to load the updated data into in-memory
     // data model. This will short-circuit (and not load the new data) if called without callbacks.
-    private val mockCallbacks = object : BgDataModel.Callbacks {}
+    private var callbacks: BgDataModel.Callbacks? = null
 
     override fun before() {
         // Internally LayoutExportImportHelper uses a secure setting to set the launcher's layout
         TestUtil.grantWriteSecurePermission()
-        LauncherAppState.getInstance(ctx).model.addCallbacks(mockCallbacks)
     }
 
     override fun after() {
         set("")
-        LauncherAppState.getInstance(ctx).model.removeCallbacks(mockCallbacks)
+        callbacks?.let { LauncherAppState.getInstance(ctx).model.removeCallbacks(it) }
+    }
+
+    fun withCallbacks(cb: BgDataModel.Callbacks): LayoutResource {
+        val model = LauncherAppState.getInstance(ctx).model
+        callbacks?.let { model.removeCallbacks(it) }
+        model.addCallbacks(cb)
+        callbacks = cb
+        return this
     }
 
     fun set(builder: LauncherLayoutBuilder) = set(builder.build())
 
-    private fun set(xmlRepresentation: String) =
+    private fun set(xmlRepresentation: String) {
+        callbacks ?: withCallbacks(NO_OP_CALLBACKS)
         LauncherProvider()
             .apply { attachInfo(ctx, ProviderInfo()) }
             .call(LauncherProvider.METHOD_IMPORT_LAYOUT_XML, xmlRepresentation, Bundle.EMPTY)
+    }
+
+    companion object {
+        @JvmStatic val NO_OP_CALLBACKS = object : BgDataModel.Callbacks {}
+    }
 }
