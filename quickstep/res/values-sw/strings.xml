@@ -171,8 +171,6 @@
     <string name="header_app_icon_description" msgid="2184625881433608027">"Aikoni ya programu"</string>
     <string name="header_default_app_title" msgid="8308052350689531566">"Kichwa cha programu"</string>
     <string name="header_close_icon_description" msgid="5400033616675911319">"Kitufe cha kufunga"</string>
-    <string name="pin_to_taskbar" msgid="6607778046321626950">"Bandika kwa upauzana"</string>
-    <string name="unpin_from_taskbar" msgid="2178811773165572676">"Bandua kwa upauzana"</string>
     <string name="nudge_a11y_title" msgid="2126529303123687912">"Dokezo"</string>
     <string name="nudge_a11y_close" msgid="4513937143817625570">"Funga"</string>
     <string name="nudge_a11y_image" msgid="117910310515857252">"Picha ya dokezo"</string>

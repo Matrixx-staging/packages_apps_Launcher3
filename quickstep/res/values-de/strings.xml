@@ -171,8 +171,6 @@
     <string name="header_app_icon_description" msgid="2184625881433608027">"App-Symbol"</string>
     <string name="header_default_app_title" msgid="8308052350689531566">"Titel der App"</string>
     <string name="header_close_icon_description" msgid="5400033616675911319">"Schaltfläche „Schließen“"</string>
-    <string name="pin_to_taskbar" msgid="6607778046321626950">"An Taskleiste pinnen"</string>
-    <string name="unpin_from_taskbar" msgid="2178811773165572676">"Von Taskleiste lösen"</string>
     <string name="nudge_a11y_title" msgid="2126529303123687912">"Erinnerung"</string>
     <string name="nudge_a11y_close" msgid="4513937143817625570">"Schließen"</string>
     <string name="nudge_a11y_image" msgid="117910310515857252">"Bild für Erinnerung"</string>
