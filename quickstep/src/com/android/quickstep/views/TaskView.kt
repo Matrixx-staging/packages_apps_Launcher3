@@ -21,6 +21,7 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.IdRes
 import android.app.ActivityOptions
+import android.app.WindowConfiguration.WINDOWING_MODE_FULLSCREEN
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.PointF
@@ -1484,6 +1485,9 @@ constructor(
         val opts =
             container.getActivityLaunchOptions(this, null).apply {
                 options.launchDisplayId = displayId
+                // On external displays the default windowing mode is not fullscreen. To make
+                // sure fullscreen apps remain fullscreen we set the windowing mode explicitly.
+                options.launchWindowingMode = WINDOWING_MODE_FULLSCREEN
             }
         if (
             ActivityManagerWrapper.getInstance()
