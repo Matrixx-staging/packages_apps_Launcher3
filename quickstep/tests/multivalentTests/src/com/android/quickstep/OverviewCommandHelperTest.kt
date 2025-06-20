@@ -320,9 +320,12 @@ class OverviewCommandHelperTest {
         testScope.runTest {
             whenever(containerInterface.getVisibleRecentsView<RecentsView<*, *>>())
                 .thenReturn(recentView)
-            sut.addCommand(CommandType.TOGGLE_OVERVIEW_PREVIOUS)!!
+            val commandInfo: CommandInfo = sut.addCommand(CommandType.TOGGLE_OVERVIEW_PREVIOUS)!!
+
             runCurrent()
             verify(recentView).startHome()
+
+            assertThat(commandInfo.status).isEqualTo(CommandStatus.COMPLETED)
         }
 
     @Test
@@ -332,11 +335,20 @@ class OverviewCommandHelperTest {
                 .thenReturn(recentView)
             val mockTask = mock<TaskView>()
             whenever(recentView.runningTaskView).thenReturn(mockTask)
+            val callbackList = RunnableList()
+            whenever(mockTask.launchWithAnimation()).thenReturn(callbackList)
 
-            sut.addCommand(CommandType.TOGGLE_OVERVIEW_PREVIOUS)!!
+            val commandInfo: CommandInfo = sut.addCommand(CommandType.TOGGLE_OVERVIEW_PREVIOUS)!!
             runCurrent()
 
             verify(mockTask).launchWithAnimation()
+            verify(recentView, never()).startHome()
+            assertThat(commandInfo.status).isEqualTo(CommandStatus.PROCESSING)
+
+            callbackList.executeAllAndDestroy()
+            runCurrent()
+
+            assertThat(commandInfo.status).isEqualTo(CommandStatus.COMPLETED)
         }
 
     @Test
