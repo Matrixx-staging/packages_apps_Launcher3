@@ -16,72 +16,110 @@
 
 package com.android.launcher3.popup
 
-import com.android.launcher3.Flags
-import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPLICATION
+import android.content.Context
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APP_PAIR
-import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_FOLDER
+import com.android.launcher3.dagger.ApplicationContext
+import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.model.data.ItemInfo
-import com.android.wm.shell.shared.bubbles.BubbleAnythingFlagHelper
-import java.util.stream.Stream
+import com.android.launcher3.model.data.LauncherAppWidgetInfo
+import com.android.launcher3.model.repository.HomeScreenRepository
+import com.android.launcher3.util.DaggerSingletonTracker
+import com.android.launcher3.util.Executors.DATA_HELPER_EXECUTOR
+import com.android.launcher3.widget.WidgetManagerHelper
+import javax.inject.Inject
 
-class PopupDataRepositoryImpl(
-    private val itemInfo: Array<out ItemInfo>,
-    private val popupDataSource: PopupDataSource,
+@LauncherAppSingleton
+class PopupDataRepositoryImpl
+@Inject
+constructor(
+    popupDataSource: PopupDataSource,
+    @ApplicationContext private val context: Context,
+    @LauncherAppSingleton private val homeScreenRepository: HomeScreenRepository,
+    lifeCycle: DaggerSingletonTracker,
 ) : PopupDataRepository {
-    private val popupData: MutableMap<PoppableType, Stream<PopupData>> = mutableMapOf()
+    private val widgetManagerHelper = WidgetManagerHelper(context)
+    private val folderSystemShortcuts = listOf(popupDataSource.removePopupData)
+    private val appPairSystemShortcuts = listOf(popupDataSource.removePopupData)
+    private val widgetSystemShortcuts = listOf(popupDataSource.removePopupData)
+    private val widgetWithSettingsSystemShortcuts =
+        listOf(popupDataSource.removePopupData, popupDataSource.widgetSettingsPopupData)
+    private var popupData: Map<Int, List<PopupData>> = mapOf()
 
-    override fun getAllPopupData(): Map<PoppableType, Stream<PopupData>> {
-        if (popupData.isEmpty()) {
-            aggregatePopupData()
-        }
+    init {
+        lifeCycle.addCloseable(
+            homeScreenRepository.workspaceStateRef.forEach(DATA_HELPER_EXECUTOR) {
+                aggregate(homeScreenRepository.workspaceStateRef.value)
+            }
+        )
+    }
+
+    override fun getAllPopupData(): Map<Int, List<PopupData>> {
         return popupData
     }
 
-    override fun getPopupDataByType(type: PoppableType): Stream<PopupData>? {
-        if (popupData.isEmpty()) {
-            aggregatePopupData()
+    override fun getPopupDataByItemInfo(itemInfo: ItemInfo): List<PopupData>? {
+        if (!popupData.containsKey(itemInfo.id)) {
+            addItem(itemInfo)
         }
-        return popupData[type]
+        return popupData[itemInfo.id]
     }
 
-    private fun aggregatePopupData() {
-        itemInfo.forEach {
-            if (it.itemType == ITEM_TYPE_FOLDER && PoppableType.FOLDER !in popupData) {
-                popupData[PoppableType.FOLDER] = Stream.of(popupDataSource.removePopupData)
-            }
-            if (it.itemType == ITEM_TYPE_APP_PAIR && PoppableType.APP_PAIR !in popupData) {
-                popupData[PoppableType.APP_PAIR] = Stream.of(popupDataSource.removePopupData)
-            }
-            if (it.itemType == ITEM_TYPE_APPWIDGET && PoppableType.WIDGET !in popupData) {
-                popupData[PoppableType.WIDGET] =
-                    Stream.of(
-                        popupDataSource.removePopupData,
-                        popupDataSource.widgetSettingsPopupData,
-                    )
-            }
-            if (
-                (it.itemType == ITEM_TYPE_APPLICATION || it.itemType == ITEM_TYPE_DEEP_SHORTCUT) &&
-                    PoppableType.WIDGET !in popupData
-            ) {
-                val shortcuts =
-                    mutableListOf(
-                        popupDataSource.removePopupData,
-                        popupDataSource.widgetsPopupData,
-                        popupDataSource.appInfoPopupData,
-                        popupDataSource.installPopupData,
-                        popupDataSource.dontSuggestAppPopupData,
-                        popupDataSource.privateProfileInstallPopupData,
-                    )
-                if (Flags.enablePrivateSpace()) {
-                    shortcuts.add(popupDataSource.uninstallAppPopupData)
+    /**
+     * Clear the existing popupData map and re-aggregate it with all the current items.
+     *
+     * @param itemInfos is a list of ItemInfo for which each is linked to a popupData list specific
+     *   to it.
+     */
+    private fun aggregate(itemInfos: Iterable<ItemInfo>) {
+        popupData = buildMap {
+            itemInfos.forEach {
+                val itemPopupData: List<PopupData>? = getPopupDataForItemInfo(it)
+                if (itemPopupData != null) {
+                    put(it.id, itemPopupData)
                 }
-                if (BubbleAnythingFlagHelper.enableCreateAnyBubble()) {
-                    shortcuts.add(popupDataSource.bubblePopupData)
-                }
-                popupData[PoppableType.APP] = shortcuts.stream()
             }
+        }
+    }
+
+    /**
+     * Adds new item to map to a list of popupData specific to it.
+     *
+     * @param itemInfo is the item to which we will link a popupData list specific to it.
+     */
+    private fun addItem(itemInfo: ItemInfo) {
+        val itemPopupData: List<PopupData>? = getPopupDataForItemInfo(itemInfo)
+        if (itemPopupData != null) {
+            popupData = popupData + (itemInfo.id to itemPopupData)
+        }
+    }
+
+    /**
+     * Determines the list of PopupData for a ItemInfo
+     *
+     * @param itemInfo is the item to which we will link a popupData list specific to it.
+     * @return the list of PopupData that belongs to a specific type of ItemInfo.
+     */
+    private fun getPopupDataForItemInfo(itemInfo: ItemInfo): List<PopupData>? {
+        return when (itemInfo.itemType) {
+            ITEM_TYPE_FOLDER -> folderSystemShortcuts
+            ITEM_TYPE_APP_PAIR -> appPairSystemShortcuts
+            ITEM_TYPE_APPWIDGET -> {
+                if (itemInfo is LauncherAppWidgetInfo) {
+                    val launcherAppWidgetProviderInfo =
+                        widgetManagerHelper.getLauncherAppWidgetInfo(
+                            itemInfo.appWidgetId,
+                            itemInfo.targetComponent,
+                        )
+                    if (launcherAppWidgetProviderInfo?.isReconfigurable == true) {
+                        return widgetWithSettingsSystemShortcuts
+                    }
+                    return widgetSystemShortcuts
+                }
+                return widgetSystemShortcuts
+            }
+            else -> null
         }
     }
 }

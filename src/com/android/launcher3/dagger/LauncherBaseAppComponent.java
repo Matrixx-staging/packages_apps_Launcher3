@@ -39,6 +39,7 @@ import com.android.launcher3.model.ItemInstallQueue;
 import com.android.launcher3.model.LoaderCursor.LoaderCursorFactory;
 import com.android.launcher3.pm.InstallSessionHelper;
 import com.android.launcher3.pm.UserCache;
+import com.android.launcher3.popup.PopupDataRepository;
 import com.android.launcher3.qsb.OseWidgetManager;
 import com.android.launcher3.qsb.QsbAppWidgetHost;
 import com.android.launcher3.testing.TestInformationHandler;
@@ -117,6 +118,8 @@ public interface LauncherBaseAppComponent {
 
     @VisibleForTesting
     GridSizeMigrationLogic createNewGridSizeMigrationLogic();
+
+    PopupDataRepository getPopupDataRepository();
 
     /** Builder for LauncherBaseAppComponent. */
     interface Builder {

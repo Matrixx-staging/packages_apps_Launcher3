@@ -16,94 +16,189 @@
 
 package com.android.launcher3.popup
 
+import android.content.Context
+import android.platform.test.annotations.EnableFlags
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
+import com.android.launcher3.Flags
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_FOLDER
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_QSB
 import com.android.launcher3.R
 import com.android.launcher3.model.data.ItemInfo
+import com.android.launcher3.model.data.WorkspaceData
+import com.android.launcher3.model.repository.HomeScreenRepository
+import com.android.launcher3.util.DaggerSingletonTracker
+import com.android.launcher3.util.Executors
+import com.android.launcher3.util.TestUtil
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.kotlin.mock
 
 /** Tests for the [PopupDataRepositoryImpl] */
 @SmallTest
 @RunWith(AndroidJUnit4::class)
 class PopupDataRepositoryImplUnitTest {
+    private val context: Context = ApplicationProvider.getApplicationContext()
+    private val homeScreenRepository = HomeScreenRepository()
+    private val lifeCycle: DaggerSingletonTracker = mock()
+
     @Test
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun getAllPopupDataWithInvalidItemInfoShouldReturnEmptyList() {
+        val popupDataRepository =
+            PopupDataRepositoryImpl(PopupDataSource(), context, homeScreenRepository, lifeCycle)
         val itemInfo = ItemInfo()
         itemInfo.itemType = ITEM_TYPE_QSB
-        val popupDataRepository = PopupDataRepository.createRepository(itemInfo)
+        itemInfo.id = 1
+        val data = WorkspaceData.MutableWorkspaceData()
+        data.addItems(listOf(itemInfo), null)
+        homeScreenRepository.dispatchChange(data)
+        TestUtil.runOnExecutorSync(Executors.DATA_HELPER_EXECUTOR) {}
         val popupDataMap = popupDataRepository.getAllPopupData()
+
         assert(popupDataMap.isEmpty())
     }
 
     @Test
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun getAllPopupDataWithEmptyItemInfoShouldReturnEmptyList() {
-        val popupDataRepository = PopupDataRepository.createRepository()
+        val popupDataRepository =
+            PopupDataRepositoryImpl(PopupDataSource(), context, homeScreenRepository, lifeCycle)
+        val itemInfo = ItemInfo()
+        itemInfo.id = 1
+        val data = WorkspaceData.MutableWorkspaceData()
+        data.addItems(listOf(itemInfo), null)
+        homeScreenRepository.dispatchChange(data)
+        TestUtil.runOnExecutorSync(Executors.DATA_HELPER_EXECUTOR) {}
         val popupDataMap = popupDataRepository.getAllPopupData()
+
         assert(popupDataMap.isEmpty())
     }
 
     @Test
-    fun getAllPopupDataWithFolderShouldReturnMapContainingFolderPoppableType() {
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
+    fun getAllPopupDataWithFolderShouldReturnMapContainingFolderItem() {
+        val popupDataRepository =
+            PopupDataRepositoryImpl(PopupDataSource(), context, homeScreenRepository, lifeCycle)
         val itemInfo = ItemInfo()
         itemInfo.itemType = ITEM_TYPE_FOLDER
-        val popupDataRepository = PopupDataRepository.createRepository(itemInfo)
+        itemInfo.id = 1
+        val data = WorkspaceData.MutableWorkspaceData()
+        data.addItems(listOf(itemInfo), null)
+        homeScreenRepository.dispatchChange(data)
+        TestUtil.runOnExecutorSync(Executors.DATA_HELPER_EXECUTOR) {}
         val popupDataMap = popupDataRepository.getAllPopupData()
+
         assert(popupDataMap.size == 1)
-        assert(popupDataMap[PoppableType.FOLDER] != null)
+        assert(popupDataMap[itemInfo.id] != null)
     }
 
     @Test
-    fun getAllPopupDataWithFolderAndWidgetShouldReturnMapContainingFolderAndWidgetPoppableType() {
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
+    fun getAllPopupDataWithFolderAndWidgetShouldReturnMapContainingFolderAndWidgetItem() {
+        val popupDataRepository =
+            PopupDataRepositoryImpl(PopupDataSource(), context, homeScreenRepository, lifeCycle)
         val folderItemInfo = ItemInfo()
+        folderItemInfo.id = 1
         folderItemInfo.itemType = ITEM_TYPE_FOLDER
         val widgetItemInfo = ItemInfo()
         widgetItemInfo.itemType = ITEM_TYPE_APPWIDGET
-        val popupDataRepository =
-            PopupDataRepository.createRepository(folderItemInfo, widgetItemInfo)
+        widgetItemInfo.id = 2
+        val data = WorkspaceData.MutableWorkspaceData()
+        data.addItems(listOf(folderItemInfo, widgetItemInfo), null)
+        homeScreenRepository.dispatchChange(data)
+        TestUtil.runOnExecutorSync(Executors.DATA_HELPER_EXECUTOR) {}
         val popupDataMap = popupDataRepository.getAllPopupData()
+
         assert(popupDataMap.size == 2)
-        assert(popupDataMap[PoppableType.FOLDER] != null)
-        assert(popupDataMap[PoppableType.WIDGET] != null)
+        assert(popupDataMap[folderItemInfo.id] != null)
+        assert(popupDataMap[widgetItemInfo.id] != null)
     }
 
     @Test
-    fun getPopupDataByTypeShouldBeNullIfWeDontHaveThatType() {
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
+    fun getPopupDataByItemInfoShouldBeNullIfWeDontHaveThatItem() {
+        val popupDataRepository =
+            PopupDataRepositoryImpl(PopupDataSource(), context, homeScreenRepository, lifeCycle)
         val folderItemInfo = ItemInfo()
+        folderItemInfo.id = 1
         folderItemInfo.itemType = ITEM_TYPE_FOLDER
         val widgetItemInfo = ItemInfo()
+        widgetItemInfo.id = 2
         widgetItemInfo.itemType = ITEM_TYPE_APPWIDGET
-        val popupDataRepository =
-            PopupDataRepository.createRepository(folderItemInfo, widgetItemInfo)
-        val popupDataStream = popupDataRepository.getPopupDataByType(PoppableType.APP_PAIR)
+        val data = WorkspaceData.MutableWorkspaceData()
+        data.addItems(listOf(folderItemInfo, widgetItemInfo), null)
+        homeScreenRepository.dispatchChange(data)
+        TestUtil.runOnExecutorSync(Executors.DATA_HELPER_EXECUTOR) {}
+        val popupDataStream = popupDataRepository.getPopupDataByItemInfo(ItemInfo())
+
         assert(popupDataStream == null)
     }
 
     @Test
-    fun getPopupDataByTypeShouldNotBeNullIfWeHaveThatType() {
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
+    fun getPopupDataByItemInfoShouldNotBeNullIfWeHaveThatItem() {
+        val popupDataRepository =
+            PopupDataRepositoryImpl(PopupDataSource(), context, homeScreenRepository, lifeCycle)
         val folderItemInfo = ItemInfo()
+        folderItemInfo.id = 1
         folderItemInfo.itemType = ITEM_TYPE_FOLDER
         val widgetItemInfo = ItemInfo()
+        widgetItemInfo.id = 2
         widgetItemInfo.itemType = ITEM_TYPE_APPWIDGET
-        val popupDataRepository =
-            PopupDataRepository.createRepository(folderItemInfo, widgetItemInfo)
-        val popupDataStream = popupDataRepository.getPopupDataByType(PoppableType.FOLDER)
+        val data = WorkspaceData.MutableWorkspaceData()
+        data.addItems(listOf(folderItemInfo, widgetItemInfo), null)
+        homeScreenRepository.dispatchChange(data)
+        TestUtil.runOnExecutorSync(Executors.DATA_HELPER_EXECUTOR) {}
+        val popupDataStream = popupDataRepository.getPopupDataByItemInfo(folderItemInfo)
+
         assert(popupDataStream != null)
     }
 
     @Test
-    fun popupDataShouldHaveAllTheDataFilledIn() {
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
+    fun getPopupDataByItemInfoShouldStillWorkIfMapDoesNotHaveItem() {
+        val popupDataSource = PopupDataSource()
+        val popupDataRepository =
+            PopupDataRepositoryImpl(popupDataSource, context, homeScreenRepository, lifeCycle)
         val folderItemInfo = ItemInfo()
+        folderItemInfo.id = 1
         folderItemInfo.itemType = ITEM_TYPE_FOLDER
-        val popupDataRepository = PopupDataRepository.createRepository(folderItemInfo)
-        val popupDataStream = popupDataRepository.getPopupDataByType(PoppableType.FOLDER)
-        val popupData = popupDataStream?.findFirst()?.get()
-        assert(popupData?.category == PopupCategory.SYSTEM_SHORTCUT_FIXED)
-        assert(popupData?.iconResId == R.drawable.ic_remove_no_shadow)
-        assert(popupData?.labelResId == R.string.remove_drop_target_label)
-        assert(popupData?.popupAction != null)
+
+        // There should be no popup data since we didn't update the home screen repository.
+        assert(popupDataRepository.getAllPopupData().isEmpty())
+
+        val popupDataStream = popupDataRepository.getPopupDataByItemInfo(folderItemInfo)
+
+        // Now that we called getPopupDataByItemInfo we should have the folderItemInfo.
+        assert(popupDataRepository.getAllPopupData().size == 1)
+
+        // Verify the stream is correct.
+        assert(popupDataStream != null)
+        assert(popupDataStream?.size == 1)
+        assert(popupDataStream?.contains(popupDataSource.removePopupData) == true)
+    }
+
+    @Test
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
+    fun popupDataShouldHaveAllTheDataFilledIn() {
+        val popupDataRepository =
+            PopupDataRepositoryImpl(PopupDataSource(), context, homeScreenRepository, lifeCycle)
+        val folderItemInfo = ItemInfo()
+        folderItemInfo.id = 1
+        folderItemInfo.itemType = ITEM_TYPE_FOLDER
+        val data = WorkspaceData.MutableWorkspaceData()
+        data.addItems(listOf(folderItemInfo), null)
+        homeScreenRepository.dispatchChange(data)
+        TestUtil.runOnExecutorSync(Executors.DATA_HELPER_EXECUTOR) {}
+        val popupData = popupDataRepository.getPopupDataByItemInfo(folderItemInfo)
+
+        assert(popupData?.size == 1)
+        assert(popupData?.get(0)?.category == PopupCategory.SYSTEM_SHORTCUT_FIXED)
+        assert(popupData?.get(0)?.iconResId == R.drawable.ic_remove_no_shadow)
+        assert(popupData?.get(0)?.labelResId == R.string.remove_drop_target_label)
+        assert(popupData?.get(0)?.popupAction != null)
     }
 }

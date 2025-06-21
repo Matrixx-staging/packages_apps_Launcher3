@@ -29,6 +29,7 @@ import com.android.launcher3.R
 import com.android.launcher3.SecondaryDropTarget
 import com.android.launcher3.Utilities
 import com.android.launcher3.allapps.PrivateProfileManager
+import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
@@ -41,8 +42,10 @@ import com.android.launcher3.views.ActivityContext
 import com.android.launcher3.views.Snackbar
 import com.android.launcher3.widget.LauncherAppWidgetHostView
 import com.android.launcher3.widget.WidgetsBottomSheet
+import javax.inject.Inject
 
-class PopupDataSource {
+@LauncherAppSingleton
+class PopupDataSource @Inject constructor() {
     // Handles action from tapping remove shortcut.
     private val handleRemove = { activityContext: ActivityContext, itemInfo: ItemInfo, view: View ->
         AbstractFloatingView.closeAllOpenViews(activityContext)

@@ -32,6 +32,7 @@ import com.android.launcher3.dagger.DisplayContext
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.dagger.LauncherConcurrencyModule
+import com.android.launcher3.dagger.LauncherModelModule
 import com.android.launcher3.dagger.StaticObjectModule
 import com.android.launcher3.dagger.WidgetModule
 import com.android.launcher3.dagger.WindowContext
@@ -90,6 +91,7 @@ interface TaskbarSandboxComponent : LauncherAppComponent {
             TaskbarPerDisplayReposModule::class,
             DesktopVisibilityControllerModule::class,
             NoOpWidgetPickerModule::class,
+            LauncherModelModule::class,
         ]
 )
 interface AllTaskbarSandboxModules
