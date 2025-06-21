@@ -58,6 +58,7 @@ import androidx.annotation.Nullable;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.savedstate.SavedStateRegistryOwner;
 
+import com.android.launcher3.BaseActivity;
 import com.android.launcher3.BubbleTextView;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.DeviceProfile.OnDeviceProfileChangeListener;
@@ -85,12 +86,14 @@ import com.android.launcher3.popup.PopupDataProvider;
 import com.android.launcher3.util.ActivityOptionsWrapper;
 import com.android.launcher3.util.ApplicationInfoWrapper;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
+import com.android.launcher3.util.PendingRequestArgs;
 import com.android.launcher3.util.Preconditions;
 import com.android.launcher3.util.RunnableList;
 import com.android.launcher3.util.SplitConfigurationOptions;
 import com.android.launcher3.util.SystemUiController;
 import com.android.launcher3.util.ViewCache;
 import com.android.launcher3.util.WeakCleanupSet;
+import com.android.launcher3.widget.LauncherWidgetHolder;
 import com.android.launcher3.widget.picker.model.WidgetPickerDataProvider;
 
 import java.util.List;
@@ -333,6 +336,34 @@ public interface ActivityContext extends SavedStateRegistryOwner {
     default WidgetPickerDataProvider getWidgetPickerDataProvider() {
         return null;
     }
+
+    /**
+     * Sets a field to hold {@link PendingRequestArgs} which holds extra information needed to
+     * handle a result from an external call.
+     *
+     * @param args is {@link PendingRequestArgs} which has information regarding a pending
+     *             request made by launcher.
+     */
+    default void setWaitingForResult(PendingRequestArgs args) {}
+
+    /**
+     * @return the {@link LauncherWidgetHolder} wrapper which allows AppWidgetHost to run in
+     * the background. This tracks updates to widgets like removals and provider changes.
+     */
+    @Nullable
+    default LauncherWidgetHolder getAppWidgetHolder() {
+        return null;
+    }
+
+    /**
+     * Starts the configuration activity for the widget.
+     * @param activity The activity in which to start the configuration page.
+     * @param widgetId The ID of the widget.
+     * @param requestCode The request code.
+     */
+    default void startConfigActivity(@NonNull BaseActivity activity, int widgetId,
+            int requestCode) {}
+
 
     @Nullable
     default StringCache getStringCache() {
