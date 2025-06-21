@@ -33,13 +33,11 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 
 import com.android.launcher3.BubbleTextView;
-import com.android.launcher3.icons.BaseIconFactory;
 import com.android.launcher3.icons.BitmapInfo;
 import com.android.launcher3.icons.FastBitmapDrawable;
 import com.android.launcher3.icons.FastBitmapDrawableDelegate;
 import com.android.launcher3.icons.FastBitmapDrawableDelegate.DelegateFactory;
 import com.android.launcher3.icons.IconShape;
-import com.android.launcher3.icons.LauncherIcons;
 import com.android.launcher3.util.MultiTranslateDelegate;
 
 /**
@@ -76,12 +74,10 @@ public class IconButtonView extends BubbleTextView {
         if (fg == null) {
             fg = new ColorDrawable(Color.TRANSPARENT);
         }
-        try (BaseIconFactory factory = LauncherIcons.obtain(context)) {
-            setIcon(new FastBitmapDrawable(
-                    BitmapInfo.of(factory.getWhiteShadowLayer(), 0, IconShape.EMPTY),
-                    IconShape.EMPTY,
-                    new IconDelegateFactory(tint, fg)));
-        }
+        setIcon(new FastBitmapDrawable(
+                BitmapInfo.LOW_RES_INFO,
+                IconShape.EMPTY,
+                new IconDelegateFactory(tint, fg)));
     }
 
     @Override
@@ -94,12 +90,10 @@ public class IconButtonView extends BubbleTextView {
     public void setIconDrawable(@NonNull Drawable drawable) {
         ColorStateList tintList = getBackgroundTintList();
         int tint = tintList == null ? Color.WHITE : tintList.getDefaultColor();
-        try (BaseIconFactory factory = LauncherIcons.obtain(getContext())) {
-            setIcon(new FastBitmapDrawable(
-                    BitmapInfo.of(factory.getWhiteShadowLayer(), 0, IconShape.EMPTY),
-                    IconShape.EMPTY,
-                    new IconDelegateFactory(tint, drawable)));
-        }
+        setIcon(new FastBitmapDrawable(
+                BitmapInfo.LOW_RES_INFO,
+                IconShape.EMPTY,
+                new IconDelegateFactory(tint, drawable)));
     }
 
     /** Updates the color of the icon's foreground layer. */
@@ -132,9 +126,9 @@ public class IconButtonView extends BubbleTextView {
         }
 
         @Override
-        public void drawContent(@NonNull BitmapInfo info, @NonNull FastBitmapDrawable host,
+        public void drawContent(@NonNull BitmapInfo info,
+                @NonNull FastBitmapDrawable host,
                 @NonNull Canvas canvas, @NonNull Rect bounds, @NonNull Paint paint) {
-            FastBitmapDrawableDelegate.super.drawContent(info, host, canvas, bounds, paint);
             mFg.draw(canvas);
         }
 
