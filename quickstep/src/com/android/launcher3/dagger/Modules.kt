@@ -23,6 +23,8 @@ import com.android.launcher3.backuprestore.LauncherRestoreEventLogger
 import com.android.launcher3.icons.LauncherIconProvider
 import com.android.launcher3.icons.LauncherIconProviderImpl
 import com.android.launcher3.logging.StatsLogManager.StatsLogManagerFactory
+import com.android.launcher3.secondarydisplay.SecondaryDisplayDelegate
+import com.android.launcher3.secondarydisplay.SecondaryDisplayQuickstepDelegateImpl
 import com.android.launcher3.uioverrides.QuickstepWidgetHolder.QuickstepWidgetHolderFactory
 import com.android.launcher3.uioverrides.SystemApiWrapper
 import com.android.launcher3.uioverrides.plugins.PluginManagerWrapperImpl
@@ -49,6 +51,14 @@ private object Modules {}
 @Module
 abstract class WindowManagerProxyModule {
     @Binds abstract fun bindWindowManagerProxy(proxy: SystemWindowManagerProxy): WindowManagerProxy
+}
+
+@Module
+abstract class ActivityContextModule {
+    @Binds
+    abstract fun bindSecondaryDisplayDelegate(
+        impl: SecondaryDisplayQuickstepDelegateImpl
+    ): SecondaryDisplayDelegate
 }
 
 @Module

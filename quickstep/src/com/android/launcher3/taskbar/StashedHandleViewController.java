@@ -297,7 +297,7 @@ public class StashedHandleViewController implements TaskbarControllers.LoggableT
     /**
      * Sets the translation of the stashed handle during the swipe up gesture.
      */
-    protected void setTranslationYForSwipe(float transY) {
+    public void setTranslationYForSwipe(float transY) {
         mTranslationYForSwipe = transY;
         updateTranslationY();
     }

@@ -68,6 +68,13 @@ class DragToBubbleControllerTest {
     private val bubbleBarPropertiesProvider = FakeBubbleBarPropertiesProvider()
     private val testDragZonesFactory = createTestDragZoneFactory()
     private val dragObject = DragObject(context)
+    private val packageName = "test.package"
+    private val itemIntent =
+        Intent().apply {
+            component = ComponentName(packageName, "TestClass")
+            `package` = packageName
+        }
+    private val appInfo = AppInfo().apply { intent = itemIntent }
     private lateinit var dragToBubbleController: DragToBubbleController
 
     private val dropTargetView: DropTargetView
@@ -94,6 +101,7 @@ class DragToBubbleControllerTest {
     @Before
     fun setUp() {
         prepareBubbleBarViewController()
+        setAppInfo()
         dragToBubbleController = DragToBubbleController(context, container)
         dragToBubbleController.init(
             bubbleBarViewController,
@@ -105,9 +113,21 @@ class DragToBubbleControllerTest {
     }
 
     @Test
+    fun dragStarted_noAppInfo_noDropZonesAdded() {
+        dragObject.dragInfo = null
+        dragToBubbleController.onDragStart(dragObject, DragOptions())
+
+        assertThat(bubbleBarLeftDropTarget.isDropEnabled).isFalse()
+        assertThat(bubbleBarRightDropTarget.isDropEnabled).isFalse()
+        assertThat(container.childCount).isEqualTo(0)
+    }
+
+    @Test
     fun dragStarted_noBubbleBar_dropZonesAdded() {
         dragToBubbleController.onDragStart(dragObject, DragOptions())
 
+        assertThat(bubbleBarLeftDropTarget.isDropEnabled).isTrue()
+        assertThat(bubbleBarRightDropTarget.isDropEnabled).isTrue()
         assertThat(container.childCount).isEqualTo(DROP_VIEWS_COUNT_NO_BUBBLE_BAR)
         assertThat(dropTargetView.parent).isEqualTo(container)
         assertThat(secondDropTargetView!!.parent).isEqualTo(container)
@@ -170,6 +190,23 @@ class DragToBubbleControllerTest {
     }
 
     @Test
+    fun draggedToTheRightDropZone_hasNoAppData_Noop() {
+        dragObject.dragInfo = null
+        prepareBubbleBarViewController(hasBubbles = true)
+        dragToBubbleController.onDragStart(dragObject, DragOptions())
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            dragObject.updateXYToCenterOf(rightDropTargetRect)
+            bubbleBarRightDropTarget.onDragEnter(dragObject)
+            animatorTestRule.advanceTimeBy(ANIMATION_DELAY_MS)
+        }
+
+        assertThat(container.childCount).isEqualTo(0)
+        assertThat(bubbleBarLeftDropTarget.isDropEnabled).isFalse()
+        assertThat(bubbleBarRightDropTarget.isDropEnabled).isFalse()
+    }
+
+    @Test
     fun draggedToTheRightDropZone_hasBubblesOnTheRight_bubbleBarLocationChangeNotRequested() {
         prepareBubbleBarViewController(hasBubbles = true)
         dragToBubbleController.onDragStart(dragObject, DragOptions())
@@ -225,21 +262,49 @@ class DragToBubbleControllerTest {
     }
 
     @Test
+    fun acceptDrop_nullItemInfo_returnsFalse() {
+        // Prepare DragObject with null dragInfo
+        val dragObjectWithNullInfo = DragObject(context)
+        dragObjectWithNullInfo.dragInfo = null // Explicitly set to null
+
+        dragToBubbleController.onDragStart(dragObjectWithNullInfo, DragOptions())
+
+        // Attempt to drop on the left target
+        val acceptedLeft = bubbleBarLeftDropTarget.acceptDrop(dragObjectWithNullInfo)
+        assertThat(acceptedLeft).isFalse()
+
+        // Attempt to drop on the right target
+        val acceptedRight = bubbleBarRightDropTarget.acceptDrop(dragObjectWithNullInfo)
+        assertThat(acceptedRight).isFalse()
+    }
+
+    @Test
+    fun onDrop_nullItemInfo_onLeftTarget_noSysUiProxyInteractionAndDropNotHandled() {
+        // Prepare DragObject with null dragInfo
+        val dragObjectWithNullInfo = DragObject(context)
+        dragObjectWithNullInfo.dragInfo = null
+        dragToBubbleController.onDragStart(dragObjectWithNullInfo, DragOptions())
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            dragObjectWithNullInfo.updateXYToCenterOf(leftDropTargetRect)
+            bubbleBarLeftDropTarget.onDragEnter(
+                dragObjectWithNullInfo
+            ) // Needed for drop target to be active
+            bubbleBarLeftDropTarget.onDrop(dragObjectWithNullInfo, DragOptions())
+        }
+
+        assertThat(dragToBubbleController.isItemDropHandled).isFalse()
+        verify(systemUiProxy, never()).showAppBubble(any(), any(), any())
+        verify(systemUiProxy, never()).showShortcutBubble(any(), any())
+    }
+
+    @Test
     fun droppedAtTheLeftDropZone_noBubblesOnTheRight_appBubbleCreationRequested() {
         val bubbleBarOriginalLocation = BubbleBarLocation.RIGHT
         prepareBubbleBarViewController(
             hasBubbles = false,
             bubbleBarLocation = bubbleBarOriginalLocation,
         )
-        val packageName = "test.package"
-        val itemIntent =
-            Intent().apply {
-                component = ComponentName(packageName, "TestClass")
-                `package` = packageName
-            }
-        val appInfo = AppInfo().apply { intent = itemIntent }
-        dragObject.dragInfo = appInfo
-
         dragToBubbleController.onDragStart(dragObject, DragOptions())
 
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
@@ -514,6 +579,10 @@ class DragToBubbleControllerTest {
             on { hasBubbles() } doReturn hasBubbles
             on { getBubbleBarLocation() } doReturn bubbleBarLocation
         }
+    }
+
+    private fun setAppInfo() {
+        dragObject.dragInfo = appInfo
     }
 
     private fun DragObject.updateXYToCenterOf(rect: Rect) {

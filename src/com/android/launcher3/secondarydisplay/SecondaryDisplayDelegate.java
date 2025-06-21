@@ -15,23 +15,19 @@
  */
 package com.android.launcher3.secondarydisplay;
 
-import android.content.Context;
-
-import com.android.launcher3.R;
+import com.android.launcher3.dagger.ActivityContextSingleton;
 import com.android.launcher3.model.data.PredictedContainerInfo;
-import com.android.launcher3.util.ResourceBasedOverride;
+
+import javax.inject.Inject;
 
 /**
  * Exposes Quickstep-specific APIs to {@link SecondaryDisplayLauncher}.
  */
-public class SecondaryDisplayQuickstepDelegate implements ResourceBasedOverride {
-    /**
-     * Creates a {@link SecondaryDisplayQuickstepDelegate} instance.
-     */
-    static SecondaryDisplayQuickstepDelegate newInstance(Context context) {
-        return Overrides.getObject(
-                SecondaryDisplayQuickstepDelegate.class, context,
-                R.string.secondary_display_quickstep_delegate_class);
+@ActivityContextSingleton
+public class SecondaryDisplayDelegate {
+
+    @Inject
+    public SecondaryDisplayDelegate() {
     }
 
     /**

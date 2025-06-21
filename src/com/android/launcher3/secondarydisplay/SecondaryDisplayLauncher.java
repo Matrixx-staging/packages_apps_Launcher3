@@ -86,7 +86,7 @@ public class SecondaryDisplayLauncher extends BaseActivity
     private boolean mAppDrawerShown = false;
 
     private StringCache mStringCache;
-    private SecondaryDisplayQuickstepDelegate mSecondaryDisplayQuickstepDelegate;
+    private SecondaryDisplayDelegate mSecondaryDisplayDelegate;
 
     private final int[] mTempXY = new int[2];
 
@@ -96,7 +96,7 @@ public class SecondaryDisplayLauncher extends BaseActivity
         setWallpaperDependentTheme(this);
         mModel = LauncherAppState.getInstance(this).getModel();
         mDragController = new SecondaryDragController(this);
-        mSecondaryDisplayQuickstepDelegate = SecondaryDisplayQuickstepDelegate.newInstance(this);
+        mSecondaryDisplayDelegate = getActivityComponent().getSecondaryDisplayDelegate();
 
         mDeviceProfile = InvariantDeviceProfile.INSTANCE.get(this)
                 .createDeviceProfileForSecondaryDisplay(this);
@@ -109,7 +109,7 @@ public class SecondaryDisplayLauncher extends BaseActivity
         mDragLayer = findViewById(R.id.drag_layer);
         mAppsView = findViewById(R.id.apps_view);
         mAppsButton = findViewById(R.id.all_apps_button);
-        if (mSecondaryDisplayQuickstepDelegate.enableTaskbarConnectedDisplays()) {
+        if (mSecondaryDisplayDelegate.enableTaskbarConnectedDisplays()) {
             mAppsButton.setVisibility(View.INVISIBLE);
         }
 
@@ -223,7 +223,7 @@ public class SecondaryDisplayLauncher extends BaseActivity
             mAppDrawerShown = true;
             mAppsView.setVisibility(View.VISIBLE);
             mAppsButton.setVisibility(View.INVISIBLE);
-            mSecondaryDisplayQuickstepDelegate.updateAppDivider();
+            mSecondaryDisplayDelegate.updateAppDivider();
         } else {
             mAppDrawerShown = false;
             animator.addListener(new AnimatorListenerAdapter() {
@@ -231,7 +231,7 @@ public class SecondaryDisplayLauncher extends BaseActivity
                 public void onAnimationEnd(Animator animation) {
                     mAppsView.setVisibility(View.INVISIBLE);
                     mAppsButton.setVisibility(
-                            mSecondaryDisplayQuickstepDelegate.enableTaskbarConnectedDisplays()
+                            mSecondaryDisplayDelegate.enableTaskbarConnectedDisplays()
                                     ? View.INVISIBLE
                                     : View.VISIBLE);
                     mAppsView.getSearchUiManager().resetSearch();
@@ -260,7 +260,7 @@ public class SecondaryDisplayLauncher extends BaseActivity
     public void bindCompleteModel(
             @NonNull WorkspaceData itemIdMap, boolean isBindingSync) {
         if (itemIdMap.get(CONTAINER_ALL_APPS_PREDICTION) instanceof PredictedContainerInfo pci) {
-            mSecondaryDisplayQuickstepDelegate.setPredictedApps(pci);
+            mSecondaryDisplayDelegate.setPredictedApps(pci);
         }
     }
 
@@ -269,7 +269,7 @@ public class SecondaryDisplayLauncher extends BaseActivity
         for (ItemInfo updatedItem: updates) {
             if (updatedItem.container == CONTAINER_ALL_APPS_PREDICTION
                     && updatedItem instanceof PredictedContainerInfo pci) {
-                mSecondaryDisplayQuickstepDelegate.setPredictedApps(pci);
+                mSecondaryDisplayDelegate.setPredictedApps(pci);
             }
         }
     }

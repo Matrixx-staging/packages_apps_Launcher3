@@ -16,11 +16,14 @@
 
 package com.android.launcher3.dagger
 
+import com.android.launcher3.secondarydisplay.SecondaryDisplayDelegate
 import com.android.launcher3.views.ActivityContext
 import dagger.BindsInstance
 
 /** Base component for ActivityContext Dagger injection. */
 interface BaseActivityContextComponent {
+
+    fun getSecondaryDisplayDelegate(): SecondaryDisplayDelegate
 
     /** Builder for BaseActivityContextComponent. */
     interface Builder {

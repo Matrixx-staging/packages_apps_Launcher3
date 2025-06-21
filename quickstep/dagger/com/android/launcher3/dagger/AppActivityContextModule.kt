@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package com.android.quickstep.dagger
+package com.android.launcher3.dagger
 
-import com.android.launcher3.dagger.BaseActivityContextComponent
-import com.android.launcher3.taskbar.allapps.TaskbarSearchSessionController
+import dagger.Module
 
-/** Activity Quickstep base component for Dagger injection. */
-interface QuickstepBaseActivityComponent : BaseActivityContextComponent {
-
-    fun createTaskbarSearchSessionController(): TaskbarSearchSessionController
-}
+/**
+ * Module containing the app specific [ActivityContext] bindings for the final derivate app, an
+ * implementation of this module should be included in the final app code.
+ */
+@Module abstract class AppActivityContextModule {}

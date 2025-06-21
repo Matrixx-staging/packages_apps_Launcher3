@@ -62,8 +62,6 @@
 
     <!-- Various classes overriden by projects/build flavors. -->
     <string name="test_information_handler_class" translatable="false"></string>
-    <string name="secondary_display_quickstep_delegate_class" translatable="false"></string>
-    <string name="taskbar_search_session_controller_class" translatable="false"></string>
     <string name="taskbar_edu_tooltip_controller_class" translatable="false"></string>
 
     <!-- Default packages -->

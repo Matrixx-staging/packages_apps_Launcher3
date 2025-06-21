@@ -27,6 +27,8 @@ private object Modules {}
 
 @Module abstract class WindowManagerProxyModule {}
 
+@Module abstract class ActivityContextModule {}
+
 @Module abstract class ApiWrapperModule {}
 
 @Module
@@ -44,6 +46,9 @@ abstract class StaticObjectModule {
 
 // Module containing bindings for the final derivative app
 @Module abstract class AppModule {}
+
+// Module containing bindings of [ActivityContext] for the final derivative app
+@Module abstract class AppActivityContextModule {}
 
 @Module abstract class PerDisplayModule {}
 
