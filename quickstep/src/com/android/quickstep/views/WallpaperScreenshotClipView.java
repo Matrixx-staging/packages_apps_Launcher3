@@ -1,0 +1,252 @@
+/*
+ * Copyright (C) 2025 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.android.quickstep.views;
+
+import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+
+import static com.android.app.animation.Interpolators.LINEAR;
+import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
+import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
+
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
+import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.graphics.Path;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.util.AttributeSet;
+import android.util.PathParser;
+import android.view.SurfaceControl;
+import android.view.View;
+import android.view.ViewTreeObserver;
+import android.view.Window;
+import android.view.WindowManager;
+import android.view.WindowManagerGlobal;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.window.ScreenCaptureInternal;
+
+import androidx.core.content.ContextCompat;
+
+import com.android.launcher3.R;
+import com.android.launcher3.util.CancellableTask;
+
+/**
+ * A custom ViewGroup that displays a clipped screenshot of the device wallpaper, overlaid with a
+ * color scrim.
+ *
+ * Manages the task of capturing the screenshot and animating the children.
+ */
+public class WallpaperScreenshotClipView extends FrameLayout {
+
+    private static final int COLOR_ALPHA_DURATION_MS = 25;
+    private static final float CLIP_TRANSLATION_MULTIPLIER = 0.55f;
+    private static final float MAX_ARROW_SCALE = 20f;
+    private static final float INITIAL_ARROW_SCALE = 2.5f;
+
+    // Temporary hard coded values
+    private static final float ARROW_OFFSET_Y_PX = 700f;
+    private ImageView mWallpaperView;
+    private View mColorOverlay;
+
+    private final Path mOriginalPath;
+    private Path mCurrentClipPath;
+    private final RectF mBounds = new RectF();
+    private final RectF mOriginalBounds = new RectF();
+    private final Matrix mScaleMatrix = new Matrix();
+    private float mClipTranslationY;
+
+    private final int mWindowWidth;
+    private final int mWindowHeight;
+
+    private CancellableTask<ScreenCaptureInternal.ScreenshotHardwareBuffer> mCaptureTask;
+
+    public WallpaperScreenshotClipView(Context context) {
+        this(context, null);
+    }
+
+    public WallpaperScreenshotClipView(Context context, AttributeSet attrs) {
+        this(context, attrs, 0);
+    }
+
+    public WallpaperScreenshotClipView(Context context, AttributeSet attrs, int defStyleAttr) {
+        this(context, attrs, defStyleAttr, 0);
+    }
+
+    public WallpaperScreenshotClipView(Context context, AttributeSet attrs, int defStyleAttr,
+            int defStyleRes) {
+        super(context, attrs, defStyleAttr, defStyleRes);
+        mWallpaperView = new ImageView(context);
+        mWallpaperView.setLayoutParams(new LayoutParams(MATCH_PARENT, MATCH_PARENT));
+
+        mColorOverlay = new View(context);
+        mColorOverlay.setLayoutParams(new LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        mColorOverlay.setBackgroundColor(context.getColor(R.color.materialColorSecondaryContainer));
+
+        addView(mWallpaperView);
+        addView(mColorOverlay);
+
+        mOriginalPath = new Path(PathParser
+                .createPathFromPathData(getResources().getString(R.string.all_set_arrow_path)));
+        resetAndSetMatrixScale(INITIAL_ARROW_SCALE);
+        mOriginalPath.transform(mScaleMatrix);
+        mOriginalPath.computeBounds(mOriginalBounds);
+
+        mCurrentClipPath = new Path(mOriginalPath);
+        setClipPath(mCurrentClipPath);
+
+        Rect windowBounds = ContextCompat.getSystemService(context, WindowManager.class)
+                .getCurrentWindowMetrics().getBounds();
+
+        mWindowHeight = windowBounds.height();
+        mWindowWidth = windowBounds.width();
+
+        getViewTreeObserver().addOnWindowAttachListener(
+                new ViewTreeObserver.OnWindowAttachListener() {
+                    @Override
+                    public void onWindowAttached() {
+                    }
+
+                    @Override
+                    public void onWindowDetached() {
+                        if (mCaptureTask != null) {
+                            mCaptureTask.cancel();
+                            mCaptureTask = null;
+                        }
+                        getViewTreeObserver().removeOnWindowAttachListener(this);
+                    }
+                });
+    }
+
+    private void resetAndSetMatrixScale(float scale) {
+        mScaleMatrix.reset();
+        mScaleMatrix.setScale(scale, scale);
+    }
+
+    private void setClipPath(Path clipPath) {
+        mCurrentClipPath = clipPath;
+        invalidate();
+    }
+
+    @Override
+    protected void dispatchDraw(Canvas canvas) {
+        int count = canvas.save();
+        if (mCurrentClipPath != null) {
+            mCurrentClipPath.computeBounds(mBounds);
+        }
+        float transX = (getWidth() - mBounds.width()) / 2;
+        float transY = (getHeight() - mBounds.height()) / 2
+                + mClipTranslationY + ARROW_OFFSET_Y_PX
+                - ((mBounds.height() - mOriginalBounds.height()) / 2);
+        if (mCurrentClipPath != null) {
+            mCurrentClipPath.offset(transX, transY);
+            canvas.clipPath(mCurrentClipPath);
+        }
+        super.dispatchDraw(canvas);
+        canvas.restoreToCount(count);
+        if (mCurrentClipPath != null) {
+            mCurrentClipPath.offset(-transX, -transY);
+        }
+    }
+
+    /**
+     * Sets the {@code translationY} of the clipped views.
+     */
+    public void setClipTranslationY(float translationY) {
+        mClipTranslationY = translationY * CLIP_TRANSLATION_MULTIPLIER;
+        invalidate();
+    }
+
+    /**
+     * Adds clip animation to {@code animatorSet}.
+     */
+    public void addClipAnimation(AnimatorSet animatorSet) {
+        ValueAnimator scale = ValueAnimator.ofFloat(0, 1f);
+        scale.setDuration(100);
+        scale.setInterpolator(LINEAR);
+        scale.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                float scale = 1 + (valueAnimator.getAnimatedFraction() * MAX_ARROW_SCALE);
+                mCurrentClipPath = new Path(mOriginalPath);
+                resetAndSetMatrixScale(scale);
+                mCurrentClipPath.transform(mScaleMatrix);
+                setClipPath(mCurrentClipPath);
+            }
+        });
+        animatorSet.play(scale);
+
+        ObjectAnimator color = ObjectAnimator.ofFloat(mColorOverlay, View.ALPHA, 1f, 0)
+                .setDuration(COLOR_ALPHA_DURATION_MS);
+        color.setInterpolator(LINEAR);
+        animatorSet.play(color);
+    }
+
+    /**
+     * Captures a screenshot of the wallpaper.
+     */
+    public void setupWallpaperScreenshot(Window window, int displayId, View rootView,
+            int wallpaperBlurRadius) {
+        Rect captureBounds = new Rect();
+        captureBounds.set(0, 0, mWindowWidth, mWindowHeight);
+
+        // Mirror wallpaper surfaces under new control for screenshotting.
+        window.setBackgroundBlurRadius(0);
+        SurfaceControl wallpaperMirror = WindowManagerGlobal.getInstance().mirrorWallpaperSurface(
+                displayId);
+        if (wallpaperMirror == null) {
+            return;
+        }
+        SurfaceControl rootSurfaceControl =
+                rootView.getViewRootImpl().getSurfaceControl();
+        SurfaceControl allSetMirror = SurfaceControl.mirrorSurface(rootSurfaceControl);
+
+        SurfaceControl rootControl = new SurfaceControl.Builder()
+                .setName("Wallpaper Screenshot Clip View")
+                .build();
+        SurfaceControl.Transaction transaction = new SurfaceControl.Transaction()
+                .reparent(wallpaperMirror, rootControl)
+                .setLayer(wallpaperMirror, -1)
+                .reparent(allSetMirror, rootControl)
+                .setLayer(allSetMirror, 0);
+
+        mCaptureTask = new CancellableTask<>(
+                () -> {
+                    transaction.apply(true);
+                    return ScreenCaptureInternal.captureLayers(rootControl, captureBounds, 1);
+                },
+                MAIN_EXECUTOR,
+                (ScreenCaptureInternal.ScreenshotHardwareBuffer buffer) -> {
+                    if (buffer == null) {
+                        // TODO:
+                        return;
+                    }
+                    mWallpaperView.setImageBitmap(buffer.asBitmap());
+                    window.setBackgroundBlurRadius(wallpaperBlurRadius);
+                },
+                () -> {
+                    mCaptureTask = null;
+                    rootControl.release();
+                    allSetMirror.release();
+                    wallpaperMirror.release();
+                });
+        UI_HELPER_EXECUTOR.execute(mCaptureTask);
+    }
+}

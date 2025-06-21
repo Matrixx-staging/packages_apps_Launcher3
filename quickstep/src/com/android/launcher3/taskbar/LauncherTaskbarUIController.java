@@ -25,6 +25,7 @@ import static com.android.launcher3.taskbar.TaskbarLauncherStateController.FLAG_
 import static com.android.launcher3.taskbar.TaskbarStashController.FLAG_IGNORE_IN_APP;
 
 import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.window.RemoteTransition;
 
@@ -32,6 +33,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.launcher3.DeviceProfile;
+import com.android.launcher3.Flags;
 import com.android.launcher3.Hotseat;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.Utilities;
@@ -52,6 +54,7 @@ import com.android.quickstep.LauncherActivityInterface;
 import com.android.quickstep.OverviewComponentObserver;
 import com.android.quickstep.RecentsAnimationCallbacks;
 import com.android.quickstep.SystemUiProxy;
+import com.android.quickstep.util.ScalingWorkspaceRevealAnim;
 import com.android.quickstep.util.SplitTask;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
@@ -214,6 +217,19 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
                 placeholderDuration));
     }
 
+    protected void addStaggeredWorkspaceAnim(AnimatorSet as) {
+        if (!Flags.enableNewAllSetAnimation()) {
+            return;
+        }
+        ScalingWorkspaceRevealAnim anim =
+                new ScalingWorkspaceRevealAnim(mLauncher, null, null, true);
+        as.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                anim.start();
+            }
+        });
+    }
     /**
      * Should be called from onResume() and onPause(), and animates the Taskbar accordingly.
      */
