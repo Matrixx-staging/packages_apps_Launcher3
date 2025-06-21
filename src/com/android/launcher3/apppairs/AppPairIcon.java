@@ -139,7 +139,8 @@ public class AppPairIcon extends FrameLayout implements DraggableView, Reorderab
         // a separate element (and not set as a CompoundDrawable on the BubbleTextView), we need to
         // shift the text down manually.
         lp.topMargin = container == DISPLAY_FOLDER
-                ? grid.folderChildIconSizePx + grid.folderChildDrawablePaddingPx
+                ? grid.getFolderProfile().getChildIconSizePx()
+                + grid.getFolderProfile().getChildDrawablePaddingPx()
                 : grid.getWorkspaceIconProfile().getIconSizePx()
                         + grid.getWorkspaceIconProfile().getIconDrawablePaddingPx();
         // For some reason, app icons have setIncludeFontPadding(false) inside folders, so we set it
@@ -270,8 +271,8 @@ public class AppPairIcon extends FrameLayout implements DraggableView, Reorderab
             int height = MeasureSpec.getSize(heightMeasureSpec);
             ActivityContext activity = ActivityContext.lookupContext(getContext());
             Paint.FontMetrics fm = mAppPairName.getPaint().getFontMetrics();
-            int cellHeightPx = activity.getDeviceProfile().folderChildIconSizePx
-                    + activity.getDeviceProfile().folderChildDrawablePaddingPx
+            int cellHeightPx = activity.getDeviceProfile().getFolderProfile().getChildIconSizePx()
+                    + activity.getDeviceProfile().getFolderProfile().getChildDrawablePaddingPx()
                     + (int) Math.ceil(fm.bottom - fm.top);
             setPadding(getPaddingLeft(), (height - cellHeightPx) / 2, getPaddingRight(),
                     getPaddingBottom());

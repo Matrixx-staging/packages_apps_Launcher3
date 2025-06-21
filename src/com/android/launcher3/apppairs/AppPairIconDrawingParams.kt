@@ -72,7 +72,7 @@ class AppPairIconDrawingParams(val context: Context, container: Int) {
         val activity: ActivityContext = ActivityContext.lookupContext(context)
         val dp = activity.deviceProfile
         iconSize =
-            if (container == DISPLAY_FOLDER) dp.folderChildIconSizePx
+            if (container == DISPLAY_FOLDER) dp.folderProfile.childIconSizePx
             else dp.workspaceIconProfile.iconSizePx
         standardIconPadding = iconSize * STANDARD_ICON_PADDING
         outerPadding = iconSize * OUTER_PADDING_SCALE

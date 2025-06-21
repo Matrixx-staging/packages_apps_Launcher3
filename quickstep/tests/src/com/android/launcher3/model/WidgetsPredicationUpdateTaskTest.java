@@ -58,9 +58,8 @@ import com.android.launcher3.LauncherModel;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.PredictedContainerInfo;
 import com.android.launcher3.util.LauncherLayoutBuilder;
-import com.android.launcher3.util.ModelTestExtensions;
+import com.android.launcher3.util.LayoutResource;
 import com.android.launcher3.util.SandboxApplication;
-import com.android.launcher3.util.rule.LayoutProviderRule;
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo;
 import com.android.launcher3.widget.PendingAddWidgetInfo;
 
@@ -87,8 +86,7 @@ public final class WidgetsPredicationUpdateTaskTest {
     public final SetFlagsRule mSetFlagsRule = new SetFlagsRule();
 
     @Rule public SandboxApplication mContext = new SandboxApplication().withModelDependency();
-    @Rule public LayoutProviderRule mLayoutProvider = new LayoutProviderRule(mContext);
-
+    @Rule public LayoutResource mLayout = new LayoutResource(mContext);
 
     private AppWidgetProviderInfo mApp1Provider1;
     private AppWidgetProviderInfo mApp1Provider2;
@@ -155,9 +153,7 @@ public final class WidgetsPredicationUpdateTaskTest {
         LauncherLayoutBuilder builder = new LauncherLayoutBuilder()
                 .atWorkspace(0, 1, 2).putWidget("app4", "provider1", 1, 1)
                 .atWorkspace(0, 1, 3).putWidget("app5", "provider1", 1, 1);
-        mLayoutProvider.setupDefaultLayoutProvider(builder);
-        MAIN_EXECUTOR.submit(() -> getModel().addCallbacks(mCallback)).get();
-        ModelTestExtensions.INSTANCE.loadModelSync(getModel());
+        mLayout.withCallbacks(mCallback).set(builder);
     }
 
     @Test

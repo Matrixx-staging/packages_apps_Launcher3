@@ -61,7 +61,7 @@ import com.android.quickstep.DesktopFullscreenDrawParams
 import com.android.quickstep.FullscreenDrawParams
 import com.android.quickstep.RemoteTargetGluer.RemoteTargetHandle
 import com.android.quickstep.TaskOverlayFactory
-import com.android.quickstep.ViewUtils
+import com.android.quickstep.ViewUtils.addAccessibleChildToList
 import com.android.quickstep.recents.data.DesktopBackgroundResult
 import com.android.quickstep.recents.data.DesktopTileBackgroundRepository.Companion.DESKTOP_BACKGROUND_FALLBACK_COLOR
 import com.android.quickstep.recents.di.RecentsDependencies
@@ -132,6 +132,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
     private val tempPointF = PointF()
     private val lastComputedTaskSize = Rect()
     private lateinit var iconView: TaskViewIcon
+    private lateinit var iconTouchDelegate: TransformingTouchDelegate
     private lateinit var contentView: DesktopTaskContentView
     private lateinit var backgroundView: ImageView
     private val dispatcherProvider: DispatcherProvider = RecentsDependencies.get(context)
@@ -403,6 +404,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                 )
                 setText(resources.getText(R.string.recent_task_desktop))
             }
+        iconTouchDelegate = TransformingTouchDelegate(iconView.asView())
 
         cancelPendingLoadTasks()
         val backgroundViewIndex = contentView.indexOfChild(backgroundView)
@@ -441,7 +443,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                     taskContentView,
                     snapshotView,
                     iconView,
-                    TransformingTouchDelegate(iconView.asView()),
+                    iconTouchDelegate,
                     SplitConfigurationOptions.STAGE_POSITION_UNDEFINED,
                     digitalWellBeingToast = null,
                     showWindowsView = null,
@@ -467,15 +469,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         previousOrganizedDesktopTaskPositions = null
         visibility = VISIBLE
         taskContainers.forEach { removeAndRecycleThumbnailView(it) }
-        if (enableOverviewIconMenu()) {
-            (iconView as IconAppChipView).reset()
-        }
         remoteTargetHandles = null
-    }
-
-    override fun setOrientationState(orientationState: RecentsOrientedState) {
-        super.setOrientationState(orientationState)
-        iconView.setIconOrientation(orientationState, isGridTask)
     }
 
     @SuppressLint("RtlHardcoded")
@@ -582,6 +576,9 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
     override fun confirmSecondSplitSelectApp(): Boolean =
         recentsView?.canLaunchFullscreenTask() != true
 
+    override fun getTaskIcons(): Sequence<Pair<TaskViewIcon, TransformingTouchDelegate>> =
+        sequenceOf(iconView to iconTouchDelegate)
+
     // TODO(b/330685808) support overlay for Screenshot action
     override fun setOverlayEnabled(overlayEnabled: Boolean) {}
 
@@ -598,7 +595,8 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
 
     override fun addChildrenForAccessibility(outChildren: ArrayList<View>) {
         super.addChildrenForAccessibility(outChildren)
-        ViewUtils.addAccessibleChildToList(backgroundView, outChildren)
+        addAccessibleChildToList(iconView.asView(), outChildren)
+        addAccessibleChildToList(backgroundView, outChildren)
     }
 
     fun removeTaskFromExplodedView(taskId: Int, animate: Boolean) {

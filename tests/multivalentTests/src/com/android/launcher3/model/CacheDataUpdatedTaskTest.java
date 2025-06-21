@@ -44,11 +44,10 @@ import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.util.IntSet;
 import com.android.launcher3.util.LauncherLayoutBuilder;
-import com.android.launcher3.util.ModelTestExtensions;
+import com.android.launcher3.util.LayoutResource;
 import com.android.launcher3.util.PackageUserKey;
 import com.android.launcher3.util.SandboxApplication;
 import com.android.launcher3.util.rule.InstallerSessionRule;
-import com.android.launcher3.util.rule.LayoutProviderRule;
 import com.android.launcher3.util.rule.TestStabilityRule;
 
 import org.junit.Before;
@@ -70,7 +69,7 @@ public class CacheDataUpdatedTaskTest {
 
     @Rule public TestRule testStabilityRule = new TestStabilityRule();
     @Rule public SandboxApplication mContext = new SandboxApplication();
-    @Rule public LayoutProviderRule mLayoutProvider = new LayoutProviderRule(mContext);
+    @Rule public LayoutResource mLayout = new LayoutResource(mContext);
     @Rule public InstallerSessionRule mInstallerSessionRule = new InstallerSessionRule();
 
     private static final String PENDING_APP_1 = TEST_PACKAGE + ".pending1";
@@ -99,8 +98,7 @@ public class CacheDataUpdatedTaskTest {
                 .addApp(PENDING_APP_2, TEST_ACTIVITY2)  // 9
                 .addApp(PENDING_APP_2, TEST_ACTIVITY3)  // 10
                 .build();
-        mLayoutProvider.setupDefaultLayoutProvider(builder);
-        ModelTestExtensions.INSTANCE.loadModelSync(getModel());
+        mLayout.set(builder);
         // Items on homescreen and folders:
         assertEquals(10, nonPredictedItemCount(getBgDataModel(getModel()).itemsIdMap));
     }
