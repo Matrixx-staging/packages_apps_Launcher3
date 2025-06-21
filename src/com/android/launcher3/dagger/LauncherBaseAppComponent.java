@@ -39,6 +39,8 @@ import com.android.launcher3.model.ItemInstallQueue;
 import com.android.launcher3.model.LoaderCursor.LoaderCursorFactory;
 import com.android.launcher3.pm.InstallSessionHelper;
 import com.android.launcher3.pm.UserCache;
+import com.android.launcher3.qsb.OseWidgetManager;
+import com.android.launcher3.qsb.QsbAppWidgetHost;
 import com.android.launcher3.util.ApiWrapper;
 import com.android.launcher3.util.DaggerSingletonTracker;
 import com.android.launcher3.util.DisplayController;
@@ -109,6 +111,8 @@ public interface LauncherBaseAppComponent {
     WidgetPickerComposeWrapper getWidgetPickerComposeWrapper();
     WidgetSizeHandler getWidgetSizeHandler();
     MainProcessInitializer getMainProcessInitializer();
+    OseWidgetManager getOseWidgetManager();
+    QsbAppWidgetHost getQsbAppWidgetHost();
 
     @VisibleForTesting
     GridSizeMigrationLogic createNewGridSizeMigrationLogic();
