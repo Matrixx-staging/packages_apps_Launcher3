@@ -571,6 +571,32 @@ class DragToBubbleControllerTest {
         verify(bubbleBarLocationListener, never()).onBubbleBarLocationAnimated(any())
     }
 
+    @Test
+    fun setOverlayContainerView_nullPassed_sameContainerIsUsed() {
+        // Given
+        dragToBubbleController.setOverlayContainerView(null)
+        // When
+        dragToBubbleController.onDragStart(dragObject, DragOptions())
+        // Then
+        val dropContainer = dragToBubbleController.launcherDropTargetManager.dropTargetView.parent
+        assertThat(dropContainer).isEqualTo(container)
+        assertThat(container.childCount).isEqualTo(DROP_VIEWS_COUNT_NO_BUBBLE_BAR)
+    }
+
+    @Test
+    fun setOverlayContainerView_containerPassed_newContainerIsUsed() {
+        // Given
+        val newContainer = FrameLayout(context)
+        dragToBubbleController.setOverlayContainerView(newContainer)
+        // When
+        dragToBubbleController.onDragStart(dragObject, DragOptions())
+        // Then
+        val dropContainer = dragToBubbleController.launcherDropTargetManager.dropTargetView.parent
+        assertThat(dropContainer).isEqualTo(newContainer)
+        assertThat(container.childCount).isEqualTo(0)
+        assertThat(newContainer.childCount).isEqualTo(DROP_VIEWS_COUNT_NO_BUBBLE_BAR)
+    }
+
     private fun prepareBubbleBarViewController(
         hasBubbles: Boolean = false,
         bubbleBarLocation: BubbleBarLocation = BubbleBarLocation.RIGHT,

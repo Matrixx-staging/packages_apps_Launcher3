@@ -45,11 +45,20 @@ import com.android.wm.shell.shared.bubbles.DropTargetManager.DragZoneChangedList
 import com.google.common.annotations.VisibleForTesting
 import kotlin.math.min
 
-class DragToBubbleController(private val context: Context, bubbleBarContainer: FrameLayout) :
-    DragController.DragListener {
+class DragToBubbleController(
+    private val context: Context,
+    private val bubbleBarContainer: FrameLayout,
+) : DragController.DragListener {
 
-    @VisibleForTesting val launcherDropTargetManager: DropTargetManager
-    @VisibleForTesting val shellDropTargetManager: DropTargetManager
+    // Two DropTargetManagers are needed because the drag call chain has
+    // conflicting states that require showing different targets:
+    // - Launcher#onDragStart() -> Shows 2 drop targets.
+    // - Shell#onShellDragStateChanged(true) -> Shows only the secondary target.
+    // It is not possible to alter drop targets (drag zones) in runtime, because they are data
+    // classes so the only way is to restart the drag.
+    @VisibleForTesting var launcherDropTargetManager = createDropTargetManager(bubbleBarContainer)
+    @VisibleForTesting var shellDropTargetManager = createDropTargetManager(bubbleBarContainer)
+
     @VisibleForTesting lateinit var bubbleBarLeftDropTarget: BubbleBarLocationDropTarget
     @VisibleForTesting lateinit var bubbleBarRightDropTarget: BubbleBarLocationDropTarget
     @VisibleForTesting lateinit var dragZoneFactory: DragZoneFactory
@@ -59,17 +68,6 @@ class DragToBubbleController(private val context: Context, bubbleBarContainer: F
     private lateinit var systemUiProxy: SystemUiProxy
     private lateinit var bubbleBarViewController: BubbleBarViewController
     private val bubbleDropController: BubbleBarDropTargetController = createDropController()
-
-    // Two DropTargetManagers are needed because the drag call chain has
-    // conflicting states that require showing different targets:
-    // - Launcher#onDragStart() -> Shows 2 drop targets.
-    // - Shell#onShellDragStateChanged(true) -> Shows only the secondary target.
-    // It is not possible to alter drop targets (drag zones) in runtime, because they are data
-    // classes so the only way is to restart the drag.
-    init {
-        launcherDropTargetManager = createDropTargetManager(bubbleBarContainer)
-        shellDropTargetManager = createDropTargetManager(bubbleBarContainer)
-    }
 
     fun init(
         bubbleBarViewController: BubbleBarViewController,
@@ -106,6 +104,19 @@ class DragToBubbleController(private val context: Context, bubbleBarContainer: F
      */
     fun runAfterDropTargetsHidden(afterHiddenAction: Runnable) {
         launcherDropTargetManager.onDropTargetRemoved(afterHiddenAction)
+    }
+
+    fun setOverlayContainerView(containerView: FrameLayout?) {
+        val container = containerView ?: bubbleBarContainer
+        // onDragEnded() call will remove added drop target views
+        launcherDropTargetManager.onDragEnded()
+        shellDropTargetManager.onDragEnded()
+        // create new drop target managers
+        launcherDropTargetManager = createDropTargetManager(container)
+        shellDropTargetManager = createDropTargetManager(container)
+        // update drop target managers in bubble bar drop targets
+        bubbleBarLeftDropTarget.setDropTargetManager(launcherDropTargetManager)
+        bubbleBarRightDropTarget.setDropTargetManager(launcherDropTargetManager)
     }
 
     fun onShellDragStateChanged(started: Boolean) {
