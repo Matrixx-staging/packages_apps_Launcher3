@@ -24,6 +24,7 @@ import com.android.launcher3.AbstractFloatingView
 import com.android.launcher3.AbstractFloatingViewHelper
 import com.android.launcher3.DropTargetHandler
 import com.android.launcher3.Flags
+import com.android.launcher3.LauncherConstants
 import com.android.launcher3.R
 import com.android.launcher3.SecondaryDropTarget
 import com.android.launcher3.Utilities
@@ -35,8 +36,10 @@ import com.android.launcher3.popup.SystemShortcut.BubbleActivityStarter
 import com.android.launcher3.util.ActivityOptionsWrapper
 import com.android.launcher3.util.ApiWrapper
 import com.android.launcher3.util.PackageManagerHelper
+import com.android.launcher3.util.PendingRequestArgs
 import com.android.launcher3.views.ActivityContext
 import com.android.launcher3.views.Snackbar
+import com.android.launcher3.widget.LauncherAppWidgetHostView
 import com.android.launcher3.widget.WidgetsBottomSheet
 
 class PopupDataSource {
@@ -60,10 +63,24 @@ class PopupDataSource {
     // Handles action from tapping widget settings.
     private val handleWidgetSettings =
         { activityContext: ActivityContext, itemInfo: ItemInfo, view: View ->
-            AbstractFloatingView.closeAllOpenViews(activityContext)
-            val dropTargetHandler: DropTargetHandler = activityContext.dropTargetHandler
-            dropTargetHandler.prepareToUndoDelete()
-            dropTargetHandler.onDeleteComplete(itemInfo, view)
+            if (view is LauncherAppWidgetHostView) {
+                activityContext.setWaitingForResult(
+                    PendingRequestArgs.forWidgetInfo(
+                        view.appWidgetId,
+                        // Widget add handler is null since we're reconfiguring an existing widget.
+                        /* widgetHandler= */ null,
+                        itemInfo,
+                    )
+                )
+
+                activityContext.appWidgetHolder?.also {
+                    it.startConfigActivity(
+                        ActivityContext.lookupContext(view.context),
+                        view.appWidgetId,
+                        LauncherConstants.ActivityCodes.REQUEST_RECONFIGURE_APPWIDGET,
+                    )
+                } ?: Log.e(TAG, "appWidgetHolder is null, cannot start config activity.")
+            }
         }
 
     // Popup data for widget settings shortcut.

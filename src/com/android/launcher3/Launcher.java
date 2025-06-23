@@ -2823,6 +2823,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         return mScrimView;
     }
 
+    @Nullable
     public LauncherWidgetHolder getAppWidgetHolder() {
         return mAppWidgetHolder;
     }
