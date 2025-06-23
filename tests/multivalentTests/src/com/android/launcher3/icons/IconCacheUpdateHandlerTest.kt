@@ -24,11 +24,11 @@ import android.os.Process.myUserHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.android.launcher3.icons.cache.BaseIconCache
-import com.android.launcher3.icons.cache.BaseIconCache.IconDB
 import com.android.launcher3.icons.cache.CachedObject
 import com.android.launcher3.icons.cache.CachedObjectCachingLogic
 import com.android.launcher3.icons.cache.IconCacheUpdateHandler
 import com.android.launcher3.util.RoboApiWrapper
+import com.android.launcher3.util.SQLiteCacheHelper
 import com.google.common.truth.Truth.assertThat
 import java.util.concurrent.FutureTask
 import org.junit.After
@@ -55,7 +55,7 @@ class IconCacheUpdateHandlerTest {
 
     @Mock private lateinit var iconProvider: IconProvider
     @Mock private lateinit var baseIconCache: BaseIconCache
-    @Mock private lateinit var cacheDb: IconDB
+    @Mock private lateinit var cacheDb: SQLiteCacheHelper
     @Mock private lateinit var workerHandler: Handler
 
     @Captor private lateinit var deleteCaptor: ArgumentCaptor<String>
