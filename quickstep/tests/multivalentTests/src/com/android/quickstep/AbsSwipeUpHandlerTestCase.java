@@ -79,7 +79,6 @@ import com.android.quickstep.util.ContextInitListener;
 import com.android.quickstep.util.MotionPauseDetector;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
-import com.android.systemui.shared.Flags;
 import com.android.systemui.shared.system.InputConsumerController;
 import com.android.wm.shell.shared.split.SplitBounds;
 
@@ -365,24 +364,12 @@ public abstract class AbsSwipeUpHandlerTestCase<
                 GestureState.GestureEndTarget.HOME, target);
     }
 
-    @EnableFlags({Flags.FLAG_RETURN_ANIMATION_FRAMEWORK_LONG_LIVED})
     @Test
     public void testHomeGesture_handsOffAnimation() {
         createSwipeUpHandlerForGesture(GestureState.GestureEndTarget.HOME);
 
         runOnMainSync(() -> {
             verify(mRecentsAnimationController).handOffAnimation(any(), any());
-            verifyRecentsAnimationFinishedAndCallCallback();
-        });
-    }
-
-    @DisableFlags({Flags.FLAG_RETURN_ANIMATION_FRAMEWORK_LONG_LIVED})
-    @Test
-    public void testHomeGesture_doesNotHandOffAnimation_withFlagsDisabled() {
-        createSwipeUpHandlerForGesture(GestureState.GestureEndTarget.HOME);
-
-        runOnMainSync(() -> {
-            verify(mRecentsAnimationController, never()).handOffAnimation(any(), any());
             verifyRecentsAnimationFinishedAndCallCallback();
         });
     }
