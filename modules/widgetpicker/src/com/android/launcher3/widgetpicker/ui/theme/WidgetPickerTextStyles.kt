@@ -19,6 +19,8 @@ package com.android.launcher3.widgetpicker.ui.theme
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -50,6 +52,8 @@ import androidx.compose.ui.unit.sp
  *   anything in searchbar.
  * @param searchBarText style of the text that user types in the search bar.
  */
+@Stable
+@Immutable
 data class WidgetPickerTextStyles(
     // Titled bottom sheet
     val sheetTitle: TextStyle,
@@ -70,6 +74,7 @@ data class WidgetPickerTextStyles(
     val widgetDescription: TextStyle,
     val addWidgetButtonLabel: TextStyle,
     val toolbarTabLabel: TextStyle,
+    val toolbarSelectedTabLabel: TextStyle,
 
     // Search bar
     val searchBarPlaceholderText: TextStyle,
@@ -124,6 +129,7 @@ fun defaultWidgetPickerTextStyles() =
 
         // Floating toolbar
         toolbarTabLabel = MaterialTheme.typography.labelLarge,
+        toolbarSelectedTabLabel = MaterialTheme.typography.labelLargeEmphasized,
 
         // Search bar
         searchBarPlaceholderText =
