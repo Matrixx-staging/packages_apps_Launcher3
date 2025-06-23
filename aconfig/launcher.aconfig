@@ -645,3 +645,13 @@ flag {
     description: "Enable model items to be provided by dagger"
     bug: "423957181"
 }
+
+flag {
+  name: "enable_taskbar_recents_themed_icons"
+  namespace: "launcher"
+  description: "Have recent icons in Taskbar respect icon theme preferences"
+  bug: "407950127"
+  metadata {
+    purpose: PURPOSE_BUGFIX
+  }
+}
