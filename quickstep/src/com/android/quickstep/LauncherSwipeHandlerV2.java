@@ -344,7 +344,8 @@ public class LauncherSwipeHandlerV2 extends AbsSwipeUpHandler<
         protected void playScalingRevealAnimation() {
             if (mContainer != null) {
                 new ScalingWorkspaceRevealAnim(mContainer, mSiblingAnimation,
-                        getWindowTargetRect(), true /* playAlphaReveal */).start();
+                        getWindowTargetRect(), true /* playAlphaReveal */,
+                        true /* playBlur */).start();
             }
         }
 
@@ -393,8 +394,8 @@ public class LauncherSwipeHandlerV2 extends AbsSwipeUpHandler<
         protected void playScalingRevealAnimation() {
             if (mContainer != null) {
                 new ScalingWorkspaceRevealAnim(
-                        mContainer, null /* siblingAnimation */,
-                        null /* windowTargetRect */, true /* playAlphaReveal */).start();
+                        mContainer, null /* siblingAnimation */, null /* windowTargetRect */,
+                        true /* playAlphaReveal */, true /* playBlur */).start();
             }
         }
     }
