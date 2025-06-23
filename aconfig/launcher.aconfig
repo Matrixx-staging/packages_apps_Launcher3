@@ -143,16 +143,6 @@ flag {
 }
 
 flag {
-  name: "enable_add_app_widget_via_config_activity_v2"
-  namespace: "launcher"
-  description: "When adding app widget through config activity, directly add it to workspace to reduce flicker"
-  bug: "284236964"
-  metadata {
-    purpose: PURPOSE_BUGFIX
-  }
-}
-
-flag {
     name: "enable_narrow_grid_restore"
     namespace: "launcher"
     description: "Using only the most recent workspace when restoring to avoid confusion."
