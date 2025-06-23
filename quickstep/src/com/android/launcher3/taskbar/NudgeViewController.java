@@ -62,8 +62,8 @@ public class NudgeViewController implements TaskbarControllers.LoggableTaskbarCo
                     mActivity, UI_HELPER_EXECUTOR, this::shouldChangeNavBar);
             mNudgeReceiver.register(RECEIVER_EXPORTED, NAV_UPDATE_ACTION);
         }
-        mTranslateIcon = resources.getDrawable(R.drawable.ic_translate);
-        mGameIcon = resources.getDrawable(R.drawable.ic_game);
+        mTranslateIcon = resources.getDrawable(R.drawable.ic_translate, activity.getTheme());
+        mGameIcon = resources.getDrawable(R.drawable.ic_game, activity.getTheme());
     }
 
     private void shouldChangeNavBar(Intent i) {
