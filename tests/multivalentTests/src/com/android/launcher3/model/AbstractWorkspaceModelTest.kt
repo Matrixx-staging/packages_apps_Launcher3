@@ -28,9 +28,8 @@ import com.android.launcher3.util.IntSparseArrayMap
 import com.android.launcher3.util.LauncherLayoutBuilder
 import com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY
 import com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE
-import com.android.launcher3.util.ModelTestExtensions.loadModelSync
+import com.android.launcher3.util.LayoutResource
 import com.android.launcher3.util.SandboxApplication
-import com.android.launcher3.util.rule.LayoutProviderRule
 import java.util.UUID
 import org.junit.Rule
 
@@ -43,7 +42,7 @@ abstract class AbstractWorkspaceModelTest {
     }
 
     @get:Rule val mTargetContext: SandboxApplication = SandboxApplication().withModelDependency()
-    @get:Rule var mLayoutProvider: LayoutProviderRule = LayoutProviderRule(mTargetContext)
+    @get:Rule var mLayout: LayoutResource = LayoutResource(mTargetContext)
 
     protected lateinit var mLayoutBuilder: LauncherLayoutBuilder
     protected lateinit var mIdp: InvariantDeviceProfile
@@ -69,10 +68,9 @@ abstract class AbstractWorkspaceModelTest {
     /** Sets up workspaces with the given screen IDs with some items and a 2x2 space. */
     fun setupWorkspaces(screenIdsWithItems: List<Int>) {
         screenIdsWithItems.forEach { screenId -> setupWorkspace(screenId, nonEmptyScreenSpaces) }
-        mLayoutProvider.setupDefaultLayoutProvider(mLayoutBuilder)
         mIdp.numRows = 5
         mIdp.numColumns = mIdp.numRows
-        model.loadModelSync()
+        mLayout.set(mLayoutBuilder)
     }
 
     /**
@@ -85,10 +83,9 @@ abstract class AbstractWorkspaceModelTest {
         screen3: List<Rect>? = null,
     ) {
         listOf(screen0, screen1, screen2, screen3).let(this::setupWithSpaces)
-        mLayoutProvider.setupDefaultLayoutProvider(mLayoutBuilder)
         mIdp.numRows = 5
         mIdp.numColumns = mIdp.numRows
-        model.loadModelSync()
+        mLayout.set(mLayoutBuilder)
     }
 
     private fun setupWithSpaces(workspaceSpaces: List<List<Rect>?>) {
