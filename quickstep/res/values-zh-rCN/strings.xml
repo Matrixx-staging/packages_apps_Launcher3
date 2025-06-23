@@ -171,8 +171,6 @@
     <string name="header_app_icon_description" msgid="2184625881433608027">"应用图标"</string>
     <string name="header_default_app_title" msgid="8308052350689531566">"应用名称"</string>
     <string name="header_close_icon_description" msgid="5400033616675911319">"“关闭”按钮"</string>
-    <string name="pin_to_taskbar" msgid="6607778046321626950">"固定到任务栏"</string>
-    <string name="unpin_from_taskbar" msgid="2178811773165572676">"从任务栏取消固定"</string>
     <string name="nudge_a11y_title" msgid="2126529303123687912">"智能推送"</string>
     <string name="nudge_a11y_close" msgid="4513937143817625570">"关闭"</string>
     <string name="nudge_a11y_image" msgid="117910310515857252">"智能推送图片"</string>

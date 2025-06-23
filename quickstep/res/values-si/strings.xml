@@ -171,8 +171,6 @@
     <string name="header_app_icon_description" msgid="2184625881433608027">"යෙදුම් නිරූපකය"</string>
     <string name="header_default_app_title" msgid="8308052350689531566">"යෙදුම් මාතෘකාව"</string>
     <string name="header_close_icon_description" msgid="5400033616675911319">"වැසීමේ බොත්තම"</string>
-    <string name="pin_to_taskbar" msgid="6607778046321626950">"කාර්ය තීරුවට අමුණන්න"</string>
-    <string name="unpin_from_taskbar" msgid="2178811773165572676">"කාර්ය තීරුවෙන් ඉවත් කරන්න"</string>
     <string name="nudge_a11y_title" msgid="2126529303123687912">"සෙමින් පෙළඹවීම"</string>
     <string name="nudge_a11y_close" msgid="4513937143817625570">"වසන්න"</string>
     <string name="nudge_a11y_image" msgid="117910310515857252">"රූපය සෙමින් පෙළඹවීම"</string>
