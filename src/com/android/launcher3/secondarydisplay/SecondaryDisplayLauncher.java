@@ -146,6 +146,10 @@ public class SecondaryDisplayLauncher extends BaseActivity
         return mDragController;
     }
 
+    public SecondaryDisplayDelegate getSecondaryDisplayDelegate() {
+        return mSecondaryDisplayDelegate;
+    }
+
     @Override
     public void onBackPressed() {
         if (finishAutoCancelActionMode()) {

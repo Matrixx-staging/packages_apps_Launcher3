@@ -1990,6 +1990,10 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         mControllers.taskbarEduTooltipController.hide();
     }
 
+    public void openTaskbarAllApps() {
+        mControllers.uiController.toggleAllApps(false);
+    }
+
     /** Returns {@code true} if Taskbar All Apps is open. */
     public boolean isTaskbarAllAppsOpen() {
         return mControllers.taskbarAllAppsController.isOpen();
