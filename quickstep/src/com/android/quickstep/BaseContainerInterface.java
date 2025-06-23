@@ -15,15 +15,24 @@
  */
 package com.android.quickstep;
 
+import static com.android.app.animation.Interpolators.ACCELERATE_2;
 import static com.android.app.animation.Interpolators.INSTANT;
 import static com.android.app.animation.Interpolators.LINEAR;
 import static com.android.launcher3.LauncherAnimUtils.SCRIM_COLORS;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMultiFingerSwipe;
 import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
+import static com.android.quickstep.AbsSwipeUpHandler.RECENTS_ATTACH_DURATION;
 import static com.android.quickstep.GestureState.GestureEndTarget.LAST_TASK;
 import static com.android.quickstep.GestureState.GestureEndTarget.RECENTS;
+import static com.android.quickstep.util.RecentsAtomicAnimationFactory.INDEX_RECENTS_ATTACHED_ALPHA_ANIM;
+import static com.android.quickstep.util.RecentsAtomicAnimationFactory.INDEX_RECENTS_FADE_ANIM;
+import static com.android.quickstep.util.RecentsAtomicAnimationFactory.INDEX_RECENTS_TRANSLATE_X_ANIM;
+import static com.android.quickstep.views.RecentsView.ADJACENT_PAGE_HORIZONTAL_OFFSET;
+import static com.android.quickstep.views.RecentsView.RUNNING_TASK_ATTACH_ALPHA;
 
 import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.res.Resources;
@@ -120,7 +129,8 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
     @Nullable
     public abstract TaskbarUIController getTaskbarController();
 
-    public interface AnimationFactory {
+    public interface AnimationFactory<STATE_TYPE extends BaseState<STATE_TYPE>,
+            CONTAINER_TYPE extends RecentsViewContainer & StatefulContainer<STATE_TYPE>> {
 
         void createContainerInterface(long transitionLength);
 
@@ -131,7 +141,63 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
          * @param updateRunningTaskAlpha Whether to update the running task's attached alpha
          */
         default void setRecentsAttachedToAppWindow(
-                boolean attached, boolean animate, boolean updateRunningTaskAlpha) { }
+                boolean attached, boolean animate, boolean updateRunningTaskAlpha) {
+            CONTAINER_TYPE container = getContainer();
+            if (container == null) {
+                return;
+            }
+            if (isRecentsAttachedToAppWindow() == attached && animate) {
+                return;
+            }
+            container.getStateManager()
+                    .cancelStateElementAnimation(INDEX_RECENTS_FADE_ANIM);
+            container.getStateManager()
+                    .cancelStateElementAnimation(INDEX_RECENTS_TRANSLATE_X_ANIM);
+            if (updateRunningTaskAlpha) {
+                container.getStateManager()
+                        .cancelStateElementAnimation(INDEX_RECENTS_ATTACHED_ALPHA_ANIM);
+            }
+
+            AnimatorSet animatorSet = new AnimatorSet();
+            animatorSet.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+                    super.onAnimationStart(animation);
+                    onAttachedToWindowStateUpdated(attached);
+                }});
+
+            long animationDuration = animate ? RECENTS_ATTACH_DURATION : 0;
+            Animator fadeAnim = container.getStateManager()
+                    .createStateElementAnimation(INDEX_RECENTS_FADE_ANIM, attached ? 1f : 0f);
+            fadeAnim.setInterpolator(attached ? INSTANT : ACCELERATE_2);
+            fadeAnim.setDuration(animationDuration);
+            animatorSet.play(fadeAnim);
+
+            float fromTranslation = ADJACENT_PAGE_HORIZONTAL_OFFSET.get(
+                    container.getOverviewPanel());
+            float toTranslation = attached ? 0f : 1f;
+            Animator translationAnimator = container.getStateManager().createStateElementAnimation(
+                    INDEX_RECENTS_TRANSLATE_X_ANIM, fromTranslation, toTranslation);
+            translationAnimator.setDuration(animationDuration);
+            animatorSet.play(translationAnimator);
+
+            if (updateRunningTaskAlpha) {
+                float fromAlpha = RUNNING_TASK_ATTACH_ALPHA.get(container.getOverviewPanel());
+                float toAlpha = attached ? 1f : 0f;
+                Animator runningTaskAttachAlphaAnimator = container.getStateManager()
+                        .createStateElementAnimation(
+                                INDEX_RECENTS_ATTACHED_ALPHA_ANIM, fromAlpha, toAlpha);
+                runningTaskAttachAlphaAnimator.setDuration(animationDuration);
+                animatorSet.play(runningTaskAttachAlphaAnimator);
+            }
+            animatorSet.start();
+        }
+
+        default CONTAINER_TYPE getContainer() {
+            return null;
+        }
+
+        default void onAttachedToWindowStateUpdated(boolean isAttachedToWindow) { }
 
         default boolean isRecentsAttachedToAppWindow() {
             return false;

@@ -36,12 +36,14 @@ import com.android.launcher3.Launcher;
 import com.android.launcher3.anim.AnimatorPlaybackController;
 import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.statehandlers.DepthController;
+import com.android.launcher3.statemanager.StatefulContainer;
 import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.NavigationMode;
 import com.android.quickstep.fallback.RecentsState;
 import com.android.quickstep.util.AnimatorControllerWithResistance;
 import com.android.quickstep.views.RecentsView;
+import com.android.quickstep.views.RecentsViewContainer;
 import com.android.quickstep.window.RecentsWindowFlags;
 import com.android.quickstep.window.RecentsWindowManager;
 import com.android.systemui.shared.recents.model.ThumbnailData;
@@ -122,7 +124,7 @@ public abstract class BaseWindowInterface extends
      * todo: move new factory into BaseContainerInterface and cleanup.
       */
 
-    class DefaultAnimationFactory implements AnimationFactory {
+    class DefaultAnimationFactory implements AnimationFactory<RecentsState, RecentsWindowManager> {
 
         protected final RecentsWindowManager mRecentsWindowManager;
         private final RecentsState mStartState;
@@ -182,45 +184,16 @@ public abstract class BaseWindowInterface extends
         }
 
         @Override
-        public void setRecentsAttachedToAppWindow(boolean attached, boolean animate,
-                boolean updateRunningTaskAlpha) {
+        public RecentsWindowManager getContainer() {
+            return mRecentsWindowManager;
+        }
 
-            if (mIsAttachedToWindow == attached && animate) {
-                return;
+        @Override
+        public void onAttachedToWindowStateUpdated(boolean isAttachedToWindow) {
+            mIsAttachedToWindow = isAttachedToWindow;
+            if (isAttachedToWindow) {
+                mHasEverAttachedToWindow = true;
             }
-            mRecentsWindowManager.getStateManager()
-                    .cancelStateElementAnimation(INDEX_RECENTS_FADE_ANIM);
-            mRecentsWindowManager.getStateManager()
-                    .cancelStateElementAnimation(INDEX_RECENTS_TRANSLATE_X_ANIM);
-
-            AnimatorSet animatorSet = new AnimatorSet();
-            animatorSet.addListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationStart(Animator animation) {
-                    super.onAnimationStart(animation);
-                    mIsAttachedToWindow = attached;
-                    if (attached) {
-                        mHasEverAttachedToWindow = true;
-                    }
-                }});
-
-            long animationDuration = animate ? RECENTS_ATTACH_DURATION : 0;
-            Animator fadeAnim = mRecentsWindowManager.getStateManager()
-                    .createStateElementAnimation(INDEX_RECENTS_FADE_ANIM, attached ? 1 : 0);
-            fadeAnim.setInterpolator(attached ? INSTANT : ACCELERATE_2);
-            fadeAnim.setDuration(animationDuration);
-            animatorSet.play(fadeAnim);
-
-            float fromTranslation = ADJACENT_PAGE_HORIZONTAL_OFFSET.get(
-                    mRecentsWindowManager.getOverviewPanel());
-            float toTranslation = attached ? 0 : 1;
-
-            Animator translationAnimator =
-                    mRecentsWindowManager.getStateManager().createStateElementAnimation(
-                            INDEX_RECENTS_TRANSLATE_X_ANIM, fromTranslation, toTranslation);
-            translationAnimator.setDuration(animationDuration);
-            animatorSet.play(translationAnimator);
-            animatorSet.start();
         }
 
         @Override
