@@ -57,8 +57,8 @@ import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.WindowBounds;
 import com.android.launcher3.views.ScrimColors;
-import com.android.launcher3.views.ScrimView;
 import com.android.launcher3.views.ScrimColorsEvaluator;
+import com.android.launcher3.views.ScrimView;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
 import com.android.quickstep.util.AnimatorControllerWithResistance;
 import com.android.quickstep.util.ContextInitListener;
@@ -303,7 +303,6 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
     public @Nullable View onSettledOnEndTarget(GestureState.GestureEndTarget endTarget) {
         TaskbarUIController taskbarUIController = getTaskbarController();
         if (taskbarUIController != null) {
-            taskbarUIController.setSystemGestureInProgress(false);
             return taskbarUIController.getRootView();
         }
         return null;

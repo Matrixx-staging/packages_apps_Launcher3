@@ -258,7 +258,6 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
     private long mState;
 
     private @Nullable AnimatorSet mAnimator;
-    private boolean mIsSystemGestureInProgress;
     /** Whether the IME is visible. */
     private boolean mIsImeVisible;
 
@@ -1172,15 +1171,6 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
         return mStatePropertyHolder.createSetStateAnimator(mState, duration);
     }
 
-    /**
-     * Should be called when a system gesture starts and settles, so we can remove
-     * FLAG_STASHED_IN_APP_IME while the gesture is in progress.
-     */
-    public void setSystemGestureInProgress(boolean inProgress) {
-        mIsSystemGestureInProgress = inProgress;
-        setStashedImeState();
-    }
-
     private void setStashedImeState() {
         boolean shouldStashForIme = shouldStashForIme();
         if (hasAnyFlag(FLAG_STASHED_IME) != shouldStashForIme) {
@@ -1252,7 +1242,6 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
      * Whether the Taskbar should be stashed when the IME is visible. This is {@code false} if:
      * <ul>
      *     <li>IME is not visible
-     *     <li>A system gesture (e.g. quick switching apps) is in progress.
      *     <li>Device is a phone (non-large screen)
      *     <li>Taskbar is transient
      *     <li>IME is not docked
@@ -1260,9 +1249,6 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
      */
     private boolean shouldStashForIme() {
         if (!mIsImeVisible) {
-            return false;
-        }
-        if (mIsSystemGestureInProgress) {
             return false;
         }
         if (mActivity.isPhoneMode()) {
@@ -1457,7 +1443,6 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
         pw.println(prefix + "\tmIsStashed=" + mIsStashed);
         pw.println(prefix + "\tappliedState=" + getStateString(mStatePropertyHolder.mPrevFlags));
         pw.println(prefix + "\tmState=" + getStateString(mState));
-        pw.println(prefix + "\tmIsSystemGestureInProgress=" + mIsSystemGestureInProgress);
         pw.println(prefix + "\tmIsImeVisible=" + mIsImeVisible);
     }
 
