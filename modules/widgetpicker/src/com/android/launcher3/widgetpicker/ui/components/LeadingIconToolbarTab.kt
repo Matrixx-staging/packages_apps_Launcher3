@@ -38,6 +38,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 
@@ -57,6 +59,8 @@ fun LeadingIconToolbarTab(
     iconEnterTransition: EnterTransition = LeadingIconToolbarTabDefaults.iconEnterTransition,
     iconExitTransition: ExitTransition = LeadingIconToolbarTabDefaults.iconExitTransition,
 ) {
+    val haptic = LocalHapticFeedback.current
+
     val backgroundColor =
         if (selected) {
             WidgetPickerTheme.colors.toolbarTabSelectedBackground
@@ -71,7 +75,10 @@ fun LeadingIconToolbarTab(
                 .clip(CircleShape)
                 .selectable(
                     selected = selected,
-                    onClick = onClick
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                        onClick()
+                    }
                 )
                 .background(color = backgroundColor)
                 .minimumInteractiveComponentSize()
@@ -93,7 +100,11 @@ fun LeadingIconToolbarTab(
         }
         Text(
             text = label,
-            style = WidgetPickerTheme.typography.toolbarTabLabel,
+            style = if (selected) {
+                WidgetPickerTheme.typography.toolbarSelectedTabLabel
+            } else {
+                WidgetPickerTheme.typography.toolbarTabLabel
+            },
             color = WidgetPickerTheme.colors.toolbarTabContent,
         )
     }

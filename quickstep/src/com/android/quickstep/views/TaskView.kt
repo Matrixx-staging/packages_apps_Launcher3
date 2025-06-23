@@ -1354,16 +1354,9 @@ constructor(
 
     private fun onClick() {
         if (confirmSecondSplitSelectApp()) {
-            Log.d("b/310064698", "${taskIds.contentToString()} - onClick - split select is active")
             return
         }
-        val callbackList =
-            launchWithAnimation()?.apply {
-                add {
-                    Log.d("b/310064698", "${taskIds.contentToString()} - onClick - launchCompleted")
-                }
-            }
-        Log.d("b/310064698", "${taskIds.contentToString()} - onClick - callbackList: $callbackList")
+        launchWithAnimation()
         container.statsLogManager
             .logger()
             .withItemInfo(itemInfo)
@@ -1373,10 +1366,18 @@ constructor(
     /** Launch of the current task (both live and inactive tasks) with an animation. */
     fun launchWithAnimation(): RunnableList? {
         return if (isRunningTask && recentsView?.remoteTargetHandles != null) {
-            launchAsLiveTile(recentsView?.remoteTargetHandles!!)
-        } else {
-            launchAsStaticTile()
-        }
+                launchAsLiveTile(recentsView?.remoteTargetHandles!!)
+            } else {
+                launchAsStaticTile()
+            }
+            ?.also {
+                it.add {
+                    Log.d(
+                        TAG,
+                        "${taskIds.contentToString()} - launchWithAnimation - launchCompleted",
+                    )
+                }
+            }
     }
 
     private fun launchAsLiveTile(remoteTargetHandles: Array<RemoteTargetHandle>): RunnableList? {

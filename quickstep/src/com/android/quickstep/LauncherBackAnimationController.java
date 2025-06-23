@@ -364,9 +364,7 @@ public class LauncherBackAnimationController {
                 && !mLauncher.isInState(LauncherState.ALL_APPS)) {
             Animations.cancelOngoingAnimation(mLauncher.getWorkspace());
             Animations.cancelOngoingAnimation(mLauncher.getHotseat());
-            if (Flags.predictiveBackToHomeBlur()) {
-                mLauncher.getDepthController().pauseBlursOnWindows(true);
-            }
+            mLauncher.getDepthController().pauseBlursOnWindows(true);
             mLauncher.getDepthController().stateDepth.setValue(
                     LauncherState.BACKGROUND_APP.getDepth(mLauncher));
             setLauncherScale(ScalingWorkspaceRevealAnim.MIN_SIZE);
@@ -472,9 +470,7 @@ public class LauncherBackAnimationController {
     }
 
     private void setBlur(int blurRadius) {
-        if (Flags.predictiveBackToHomeBlur()) {
-            mTransaction.setBackgroundBlurRadius(mScrimLayer, blurRadius);
-        }
+        mTransaction.setBackgroundBlurRadius(mScrimLayer, blurRadius);
     }
 
     /** Transform the target window to match the target rect. */
@@ -584,7 +580,7 @@ public class LauncherBackAnimationController {
         if (mScrimLayer != null) {
             removeScrimLayer();
         }
-        if (Flags.predictiveBackToHomeBlur() && !mLauncher.getWorkspace().isOverlayShown()
+        if (!mLauncher.getWorkspace().isOverlayShown()
                 && !mLauncher.isInState(LauncherState.ALL_APPS)) {
             mLauncher.getDepthController().pauseBlursOnWindows(false);
         }

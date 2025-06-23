@@ -140,6 +140,7 @@ public class BubbleBarViewController {
     private final FrameLayout mBubbleBarContainer;
     private BubbleBarFlyoutController mBubbleBarFlyoutController;
     private BubbleBarPinController mBubbleBarPinController;
+    private DragToBubbleController mDragToBubbleController;
     private TaskbarSharedState mTaskbarSharedState;
     private final TimeSource mTimeSource = System::currentTimeMillis;
     private final int mTaskbarTranslationDelta;
@@ -170,6 +171,7 @@ public class BubbleBarViewController {
         mBubbleBarController = bubbleControllers.bubbleBarController;
         mBubbleDragController = bubbleControllers.bubbleDragController;
         mBubbleBarPinController = bubbleControllers.bubbleBarPinController;
+        mDragToBubbleController = bubbleControllers.dragToBubbleController;
         mTaskbarStashController = controllers.taskbarStashController;
         mTaskbarInsetsController = controllers.taskbarInsetsController;
         mBubbleBarFlyoutController = new BubbleBarFlyoutController(
@@ -565,38 +567,24 @@ public class BubbleBarViewController {
         mBarView.showDropTarget(showingDropTarget);
     }
 
-    //TODO(b/411505605) remove unused IPC calls and code
     /**
-     * Notifies the controller that a drag event is over the Bubble Bar drop zone. The controller
+     * Notifies the controller that bubble bar drop target location update. The controller
      * will display the appropriate drop target and enter drop target mode. The controller will also
      * update the return value of {@link #isLocationUpdatedForDropTarget()} to true if location was
      * updated.
      */
-    public void onDragItemOverBubbleBarDragZone(@NonNull BubbleBarLocation bubbleBarLocation) {
-        mBubbleBarDragLocation = bubbleBarLocation;
-        mBarView.showDropTarget(/* isDropTarget = */ true);
-        mWasStashedBeforeEnteringBubbleDragZone = hasBubbles()
-            && mBubbleStashController.isStashed();
-        if (mWasStashedBeforeEnteringBubbleDragZone) {
-            // bubble bar is stashed - un-stash at drag location
-            mBubbleStashController.showBubbleBarAtLocation(
-                    /* fromLocation = */ getBubbleBarLocation(),
-                    /* toLocation = */  mBubbleBarDragLocation
-            );
-        } else if (hasBubbles()) {
-            if (isLocationUpdatedForDropTarget()) {
-                // bubble bar has bubbles and location is changed - animate bar to the opposite side
-                animateBubbleBarLocation(bubbleBarLocation);
-            }
+    public void showBubbleBarDropTargetAt(@Nullable BubbleBarLocation bubbleBarLocation) {
+        setShowingDropTarget(bubbleBarLocation != null);
+        if (hasBubbles()) {
+            // TODO(b/411505605) add logic to manipulate bubble bar
         } else {
-            // bubble bar has no bubbles flow just show the empty drop target
-            mBubbleBarPinController.showDropTarget(bubbleBarLocation);
+            mDragToBubbleController.showShellBubbleBarDropTargetAt(bubbleBarLocation);
         }
     }
 
     /**
      * Returns {@code true} if location was updated after most recent
-     * {@link #onDragItemOverBubbleBarDragZone}}.
+     * {@link #showBubbleBarDropTargetAt}}.
      */
     public boolean isLocationUpdatedForDropTarget() {
         if (mBubbleBarDragLocation == null) {

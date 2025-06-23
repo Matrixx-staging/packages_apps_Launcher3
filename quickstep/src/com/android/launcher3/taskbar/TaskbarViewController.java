@@ -94,6 +94,7 @@ import com.android.launcher3.util.MultiPropertyFactory.MultiProperty;
 import com.android.launcher3.util.MultiTranslateDelegate;
 import com.android.launcher3.util.MultiValueAlpha;
 import com.android.launcher3.util.SandboxContext;
+import com.android.launcher3.views.IconButtonView;
 import com.android.quickstep.util.GroupTask;
 import com.android.quickstep.util.SingleTask;
 import com.android.systemui.shared.recents.model.Task;
@@ -1039,12 +1040,17 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
             hotseatNavBarTranslationX = taskbarDp
                     .getHotseatTranslationXForNavBar(mActivity, isBubblesOnLeft);
         }
+
+        int ignoreCount = mTaskbarView.getIgnoreTaskbarIconCount();
+
         for (int i = 0; i < mTaskbarView.getChildCount(); i++) {
             View child = mTaskbarView.getChildAt(i);
             boolean isAllAppsButton = child == mTaskbarView.getAllAppsButtonContainer();
             boolean isTaskbarDividerView = child == mTaskbarView.getTaskbarDividerViewContainer();
             boolean isTaskbarOverflowView = child == mTaskbarView.getTaskbarOverflowView();
             boolean isRecentTask = child.getTag() instanceof GroupTask;
+            boolean isRtl = Utilities.isRtl(child.getResources());
+
             // TODO(b/343522351): show recents on the home screen.
             final boolean isRecentsInHotseat = false;
             if (!mIsHotseatIconOnTopWhenAligned) {
@@ -1073,9 +1079,19 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
                                     ? Interpolators.clampToProgress(LINEAR, 0f, 0.17f)
                                     : Interpolators.clampToProgress(LINEAR, 0.72f, 0.84f));
                 }
+            } else if (((!isRtl && mTaskbarView.getChildCount() - i <= ignoreCount)
+                    || (isRtl && i < ignoreCount))
+                    && mIsHotseatIconOnTopWhenAligned
+                    && !(child instanceof IconButtonView)) {
+                setter.addFloat(child, VIEW_ALPHA, 0f, 1f,
+                        isToHome
+                                ? Interpolators.clampToProgress(LINEAR, 0f, 0.35f)
+                                : mActivity.getDeviceProfile().isQsbInline
+                                        ? Interpolators.clampToProgress(LINEAR, 0f, 1f)
+                                        : Interpolators.clampToProgress(LINEAR, 0.84f, 1f));
+                setter.addOnFrameListener(animator -> AlphaUpdateListener.updateVisibility(child));
             }
             if (child == mTaskbarView.getQsb()) {
-                boolean isRtl = Utilities.isRtl(child.getResources());
                 float hotseatIconCenter = isRtl
                         ? launcherDp.getDeviceProperties().getWidthPx() - hotseatPadding.right + borderSpacing
                         + launcherDp.hotseatQsbWidth / 2f
@@ -1392,7 +1408,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     @Override
     public void dumpLogs(String prefix, PrintWriter pw) {
         pw.println(prefix + "TaskbarViewController:");
-
+        pw.println(prefix + "\tignoreTaskbarIconCount=" + mTaskbarView.getIgnoreTaskbarIconCount());
         mTaskbarIconAlpha.dump(
                 prefix + "\t",
                 pw,

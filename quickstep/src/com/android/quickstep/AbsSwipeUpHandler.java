@@ -17,7 +17,6 @@ package com.android.quickstep;
 
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_HOME;
 import static android.app.WindowConfiguration.WINDOWING_MODE_FREEFORM;
-import static android.view.Display.DEFAULT_DISPLAY;
 import static android.view.Surface.ROTATION_0;
 import static android.view.Surface.ROTATION_270;
 import static android.view.Surface.ROTATION_90;
@@ -163,7 +162,6 @@ import com.android.quickstep.views.TaskContainer;
 import com.android.quickstep.views.TaskView;
 import com.android.quickstep.views.TaskViewType;
 import com.android.quickstep.window.RecentsWindowManager;
-import com.android.systemui.animation.TransitionAnimator;
 import com.android.systemui.contextualeducation.GestureType;
 import com.android.systemui.shared.recents.model.ThumbnailData;
 import com.android.systemui.shared.system.ActivityManagerWrapper;
@@ -1019,10 +1017,8 @@ public abstract class AbsSwipeUpHandler<
         mSwipePipToHomeReleaseCheck = new RemoteAnimationTargets.ReleaseCheck();
         mSwipePipToHomeReleaseCheck.setCanRelease(true);
         mRecentsAnimationTargets.addReleaseCheck(mSwipePipToHomeReleaseCheck);
-        if (TransitionAnimator.Companion.longLivedReturnAnimationsEnabled()) {
-            mHandOffAnimationToHome =
-                    targets.extras.getBoolean(KEY_EXTRA_SHELL_CAN_HAND_OFF_ANIMATION, false);
-        }
+        mHandOffAnimationToHome =
+                targets.extras.getBoolean(KEY_EXTRA_SHELL_CAN_HAND_OFF_ANIMATION, false);
 
         // Only initialize the device profile, if it has not been initialized before, as in some
         // configurations targets.homeContentInsets may not be correct.
@@ -1872,10 +1868,6 @@ public abstract class AbsSwipeUpHandler<
     }
 
     private void handOffAnimation(PointF velocityPxPerMs) {
-        if (!TransitionAnimator.Companion.longLivedReturnAnimationsEnabled()) {
-            return;
-        }
-
         // This function is not guaranteed to be called inside a frame. We try to access the frame
         // time immediately, but if we're not inside a frame we must post a callback to be run at
         // the beginning of the next frame.

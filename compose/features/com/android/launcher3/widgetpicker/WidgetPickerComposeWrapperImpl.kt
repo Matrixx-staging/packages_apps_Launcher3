@@ -20,8 +20,6 @@ import android.app.Activity.RESULT_OK
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -44,16 +42,14 @@ import com.android.launcher3.widgetpicker.listeners.WidgetPickerDragItemListener
 import com.android.launcher3.widgetpicker.shared.model.HostConstraint
 import com.android.launcher3.widgetpicker.shared.model.WidgetHostInfo
 import com.android.launcher3.widgetpicker.shared.model.isAppWidget
-import com.android.launcher3.widgetpicker.theme.darkWidgetPickerColors
-import com.android.launcher3.widgetpicker.theme.lightWidgetPickerColors
+import com.android.launcher3.widgetpicker.theme.LauncherWidgetPickerTheme
 import com.android.launcher3.widgetpicker.ui.WidgetInteractionInfo
 import com.android.launcher3.widgetpicker.ui.WidgetInteractionSource
 import com.android.launcher3.widgetpicker.ui.WidgetPickerEventListeners
-import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Provider
 import kotlin.coroutines.CoroutineContext
-import kotlinx.coroutines.launch
 
 /**
  * An helper that bootstraps widget picker UI (from [WidgetPickerComponent]) in to
@@ -88,18 +84,9 @@ constructor(
                 val scope = rememberCoroutineScope()
                 val view = LocalView.current
 
-                val widgetPickerColors =
-                    if (isSystemInDarkTheme()) {
-                        darkWidgetPickerColors()
-                    } else {
-                        lightWidgetPickerColors()
-                    }
-
-                MaterialTheme { // TODO(b/408283627): Use launcher theme.
-                    WidgetPickerTheme(colors = widgetPickerColors) {
-                        val eventListeners = remember { callbacks }
-                        fullWidgetsCatalog.Content(eventListeners)
-                    }
+                LauncherWidgetPickerTheme {
+                    val eventListeners = remember { callbacks }
+                    fullWidgetsCatalog.Content(eventListeners)
                 }
 
                 DisposableEffect(view) {

@@ -22,6 +22,7 @@
     android:layout_height="wrap_content"
     android:importantForAccessibility="yes"
     launcher:focusBorderColor="@color/materialColorSecondary"
+    launcher:hoverBorderColor="@color/materialColorPrimary"
     launcher:focusBorderRadius="@dimen/keyboard_quick_switch_text_button_radius">
 
     <androidx.constraintlayout.widget.ConstraintLayout

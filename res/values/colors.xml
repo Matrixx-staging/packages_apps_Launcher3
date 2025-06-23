@@ -106,11 +106,11 @@
 
     <color name="widget_picker_primary_surface_color_light">@color/system_surface_container_light</color>
     <color name="widget_picker_secondary_surface_color_light">#FAF9F8</color>
-    <color name="widget_picker_title_color_light">#1F1F1F</color>
-    <color name="widget_picker_description_color_light">#4C4D50</color>
+    <color name="widget_picker_title_color_light">@color/system_on_surface_light</color>
+    <color name="widget_picker_description_color_light">@color/system_on_surface_variant_light</color>
     <color name="widget_picker_menu_options_color_light">@color/system_on_surface_variant_light</color>
-    <color name="widget_picker_header_app_title_color_light">#1F1F1F</color>
-    <color name="widget_picker_header_app_subtitle_color_light">#444746</color>
+    <color name="widget_picker_header_app_title_color_light">@color/system_on_surface_light</color>
+    <color name="widget_picker_header_app_subtitle_color_light">@color/system_on_surface_variant_light</color>
     <color name="widget_picker_header_background_color_light">#C2E7FF</color>
     <color name="widget_picker_suggestions_icon_background_color_light">#FFFFFF</color>
     <color name="widget_picker_suggestions_icon_color_light">#0B57D0</color>
@@ -123,9 +123,9 @@
     <color name="widget_picker_tab_background_unselected_light">#E3E3E3</color>
     <color name="widget_picker_selected_tab_text_color_light">#FFFFFF</color>
     <color name="widget_picker_unselected_tab_text_color_light">#444746</color>
-    <color name="widget_picker_collapse_handle_color_light">#747775</color>
-    <color name="widget_picker_add_button_background_color_light">#0B57D0</color>
-    <color name="widget_picker_add_button_text_color_light">#0B57D0</color>
+    <color name="widget_picker_collapse_handle_color_light">@color/system_outline_light</color>
+    <color name="widget_picker_add_button_background_color_light">@color/system_primary_light</color>
+    <color name="widget_picker_add_button_text_color_light">@color/system_on_primary_light</color>
     <color name="widget_picker_expandable_list_items_background_light">
         @color/system_surface_bright_light
     </color>
@@ -181,11 +181,11 @@
 
     <color name="widget_picker_primary_surface_color_dark">@color/system_surface_container_dark</color>
     <color name="widget_picker_secondary_surface_color_dark">#393939</color>
-    <color name="widget_picker_title_color_dark">#E3E3E3</color>
-    <color name="widget_picker_description_color_dark">#CCCDCF</color>
+    <color name="widget_picker_title_color_dark">@color/system_on_surface_dark</color>
+    <color name="widget_picker_description_color_dark">@color/system_on_surface_variant_dark</color>
     <color name="widget_picker_menu_options_color_dark">@color/system_on_surface_variant_dark</color>
-    <color name="widget_picker_header_app_title_color_dark">#E3E3E3</color>
-    <color name="widget_picker_header_app_subtitle_color_dark">#C4C7C5</color>
+    <color name="widget_picker_header_app_title_color_dark">@color/system_on_surface_dark</color>
+    <color name="widget_picker_header_app_subtitle_color_dark">@color/system_on_surface_variant_dark</color>
     <color name="widget_picker_header_background_color_dark">#004A77</color>
     <color name="widget_picker_suggestions_icon_background_color_dark">#FFFFFFFF</color>
     <color name="widget_picker_suggestions_icon_color_dark">#062E6F</color>
@@ -198,9 +198,9 @@
     <color name="widget_picker_tab_background_unselected_dark">#343535</color>
     <color name="widget_picker_selected_tab_text_color_dark">#2D312F</color>
     <color name="widget_picker_unselected_tab_text_color_dark">#C4C7C5</color>
-    <color name="widget_picker_collapse_handle_color_dark">#8e918f</color>
-    <color name="widget_picker_add_button_background_color_dark">#062E6F</color>
-    <color name="widget_picker_add_button_text_color_dark">#FFFFFF</color>
+    <color name="widget_picker_collapse_handle_color_dark">@color/system_outline_dark</color>
+    <color name="widget_picker_add_button_background_color_dark">@color/system_primary_dark</color>
+    <color name="widget_picker_add_button_text_color_dark">@color/system_on_primary_dark</color>
     <color name="widget_picker_expandable_list_items_background_dark">
         @color/system_surface_bright_dark
     </color>

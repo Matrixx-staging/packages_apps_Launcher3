@@ -18,6 +18,8 @@ package com.android.launcher3.widgetpicker.ui.theme
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
@@ -75,6 +77,8 @@ import androidx.compose.ui.graphics.Color
  *   user has typed some text.
  * @param searchBarCursor color of the cursor in the search bar
  */
+@Stable
+@Immutable
 data class WidgetPickerColors(
     // Titled bottom sheet
     val sheetBackground: Color,
