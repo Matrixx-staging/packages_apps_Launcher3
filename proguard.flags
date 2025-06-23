@@ -30,9 +30,12 @@
 }
 
 # Rules for internal proto classes
+# Prevent optimization or access modification of any referenced code that may
+# conflict with code in the bootclasspath.
+# TODO(b/222468116): Resolve such collisions in the build system.
 -keep interface com.android.launcher3.userevent.nano.LauncherLogProto.** {*;}
 -keep interface com.android.launcher3.model.nano.LauncherDumpProto.** {*;}
--keep class com.android.internal.protolog.** {*;}
+-keep interface com.android.internal.protolog.common.IProtoLogGroup { *; }
 
 # Do not optimize animation methods that are using reflection
 -keep class com.android.launcher3.allapps.DiscoveryBounce$VerticalProgressWrapper {
@@ -53,6 +56,3 @@
 # platform version.  We know about them, and they are safe.
 -dontwarn android.support.**
 -dontwarn org.apache.http.**
-
-# Ignore warnings for hidden utility classes referenced from the shared lib
--dontwarn com.android.internal.util.**
