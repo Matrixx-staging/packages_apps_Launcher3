@@ -59,7 +59,7 @@ public class WallpaperScreenshotClipView extends FrameLayout {
     private static final int COLOR_ALPHA_DURATION_MS = 25;
     private static final float CLIP_TRANSLATION_MULTIPLIER = 0.55f;
     private static final float MAX_ARROW_SCALE = 20f;
-    private static final float INITIAL_ARROW_SCALE = 2.5f;
+    private static final float INITIAL_ARROW_SCALE = 2.4100475221f;
 
     // Temporary hard coded values
     private static final float ARROW_OFFSET_Y_PX = 700f;
@@ -71,6 +71,8 @@ public class WallpaperScreenshotClipView extends FrameLayout {
     private final RectF mBounds = new RectF();
     private final RectF mOriginalBounds = new RectF();
     private final Matrix mScaleMatrix = new Matrix();
+    private final Matrix mInvertScaleMatrix = new Matrix();
+
     private float mClipTranslationY;
 
     private final int mWindowWidth;
@@ -184,11 +186,19 @@ public class WallpaperScreenshotClipView extends FrameLayout {
         scale.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                // undo any previous scale
+                mCurrentClipPath.transform(mInvertScaleMatrix);
+
+                // set new scale
                 float scale = 1 + (valueAnimator.getAnimatedFraction() * MAX_ARROW_SCALE);
-                mCurrentClipPath = new Path(mOriginalPath);
                 resetAndSetMatrixScale(scale);
                 mCurrentClipPath.transform(mScaleMatrix);
                 setClipPath(mCurrentClipPath);
+
+                // prepare inversion for next update
+                mInvertScaleMatrix.reset();
+                mScaleMatrix.invert(mInvertScaleMatrix);
+
             }
         });
         animatorSet.play(scale);
