@@ -43,6 +43,8 @@ import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.launcher3.widgetpicker.TestUtils
 import com.android.launcher3.widgetpicker.TestUtils.PERSONAL_TEST_APPS
+import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
+import com.android.launcher3.widgetpicker.shared.model.isAppWidget
 import com.android.launcher3.widgetpicker.ui.WidgetInteractionInfo
 import com.android.launcher3.widgetpicker.ui.WidgetInteractionSource
 import com.android.launcher3.widgetpicker.ui.model.WidgetSizeGroup
@@ -81,8 +83,11 @@ class WidgetInteractionsTest {
 
         composeTestRule.waitForIdle()
 
+        val widgetInfo = WIDGET_ONE.widgetInfo
+        check(widgetInfo.isAppWidget())
         // widget interaction callback invoked and correct provider info returned.
-        composeTestRule.onNodeWithText(WIDGET_ONE.widgetInfo.toString()).assertExists()
+        composeTestRule.onNodeWithText(widgetInfo.appWidgetProviderInfo.provider.toString())
+            .assertExists()
 
         // tap again on preview for widget 1
         composeTestRule
@@ -142,25 +147,29 @@ class WidgetInteractionsTest {
     fun TapToAddTestComposable() {
         var provider by remember { mutableStateOf("invalid") }
 
-        Column(modifier = Modifier.fillMaxSize()) {
-            Text(provider)
-            WidgetsGrid(
-                widgetSizeGroups = listOf(TEST_WIDGET_GROUP),
-                showAllWidgetDetails = false,
-                previews = PREVIEWS,
-                modifier = Modifier.weight(1f),
-                appIcons = emptyMap(),
-                showDragShadow = false,
-                widgetInteractionSource = WidgetInteractionSource.BROWSE,
-                onWidgetInteraction = { widgetInteractionInfo ->
-                    if (
-                        widgetInteractionInfo is WidgetInteractionInfo.WidgetAddInfo &&
+        WidgetPickerTheme {
+            Column(modifier = Modifier.fillMaxSize()) {
+                Text(provider)
+                WidgetsGrid(
+                    widgetSizeGroups = listOf(TEST_WIDGET_GROUP),
+                    showAllWidgetDetails = false,
+                    previews = PREVIEWS,
+                    modifier = Modifier.weight(1f),
+                    appIcons = emptyMap(),
+                    showDragShadow = false,
+                    widgetInteractionSource = WidgetInteractionSource.BROWSE,
+                    onWidgetInteraction = { widgetInteractionInfo ->
+                        if (
+                            widgetInteractionInfo is WidgetInteractionInfo.WidgetAddInfo &&
                             widgetInteractionInfo.source == WidgetInteractionSource.BROWSE
-                    ) {
-                        provider = widgetInteractionInfo.widgetInfo.toString()
-                    }
-                },
-            )
+                        ) {
+                            val widgetInfo = widgetInteractionInfo.widgetInfo
+                            check(widgetInfo.isAppWidget())
+                            provider = widgetInfo.appWidgetProviderInfo.provider.toString()
+                        }
+                    },
+                )
+            }
         }
     }
 

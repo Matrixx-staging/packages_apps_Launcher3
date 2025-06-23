@@ -147,9 +147,10 @@ class LandingScreenSinglePaneTest {
             runCurrent()
             composeTestRule.waitForIdle()
 
+            // Error message is shown for both personal and work profiles
             composeTestRule
-                .onNode(hasText("Widgets and shortcuts aren\'t available"))
-                .assertExists()
+                .onAllNodes(hasText("Widgets and shortcuts aren\'t available"))
+                .assertCountEquals(2)
         }
 
     @OptIn(ExperimentalCoroutinesApi::class)
