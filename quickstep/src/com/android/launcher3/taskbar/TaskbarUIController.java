@@ -23,7 +23,6 @@ import static com.android.launcher3.taskbar.TaskbarStashController.FLAG_IN_APP;
 
 import android.animation.Animator;
 import android.content.Intent;
-import android.graphics.drawable.BitmapDrawable;
 import android.view.MotionEvent;
 import android.view.View;
 import android.window.RemoteTransition;
@@ -350,7 +349,7 @@ public class TaskbarUIController implements BubbleBarController.BubbleBarLocatio
                     recents.confirmSplitSelect(
                             null /* containerTaskView */,
                             null /* task */,
-                            new BitmapDrawable(info.bitmap.icon),
+                            info.newIcon(mControllers.taskbarActivityContext),
                             startingView,
                             null /* thumbnail */,
                             intent,
