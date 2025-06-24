@@ -25,10 +25,7 @@ import java.util.zip.ZipOutputStream;
 
 public class FailureWatcher extends TestWatcher {
     private static final String TAG = "FailureWatcher";
-    // TODO(b/408279425, b/424390002, b/415353175, b/327532234, b/424287695, b/423924731)
-    // Experimenting with disabling saving bugreport. Sometimes it takes at least 2 min, making the
-    // test to time out.
-    private static boolean sSavedBugreport = true; // false;
+    private static boolean sSavedBugreport = false;
     private static Description sDescriptionForLastSavedArtifacts;
 
     private final LauncherInstrumentation mLauncher;
@@ -39,7 +36,13 @@ public class FailureWatcher extends TestWatcher {
 
     @Override
     protected void starting(Description description) {
-        mLauncher.setOnFailure(() -> onError(mLauncher, description));
+        // Set a handler to save artifacts immediately when TAPL detects a failure. This
+        // results in the freshesh screenshot etc.
+        // But skipping saving a bugreport because this may happen in the time-limited part of the
+        // test and if slow, can result in TestTimedOutException.
+        // Bug report then will be taken from failed().
+        mLauncher.setOnFailure(() -> onErrorImpl(mLauncher, description,
+                /* skipBugreport */ true));
         super.starting(description);
     }
 
@@ -90,6 +93,12 @@ public class FailureWatcher extends TestWatcher {
 
     /** Action executed when an error condition is expected. Saves artifacts. */
     public static void onError(LauncherInstrumentation launcher, Description description) {
+        onErrorImpl(launcher, description, false);
+    }
+
+    /** Action executed when an error condition is expected. Saves artifacts. */
+    private static void onErrorImpl(LauncherInstrumentation launcher, Description description,
+            boolean skipBugreport) {
         if (description.equals(sDescriptionForLastSavedArtifacts)) {
             // This test has already saved its artifacts.
             return;
@@ -128,7 +137,7 @@ public class FailureWatcher extends TestWatcher {
         }
 
         // Dump bugreport
-        if (!sSavedBugreport) {
+        if (!sSavedBugreport && !skipBugreport) {
             dumpCommand("bugreportz -s", diagFile(description, "Bugreport", "zip"));
             // Not saving bugreport for each failure for time and space economy.
             sSavedBugreport = true;
