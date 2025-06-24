@@ -37,6 +37,7 @@ import com.android.launcher3.notification.NotificationListener
 import com.android.launcher3.pm.InstallSessionHelper
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.util.DaggerSingletonTracker
+import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR
 import com.android.launcher3.util.SettingsCache
@@ -142,8 +143,16 @@ constructor(
         idp.addOnChangeListener(idpChangeListener)
         lifeCycle.addCloseable { idp.removeOnChangeListener(idpChangeListener) }
 
+        // Shape changes
+        lifeCycle.addCloseable(
+            themeManager.iconShapeData.forEach(MAIN_EXECUTOR) {
+            model.rebindCallbacks()
+        })
+
         // Theme changes
-        val themeChangeListener = ThemeChangeListener { refreshAndReloadLauncher() }
+        val themeChangeListener = ThemeChangeListener {
+            refreshAndReloadLauncher()
+        }
         themeManager.addChangeListener(themeChangeListener)
         lifeCycle.addCloseable { themeManager.removeChangeListener(themeChangeListener) }
 

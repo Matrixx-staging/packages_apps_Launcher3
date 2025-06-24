@@ -36,7 +36,9 @@ import com.android.launcher3.shapes.IconShapeModel.Companion.DEFAULT_ICON_RADIUS
 import com.android.launcher3.shapes.ShapesProvider
 import com.android.launcher3.util.DaggerSingletonObject
 import com.android.launcher3.util.DaggerSingletonTracker
+import com.android.launcher3.util.ListenableRef
 import com.android.launcher3.util.LooperExecutor
+import com.android.launcher3.util.MutableListenableRef
 import com.android.launcher3.util.SimpleBroadcastReceiver
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.inject.Inject
@@ -53,9 +55,10 @@ constructor(
     lifecycle: DaggerSingletonTracker,
 ) {
 
-    var iconShapeData: IconShape = IconShape.EMPTY
-        private set
+    private val _iconShapeData = MutableListenableRef(IconShape.EMPTY)
 
+    /** listenable value holder for current IconShape */
+    val iconShapeData: ListenableRef<IconShape> = _iconShapeData.asListenable()
     /** Representation of the current icon state */
     var iconState = parseIconState(null)
         private set
@@ -99,9 +102,14 @@ constructor(
     private fun verifyIconState() {
         val newState = parseIconState(iconState)
         if (newState == iconState) return
+        val hasThemedChanged = newState.themeCode != iconState.themeCode
         iconState = newState
-
-        listeners.forEach { it.onThemeChanged() }
+        if (hasThemedChanged) {
+            // trigger listeners only for theme change, not shape change
+            listeners.forEach {
+                it.onThemeChanged()
+            }
+        }
     }
 
     fun addChangeListener(listener: ThemeChangeListener) = listeners.add(listener)
@@ -110,10 +118,11 @@ constructor(
 
     /**
      * Generates new IconShape based given [iconSize] and current [iconShape] Allocates new Bitmap
-     * via [generateShapedShadowLayer]
+     * via [createIconShape]
      */
     fun generateIconShape(iconSize: Int) {
-        iconShapeData = iconShape.createIconShape(iconSize)
+        if (iconShapeData.value.pathSize == iconSize) return
+        _iconShapeData.dispatchValue(iconShape.createIconShape(iconSize))
     }
 
     private fun parseIconState(oldState: IconState?): IconState {
@@ -135,9 +144,9 @@ constructor(
                 pickBestShape(iconMask)
             }
 
-        if (oldState?.iconShape != iconShape) {
-            // Size should be the same, but need to store new shape.
-            iconShapeData = iconShape.createIconShape(iconShapeData.pathSize)
+        if (oldState?.iconMask != iconMask) {
+            // Create only if shape changed.
+            _iconShapeData.dispatchValue(iconShape.createIconShape(iconShapeData.value.pathSize))
         }
 
         val folderRadius = shapeModel?.folderRadiusRatio ?: 1f
