@@ -334,7 +334,7 @@ public class AllSetActivity extends Activity {
             public void onAnimationUpdate(ValueAnimator animation) {
                 float transY = (float) animation.getAnimatedValue();
                 View.TRANSLATION_Y.set(content, transY);
-                mWallpaperClipPath.setClipTranslationY(transY);
+                mWallpaperClipPath.setClipTranslationY(transY, animation.getAnimatedFraction());
                 StashedHandleViewController controller = getStashedHandleViewController();
                 if (controller != null) {
                     controller.setTranslationYForSwipe(transY);

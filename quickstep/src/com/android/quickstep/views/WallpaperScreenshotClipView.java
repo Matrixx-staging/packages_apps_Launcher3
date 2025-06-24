@@ -46,6 +46,7 @@ import android.window.ScreenCaptureInternal;
 import androidx.core.content.ContextCompat;
 
 import com.android.launcher3.R;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.util.CancellableTask;
 
 /**
@@ -58,10 +59,13 @@ public class WallpaperScreenshotClipView extends FrameLayout {
 
     private static final int COLOR_ALPHA_DURATION_MS = 25;
     private static final float CLIP_TRANSLATION_MULTIPLIER = 0.55f;
-    private static final float MAX_ARROW_SCALE = 20f;
+    private static final float MAX_ARROW_SCALE = 40f;
     private static final float INITIAL_ARROW_SCALE = 2.4100475221f;
 
     // Temporary hard coded values
+
+    private static final int MIN_CLIP_TRANSLATE_Y = 200;
+    private static final int MAX_CLIP_TRANSLATE_Y = 2000;
     private static final float ARROW_OFFSET_Y_PX = 700f;
     private ImageView mWallpaperView;
     private View mColorOverlay;
@@ -73,7 +77,11 @@ public class WallpaperScreenshotClipView extends FrameLayout {
     private final Matrix mScaleMatrix = new Matrix();
     private final Matrix mInvertScaleMatrix = new Matrix();
 
+    // Keeps the arrow centered in the middle
     private float mClipTranslationY;
+
+    // Briefly moves the arrow upwards in the first part of the animation
+    private float mClipTranslateYUpwards;
 
     private final int mWindowWidth;
     private final int mWindowHeight;
@@ -153,9 +161,12 @@ public class WallpaperScreenshotClipView extends FrameLayout {
         if (mCurrentClipPath != null) {
             mCurrentClipPath.computeBounds(mBounds);
         }
+
         float transX = (getWidth() - mBounds.width()) / 2;
         float transY = (getHeight() - mBounds.height()) / 2
-                + mClipTranslationY + ARROW_OFFSET_Y_PX
+                - mClipTranslationY
+                + ARROW_OFFSET_Y_PX
+                + mClipTranslateYUpwards
                 - ((mBounds.height() - mOriginalBounds.height()) / 2);
         if (mCurrentClipPath != null) {
             mCurrentClipPath.offset(transX, transY);
@@ -171,8 +182,10 @@ public class WallpaperScreenshotClipView extends FrameLayout {
     /**
      * Sets the {@code translationY} of the clipped views.
      */
-    public void setClipTranslationY(float translationY) {
+    public void setClipTranslationY(float translationY, float progress) {
         mClipTranslationY = translationY * CLIP_TRANSLATION_MULTIPLIER;
+        mClipTranslateYUpwards = -Math.min(MIN_CLIP_TRANSLATE_Y,
+                Utilities.mapToRange(progress, 0, 1, 0, MAX_CLIP_TRANSLATE_Y, LINEAR));
         invalidate();
     }
 
