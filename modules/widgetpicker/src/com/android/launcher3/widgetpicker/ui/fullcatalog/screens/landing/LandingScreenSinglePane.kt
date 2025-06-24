@@ -68,6 +68,7 @@ import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.Landing
 import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.LandingScreenSinglePaneTestTags.FEATURED_WIDGETS_TAB_TEST_TAG
 import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.LandingScreenSinglePaneTestTags.PERSONAL_WIDGETS_TAB_TEST_TAG
 import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.LandingScreenSinglePaneTestTags.WORK_WIDGETS_TAB_TEST_TAG
+import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.LandingScreenSinglePaneTestTags.PERSONAL_WIDGETS_LIST_TEST_TAG
 import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -142,7 +143,9 @@ fun LandingScreenSinglePane(
                     PERSONAL_TAB_INDEX -> {
                         Box(modifier = Modifier.fillMaxSize()) {
                             WidgetAppsList(
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier
+                                    .widgetPickerTestTag(PERSONAL_WIDGETS_LIST_TEST_TAG)
+                                    .fillMaxSize(),
                                 widgetApps = browseWidgetsState.personalWidgetApps,
                                 selectedWidgetAppId = selectedPersonalWidgetAppId,
                                 widgetAppHeaderStyle = WidgetAppHeaderStyle.EXPANDABLE,
@@ -295,11 +298,12 @@ private object LandingScreenSinglePaneDimens {
     val bottomTabsBottomPadding = 8.dp
 
     // Single pane always shows floating tabs over the content; hence has a static bottom spacing.
-    val contentBottomEdgeSpacing = 70.dp
+    val contentBottomEdgeSpacing = 75.dp
 }
 
 private object LandingScreenSinglePaneTestTags {
     const val FEATURED_WIDGETS_TAB_TEST_TAG = "featured_widgets_tab"
     const val PERSONAL_WIDGETS_TAB_TEST_TAG = "personal_widgets_tab"
     const val WORK_WIDGETS_TAB_TEST_TAG = "work_widgets_tab"
+    const val PERSONAL_WIDGETS_LIST_TEST_TAG = "personal_widgets_list"
 }

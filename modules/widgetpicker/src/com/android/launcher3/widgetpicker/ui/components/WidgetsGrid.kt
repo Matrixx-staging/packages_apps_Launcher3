@@ -34,6 +34,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
+import androidx.compose.ui.semantics.text
 import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
@@ -237,7 +238,10 @@ private fun Details(
             onWidgetAddClick = onWidgetInteraction,
             onAddButtonToggle = onAddButtonToggle,
             modifier =
-                Modifier.semantics(mergeDescendants = true) { traversalIndex = index.toFloat() },
+                Modifier.semantics(mergeDescendants = true) {
+                    traversalIndex = index.toFloat()
+                    testTag = buildWidgetPickerTestTag(WIDGET_DETAILS_TEST_TAG)
+                },
         )
     }
 }
@@ -455,3 +459,4 @@ private object WidgetGridDimensions {
 }
 
 private const val WIDGET_PREVIEW_TEST_TAG = "widget_preview"
+private const val WIDGET_DETAILS_TEST_TAG = "widget_details"

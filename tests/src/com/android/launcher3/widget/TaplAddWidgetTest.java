@@ -17,7 +17,7 @@ package com.android.launcher3.widget;
 
 import static org.junit.Assert.assertNotNull;
 
-import android.platform.test.annotations.DisableFlags;
+import android.platform.test.annotations.EnableFlags;
 import android.platform.test.annotations.PlatinumTest;
 import android.platform.test.flag.junit.SetFlagsRule;
 import android.view.View;
@@ -56,7 +56,7 @@ public class TaplAddWidgetTest extends AbstractLauncherUiTest<Launcher, View> {
 
     @Test
     @PortraitLandscape
-    @DisableFlags(Flags.FLAG_ENABLE_WIDGET_PICKER_REFACTOR)
+    @EnableFlags(Flags.FLAG_ENABLE_WIDGET_PICKER_REFACTOR)
     public void testDragIcon() throws Throwable {
         commitTransactionAndLoadHome(new FavoriteItemsTransaction(mTargetContext));
 
@@ -88,13 +88,11 @@ public class TaplAddWidgetTest extends AbstractLauncherUiTest<Launcher, View> {
      */
     @Test
     @PortraitLandscape
-    @DisableFlags(Flags.FLAG_ENABLE_WIDGET_PICKER_REFACTOR)
+    @EnableFlags(Flags.FLAG_ENABLE_WIDGET_PICKER_REFACTOR)
     public void testDragCustomShortcut() throws Throwable {
-        // TODO(b/322820039): Enable test for tablets - the picker UI has changed and test needs to
-        //  be updated to look for appropriate UI elements.
-        Assume.assumeFalse("Ignoring test because device is not a phone",
-            mLauncher.isTablet());
         commitTransactionAndLoadHome(new FavoriteItemsTransaction(mTargetContext));
+
+        waitForLauncherCondition("Workspace didn't finish loading", l -> !l.isWorkspaceLoading());
 
         mLauncher.getWorkspace().openAllWidgets()
                 .getWidget("com.android.launcher3.testcomponent.CustomShortcutConfigActivity")
@@ -108,7 +106,7 @@ public class TaplAddWidgetTest extends AbstractLauncherUiTest<Launcher, View> {
      */
     @PlatinumTest(focusArea = "launcher")
     @Test
-    @DisableFlags(Flags.FLAG_ENABLE_WIDGET_PICKER_REFACTOR)
+    @EnableFlags(Flags.FLAG_ENABLE_WIDGET_PICKER_REFACTOR)
     public void testResizeWidget() throws Throwable {
         commitTransactionAndLoadHome(new FavoriteItemsTransaction(mTargetContext));
 
