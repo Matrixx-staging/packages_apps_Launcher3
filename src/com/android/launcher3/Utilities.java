@@ -699,7 +699,7 @@ public final class Utilities {
                 if (info.id != ItemInfo.NO_ID && badge == null) {
                     ThemeManager themeManager = ThemeManager.INSTANCE.get(context);
                     BitmapInfo badgeInfo = appState.getIconCache().getShortcutInfoBadge(si);
-                    IconShape shape = themeManager.getIconShapeData();
+                    IconShape shape = themeManager.getIconShapeData().getValue();
 
                     int flags = ThemeManager.INSTANCE.get(context).isIconThemeEnabled()
                             ? FLAG_THEMED : 0;

@@ -327,7 +327,7 @@ public abstract class ItemInfoWithIcon extends ItemInfo {
         IconShape iconShape = null;
         if (Flags.enableLauncherIconShapes()) {
             if ((creationFlags & FLAG_THEMED) != 0) {
-                iconShape = themeManager.getIconShapeData();
+                iconShape = themeManager.getIconShapeData().getValue();
             }
         }
         if (!themeManager.isIconThemeEnabled()) {
