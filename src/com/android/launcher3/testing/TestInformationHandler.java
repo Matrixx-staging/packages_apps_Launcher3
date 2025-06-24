@@ -40,6 +40,7 @@ import android.system.Os;
 import android.view.WindowInsets;
 
 import androidx.annotation.Keep;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.LifecycleOwner;
@@ -456,7 +457,7 @@ public class TestInformationHandler implements ResourceBasedOverride {
                     response.putStringArray(TestProtocol.TEST_INFO_RESPONSE_FIELD,
                             sUiSurfaces.stream()
                                     .map(
-                                            s -> s.getClass().getSimpleName() + " ("
+                                            s -> getName(s) + " ("
                                                     + (
                                                     s.getLifecycle().getCurrentState() == DESTROYED
                                                             ? "destroyed" : "current") + ")")
@@ -471,6 +472,13 @@ public class TestInformationHandler implements ResourceBasedOverride {
             default:
                 return null;
         }
+    }
+
+    @NonNull
+    private static String getName(LifecycleOwner s) {
+        final Class aClass = s.getClass();
+        final String simpleName = aClass.getSimpleName();
+        return simpleName.isEmpty() ? aClass.getTypeName() : simpleName;
     }
 
     private static Rect getDescendantRectRelativeToDragLayerForCell(Launcher launcher,
