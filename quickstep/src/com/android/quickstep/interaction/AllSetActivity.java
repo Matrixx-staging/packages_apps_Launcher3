@@ -163,8 +163,7 @@ public class AllSetActivity extends Activity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         String SUWTheme = SystemProperties.get(SUW_THEME_SYSTEM_PROPERTY, "");
         mIsExpressiveThemeEnabledInSUW = SUWTheme.equals(GLIF_EXPRESSIVE_THEME)
-                || SUWTheme.equals(GLIF_EXPRESSIVE_LIGHT_THEME)
-                || Flags.enableNewAllSetAnimation();
+                || SUWTheme.equals(GLIF_EXPRESSIVE_LIGHT_THEME);
         if (mIsExpressiveThemeEnabledInSUW) setTheme(R.style.AllSetTheme_Expressive);
 
         super.onCreate(savedInstanceState);
