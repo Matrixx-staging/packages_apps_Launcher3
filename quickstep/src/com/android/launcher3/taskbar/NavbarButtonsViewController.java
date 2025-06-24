@@ -108,6 +108,7 @@ import com.android.launcher3.taskbar.navbutton.NavButtonLayoutFactory;
 import com.android.launcher3.taskbar.navbutton.NavButtonLayoutFactory.NavButtonLayoutter;
 import com.android.launcher3.taskbar.navbutton.NearestTouchFrame;
 import com.android.launcher3.util.DimensionUtils;
+import com.android.launcher3.util.LockedUserState;
 import com.android.launcher3.util.MultiPropertyFactory.MultiProperty;
 import com.android.launcher3.util.MultiValueAlpha;
 import com.android.launcher3.util.SettingsCache;
@@ -269,6 +270,8 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         getLayoutterForCurrentState().addThreeButtons();
     };
 
+    private final boolean mIsUserUnlocked;
+
     public NavbarButtonsViewController(TaskbarActivityContext context,
             @Nullable Context navigationBarPanelContext, NearestTouchFrame navButtonsView,
             Handler handler) {
@@ -293,6 +296,8 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         String SUWTheme = SystemProperties.get(SUW_THEME_SYSTEM_PROPERTY, "");
         mIsExpressiveThemeEnabled = SUWTheme.equals(GLIF_EXPRESSIVE_THEME)
                 || SUWTheme.equals(GLIF_EXPRESSIVE_LIGHT_THEME);
+
+        mIsUserUnlocked = LockedUserState.get(context).isUserUnlocked();
     }
 
     /**
@@ -358,14 +363,13 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
 
         // Potentially force the back button to be visible during setup wizard. The back button
         // won't show up if the expressive theme is enabled and simple view is disabled
-        boolean shouldShowInSetup = !mContext.isUserSetupComplete()
+        final boolean shouldShowInSetup = !mContext.isUserSetupComplete()
                 && (!mIsExpressiveThemeEnabled || mContext.isSimpleViewEnabled());
-        boolean isInKidsMode = mContext.isNavBarKidsModeActive();
-        boolean alwaysShowButtons = isThreeButtonNav || shouldShowInSetup;
+        final boolean alwaysShowButtons = isThreeButtonNav || shouldShowInSetup;
 
         // Make sure to remove nav bar buttons translation when any of the following occur:
         // - Notification shade is expanded
-        // - IME is visible (add separate translation for IME)
+        // - IME is visible (e.g. when editing a Folder name)
         // - VoiceInteractionWindow (assistant) is showing
         // - Keyboard shortcuts helper is showing
         if (!isPhoneMode) {
@@ -374,14 +378,6 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
             mPropertyHolders.add(new StatePropertyHolder(mNavButtonInAppDisplayProgressForSysui,
                     flags -> (flags & flagsToRemoveTranslation) != 0, AnimatedFloat.VALUE,
                     1, 0));
-            // Center nav buttons in new height for IME.
-            float transForIme = (mContext.getDeviceProfile().getTaskbarProfile().getHeight()
-                    - mControllers.taskbarInsetsController.getTaskbarHeightForIme()) / 2f;
-            // For gesture nav, nav buttons only show for IME anyway so keep them translated down.
-            float defaultButtonTransY = alwaysShowButtons ? 0 : transForIme;
-            mPropertyHolders.add(new StatePropertyHolder(mTaskbarNavButtonTranslationYForIme,
-                    flags -> (flags & FLAG_IME_VISIBLE) != 0 && !isInKidsMode, AnimatedFloat.VALUE,
-                    transForIme, defaultButtonTransY));
 
             mPropertyHolders.add(new StatePropertyHolder(
                     mOnBackgroundNavButtonColorOverrideMultiplier,
@@ -569,7 +565,8 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         return ((flags & FLAG_KEYGUARD_VISIBLE) == 0
                 || (flags & FLAG_KEYGUARD_OCCLUDED) != 0)
                 && (flags & FLAG_DISABLE_HOME) == 0
-                && !mContext.isGestureNav();
+                && !mContext.isGestureNav()
+                && mIsUserUnlocked;
     }
 
     private void parseSystemUiFlags(@SystemUiStateFlags long sysUiStateFlags) {

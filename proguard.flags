@@ -10,14 +10,6 @@
 -keep,allowshrinking,allowoptimization class com.android.quickstep.** {*;}
 -keepclasseswithmembernames class com.android.quickstep.** {*;}
 
-# Keep parcelable Bubble classes that are sent from WM Shell
--keep class com.android.wm.shell.shared.split.SplitBounds {*;}
--keep class com.android.wm.shell.shared.bubbles.BubbleBarUpdate
--keep class com.android.wm.shell.shared.bubbles.BubbleInfo
--keep class com.android.wm.shell.shared.bubbles.ParcelableFlyoutMessage
--keep class com.android.wm.shell.shared.bubbles.RemovedBubble
-
-
 # Proguard will strip methods required for talkback to properly scroll to
 # next row when focus is on the last item of last row when using a RecyclerView
 # Keep optimized and shrunk proguard to prevent issues like this when using
@@ -38,9 +30,12 @@
 }
 
 # Rules for internal proto classes
+# Prevent optimization or access modification of any referenced code that may
+# conflict with code in the bootclasspath.
+# TODO(b/222468116): Resolve such collisions in the build system.
 -keep interface com.android.launcher3.userevent.nano.LauncherLogProto.** {*;}
 -keep interface com.android.launcher3.model.nano.LauncherDumpProto.** {*;}
--keep class com.android.internal.protolog.** {*;}
+-keep interface com.android.internal.protolog.common.IProtoLogGroup { *; }
 
 # Do not optimize animation methods that are using reflection
 -keep class com.android.launcher3.allapps.DiscoveryBounce$VerticalProgressWrapper {
@@ -61,6 +56,3 @@
 # platform version.  We know about them, and they are safe.
 -dontwarn android.support.**
 -dontwarn org.apache.http.**
-
-# Ignore warnings for hidden utility classes referenced from the shared lib
--dontwarn com.android.internal.util.**

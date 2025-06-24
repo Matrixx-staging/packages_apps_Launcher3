@@ -15,6 +15,7 @@
  */
 package com.android.launcher3.secondarydisplay;
 
+import static android.view.MotionEvent.CLASSIFICATION_TWO_FINGER_SWIPE;
 import static android.view.View.MeasureSpec.EXACTLY;
 import static android.view.View.MeasureSpec.makeMeasureSpec;
 
@@ -39,6 +40,7 @@ import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.popup.PopupContainerWithArrow;
 import com.android.launcher3.popup.PopupDataProvider;
 import com.android.launcher3.popup.SystemShortcut;
+import com.android.launcher3.touch.SingleAxisSwipeDetector;
 import com.android.launcher3.util.ApiWrapper;
 import com.android.launcher3.util.ShortcutUtil;
 import com.android.launcher3.util.TouchController;
@@ -72,13 +74,13 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
 
         if (statusBarController != null) {
             mControllers = new TouchController[]{
-                new CloseAllAppsTouchController(),
+                new SecondaryDisplayAllAppsTouchController(),
                 mContainer.getDragController(),
                 statusBarController
             };
         } else {
             mControllers = new TouchController[]{
-                new CloseAllAppsTouchController(),
+                new SecondaryDisplayAllAppsTouchController(),
                 mContainer.getDragController()
             };
         }
@@ -165,15 +167,48 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
         }
     }
 
-    private class CloseAllAppsTouchController implements TouchController {
+    private class SecondaryDisplayAllAppsTouchController implements TouchController {
+
+        private final SingleAxisSwipeDetector mSwipeDetector;
+
+        public SecondaryDisplayAllAppsTouchController() {
+            mSwipeDetector = new SingleAxisSwipeDetector(
+                    getContext(),
+                    new SingleAxisSwipeDetector.Listener() {
+                        @Override
+                        public void onDragStart(boolean start, float startDisplacement) {
+                            mContainer.getSecondaryDisplayDelegate().openAllAppsForDisplay(
+                                            mContainer.getAppsView().getDisplay().getDisplayId());
+                        }
+
+                        @Override
+                        public boolean onDrag(float displacement) {
+                            return false;
+                        }
+
+                        @Override
+                        public void onDragEnd(float velocity) {}
+                    },
+                    SingleAxisSwipeDetector.VERTICAL
+            );
+            mSwipeDetector.setDetectableScrollConditions(
+                    SingleAxisSwipeDetector.DIRECTION_POSITIVE, false /* ignoreSlop */);
+        }
 
         @Override
         public boolean onControllerTouchEvent(MotionEvent ev) {
-            return false;
+            if (!usingTwoFingerSwipeOnConnectedDisplay(ev)) {
+                return false;
+            }
+            return mSwipeDetector.onTouchEvent(ev);
         }
 
         @Override
         public boolean onControllerInterceptTouchEvent(MotionEvent ev) {
+            if (usingTwoFingerSwipeOnConnectedDisplay(ev)) {
+                return true;
+            }
+
             if (!mContainer.isAppDrawerShown()) {
                 return false;
             }
@@ -188,6 +223,11 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
                 return true;
             }
             return false;
+        }
+
+        private boolean usingTwoFingerSwipeOnConnectedDisplay(MotionEvent ev) {
+            return ev.getClassification() == CLASSIFICATION_TWO_FINGER_SWIPE
+                    && mContainer.getSecondaryDisplayDelegate().enableTaskbarConnectedDisplays();
         }
     }
 

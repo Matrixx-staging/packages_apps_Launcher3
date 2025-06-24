@@ -24,7 +24,10 @@ import com.android.launcher3.appprediction.AppsDividerView;
 import com.android.launcher3.appprediction.PredictionRowView;
 import com.android.launcher3.dagger.ActivityContextSingleton;
 import com.android.launcher3.model.data.PredictedContainerInfo;
+import com.android.launcher3.taskbar.TaskbarActivityContext;
+import com.android.launcher3.taskbar.TaskbarManager;
 import com.android.launcher3.views.ActivityContext;
+import com.android.quickstep.util.TISBindHelper;
 
 import javax.inject.Inject;
 
@@ -36,11 +39,13 @@ public final class SecondaryDisplayQuickstepDelegateImpl extends SecondaryDispla
 
     private final ActivityContext mActivityContext;
     private final Context mContext;
+    private final TISBindHelper mTISBindHelper;
 
     @Inject
     public SecondaryDisplayQuickstepDelegateImpl(ActivityContext activityContext) {
         mContext = activityContext.asContext();
         mActivityContext = activityContext;
+        mTISBindHelper = new TISBindHelper(mContext, v -> {});
     }
 
     @Override
@@ -62,4 +67,18 @@ public final class SecondaryDisplayQuickstepDelegateImpl extends SecondaryDispla
     boolean enableTaskbarConnectedDisplays() {
         return DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue();
     }
+
+    @Override
+    void openAllAppsForDisplay(int displayId) {
+        TaskbarManager taskbarManager = mTISBindHelper.getTaskbarManager();
+        if (taskbarManager == null) {
+            return;
+        }
+        TaskbarActivityContext currentDisplayTaskbarContext =
+                taskbarManager.getTaskbarForDisplay(displayId);
+        if (currentDisplayTaskbarContext != null) {
+            currentDisplayTaskbarContext.openTaskbarAllApps();
+        }
+    }
+
 }

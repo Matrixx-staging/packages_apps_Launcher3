@@ -222,7 +222,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
             return;
         }
         ScalingWorkspaceRevealAnim anim =
-                new ScalingWorkspaceRevealAnim(mLauncher, null, null, true);
+                new ScalingWorkspaceRevealAnim(mLauncher, null, null, true, false);
         as.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {

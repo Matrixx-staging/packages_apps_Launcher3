@@ -25,12 +25,12 @@ import static com.android.app.animation.Interpolators.LINEAR;
 import static com.android.launcher3.Utilities.mapBoundToRange;
 import static com.android.launcher3.Utilities.mapRange;
 import static com.android.launcher3.Utilities.mapToRange;
+import static com.android.launcher3.taskbar.StashedHandleViewController.ALPHA_INDEX_ALL_SET_TRANSITION;
 import static com.android.quickstep.OverviewComponentObserver.startHomeIntentSafely;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.Context;
@@ -78,6 +78,7 @@ import com.android.launcher3.RemoveAnimationSettingsTracker;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.anim.AnimatorPlaybackController;
+import com.android.launcher3.taskbar.StashedHandleViewController;
 import com.android.launcher3.taskbar.TaskbarManager;
 import com.android.launcher3.util.Executors;
 import com.android.quickstep.GestureState;
@@ -333,14 +334,30 @@ public class AllSetActivity extends Activity {
             public void onAnimationUpdate(ValueAnimator animation) {
                 float transY = (float) animation.getAnimatedValue();
                 View.TRANSLATION_Y.set(content, transY);
-                mWallpaperClipPath.setClipTranslationY(transY);
-                setStashedHandleTranslationY(transY);
+                mWallpaperClipPath.setClipTranslationY(transY, animation.getAnimatedFraction());
+                StashedHandleViewController controller = getStashedHandleViewController();
+                if (controller != null) {
+                    controller.setTranslationYForSwipe(transY);
+                }
             }
         });
 
-        ObjectAnimator alpha = ObjectAnimator.ofFloat(mHintView, View.ALPHA, 1, 0);
+        ValueAnimator alpha = ValueAnimator.ofFloat(1, 0);
         alpha.setDuration(10);
         alpha.setInterpolator(LINEAR);
+        alpha.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                float alpha = (float) valueAnimator.getAnimatedValue();
+                mHintView.setAlpha(alpha);
+                StashedHandleViewController controller = getStashedHandleViewController();
+                if (controller != null) {
+                    controller.getStashedHandleAlpha()
+                            .get(ALPHA_INDEX_ALL_SET_TRANSITION)
+                            .setValue(alpha);
+                }
+            }
+        });
 
         AnimatorSet as = new AnimatorSet();
         mWallpaperClipPath.addClipAnimation(as);
@@ -349,20 +366,27 @@ public class AllSetActivity extends Activity {
         as.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                setStashedHandleTranslationY(0f);
+                StashedHandleViewController controller = getStashedHandleViewController();
+                if (controller != null) {
+                    controller.setTranslationYForSwipe(0);
+                    controller.getStashedHandleAlpha()
+                            .get(ALPHA_INDEX_ALL_SET_TRANSITION)
+                            .setValue(1f);
+                }
             }
         });
         return as;
     }
 
-    private void setStashedHandleTranslationY(float transY) {
+    private @Nullable StashedHandleViewController getStashedHandleViewController() {
         if (mTISBindHelper != null) {
             TaskbarManager taskbarManager = mTISBindHelper.getTaskbarManager();
             if (taskbarManager != null) {
-                taskbarManager.getCurrentActivityContext().getControllers()
-                        .stashedHandleViewController.setTranslationYForSwipe(transY);
+                return taskbarManager.getCurrentActivityContext()
+                        .getControllers().stashedHandleViewController;
             }
         }
+        return null;
     }
 
     @Override

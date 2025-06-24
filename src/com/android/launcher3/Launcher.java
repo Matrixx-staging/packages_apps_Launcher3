@@ -27,7 +27,6 @@ import static com.android.launcher3.AbstractFloatingView.TYPE_REBIND_SAFE;
 import static com.android.launcher3.AbstractFloatingView.TYPE_WIDGETS_FULL_SHEET;
 import static com.android.launcher3.AbstractFloatingView.getTopOpenViewWithType;
 import static com.android.launcher3.Flags.allAppsBlur;
-import static com.android.launcher3.Flags.enableAddAppWidgetViaConfigActivityV2;
 import static com.android.launcher3.Flags.enableLongPressRemoveShortcut;
 import static com.android.launcher3.LauncherAnimUtils.HOTSEAT_SCALE_PROPERTY_FACTORY;
 import static com.android.launcher3.LauncherAnimUtils.SCALE_INDEX_WIDGET_TRANSITION;
@@ -942,12 +941,9 @@ public class Launcher extends StatefulActivity<LauncherState>
             animationType = Workspace.COMPLETE_TWO_STAGE_WIDGET_DROP_ANIMATION;
 
             // Now that we are exiting the config activity with RESULT_OK.
-            // If FLAG_ENABLE_ADD_APP_WIDGET_VIA_CONFIG_ACTIVITY_V2 is enabled, we can retrieve the
-            // PendingAppWidgetHostView from LauncherWidgetHolder (it was added to
+            // We retrieve the PendingAppWidgetHostView from LauncherWidgetHolder (it was added to
             // LauncherWidgetHolder when starting the config activity).
-            final AppWidgetHostView layout = enableAddAppWidgetViaConfigActivityV2()
-                    ? getWorkspace().getWidgetForAppWidgetId(appWidgetId)
-                    : mAppWidgetHolder.createView(appWidgetId,
+            final AppWidgetHostView layout = mAppWidgetHolder.createView(appWidgetId,
                             requestArgs.getWidgetHandler().getProviderInfo(this));
             boundWidget = layout;
             onCompleteRunnable = () -> {
@@ -1445,7 +1441,7 @@ public class Launcher extends StatefulActivity<LauncherState>
 
         hostView.setVisibility(View.VISIBLE);
         mItemInflater.prepareAppWidget(hostView, launcherInfo);
-        if (!enableAddAppWidgetViaConfigActivityV2() || hostView.getParent() == null) {
+        if (hostView.getParent() == null) {
             mWorkspace.addInScreen(hostView, launcherInfo);
         }
 
@@ -1765,10 +1761,6 @@ public class Launcher extends StatefulActivity<LauncherState>
             AppWidgetHostView boundWidget, WidgetAddFlowHandler addFlowHandler, int delay) {
         final boolean isActivityStarted = addFlowHandler.startConfigActivity(
                 this, appWidgetId, info, REQUEST_CREATE_APPWIDGET);
-
-        if (!enableAddAppWidgetViaConfigActivityV2() && isActivityStarted) {
-            return;
-        }
 
         // If FLAG_ENABLE_ADD_APP_WIDGET_VIA_CONFIG_ACTIVITY_V2 is enabled and config activity is
         // started, we should remove the dropped AppWidgetHostView from drag layer and extract the
@@ -2823,6 +2815,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         return mScrimView;
     }
 
+    @Nullable
     public LauncherWidgetHolder getAppWidgetHolder() {
         return mAppWidgetHolder;
     }

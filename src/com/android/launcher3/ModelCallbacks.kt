@@ -76,7 +76,8 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         launcher.workspace.clearDropTargets()
         launcher.workspace.removeAllWorkspaceScreens()
         // Avoid clearing the widget update listeners for staying up-to-date with widget info
-        launcher.appWidgetHolder.clearWidgetViews()
+        launcher.appWidgetHolder?.also { it.clearWidgetViews() }
+            ?: Log.e(TAG, "appWidgetHolder is null, cannot clear widget views.")
         // TODO(b/335141365): Remove this log after the bug is fixed.
         Log.d(
             TAG,

@@ -45,4 +45,7 @@ public class SecondaryDisplayDelegate {
     boolean enableTaskbarConnectedDisplays() {
         return false;
     }
+
+    void openAllAppsForDisplay(int displayId) {
+    }
 }

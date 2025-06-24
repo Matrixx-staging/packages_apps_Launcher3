@@ -203,15 +203,12 @@ public class PreviewSurfaceRenderer {
             mSurfacePackage = null;
         }
         mSurfaceControlViewHost.release();
-        MAIN_EXECUTOR.execute(this::destroyExistingRenderer);
-    }
-
-    @UiThread
-    private void destroyExistingRenderer() {
-        if (mCurrentRenderer != null) {
-            mCurrentRenderer.onViewDestroyed();
-        }
-        mCurrentRenderer = null;
+        MAIN_EXECUTOR.execute(() -> {
+            if (mCurrentRenderer != null) {
+                mCurrentRenderer.onViewDestroyed();
+            }
+            mCurrentRenderer = null;
+        });
     }
 
     /**
@@ -272,7 +269,6 @@ public class PreviewSurfaceRenderer {
      */
     @UiThread
     private void recreatePreviewRenderer() {
-        destroyExistingRenderer();
         if (mDestroyed) return;
         ContextThemeWrapper context = new ContextThemeWrapper(
                 mPreviewContext, Themes.getActivityThemeRes(mPreviewContext));
@@ -312,12 +308,19 @@ public class PreviewSurfaceRenderer {
                             .generateColorsOverride(wallpaperColors);
         }
 
+        final LauncherPreviewRenderer oldRenderer = mCurrentRenderer;
         LauncherPreviewRenderer renderer = new LauncherPreviewRenderer(
                 context, mWorkspacePageId,
                 wallpaperColorResources, mAppComponent.getModel(), themeRes);
         renderer.hideBottomRow(mHideQsb);
-        Future<?> unused = renderer.initialRender
+
+        CompletableFuture<Void> renderTask = renderer.initialRender
                 .thenAcceptAsync(this::setContentRoot, MAIN_EXECUTOR);
+        if (oldRenderer != null) {
+            Future<?> unused = CompletableFuture.anyOf(renderTask)
+                    .completeOnTimeout(null, 10, TimeUnit.SECONDS)
+                    .thenRunAsync(oldRenderer::onViewDestroyed, MAIN_EXECUTOR);
+        }
         mCurrentRenderer = renderer;
     }
 
