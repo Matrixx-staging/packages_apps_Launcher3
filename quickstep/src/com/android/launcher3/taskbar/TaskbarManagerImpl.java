@@ -18,7 +18,6 @@ package com.android.launcher3.taskbar;
 import static android.content.Context.RECEIVER_EXPORTED;
 import static android.content.Context.RECEIVER_NOT_EXPORTED;
 import static android.content.pm.PackageManager.FEATURE_FREEFORM_WINDOW_MANAGEMENT;
-import static android.content.pm.PackageManager.FEATURE_PC;
 import static android.os.Process.THREAD_PRIORITY_FOREGROUND;
 import static android.view.WindowManager.LayoutParams.TYPE_NAVIGATION_BAR;
 import static android.view.WindowManager.LayoutParams.TYPE_NAVIGATION_BAR_PANEL;
@@ -101,17 +100,11 @@ import com.android.quickstep.RecentsActivity;
 import com.android.quickstep.SystemDecorationChangeObserver;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.util.ContextualSearchInvoker;
-import com.android.quickstep.util.GroupTask;
 import com.android.quickstep.views.RecentsViewContainer;
 import com.android.quickstep.window.RecentsWindowManager;
-import com.android.server.am.Flags;
-import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.statusbar.phone.BarTransitions;
-import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.shared.system.QuickStepContract;
 import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags;
-import com.android.systemui.shared.system.TaskStackChangeListener;
-import com.android.systemui.shared.system.TaskStackChangeListeners;
 import com.android.systemui.unfold.UnfoldTransitionProgressProvider;
 import com.android.systemui.unfold.util.ScopedUnfoldTransitionProgressProvider;
 
@@ -122,7 +115,6 @@ import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
@@ -202,10 +194,6 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
     private final SparseArray<DeviceProfile> mExternalDeviceProfiles = new SparseArray<>();
     private StatefulActivity mActivity;
     private RecentsViewContainer mRecentsViewContainer;
-    /** Whether this device is a desktop android device **/
-    private boolean mIsAndroidPC;
-    /** Whether this device supports freeform windows management. Can change dynamically **/
-    private boolean mSupportsFreeformWindowsManagement;
 
     /**
      * Cache a copy here so we can initialize state whenever taskbar is recreated, since
@@ -240,7 +228,6 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
             }
             if ((flags & CHANGE_DESKTOP_MODE) != 0) {
                 debugTaskbarManager("onDisplayInfoChanged: Desktop mode changed", displayId);
-                handleDisplayUpdatesForPerceptibleTasks();
             }
             if ((flags & CHANGE_TASKBAR_PINNING) != 0) {
                 debugTaskbarManager("onDisplayInfoChanged: Taskbar pinning changed", displayId);
@@ -284,70 +271,6 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
         debugPrimaryTaskbar("Settings changed! Recreating Taskbar!");
         recreateTaskbars();
     };
-
-    private PerceptibleTaskListener mTaskStackListener;
-
-    private class PerceptibleTaskListener implements TaskStackChangeListener {
-        private ArraySet<Integer> mPerceptibleTasks = new ArraySet<Integer>();
-
-        @Override
-        public void onTaskMovedToFront(int taskId) {
-            // This listens to any Task, so we filter them by the ones shown in the launcher.
-            // For Tasks restored after startup, they will by default not be Perceptible, and no
-            // need to until user interacts with it by bringing it to the foreground.
-            for (Entry<Integer, TaskbarActivityContext> entry : mTaskbars.entrySet()) {
-                // get pinned tasks - we care about all tasks, not just the one moved to the front
-                Set<Integer> taskbarPinnedTasks =
-                        entry.getValue().getControllers().taskbarViewController
-                                .getShownTaskIds();
-
-                // filter out tasks already marked as perceptible
-                taskbarPinnedTasks.removeAll(mPerceptibleTasks);
-
-                // add the filtered tasks as perceptible
-                for (int pinnedTaskId : taskbarPinnedTasks) {
-                    ActivityManagerWrapper.getInstance()
-                            .setTaskIsPerceptible(pinnedTaskId, true);
-                    mPerceptibleTasks.add(pinnedTaskId);
-                }
-            }
-        }
-
-        /**
-         * Launcher also can display recently launched tasks that are not pinned. Also add
-         * these as perceptible
-         */
-        @Override
-        public void onRecentTaskListUpdated() {
-            for (Entry<Integer, TaskbarActivityContext> entry : mTaskbars.entrySet()) {
-                for (GroupTask gTask : entry.getValue().getControllers()
-                        .taskbarRecentAppsController.getShownTasks()) {
-                    for (Task task : gTask.getTasks()) {
-                        int taskId = task.key.id;
-
-                        if (!mPerceptibleTasks.contains(taskId)) {
-                            ActivityManagerWrapper.getInstance()
-                                    .setTaskIsPerceptible(taskId, true);
-                            mPerceptibleTasks.add(taskId);
-                        }
-                    }
-                }
-            }
-        }
-
-        @Override
-        public void onTaskRemoved(int taskId) {
-            mPerceptibleTasks.remove(taskId);
-        }
-
-        public void unregisterListener() {
-            for (Integer taskId : mPerceptibleTasks) {
-                ActivityManagerWrapper.getInstance().setTaskIsPerceptible(taskId, false);
-            }
-            TaskStackChangeListeners.getInstance().unregisterTaskStackListener(
-                    mTaskStackListener);
-        }
-    }
 
     private final DesktopVisibilityController.TaskbarDesktopModeListener
             mTaskbarDesktopModeListener =
@@ -514,16 +437,6 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
             mGrowthBroadcastReceiver = null;
         }
 
-        mIsAndroidPC = getPrimaryWindowContext().getPackageManager().hasSystemFeature(FEATURE_PC);
-        mSupportsFreeformWindowsManagement = getFreeformWindowsManagementInfo();
-
-        if (eligibleForPerceptibleTasks()) {
-            mTaskStackListener = new PerceptibleTaskListener();
-            TaskStackChangeListeners.getInstance().registerTaskStackListener(mTaskStackListener);
-        } else {
-            mTaskStackListener = null;
-        }
-
         // Only initialize this context when the user is truly locked. Thus, check unlock state
         // separately from mUserUnlocked, which starts at false until TIS calls onUserUnlocked().
         // TIS can recreate after the user is unlocked, where it notifies unlock immediately. Also,
@@ -553,25 +466,6 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
 
     public LooperExecutor getPerWindowUiExecutor() {
         return mPerWindowUiExecutor;
-    }
-
-    private void handleDisplayUpdatesForPerceptibleTasks() {
-        // 1. When desktop mode changes, detect eligibility for perceptible tasks.
-        // 2. When no longer eligible for perceptible tasks, turn off and clean up.
-        mSupportsFreeformWindowsManagement = getFreeformWindowsManagementInfo();
-        if (eligibleForPerceptibleTasks()) {
-            if (mTaskStackListener == null) {
-                mTaskStackListener = new PerceptibleTaskListener();
-                TaskStackChangeListeners.getInstance()
-                        .registerTaskStackListener(mTaskStackListener);
-            }
-        } else {
-            // not eligible for perceptible tasks, so we should unregister the listener
-            if (mTaskStackListener != null) {
-                mTaskStackListener.unregisterListener();
-                mTaskStackListener = null;
-            }
-        }
     }
 
     private boolean getFreeformWindowsManagementInfo() {
@@ -1215,25 +1109,11 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
         debugPrimaryTaskbar("destroy: unregistering component callbacks");
         removeAndUnregisterComponentCallbacks(mPrimaryDisplayId);
         mShutdownReceiver.unregisterReceiverSafely();
-        if (mTaskStackListener != null) {
-            mTaskStackListener.unregisterListener();
-        }
 
         debugPrimaryTaskbar("destroy: destroying all taskbars!");
         removeWindowContextFromMap(mPrimaryDisplayId);
         destroyAllTaskbars();
         debugPrimaryTaskbar("destroy: finished!");
-    }
-
-    private boolean eligibleForPerceptibleTasks() {
-        // Perceptible tasks feature (oom boosting) is eligible for android PC devices, and
-        // other android devices that supports free form windows
-        //
-        // - isAndroidPC is set per device (in this case, desktop devices)
-        // - supportsFreeformWindowsManagement is dynamic, and is to be used for the use-case where
-        // user plugs in their device to external displays
-        return Flags.perceptibleTasks()
-                && (mIsAndroidPC || mSupportsFreeformWindowsManagement);
     }
 
     public @Nullable TaskbarActivityContext getCurrentActivityContext() {
