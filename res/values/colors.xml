@@ -169,8 +169,11 @@
     <color name="widget_picker_toolbar_unselected_tab_background_light">
         @android:color/transparent
     </color>
-    <color name="widget_picker_toolbar_tab_content_color_light">
+    <color name="widget_picker_toolbar_selected_tab_content_color_light">
         @color/system_on_secondary_container_light
+    </color>
+    <color name="widget_picker_toolbar_unselected_tab_content_color_light">
+        @color/system_on_surface_variant_light
     </color>
 
     <color name="widget_picker_expand_button_text_color_light">
@@ -241,8 +244,11 @@
     <color name="widget_picker_toolbar_unselected_tab_background_dark">
         @android:color/transparent
     </color>
-    <color name="widget_picker_toolbar_tab_content_color_dark">
+    <color name="widget_picker_toolbar_selected_tab_content_color_dark">
         @color/system_on_secondary_container_dark
+    </color>
+    <color name="widget_picker_toolbar_unselected_tab_content_color_dark">
+        @color/system_on_surface_variant_dark
     </color>
 
     <color name="widget_picker_expand_button_background_color_dark">

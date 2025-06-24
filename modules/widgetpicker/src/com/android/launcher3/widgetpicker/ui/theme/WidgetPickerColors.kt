@@ -66,7 +66,10 @@ import androidx.compose.ui.graphics.Color
  *   / featured) in a floating toolbar.
  * @param toolbarTabUnSelectedBackground background color of an unselected tab (personal / work /
  *   browse / featured) in a floating toolbar.
- * @param toolbarTabContent color of the text and icons in a tab within a floating toolbar.
+ * @param toolbarSelectedTabContent color of the text and icons in a selected tab within a floating
+ *   toolbar.
+ * @param toolbarUnSelectedTabContent color of the text and icons in an unselected tab within a
+ *   floating toolbar.
  * @param searchBarBackground background color of the search bar.
  * @param searchBarPlaceholderText color of the placeholder text shown in the search bar.
  * @param searchBarText color of the text that use types in the search bar.
@@ -122,7 +125,8 @@ data class WidgetPickerColors(
     val toolbarBackground: Color,
     val toolbarTabSelectedBackground: Color,
     val toolbarTabUnSelectedBackground: Color,
-    val toolbarTabContent: Color,
+    val toolbarSelectedTabContent: Color,
+    val toolbarUnSelectedTabContent: Color,
 
     // Search bar
     val searchBarBackground: Color,
@@ -166,7 +170,8 @@ fun defaultWidgetPickerColors() =
         toolbarBackground = MaterialTheme.colorScheme.surfaceBright,
         toolbarTabSelectedBackground = MaterialTheme.colorScheme.secondaryContainer,
         toolbarTabUnSelectedBackground = Color.Transparent,
-        toolbarTabContent = MaterialTheme.colorScheme.onSecondaryContainer,
+        toolbarSelectedTabContent = MaterialTheme.colorScheme.onSecondaryContainer,
+        toolbarUnSelectedTabContent = MaterialTheme.colorScheme.onSurfaceVariant,
 
         // Expand collapse list
         expandableListItemsBackground = MaterialTheme.colorScheme.surfaceBright,
