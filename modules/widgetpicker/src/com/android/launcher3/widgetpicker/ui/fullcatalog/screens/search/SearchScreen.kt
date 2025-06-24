@@ -152,6 +152,7 @@ private fun SearchScreenSinglePane(
                     onWidgetInteraction = onWidgetInteraction,
                     showDragShadow = showDragShadow,
                     emptyWidgetsErrorMessage = emptyWidgetsErrorMessage,
+                    autoScrollToTopOnChange = true,
                 )
             }
         },
@@ -187,6 +188,7 @@ fun SearchScreenTwoPane(
                     onWidgetInteraction = onWidgetInteraction,
                     showDragShadow = showDragShadow,
                     emptyWidgetsErrorMessage = emptyWidgetsErrorMessage,
+                    autoScrollToTopOnChange = true,
                 )
             }
         },
