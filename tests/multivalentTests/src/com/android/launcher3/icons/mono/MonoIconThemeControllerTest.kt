@@ -125,9 +125,13 @@ class MonoIconThemeControllerTest {
     @Test
     fun `createThemedAdaptiveIcon with bitmap info`() {
         val icon = AdaptiveIconDrawable(ColorDrawable(Color.BLACK), null, ColorDrawable(Color.RED))
-        val iconInfo = iconFactory.createBadgedIconBitmap(icon)
-        iconInfo.themedBitmap =
-            MonoIconThemeController().createThemedBitmap(icon, iconInfo, iconFactory)
+        val iconInfo =
+            iconFactory.createBadgedIconBitmap(icon).let {
+                it.copy(
+                    themedBitmap =
+                        MonoIconThemeController().createThemedBitmap(icon, it, iconFactory)
+                )
+            }
 
         val nonMonoIcon = AdaptiveIconDrawable(ColorDrawable(Color.BLACK), null, null)
         assertNotSame(

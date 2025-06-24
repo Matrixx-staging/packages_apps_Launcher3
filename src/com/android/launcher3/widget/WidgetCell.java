@@ -577,7 +577,7 @@ public class WidgetCell extends LinearLayout {
 
     /** Can be called to update the package icon shown in the label of recommended widgets. */
     private void reapplyIconInfo(ItemInfoWithIcon info) {
-        if (mItem == null || info.bitmap.isNullOrLowRes()) {
+        if (mItem == null || info.bitmap.isLowRes()) {
             showAppIconInWidgetTitle(false);
             return;
         }

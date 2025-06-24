@@ -22,7 +22,6 @@ import static com.android.launcher3.allapps.BaseAllAppsAdapter.VIEW_TYPE_MASK_PR
 import static com.android.launcher3.allapps.SectionDecorationInfo.ROUND_BOTTOM_LEFT;
 import static com.android.launcher3.allapps.SectionDecorationInfo.ROUND_BOTTOM_RIGHT;
 import static com.android.launcher3.allapps.SectionDecorationInfo.ROUND_NOTHING;
-import static com.android.launcher3.icons.BitmapInfo.FLAG_NO_BADGE;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_PRIVATE_SPACE_PREINSTALLED_APPS_COUNT;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_PRIVATE_SPACE_USER_INSTALLED_APPS_COUNT;
 
@@ -436,7 +435,6 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
                 if (currentItem.itemInfo != null && Objects.equals(
                         currentItem.itemInfo.getTargetPackage(), PRIVATE_SPACE_PACKAGE)) {
                     currentItem.itemInfo.bitmap = mPrivateProviderManager.preparePSBitmapInfo();
-                    currentItem.itemInfo.bitmap.creationFlags |= FLAG_NO_BADGE;
                     currentItem.itemInfo.title = mPrivateProviderManager.getPSAppTitleOverride();
                     currentItem.itemInfo.contentDescription =
                             mPrivateProviderManager.getPsAppContentDesc();

@@ -68,7 +68,6 @@ import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.pm.PackageInstallInfo;
 import com.android.launcher3.search.StringMatcherUtility;
 import com.android.launcher3.util.ActivityContextWrapper;
-import com.android.launcher3.util.FlagOp;
 import com.android.launcher3.util.IntArray;
 import com.android.launcher3.util.SandboxApplication;
 import com.android.launcher3.util.TestUtil;
@@ -409,9 +408,8 @@ public class BubbleTextViewTest {
 
     @Test
     public void applyIconAndLabel_whenDisplay_DISPLAY_SEARCH_RESULT_SMALL_noBadge() {
-        FlagOp op = FlagOp.NO_OP;
         // apply the WORK bitmap flag to show work badge
-        mGmailAppInfo.bitmap.flags = op.apply(WORK_FLAG);
+        mGmailAppInfo.bitmap = mGmailAppInfo.bitmap.withFlags(i -> WORK_FLAG);
         mBubbleTextView.setDisplay(DISPLAY_SEARCH_RESULT_SMALL);
 
         mBubbleTextView.applyIconAndLabel(mGmailAppInfo);
@@ -477,9 +475,8 @@ public class BubbleTextViewTest {
 
     @Test
     public void applyIconAndLabel_whenDisplay_DISPLAY_SEARCH_RESULT_hasBadge() {
-        FlagOp op = FlagOp.NO_OP;
         // apply the WORK bitmap flag to show work badge
-        mGmailAppInfo.bitmap.flags = op.apply(WORK_FLAG);
+        mGmailAppInfo.bitmap = mGmailAppInfo.bitmap.withFlags(i -> WORK_FLAG);
         mBubbleTextView.setDisplay(DISPLAY_SEARCH_RESULT);
 
         mBubbleTextView.applyIconAndLabel(mGmailAppInfo);
