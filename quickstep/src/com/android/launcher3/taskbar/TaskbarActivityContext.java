@@ -1848,18 +1848,19 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         try {
             TestLogging.recordEvent(TestProtocol.SEQUENCE_MAIN, "start: taskbarAppIcon");
+            final int displayId = getDisplayId();
+            final ActivityOptionsWrapper opts = getActivityLaunchOptions(null, info);
+            opts.options.setLaunchDisplayId(displayId);
             if (!info.user.equals(Process.myUserHandle())) {
                 // TODO b/376819104: support Desktop launch animations for apps in managed profiles
                 getSystemService(LauncherApps.class).startMainActivity(
-                        intent.getComponent(), info.user, intent.getSourceBounds(), null);
+                        intent.getComponent(), info.user, intent.getSourceBounds(),
+                        opts.toBundle());
                 return;
             }
-            int displayId = getDisplayId();
             // TODO(b/216683257): Use startActivityForResult for search results that require it.
             if (taskInRecents != null) {
                 // Re launch instance from recents
-                ActivityOptionsWrapper opts = getActivityLaunchOptions(null, info);
-                opts.options.setLaunchDisplayId(displayId);
                 if (ActivityManagerWrapper.getInstance()
                         .startActivityFromRecents(taskInRecents.key, opts.options)) {
                     mControllers.uiController.getRecentsView()
