@@ -18,6 +18,7 @@ package com.android.launcher3.taskbar;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT;
 import static com.android.launcher3.model.data.AppInfo.COMPONENT_KEY_COMPARATOR;
+import static com.android.launcher3.model.data.AppInfo.PACKAGE_KEY_COMPARATOR;
 import static com.android.launcher3.util.SplitConfigurationOptions.getLogEventForPosition;
 
 import android.content.Intent;
@@ -339,6 +340,9 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
         tempInfo.componentName = key.componentName;
         tempInfo.user = key.user;
         int index = Arrays.binarySearch(mAppInfosList, tempInfo, COMPONENT_KEY_COMPARATOR);
+        if (index < 0) {
+            index = Arrays.binarySearch(mAppInfosList, tempInfo, PACKAGE_KEY_COMPARATOR);
+        }
         return index < 0 ? null : mAppInfosList[index];
     }
 
