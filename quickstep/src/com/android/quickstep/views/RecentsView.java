@@ -45,6 +45,7 @@ import static com.android.launcher3.LauncherAnimUtils.VIEW_BACKGROUND_COLOR;
 import static com.android.launcher3.LauncherState.BACKGROUND_APP;
 import static com.android.launcher3.QuickstepTransitionManager.RECENTS_LAUNCH_DURATION;
 import static com.android.launcher3.Utilities.EDGE_NAV_BAR;
+import static com.android.launcher3.Utilities.debugLog;
 import static com.android.launcher3.Utilities.mapToRange;
 import static com.android.launcher3.Utilities.squaredHypot;
 import static com.android.launcher3.Utilities.squaredTouchSlop;
@@ -277,7 +278,6 @@ public abstract class RecentsView<
         TaskVisualsChangeListener {
 
     protected static final String TAG = "RecentsView";
-    private static final boolean DEBUG = false;
 
     public static final FloatProperty<RecentsView<?, ?>> CONTENT_ALPHA =
             new FloatProperty<>("contentAlpha") {
@@ -1851,6 +1851,8 @@ public abstract class RecentsView<
             if (extraScrollDuration > 0) {
                 mScroller.extendDuration(extraScrollDuration);
             }
+            debugLog(TAG, "onNotSnappingToPageInFreeScroll - mNextPage: " + mNextPage
+                    + ", scrollSnapped: " + pageSnapped);
         }
     }
 
@@ -4458,6 +4460,13 @@ public abstract class RecentsView<
         return true;
     }
 
+    @Override
+    protected boolean snapToPage(int whichPage, int delta, int duration, boolean immediate) {
+        debugLog(TAG, "snapToPage, whichPage: " + whichPage + ", delta: " + delta + ", duration: "
+                + duration + ", immediate: " + immediate);
+        return super.snapToPage(whichPage, delta, duration, immediate);
+    }
+
     private int getNextPageInternal(int delta, TaskGridNavHelper.TaskNavDirection direction,
             boolean cycle) {
         if (!showAsGrid()) {
@@ -6117,10 +6126,8 @@ public abstract class RecentsView<
     @Override
     protected void updateMinAndMaxScrollX() {
         super.updateMinAndMaxScrollX();
-        if (DEBUG) {
-            Log.d(TAG, "updateMinAndMaxScrollX - mMinScroll: " + mMinScroll);
-            Log.d(TAG, "updateMinAndMaxScrollX - mMaxScroll: " + mMaxScroll);
-        }
+        debugLog(TAG, "updateMinAndMaxScrollX - mMinScroll: " + mMinScroll);
+        debugLog(TAG, "updateMinAndMaxScrollX - mMaxScroll: " + mMaxScroll);
     }
 
     @Override
@@ -6222,10 +6229,8 @@ public abstract class RecentsView<
                 pageScroll = lastTaskScroll;
             }
             outPageScrolls[index] = pageScroll;
-            if (DEBUG) {
-                Log.d(TAG,
-                        "getPageScrolls - outPageScrolls[" + index + "]: " + outPageScrolls[index]);
-            }
+            debugLog(TAG,
+                    "getPageScrolls - outPageScrolls[" + index + "]: " + outPageScrolls[index]);
         });
 
         int addDesktopButtonIndex = indexOfChild(mAddDesktopButton);
@@ -6234,15 +6239,10 @@ public abstract class RecentsView<
             if (firstViewIndex >= 0 && firstViewIndex < outPageScrolls.length) {
                 outPageScrolls[addDesktopButtonIndex] = outPageScrolls[firstViewIndex];
             }
-
-            if (DEBUG) {
-                Log.d(TAG, "getPageScrolls - addDesktopButtonScroll: "
-                        + outPageScrolls[addDesktopButtonIndex]);
-            }
+            debugLog(TAG, "getPageScrolls - addDesktopButtonScroll: "
+                    + outPageScrolls[addDesktopButtonIndex]);
         }
-        if (DEBUG) {
-            Log.d(TAG, "getPageScrolls - clearAllScroll: " + clearAllScroll);
-        }
+        debugLog(TAG, "getPageScrolls - clearAllScroll: " + clearAllScroll);
         return !Arrays.equals(oldPageScrolls, outPageScrolls);
     }
 
