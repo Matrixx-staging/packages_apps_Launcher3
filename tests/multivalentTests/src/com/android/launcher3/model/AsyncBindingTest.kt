@@ -16,7 +16,11 @@
 
 package com.android.launcher3.model
 
+import android.app.blob.BlobStoreManager
 import android.os.Looper
+import android.os.ParcelFileDescriptor
+import android.os.ParcelFileDescriptor.MODE_READ_WRITE
+import android.provider.Settings.Secure
 import android.util.SparseArray
 import android.view.View
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -25,6 +29,8 @@ import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.Launcher
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherModel
+import com.android.launcher3.LauncherSettings.Settings
+import com.android.launcher3.LauncherSettings.Settings.LAYOUT_PROVIDER_KEY
 import com.android.launcher3.ModelCallbacks
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.pageindicators.PageIndicatorDots
@@ -36,8 +42,12 @@ import com.android.launcher3.util.LauncherLayoutBuilder
 import com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE
 import com.android.launcher3.util.ModelTestExtensions.loadModelSync
 import com.android.launcher3.util.SandboxApplication
+import com.android.launcher3.util.TestUtil
 import com.android.launcher3.util.TestUtil.runOnExecutorSync
-import com.android.launcher3.util.rule.LayoutProviderRule
+import java.io.File
+import java.io.FileWriter
+import java.security.MessageDigest
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -68,7 +78,6 @@ import org.mockito.kotlin.whenever
 class AsyncBindingTest {
 
     @get:Rule val context = SandboxApplication().withModelDependency()
-    @get:Rule val layoutProvider = LayoutProviderRule(context)
 
     @Mock private lateinit var itemInflater: ItemInflater<*>
     // PageIndicatorDots need to be mocked separately as Workspace uses generics and doesn't define
@@ -102,7 +111,7 @@ class AsyncBindingTest {
         doReturn(context).whenever(launcher).applicationContext
 
         // Set up the workspace with 3 pages of apps
-        layoutProvider.setupDefaultLayoutProvider(
+        setupDefaultLayoutProvider(
             LauncherLayoutBuilder()
                 .atWorkspace(0, 1, 0)
                 .putApp(TEST_PACKAGE, TEST_PACKAGE)
@@ -117,6 +126,14 @@ class AsyncBindingTest {
         )
         callbacks =
             spy(ModelCallbacks(launcher).apply { pagesToBindSynchronously = IntSet.wrap(0) })
+        TestUtil.grantWriteSecurePermission()
+    }
+
+    @After
+    fun tearDown() {
+        runOnExecutorSync(MODEL_EXECUTOR) {
+            Secure.putString(context.getContentResolver(), LAYOUT_PROVIDER_KEY, "")
+        }
     }
 
     @Test
@@ -178,5 +195,23 @@ class AsyncBindingTest {
             runOnExecutorSync(MAIN_EXECUTOR) {}
             runOnExecutorSync(MODEL_EXECUTOR) {}
         }
+    }
+
+    private fun setupDefaultLayoutProvider(builder: LauncherLayoutBuilder) {
+        val file = File.createTempFile("blobsession", "tmp")
+        FileWriter(file).use { builder.build(it) }
+
+        val blobManager = context.spyService(BlobStoreManager::class.java)
+        doAnswer { ParcelFileDescriptor.open(file, MODE_READ_WRITE) }
+            .whenever(blobManager)
+            .openBlob(any())
+
+        Secure.putString(
+            context.getContentResolver(),
+            LAYOUT_PROVIDER_KEY,
+            Settings.createBlobProviderKey(
+                MessageDigest.getInstance("SHA-256").digest(byteArrayOf(1, 1, 1))
+            ),
+        )
     }
 }
