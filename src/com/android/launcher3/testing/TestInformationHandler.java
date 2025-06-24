@@ -64,6 +64,7 @@ import com.android.launcher3.icons.ClockDrawableWrapper;
 import com.android.launcher3.testing.shared.TestProtocol;
 import com.android.launcher3.util.ActivityLifecycleCallbacksAdapter;
 import com.android.launcher3.util.DisplayController;
+import com.android.launcher3.util.TaskbarModeUtil;
 import com.android.launcher3.widget.picker.WidgetsFullSheet;
 
 import java.util.ArrayList;
@@ -244,7 +245,7 @@ public class TestInformationHandler {
 
             case TestProtocol.REQUEST_IS_TRANSIENT_TASKBAR:
                 response.putBoolean(TestProtocol.TEST_INFO_RESPONSE_FIELD,
-                        DisplayController.isTransientTaskbar(mContext));
+                        TaskbarModeUtil.INSTANCE.get(mContext).isTransient());
                 return response;
 
             case TestProtocol.REQUEST_IS_TWO_PANELS:

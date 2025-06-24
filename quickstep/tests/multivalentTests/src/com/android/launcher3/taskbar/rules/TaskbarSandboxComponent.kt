@@ -38,11 +38,13 @@ import com.android.launcher3.dagger.WidgetModule
 import com.android.launcher3.dagger.WindowContext
 import com.android.launcher3.homescreenfiles.HomeScreenFilesModule
 import com.android.launcher3.statehandlers.DesktopVisibilityController
+import com.android.launcher3.taskbar.customization.TaskbarFeatureEvaluator
 import com.android.launcher3.util.DaggerSingletonTracker
 import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.FakePrefsModule
 import com.android.launcher3.util.SandboxWmProxyModule
 import com.android.launcher3.util.SettingsCache
+import com.android.launcher3.util.TaskbarModeUtil
 import com.android.launcher3.util.dagger.LauncherExecutorsModule
 import com.android.launcher3.util.window.WindowManagerProxy
 import com.android.quickstep.FallbackWindowInterface
@@ -87,6 +89,7 @@ interface TaskbarSandboxComponent : LauncherAppComponent {
             ExecutorsModule::class,
             LauncherExecutorsModule::class,
             FakePrefsModule::class,
+            TaskbarModule::class,
             DisplayControllerModule::class,
             SandboxWmProxyModule::class,
             TaskbarPerDisplayReposModule::class,
@@ -101,6 +104,40 @@ interface AllTaskbarSandboxModules
 @Module
 abstract class DisplayControllerModule {
     @Binds abstract fun bindDisplayController(controller: DisplayControllerSpy): DisplayController
+}
+
+@Module
+object TaskbarModule {
+    @JvmStatic
+    @Provides
+    @LauncherAppSingleton
+    fun provideTaskbarModeUtil(
+        @ApplicationContext context: Context,
+        displayController: DisplayController,
+        windowManagerProxy: WindowManagerProxy,
+        launcherPrefs: LauncherPrefs,
+    ): TaskbarModeUtil {
+        return spy(TaskbarModeUtil(context, displayController, windowManagerProxy, launcherPrefs))
+    }
+
+    @JvmStatic
+    @Provides
+    @LauncherAppSingleton
+    fun provideTaskbarFeatureEvaluator(
+        @ApplicationContext context: Context,
+        displayController: DisplayController,
+        desktopVisibilityController: DesktopVisibilityController,
+        launcherPrefs: LauncherPrefs,
+    ): TaskbarFeatureEvaluator {
+        return spy(
+            TaskbarFeatureEvaluator(
+                context,
+                displayController,
+                desktopVisibilityController,
+                launcherPrefs,
+            )
+        )
+    }
 }
 
 /** A wrapper over display controller which allows modifying the underlying info */

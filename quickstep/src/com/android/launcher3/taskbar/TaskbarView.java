@@ -57,6 +57,7 @@ import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.apppairs.AppPairIcon;
 import com.android.launcher3.celllayout.CellInfo;
+import com.android.launcher3.deviceprofile.TaskbarProfile;
 import com.android.launcher3.folder.FolderIcon;
 import com.android.launcher3.folder.PreviewBackground;
 import com.android.launcher3.graphics.ThemeManager;
@@ -181,8 +182,8 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         int actualIconSize =
                 mActivityContext.getDeviceProfile().getTaskbarProfile().getIconSize();
         if (enableTaskbarPinning() && canTransitionToTransientTaskbar()) {
-            DeviceProfile deviceProfile = mActivityContext.getTransientTaskbarDeviceProfile();
-            actualIconSize = deviceProfile.getTaskbarProfile().getIconSize();
+            TaskbarProfile deviceProfile = mActivityContext.getTransientTaskbarProfile();
+            actualIconSize = deviceProfile.getIconSize();
         }
         int visualIconSize = (int) (actualIconSize * ICON_VISIBLE_AREA_FACTOR);
 

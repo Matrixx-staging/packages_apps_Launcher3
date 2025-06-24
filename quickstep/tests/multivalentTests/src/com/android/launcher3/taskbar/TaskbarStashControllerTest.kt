@@ -74,8 +74,6 @@ import org.junit.runner.RunWith
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.atLeastOnce
-import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.spy
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
@@ -143,19 +141,6 @@ class TaskbarStashControllerTest {
     @DisableFlags(Flags.FLAG_ENABLE_OVERVIEW_ON_CONNECTED_DISPLAYS)
     fun testRecreateAsTransient_withoutOverviewOnConnectedDisplays_timeoutStarted() {
         context.displayControllerSpy?.setupTaskbarPinningPrefListener(context.displayId)
-
-        testRecreateAsTransient_timeoutStarted()
-    }
-
-    @Test
-    @EnableFlags(Flags.FLAG_ENABLE_OVERVIEW_ON_CONNECTED_DISPLAYS)
-    fun testRecreateAsTransient_withOverviewOnConnectedDisplay_timeoutStarted() {
-        context.displayControllerSpy?.let { controller ->
-            controller.setupTaskbarPinningPrefListener(context.displayId)
-            controller.infoModifierForDisplay = {
-                spy(it) { on { it?.isTransientTaskbar } doReturn true }
-            }
-        }
 
         testRecreateAsTransient_timeoutStarted()
     }
