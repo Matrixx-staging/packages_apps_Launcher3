@@ -32,8 +32,7 @@
     <string name="recent_task_option_aspect_ratio" msgid="7008605516391096989">"আকাৰৰ অনুপাত সলনি কৰক"</string>
     <string name="split_app_info_accessibility" msgid="5475288491241414932">"%1$sৰ বাবে এপৰ তথ্য"</string>
     <string name="split_app_usage_settings" msgid="7214375263347964093">"%1$sৰ বাবে ব্যৱহাৰৰ ছেটিং"</string>
-    <!-- no translation found for close_task_accessibility (4765872229211282647) -->
-    <skip />
+    <string name="close_task_accessibility" msgid="4765872229211282647">"%1$s বন্ধ কৰক"</string>
     <string name="new_window_option_taskbar" msgid="6448780542727767211">"নতুন ৱিণ্ড’"</string>
     <string name="manage_windows_option_taskbar" msgid="2294109489960654212">"Windows পৰিচালনা কৰক"</string>
     <string name="save_app_pair" msgid="5647523853662686243">"এপৰ পেয়াৰ ছেভ কৰক"</string>
