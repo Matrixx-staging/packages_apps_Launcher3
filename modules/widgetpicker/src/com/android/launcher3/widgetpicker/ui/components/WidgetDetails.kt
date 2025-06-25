@@ -49,7 +49,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -92,7 +91,7 @@ fun WidgetDetails(
 ) {
     val haptic = LocalHapticFeedback.current
     val interactionSource = remember { MutableInteractionSource() }
-    val contentDescription =
+    val widgetLabelContentDescription =
         stringResource(
             R.string.widget_details_accessibility_label,
             widget.label,
@@ -134,14 +133,27 @@ fun WidgetDetails(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top,
             modifier =
-                Modifier.clearAndSetSemantics { this.contentDescription = contentDescription }
+                Modifier
                     .minimumInteractiveComponentSize()
                     .graphicsLayer { alpha = detailsAlpha }
                     .fillMaxSize(),
         ) {
-            WidgetLabel(label = widget.label, appIcon = appIcon, modifier = Modifier)
+            WidgetLabel(
+                label = widget.label,
+                appIcon = appIcon,
+                modifier = Modifier.semantics {
+                    this.contentDescription = if (showAllDetails) {
+                        widget.label
+                    } else {
+                        widgetLabelContentDescription
+                    }
+                }
+            )
             if (showAllDetails) {
-                WidgetSpanSizeLabel(spanX = widget.sizeInfo.spanX, spanY = widget.sizeInfo.spanY)
+                WidgetSpanSizeLabel(
+                    spanX = widget.sizeInfo.spanX,
+                    spanY = widget.sizeInfo.spanY,
+                )
                 widget.description?.let { WidgetDescription(it) }
             }
         }
@@ -207,7 +219,9 @@ private fun WidgetLabel(label: String, appIcon: (@Composable () -> Unit)?, modif
             appIcon()
             Spacer(
                 modifier =
-                    Modifier.width(WidgetDetailsDimensions.appIconLabelSpacing).fillMaxHeight()
+                    Modifier
+                        .width(WidgetDetailsDimensions.appIconLabelSpacing)
+                        .fillMaxHeight()
             )
         }
         Text(
@@ -240,16 +254,12 @@ private fun WidgetDescription(description: CharSequence) {
 /** Span (X and Y) sizing info for the widget. */
 @Composable
 private fun WidgetSpanSizeLabel(spanX: Int, spanY: Int) {
-    val contentDescription =
-        stringResource(R.string.widget_span_dimensions_accessible_format, spanX, spanY)
-
     Text(
         text = stringResource(R.string.widget_span_dimensions_format, spanX, spanY),
         textAlign = TextAlign.Center,
         maxLines = 1,
         color = WidgetPickerTheme.colors.widgetSpanText,
         style = WidgetPickerTheme.typography.widgetSpanText,
-        modifier = Modifier.semantics { this.contentDescription = contentDescription },
     )
 }
 

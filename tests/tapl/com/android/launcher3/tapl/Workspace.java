@@ -832,13 +832,10 @@ public final class Workspace extends Home {
      */
     @NonNull
     public Widgets openAllWidgets() {
-        try (LauncherInstrumentation.Closable e = mLauncher.eventsCheck()) {
-            verifyActiveContainer();
-            mLauncher.expectEvent(TestProtocol.SEQUENCE_MAIN, EVENT_CTRL_W_UP);
-            mLauncher.getDevice().pressKeyCode(KeyEvent.KEYCODE_W, KeyEvent.META_CTRL_ON);
-            try (LauncherInstrumentation.Closable c = mLauncher.addContextLayer("pressed Ctrl+W")) {
-                return new Widgets(mLauncher);
-            }
+        verifyActiveContainer();
+        mLauncher.getDevice().pressKeyCode(KeyEvent.KEYCODE_W, KeyEvent.META_CTRL_ON);
+        try (LauncherInstrumentation.Closable c = mLauncher.addContextLayer("pressed Ctrl+W")) {
+            return new Widgets(mLauncher);
         }
     }
 

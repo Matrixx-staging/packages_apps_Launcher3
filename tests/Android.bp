@@ -15,6 +15,7 @@
 package {
     // See: http://go/android-license-faq
     default_applicable_licenses: ["Android-Apache-2.0"],
+    default_team: "trendy_team_launcher",
 }
 
 // Source code used for test
@@ -118,6 +119,11 @@ android_test {
     srcs: [
         ":launcher-tests-src",
         ":launcher-non-quickstep-tests-src",
+    ],
+    exclude_srcs: [
+        // Launcher3 tests setup has an issue with resolving a few resources within transitive
+        // compose dependencies that work fine in actual Launcher3 app.
+        "src/com/android/launcher3/widget/TaplAddWidgetTest.java",
     ],
     static_libs: [
         "Launcher3TestLib",

@@ -67,6 +67,7 @@ import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.Landing
 import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.LandingScreenTwoPaneTestTags.FEATURED_WIDGETS_HEADER_TEST_TAG
 import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.LandingScreenTwoPaneTestTags.PERSONAL_WIDGETS_TAB_TEST_TAG
 import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.LandingScreenTwoPaneTestTags.WORK_WIDGETS_TAB_TEST_TAG
+import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.LandingScreenTwoPaneTestTags.PERSONAL_WIDGETS_LIST_TEST_TAG
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
@@ -371,7 +372,9 @@ private fun PersonalSection(
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         WidgetAppsList(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .widgetPickerTestTag(PERSONAL_WIDGETS_LIST_TEST_TAG)
+                .fillMaxSize(),
             widgetApps = browseWidgetsState.personalWidgetApps,
             selectedWidgetAppId = selectedPersonalWidgetAppId,
             widgetAppHeaderStyle = WidgetAppHeaderStyle.CLICKABLE,
@@ -496,4 +499,5 @@ private object LandingScreenTwoPaneTestTags {
     const val FEATURED_WIDGETS_HEADER_TEST_TAG = "featured_widgets_tab"
     const val PERSONAL_WIDGETS_TAB_TEST_TAG = "personal_widgets_tab"
     const val WORK_WIDGETS_TAB_TEST_TAG = "work_widgets_tab"
+    const val PERSONAL_WIDGETS_LIST_TEST_TAG = "personal_widgets_list"
 }
