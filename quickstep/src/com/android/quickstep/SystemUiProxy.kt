@@ -1141,9 +1141,15 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
         deskId: Int,
         transition: RemoteTransition?,
         taskIdToReorderToFront: Int? = null,
+        transitionSource: DesktopModeTransitionSource,
     ) =
         executeWithErrorLog({ "Failed call activateDesk" }) {
-            desktopMode?.activateDesk(deskId, transition, taskIdToReorderToFront ?: INVALID_TASK_ID)
+            desktopMode?.activateDesk(
+                deskId,
+                transition,
+                taskIdToReorderToFront ?: INVALID_TASK_ID,
+                transitionSource,
+            )
         }
 
     /** Calls shell to remove the desk whose ID is `deskId`. */
