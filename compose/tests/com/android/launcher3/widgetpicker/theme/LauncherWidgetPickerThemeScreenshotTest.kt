@@ -51,14 +51,11 @@ import platform.test.screenshot.utils.compose.ComposeScreenshotTestRule
  */
 @RunWith(ParameterizedAndroidJunit4::class)
 class LauncherWidgetPickerThemeScreenshotTest(emulationSpec: DeviceEmulationSpec) {
-    @get:Rule
-    val screenshotRule = composeScreenshotTestRule(emulationSpec)
+    @get:Rule val screenshotRule = composeScreenshotTestRule(emulationSpec)
 
     @Test
     fun widgetPicker_styles() {
-        screenshotRule.screenshotTest("widgetPicker_styles") {
-            LauncherWidgetPickerStyles()
-        }
+        screenshotRule.screenshotTest("widgetPicker_styles") { LauncherWidgetPickerStyles() }
     }
 
     companion object {
@@ -74,11 +71,8 @@ class LauncherWidgetPickerThemeScreenshotTest(emulationSpec: DeviceEmulationSpec
         ): ComposeScreenshotTestRule {
             return ComposeScreenshotTestRule(
                 emulationSpec = emulationSpec,
-                pathManager = ViewScreenshotGoldenPathManager(
-                    getEmulatedDevicePathConfig(
-                        emulationSpec
-                    )
-                ),
+                pathManager =
+                    ViewScreenshotGoldenPathManager(getEmulatedDevicePathConfig(emulationSpec)),
                 enforcePerfectPixelMatch = enforcePerfectPixelMatch,
             )
         }
@@ -89,11 +83,7 @@ class LauncherWidgetPickerThemeScreenshotTest(emulationSpec: DeviceEmulationSpec
 @Preview
 private fun LauncherWidgetPickerStyles() {
     LauncherWidgetPickerTheme {
-        Column(
-            modifier = Modifier
-                .background(Color.Gray)
-                .padding(2.dp)
-        ) {
+        Column(modifier = Modifier.background(Color.Gray).padding(2.dp)) {
             WidgetSheetHeaderStyle()
             Divider()
             WidgetDetailsStyle()
@@ -109,30 +99,26 @@ private fun LauncherWidgetPickerStyles() {
 
 @Composable
 private fun Divider() {
-    Spacer(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(4.dp)
-    )
+    Spacer(modifier = Modifier.fillMaxWidth().height(4.dp))
 }
 
 @Composable
 private fun WidgetSheetHeaderStyle() {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(WidgetPickerTheme.colors.sheetBackground)
-            .padding(8.dp)
+        modifier =
+            Modifier.fillMaxWidth()
+                .background(WidgetPickerTheme.colors.sheetBackground)
+                .padding(8.dp)
     ) {
         Text(
             text = "Widget Picker's Title",
             color = WidgetPickerTheme.colors.sheetTitle,
-            style = WidgetPickerTheme.typography.sheetTitle
+            style = WidgetPickerTheme.typography.sheetTitle,
         )
         Text(
             text = "This is widget picker's long description",
             color = WidgetPickerTheme.colors.sheetDescription,
-            style = WidgetPickerTheme.typography.sheetDescription
+            style = WidgetPickerTheme.typography.sheetDescription,
         )
     }
 }
@@ -140,42 +126,41 @@ private fun WidgetSheetHeaderStyle() {
 @Composable
 private fun WidgetDetailsStyle() {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(WidgetPickerTheme.colors.widgetsContainerBackground)
-            .padding(8.dp)
+        modifier =
+            Modifier.fillMaxWidth()
+                .background(WidgetPickerTheme.colors.widgetsContainerBackground)
+                .padding(8.dp)
     ) {
         Text(
             text = "Widget's Label",
             color = WidgetPickerTheme.colors.widgetLabel,
-            style = WidgetPickerTheme.typography.widgetLabel
+            style = WidgetPickerTheme.typography.widgetLabel,
         )
         Text(
             text = "1 x 1",
             color = WidgetPickerTheme.colors.widgetSpanText,
-            style = WidgetPickerTheme.typography.widgetSpanText
+            style = WidgetPickerTheme.typography.widgetSpanText,
         )
         Text(
             text = "This is widget's description",
             color = WidgetPickerTheme.colors.widgetDescription,
-            style = WidgetPickerTheme.typography.widgetDescription
+            style = WidgetPickerTheme.typography.widgetDescription,
         )
-
     }
 }
 
 @Composable
 private fun AddButtonStyle() {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(WidgetPickerTheme.colors.addButtonBackground)
-            .padding(2.dp)
+        modifier =
+            Modifier.fillMaxWidth()
+                .background(WidgetPickerTheme.colors.addButtonBackground)
+                .padding(2.dp)
     ) {
         Text(
             text = "Add button",
             color = WidgetPickerTheme.colors.addButtonContent,
-            style = WidgetPickerTheme.typography.addWidgetButtonLabel
+            style = WidgetPickerTheme.typography.addWidgetButtonLabel,
         )
     }
 }
@@ -183,15 +168,15 @@ private fun AddButtonStyle() {
 @Composable
 private fun WidgetSearchBarStyle() {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(WidgetPickerTheme.colors.searchBarBackground)
-            .padding(8.dp)
+        modifier =
+            Modifier.fillMaxWidth()
+                .background(WidgetPickerTheme.colors.searchBarBackground)
+                .padding(8.dp)
     ) {
         Text(
             text = "Search",
             color = WidgetPickerTheme.colors.searchBarText,
-            style = WidgetPickerTheme.typography.searchBarText
+            style = WidgetPickerTheme.typography.searchBarText,
         )
     }
 }
@@ -199,30 +184,30 @@ private fun WidgetSearchBarStyle() {
 @Composable
 private fun WidgetPickerToolbarStyle() {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(WidgetPickerTheme.colors.toolbarBackground)
-            .padding(8.dp)
+        modifier =
+            Modifier.fillMaxWidth()
+                .background(WidgetPickerTheme.colors.toolbarBackground)
+                .padding(8.dp)
     ) {
         Box(
-            modifier = Modifier
-                .background(WidgetPickerTheme.colors.toolbarTabUnSelectedBackground)
-                .padding(2.dp)
+            modifier =
+                Modifier.background(WidgetPickerTheme.colors.toolbarTabUnSelectedBackground)
+                    .padding(2.dp)
         ) {
             Text(
                 text = "Tab",
-                color = WidgetPickerTheme.colors.toolbarTabContent,
-                style = WidgetPickerTheme.typography.toolbarTabLabel
+                color = WidgetPickerTheme.colors.toolbarUnSelectedTabContent,
+                style = WidgetPickerTheme.typography.toolbarUnSelectedTabLabel,
             )
         }
         Box(
-            modifier = Modifier
-                .background(WidgetPickerTheme.colors.toolbarTabSelectedBackground)
-                .padding(2.dp)
+            modifier =
+                Modifier.background(WidgetPickerTheme.colors.toolbarTabSelectedBackground)
+                    .padding(2.dp)
         ) {
             Text(
                 text = "Selected Tab",
-                color = WidgetPickerTheme.colors.toolbarTabContent,
+                color = WidgetPickerTheme.colors.toolbarSelectedTabContent,
                 style = WidgetPickerTheme.typography.toolbarSelectedTabLabel,
             )
         }

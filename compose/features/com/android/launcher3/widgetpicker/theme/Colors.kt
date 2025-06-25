@@ -84,8 +84,10 @@ fun darkWidgetPickerColors() =
             colorResource(R.color.widget_picker_toolbar_selected_tab_background_dark),
         toolbarTabUnSelectedBackground =
             colorResource(R.color.widget_picker_toolbar_unselected_tab_background_dark),
-        toolbarTabContent = colorResource(R.color.widget_picker_toolbar_tab_content_color_dark),
-
+        toolbarSelectedTabContent =
+            colorResource(R.color.widget_picker_toolbar_selected_tab_content_color_dark),
+        toolbarUnSelectedTabContent =
+            colorResource(R.color.widget_picker_toolbar_unselected_tab_content_color_dark),
         // Search bar
         searchBarBackground = colorResource(R.color.widget_picker_search_bar_background_color_dark),
         searchBarPlaceholderText = colorResource(R.color.widget_picker_search_text_color_dark),
@@ -158,7 +160,10 @@ fun lightWidgetPickerColors() =
             colorResource(R.color.widget_picker_toolbar_selected_tab_background_light),
         toolbarTabUnSelectedBackground =
             colorResource(R.color.widget_picker_toolbar_unselected_tab_background_light),
-        toolbarTabContent = colorResource(R.color.widget_picker_toolbar_tab_content_color_light),
+        toolbarSelectedTabContent =
+            colorResource(R.color.widget_picker_toolbar_selected_tab_content_color_light),
+        toolbarUnSelectedTabContent =
+            colorResource(R.color.widget_picker_toolbar_unselected_tab_content_color_light),
 
         // Search bar
         searchBarBackground =

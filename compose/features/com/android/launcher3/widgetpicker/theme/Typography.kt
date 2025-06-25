@@ -41,10 +41,10 @@ fun launcherWidgetPickerTextStyles(): WidgetPickerTextStyles {
         widgetDescription = textStyleFromResource(R.style.WidgetDescription),
         widgetSpanText = textStyleFromResource(R.style.WidgetDims),
         addWidgetButtonLabel = textStyleFromResource(R.style.WidgetAddButton),
-        toolbarTabLabel = textStyleFromResource(R.style.WidgetToolbarTabLabel),
+        toolbarUnSelectedTabLabel = textStyleFromResource(R.style.WidgetToolbarTabLabel),
         toolbarSelectedTabLabel = textStyleFromResource(R.style.WidgetToolbarTabLabel_Selected),
         searchBarText = searchBarTextStyle,
         searchBarPlaceholderText = searchBarTextStyle,
-        noWidgetsErrorText = textStyleFromResource(R.style.WidgetErrorText)
+        noWidgetsErrorText = textStyleFromResource(R.style.WidgetErrorText),
     )
 }

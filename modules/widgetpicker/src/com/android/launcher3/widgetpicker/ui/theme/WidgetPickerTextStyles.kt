@@ -46,8 +46,10 @@ import androidx.compose.ui.unit.sp
  * @param widgetSpanText style for the text showing the dimensions of the widget.
  * @param widgetDescription style for the text showing the long description of the widget.
  * @param addWidgetButtonLabel style for the "add" text on the button shown to add the widget.
- * @param toolbarTabLabel style for the text shown on each tab within the floating toolbar (e.g.
- *   personal, work, browse, featured).
+ * @param toolbarUnSelectedTabLabel style for the text shown on unselected tabs within the floating
+ *   toolbar (e.g. personal, work, browse, featured).
+ * @param toolbarSelectedTabLabel style for the text shown on selected tab within the floating
+ *   toolbar (e.g. personal, work, browse, featured).
  * @param searchBarPlaceholderText style of the text shown as placeholder when user hasn't typed
  *   anything in searchbar.
  * @param searchBarText style of the text that user types in the search bar.
@@ -73,7 +75,7 @@ data class WidgetPickerTextStyles(
     val widgetSpanText: TextStyle,
     val widgetDescription: TextStyle,
     val addWidgetButtonLabel: TextStyle,
-    val toolbarTabLabel: TextStyle,
+    val toolbarUnSelectedTabLabel: TextStyle,
     val toolbarSelectedTabLabel: TextStyle,
 
     // Search bar
@@ -128,7 +130,7 @@ fun defaultWidgetPickerTextStyles() =
         addWidgetButtonLabel = MaterialTheme.typography.labelLarge,
 
         // Floating toolbar
-        toolbarTabLabel = MaterialTheme.typography.labelLarge,
+        toolbarUnSelectedTabLabel = MaterialTheme.typography.labelLarge,
         toolbarSelectedTabLabel = MaterialTheme.typography.labelLargeEmphasized,
 
         // Search bar
