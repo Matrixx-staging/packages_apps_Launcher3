@@ -33,6 +33,7 @@ import android.view.SurfaceControl
 import android.view.View
 import android.view.WindowManager
 import android.window.BackEvent
+import android.window.DesktopExperienceFlags
 import android.window.OnBackInvokedCallback
 import android.window.RemoteTransition
 import androidx.core.view.isVisible
@@ -95,6 +96,7 @@ import com.android.quickstep.views.RecentsView
 import com.android.quickstep.views.RecentsViewContainer
 import com.android.systemui.animation.back.FlingOnBackAnimationCallback
 import com.android.systemui.shared.recents.model.ThumbnailData
+import com.android.wm.shell.shared.desktopmode.DesktopState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -364,6 +366,13 @@ constructor(
                 onViewCreated()
             }
             systemUiController = SystemUiController(windowView)
+            if (
+                DesktopExperienceFlags.ENABLE_NON_DEFAULT_DISPLAY_SPLIT_BUGFIX.isTrue &&
+                    displayId != DEFAULT_DISPLAY &&
+                    DesktopState.fromContext(this).canEnterDesktopModeOrShowAppHandle
+            ) {
+                splitSelectStateController.initSplitFromDesktopController(this)
+            }
         }
         windowRootView.visibility = View.VISIBLE
 
