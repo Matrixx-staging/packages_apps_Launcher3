@@ -185,6 +185,41 @@ class OseWidgetManagerTest {
         verify(widgetHost).setActiveWidget(eq(newWidgetId), eq(newWidgetInfo))
     }
 
+    @Test
+    fun nothing_active_when_ose_changes_binding_fails() {
+        val widgetInfo = TestViewHelpers.findWidgetProvider(false)
+        val currentWidgetId = 1
+
+        doReturn(listOf(widgetInfo))
+            .whenever(widgetManager)
+            .getInstalledProvidersForPackage(eq(TEST_PKG), any())
+        doReturn(widgetInfo).whenever(widgetManager).getAppWidgetInfo(eq(currentWidgetId))
+        doReturn(currentWidgetId).whenever(widgetHost).getBoundWidgetId()
+
+        createOseWidgetManager()
+        TestUtil.runOnExecutorSync(executor) {}
+        verify(widgetHost).setActiveWidget(eq(currentWidgetId), eq(widgetInfo))
+
+        val newWidgetId = 2
+        val newPackage = "something_new"
+        val newWidgetInfo =
+            TestViewHelpers.findWidgetProvider(true).apply {
+                widgetFeatures = WIDGET_FEATURE_CONFIGURATION_OPTIONAL
+            }
+        assertNotEquals(newWidgetInfo, widgetInfo)
+        doReturn(newWidgetId).whenever(widgetHost).allocateAppWidgetId()
+        doReturn(listOf(newWidgetInfo))
+            .whenever(widgetManager)
+            .getInstalledProvidersForPackage(eq(newPackage), any())
+        // bindAppWidgetIdIfAllowed fails.
+        doReturn(false).whenever(widgetManager).bindAppWidgetIdIfAllowed(any(), any())
+
+        mockOseInfo.dispatchValue(OSEInfo(newPackage))
+        TestUtil.runOnExecutorSync(executor) {}
+        verify(widgetHost).deleteAppWidgetId(newWidgetId)
+        verify(widgetHost).setActiveWidget(eq(INVALID_APPWIDGET_ID), isNull())
+    }
+
     private fun createOseWidgetManager() =
         OseWidgetManager(
             context,

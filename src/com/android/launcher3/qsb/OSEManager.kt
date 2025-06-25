@@ -23,16 +23,24 @@ import android.content.Intent.ACTION_PACKAGE_ADDED
 import android.content.Intent.ACTION_PACKAGE_CHANGED
 import android.content.Intent.ACTION_PACKAGE_REMOVED
 import android.content.pm.ActivityInfo
+import android.content.pm.PackageInstaller
 import android.os.Handler
 import android.os.Looper
+import android.os.Process.myUserHandle
+import android.os.UserHandle
 import androidx.annotation.VisibleForTesting
 import androidx.annotation.WorkerThread
 import com.android.launcher3.R
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppSingleton
+import com.android.launcher3.pm.InstallSessionHelper
+import com.android.launcher3.pm.InstallSessionTracker
+import com.android.launcher3.pm.PackageInstallInfo
+import com.android.launcher3.util.ApplicationInfoWrapper
 import com.android.launcher3.util.DaggerSingletonTracker
 import com.android.launcher3.util.LooperExecutor
 import com.android.launcher3.util.MutableListenableRef
+import com.android.launcher3.util.PackageUserKey
 import com.android.launcher3.util.Preconditions
 import com.android.launcher3.util.SecureStringObserver
 import com.android.launcher3.util.SimpleBroadcastReceiver
@@ -47,12 +55,13 @@ import javax.inject.Inject
 class OSEManager(
     private val context: Context,
     private val settingsObserver: SecureStringObserver,
+    private val installhelper: InstallSessionHelper,
     private val handlerLooper: Looper = OSE_LOOPER,
 ) {
 
     private val handler = Handler(handlerLooper)
     private val packageAvailableReceiver = SimpleBroadcastReceiver(context, handler) { reloadOse() }
-
+    @VisibleForTesting var tracker: InstallSessionTracker? = null
     private val mutableOSEInfoRef = MutableListenableRef(OSEInfo())
 
     /**
@@ -68,9 +77,11 @@ class OSEManager(
     constructor(
         @ApplicationContext context: Context,
         tracker: DaggerSingletonTracker,
+        installhelper: InstallSessionHelper,
     ) : this(
         context,
         SecureStringObserver(context, Handler(OSE_LOOPER), SEARCH_ENGINE_SETTINGS_KEY),
+        installhelper,
     ) {
         settingsObserver.callback = Runnable { reloadOse() }
         handler.post { reloadOse() }
@@ -81,7 +92,41 @@ class OSEManager(
     @VisibleForTesting
     fun reloadOse() {
         Preconditions.assertNonUiThread()
-        val osePkg: String? = settingsObserver.getValue() ?: defaultSearchPackage
+        val oseSettingsValue = settingsObserver.getValue()
+        val appInfoWrapper =
+            oseSettingsValue?.let { ApplicationInfoWrapper(context, it, myUserHandle()) }
+        val oseApkInstalled = appInfoWrapper?.run { isInstalled() && !isArchived() } ?: false
+        val activeInstallSession =
+            oseSettingsValue?.let {
+                installhelper.getActiveSessionInfo(myUserHandle(), oseSettingsValue) != null
+            } ?: false
+
+        // Check if package is being installed or is already installed
+        val osePkg: String? =
+            when {
+                oseApkInstalled || activeInstallSession -> oseSettingsValue
+                // No install session available, so fallback to defaultSearchPackage
+                else -> defaultSearchPackage
+            }
+
+        val oseApkInstallPending =
+            when {
+                oseApkInstalled -> false
+                activeInstallSession -> true
+                // No install session available, so apk install is not pending
+                else -> false
+            }
+
+        unregisterInstallSessionTracker()
+        if (!oseApkInstalled) {
+            // Register to track ose package being installed.
+            // Continue tracking in case the user manually installs again.
+            tracker =
+                oseSettingsValue?.let {
+                    installhelper.registerInstallTracker(SessionTrackerCallback(it))
+                }
+        }
+
         val overlayAppsList =
             context.resources.getStringArray(R.array.supported_overlay_apps).asList()
         // Look into the "supported_overlay_apps" Array based on OsePackage and fallback to first
@@ -102,11 +147,12 @@ class OSEManager(
                 }
 
         val oldOseInfo = mutableOSEInfoRef.value
-        val newOseInfo = OSEInfo(osePkg, overlayTarget)
+        val newOseInfo = OSEInfo(osePkg, overlayTarget, oseApkInstallPending)
 
         if (
             oldOseInfo.pkg != newOseInfo.pkg ||
-                oldOseInfo.overlayPackage != newOseInfo.overlayPackage
+                oldOseInfo.overlayPackage != newOseInfo.overlayPackage ||
+                oldOseInfo.installPending != newOseInfo.installPending
         ) {
             packageAvailableReceiver.unregisterReceiverSafely()
             // Listen for ose changes
@@ -133,14 +179,24 @@ class OSEManager(
         }
     }
 
+    private fun unregisterInstallSessionTracker() {
+        tracker?.close()
+        tracker = null
+    }
+
     @VisibleForTesting
     fun close() {
         settingsObserver.close()
         packageAvailableReceiver.unregisterReceiverSafely()
+        handler.post { unregisterInstallSessionTracker() }
     }
 
     /** Object representing properties of the on-device search engine */
-    class OSEInfo(val pkg: String? = null, val overlayTarget: ActivityInfo? = null) {
+    class OSEInfo(
+        val pkg: String? = null,
+        val overlayTarget: ActivityInfo? = null,
+        val installPending: Boolean = false,
+    ) {
         val overlayPackage: String?
             get() = overlayTarget?.packageName ?: pkg
     }
@@ -154,5 +210,43 @@ class OSEManager(
         private const val TAG = "OSEManager"
 
         const val OVERLAY_ACTION = "com.android.launcher3.WINDOW_OVERLAY"
+    }
+
+    inner class SessionTrackerCallback(val osePackage: String) : InstallSessionTracker.Callback {
+
+        override fun onSessionFailure(packageName: String, user: UserHandle) {
+            if (packageName == osePackage) {
+                // Session failed - fallback to defaultSearchPackage
+                postInstallSessionUpdate()
+            }
+        }
+
+        override fun onUpdateSessionDisplay(
+            key: PackageUserKey,
+            info: PackageInstaller.SessionInfo,
+        ) {
+            // Do nothing
+        }
+
+        override fun onPackageStateChanged(info: PackageInstallInfo) {
+            if (
+                info.packageName == osePackage && info.state == PackageInstallInfo.STATUS_INSTALLED
+            ) {
+                // OsePkg installation is successful, reloadOse to update oseApkInstallPending value
+                postInstallSessionUpdate()
+            }
+        }
+
+        override fun onInstallSessionCreated(info: PackageInstallInfo) {
+            if (info.packageName == osePackage) {
+                // If the oseSettingsValue is still the same and install session got created for the
+                // same package then reloadOse to  update oseApkInstallPending value
+                postInstallSessionUpdate()
+            }
+        }
+
+        private fun postInstallSessionUpdate() {
+            handler.post { reloadOse() }
+        }
     }
 }
