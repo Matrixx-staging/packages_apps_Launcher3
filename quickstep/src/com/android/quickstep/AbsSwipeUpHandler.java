@@ -312,6 +312,8 @@ public abstract class AbsSwipeUpHandler<
      */
     private static final int LOG_NO_OP_PAGE_INDEX = -1;
 
+    private static final int REJECT_HOME_ANIM_DURATION_MS = 200;
+    private static final float REJECT_HOME_ANIM_MINIMUM_SHIFT = 0.1f;
 
     protected TaskAnimationManager mTaskAnimationManager;
     // Either RectFSpringAnim (if animating home) or ObjectAnimator (from mCurrentShift) otherwise
@@ -1311,8 +1313,7 @@ public abstract class AbsSwipeUpHandler<
                 Math.toDegrees(Math.atan2(-velocityPxPerMs.y, velocityPxPerMs.x)));
 
         if (mGestureState.isHandlingAtomicEvent()) {
-            // Button mode, this is only used to go to recents.
-            return RECENTS;
+            return mGestureState.getAtomicEndTarget();
         }
 
         GestureEndTarget endTarget;
@@ -1479,6 +1480,9 @@ public abstract class AbsSwipeUpHandler<
                     : StaggeredWorkspaceAnim.DURATION_MS;
             SystemUiProxy.INSTANCE.get(mContext).updateContextualEduStats(
                     mGestureState.isTrackpadGesture(), GestureType.HOME);
+        } else if (endTarget == REJECT_HOME) {
+            interpolator = ACCELERATE_DECELERATE;
+            duration = Math.max(REJECT_HOME_ANIM_DURATION_MS, duration);
         } else if (endTarget == RECENTS) {
             if (mRecentsView != null) {
                 int nearestPage = mRecentsView.getDestinationPage();
@@ -1540,9 +1544,10 @@ public abstract class AbsSwipeUpHandler<
             }
         }
         long finalDuration = duration;
+        Interpolator finalInterpolator = interpolator;
         runOnRecentsAnimationAndLauncherBound(() -> {
             animateGestureEnd(
-                startShift, endShift, finalDuration, interpolator, endTarget, velocityPxPerMs);
+                startShift, endShift, finalDuration, finalInterpolator, endTarget, velocityPxPerMs);
         });
     }
 
@@ -1806,16 +1811,49 @@ public abstract class AbsSwipeUpHandler<
                 animatorSet.setDuration(0).start();
             }
         } else if (mGestureState.getEndTarget() == REJECT_HOME) {
-            ValueAnimator windowAnim = mCurrentShift.animateToValue(start, 0);
-            windowAnim.addListener(new AnimationSuccessListener() {
+            AnimatorSet animatorSet = new AnimatorSet();
+            AnimationSuccessListener successListener = new AnimationSuccessListener() {
                 @Override
                 public void onAnimationSuccess(Animator animator) {
                     mGestureState.setState(STATE_END_TARGET_ANIMATION_FINISHED);
                 }
-            });
-            windowAnim.setDuration(duration).setInterpolator(interpolator);
-            windowAnim.start();
-            mRunningWindowAnim = new RunningWindowAnim[]{RunningWindowAnim.wrap(windowAnim)};
+            };
+            if (start > REJECT_HOME_ANIM_MINIMUM_SHIFT) {
+                // Animate directly from start to 0
+                ValueAnimator directAnim = mCurrentShift.animateToValue(start, 0f);
+                directAnim.setDuration(duration);
+                directAnim.setInterpolator(interpolator);
+                directAnim.addListener(successListener);
+                animatorSet.play(directAnim);
+            } else {
+                // Animate from start to REJECT_HOME_ANIM_MINIMUM_SHIFT
+                // Then from REJECT_HOME_ANIM_MINIMUM_SHIFT to 0
+                //
+                // Calculate the duration of each animation based on the proportion of the total
+                // effect. EG down and up should go at the same rate (~handwaving interpolation~)
+                // Down displacement is always MINIMUM_SHIFT to 0
+                // Up displacement is from start to MINIMUM_SHIFT
+                float goingUpDistance = REJECT_HOME_ANIM_MINIMUM_SHIFT - start;
+                float goingDownDistance = REJECT_HOME_ANIM_MINIMUM_SHIFT;
+                float totalDistanceToCover = goingUpDistance + goingDownDistance;
+                long goingUpDuration =
+                        (long) (duration * (goingUpDistance / totalDistanceToCover));
+                long goingDownDuration = duration - goingUpDuration;
+
+                ValueAnimator goingUpAnim = mCurrentShift.animateToValue(
+                        start, REJECT_HOME_ANIM_MINIMUM_SHIFT);
+                ValueAnimator goingDownAnim = mCurrentShift.animateToValue(
+                        REJECT_HOME_ANIM_MINIMUM_SHIFT, 0f);
+                goingUpAnim.setDuration(goingUpDuration);
+                goingDownAnim.setDuration(goingDownDuration);
+                goingDownAnim.addListener(successListener);
+
+                animatorSet.play(goingUpAnim);
+                animatorSet.play(goingDownAnim).after(goingUpAnim);
+            }
+            animatorSet.setInterpolator(interpolator);
+            animatorSet.start();
+            mRunningWindowAnim = new RunningWindowAnim[]{RunningWindowAnim.wrap(animatorSet)};
         } else {
             AnimatorSet animatorSet = new AnimatorSet();
             ValueAnimator windowAnim = mCurrentShift.animateToValue(start, end);

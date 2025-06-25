@@ -137,10 +137,12 @@ public class OverviewCommandHelperProtoLogProxy {
         ProtoLog.d(OVERVIEW_COMMAND_HELPER, "recents animation canceled: %s", command);
     }
 
-    public static void logSwitchingViaRecentsAnim(@NonNull Object command) {
+    public static void logSwitchingViaRecentsAnim(
+            @NonNull Object command, @NonNull Object endTarget) {
         if (!isProtoLogInitialized()) return;
         ProtoLog.d(OVERVIEW_COMMAND_HELPER,
-                "switching via recents animation - onGestureStarted: %s", command);
+                "switching via recents animation - onGestureStarted: %s with end target: %s",
+                command, endTarget);
     }
 
     public static void logSwitchingViaRecentsAnimComplete(@NonNull Object command) {
