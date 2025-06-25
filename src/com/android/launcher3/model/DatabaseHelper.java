@@ -17,6 +17,7 @@ package com.android.launcher3.model;
 
 import static com.android.launcher3.LauncherSettings.Favorites.addTableToDb;
 import static com.android.launcher3.provider.LauncherDbUtils.dropTable;
+import static com.android.launcher3.util.SQLiteCacheHelper.createNoLocaleParams;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -25,6 +26,7 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
 import android.os.Process;
 import android.os.UserHandle;
@@ -46,7 +48,6 @@ import com.android.launcher3.provider.LauncherDbUtils;
 import com.android.launcher3.provider.LauncherDbUtils.SQLiteTransaction;
 import com.android.launcher3.util.IntArray;
 import com.android.launcher3.util.IntSet;
-import com.android.launcher3.util.NoLocaleSQLiteHelper;
 import com.android.launcher3.util.PackageManagerHelper;
 import com.android.launcher3.util.Thunk;
 import com.android.launcher3.widget.LauncherWidgetHolder;
@@ -63,7 +64,7 @@ import java.util.stream.Collectors;
  * SqLite database for launcher home-screen model
  * The class is subclassed in tests to create an in-memory db.
  */
-public class DatabaseHelper extends NoLocaleSQLiteHelper implements
+public class DatabaseHelper extends SQLiteOpenHelper implements
         LayoutParserCallback {
 
     /**
@@ -88,7 +89,7 @@ public class DatabaseHelper extends NoLocaleSQLiteHelper implements
      */
     public DatabaseHelper(Context context, String dbName,
             ToLongFunction<UserHandle> userSerialProvider, Runnable onEmptyDbCreateCallback) {
-        super(context, dbName, SCHEMA_VERSION);
+        super(context, dbName, SCHEMA_VERSION, createNoLocaleParams());
         mContext = context;
         mUserSerialProvider = userSerialProvider;
         mOnEmptyDbCreateCallback = onEmptyDbCreateCallback;
