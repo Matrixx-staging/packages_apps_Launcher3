@@ -624,7 +624,6 @@ public abstract class RecentsView<
     private long mScrollLastHapticTimestamp;
 
     private int mKeyboardTaskFocusSnapAnimationDuration;
-    private KeyboardFocusTask mKeyboardFocusTask = KeyboardFocusTask.unfocused;
 
     protected Map<TaskView, Integer> mTaskViewsDismissPrimaryTranslations = new HashMap<>();
 
@@ -6790,7 +6789,7 @@ public abstract class RecentsView<
      * keyboard quick switching
      */
     public void setKeyboardFocusTask(@NonNull KeyboardFocusTask keyboardFocusTask) {
-        mKeyboardFocusTask = keyboardFocusTask;
+        mUtils.setKeyboardFocusTask(keyboardFocusTask);
     }
 
     /**
@@ -6799,12 +6798,12 @@ public abstract class RecentsView<
      */
     @Nullable
     public TaskView getKeyboardFocusTaskView() {
-        return mUtils.getKeyboardFocusTask(mKeyboardFocusTask);
+        return mUtils.getKeyboardFocusTaskView();
     }
 
     /** Returns whether this RecentsView will be scrolling to a child view for a focus request */
     public boolean isKeyboardTaskFocusPending() {
-        return mKeyboardFocusTask != KeyboardFocusTask.unfocused;
+        return mUtils.isKeyboardTaskFocusPending();
     }
 
     private boolean isKeyboardTaskFocusPendingForChild(View child) {

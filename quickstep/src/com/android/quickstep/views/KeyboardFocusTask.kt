@@ -37,9 +37,4 @@ sealed class KeyboardFocusTask {
             is TaskViewWithIds -> "TaskViewWithIds( $taskIds )"
         }
     }
-
-    companion object {
-        @JvmField
-        val unfocused: KeyboardFocusTask = Unfocused
-    }
 }
