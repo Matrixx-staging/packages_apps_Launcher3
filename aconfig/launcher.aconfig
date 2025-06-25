@@ -652,3 +652,10 @@ flag {
     description: "Enable making the first page pinned widget movable"
     bug: "427478072"
 }
+
+flag {
+    name: "show_files_on_home_screen"
+    namespace: "launcher"
+    description: "Enables file and folder items on the home screen"
+    bug: "375644352"
+}
