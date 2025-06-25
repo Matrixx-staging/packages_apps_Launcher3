@@ -943,8 +943,7 @@ public class Launcher extends StatefulActivity<LauncherState>
             // Now that we are exiting the config activity with RESULT_OK.
             // We retrieve the PendingAppWidgetHostView from LauncherWidgetHolder (it was added to
             // LauncherWidgetHolder when starting the config activity).
-            final AppWidgetHostView layout = mAppWidgetHolder.createView(appWidgetId,
-                            requestArgs.getWidgetHandler().getProviderInfo(this));
+            final AppWidgetHostView layout = getWorkspace().getWidgetForAppWidgetId(appWidgetId);
             boundWidget = layout;
             onCompleteRunnable = () -> {
                 completeAddAppWidget(appWidgetId, requestArgs, layout, null, false, true, null);
