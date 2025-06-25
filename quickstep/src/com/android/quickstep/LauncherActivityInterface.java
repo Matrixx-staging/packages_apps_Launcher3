@@ -29,6 +29,7 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.view.RemoteAnimationTarget;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 
@@ -333,19 +334,13 @@ public final class LauncherActivityInterface extends
     }
 
     @Override
-    public LauncherState stateFromGestureEndTarget(GestureEndTarget endTarget) {
-        switch (endTarget) {
-            case RECENTS:
-                return OVERVIEW;
-            case NEW_TASK:
-            case LAST_TASK:
-                return BACKGROUND_APP;
-            case ALL_APPS:
-                return ALL_APPS;
-            case HOME:
-            default:
-                return NORMAL;
-        }
+    public LauncherState stateFromGestureEndTarget(@NonNull GestureEndTarget endTarget) {
+        return switch (endTarget) {
+            case RECENTS -> OVERVIEW;
+            case NEW_TASK, LAST_TASK -> BACKGROUND_APP;
+            case ALL_APPS -> ALL_APPS;
+            default -> NORMAL;
+        };
     }
 
     @Override

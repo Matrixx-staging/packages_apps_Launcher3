@@ -177,27 +177,20 @@ public final class FallbackActivityInterface extends
 
     @Override
     public void onLaunchTaskFailed() {
-        // TODO: probably go back to overview instead.
         RecentsActivity activity = getCreatedContainer();
         if (activity == null) {
             return;
         }
-        activity.<RecentsView>getOverviewPanel().startHome();
+        activity.getStateManager().goToState(DEFAULT);
     }
 
     @Override
-    public RecentsState stateFromGestureEndTarget(GestureEndTarget endTarget) {
-        switch (endTarget) {
-            case RECENTS:
-                return DEFAULT;
-            case NEW_TASK:
-            case LAST_TASK:
-                return BACKGROUND_APP;
-            case HOME:
-            case ALL_APPS:
-            default:
-                return HOME;
-        }
+    public RecentsState stateFromGestureEndTarget(@NonNull GestureEndTarget endTarget) {
+        return switch (endTarget) {
+            case RECENTS -> DEFAULT;
+            case NEW_TASK, LAST_TASK -> BACKGROUND_APP;
+            default -> HOME;
+        };
     }
 
     private void notifyRecentsOfOrientation() {
