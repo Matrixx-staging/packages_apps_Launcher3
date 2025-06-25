@@ -68,6 +68,7 @@ fun WidgetAppsList(
     bottomContentSpacing: Dp = 0.dp,
     headerDescriptionStyle: AppHeaderDescriptionStyle = AppHeaderDescriptionStyle.WIDGETS_COUNT,
     emptyWidgetsErrorMessage: String? = null,
+    autoScrollToTopOnChange: Boolean = false,
 ) {
     if (widgetApps.isEmpty()) {
         NoWidgetsError(
@@ -153,6 +154,10 @@ fun WidgetAppsList(
             ) {
                 listState.scrollToItem(index)
             }
+        }
+
+        if (autoScrollToTopOnChange) {
+            LaunchedEffect(widgetApps.size) { listState.scrollToItem(0) }
         }
     }
 }
