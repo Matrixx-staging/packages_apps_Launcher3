@@ -78,7 +78,7 @@ fun LeadingIconToolbarTab(
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                         onClick()
-                    }
+                    },
                 )
                 .background(color = backgroundColor)
                 .minimumInteractiveComponentSize()
@@ -95,17 +95,23 @@ fun LeadingIconToolbarTab(
                 imageVector = leadingIcon,
                 contentDescription = null, // decorative
                 modifier = Modifier.padding(end = LeadingIconToolbarTabDefaults.contentSpacing),
-                tint = WidgetPickerTheme.colors.toolbarTabContent,
+                tint = WidgetPickerTheme.colors.toolbarSelectedTabContent,
             )
         }
         Text(
             text = label,
-            style = if (selected) {
-                WidgetPickerTheme.typography.toolbarSelectedTabLabel
-            } else {
-                WidgetPickerTheme.typography.toolbarTabLabel
-            },
-            color = WidgetPickerTheme.colors.toolbarTabContent,
+            style =
+                if (selected) {
+                    WidgetPickerTheme.typography.toolbarSelectedTabLabel
+                } else {
+                    WidgetPickerTheme.typography.toolbarUnSelectedTabLabel
+                },
+            color =
+                if (selected) {
+                    WidgetPickerTheme.colors.toolbarSelectedTabContent
+                } else {
+                    WidgetPickerTheme.colors.toolbarUnSelectedTabContent
+                },
         )
     }
 }

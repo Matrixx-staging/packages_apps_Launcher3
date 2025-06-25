@@ -48,6 +48,7 @@ import android.widget.FrameLayout;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 
+import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.graphics.GridCustomizationsProxy;
@@ -105,6 +106,9 @@ public class PreviewSurfaceRenderer {
     private final WallpaperColors mWallpaperColors;
     private final RunnableList mLifeCycleTracker;
     private final SurfaceControlViewHost mSurfaceControlViewHost;
+
+    private final InvariantDeviceProfile.OnIDPChangeListener mOnIDPChangeListener =
+            modelPropertiesChanged -> recreatePreviewRenderer();
 
     private LauncherPreviewRenderer mCurrentRenderer;
 
@@ -179,7 +183,7 @@ public class PreviewSurfaceRenderer {
         }
 
         MAIN_EXECUTOR.submit(() -> {
-            mAppComponent.getIDP().addOnChangeListener(c -> recreatePreviewRenderer());
+            mAppComponent.getIDP().addOnChangeListener(mOnIDPChangeListener);
             recreatePreviewRenderer();
         }).get();
     }
@@ -204,6 +208,7 @@ public class PreviewSurfaceRenderer {
         }
         mSurfaceControlViewHost.release();
         MAIN_EXECUTOR.execute(() -> {
+            mAppComponent.getIDP().removeOnChangeListener(mOnIDPChangeListener);
             if (mCurrentRenderer != null) {
                 mCurrentRenderer.onViewDestroyed();
             }

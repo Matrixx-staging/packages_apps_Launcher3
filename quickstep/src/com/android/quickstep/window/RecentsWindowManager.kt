@@ -32,12 +32,15 @@ import android.view.RemoteAnimationTarget
 import android.view.SurfaceControl
 import android.view.View
 import android.view.WindowManager
+import android.window.BackEvent
+import android.window.OnBackInvokedCallback
 import android.window.RemoteTransition
 import androidx.core.view.isVisible
 import com.android.app.displaylib.PerDisplayInstanceProviderWithTeardown
 import com.android.app.displaylib.PerDisplayRepository
 import com.android.launcher3.AbstractFloatingView
 import com.android.launcher3.BaseActivity
+import com.android.launcher3.Flags.enablePredictiveBackInOverview
 import com.android.launcher3.LauncherAnimationRunner
 import com.android.launcher3.LauncherAnimationRunner.RemoteAnimationFactory
 import com.android.launcher3.R
@@ -90,6 +93,7 @@ import com.android.quickstep.util.TISBindHelper
 import com.android.quickstep.views.OverviewActionsView
 import com.android.quickstep.views.RecentsView
 import com.android.quickstep.views.RecentsViewContainer
+import com.android.systemui.animation.back.FlingOnBackAnimationCallback
 import com.android.systemui.shared.recents.model.ThumbnailData
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -207,11 +211,32 @@ constructor(
             )
         }
 
-    private val onBackInvokedCallback: () -> Unit = {
+    private val onBackInvokedCallback = OnBackInvokedCallback {
         // If we are in live tile mode, launch the live task, otherwise return home
         recentsView?.runningTaskView?.launchWithAnimation() ?: startHome()
         TestLogging.recordEvent(SEQUENCE_MAIN, "onBackInvoked")
     }
+
+    private val onBackAnimationCallback =
+        object : FlingOnBackAnimationCallback() {
+            override fun onBackInvokedCompat() {
+                // If we are in live tile mode, launch the live task, otherwise return home
+                recentsView?.runningTaskView?.launchWithAnimation() ?: startHome()
+                TestLogging.recordEvent(SEQUENCE_MAIN, "onBackInvokedCompat")
+            }
+
+            override fun onBackStartedCompat(backEvent: BackEvent) {
+                // TODO(b/427401688): Implement predictive back callbacks in follow-up CLs
+            }
+
+            override fun onBackProgressedCompat(backEvent: BackEvent) {
+                // TODO(b/427401688): Implement predictive back callbacks in follow-up CLs
+            }
+
+            override fun onBackCancelledCompat() {
+                // TODO(b/427401688): Implement predictive back callbacks in follow-up CLs
+            }
+        }
 
     private val homeVisibilityState = SystemUiProxy.INSTANCE.get(this).homeVisibilityState
     private val homeVisibilityListener =
@@ -267,6 +292,15 @@ constructor(
             if (windowRootView.parent != null) {
                 windowManager.removeViewImmediate(windowRootView)
             }
+            windowView
+                ?.findOnBackInvokedDispatcher()
+                ?.unregisterOnBackInvokedCallback(
+                    if (enablePredictiveBackInOverview()) {
+                        onBackAnimationCallback
+                    } else {
+                        onBackInvokedCallback
+                    }
+                )
             callbacks?.removeListener(recentsAnimationListener)
             homeVisibilityState.removeListener(homeVisibilityListener)
             recentsWindowTracker.onContextDestroyed(this)
@@ -319,7 +353,13 @@ constructor(
                 windowRootView.addView(it)
 
                 it.findOnBackInvokedDispatcher()
-                    ?.registerSystemOnBackInvokedCallback(onBackInvokedCallback)
+                    ?.registerSystemOnBackInvokedCallback(
+                        if (enablePredictiveBackInOverview()) {
+                            onBackAnimationCallback
+                        } else {
+                            onBackInvokedCallback
+                        }
+                    )
             }
             systemUiController = SystemUiController(windowView)
         }
