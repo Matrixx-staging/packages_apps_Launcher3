@@ -124,8 +124,8 @@ public class FloatingTaskView extends FrameLayout {
         mSplitPlaceholderView.setAlpha(0);
     }
 
-    private void init(RecentsViewContainer launcher, View originalView, @Nullable Bitmap thumbnail,
-            Drawable icon, RectF positionOut) {
+    private void init(RecentsViewContainer recentsViewContainer, View originalView,
+            @Nullable Bitmap thumbnail, Drawable icon, RectF positionOut) {
         mStartingPosition = positionOut;
         updateInitialPositionForView(originalView);
         final InsettableFrameLayout.LayoutParams lp =
@@ -141,7 +141,7 @@ public class FloatingTaskView extends FrameLayout {
 
         mThumbnailView.setVisibility(VISIBLE);
 
-        RecentsView recentsView = launcher.getOverviewPanel();
+        RecentsView recentsView = recentsViewContainer.getOverviewPanel();
         mOrientationHandler = recentsView.getPagedOrientationHandler();
         mStagePosition = recentsView.getSplitSelectController().getActiveSplitStagePosition();
         mSplitPlaceholderView.setIcon(icon, mSplitHolderSize);
@@ -152,15 +152,16 @@ public class FloatingTaskView extends FrameLayout {
      * Configures and returns a an instance of {@link FloatingTaskView} initially matching the
      * appearance of {@code originalView}.
      */
-    public static FloatingTaskView getFloatingTaskView(RecentsViewContainer launcher,
+    public static FloatingTaskView getFloatingTaskView(RecentsViewContainer recentsViewContainer,
             View originalView, @Nullable Bitmap thumbnail, Drawable icon, RectF positionOut) {
-        final ViewGroup dragLayer = launcher.getDragLayer();
-        final FloatingTaskView floatingView = (FloatingTaskView) launcher.getLayoutInflater()
+        final ViewGroup dragLayer = recentsViewContainer.getDragLayer();
+        final FloatingTaskView floatingView = (FloatingTaskView) recentsViewContainer
+                .getLayoutInflater()
                 .inflate(R.layout.floating_split_select_view, dragLayer, false);
 
-        floatingView.init(launcher, originalView, thumbnail, icon, positionOut);
+        floatingView.init(recentsViewContainer, originalView, thumbnail, icon, positionOut);
         // Add this animating view underneath the existing open task menu view (if there is one)
-        View openTaskView = AbstractFloatingView.getOpenView(launcher, TYPE_TASK_MENU);
+        View openTaskView = AbstractFloatingView.getOpenView(recentsViewContainer, TYPE_TASK_MENU);
         int openTaskViewIndex = dragLayer.indexOfChild(openTaskView);
         if (openTaskViewIndex == -1) {
             // Add to top if not
