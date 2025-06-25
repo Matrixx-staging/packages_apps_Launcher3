@@ -59,7 +59,7 @@ import com.android.launcher3.util.CancellableTask;
  */
 public class WallpaperScreenshotClipView extends FrameLayout {
 
-    private static final int MAX_DURATION_MS = 100;
+    public static final int CLIP_ANIM_DURATION = 100;
 
     private static final float MAX_SCALE_MULTIPLIER = 1.25f;
     private static final int COLOR_ALPHA_DURATION_MS = 25;
@@ -213,7 +213,7 @@ public class WallpaperScreenshotClipView extends FrameLayout {
      */
     public void addClipAnimation(AnimatorSet animatorSet) {
         ValueAnimator scale = ValueAnimator.ofFloat(0, 1f);
-        scale.setDuration(MAX_DURATION_MS);
+        scale.setDuration(CLIP_ANIM_DURATION);
         scale.setInterpolator(ACCELERATE);
         scale.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
@@ -236,7 +236,7 @@ public class WallpaperScreenshotClipView extends FrameLayout {
         animatorSet.play(scale);
 
         ValueAnimator color = ValueAnimator.ofFloat(0, 1f);
-        color.setDuration(MAX_DURATION_MS);
+        color.setDuration(CLIP_ANIM_DURATION);
         color.setInterpolator(LINEAR);
         color.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
@@ -247,7 +247,7 @@ public class WallpaperScreenshotClipView extends FrameLayout {
                         mScreenshotFailed ? ACCELERATE : LINEAR);
                 float maxAlpha = mScreenshotFailed
                         ? 1f
-                        : (1f * MAX_DURATION_MS / COLOR_ALPHA_DURATION_MS);
+                        : (1f * CLIP_ANIM_DURATION / COLOR_ALPHA_DURATION_MS);
                 float alpha = Math.min(1f, mapToRange(interpProgress, 0, 1, 0, maxAlpha, LINEAR));
                 mColorOverlay.setAlpha(1f - alpha);
             }
