@@ -20,6 +20,8 @@ import android.animation.AnimatorTestRule
 import android.platform.test.annotations.DisableFlags
 import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
+import android.view.WindowInsets
+import android.view.WindowManager
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import com.android.launcher3.Flags
 import com.android.launcher3.LauncherPrefs
@@ -29,6 +31,7 @@ import com.android.launcher3.QuickstepTransitionManager.PINNED_TASKBAR_TRANSITIO
 import com.android.launcher3.R
 import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.taskbar.StashedHandleViewController.ALPHA_INDEX_STASHED
+import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_BUBBLES_EXPANDED
 import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_EDU_OPEN
 import com.android.launcher3.taskbar.TaskbarControllerTestUtil.asProperty
 import com.android.launcher3.taskbar.TaskbarStashController.FLAG_IN_APP
@@ -67,8 +70,12 @@ import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.atLeastOnce
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.spy
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 @RunWith(LauncherMultivalentJUnit::class)
@@ -618,8 +625,9 @@ class TaskbarStashControllerTest {
     @TaskbarMode(PINNED)
     fun testAnimatePinnedTaskbar_imeShown_replacesIconsWithHandle() {
         assume()
-          .withMessage("Ignoring test because hardware keyboard is present")
-          .that(activityContext.isHardwareKeyboard).isFalse()
+            .withMessage("Ignoring test because hardware keyboard is present")
+            .that(activityContext.isHardwareKeyboard)
+            .isFalse()
 
         getInstrumentation().runOnMainSync {
             stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, false)
@@ -633,8 +641,9 @@ class TaskbarStashControllerTest {
     @TaskbarMode(PINNED)
     fun testAnimatePinnedTaskbar_imeHidden_replacesHandleWithIcons() {
         assume()
-          .withMessage("Ignoring test because hardware keyboard is present")
-          .that(activityContext.isHardwareKeyboard).isFalse()
+            .withMessage("Ignoring test because hardware keyboard is present")
+            .that(activityContext.isHardwareKeyboard)
+            .isFalse()
 
         getInstrumentation().runOnMainSync {
             stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, true)
@@ -653,8 +662,9 @@ class TaskbarStashControllerTest {
     @TaskbarMode(PINNED)
     fun testAnimatePinnedTaskbar_imeHidden_verifyAnimationDuration() {
         assume()
-          .withMessage("Ignoring test because hardware keyboard is present")
-          .that(activityContext.isHardwareKeyboard).isFalse()
+            .withMessage("Ignoring test because hardware keyboard is present")
+            .that(activityContext.isHardwareKeyboard)
+            .isFalse()
 
         // Start with IME shown.
         getInstrumentation().runOnMainSync {
@@ -682,8 +692,9 @@ class TaskbarStashControllerTest {
     @TaskbarMode(THREE_BUTTONS)
     fun testAnimateThreeButtonsTaskbar_imeShown_hidesIconsAndBg() {
         assume()
-          .withMessage("Ignoring test because hardware keyboard is present")
-          .that(activityContext.isHardwareKeyboard).isFalse()
+            .withMessage("Ignoring test because hardware keyboard is present")
+            .that(activityContext.isHardwareKeyboard)
+            .isFalse()
 
         getInstrumentation().runOnMainSync {
             stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, false)
@@ -697,8 +708,9 @@ class TaskbarStashControllerTest {
     @TaskbarMode(THREE_BUTTONS)
     fun testAnimateThreeButtonsTaskbar_imeHidden_showsIconsAndBg() {
         assume()
-          .withMessage("Ignoring test because hardware keyboard is present")
-          .that(activityContext.isHardwareKeyboard).isFalse()
+            .withMessage("Ignoring test because hardware keyboard is present")
+            .that(activityContext.isHardwareKeyboard)
+            .isFalse()
 
         getInstrumentation().runOnMainSync {
             stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, false)
@@ -719,8 +731,9 @@ class TaskbarStashControllerTest {
     @TaskbarMode(PINNED)
     fun testSetSystemGestureInProgress_whileImeShown_unstashesTaskbar() {
         assume()
-          .withMessage("Ignoring test because hardware keyboard is present")
-          .that(activityContext.isHardwareKeyboard).isFalse()
+            .withMessage("Ignoring test because hardware keyboard is present")
+            .that(activityContext.isHardwareKeyboard)
+            .isFalse()
 
         getInstrumentation().runOnMainSync {
             stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, true)
@@ -740,9 +753,9 @@ class TaskbarStashControllerTest {
     @TaskbarMode(PINNED)
     fun testSysuiStateImeShowingInApp_hardwareKeyboardWithPinnedMode_notStashedForIme() {
         assume()
-           .withMessage("Ignoring test because hardware keyboard is not present")
-           .that(activityContext.isHardwareKeyboard)
-           .isTrue()
+            .withMessage("Ignoring test because hardware keyboard is not present")
+            .that(activityContext.isHardwareKeyboard)
+            .isTrue()
 
         getInstrumentation().runOnMainSync {
             stashController.updateStateForFlag(FLAG_IN_APP, true)
@@ -787,6 +800,66 @@ class TaskbarStashControllerTest {
         }
         assertThat(stashedHandleViewController.isStashedHandleVisible).isFalse()
     }
+
+    @Test
+    @TaskbarMode(TRANSIENT)
+    fun unstashTaskbar_inApp_navBarForciblyShown() {
+        val wmLayoutParamsCaptor = argumentCaptor<WindowManager.LayoutParams>()
+        getInstrumentation().runOnMainSync {
+            stashController.updateStateForFlag(FLAG_IN_APP, true)
+            stashController.applyState(0)
+            stashController.updateAndAnimateTransientTaskbar(false)
+            animatorTestRule.advanceTimeBy(stashController.stashDuration)
+        }
+        assertThat(stashedHandleViewController.isStashedHandleVisible).isFalse()
+        assertThat(stashController.isStashedInApp).isFalse()
+
+        verify(context.windowManagerSpy, atLeastOnce())
+            .updateViewLayout(any(), wmLayoutParamsCaptor.capture())
+        assertThat(isNavBarForciblyShown(wmLayoutParamsCaptor.lastValue.forciblyShownTypes))
+            .isTrue()
+    }
+
+    @Test
+    @TaskbarMode(TRANSIENT)
+    fun stashTaskbar_inApp_withBubbleBarExpanded_navBarForciblyShown() {
+        val wmLayoutParamsCaptor = argumentCaptor<WindowManager.LayoutParams>()
+        getInstrumentation().runOnMainSync {
+            // unstash taskbar in an app
+            stashController.updateStateForFlag(FLAG_IN_APP, true)
+            stashController.applyState(0)
+            stashController.updateAndAnimateTransientTaskbar(false)
+            animatorTestRule.advanceTimeBy(stashController.stashDuration)
+
+            // suspend auto hide due to bubble bar and stash taskbar
+            autohideSuspendController.updateFlag(FLAG_AUTOHIDE_SUSPEND_BUBBLES_EXPANDED, true)
+            stashController.updateAndAnimateTransientTaskbar(
+                /* stash= */ true,
+                /* shouldBubblesFollow= */ false,
+            )
+            animatorTestRule.advanceTimeBy(stashController.stashDuration)
+        }
+        assertThat(stashedHandleViewController.isStashedHandleVisible).isTrue()
+        assertThat(stashController.isStashedInApp).isTrue()
+
+        // verify the nav bar window should be forcibly shown
+        verify(context.windowManagerSpy, atLeastOnce())
+            .updateViewLayout(any(), wmLayoutParamsCaptor.capture())
+        assertThat(isNavBarForciblyShown(wmLayoutParamsCaptor.lastValue.forciblyShownTypes))
+            .isTrue()
+
+        // unsuspend auto hide and verify that the nav bar window is no longer forcibly shown
+        getInstrumentation().runOnMainSync {
+            autohideSuspendController.updateFlag(FLAG_AUTOHIDE_SUSPEND_BUBBLES_EXPANDED, false)
+        }
+        verify(context.windowManagerSpy, atLeastOnce())
+            .updateViewLayout(any(), wmLayoutParamsCaptor.capture())
+        assertThat(isNavBarForciblyShown(wmLayoutParamsCaptor.lastValue.forciblyShownTypes))
+            .isFalse()
+    }
+
+    private fun isNavBarForciblyShown(forciblyShownTypes: Int): Boolean =
+        (forciblyShownTypes and WindowInsets.Type.navigationBars()) != 0
 }
 
 private fun TaskbarStashController.updateStateForFlag(flag: Int, value: Boolean) {

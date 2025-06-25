@@ -51,6 +51,7 @@ private constructor(
 ) : ContextWrapper(base), TestRule {
 
     val settingsCacheSandbox = SettingsCacheSandbox()
+    val windowManagerSpy = base.spyService(WindowManager::class.java)
 
     private val sandboxSpyServicesRule =
         object : ExternalResource() {
@@ -66,8 +67,7 @@ private constructor(
 
                 // Have displays appear as if they support Taskbar.
                 if (!DesktopExperienceFlags.ENABLE_SYS_DECORS_CALLBACKS_VIA_WM.isTrue) {
-                    val wm = base.spyService(WindowManager::class.java)
-                    whenever(wm.shouldShowSystemDecors(any())).thenReturn(true)
+                    whenever(windowManagerSpy.shouldShowSystemDecors(any())).thenReturn(true)
                 }
             }
         }

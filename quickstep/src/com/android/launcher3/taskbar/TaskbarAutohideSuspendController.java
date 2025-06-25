@@ -53,6 +53,8 @@ public class TaskbarAutohideSuspendController implements
     public static final int FLAG_AUTOHIDE_SUSPEND_TASKBAR_OVERFLOW = 1 << 8;
     // Growth Framework nudge overlay is open above the Taskbar.
     public static final int FLAG_AUTOHIDE_SUSPEND_GROWTH_NUDGE_OPEN = 1 << 9;
+    // Taskbar hiding is suspended due to expanded bubbles.
+    public static final int FLAG_AUTOHIDE_SUSPEND_BUBBLES_EXPANDED = 1 << 10;
 
     @IntDef(flag = true, value = {
             FLAG_AUTOHIDE_SUSPEND_FULLSCREEN,
@@ -65,6 +67,7 @@ public class TaskbarAutohideSuspendController implements
             FLAG_AUTOHIDE_SUSPEND_MULTI_INSTANCE_MENU_OPEN,
             FLAG_AUTOHIDE_SUSPEND_TASKBAR_OVERFLOW,
             FLAG_AUTOHIDE_SUSPEND_GROWTH_NUDGE_OPEN,
+            FLAG_AUTOHIDE_SUSPEND_BUBBLES_EXPANDED,
     })
     @Retention(RetentionPolicy.SOURCE)
     public @interface AutohideSuspendFlag {}
@@ -106,7 +109,7 @@ public class TaskbarAutohideSuspendController implements
     /**
      * Returns true iff taskbar autohide is currently suspended.
      */
-    private boolean isSuspended() {
+    public boolean isSuspended() {
         return mAutohideSuspendFlags != 0;
     }
 
@@ -121,7 +124,8 @@ public class TaskbarAutohideSuspendController implements
      * Returns whether Transient Taskbar should avoid auto-stashing.
      */
     public boolean isTransientTaskbarStashingSuspended() {
-        return (mAutohideSuspendFlags & ~FLAG_AUTOHIDE_SUSPEND_TRANSIENT_TASKBAR) != 0;
+        return (mAutohideSuspendFlags & ~FLAG_AUTOHIDE_SUSPEND_TRANSIENT_TASKBAR
+                & ~FLAG_AUTOHIDE_SUSPEND_BUBBLES_EXPANDED) != 0;
     }
 
     @Override
@@ -142,12 +146,16 @@ public class TaskbarAutohideSuspendController implements
                 "FLAG_AUTOHIDE_SUSPEND_IN_LAUNCHER");
         appendFlag(str, flags, FLAG_AUTOHIDE_SUSPEND_TRANSIENT_TASKBAR,
                 "FLAG_AUTOHIDE_SUSPEND_TRANSIENT_TASKBAR");
+        appendFlag(str, flags, FLAG_AUTOHIDE_SUSPEND_HOVERING_ICONS,
+                "FLAG_AUTOHIDE_SUSPEND_HOVERING_ICONS");
         appendFlag(str, flags, FLAG_AUTOHIDE_SUSPEND_MULTI_INSTANCE_MENU_OPEN,
                 "FLAG_AUTOHIDE_SUSPEND_MULTI_INSTANCE_MENU_OPEN");
         appendFlag(str, flags, FLAG_AUTOHIDE_SUSPEND_TASKBAR_OVERFLOW,
                 "FLAG_AUTOHIDE_SUSPEND_TASKBAR_OVERFLOW");
         appendFlag(str, flags, FLAG_AUTOHIDE_SUSPEND_GROWTH_NUDGE_OPEN,
                 "FLAG_AUTOHIDE_SUSPEND_GROWTH_NUDGE_OPEN");
+        appendFlag(str, flags, FLAG_AUTOHIDE_SUSPEND_BUBBLES_EXPANDED,
+                "FLAG_AUTOHIDE_SUSPEND_BUBBLES_EXPANDED");
         return str.toString();
     }
 }
