@@ -164,9 +164,9 @@ public class CacheDataUpdatedTaskTest {
         IntSet updates = IntSet.wrap(idsUpdated);
         for (WorkspaceItemInfo info : allItems()) {
             if (updates.contains(info.id)) {
-                assertFalse(info.bitmap.isNullOrLowRes());
+                assertFalse(info.bitmap.isLowRes());
             } else {
-                assertTrue(info.bitmap.isNullOrLowRes());
+                assertTrue(info.bitmap.isLowRes());
             }
         }
     }

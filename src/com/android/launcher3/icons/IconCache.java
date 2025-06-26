@@ -101,7 +101,7 @@ public class IconCache extends BaseIconCache {
     private static final String TAG = "Launcher.IconCache";
 
     private final Predicate<ItemInfoWithIcon> mIsUsingFallbackOrNonDefaultIconCheck = w ->
-            w.bitmap != null && (w.bitmap.isNullOrLowRes() || !isDefaultIcon(w.bitmap, w.user));
+            w.bitmap != null && (w.bitmap.isLowRes() || !isDefaultIcon(w.bitmap, w.user));
 
     private final LauncherApps mLauncherApps;
     private final UserCache mUserManager;
@@ -286,7 +286,7 @@ public class IconCache extends BaseIconCache {
                 () -> si,
                 CacheableShortcutCachingLogic.INSTANCE,
                 DEFAULT_LOOKUP_FLAG.withSkipAddToMemCache().withThemeIcon()).bitmap;
-        if (bitmapInfo.isNullOrLowRes()) {
+        if (bitmapInfo.isLowRes()) {
             bitmapInfo = getDefaultIcon(user);
         }
 

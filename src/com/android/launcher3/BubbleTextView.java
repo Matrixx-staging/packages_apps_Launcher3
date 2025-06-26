@@ -552,10 +552,8 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
      */
     @DrawableCreationFlags
     public int getIconCreationFlagsForInfo(ItemInfoWithIcon info) {
-        boolean isPrivateSpaceIcon = Objects.equals(info.getTargetPackage(), PRIVATE_SPACE_PACKAGE);
         // Set nonPendingIcon acts as a restart which should refresh the flag state when applicable.
-        int flags = isPrivateSpaceIcon
-                ? info.bitmap.creationFlags : shouldUseTheme() ? FLAG_THEMED : 0;
+        int flags = shouldUseTheme() ? FLAG_THEMED : 0;
         // Remove badge on icons smaller than 48dp.
         if (mHideBadge || mDisplay == DISPLAY_SEARCH_RESULT_SMALL) {
             flags |= FLAG_NO_BADGE;

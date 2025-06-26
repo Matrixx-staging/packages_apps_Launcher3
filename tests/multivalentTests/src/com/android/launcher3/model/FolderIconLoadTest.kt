@@ -163,7 +163,7 @@ class FolderIconLoadTest {
     private fun verifyHighRes(items: ArrayList<WorkspaceItemInfo>, vararg indices: Int) {
         for (index in indices) {
             assertWithMessage("Index $index was not highRes")
-                .that(items[index].bitmap.isNullOrLowRes)
+                .that(items[index].bitmap.isLowRes)
                 .isFalse()
             assertWithMessage("Index $index was the default icon")
                 .that(isDefaultIcon(items[index].bitmap))
@@ -174,7 +174,7 @@ class FolderIconLoadTest {
     private fun verifyLowRes(items: ArrayList<WorkspaceItemInfo>, vararg indices: Int) {
         for (index in indices) {
             assertWithMessage("Index $index was not lowRes")
-                .that(items[index].bitmap.isNullOrLowRes)
+                .that(items[index].bitmap.isLowRes)
                 .isTrue()
             assertWithMessage("Index $index was the default icon")
                 .that(isDefaultIcon(items[index].bitmap))
