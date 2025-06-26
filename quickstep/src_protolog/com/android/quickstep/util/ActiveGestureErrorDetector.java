@@ -15,6 +15,8 @@
  */
 package com.android.quickstep.util;
 
+import static com.android.quickstep.util.ActiveGestureErrorDetector.GestureEvent.UNFINISHED_TASK_LAUNCH;
+
 import android.util.ArraySet;
 
 import androidx.annotation.NonNull;
@@ -41,7 +43,7 @@ public class ActiveGestureErrorDetector {
         LAUNCHER_DESTROYED, RECENT_TASKS_MISSING, INVALID_VELOCITY_ON_SWIPE_UP,
         RECENTS_ANIMATION_START_PENDING, QUICK_SWITCH_FROM_HOME_FALLBACK,
         QUICK_SWITCH_FROM_HOME_FAILED, NAVIGATION_MODE_SWITCHED, RECENTS_ANIMATION_START_TIMEOUT,
-        INCORRECT_HOME_GESTURE_REQUEST,
+        INCORRECT_HOME_GESTURE_REQUEST, UNFINISHED_TASK_LAUNCH,
 
         /**
          * These GestureEvents are specifically associated to state flags that get set in
@@ -328,6 +330,7 @@ public class ActiveGestureErrorDetector {
                 case STATE_CAPTURE_SCREENSHOT:
                 case STATE_HANDLER_INVALIDATED:
                 case STATE_LAUNCHER_DRAWN:
+                case UNFINISHED_TASK_LAUNCH:
                 default:
                     // No-Op
             }
@@ -458,6 +461,12 @@ public class ActiveGestureErrorDetector {
                 prefix,
                 /* errorMessage= */
                 "onRecentsAnimationCanceled was called but onAnimationCanceled was not",
+                writer);
+
+        errorDetected |= printErrorIfTrue(
+                /* condition= */ encounteredEvents.contains(UNFINISHED_TASK_LAUNCH),
+                prefix,
+                /* errorMessage= */ "Recents animation interrupted mid-task launch",
                 writer);
 
         if (!errorDetected) {

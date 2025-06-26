@@ -277,7 +277,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
                 // (e.g. in Y's onResume). The case will be: lastStartedTask=Y and appearedTask=X.
                 return mLastGestureState.getEndTarget() == GestureState.GestureEndTarget.NEW_TASK
                         && ArrayUtils.find(appearedTaskTargets,
-                                mLastGestureState.mLastStartedTaskIdPredicate) == null;
+                                mLastGestureState.getLastStartedTaskIdPredicate()) == null;
             }
 
             @Override
