@@ -1831,9 +1831,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
     }
 
     /** Get animation duration for taskbar for going to home. */
-    public static int getTaskbarToHomeDuration(
-            boolean isPersistentTaskbarAndNotInDesktopMode) {
-        return getTaskbarToHomeDuration(false, isPersistentTaskbarAndNotInDesktopMode);
+    public static int getTaskbarToHomeDuration(boolean isPinnedTaskbarAndNotInDesktopMode) {
+        return getTaskbarToHomeDuration(false, isPinnedTaskbarAndNotInDesktopMode);
     }
 
     /**
@@ -1842,8 +1841,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
      * @param shouldOverrideToFastAnimation should overwrite scaling reveal home animation duration
      */
     public static int getTaskbarToHomeDuration(boolean shouldOverrideToFastAnimation,
-            boolean isPersistentTaskbarAndNotInDesktopMode) {
-        if (isPersistentTaskbarAndNotInDesktopMode) {
+            boolean isPinnedTaskbarAndNotInDesktopMode) {
+        if (isPinnedTaskbarAndNotInDesktopMode) {
             return PINNED_TASKBAR_TRANSITION_DURATION;
         } else if (enableScalingRevealHomeAnimation() && !shouldOverrideToFastAnimation) {
             return TASKBAR_TO_HOME_DURATION_SLOW;
