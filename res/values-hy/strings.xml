@@ -105,10 +105,8 @@
     <string name="pin_prediction" msgid="4196423321649756498">"Ամրացնել առաջարկվող հավելվածը"</string>
     <string name="bubble" msgid="3072951361014076670">"Ամպիկ"</string>
     <string name="widget_settings" msgid="5280157748464495511">"Կարգավորումներ"</string>
-    <!-- no translation found for pin_to_taskbar (5914002252642242332) -->
-    <skip />
-    <!-- no translation found for unpin_from_taskbar (1025883383457627426) -->
-    <skip />
+    <string name="pin_to_taskbar" msgid="5914002252642242332">"Ամրացնել վահանակում"</string>
+    <string name="unpin_from_taskbar" msgid="1025883383457627426">"Ապամրացնել վահանակից"</string>
     <string name="permlab_install_shortcut" msgid="5632423390354674437">"Դյուրանցումների տեղադրում"</string>
     <string name="permdesc_install_shortcut" msgid="923466509822011139">"Հավելվածին թույլ է տալիս ավելացնել դյուրանցումներ՝ առանց օգտագործողի միջամտության:"</string>
     <string name="permlab_read_settings" msgid="5136500343007704955">"կարդալ հիմնական էկրանի կարգավորումներն ու դյուրանցումները"</string>
