@@ -91,9 +91,11 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
     /** Takes a screenshot of all [taskView] and return map of taskId to the screenshot */
     fun screenshotTasks(taskView: TaskView): Map<Int, ThumbnailData> {
         val recentsAnimationController = recentsView.recentsAnimationController ?: return emptyMap()
-        return taskView.taskContainers.associate {
-            it.task.key.id to recentsAnimationController.screenshotTask(it.task.key.id)
-        }
+        return taskView.taskContainers
+            .associate {
+                it.task.key.id to recentsAnimationController.screenshotTask(it.task.key.id)
+            }
+            .filter { it.value.thumbnail != null }
     }
 
     /**
