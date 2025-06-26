@@ -18,63 +18,68 @@ package com.android.quickstep.recents.domain.usecase
 
 import android.graphics.Rect
 import android.graphics.RectF
-import android.view.Gravity
 import androidx.core.graphics.toRect
 import com.android.quickstep.recents.domain.model.DesktopLayoutConfig
 import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData
+import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData.HiddenDesktopTaskBoundsData
+import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData.RenderedDesktopTaskBoundsData
 
 /** This usecase is responsible for organizing desktop windows in a non-overlapping way. */
 class OrganizeDesktopTasksUseCase {
     /**
-     * Run to layout [taskBounds] within the screen [desktopBounds]. Layout is done in 2 stages:
-     * 1. Optimal height is determined to maximize task window size. In this stage height is
-     *    bisected to find maximum height which still allows all the windows to fit.
-     * 2. Row widths are balanced. In this stage the available width is reduced until some windows
-     *    are no longer fitting or until the difference between the narrowest and the widest rows
-     *    starts growing. Overall this achieves the goals of maximum size for previews (or maximum
-     *    row height which is equivalent assuming fixed height), balanced rows and minimal wasted
-     *    space.
-     * 3. Center the tasks within the available layout bounds.
+     * Arranges a list of desktop tasks within specified screen bounds for display in Overview. The
+     * layout process aims to maximize task visibility and create a balanced, non-overlapping
+     * arrangement.
      *
-     * During layout, we apply minimum width (from layoutConfig.minTaskWidth) and minimum height (to
-     * ensure no more than layoutConfig.maxRows) to the windows that can fit in the Overview grid.
-     * For windows that cannot be placed by the layout algorithm (e.g., due to too many windows or
-     * constraints) or had initially empty bounds, they will be assigned a small, fixed-size
-     * placeholder Rect centered in `desktopBounds`. The `shouldBeDisplayedInOverview` field in the
-     * returned [DesktopTaskBoundsData] will be `true` for successfully laid-out tasks and `false`
-     * for tasks assigned placeholder bounds. For more details, please see b/421417134.
+     * The layout is performed in several stages:
+     * 1. Optimal Height Determination: The algorithm bisects for an optimal height for task
+     *    previews to maximize their size while ensuring all valid tasks can fit.
+     * 2. Row Width Balancing: The available width is iteratively adjusted to balance the widths of
+     *    task rows, minimizing wasted space and preventing overly sparse or dense rows.
+     * 3. Centering: The successfully arranged tasks are then centered collectively within the
+     *    effective layout area.
      *
-     * @param desktopBounds The rectangular area on the screen where tasks should be laid out.
-     * @param taskBounds A list of [DesktopTaskBoundsData] representing the tasks to be arranged,
-     *   each with its original bounds and task ID. (Note: the `shouldBeDisplayedInOverview` field
-     *   in the input `taskBounds` is ignored; it's determined by this use case).
-     * @param layoutConfig Configuration parameters for the layout, such as margins, padding, and
-     *   maximum number of rows.
-     * @return A list of [DesktopTaskBoundsData] with updated `bounds` and a new
-     *   `shouldBeDisplayedInOverview` flag.
+     * Input tasks ([taskBounds]) are provided as [RenderedDesktopTaskBoundsData]. Tasks from this
+     * list that have empty `bounds` are immediately converted to [HiddenDesktopTaskBoundsData]. For
+     * the remaining tasks with valid bounds, the algorithm attempts to lay them out.
+     *
+     * Constraints such as minimum task width (`layoutConfig.minTaskWidth`) and a maximum number of
+     * rows (`layoutConfig.maxRows`, which influences minimum task height) are respected for tasks
+     * that can be rendered.
+     *
+     * Tasks that cannot be successfully placed by the layout algorithm (e.g., due to insufficient
+     * space or exceeding the maximum number of displayable items based on constraints) are also
+     * returned as [HiddenDesktopTaskBoundsData]. The visual representation of these hidden tasks
+     * (e.g., as placeholders) is handled by the caller.
+     *
+     * For more details on the original layout strategy and goals, see b/421417134.
+     *
+     * @param desktopBounds The rectangular area on the screen available for laying out the tasks.
+     * @param taskBounds A list of [RenderedDesktopTaskBoundsData] representing the tasks to be
+     *   arranged. Each item includes the task's ID and its original bounds.
+     * @param layoutConfig Configuration parameters for the layout, including margins, padding,
+     *   minimum task dimensions, and maximum row count.
+     * @return A list of [DesktopTaskBoundsData], with each element corresponding to an input task.
+     *   Elements will be [RenderedDesktopTaskBoundsData] with new, calculated bounds if the task is
+     *   laid out, or [HiddenDesktopTaskBoundsData] if the task was initially empty-bounded or could
+     *   not fit into the layout.
      */
     operator fun invoke(
         desktopBounds: Rect,
-        taskBounds: List<DesktopTaskBoundsData>,
+        taskBounds: List<RenderedDesktopTaskBoundsData>,
         layoutConfig: DesktopLayoutConfig,
     ): List<DesktopTaskBoundsData> {
-        if (desktopBounds.isEmpty || taskBounds.isEmpty()) {
+        if (taskBounds.isEmpty()) {
             return emptyList()
         }
 
-        // Filter out [taskBounds] with empty rects before calculating layout.
-        val validTaskBounds = taskBounds.filterNot { it.bounds.isEmpty }
+        val validTaskBounds =
+            taskBounds
+                .filterNot { it.bounds.isEmpty }
+                .map { RenderedDesktopTaskBoundsData(taskId = it.taskId, bounds = it.bounds) }
 
-        if (validTaskBounds.isEmpty()) {
-            // All tasks had initially empty bounds.
-            val placeholderBounds = createPlaceholderBounds(desktopBounds, layoutConfig)
-            return taskBounds.map {
-                DesktopTaskBoundsData(
-                    taskId = it.taskId,
-                    bounds = placeholderBounds,
-                    shouldBeDisplayedInOverview = false,
-                )
-            }
+        if (desktopBounds.isEmpty || validTaskBounds.isEmpty()) {
+            return taskBounds.map { HiddenDesktopTaskBoundsData(it.taskId) }
         }
 
         // Assuming we can place all windows in one row, do one pass first to check whether all
@@ -116,41 +121,23 @@ class OrganizeDesktopTasksUseCase {
             )
         }
 
-        // Construct the final result list.
-        return taskBounds.mapIndexed { index, originalTaskData ->
-            val resultRectF = resultRects[index]
-            if (!resultRectF.isEmpty) {
-                DesktopTaskBoundsData(
-                    taskId = originalTaskData.taskId,
-                    bounds = resultRectF.toRect(),
-                    shouldBeDisplayedInOverview = true,
-                )
-            } else {
-                val placeholderBounds = createPlaceholderBounds(desktopBounds, layoutConfig)
-                DesktopTaskBoundsData(
-                    taskId = originalTaskData.taskId,
-                    bounds = placeholderBounds,
-                    shouldBeDisplayedInOverview = false,
-                )
+        val laidOutBoundsMap = mutableMapOf<Int, RectF>()
+        validTaskBounds.forEachIndexed { index, taskData ->
+            val rectF = resultRects.getOrNull(index)
+            if (rectF != null && !rectF.isEmpty) {
+                laidOutBoundsMap[taskData.taskId] = rectF
             }
         }
-    }
 
-    /**
-     * Creates a small, square placeholder Rect centered within the given [desktopBounds]. The size
-     * of the square is determined by `layoutConfig.minTaskWidth`. Used for tasks that cannot be
-     * laid out due to the size constraints.
-     */
-    private fun createPlaceholderBounds(
-        desktopBounds: Rect,
-        layoutConfig: DesktopLayoutConfig,
-    ): Rect {
-        if (desktopBounds.isEmpty) {
-            // If desktopBounds is empty, we can't really center. Return an empty rect.
-            return Rect()
+        return taskBounds.map { originalInputTask ->
+            val taskId = originalInputTask.taskId
+            val laidOutRectF = laidOutBoundsMap[taskId]
+            if (laidOutRectF != null) { // Successfully laid out
+                RenderedDesktopTaskBoundsData(taskId = taskId, bounds = laidOutRectF.toRect())
+            } else {
+                HiddenDesktopTaskBoundsData(taskId)
+            }
         }
-        val size = minOf(layoutConfig.minTaskWidth, desktopBounds.width(), desktopBounds.height())
-        return Rect().apply { Gravity.apply(Gravity.CENTER, size, size, desktopBounds, this) }
     }
 
     /**
@@ -159,7 +146,7 @@ class OrganizeDesktopTasksUseCase {
      */
     private fun findOptimalHeightAndBalancedWidth(
         availableLayoutBounds: Rect,
-        validTaskBounds: List<DesktopTaskBoundsData>,
+        validTaskBounds: List<RenderedDesktopTaskBoundsData>,
         layoutConfig: DesktopLayoutConfig,
     ): List<RectF> {
         // Right bound of the narrowest row.
@@ -298,7 +285,7 @@ class OrganizeDesktopTasksUseCase {
      */
     private fun fitWindowRectsInBounds(
         layoutBounds: Rect,
-        taskBounds: List<DesktopTaskBoundsData>,
+        taskBounds: List<RenderedDesktopTaskBoundsData>,
         optimalWindowHeight: Int,
         layoutConfig: DesktopLayoutConfig,
     ): FitWindowResult {

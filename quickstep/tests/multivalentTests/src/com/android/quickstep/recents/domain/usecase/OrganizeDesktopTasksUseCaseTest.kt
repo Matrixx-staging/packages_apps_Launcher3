@@ -20,6 +20,8 @@ import android.graphics.Rect
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.quickstep.recents.domain.model.DesktopLayoutConfig
 import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData
+import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData.HiddenDesktopTaskBoundsData
+import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData.RenderedDesktopTaskBoundsData
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -45,7 +47,7 @@ class OrganizeDesktopTasksUseCaseTest {
     @Test
     fun test_emptyTaskBounds_returnsEmptyList() {
         val desktopBounds = Rect(0, 0, 1000, 2000)
-        val taskBounds = emptyList<DesktopTaskBoundsData>()
+        val taskBounds = emptyList<RenderedDesktopTaskBoundsData>()
 
         val result = useCase.invoke(desktopBounds, taskBounds, testLayoutConfig)
 
@@ -53,25 +55,27 @@ class OrganizeDesktopTasksUseCaseTest {
     }
 
     @Test
-    fun test_emptyDesktopBounds_returnsEmptyList() {
+    fun test_emptyDesktopBounds_returnsHiddenTaskData() {
         val desktopBounds = Rect(0, 0, 0, 0)
-        val taskBounds = listOf(DesktopTaskBoundsData(1, Rect(0, 0, 100, 100), true))
+        val taskBounds = listOf(RenderedDesktopTaskBoundsData(1, Rect(0, 0, 100, 100)))
+        val expected = listOf(DesktopTaskBoundsData.HiddenDesktopTaskBoundsData(1))
 
         val result = useCase.invoke(desktopBounds, taskBounds, testLayoutConfig)
 
-        assertThat(result).isEmpty()
+        assertThat(result).isEqualTo(expected)
     }
 
     @Test
     fun test_singleTask_isCenteredAndScaled() {
         val desktopBounds = Rect(0, 0, 1000, 2000)
         val originalAppRect = Rect(0, 0, 800, 1200)
-        val taskBounds = listOf(DesktopTaskBoundsData(1, originalAppRect, true))
+        val taskBounds = listOf(RenderedDesktopTaskBoundsData(1, originalAppRect))
 
         val result = useCase.invoke(desktopBounds, taskBounds, testLayoutConfig)
 
         assertThat(result).hasSize(1)
-        val resultBounds = result[0].bounds
+        val renderedTask = result[0] as RenderedDesktopTaskBoundsData
+        val resultBounds = renderedTask.bounds
         assertThat(resultBounds.width()).isGreaterThan(0)
         assertThat(resultBounds.height()).isGreaterThan(0)
 
@@ -84,15 +88,7 @@ class OrganizeDesktopTasksUseCaseTest {
         // Check if the task is centered within effective layout bounds
         val expectedTaskRect = Rect(25, 287, 975, 1713)
         assertThat(result)
-            .isEqualTo(
-                listOf(
-                    DesktopTaskBoundsData(
-                        taskId = 1,
-                        bounds = expectedTaskRect,
-                        shouldBeDisplayedInOverview = true,
-                    )
-                )
-            )
+            .isEqualTo(listOf(RenderedDesktopTaskBoundsData(taskId = 1, bounds = expectedTaskRect)))
     }
 
     @Test
@@ -102,21 +98,23 @@ class OrganizeDesktopTasksUseCaseTest {
         val taskRect = Rect(0, 0, 600, 400)
         val taskBounds =
             listOf(
-                DesktopTaskBoundsData(1, taskRect, true),
-                DesktopTaskBoundsData(2, taskRect, true),
-                DesktopTaskBoundsData(3, taskRect, true),
+                RenderedDesktopTaskBoundsData(1, taskRect),
+                RenderedDesktopTaskBoundsData(2, taskRect),
+                RenderedDesktopTaskBoundsData(3, taskRect),
             )
 
         val result = useCase.invoke(desktopBounds, taskBounds, testLayoutConfig)
         assertThat(result).hasSize(3)
-        val bounds1 = result[0].bounds
+        val bounds1 = (result[0] as RenderedDesktopTaskBoundsData).bounds
 
         // Basic checks: positive dimensions, aspect ratio
         result.forEachIndexed { index, data ->
-            assertThat(data.bounds.width()).isGreaterThan(0)
-            assertThat(data.bounds.height()).isGreaterThan(0)
+            val renderedData = data as RenderedDesktopTaskBoundsData
+            assertThat(renderedData.bounds.width()).isGreaterThan(0)
+            assertThat(renderedData.bounds.height()).isGreaterThan(0)
             val originalAspectRatio = taskRect.width().toFloat() / taskRect.height()
-            val resultAspectRatio = data.bounds.width().toFloat() / data.bounds.height()
+            val resultAspectRatio =
+                renderedData.bounds.width().toFloat() / renderedData.bounds.height()
             assertThat(resultAspectRatio).isWithin(0.1f).of(originalAspectRatio)
         }
 
@@ -127,9 +125,9 @@ class OrganizeDesktopTasksUseCaseTest {
         val expectedTask3Bounds = Rect(20, 1330, 980, 1970)
         val expectedResult =
             listOf(
-                DesktopTaskBoundsData(1, expectedTask1Bounds, true),
-                DesktopTaskBoundsData(2, expectedTask2Bounds, true),
-                DesktopTaskBoundsData(3, expectedTask3Bounds, true),
+                RenderedDesktopTaskBoundsData(1, expectedTask1Bounds),
+                RenderedDesktopTaskBoundsData(2, expectedTask2Bounds),
+                RenderedDesktopTaskBoundsData(3, expectedTask3Bounds),
             )
         assertThat(result).isEqualTo(expectedResult)
     }
@@ -140,9 +138,9 @@ class OrganizeDesktopTasksUseCaseTest {
         val taskRect = Rect(0, 0, 200, 100) // Aspect ratio 2:1
         val tasks =
             listOf(
-                DesktopTaskBoundsData(1, taskRect, true),
-                DesktopTaskBoundsData(2, taskRect, true),
-                DesktopTaskBoundsData(3, taskRect, true),
+                RenderedDesktopTaskBoundsData(1, taskRect),
+                RenderedDesktopTaskBoundsData(2, taskRect),
+                RenderedDesktopTaskBoundsData(3, taskRect),
             )
 
         // For simplicity, configure maxRows = 1.
@@ -189,9 +187,12 @@ class OrganizeDesktopTasksUseCaseTest {
 
         val result = useCase.invoke(desktopBounds, tasks, config)
 
-        assertThat(result).hasSize(3)
-        assertThat(result[0].bounds).isEqualTo(Rect(254, 149, 756, 401))
-        assertThat(result[1].bounds).isEqualTo(Rect(475, 250, 525, 300))
-        assertThat(result[2].bounds).isEqualTo(Rect(475, 250, 525, 300))
+        val expected =
+            listOf(
+                RenderedDesktopTaskBoundsData(1, Rect(254, 149, 756, 401)),
+                HiddenDesktopTaskBoundsData(2),
+                HiddenDesktopTaskBoundsData(3),
+            )
+        assertThat(result).isEqualTo(expected)
     }
 }
