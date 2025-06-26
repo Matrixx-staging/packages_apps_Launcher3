@@ -239,15 +239,34 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         taskContainers.forEach { taskContainer ->
             val taskId = taskContainer.task.key.id
             val fullscreenTaskBounds =
-                fullscreenTaskPositions.firstOrNull { it.taskId == taskId }?.bounds ?: return
-            val overviewTaskBounds =
+                fullscreenTaskPositions.firstOrNull { it.taskId == taskId }?.bounds
+                    ?: return@forEach
+
+            val organizedTaskData =
                 if (enableDesktopExplodedView()) {
-                    viewModel.organizedDesktopTaskPositions
-                        .firstOrNull { it.taskId == taskId }
-                        ?.bounds ?: fullscreenTaskBounds
+                    viewModel.organizedDesktopTaskPositions.firstOrNull { it.taskId == taskId }
                 } else {
-                    fullscreenTaskBounds
+                    null
                 }
+
+            val shouldBeDisplayedInOverview: Boolean
+            val overviewTaskBounds: Rect
+            when {
+                !enableDesktopExplodedView() -> {
+                    shouldBeDisplayedInOverview = true
+                    overviewTaskBounds = fullscreenTaskBounds
+                }
+                organizedTaskData?.bounds?.isEmpty() == false -> {
+                    shouldBeDisplayedInOverview = organizedTaskData.shouldBeDisplayedInOverview
+                    overviewTaskBounds = organizedTaskData.bounds
+                }
+                else -> {
+                    shouldBeDisplayedInOverview = false
+                    // Skip the task for the edge case where [organizedTaskData] is null.
+                    return@forEach
+                }
+            }
+
             val currentTaskBounds =
                 if (enableDesktopExplodedView()) {
                     TEMP_OVERVIEW_TASK_POSITION.apply {
@@ -296,11 +315,26 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                     transform.setRectToRect(fromRect, toRect, Matrix.ScaleToFit.FILL)
                     remoteTargetHandle.taskViewSimulator.setTaskRectTransform(transform)
                     remoteTargetHandle.taskViewSimulator.apply(remoteTargetHandle.transformParams)
+                    // Animate to hide the task window that should not show in desktop tile.
+                    remoteTargetHandle.transformParams.setTargetAlpha(
+                        if (shouldBeDisplayedInOverview) 1f else (1f - explodeProgress)
+                    )
                 }
 
                 (taskContainer.taskContentView as? TaskContentView)?.setTaskHeaderAlpha(
-                    explodeProgress
+                    if (shouldBeDisplayedInOverview) explodeProgress else 0f
                 )
+
+                if (taskContainer.task.isMinimized) {
+                    // Minimized tasks are immediately placed in the exploded position and then fade
+                    // in during the course of EXPLODE_PROGRESS.
+                    taskContainer.taskContentView.alpha =
+                        if (shouldBeDisplayedInOverview) explodeProgress else 0f
+                } else {
+                    // Normal tasks - animate to hide if it should not show in desktop tile.
+                    taskContainer.taskContentView.alpha =
+                        if (shouldBeDisplayedInOverview) 1f else (1f - explodeProgress)
+                }
             }
 
             val overviewTaskLeft = overviewTaskBounds.left * widthScale
@@ -363,10 +397,6 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                 scaleX = if (overviewTaskWidth != 0f) currentTaskWidth / overviewTaskWidth else 1f
                 scaleY =
                     if (overviewTaskHeight != 0f) currentTaskHeight / overviewTaskHeight else 1f
-            }
-
-            if (taskContainer.task.isMinimized) {
-                taskContainer.taskContentView.alpha = explodeProgress
             }
         }
     }
@@ -667,7 +697,11 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
 
         fullscreenTaskPositions =
             taskContainers.map {
-                DesktopTaskBoundsData(it.task.key.id, it.task.appBounds ?: DEFAULT_BOUNDS)
+                DesktopTaskBoundsData(
+                    taskId = it.task.key.id,
+                    bounds = it.task.appBounds ?: DEFAULT_BOUNDS,
+                    shouldBeDisplayedInOverview = true,
+                )
             }
 
         if (enableDesktopExplodedView()) {
@@ -704,6 +738,10 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                         (res.getDimensionPixelSize(R.dimen.desktop_vertical_padding_between_tasks) /
                                 heightScale)
                             .toInt(),
+                    minTaskWidth =
+                        (res.getDimensionPixelSize(R.dimen.desktop_min_task_width) / widthScale)
+                            .toInt(),
+                    maxRows = res.getInteger(R.integer.desktop_layout_max_rows),
                 )
             if (dismissedTaskId != null) {
                 viewModel?.removeTaskAndRebalanceLayout(dismissedTaskId, layoutConfig)

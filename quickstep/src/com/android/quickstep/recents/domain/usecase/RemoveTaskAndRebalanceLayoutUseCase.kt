@@ -71,7 +71,13 @@ class RemoveTaskAndRebalanceLayoutUseCase {
                             taskData.bounds.right,
                             (currentY + taskData.bounds.height()).toInt(),
                         )
-                    newLayout.add(DesktopTaskBoundsData(taskData.taskId, newBounds))
+                    newLayout.add(
+                        DesktopTaskBoundsData(
+                            taskData.taskId,
+                            newBounds,
+                            shouldBeDisplayedInOverview = true,
+                        )
+                    )
                 }
                 currentY +=
                     tasks.maxOf { it.bounds.height() } + layoutConfig.verticalPaddingBetweenTasks
@@ -100,7 +106,13 @@ class RemoveTaskAndRebalanceLayoutUseCase {
                             (currentX + taskData.bounds.width()).toInt(),
                             rowY + taskData.bounds.height(),
                         )
-                    newLayout.add(DesktopTaskBoundsData(taskData.taskId, newBounds))
+                    newLayout.add(
+                        DesktopTaskBoundsData(
+                            taskData.taskId,
+                            newBounds,
+                            shouldBeDisplayedInOverview = true,
+                        )
+                    )
                     currentX +=
                         taskData.bounds.width() +
                             layoutConfig.horizontalPaddingBetweenTasks.toFloat()

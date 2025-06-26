@@ -28,6 +28,8 @@ package com.android.quickstep.recents.domain.model
  * @property leftRightMarginMultiRows Scaled margin for left/right when multiple rows are shown.
  * @property horizontalPaddingBetweenTasks Scaled horizontal padding between tasks.
  * @property verticalPaddingBetweenTasks Scaled vertical padding between tasks.
+ * @property minTaskWidth Scaled minimum task width in the desktop exploded view layout.
+ * @property maxRows Maximum rows in the desktop exploded view layout.
  */
 data class DesktopLayoutConfig(
     val topBottomMarginOneRow: Int,
@@ -37,4 +39,6 @@ data class DesktopLayoutConfig(
     val leftRightMarginMultiRows: Int,
     val horizontalPaddingBetweenTasks: Int,
     val verticalPaddingBetweenTasks: Int,
+    val minTaskWidth: Int,
+    val maxRows: Int,
 )
