@@ -197,6 +197,35 @@ class OrganizeDesktopTasksUseCase {
                 )
         }
 
+        // If there are hidden windows in [resultRects] at the moment, this means the current height
+        // in [resultRects] might not be the optimal height for the visible windows since the layout
+        // calculation requires shrinking the height to find a height that can fit all windows until
+        // it can no longer shrink because of the size constraints, by when we know some windows can
+        // not fit in Overview and need to be hidden. So here, we should run the layout algorithm
+        // again to find the optimal height to fit all visible windows, without considering hidden
+        // windows.
+        val (visibleResultRects, invisibleResultRects) =
+            resultRects.withIndex().partition { !it.value.isEmpty }
+        if (visibleResultRects.isNotEmpty()) {
+            val visibleTaskBounds = visibleResultRects.map { validTaskBounds[it.index] }
+            // Re-run the layout logic with just the visible windows to ensure they are
+            // optimally sized.
+            val singleRow = canFitInOneRow(resultRects)
+            availableLayoutBounds =
+                layoutConfig.desktopBounds.getLayoutEffectiveBounds(
+                    singleRow = singleRow,
+                    taskNumber = visibleTaskBounds.size,
+                    layoutConfig,
+                )
+            val newLaidOutRects =
+                findOptimalHeightAndBalancedWidth(
+                    availableLayoutBounds,
+                    visibleTaskBounds,
+                    layoutConfig,
+                )
+            resultRects = newLaidOutRects + invisibleResultRects.map { it.value }
+        }
+
         val successfullyLaidOutRectFs = resultRects.filter { !it.isEmpty }
         if (successfullyLaidOutRectFs.isNotEmpty()) {
             val maxBottom = successfullyLaidOutRectFs.maxOfOrNull { it.bottom } ?: 0f
@@ -563,11 +592,12 @@ class OrganizeDesktopTasksUseCase {
 
     /** Returns true if all task windows can fit in one row. */
     private fun canFitInOneRow(resultRect: List<RectF>): Boolean {
-        if (resultRect.isEmpty()) {
+        val visibleRects = resultRect.filter { !it.isEmpty }
+        if (visibleRects.isEmpty()) {
             return true
         }
 
-        val firstTop = resultRect.first().top
-        return resultRect.all { it.top == firstTop }
+        val firstTop = visibleRects.first().top
+        return visibleRects.all { it.top == firstTop }
     }
 }
