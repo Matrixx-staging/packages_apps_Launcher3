@@ -64,7 +64,6 @@ import com.android.launcher3.states.StateAnimationConfig;
 import com.android.launcher3.touch.AllAppsSwipeController;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.DisplayController;
-import com.android.launcher3.util.NavigationMode;
 import com.android.quickstep.util.RecentsAtomicAnimationFactory;
 import com.android.quickstep.util.SplitAnimationTimings;
 import com.android.quickstep.views.RecentsView;
@@ -97,8 +96,6 @@ public class QuickstepAtomicAnimationFactory extends
             StateAnimationConfig config) {
         RecentsView overview = mContainer.getOverviewPanel();
         boolean isPinnedTaskbar = DisplayController.isPinnedTaskbar(mContainer);
-        boolean isThreeButton = DisplayController.getNavigationMode(mContainer)
-                == NavigationMode.THREE_BUTTONS;
         if ((fromState == OVERVIEW || fromState == OVERVIEW_SPLIT_SELECT) && toState == NORMAL) {
             overview.switchToScreenshot(() ->
                     overview.finishRecentsAnimation(true /* toRecents */, null));
@@ -112,12 +109,11 @@ public class QuickstepAtomicAnimationFactory extends
 
             // We sync the scrim fade with the taskbar animation duration to avoid any flickers for
             // taskbar icons disappearing before hotseat icons show up.
-            boolean isPersistentTaskbarAndNotInDesktopMode =
-                    (isThreeButton || isPinnedTaskbar)
-                            && !DisplayController.isInDesktopMode(mContainer);
+            boolean isPinnedTaskbarAndNotInDesktopMode =
+                    isPinnedTaskbar && !DisplayController.isInDesktopMode(mContainer);
             float scrimUpperBoundFromSplit =
                     QuickstepTransitionManager.getTaskbarToHomeDuration(
-                            isPersistentTaskbarAndNotInDesktopMode)
+                            isPinnedTaskbarAndNotInDesktopMode)
                             / (float) config.duration;
             scrimUpperBoundFromSplit = Math.min(scrimUpperBoundFromSplit, 1f);
             config.setInterpolator(ANIM_OVERVIEW_ACTIONS_FADE, clampToProgress(LINEAR, 0, 0.25f));
@@ -150,7 +146,7 @@ public class QuickstepAtomicAnimationFactory extends
                     config.duration = Math.min(
                             config.duration,
                             QuickstepTransitionManager.getTaskbarToHomeDuration(
-                                    isPersistentTaskbarAndNotInDesktopMode));
+                                    isPinnedTaskbarAndNotInDesktopMode));
                 }
                 overview.snapToPage(DEFAULT_PAGE, Math.toIntExact(config.duration));
             } else {

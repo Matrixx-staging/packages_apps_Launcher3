@@ -190,12 +190,6 @@ class TaskbarStashControllerTest {
     }
 
     @Test
-    @TaskbarMode(THREE_BUTTONS)
-    fun testGetStashDuration_inThreeButtonMode() {
-        assertThat(stashController.stashDuration).isEqualTo(PINNED_TASKBAR_TRANSITION_DURATION)
-    }
-
-    @Test
     @TaskbarMode(PINNED)
     fun testIsStashed_pinnedInApp_isUnstashed() {
         getInstrumentation().runOnMainSync {
@@ -624,9 +618,8 @@ class TaskbarStashControllerTest {
     @TaskbarMode(PINNED)
     fun testAnimatePinnedTaskbar_imeShown_replacesIconsWithHandle() {
         assume()
-            .withMessage("Ignoring test because hardware keyboard is present")
-            .that(activityContext.isHardwareKeyboard)
-            .isFalse()
+          .withMessage("Ignoring test because hardware keyboard is present")
+          .that(activityContext.isHardwareKeyboard).isFalse()
 
         getInstrumentation().runOnMainSync {
             stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, false)
@@ -640,9 +633,8 @@ class TaskbarStashControllerTest {
     @TaskbarMode(PINNED)
     fun testAnimatePinnedTaskbar_imeHidden_replacesHandleWithIcons() {
         assume()
-            .withMessage("Ignoring test because hardware keyboard is present")
-            .that(activityContext.isHardwareKeyboard)
-            .isFalse()
+          .withMessage("Ignoring test because hardware keyboard is present")
+          .that(activityContext.isHardwareKeyboard).isFalse()
 
         getInstrumentation().runOnMainSync {
             stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, true)
@@ -661,9 +653,8 @@ class TaskbarStashControllerTest {
     @TaskbarMode(PINNED)
     fun testAnimatePinnedTaskbar_imeHidden_verifyAnimationDuration() {
         assume()
-            .withMessage("Ignoring test because hardware keyboard is present")
-            .that(activityContext.isHardwareKeyboard)
-            .isFalse()
+          .withMessage("Ignoring test because hardware keyboard is present")
+          .that(activityContext.isHardwareKeyboard).isFalse()
 
         // Start with IME shown.
         getInstrumentation().runOnMainSync {
@@ -691,9 +682,8 @@ class TaskbarStashControllerTest {
     @TaskbarMode(THREE_BUTTONS)
     fun testAnimateThreeButtonsTaskbar_imeShown_hidesIconsAndBg() {
         assume()
-            .withMessage("Ignoring test because hardware keyboard is present")
-            .that(activityContext.isHardwareKeyboard)
-            .isFalse()
+          .withMessage("Ignoring test because hardware keyboard is present")
+          .that(activityContext.isHardwareKeyboard).isFalse()
 
         getInstrumentation().runOnMainSync {
             stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, false)
@@ -707,9 +697,8 @@ class TaskbarStashControllerTest {
     @TaskbarMode(THREE_BUTTONS)
     fun testAnimateThreeButtonsTaskbar_imeHidden_showsIconsAndBg() {
         assume()
-            .withMessage("Ignoring test because hardware keyboard is present")
-            .that(activityContext.isHardwareKeyboard)
-            .isFalse()
+          .withMessage("Ignoring test because hardware keyboard is present")
+          .that(activityContext.isHardwareKeyboard).isFalse()
 
         getInstrumentation().runOnMainSync {
             stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, false)
@@ -730,9 +719,8 @@ class TaskbarStashControllerTest {
     @TaskbarMode(PINNED)
     fun testSetSystemGestureInProgress_whileImeShown_unstashesTaskbar() {
         assume()
-            .withMessage("Ignoring test because hardware keyboard is present")
-            .that(activityContext.isHardwareKeyboard)
-            .isFalse()
+          .withMessage("Ignoring test because hardware keyboard is present")
+          .that(activityContext.isHardwareKeyboard).isFalse()
 
         getInstrumentation().runOnMainSync {
             stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, true)
@@ -752,9 +740,9 @@ class TaskbarStashControllerTest {
     @TaskbarMode(PINNED)
     fun testSysuiStateImeShowingInApp_hardwareKeyboardWithPinnedMode_notStashedForIme() {
         assume()
-            .withMessage("Ignoring test because hardware keyboard is not present")
-            .that(activityContext.isHardwareKeyboard)
-            .isTrue()
+           .withMessage("Ignoring test because hardware keyboard is not present")
+           .that(activityContext.isHardwareKeyboard)
+           .isTrue()
 
         getInstrumentation().runOnMainSync {
             stashController.updateStateForFlag(FLAG_IN_APP, true)
