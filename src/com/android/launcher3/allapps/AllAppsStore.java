@@ -18,6 +18,7 @@ package com.android.launcher3.allapps;
 import static com.android.launcher3.model.data.AppInfo.COMPONENT_KEY_COMPARATOR;
 import static com.android.launcher3.model.data.AppInfo.EMPTY_ARRAY;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.os.UserHandle;
 import android.util.Log;
@@ -28,8 +29,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.launcher3.BubbleTextView;
+import com.android.launcher3.icons.FastBitmapDrawable;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.recyclerview.AllAppsRecyclerViewPool;
 import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.PackageUserKey;
@@ -263,16 +266,20 @@ public class AllAppsStore<T extends Context & ActivityContext> {
     /** Generate a dumpsys for each app package name and position in the apps list */
     public void dump(String prefix, PrintWriter writer) {
         writer.println(prefix + "\tAllAppsStore Apps[] size: " + mApps.length);
-        for (int i = 0; i < mApps.length; i++) {
-            writer.println(String.format(Locale.getDefault(),
-                    "%s\tPackage index, name, class, description, bitmap flag: %d/%s:%s, %s, %s+%s",
-                    prefix,
-                    i,
-                    mApps[i].componentName.getPackageName(),
-                    mApps[i].componentName.getClassName(),
-                    mApps[i].contentDescription,
-                    Integer.toBinaryString(mApps[i].bitmap.flags),
-                    Integer.toBinaryString(mApps[i].bitmap.creationFlags)));
-        }
+        writer.println(prefix + "\tAll registered icons");
+        updateAllIcons(btv -> {
+            FastBitmapDrawable icon = btv.getIcon();
+            ItemInfoWithIcon info = btv.getTag() instanceof ItemInfoWithIcon iiwi ? iiwi : null;
+            ComponentName cn = info != null ? info.getTargetComponent() : null;
+            if (icon != null && cn != null) {
+                writer.println(String.format(Locale.getDefault(),
+                        "%s\tTarget: %s, description: %s, bitmap flag: %s, icon-flags: %s",
+                        prefix,
+                        cn.toShortString(),
+                        info.contentDescription,
+                        Integer.toBinaryString(info.bitmap.getFlags()),
+                        Integer.toBinaryString(icon.creationFlags)));
+            }
+        });
     }
 }

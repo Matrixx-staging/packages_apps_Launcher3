@@ -86,6 +86,8 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
 
     private val onDeskAddedListeners = CopyOnWriteArrayList<OnDeskAddedListener>()
 
+    var keyboardFocusTask: KeyboardFocusTask = KeyboardFocusTask.Unfocused
+
     /** Takes a screenshot of all [taskView] and return map of taskId to the screenshot */
     fun screenshotTasks(taskView: TaskView): Map<Int, ThumbnailData> {
         val recentsAnimationController = recentsView.recentsAnimationController ?: return emptyMap()
@@ -752,13 +754,16 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
         taskViews.flatMap { it.taskContainers }.forEach { it.overlay.resetShareUI() }
     }
 
-    fun getKeyboardFocusTask(keyboardFocusTask: KeyboardFocusTask): TaskView? =
-        when (keyboardFocusTask) {
+    fun getKeyboardFocusTaskView(): TaskView? =
+        when (val keyboardFocusTask = keyboardFocusTask) {
             is KeyboardFocusTask.Unfocused -> null
             is KeyboardFocusTask.CurrentPageTaskView -> recentsView.currentPageTaskView
-            is KeyboardFocusTask.TaskViewWithIds ->
-                recentsView.getTaskViewByTaskIds(keyboardFocusTask.taskIds.toIntArray())
+            is KeyboardFocusTask.TaskViewWithIds -> recentsView.getTaskViewByTaskIds(
+                keyboardFocusTask.taskIds.toIntArray())
         }
+
+    fun isKeyboardTaskFocusPending() =
+        keyboardFocusTask !is KeyboardFocusTask.Unfocused
 
     /**
      * Adds a listener to be notified when a new desk is added.

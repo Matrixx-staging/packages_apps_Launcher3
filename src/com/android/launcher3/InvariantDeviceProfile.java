@@ -522,6 +522,7 @@ public class InvariantDeviceProfile {
      */
     @VisibleForTesting
     public void setCurrentGrid(Context context, String newGridName) {
+        if (TextUtils.equals(mPrefs.get(GRID_NAME), newGridName)) return;
         mPrefs.put(GRID_NAME, newGridName);
         MAIN_EXECUTOR.execute(() -> {
             Trace.beginSection("InvariantDeviceProfile#setCurrentGrid");

@@ -102,6 +102,8 @@
     <dimen name="desktop_top_margin_multi_rows">72dp</dimen>
     <dimen name="desktop_bottom_margin_multi_rows">24dp</dimen>
     <dimen name="desktop_left_right_margin_multi_rows">24dp</dimen>
+    <dimen name="desktop_min_task_width">72dp</dimen>
+    <integer name="desktop_layout_max_rows">5</integer>
     <!-- The length of the fading edge (gradient) of the task header title -->
     <dimen name="task_header_title_fading_edge_length">28dp</dimen>
 
@@ -314,6 +316,8 @@
     <dimen name="allset_subtitle_margin_top">24dp</dimen>
     <dimen name="allset_subtitle_width_max">348dp</dimen>
     <dimen name="allset_swipe_up_shift">10dp</dimen>
+    <dimen name="allset_hint_margin_bottom">24dp</dimen>
+    <dimen name="allset_arrow_margin_bottom">57dp</dimen>
 
     <!-- All Apps Education tutorial -->
     <dimen name="swipe_edu_padding">8dp</dimen>

@@ -27,6 +27,7 @@ import static com.android.launcher3.Utilities.mapRange;
 import static com.android.launcher3.Utilities.mapToRange;
 import static com.android.launcher3.taskbar.StashedHandleViewController.ALPHA_INDEX_ALL_SET_TRANSITION;
 import static com.android.quickstep.OverviewComponentObserver.startHomeIntentSafely;
+import static com.android.quickstep.views.WallpaperScreenshotClipView.CLIP_ANIM_DURATION;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -118,7 +119,6 @@ public class AllSetActivity extends Activity {
     private static final String SUW_THEME_SYSTEM_PROPERTY = "setupwizard.theme";
     private static final String GLIF_EXPRESSIVE_THEME = "glif_expressive";
     private static final String GLIF_EXPRESSIVE_LIGHT_THEME = "glif_expressive_light";
-    private static final int MAX_EXPRESSIVE_ANIM_RANGE = 500;
 
     private boolean mIsExpressiveThemeEnabledInSUW = false;
 
@@ -588,9 +588,9 @@ public class AllSetActivity extends Activity {
                     mSwipeProgress.value, 0, HINT_BOTTOM_FACTOR, WALLPAPER_BLUR_RADIUS, 0,
                     ACCELERATE));
             if (mExpressiveAnimSet != null) {
-                float progress = mapToRange(
-                        mSwipeProgress.value, 0, 1, 0, MAX_EXPRESSIVE_ANIM_RANGE, LINEAR);
-                mExpressiveAnimSet.setCurrentPlayTime(Math.min(100, (long) progress));
+                long progress = (long) mapToRange(
+                        mSwipeProgress.value, 0, 1, 0, CLIP_ANIM_DURATION, LINEAR);
+                mExpressiveAnimSet.setCurrentPlayTime(Math.min(CLIP_ANIM_DURATION, progress));
             }
         } else {
             mBackground.setProgress(mSwipeProgress.value);

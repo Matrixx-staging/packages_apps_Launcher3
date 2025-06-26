@@ -18,14 +18,16 @@ package com.android.quickstep.views;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
+import static com.android.app.animation.Interpolators.ACCELERATE;
 import static com.android.app.animation.Interpolators.LINEAR;
+import static com.android.launcher3.Utilities.mapToRange;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 
 import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Path;
@@ -57,18 +59,17 @@ import com.android.launcher3.util.CancellableTask;
  */
 public class WallpaperScreenshotClipView extends FrameLayout {
 
+    public static final int CLIP_ANIM_DURATION = 100;
+
+    private static final float MAX_SCALE_MULTIPLIER = 1.25f;
     private static final int COLOR_ALPHA_DURATION_MS = 25;
     private static final float CLIP_TRANSLATION_MULTIPLIER = 0.55f;
     private static final float MAX_ARROW_SCALE = 40f;
     private static final float INITIAL_ARROW_SCALE = 2.4100475221f;
 
-    // Temporary hard coded values
-
-    private static final int MIN_CLIP_TRANSLATE_Y = 200;
-    private static final int MAX_CLIP_TRANSLATE_Y = 2000;
-    private static final float ARROW_OFFSET_Y_PX = 700f;
     private ImageView mWallpaperView;
     private View mColorOverlay;
+    public boolean mScreenshotFailed = false;
 
     private final Path mOriginalPath;
     private Path mCurrentClipPath;
@@ -77,12 +78,15 @@ public class WallpaperScreenshotClipView extends FrameLayout {
     private final Matrix mScaleMatrix = new Matrix();
     private final Matrix mInvertScaleMatrix = new Matrix();
 
+    private float mInitialArrowPositionY;
     // Keeps the arrow centered in the middle
     private float mClipTranslationY;
 
     // Briefly moves the arrow upwards in the first part of the animation
     private float mClipTranslateYUpwards;
-
+    private final float mMinClipTranslateY;
+    private final float mMaxClipTranslateY;
+    private final float mMaxArrowScale;
     private final int mWindowWidth;
     private final int mWindowHeight;
 
@@ -103,6 +107,8 @@ public class WallpaperScreenshotClipView extends FrameLayout {
     public WallpaperScreenshotClipView(Context context, AttributeSet attrs, int defStyleAttr,
             int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+        Resources r = getResources();
+
         mWallpaperView = new ImageView(context);
         mWallpaperView.setLayoutParams(new LayoutParams(MATCH_PARENT, MATCH_PARENT));
 
@@ -114,7 +120,7 @@ public class WallpaperScreenshotClipView extends FrameLayout {
         addView(mColorOverlay);
 
         mOriginalPath = new Path(PathParser
-                .createPathFromPathData(getResources().getString(R.string.all_set_arrow_path)));
+                .createPathFromPathData(r.getString(R.string.all_set_arrow_path)));
         resetAndSetMatrixScale(INITIAL_ARROW_SCALE);
         mOriginalPath.transform(mScaleMatrix);
         mOriginalPath.computeBounds(mOriginalBounds);
@@ -127,6 +133,13 @@ public class WallpaperScreenshotClipView extends FrameLayout {
 
         mWindowHeight = windowBounds.height();
         mWindowWidth = windowBounds.width();
+        mInitialArrowPositionY = mWindowHeight
+                - mOriginalBounds.height()
+                - r.getDimensionPixelSize(R.dimen.allset_hint_margin_bottom)
+                - Utilities.calculateTextHeight(
+                        r.getDimensionPixelSize(R.dimen.allset_page_swipe_up_text_size_expressive))
+                - r.getDimensionPixelSize(R.dimen.allset_arrow_margin_bottom);
+
 
         getViewTreeObserver().addOnWindowAttachListener(
                 new ViewTreeObserver.OnWindowAttachListener() {
@@ -143,6 +156,13 @@ public class WallpaperScreenshotClipView extends FrameLayout {
                         getViewTreeObserver().removeOnWindowAttachListener(this);
                     }
                 });
+
+        mMinClipTranslateY = Math.max(mOriginalBounds.height(), mOriginalBounds.width());
+        mMaxClipTranslateY = Math.max(mWindowHeight, mWindowWidth);
+
+        // Create a large max scale so that the shape can fill the entire screen.
+        mMaxArrowScale = Math.max(mWindowHeight, mWindowWidth) * MAX_SCALE_MULTIPLIER
+                / Math.min(mOriginalBounds.width(), mOriginalBounds.height());
     }
 
     private void resetAndSetMatrixScale(float scale) {
@@ -163,9 +183,8 @@ public class WallpaperScreenshotClipView extends FrameLayout {
         }
 
         float transX = (getWidth() - mBounds.width()) / 2;
-        float transY = (getHeight() - mBounds.height()) / 2
-                - mClipTranslationY
-                + ARROW_OFFSET_Y_PX
+        float transY = mInitialArrowPositionY
+                + mClipTranslationY
                 + mClipTranslateYUpwards
                 - ((mBounds.height() - mOriginalBounds.height()) / 2);
         if (mCurrentClipPath != null) {
@@ -184,8 +203,8 @@ public class WallpaperScreenshotClipView extends FrameLayout {
      */
     public void setClipTranslationY(float translationY, float progress) {
         mClipTranslationY = translationY * CLIP_TRANSLATION_MULTIPLIER;
-        mClipTranslateYUpwards = -Math.min(MIN_CLIP_TRANSLATE_Y,
-                Utilities.mapToRange(progress, 0, 1, 0, MAX_CLIP_TRANSLATE_Y, LINEAR));
+        mClipTranslateYUpwards = -Math.min(mMinClipTranslateY,
+                mapToRange(progress, 0, 1, 0, mMaxClipTranslateY, LINEAR));
         invalidate();
     }
 
@@ -194,8 +213,8 @@ public class WallpaperScreenshotClipView extends FrameLayout {
      */
     public void addClipAnimation(AnimatorSet animatorSet) {
         ValueAnimator scale = ValueAnimator.ofFloat(0, 1f);
-        scale.setDuration(100);
-        scale.setInterpolator(LINEAR);
+        scale.setDuration(CLIP_ANIM_DURATION);
+        scale.setInterpolator(ACCELERATE);
         scale.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
@@ -216,9 +235,23 @@ public class WallpaperScreenshotClipView extends FrameLayout {
         });
         animatorSet.play(scale);
 
-        ObjectAnimator color = ObjectAnimator.ofFloat(mColorOverlay, View.ALPHA, 1f, 0)
-                .setDuration(COLOR_ALPHA_DURATION_MS);
+        ValueAnimator color = ValueAnimator.ofFloat(0, 1f);
+        color.setDuration(CLIP_ANIM_DURATION);
         color.setInterpolator(LINEAR);
+        color.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                // We build the animator before we know whether screenshot failed, so we manually
+                // play the animation using interpolated values.
+                float interpProgress = mapToRange(valueAnimator.getAnimatedFraction(), 0, 1f, 0, 1f,
+                        mScreenshotFailed ? ACCELERATE : LINEAR);
+                float maxAlpha = mScreenshotFailed
+                        ? 1f
+                        : (1f * CLIP_ANIM_DURATION / COLOR_ALPHA_DURATION_MS);
+                float alpha = Math.min(1f, mapToRange(interpProgress, 0, 1, 0, maxAlpha, LINEAR));
+                mColorOverlay.setAlpha(1f - alpha);
+            }
+        });
         animatorSet.play(color);
     }
 
@@ -257,12 +290,12 @@ public class WallpaperScreenshotClipView extends FrameLayout {
                 },
                 MAIN_EXECUTOR,
                 (ScreenCaptureInternal.ScreenshotHardwareBuffer buffer) -> {
-                    if (buffer == null) {
-                        // TODO:
-                        return;
-                    }
-                    mWallpaperView.setImageBitmap(buffer.asBitmap());
                     window.setBackgroundBlurRadius(wallpaperBlurRadius);
+                    if (buffer == null) {
+                        mScreenshotFailed = true;
+                    } else {
+                        mWallpaperView.setImageBitmap(buffer.asBitmap());
+                    }
                 },
                 () -> {
                     mCaptureTask = null;

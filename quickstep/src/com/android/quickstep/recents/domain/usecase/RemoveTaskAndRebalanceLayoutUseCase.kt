@@ -18,7 +18,7 @@ package com.android.quickstep.recents.domain.usecase
 
 import android.graphics.Rect
 import com.android.quickstep.recents.domain.model.DesktopLayoutConfig
-import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData
+import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData.RenderedDesktopTaskBoundsData
 
 /**
  * Removes a specified task from an existing layout and rebalances the remaining tasks. When a task
@@ -29,15 +29,17 @@ import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData
  */
 class RemoveTaskAndRebalanceLayoutUseCase {
     /**
-     * @param currentLayout The list of [DesktopTaskBoundsData] representing the current layout.
+     * @param currentLayout The list of [RenderedDesktopTaskBoundsData] representing the current
+     *   layout.
      * @param taskIdToRemove The ID of the task to remove.
-     * @return A new list of [DesktopTaskBoundsData] with the task removed and layout rebalanced.
+     * @return A new list of [RenderedDesktopTaskBoundsData] with the task removed and layout
+     *   rebalanced.
      */
     operator fun invoke(
-        currentLayout: List<DesktopTaskBoundsData>,
+        currentLayout: List<RenderedDesktopTaskBoundsData>,
         taskIdToRemove: Int,
         layoutConfig: DesktopLayoutConfig,
-    ): List<DesktopTaskBoundsData> {
+    ): List<RenderedDesktopTaskBoundsData> {
         val taskToRemoveData =
             currentLayout.find { it.taskId == taskIdToRemove }
                 ?: return currentLayout // Task not found, return original layout
@@ -53,7 +55,7 @@ class RemoveTaskAndRebalanceLayoutUseCase {
 
         val remainingRows = remainingTasks.groupBy { it.bounds.top }.toSortedMap()
 
-        val newLayout = mutableListOf<DesktopTaskBoundsData>()
+        val newLayout = mutableListOf<RenderedDesktopTaskBoundsData>()
         // Check if the removed task was on its own row.
         if (currentLayout.count { it.bounds.top == taskToRemoveData.bounds.top } == 1) {
             val layoutCenterY = overallBounds.centerY().toFloat()
@@ -71,7 +73,7 @@ class RemoveTaskAndRebalanceLayoutUseCase {
                             taskData.bounds.right,
                             (currentY + taskData.bounds.height()).toInt(),
                         )
-                    newLayout.add(DesktopTaskBoundsData(taskData.taskId, newBounds))
+                    newLayout.add(RenderedDesktopTaskBoundsData(taskData.taskId, newBounds))
                 }
                 currentY +=
                     tasks.maxOf { it.bounds.height() } + layoutConfig.verticalPaddingBetweenTasks
@@ -100,7 +102,7 @@ class RemoveTaskAndRebalanceLayoutUseCase {
                             (currentX + taskData.bounds.width()).toInt(),
                             rowY + taskData.bounds.height(),
                         )
-                    newLayout.add(DesktopTaskBoundsData(taskData.taskId, newBounds))
+                    newLayout.add(RenderedDesktopTaskBoundsData(taskData.taskId, newBounds))
                     currentX +=
                         taskData.bounds.width() +
                             layoutConfig.horizontalPaddingBetweenTasks.toFloat()

@@ -116,7 +116,7 @@ class PreviewItemManagerTest {
         folderItems = folderIcon.mInfo.getAppContents()
 
         // Set second icon to be non-themed.
-        folderItems[1].bitmap.themedBitmap = null
+        folderItems[1].bitmap = folderItems[1].bitmap.copy(themedBitmap = null)
 
         // Set third icon to be themed with badge.
         folderItems[2].bitmap =
@@ -124,8 +124,10 @@ class PreviewItemManagerTest {
 
         // Set fourth icon to be non-themed with badge.
         folderItems[3].bitmap =
-            folderItems[3].bitmap.withFlags(profileFlagOp(UserIconInfo.TYPE_WORK))
-        folderItems[3].bitmap.themedBitmap = null
+            folderItems[3]
+                .bitmap
+                .withFlags(profileFlagOp(UserIconInfo.TYPE_WORK))
+                .copy(themedBitmap = null)
     }
 
     @Test

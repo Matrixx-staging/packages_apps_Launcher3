@@ -68,6 +68,9 @@ import com.android.quickstep.recents.di.RecentsDependencies
 import com.android.quickstep.recents.di.get
 import com.android.quickstep.recents.domain.model.DesktopLayoutConfig
 import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData
+import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData.HiddenDesktopTaskBoundsData
+import com.android.quickstep.recents.domain.model.DesktopTaskBoundsData.RenderedDesktopTaskBoundsData
+import com.android.quickstep.recents.domain.usecase.DesktopLayoutUtils
 import com.android.quickstep.recents.ui.viewmodel.DesktopTaskViewModel
 import com.android.quickstep.recents.ui.viewmodel.TaskData
 import com.android.quickstep.task.thumbnail.TaskContentView
@@ -150,7 +153,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
      * Holds the default (user placed) positions of task windows. This can be moved into the
      * viewModel once RefactorTaskThumbnail has been launched.
      */
-    private var fullscreenTaskPositions: List<DesktopTaskBoundsData> = emptyList()
+    private var fullscreenTaskPositions: List<RenderedDesktopTaskBoundsData> = emptyList()
 
     /**
      * Holds the previous organized task positions. This is used to animate between two sets of
@@ -239,24 +242,58 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         taskContainers.forEach { taskContainer ->
             val taskId = taskContainer.task.key.id
             val fullscreenTaskBounds =
-                fullscreenTaskPositions.firstOrNull { it.taskId == taskId }?.bounds ?: return
-            val overviewTaskBounds =
+                fullscreenTaskPositions.firstOrNull { it.taskId == taskId }?.bounds
+                    ?: return@forEach
+
+            val organizedTaskData: DesktopTaskBoundsData? =
                 if (enableDesktopExplodedView()) {
-                    viewModel.organizedDesktopTaskPositions
-                        .firstOrNull { it.taskId == taskId }
-                        ?.bounds ?: fullscreenTaskBounds
+                    viewModel.organizedDesktopTaskPositions.firstOrNull { it.taskId == taskId }
                 } else {
-                    fullscreenTaskBounds
+                    null
                 }
+
+            val shouldBeDisplayedInOverview: Boolean
+            val overviewTaskBounds: Rect
+
+            if (!enableDesktopExplodedView()) {
+                shouldBeDisplayedInOverview = true
+                overviewTaskBounds = fullscreenTaskBounds
+            } else {
+                when (organizedTaskData) {
+                    is RenderedDesktopTaskBoundsData -> {
+                        shouldBeDisplayedInOverview = true
+                        overviewTaskBounds = organizedTaskData.bounds
+                    }
+                    is HiddenDesktopTaskBoundsData -> {
+                        shouldBeDisplayedInOverview = false
+                        overviewTaskBounds =
+                            DesktopLayoutUtils.createPlaceholderBounds(
+                                getScreenRect(),
+                                getDesktopLayoutConfig(),
+                            )
+                    }
+                    null -> {
+                        shouldBeDisplayedInOverview = false
+                        // Skip the task for the edge case where [organizedTaskData] is null.
+                        return@forEach
+                    }
+                }
+            }
+
             val currentTaskBounds =
                 if (enableDesktopExplodedView()) {
                     TEMP_OVERVIEW_TASK_POSITION.apply {
                         // When removing a task, interpolate between its old organized bounds and
                         // [overviewTaskBounds].
-                        val previousOrganizedTaskBounds =
-                            previousOrganizedDesktopTaskPositions
-                                ?.firstOrNull { it.taskId == taskId }
+                        val previousOrganizedTaskDataItem =
+                            previousOrganizedDesktopTaskPositions?.firstOrNull { prevData ->
+                                prevData.taskId == taskId
+                            }
+
+                        val previousOrganizedTaskBounds: Rect? =
+                            (previousOrganizedTaskDataItem as? RenderedDesktopTaskBoundsData)
                                 ?.bounds
+
                         if (previousOrganizedTaskBounds != null) {
                             lerpRect(
                                 previousOrganizedTaskBounds,
@@ -296,11 +333,26 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                     transform.setRectToRect(fromRect, toRect, Matrix.ScaleToFit.FILL)
                     remoteTargetHandle.taskViewSimulator.setTaskRectTransform(transform)
                     remoteTargetHandle.taskViewSimulator.apply(remoteTargetHandle.transformParams)
+                    // Animate to hide the task window that should not show in desktop tile.
+                    remoteTargetHandle.transformParams.setTargetAlpha(
+                        if (shouldBeDisplayedInOverview) 1f else (1f - explodeProgress)
+                    )
                 }
 
                 (taskContainer.taskContentView as? TaskContentView)?.setTaskHeaderAlpha(
-                    explodeProgress
+                    if (shouldBeDisplayedInOverview) explodeProgress else 0f
                 )
+
+                if (taskContainer.task.isMinimized) {
+                    // Minimized tasks are immediately placed in the exploded position and then fade
+                    // in during the course of EXPLODE_PROGRESS.
+                    taskContainer.taskContentView.alpha =
+                        if (shouldBeDisplayedInOverview) explodeProgress else 0f
+                } else {
+                    // Normal tasks - animate to hide if it should not show in desktop tile.
+                    taskContainer.taskContentView.alpha =
+                        if (shouldBeDisplayedInOverview) 1f else (1f - explodeProgress)
+                }
             }
 
             val overviewTaskLeft = overviewTaskBounds.left * widthScale
@@ -363,10 +415,6 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                 scaleX = if (overviewTaskWidth != 0f) currentTaskWidth / overviewTaskWidth else 1f
                 scaleY =
                     if (overviewTaskHeight != 0f) currentTaskHeight / overviewTaskHeight else 1f
-            }
-
-            if (taskContainer.task.isMinimized) {
-                taskContainer.taskContentView.alpha = explodeProgress
             }
         }
     }
@@ -667,44 +715,14 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
 
         fullscreenTaskPositions =
             taskContainers.map {
-                DesktopTaskBoundsData(it.task.key.id, it.task.appBounds ?: DEFAULT_BOUNDS)
+                RenderedDesktopTaskBoundsData(
+                    taskId = it.task.key.id,
+                    bounds = it.task.appBounds ?: DEFAULT_BOUNDS,
+                )
             }
 
         if (enableDesktopExplodedView()) {
-            val (widthScale, heightScale) = getScreenScaleFactors()
-            val res = context.resources
-            val layoutConfig =
-                DesktopLayoutConfig(
-                    topBottomMarginOneRow =
-                        (res.getDimensionPixelSize(R.dimen.desktop_top_bottom_margin_one_row) /
-                                heightScale)
-                            .toInt(),
-                    topMarginMultiRows =
-                        (res.getDimensionPixelSize(R.dimen.desktop_top_margin_multi_rows) /
-                                heightScale)
-                            .toInt(),
-                    bottomMarginMultiRows =
-                        (res.getDimensionPixelSize(R.dimen.desktop_bottom_margin_multi_rows) /
-                                heightScale)
-                            .toInt(),
-                    leftRightMarginOneRow =
-                        (res.getDimensionPixelSize(R.dimen.desktop_left_right_margin_one_row) /
-                                widthScale)
-                            .toInt(),
-                    leftRightMarginMultiRows =
-                        (res.getDimensionPixelSize(R.dimen.desktop_left_right_margin_multi_rows) /
-                                widthScale)
-                            .toInt(),
-                    horizontalPaddingBetweenTasks =
-                        (res.getDimensionPixelSize(
-                                R.dimen.desktop_horizontal_padding_between_tasks
-                            ) / widthScale)
-                            .toInt(),
-                    verticalPaddingBetweenTasks =
-                        (res.getDimensionPixelSize(R.dimen.desktop_vertical_padding_between_tasks) /
-                                heightScale)
-                            .toInt(),
-                )
+            val layoutConfig = getDesktopLayoutConfig()
             if (dismissedTaskId != null) {
                 viewModel?.removeTaskAndRebalanceLayout(dismissedTaskId, layoutConfig)
             } else {
@@ -712,6 +730,40 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
             }
         }
         positionTaskWindows(updateLayout = true)
+    }
+
+    private fun getDesktopLayoutConfig(): DesktopLayoutConfig {
+        val (widthScale, heightScale) = getScreenScaleFactors()
+        val res = context.resources
+        return DesktopLayoutConfig(
+            topBottomMarginOneRow =
+                (res.getDimensionPixelSize(R.dimen.desktop_top_bottom_margin_one_row) / heightScale)
+                    .toInt(),
+            topMarginMultiRows =
+                (res.getDimensionPixelSize(R.dimen.desktop_top_margin_multi_rows) / heightScale)
+                    .toInt(),
+            bottomMarginMultiRows =
+                (res.getDimensionPixelSize(R.dimen.desktop_bottom_margin_multi_rows) / heightScale)
+                    .toInt(),
+            leftRightMarginOneRow =
+                (res.getDimensionPixelSize(R.dimen.desktop_left_right_margin_one_row) / widthScale)
+                    .toInt(),
+            leftRightMarginMultiRows =
+                (res.getDimensionPixelSize(R.dimen.desktop_left_right_margin_multi_rows) /
+                        widthScale)
+                    .toInt(),
+            horizontalPaddingBetweenTasks =
+                (res.getDimensionPixelSize(R.dimen.desktop_horizontal_padding_between_tasks) /
+                        widthScale)
+                    .toInt(),
+            verticalPaddingBetweenTasks =
+                (res.getDimensionPixelSize(R.dimen.desktop_vertical_padding_between_tasks) /
+                        heightScale)
+                    .toInt(),
+            minTaskWidth =
+                (res.getDimensionPixelSize(R.dimen.desktop_min_task_width) / widthScale).toInt(),
+            maxRows = res.getInteger(R.integer.desktop_layout_max_rows),
+        )
     }
 
     /**
