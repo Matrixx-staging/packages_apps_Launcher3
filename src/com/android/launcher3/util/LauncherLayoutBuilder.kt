@@ -36,6 +36,8 @@ import com.android.launcher3.AutoInstallsLayout.TAG_AUTO_INSTALL
 import com.android.launcher3.AutoInstallsLayout.TAG_FOLDER
 import com.android.launcher3.AutoInstallsLayout.TAG_SHORTCUT
 import com.android.launcher3.AutoInstallsLayout.TAG_WORKSPACE
+import com.android.launcher3.GridSizeUtil.Companion.COLUMN_ATTR
+import com.android.launcher3.GridSizeUtil.Companion.ROW_ATTR
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
 import com.android.launcher3.LauncherSettings.Favorites.containerToString
@@ -45,7 +47,7 @@ import java.io.Writer
 import org.xmlpull.v1.XmlSerializer
 
 /** Helper class to build xml for Launcher Layout */
-class LauncherLayoutBuilder {
+class LauncherLayoutBuilder(private val rows: Int? = null, private val columns: Int? = null) {
     private val nodes = ArrayList<Node>()
 
     fun atHotseat(rank: Int) =
@@ -77,6 +79,8 @@ class LauncherLayoutBuilder {
             setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true)
             startDocument("UTF-8", true)
             startTag(null, TAG_WORKSPACE)
+            rows?.let { attribute(null, ROW_ATTR, it.toString()) }
+            columns?.let { attribute(null, COLUMN_ATTR, it.toString()) }
             writeNodes(nodes)
             endTag(null, TAG_WORKSPACE)
             endDocument()

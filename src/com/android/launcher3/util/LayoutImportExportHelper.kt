@@ -23,6 +23,8 @@ import android.os.ParcelFileDescriptor.AutoCloseOutputStream
 import android.provider.Settings.Secure
 import android.util.Log
 import com.android.launcher3.AutoInstallsLayout
+import com.android.launcher3.GridSizeUtil
+import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
@@ -62,7 +64,8 @@ object LayoutImportExportHelper {
         val model = LauncherAppState.getInstance(context).model
 
         model.enqueueModelUpdateTask { _, dataModel, _ ->
-            val builder = LauncherLayoutBuilder()
+            val idp = InvariantDeviceProfile.INSTANCE.get(context)
+            val builder = LauncherLayoutBuilder(idp.numRows, idp.numColumns)
             dataModel.itemsIdMap.forEach { info ->
                 val loc =
                     when (info.container) {
@@ -115,7 +118,7 @@ object LayoutImportExportHelper {
 
             session.commit(ORDERED_BG_EXECUTOR) {
                 Secure.putString(resolver, LAYOUT_PROVIDER_KEY, createBlobProviderKey(digest))
-
+                GridSizeUtil(context).parseAndSetGridSize(data.toString(StandardCharsets.UTF_8))
                 MODEL_EXECUTOR.submit {
                         try {
                             model.modelDbController.createEmptyDB()
