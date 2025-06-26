@@ -46,6 +46,9 @@ private constructor(private val taskbarActivityContext: TaskbarActivityContext) 
     val supportsPinningPopup: Boolean
         get() = !hasNavButtons
 
+    val isPersistent =
+        taskbarActivityContext.isPinnedTaskbar || taskbarActivityContext.isThreeButtonNav
+
     val supportsTransitionToTransientTaskbar: Boolean
         get() = !hasNavButtons && !taskbarActivityContext.showDesktopTaskbarForFreeformDisplay()
 
