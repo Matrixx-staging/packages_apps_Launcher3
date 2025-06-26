@@ -279,14 +279,14 @@ class TaskIconCache(
         isInstantApp: Boolean,
     ): BitmapInfo {
         iconFactory.use { iconFactory ->
-            iconFactory.setWrapperBackgroundColor(primaryColor)
             // User version code O, so that the icon is always wrapped in an adaptive icon container
             return iconFactory.createBadgedIconBitmap(
                 drawable,
                 IconOptions()
                     .setUser(UserCache.INSTANCE.get(context).getUserInfo(UserHandle.of(userId)))
                     .setInstantApp(isInstantApp)
-                    .setExtractedColor(0),
+                    .setExtractedColor(0)
+                    .setWrapperBackgroundColor(primaryColor),
             )
         }
     }
