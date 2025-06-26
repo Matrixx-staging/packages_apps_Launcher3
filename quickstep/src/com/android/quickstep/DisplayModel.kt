@@ -26,7 +26,6 @@ import androidx.core.util.valueIterator
 import com.android.app.displaylib.DisplayDecorationListener
 import com.android.app.displaylib.DisplaysWithDecorationsRepositoryCompat
 import com.android.quickstep.DisplayModel.DisplayResource
-import com.android.window.flags.Flags.enableSysDecorsCallbacksViaWm
 import java.io.PrintWriter
 import kotlinx.coroutines.CoroutineDispatcher
 
@@ -44,7 +43,10 @@ abstract class DisplayModel<RESOURCE_TYPE : DisplayResource>(
     }
 
     private val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
-    protected val displayResourceArray = SparseArray<RESOURCE_TYPE>()
+    private val displayResourceArray = SparseArray<RESOURCE_TYPE>()
+    private val useDisplayDecorationListener: Boolean =
+        DesktopExperienceFlags.ENABLE_SYS_DECORS_CALLBACKS_VIA_WM.isTrue() &&
+            DesktopExperienceFlags.ENABLE_DISPLAY_CONTENT_MODE_MANAGEMENT.isTrue()
 
     override fun onDisplayAddSystemDecorations(displayId: Int) {
         if (DEBUG) Log.d(TAG, "onDisplayAdded: displayId=$displayId")
@@ -64,10 +66,7 @@ abstract class DisplayModel<RESOURCE_TYPE : DisplayResource>(
     protected abstract fun createDisplayResource(display: Display): RESOURCE_TYPE
 
     protected fun initializeDisplays() {
-        if (
-            DesktopExperienceFlags.ENABLE_SYS_DECORS_CALLBACKS_VIA_WM.isTrue() &&
-                DesktopExperienceFlags.ENABLE_DISPLAY_CONTENT_MODE_MANAGEMENT.isTrue()
-        ) {
+        if (useDisplayDecorationListener) {
             displaysWithDecorationsRepositoryCompat.registerDisplayDecorationListener(
                 this,
                 dispatcher,
@@ -81,7 +80,7 @@ abstract class DisplayModel<RESOURCE_TYPE : DisplayResource>(
     }
 
     fun destroy() {
-        if (enableSysDecorsCallbacksViaWm()) {
+        if (useDisplayDecorationListener) {
             displaysWithDecorationsRepositoryCompat.unregisterDisplayDecorationListener(this)
         } else {
             systemDecorationChangeObserver.unregisterDisplayDecorationListener(this)
