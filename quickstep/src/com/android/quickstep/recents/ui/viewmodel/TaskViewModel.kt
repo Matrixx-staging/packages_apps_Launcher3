@@ -30,6 +30,7 @@ import com.android.quickstep.recents.domain.usecase.ThumbnailPosition
 import com.android.quickstep.recents.viewmodel.RecentsViewData
 import com.android.quickstep.views.TaskViewType
 import com.android.systemui.shared.recents.model.ThumbnailData
+import com.android.wm.shell.shared.split.SplitBounds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -121,12 +122,16 @@ class TaskViewModel(
         width: Int,
         height: Int,
         isRtl: Boolean,
+        splitBounds: SplitBounds?,
+        splitPosition: Int,
     ): ThumbnailPosition =
         getThumbnailPositionUseCase(
             thumbnailData = thumbnail,
             width = width,
             height = height,
             isRtl = isRtl,
+            splitBounds,
+            splitPosition,
         )
 
     private fun mapToTaskTile(
