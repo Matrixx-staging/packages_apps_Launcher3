@@ -897,13 +897,16 @@ public class SplitSelectStateController {
                 int splitPosition, Rect taskBounds, boolean startRecents,
                 @Nullable WindowContainerTransaction withRecentsWct) {
             mTaskInfo = taskInfo;
-            String packageName = mTaskInfo.realActivity.getPackageName();
             PackageManager pm = mLauncher.getApplicationContext().getPackageManager();
             IconProvider provider = new IconProvider(mLauncher.getApplicationContext());
             try {
                 mAppIcon = provider.getIcon(pm.getActivityInfo(mTaskInfo.baseActivity,
                      PackageManager.ComponentInfoFlags.of(0)));
             } catch (PackageManager.NameNotFoundException e) {
+                final String packageName =
+                        mTaskInfo.realActivity == null
+                                ? "(null)"
+                                : mTaskInfo.realActivity.getPackageName();
                 Log.w(TAG, "Package not found: " + packageName, e);
             }
 
