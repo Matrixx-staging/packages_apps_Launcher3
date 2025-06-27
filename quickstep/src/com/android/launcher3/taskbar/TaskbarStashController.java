@@ -425,7 +425,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
      * Returns how long the stash/unstash animation should play.
      */
     public long getStashDuration() {
-        if (mActivity.isPinnedTaskbar()) {
+        if (mActivity.getTaskbarFeatureEvaluator().isPersistent()) {
             return PINNED_TASKBAR_TRANSITION_DURATION;
         }
         return mActivity.isTransientTaskbar() ? TRANSIENT_TASKBAR_STASH_DURATION

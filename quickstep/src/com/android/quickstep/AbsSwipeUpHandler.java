@@ -133,10 +133,10 @@ import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.MSDLPlayerWrapper;
+import com.android.launcher3.util.NavigationMode;
 import com.android.launcher3.util.SafeCloseable;
 import com.android.launcher3.util.TraceHelper;
 import com.android.launcher3.util.VibratorWrapper;
-import com.android.launcher3.util.WindowBounds;
 import com.android.quickstep.GestureState.GestureEndTarget;
 import com.android.quickstep.RemoteTargetGluer.RemoteTargetHandle;
 import com.android.quickstep.util.ActiveGestureErrorDetector;
@@ -1473,10 +1473,12 @@ public abstract class AbsSwipeUpHandler<
         }
         if (endTarget == HOME) {
             boolean isPinnedTaskbar = DisplayController.isPinnedTaskbar(mContext);
+            boolean isThreeButton = DisplayController.getNavigationMode(mContext)
+                    == NavigationMode.THREE_BUTTONS;
             boolean isNotInDesktop =  !DisplayController.isInDesktopMode(mContext);
             duration = mContainer != null && mContainer.getDeviceProfile().isTaskbarPresent
                     ? QuickstepTransitionManager.getTaskbarToHomeDuration(
-                    isPinnedTaskbar && isNotInDesktop)
+                    (isThreeButton || isPinnedTaskbar) && isNotInDesktop)
                     : StaggeredWorkspaceAnim.DURATION_MS;
             SystemUiProxy.INSTANCE.get(mContext).updateContextualEduStats(
                     mGestureState.isTrackpadGesture(), GestureType.HOME);
