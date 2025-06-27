@@ -131,8 +131,8 @@ class TaskbarUnitTestRule(
 
                 val isUserUnlocked = description.getAnnotation(UserLocked::class.java) == null
                 context.base.spyService(UserManager::class.java).stub {
-                    on { isUserUnlocked(any<Int>()) } doAnswer { isUserUnlocked }
-                    on { isUserUnlockingOrUnlocked(any<Int>()) } doAnswer { isUserUnlocked }
+                    doAnswer { isUserUnlocked }.whenever(mock).isUserUnlocked(any<Int>())
+                    doAnswer { isUserUnlocked }.whenever(mock).isUserUnlockingOrUnlocked(any<Int>())
                 }
 
                 taskbarManager =
