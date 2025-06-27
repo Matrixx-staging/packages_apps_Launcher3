@@ -391,7 +391,11 @@ constructor(
 
         // Don't go to home on connected displays
         if (displayId != DEFAULT_DISPLAY) {
-            recentsView.runningTaskView?.launchWithAnimation()
+            val taskView =
+                recentsView.runningTaskView
+                    ?: recentsView.currentPageTaskView
+                    ?: recentsView.firstTaskView
+            taskView?.launchWithAnimation()
             return
         }
 

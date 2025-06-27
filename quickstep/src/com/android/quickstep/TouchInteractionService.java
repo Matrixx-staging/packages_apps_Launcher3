@@ -956,8 +956,8 @@ public class TouchInteractionService extends Service {
                     // ever will, they should be taken care of.
                     SystemUiProxy.INSTANCE.get(this).setLastSystemUiStateFlags(systemUiStateFlags);
                     mOverviewComponentObserver.setHomeDisabled(deviceState.isHomeDisabled());
-                    taskAnimationManager.onSystemUiFlagsChanged(lastSysUIFlags, systemUiStateFlags);
                 }
+                taskAnimationManager.onSystemUiFlagsChanged(lastSysUIFlags, systemUiStateFlags);
             }
         } else if (enableTaskbarForDirectBoot() && deviceState != null) {
             mTaskbarManager.onSystemUiFlagsChanged(deviceState.getSysuiStateFlags(), displayId);
