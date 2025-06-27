@@ -23,15 +23,20 @@ import static com.android.launcher3.statemanager.BaseState.FLAG_NON_INTERACTIVE;
 import static com.android.launcher3.taskbar.TaskbarEduTooltipControllerKt.TOOLTIP_STEP_FEATURES;
 import static com.android.launcher3.taskbar.TaskbarLauncherStateController.FLAG_VISIBLE;
 import static com.android.launcher3.taskbar.TaskbarStashController.FLAG_IGNORE_IN_APP;
+import static com.android.launcher3.taskbar.navbutton.SetupNavLayoutterKt.GLIF_EXPRESSIVE_LIGHT_THEME;
+import static com.android.launcher3.taskbar.navbutton.SetupNavLayoutterKt.GLIF_EXPRESSIVE_THEME;
+import static com.android.launcher3.taskbar.navbutton.SetupNavLayoutterKt.SUW_THEME_SYSTEM_PROPERTY;
 
 import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
+import android.animation.ValueAnimator;
+import android.os.SystemProperties;
 import android.window.RemoteTransition;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.android.app.animation.Interpolators;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Flags;
 import com.android.launcher3.Hotseat;
@@ -217,18 +222,30 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
                 placeholderDuration));
     }
 
-    protected void addStaggeredWorkspaceAnim(AnimatorSet as) {
-        if (!Flags.enableNewAllSetAnimation()) {
+    protected void addWorkspaceRevealAnim(AnimatorSet as, int duration) {
+        String SUWTheme = SystemProperties.get(SUW_THEME_SYSTEM_PROPERTY, "");
+        boolean isExpressiveTheme = SUWTheme.equals(GLIF_EXPRESSIVE_THEME)
+                || SUWTheme.equals(GLIF_EXPRESSIVE_LIGHT_THEME);
+        if (!isExpressiveTheme || !Flags.enableNewAllSetAnimation()) {
             return;
         }
         ScalingWorkspaceRevealAnim anim =
                 new ScalingWorkspaceRevealAnim(mLauncher, null, null, true, false);
-        as.addListener(new AnimatorListenerAdapter() {
+
+        ValueAnimator autoPlayAnimator = ValueAnimator.ofFloat(0f, 1f);
+        autoPlayAnimator.setDuration(duration);
+        autoPlayAnimator.setInterpolator(Interpolators.LINEAR);
+        autoPlayAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            private boolean mCanAutoPlay = true;
             @Override
-            public void onAnimationEnd(Animator animation) {
-                anim.start();
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                if (mCanAutoPlay && valueAnimator.getAnimatedFraction() > 0.95f) {
+                    anim.start();
+                    mCanAutoPlay = false;
+                }
             }
         });
+        as.play(autoPlayAnimator);
     }
     /**
      * Should be called from onResume() and onPause(), and animates the Taskbar accordingly.

@@ -26,6 +26,7 @@ import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 
 import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
+import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
@@ -259,6 +260,13 @@ public class WallpaperScreenshotClipView extends FrameLayout {
      */
     public void setupWallpaperScreenshot(Window window, int displayId, View rootView,
             int wallpaperBlurRadius) {
+        WallpaperManager wallpaperManager = WallpaperManager.getInstance(mContext);
+        if (wallpaperManager.getWallpaperInfo() != null) {
+            // Play fallback animation for live wallpapers.
+            mScreenshotFailed = true;
+            return;
+        }
+
         Rect captureBounds = new Rect();
         captureBounds.set(0, 0, mWindowWidth, mWindowHeight);
 

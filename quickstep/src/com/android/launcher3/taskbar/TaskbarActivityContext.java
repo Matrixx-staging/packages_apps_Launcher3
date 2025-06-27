@@ -2125,7 +2125,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         TaskbarUIController uiController = mControllers.uiController;
         if (uiController instanceof LauncherTaskbarUIController taskbarUiController) {
             taskbarUiController.addLauncherVisibilityChangedAnimation(fullAnimation, duration);
-            taskbarUiController.addStaggeredWorkspaceAnim(fullAnimation);
+            taskbarUiController.addWorkspaceRevealAnim(fullAnimation, duration);
         }
         mControllers.taskbarStashController.addUnstashToHotseatAnimationFromSuw(fullAnimation,
                 duration);
