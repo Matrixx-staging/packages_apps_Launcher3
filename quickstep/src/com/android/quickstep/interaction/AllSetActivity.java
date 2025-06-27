@@ -102,6 +102,9 @@ import java.util.Map;
  * for the gestural system navigation.
  */
 public class AllSetActivity extends Activity {
+
+    public static final float ALL_SET_SWIPE_THRESHOLD_FOR_WORKSPACE_ANIM = 0.95f;
+
     private static final String TAG = "AllSetActivity";
 
     private static final String LOG_TAG = "AllSetActivity";

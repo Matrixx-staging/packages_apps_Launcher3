@@ -245,7 +245,7 @@ public class ProgressDelegateInputConsumer implements InputConsumer,
         } else if (endToRecents) {
             startHomeIntentSafely(mContext, null, TAG, getDisplayId());
         }
-        mAutoEndDrag = false;
+        reset();
     }
 
     @Override
@@ -258,7 +258,13 @@ public class ProgressDelegateInputConsumer implements InputConsumer,
 
     @Override
     public void onRecentsAnimationCanceled(HashMap<Integer, ThumbnailData> thumbnailDatas) {
+        reset();
+    }
+
+    private void reset() {
+        mRemoteAnimationTargets = null;
         mRecentsAnimationController = null;
+        mAutoEndDrag = false;
     }
 
     private void endRemoteAnimation() {
