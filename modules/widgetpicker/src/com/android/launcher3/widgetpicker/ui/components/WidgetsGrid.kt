@@ -34,7 +34,6 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
-import androidx.compose.ui.semantics.text
 import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
@@ -260,17 +259,21 @@ private fun WidgetsFlowRowLayout(
         contents = listOf(widgetPreviews, widgetDetails),
     ) { (widgetPreviewMeasurables, widgetDetailsMeasurables), constraints ->
         check(widgetPreviewMeasurables.size == widgetDetailsMeasurables.size)
-        val parentWidth = constraints.maxWidth
+        val parentWidthPx = constraints.maxWidth
         val rowVerticalSpacingPx = rowVerticalSpacing.roundToPx()
         val cellHorizontalPaddingPx = cellHorizontalPadding.roundToPx()
-        val minItemWidthPx = minItemWidth.roundToPx()
+        val minItemWidthPx = if(widgetDetailsMeasurables.size > 1) {
+            minItemWidth.roundToPx()
+        } else {
+            parentWidthPx
+        }
 
         val (possibleItemsPerRow, availableWidthPerItem) =
             calculateItemsPerRowAndMaxWidthPerItem(
                 cellHorizontalPaddingPx = cellHorizontalPaddingPx,
                 previewContainerWidthPx = previewContainerWidthPx,
                 minItemWidthPx = minItemWidthPx,
-                parentWidth = parentWidth,
+                parentWidth = parentWidthPx,
             )
 
         // Measure and group into rows
@@ -312,7 +315,7 @@ private fun WidgetsFlowRowLayout(
                 previewPlaceableRows = previewPlaceablesRows,
                 detailsPlaceableRows = detailsPlaceableRows,
                 measuredRowDimensions = measuredRowDimensions,
-                parentWidth = parentWidth,
+                parentWidth = parentWidthPx,
                 rowVerticalSpacingPx = rowVerticalSpacingPx,
             )
         }

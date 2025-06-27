@@ -53,7 +53,6 @@ import platform.test.screenshot.getEmulatedDevicePathConfig
 import platform.test.screenshot.utils.compose.ComposeScreenshotTestRule
 
 @RunWith(ParameterizedAndroidJunit4::class)
-@Ignore("b/418064758: Re-enable when flaky test is fixed.")
 class FloatingToolbarScreenshotTest(emulationSpec: DeviceEmulationSpec) {
     @get:Rule(order = 0) val disableAnimationsRule = DisableAnimationsRule()
 

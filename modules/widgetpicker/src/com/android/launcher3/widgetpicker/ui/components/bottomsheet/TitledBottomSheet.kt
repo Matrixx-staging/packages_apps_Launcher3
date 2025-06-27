@@ -100,9 +100,9 @@ fun TitledBottomSheet(
 
         Surface(
             modifier =
-                Modifier.semantics { isTraversalGroup = true }
+                Modifier
+                    .semantics { isTraversalGroup = true }
                     .fillMaxSize()
-                    .imePadding()
                     .dismissibleBottomSheet(
                         sheetState = sheetState,
                         onDismissSheet = onDismissSheet,
@@ -113,7 +113,9 @@ fun TitledBottomSheet(
             content = {
                 Column(
                     modifier =
-                        Modifier.windowInsetsPadding(contentWindowInsets)
+                        Modifier
+                            .imePadding()
+                            .windowInsetsPadding(contentWindowInsets)
                             .sheetContentHeight(heightStyle, windowInfo, maxHeight)
                             .padding(horizontal = sheetInnerHorizontalPadding)
                             .padding(top = sheetInnerTopPadding.takeIf { !showDragHandle } ?: 0.dp)

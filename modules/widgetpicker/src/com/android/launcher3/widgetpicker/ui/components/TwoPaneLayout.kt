@@ -59,6 +59,7 @@ import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
  *   pane guides the user that content for selected option is now visible on right. When using
  *   accessibility services like talkback, after selecting an option on left, the users can use four
  *   finger swipe down to move focus to the right pane.
+ * @param modifier modifications to be applied to top level composable of the layout
  */
 @Composable
 fun TwoPaneLayout(
@@ -66,6 +67,7 @@ fun TwoPaneLayout(
     leftContent: @Composable () -> Unit,
     rightContent: @Composable () -> Unit,
     rightPaneTitle: String?,
+    modifier: Modifier = Modifier
 ) {
     val rightPaneModifier =
         if (rightPaneTitle != null) {
@@ -101,7 +103,7 @@ fun TwoPaneLayout(
         }
     }
 
-    Row(modifier = Modifier.padding(horizontal = horizontalPadding).fillMaxSize()) {
+    Row(modifier = modifier.padding(horizontal = horizontalPadding).fillMaxSize()) {
         leftPane()
         rightPane()
     }

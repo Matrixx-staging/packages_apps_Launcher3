@@ -1,7 +1,8 @@
 {
   "presubmit": [
     {
-      "name": "WidgetPickerScreenshotTests"
+      "name": "WidgetPickerScreenshotTests",
+      "keywords": ["internal"]
     },
     {
       "name": "WidgetPickerDeviceTests"
