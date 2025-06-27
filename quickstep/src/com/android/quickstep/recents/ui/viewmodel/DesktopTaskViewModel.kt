@@ -16,8 +16,6 @@
 
 package com.android.quickstep.recents.ui.viewmodel
 
-import android.graphics.Rect
-import android.util.Size
 import com.android.launcher3.util.coroutines.DispatcherProvider
 import com.android.quickstep.recents.data.DesktopBackgroundResult
 import com.android.quickstep.recents.data.DesktopTileBackgroundRepository
@@ -43,7 +41,6 @@ class DesktopTaskViewModel(
      * [organizedDesktopTaskPositions]. This is used for the exploded desktop view where the usecase
      * will scale and translate tasks so that they don't overlap.
      *
-     * @param desktopSize the size available for organizing the tasks.
      * @param defaultPositions the tasks and their bounds as they appear on a desktop. These are
      *   considered all current tasks for the layout.
      * @param layoutConfig the pre-scaled dimension configuration for the desktop layout.
@@ -51,14 +48,12 @@ class DesktopTaskViewModel(
      *   decide whether to reflow or fully reorganize.
      */
     fun organizeDesktopTasks(
-        desktopSize: Size,
         defaultPositions: List<RenderedDesktopTaskBoundsData>,
         layoutConfig: DesktopLayoutConfig,
         dismissedTaskId: Int? = null,
     ) {
         organizedDesktopTaskPositions =
             organizeDesktopTasksUseCase(
-                desktopBounds = Rect(0, 0, desktopSize.width, desktopSize.height),
                 allCurrentOriginalTaskBounds = defaultPositions,
                 layoutConfig = layoutConfig,
                 taskPositionsHint = organizedDesktopTaskPositions,
