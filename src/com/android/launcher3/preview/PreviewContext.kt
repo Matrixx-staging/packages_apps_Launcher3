@@ -116,8 +116,7 @@ constructor(
             emptyDbDir()
             mDbDir.mkdirs()
             builder.bindParserFactory(XmlLayoutParserFactory(this, layoutXml)).bindWidgetsFactory {
-                c: Context ->
-                LauncherWidgetHolder(c, widgetHostId).apply { startListening() }
+                NonPrimaryWidgetHolder(it, widgetHostId)
             }
         }
         initDaggerComponent(builder)
@@ -161,6 +160,12 @@ constructor(
         ) {
             // Ignore
         }
+    }
+
+    private class NonPrimaryWidgetHolder(context: Context, hostId: Int) :
+        LauncherWidgetHolder(context, hostId) {
+
+        override fun startListeningForSharedUpdate() = startListening()
     }
 
     @LauncherAppSingleton // Exclude widget module since we bind widget holder separately
