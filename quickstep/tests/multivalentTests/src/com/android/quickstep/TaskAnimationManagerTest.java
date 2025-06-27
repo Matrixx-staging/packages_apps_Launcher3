@@ -39,9 +39,6 @@ import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.platform.test.annotations.DisableFlags;
-import android.platform.test.annotations.EnableFlags;
-import android.platform.test.flag.junit.SetFlagsRule;
 import android.view.Display;
 import android.view.RemoteAnimationTarget;
 import android.view.SurfaceControl;
@@ -52,7 +49,6 @@ import androidx.test.filters.SmallTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.android.systemui.shared.system.RecentsAnimationControllerCompat;
-import com.android.window.flags.Flags;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -74,9 +70,6 @@ public class TaskAnimationManagerTest {
 
     private TaskAnimationManager mTaskAnimationManager;
     private TaskAnimationManager mTaskAnimationManagerWithExternalDisplay;
-
-    @Rule
-    public final SetFlagsRule mSetFlagsRule = new SetFlagsRule();
 
     @Before
     public void setUp() {
@@ -205,37 +198,5 @@ public class TaskAnimationManagerTest {
         when(gestureState.getRunningTaskIds(anyBoolean())).thenReturn(new int[0]);
 
         return gestureState;
-    }
-
-    /**
-     * Invokes maybeStartHomeAction on the given TaskAnimationManager and verifies whether the
-     * provided Runnable was invoked, based on the expectedResult.
-     *
-     * @param taskAnimationManager The TaskAnimationManager instance to test.
-     * @param expectedResult True if the Runnable is expected to be invoked, false otherwise.
-     */
-    private void verifyCanStartHomeAction(TaskAnimationManager taskAnimationManager,
-                Boolean expectedResult) {
-        Runnable mockRunnable = mock(Runnable.class);
-        taskAnimationManager.maybeStartHomeAction(mockRunnable);
-        if (expectedResult) {
-            verify(mockRunnable).run();
-        } else {
-            verify(mockRunnable, never()).run();
-        }
-    }
-
-    @Test
-    @EnableFlags(Flags.FLAG_ENABLE_REJECT_HOME_TRANSITION)
-    public void maybeStartHomeAction_withRejectHomeTransitionEnabled() {
-        verifyCanStartHomeAction(mTaskAnimationManager, true);
-        verifyCanStartHomeAction(mTaskAnimationManagerWithExternalDisplay, false);
-    }
-
-    @Test
-    @DisableFlags(Flags.FLAG_ENABLE_REJECT_HOME_TRANSITION)
-    public void maybeStartHomeAction_withRejectHomeTransitionDisabled() {
-        verifyCanStartHomeAction(mTaskAnimationManager, true);
-        verifyCanStartHomeAction(mTaskAnimationManagerWithExternalDisplay, true);
     }
 }

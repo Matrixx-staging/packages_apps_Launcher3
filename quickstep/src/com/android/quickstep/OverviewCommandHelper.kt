@@ -46,6 +46,9 @@ import com.android.launcher3.util.OverviewCommandHelperProtoLogProxy
 import com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview
 import com.android.launcher3.util.RunnableList
 import com.android.launcher3.util.coroutines.DispatcherProvider
+import com.android.launcher3.util.coroutines.ProductionDispatchers
+import com.android.quickstep.GestureState.displaySupportsHomeGesture
+import com.android.quickstep.GestureState.GestureEndTarget
 import com.android.quickstep.OverviewCommandHelper.CommandInfo.CommandStatus
 import com.android.quickstep.OverviewCommandHelper.CommandType.HIDE_ALT_TAB
 import com.android.quickstep.OverviewCommandHelper.CommandType.HOME
@@ -293,8 +296,13 @@ constructor(
                 }
             }
             HOME -> {
-                recentsView.startHome()
-                true
+                if (displaySupportsHomeGesture(command.displayId)) {
+                    recentsView.startHome()
+                    true
+                } else {
+                    // TODO: b/378443899 - Add animation for reject home transition.
+                    true
+                }
             }
         }
 
@@ -403,20 +411,32 @@ constructor(
                 }
 
             HOME -> {
-                taskAnimationManager.maybeStartHomeAction {
+                if (displaySupportsHomeGesture(command.displayId)) {
                     if (Flags.homeButtonUsesKeycodeHome()) {
                         systemUiProxy.onKeyEvent(KeyEvent.KEYCODE_HOME, command.displayId)
-                        return@maybeStartHomeAction
+                    } else {
+                        // Although IActivityTaskManager$Stub$Proxy.startActivity is a slow binder
+                        // call, we should still call it on main thread because launcher is waiting
+                        // for ActivityTaskManager to resume it. Also calling startActivity() on bg
+                        // thread could potentially delay resuming launcher. See b/348668521 for
+                        // more details.
+                        touchInteractionService.startActivity(
+                            overviewComponentObserver.getHomeIntent(command.displayId)
+                        )
                     }
-                    // Although IActivityTaskManager$Stub$Proxy.startActivity is a slow binder call,
-                    // we should still call it on main thread because launcher is waiting for
-                    // ActivityTaskManager to resume it. Also calling startActivity() on bg thread
-                    // could potentially delay resuming launcher. See b/348668521 for more details.
-                    touchInteractionService.startActivity(
-                        overviewComponentObserver.getHomeIntent(command.displayId)
-                    )
+                    return true
+                } else {
+                    // Initiate a recents animation that is immediately rejected, which will
+                    // provide visual feedback that home is not supported.
+                    return startRecentsTransitionWithEndTarget(
+                            command,
+                            onCallbackResult,
+                            containerInterface,
+                            taskAnimationManager,
+                            GestureState.GestureEndTarget.REJECT_HOME,
+                            recentsView
+                        )
                 }
-                return true
             }
 
             SHOW_WITH_FOCUS ->
@@ -455,12 +475,32 @@ constructor(
             return false
         }
 
-        // If we get here then launcher is not the top visible task, so we should animate
-        // that task.
+        return startRecentsTransitionWithEndTarget(
+            command,
+            onCallbackResult,
+            containerInterface,
+            taskAnimationManager,
+            GestureState.GestureEndTarget.RECENTS,
+            recentsView
+        )
+    }
 
-        if (recentsViewContainer !is RecentsWindowManager) {
-            recentsViewContainer?.rootView?.let { view ->
-                InteractionJankMonitorWrapper.begin(view, Cuj.CUJ_LAUNCHER_QUICK_SWITCH)
+    private fun startRecentsTransitionWithEndTarget(
+        command: CommandInfo,
+        onCallbackResult: () -> Unit,
+        containerInterface: BaseContainerInterface<*, *>,
+        taskAnimationManager: TaskAnimationManager,
+        gestureEndTarget: GestureState.GestureEndTarget,
+        recentsView: RecentsView<*, *>?
+    ): Boolean {
+        val recentsViewContainer = containerInterface.getCreatedContainer()
+        if (gestureEndTarget == GestureState.GestureEndTarget.RECENTS) {
+            // If we get here then launcher is not the top visible task, so we should animate
+            // that task.
+            if (recentsViewContainer !is RecentsWindowManager) {
+                recentsViewContainer?.rootView?.let { view ->
+                    InteractionJankMonitorWrapper.begin(view, Cuj.CUJ_LAUNCHER_QUICK_SWITCH)
+                }
             }
         }
 
@@ -472,7 +512,7 @@ constructor(
                     GestureState.TrackpadGestureType.NONE,
                 )
                 .apply {
-                    isHandlingAtomicEvent = true
+                    setHandlingAtomicEvent(gestureEndTarget)
                     if (!enableShellTopTaskTracking()) {
                         val runningTask = runningTask
                         // In the case where we are in an excluded, translucent overlay, ignore it
@@ -510,14 +550,17 @@ constructor(
                     transitionInfo: TransitionInfo?,
                 ) {
                     OverviewCommandHelperProtoLogProxy.logRecentsAnimStarted(command)
-                    if (recentsViewContainer is RecentsWindowManager) {
-                        recentsViewContainer.rootView?.let { view ->
-                            InteractionJankMonitorWrapper.begin(view, Cuj.CUJ_LAUNCHER_QUICK_SWITCH)
+                    if (gestureEndTarget == GestureState.GestureEndTarget.RECENTS) {
+                        if (recentsViewContainer is RecentsWindowManager) {
+                            recentsViewContainer.rootView?.let { view ->
+                                InteractionJankMonitorWrapper.begin(
+                                    view, Cuj.CUJ_LAUNCHER_QUICK_SWITCH)
+                            }
                         }
-                    }
 
-                    updateRecentsViewFocus(command)
-                    logShowOverviewFrom(command)
+                        updateRecentsViewFocus(command)
+                        logShowOverviewFrom(command)
+                    }
                     containerInterface.runOnInitBackgroundStateUI {
                         OverviewCommandHelperProtoLogProxy.logOnInitBackgroundStateUI(command)
                         interactionHandler.onGestureEnded(
@@ -562,7 +605,7 @@ constructor(
             command.addListener(recentAnimListener)
         }
         Trace.beginAsyncSection(TRANSITION_NAME, 0)
-        OverviewCommandHelperProtoLogProxy.logSwitchingViaRecentsAnim(command)
+        OverviewCommandHelperProtoLogProxy.logSwitchingViaRecentsAnim(command, gestureEndTarget)
         return false
     }
 
