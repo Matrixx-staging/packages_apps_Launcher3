@@ -40,6 +40,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
+import com.android.launcher3.widgetpicker.ui.components.bottomsheet.BottomSheetDismissDimensions.OFFSET_DIFF_TO_TRIGGER_DISMISS_CALLBACK
 import com.android.launcher3.widgetpicker.ui.components.bottomsheet.BottomSheetDismissDimensions.NOT_VISIBLE_PREDICTIVE_BACK_SCALE
 import com.android.launcher3.widgetpicker.ui.components.bottomsheet.BottomSheetDismissDimensions.PredictiveBackContentTransformOrigin
 import com.android.launcher3.widgetpicker.ui.components.bottomsheet.BottomSheetDismissDimensions.SETTLE_ANIMATION_SPEC
@@ -54,6 +55,7 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 /**
  * A modifier that handles the dismiss gestures (e.g. pull down to dismiss, predictive back) for
@@ -103,8 +105,16 @@ fun Modifier.dismissibleBottomSheet(
         snapshotFlow { sheetState.anchoredDraggableState.currentValue }
             .collect {
                 if (previous == SheetPositionValue.EXPANDED && it == SheetPositionValue.COLLAPSED) {
-                    onDismissSheet()
-                    cancel()
+                    // We are about to close, monitor close offset and dismiss sheet once almost
+                    // down.
+                    snapshotFlow { sheetState.anchoredDraggableState.offset }
+                        .collect { offset ->
+                            val offsetRemaining = abs(offset - maxHeight)
+                            if (offsetRemaining < OFFSET_DIFF_TO_TRIGGER_DISMISS_CALLBACK) {
+                                onDismissSheet()
+                                cancel()
+                            }
+                        }
                 }
                 previous = it
             }
@@ -220,4 +230,7 @@ private object BottomSheetDismissDimensions {
     /** Animation spec to use for settling the sheet after a gesture / fling. */
     val SETTLE_ANIMATION_SPEC: AnimationSpec<Float> =
         tween(durationMillis = 267, easing = LinearOutSlowInEasing)
+
+    /** Offset closer to dismissal when we should invoke the dismiss callback. */
+    const val OFFSET_DIFF_TO_TRIGGER_DISMISS_CALLBACK = 5
 }
