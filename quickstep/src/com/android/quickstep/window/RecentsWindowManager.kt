@@ -220,8 +220,17 @@ constructor(
     private val onBackAnimationCallback =
         object : FlingOnBackAnimationCallback() {
             override fun onBackInvokedCompat() {
-                // If we are in live tile mode, launch the live task, otherwise return home
-                recentsView?.runningTaskView?.launchWithAnimation() ?: startHome()
+                // if a live task is present and visible, launch it; if present but not fully
+                // visible, snap scroll to it; otherwise, return home.
+                recentsView?.let { recents ->
+                    recents.runningTaskView?.let { taskView ->
+                        if (recents.isTaskViewFullyVisible(taskView)) {
+                            taskView.launchWithAnimation()
+                        } else {
+                            recents.snapToPage(recents.indexOfChild(taskView))
+                        }
+                    } ?: startHome()
+                }
                 TestLogging.recordEvent(SEQUENCE_MAIN, "onBackInvokedCompat")
             }
 
@@ -382,7 +391,11 @@ constructor(
 
         // Don't go to home on connected displays
         if (displayId != DEFAULT_DISPLAY) {
-            recentsView.runningTaskView?.launchWithAnimation()
+            val taskView =
+                recentsView.runningTaskView
+                    ?: recentsView.currentPageTaskView
+                    ?: recentsView.firstTaskView
+            taskView?.launchWithAnimation()
             return
         }
 

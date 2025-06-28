@@ -21,6 +21,7 @@ import android.platform.test.annotations.DisableFlags
 import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
 import android.view.Display.DEFAULT_DISPLAY
+import com.android.window.flags.Flags as WindowFlags
 import androidx.test.filters.SmallTest
 import com.android.app.displaylib.DisplayRepository
 import com.android.app.displaylib.fakes.FakePerDisplayRepository
@@ -38,6 +39,7 @@ import com.android.quickstep.OverviewCommandHelper.CommandInfo
 import com.android.quickstep.OverviewCommandHelper.CommandInfo.CommandStatus
 import com.android.quickstep.OverviewCommandHelper.CommandType
 import com.android.quickstep.OverviewCommandHelper.Companion.TOGGLE_PREVIOUS_TIMEOUT_MS
+import com.android.quickstep.RecentsAnimationCallbacks
 import com.android.quickstep.views.KeyboardFocusTask
 import com.android.quickstep.views.RecentsView
 import com.android.quickstep.views.TaskView
@@ -57,9 +59,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.anyInt
-import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.spy
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
@@ -113,9 +116,6 @@ class OverviewCommandHelperTest {
         whenever(overviewComponentObserver.getHomeIntent(any())).thenReturn(mock<Intent>())
         whenever(recentView.getStateManager()).thenReturn(stateManager)
         whenever(containerInterface.switchToRecentsIfVisible(any())).thenReturn(true)
-        whenever(taskAnimationManager.maybeStartHomeAction(any())).thenAnswer { invocation ->
-            invocation.getArgument<Runnable>(0).run()
-        }
         whenever(launcher.getOverviewPanel<RecentsView<*, *>>()).thenReturn(recentView)
         whenever(containerInterface.createdContainer).thenReturn(launcher)
         whenever(containerInterface.taskbarController).thenReturn(taskbarUIController)
@@ -458,10 +458,70 @@ class OverviewCommandHelperTest {
     @DisableFlags(Flags.FLAG_HOME_BUTTON_USES_KEYCODE_HOME)
     fun whenHomeCommandIsAdded_executeHomeAction_withKeycodeHomeDisabled() =
         testScope.runTest {
-            sut.addCommand(CommandType.HOME)
+            val command = sut.addCommand(CommandType.HOME)!!
             runCurrent()
-            verify(taskAnimationManager).maybeStartHomeAction(any())
             verify(touchInteractionService).startActivity(any())
+            assertThat(command.status).isEqualTo(CommandStatus.COMPLETED)
+        }
+
+    @Test
+    @EnableFlags(WindowFlags.FLAG_ENABLE_REJECT_HOME_TRANSITION)
+    fun whenHomeCommandIsAdded_executeRejectHomeActionOnExternalDisplay() =
+        testScope.runTest {
+            val swipeUpHandlerFactory: AbsSwipeUpHandler.Factory = mock()
+            val swipeUpHandler: AbsSwipeUpHandler<*, *, *> = mock()
+            val newGestureState: GestureState = mock()
+            whenever(touchInteractionService.getSwipeUpHandlerFactory(any()))
+                .thenReturn(swipeUpHandlerFactory)
+            whenever(swipeUpHandlerFactory.newHandler(any(), any())).thenReturn(swipeUpHandler)
+            whenever(swipeUpHandler.getLaunchIntent()).thenReturn(Intent())
+            whenever(touchInteractionService.createGestureState(any(), any(), any()))
+                .thenReturn(newGestureState)
+            whenever(taskAnimationManager.isRecentsAnimationRunning).thenReturn(false)
+            whenever(taskAnimationManager.startRecentsAnimation(any(), any(), any()))
+                .thenReturn(mock())
+
+            addCallbackDelay(100)
+            val command = sut.addCommand(CommandType.HOME, EXTERNAL_DISPLAY_ID)!!
+            runCurrent()
+            verify(touchInteractionService, never()).startActivity(any())
+            verify(swipeUpHandler).onGestureStarted(any())
+            verify(newGestureState).setHandlingAtomicEvent(
+                GestureState.GestureEndTarget.REJECT_HOME)
+            assertThat(command.status).isEqualTo(CommandStatus.PROCESSING)
+
+            // Make sure we can transition to completed state once we see an end callback.
+            val gestureAnimationEndCallbackCaptor = argumentCaptor<Runnable>()
+            verify(swipeUpHandler)
+                .setGestureAnimationEndCallback(gestureAnimationEndCallbackCaptor.capture())
+            gestureAnimationEndCallbackCaptor.firstValue.run()
+            advanceTimeBy(200)
+            assertThat(command.status).isEqualTo(CommandStatus.COMPLETED)
+        }
+
+    @Test
+    fun whenHomeCommandIsAddedAndRecentsIsVisible_executeHomeActionOnMainDisplay() =
+        testScope.runTest {
+            whenever(containerInterface.getVisibleRecentsView<RecentsView<*, *>>())
+                .thenReturn(recentView)
+            val command = sut.addCommand(CommandType.HOME)!!
+            runCurrent()
+            verify(recentView).startHome()
+
+            assertThat(command.status).isEqualTo(CommandStatus.COMPLETED)
+        }
+
+    @Test
+    @EnableFlags(WindowFlags.FLAG_ENABLE_REJECT_HOME_TRANSITION)
+    fun whenHomeCommandIsAddedAndRecentsIsVisible_dontExecuteHomeActionOnExternalDisplay() =
+        testScope.runTest {
+            whenever(containerInterface.getVisibleRecentsView<RecentsView<*, *>>())
+                .thenReturn(recentView)
+            val command = sut.addCommand(CommandType.HOME, EXTERNAL_DISPLAY_ID)!!
+            runCurrent()
+            verify(recentView, never()).startHome()
+
+            assertThat(command.status).isEqualTo(CommandStatus.COMPLETED)
         }
 
     @Test
@@ -470,7 +530,6 @@ class OverviewCommandHelperTest {
         testScope.runTest {
             sut.addCommand(CommandType.HOME)
             runCurrent()
-            verify(taskAnimationManager).maybeStartHomeAction(any())
             verify(systemUiProxy).onKeyEvent(anyInt(), anyInt())
         }
 

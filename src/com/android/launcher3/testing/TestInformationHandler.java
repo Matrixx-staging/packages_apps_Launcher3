@@ -56,6 +56,7 @@ import com.android.launcher3.LauncherModel;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.R;
 import com.android.launcher3.ShortcutAndWidgetContainer;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.Workspace;
 import com.android.launcher3.dragndrop.DragLayer;
 import com.android.launcher3.icons.ClockDrawableWrapper;
@@ -114,6 +115,8 @@ public class TestInformationHandler implements ResourceBasedOverride {
 
     /** Starts tracking UI surface for leaks. */
     public static void trackUiSurface(LifecycleOwner surface) {
+        if (!Utilities.isRunningInTestHarness()) return;
+
         sUiSurfaces.add(surface);
     }
 

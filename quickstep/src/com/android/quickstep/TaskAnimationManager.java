@@ -385,27 +385,6 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
     }
 
     /**
-     * Executes the provided {@code homeAction} lambda if this TaskAnimationManager is associated
-     * with the default display. This prevents navigating to a home activity that is pinned to a
-     * different display.
-     *
-     * @param homeAction The lambda to execute for the standard home action on the default display.
-     */
-    public void maybeStartHomeAction(Runnable homeAction) {
-        if (!DesktopExperienceFlags.ENABLE_REJECT_HOME_TRANSITION.isTrue()) {
-          homeAction.run();
-          return;
-        }
-
-        if (mDisplayId == DEFAULT_DISPLAY) {
-            homeAction.run();
-        } else {
-            // TODO: b/378443899 - Implement the reject home transition.
-            // For now, simply suppress the transition.
-        }
-    }
-
-    /**
      * Continues the existing running recents animation for a new gesture.
      */
     public RecentsAnimationCallbacks continueRecentsAnimation(GestureState gestureState) {
@@ -437,8 +416,9 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
         boolean isLocked = SystemUiFlagUtils.isLocked(newSysUIFlags);
         if (wasLocked != isLocked && isLocked) {
             // Finish the running recents animation when locking the device.
-            finishRunningRecentsAnimation(
-                    mController != null && mController.getFinishTargetIsLauncher());
+            finishRunningRecentsAnimation(/* toHome */
+                    (mController != null && mController.getFinishTargetIsLauncher())
+                            || mDisplayId != DEFAULT_DISPLAY);
         }
     }
 

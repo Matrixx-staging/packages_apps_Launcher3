@@ -195,7 +195,7 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
     /** The time when the swipe up gesture is triggered. */
     private final long mSwipeUpStartTimeMs = SystemClock.uptimeMillis();
 
-    private boolean mHandlingAtomicEvent;
+    private GestureEndTarget mAtomicEndTarget;
     private boolean mIsInExtendedSlopRegion;
 
     public GestureState(OverviewComponentObserver componentObserver, int displayId, int gestureId) {
@@ -488,8 +488,8 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
      * Indicates if the gesture is handling an atomic event like a click and not a
      * user controlled gesture.
      */
-    public void setHandlingAtomicEvent(boolean handlingAtomicEvent) {
-        mHandlingAtomicEvent = handlingAtomicEvent;
+    public void setHandlingAtomicEvent(GestureEndTarget target) {
+        mAtomicEndTarget = target;
     }
 
     /**
@@ -497,7 +497,14 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
      * user controlled gesture.
      */
     public boolean isHandlingAtomicEvent() {
-        return mHandlingAtomicEvent;
+        return mAtomicEndTarget != null;
+    }
+
+    /**
+     * Returns the end target of the atomic event.  If not handling an atomic event, returns null.
+     */
+    public GestureEndTarget getAtomicEndTarget() {
+        return mAtomicEndTarget;
     }
 
     /**

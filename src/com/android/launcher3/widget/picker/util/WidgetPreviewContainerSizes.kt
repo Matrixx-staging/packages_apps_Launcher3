@@ -46,7 +46,8 @@ val HANDHELD_FEATURED_CONTAINER_SIZES: List<List<WidgetPreviewContainerSize>> =
             WidgetPreviewContainerSize(2, 2),
             WidgetPreviewContainerSize(4, 1),
             WidgetPreviewContainerSize(4, 2),
-        ), listOf(
+        ),
+        listOf(
             WidgetPreviewContainerSize(2, 1),
             WidgetPreviewContainerSize(2, 1),
             WidgetPreviewContainerSize(4, 1),
@@ -60,7 +61,26 @@ val HANDHELD_FEATURED_CONTAINER_SIZES: List<List<WidgetPreviewContainerSize>> =
             WidgetPreviewContainerSize(2, 2),
             WidgetPreviewContainerSize(4, 1),
             WidgetPreviewContainerSize(4, 3),
-        )
+        ),
+        listOf(
+            WidgetPreviewContainerSize(2, 2),
+            WidgetPreviewContainerSize(2, 2),
+            WidgetPreviewContainerSize(2, 2),
+            WidgetPreviewContainerSize(2, 2),
+            WidgetPreviewContainerSize(4, 2),
+        ),
+        listOf(
+            WidgetPreviewContainerSize(2, 2),
+            WidgetPreviewContainerSize(2, 2),
+            WidgetPreviewContainerSize(4, 2),
+            WidgetPreviewContainerSize(4, 2),
+        ),
+        listOf(
+            WidgetPreviewContainerSize(2, 2),
+            WidgetPreviewContainerSize(2, 2),
+            WidgetPreviewContainerSize(4, 2),
+            WidgetPreviewContainerSize(4, 3),
+        ),
     )
 
 /**
@@ -95,7 +115,8 @@ val TABLET_FEATURED_CONTAINER_SIZES: List<List<WidgetPreviewContainerSize>> =
             WidgetPreviewContainerSize(2, 2),
             WidgetPreviewContainerSize(3, 1),
             WidgetPreviewContainerSize(3, 2),
-        ), listOf(
+        ),
+        listOf(
             WidgetPreviewContainerSize(2, 1),
             WidgetPreviewContainerSize(2, 1),
             WidgetPreviewContainerSize(3, 1),
@@ -109,5 +130,24 @@ val TABLET_FEATURED_CONTAINER_SIZES: List<List<WidgetPreviewContainerSize>> =
             WidgetPreviewContainerSize(2, 2),
             WidgetPreviewContainerSize(3, 1),
             WidgetPreviewContainerSize(3, 3),
-        )
+        ),
+        listOf(
+            WidgetPreviewContainerSize(2, 2),
+            WidgetPreviewContainerSize(2, 2),
+            WidgetPreviewContainerSize(2, 2),
+            WidgetPreviewContainerSize(2, 2),
+            WidgetPreviewContainerSize(3, 2),
+        ),
+        listOf(
+            WidgetPreviewContainerSize(2, 2),
+            WidgetPreviewContainerSize(2, 2),
+            WidgetPreviewContainerSize(3, 2),
+            WidgetPreviewContainerSize(3, 2),
+        ),
+        listOf(
+            WidgetPreviewContainerSize(2, 2),
+            WidgetPreviewContainerSize(2, 2),
+            WidgetPreviewContainerSize(3, 2),
+            WidgetPreviewContainerSize(3, 3),
+        ),
     )

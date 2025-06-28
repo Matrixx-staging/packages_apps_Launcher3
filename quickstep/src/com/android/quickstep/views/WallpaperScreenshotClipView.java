@@ -26,6 +26,7 @@ import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 
 import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
+import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
@@ -61,10 +62,9 @@ public class WallpaperScreenshotClipView extends FrameLayout {
 
     public static final int CLIP_ANIM_DURATION = 100;
 
-    private static final float MAX_SCALE_MULTIPLIER = 1.25f;
+    private static final float MAX_SCALE_MULTIPLIER = 1.50f;
     private static final int COLOR_ALPHA_DURATION_MS = 25;
     private static final float CLIP_TRANSLATION_MULTIPLIER = 0.55f;
-    private static final float MAX_ARROW_SCALE = 40f;
     private static final float INITIAL_ARROW_SCALE = 2.4100475221f;
 
     private ImageView mWallpaperView;
@@ -222,7 +222,7 @@ public class WallpaperScreenshotClipView extends FrameLayout {
                 mCurrentClipPath.transform(mInvertScaleMatrix);
 
                 // set new scale
-                float scale = 1 + (valueAnimator.getAnimatedFraction() * MAX_ARROW_SCALE);
+                float scale = 1 + (valueAnimator.getAnimatedFraction() * mMaxArrowScale);
                 resetAndSetMatrixScale(scale);
                 mCurrentClipPath.transform(mScaleMatrix);
                 setClipPath(mCurrentClipPath);
@@ -260,6 +260,13 @@ public class WallpaperScreenshotClipView extends FrameLayout {
      */
     public void setupWallpaperScreenshot(Window window, int displayId, View rootView,
             int wallpaperBlurRadius) {
+        WallpaperManager wallpaperManager = WallpaperManager.getInstance(mContext);
+        if (wallpaperManager.getWallpaperInfo() != null) {
+            // Play fallback animation for live wallpapers.
+            mScreenshotFailed = true;
+            return;
+        }
+
         Rect captureBounds = new Rect();
         captureBounds.set(0, 0, mWindowWidth, mWindowHeight);
 

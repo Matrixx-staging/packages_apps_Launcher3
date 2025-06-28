@@ -66,6 +66,12 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         updateAppWidget(oseWidgetManager.views.value)
     }
 
+    override fun setPadding(left: Int, top: Int, right: Int, bottom: Int) {
+        // Prevent default padding being set on the view based on provider info. Launcher manages
+        // its own widget spacing.
+        // Do Nothing
+    }
+
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         detachedFromWindow()

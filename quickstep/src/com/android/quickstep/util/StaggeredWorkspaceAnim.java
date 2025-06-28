@@ -51,6 +51,7 @@ import com.android.launcher3.states.StateAnimationConfig;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.DynamicResource;
+import com.android.launcher3.util.NavigationMode;
 import com.android.quickstep.views.RecentsView;
 import com.android.systemui.plugins.ResourceProvider;
 
@@ -81,10 +82,12 @@ public class StaggeredWorkspaceAnim {
 
     public StaggeredWorkspaceAnim(QuickstepLauncher launcher, float velocity,
             boolean animateOverviewScrim, @Nullable View ignoredView, boolean staggerWorkspace) {
-        boolean isPinnedTaskbarAndNotInDesktopMode = DisplayController.isPinnedTaskbar(launcher)
+        boolean isPersistentTaskbarAndNotInDesktopMode =
+                (DisplayController.isPinnedTaskbar(launcher) || DisplayController.getNavigationMode(
+                        launcher) == NavigationMode.THREE_BUTTONS)
                 && !DisplayController.isInDesktopMode(launcher);
         mTaskbarDurationInMs = QuickstepTransitionManager.getTaskbarToHomeDuration(
-                isPinnedTaskbarAndNotInDesktopMode);
+                isPersistentTaskbarAndNotInDesktopMode);
         prepareToAnimate(launcher, animateOverviewScrim);
 
         mIgnoredView = ignoredView;
