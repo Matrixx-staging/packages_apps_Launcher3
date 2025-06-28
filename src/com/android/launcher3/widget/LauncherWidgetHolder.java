@@ -145,6 +145,13 @@ public class LauncherWidgetHolder {
         });
     }
 
+    /**
+     * Tries to start listening for widget updates from a non-primary surface. Widget host only
+     * support listener and adding another listener removes previous listener. Some implementations
+     * like QuickstepWidgetHolder support multiple listener by adding another layer of delegation
+     */
+    public void startListeningForSharedUpdate() { }
+
     /** Update any views which have been deferred because the host was not listening */
     protected void updateDeferredView() {
         // Update any views which have been deferred because the host was not listening.

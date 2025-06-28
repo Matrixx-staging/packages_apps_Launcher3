@@ -168,7 +168,7 @@ public class AppPairIcon extends FrameLayout implements DraggableView, Reorderab
      */
     public void updateTitleAndTextView() {
         CharSequence newTitle = getInfo().generateTitle(getContext());
-        mAppPairName.setText(newTitle);
+        mAppPairName.applyLabel(newTitle);
     }
 
     /**

@@ -167,6 +167,7 @@ public class LauncherPreviewRenderer extends BaseContext
             widgetHolder.setOnViewCreationCallback(
                     v -> v.setColorResources(wallpaperColorResources));
         }
+        widgetHolder.startListeningForSharedUpdate();
 
         mItemInflater = new ItemInflater<>(
                 this,

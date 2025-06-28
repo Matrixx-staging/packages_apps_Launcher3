@@ -26,6 +26,7 @@ import static com.android.launcher3.taskbar.TaskbarStashController.FLAG_IGNORE_I
 import static com.android.launcher3.taskbar.navbutton.SetupNavLayoutterKt.GLIF_EXPRESSIVE_LIGHT_THEME;
 import static com.android.launcher3.taskbar.navbutton.SetupNavLayoutterKt.GLIF_EXPRESSIVE_THEME;
 import static com.android.launcher3.taskbar.navbutton.SetupNavLayoutterKt.SUW_THEME_SYSTEM_PROPERTY;
+import static com.android.quickstep.interaction.AllSetActivity.ALL_SET_SWIPE_THRESHOLD_FOR_WORKSPACE_ANIM;
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;
@@ -239,7 +240,8 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
             private boolean mCanAutoPlay = true;
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                if (mCanAutoPlay && valueAnimator.getAnimatedFraction() > 0.95f) {
+                if (mCanAutoPlay && valueAnimator.getAnimatedFraction()
+                        > ALL_SET_SWIPE_THRESHOLD_FOR_WORKSPACE_ANIM) {
                     anim.start();
                     mCanAutoPlay = false;
                 }
