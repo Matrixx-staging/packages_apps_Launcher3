@@ -197,8 +197,8 @@
     <string name="accessibility_close" msgid="2277148124685870734">"بستن"</string>
     <string name="all_apps_personal_tab" msgid="4190252696685155002">"شخصی"</string>
     <string name="all_apps_work_tab" msgid="4884822796154055118">"کاری"</string>
-    <string name="all_apps_personal_tab_content_description" msgid="6286808898381807242">"برگه برنامه‌های شخصی"</string>
-    <string name="all_apps_work_tab_content_description" msgid="3835637212347968316">"برگه برنامه‌های کاری"</string>
+    <string name="all_apps_personal_tab_content_description" msgid="6286808898381807242">"زبانه برنامه‌های شخصی"</string>
+    <string name="all_apps_work_tab_content_description" msgid="3835637212347968316">"زبانه برنامه‌های کاری"</string>
     <string name="work_profile_toggle_label" msgid="3081029915775481146">"نمایه کاری"</string>
     <string name="work_profile_edu_work_apps" msgid="7895468576497746520">"برنامه‌های کاری نشان‌دار هستند و سرپرست فناوری اطلاعات می‌تواند آن‌ها را ببیند"</string>
     <string name="work_profile_edu_accept" msgid="6069788082535149071">"متوجهم"</string>
