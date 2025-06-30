@@ -259,17 +259,16 @@ class TaskContentView @JvmOverloads constructor(context: Context, attrs: Attribu
     }
 
     override fun onHoverEvent(event: MotionEvent): Boolean {
-        if (enableCursorHoverStates() && isHoverable) {
-            when (event.action) {
-                MotionEvent.ACTION_HOVER_ENTER -> {
-                    hoverBorderVisible = true
-                }
-                MotionEvent.ACTION_HOVER_EXIT -> {
-                    hoverBorderVisible = false
-                }
+        if (!isHoverable) return false
+        when (event.action) {
+            MotionEvent.ACTION_HOVER_ENTER -> {
+                hoverBorderVisible = true
+            }
+            MotionEvent.ACTION_HOVER_EXIT -> {
+                hoverBorderVisible = false
             }
         }
-        return super.onHoverEvent(event)
+        return true
     }
 
     override fun onInitializeAccessibilityNodeInfo(info: AccessibilityNodeInfo) {
