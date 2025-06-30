@@ -23,6 +23,16 @@ flag {
 }
 
 flag {
+    name: "enable_later_is_locked_check"
+    namespace: "launcher_overview"
+    description: "Checks if users associated with tasks are locked later in the data flow to prevent stale data"
+    bug:  "417220811"
+    metadata {
+        purpose: PURPOSE_BUGFIX
+    }
+}
+
+flag {
     name: "enable_desktop_exploded_view"
     namespace: "launcher_overview"
     description: "Enables the non-overlapping layout for desktop windows in Overview mode."
