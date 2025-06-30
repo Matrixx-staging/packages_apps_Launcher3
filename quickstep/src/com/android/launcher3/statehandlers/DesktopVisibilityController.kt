@@ -39,7 +39,6 @@ import com.android.wm.shell.desktopmode.DisplayDeskState
 import com.android.wm.shell.desktopmode.IDesktopTaskListener.Stub
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus.enableMultipleDesktops
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus.useRoundedCorners
-import com.android.wm.shell.shared.desktopmode.DesktopState
 import java.io.PrintWriter
 import java.lang.ref.WeakReference
 import javax.inject.Inject
@@ -55,7 +54,6 @@ constructor(
     @ApplicationContext private val context: Context,
     systemUiProxy: SystemUiProxy,
     lifecycleTracker: DaggerSingletonTracker,
-    private val desktopState: DesktopState,
 ) {
     /**
      * Tracks the desks configurations on each display.
@@ -427,11 +425,7 @@ constructor(
 
     private fun getDisplayDeskConfig(displayId: Int) =
         displaysDesksConfigsMap[displayId]
-            ?: null.also {
-                if (!(displayId == DEFAULT_DISPLAY && desktopState.isProjectedMode())) {
-                    Slog.e(TAG, "Expected non-null desk config for display: $displayId")
-                }
-            }
+            ?: null.also { Slog.e(TAG, "Expected non-null desk config for display: $displayId") }
 
     private fun onCanCreateDesksChanged(canCreateDesks: Boolean) {
         if (!enableMultipleDesktops(context)) {
