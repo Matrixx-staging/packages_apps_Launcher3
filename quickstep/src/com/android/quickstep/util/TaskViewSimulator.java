@@ -124,6 +124,8 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
 
     @Nullable
     private Matrix mTaskRectTransform = null;
+    @Nullable
+    private Matrix mTaskRectTransformInverse = null;
 
     public TaskViewSimulator(Context context, BaseContainerInterface sizeStrategy,
             boolean isDesktop, int desktopTaskIndex) {
@@ -381,6 +383,14 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
      */
     public void setTaskRectTransform(@Nullable Matrix taskRectTransform) {
         mTaskRectTransform = taskRectTransform;
+        if (mTaskRectTransform != null) {
+            // The inverse transform is used to adjust the corner radius of tasks. Since not all
+            // tasks will have a taskRectTransform, we construct it lazily.
+            if (mTaskRectTransformInverse == null) {
+                mTaskRectTransformInverse = new Matrix();
+            }
+            mTaskRectTransform.invert(mTaskRectTransformInverse);
+        }
     }
 
     /**
@@ -568,6 +578,12 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
         mTempPoint[0] = visibleRadius;
         mTempPoint[1] = 0;
         mInversePositionMatrix.mapVectors(mTempPoint);
+
+        // If this task has another transform of it, then its scale also needs to be taken into
+        // consideration for the radius.
+        if (mTaskRectTransform != null && mTaskRectTransformInverse != null) {
+            mTaskRectTransformInverse.mapVectors(mTempPoint);
+        }
 
         // Ideally we should use square-root. This is an optimization as one of the dimension is 0.
         return Math.max(Math.abs(mTempPoint[0]), Math.abs(mTempPoint[1]));

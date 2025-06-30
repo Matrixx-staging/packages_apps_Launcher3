@@ -28,6 +28,7 @@ import android.view.SurfaceControl
 import android.view.View
 import android.view.animation.PathInterpolator
 import androidx.core.graphics.transform
+import androidx.core.view.isVisible
 import com.android.app.animation.Animations
 import com.android.app.animation.Interpolators
 import com.android.app.animation.Interpolators.EMPHASIZED
@@ -156,9 +157,12 @@ class ScalingWorkspaceRevealAnim(
                 Interpolators.clampToProgress(LINEAR, 0f, fadeClamp),
             )
             hotseat.alpha = MIN_ALPHA
-            animation.setFloat(
+            // This needs to use setViewAlpha instead of setFloat (like workspace).
+            // This is because hotseat visibility can also be changed based off of alpha in
+            // WorkspaceRevealAnim which also calls setViewAlpha.
+            // b/428257480 Ideally we should be settings MultiValueAlpha with 2 channels instead.
+            animation.setViewAlpha(
                 hotseat,
-                VIEW_ALPHA,
                 MAX_ALPHA,
                 Interpolators.clampToProgress(LINEAR, 0f, fadeClamp),
             )
@@ -269,6 +273,17 @@ class ScalingWorkspaceRevealAnim(
                     // itself.
                     workspace.alpha = MAX_ALPHA
                     hotseat.alpha = MAX_ALPHA
+                    if (!hotseat.isVisible || !workspace.isVisible) {
+                        Log.e(
+                            TAG,
+                            "Unexpected invisibility after animation end:" +
+                                " workspace.isVisible=${workspace.isVisible}" +
+                                ", workspace.alpha=${workspace.alpha}" +
+                                ", hotseat.isVisible=${hotseat.isVisible}" +
+                                ", hotseat.alpha=${hotseat.alpha}",
+                            Exception(),
+                        )
+                    }
 
                     workspace.setLayerType(View.LAYER_TYPE_NONE, null)
                     hotseat.setLayerType(View.LAYER_TYPE_NONE, null)
