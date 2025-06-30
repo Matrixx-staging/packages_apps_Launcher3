@@ -28,12 +28,14 @@ import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPLICATION
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET
+import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APP_PAIR
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_FOLDER
 import com.android.launcher3.LauncherSettings.Settings.LAYOUT_DIGEST_LABEL
 import com.android.launcher3.LauncherSettings.Settings.LAYOUT_DIGEST_TAG
 import com.android.launcher3.LauncherSettings.Settings.LAYOUT_PROVIDER_KEY
 import com.android.launcher3.LauncherSettings.Settings.createBlobProviderKey
+import com.android.launcher3.model.data.AppPairInfo
 import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.LauncherAppWidgetInfo
@@ -163,6 +165,14 @@ object LayoutImportExportHelper {
                     info.spanY,
                     userType,
                 )
+            ITEM_TYPE_APP_PAIR ->
+                (info as AppPairInfo).let { appPairInfo ->
+                    putAppPair(appPairInfo.title?.toString() ?: "").also { appPairBuilder ->
+                        appPairInfo.getContents().forEach { appPairContent ->
+                            appPairBuilder.addItem(context, appPairContent)
+                        }
+                    }
+                }
         }
     }
 }
