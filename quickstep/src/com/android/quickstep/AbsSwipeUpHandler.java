@@ -2014,7 +2014,7 @@ public abstract class AbsSwipeUpHandler<
                 mGestureState.setState(STATE_END_TARGET_ANIMATION_FINISHED);
             }
         });
-        setupWindowAnimation(new RectFSpringAnim[]{swipePipToHomeAnimator});
+        setupWindowAnimationToHome(new RectFSpringAnim[]{swipePipToHomeAnimator});
         return swipePipToHomeAnimator;
     }
 
@@ -2087,25 +2087,56 @@ public abstract class AbsSwipeUpHandler<
             HomeAnimationFactory homeAnimationFactory) {
         RectFSpringAnim[] anim =
                 super.createWindowAnimationToHome(startProgress, homeAnimationFactory);
-        setupWindowAnimation(anim);
+        setupWindowAnimationToHome(anim);
         return anim;
     }
 
-    private void setupWindowAnimation(RectFSpringAnim[] anims) {
-        anims[0].addOnUpdateListener((r, p) -> {
-            updateSysUiFlags(Math.max(p, mCurrentShift.value));
-        });
-        anims[0].addAnimatorListener(new AnimationSuccessListener() {
+    @VisibleForTesting
+    @NonNull
+    protected AnimationSuccessListener getWindowAnimationToHomeListener() {
+        return new AnimationSuccessListener() {
+
+            @Nullable private TaskView runningTaskView;
+
+            @Override
+            public void onAnimationStart(Animator animation) {
+                super.onAnimationStart(animation);
+                runningTaskView = mRecentsView == null ? null : mRecentsView.getRunningTaskView();
+
+                if (runningTaskView != null) {
+                    runningTaskView.setClickable(false);
+                }
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
+                final View taskView = runningTaskView;
+                runningTaskView = null;
+                if (mRecentsView != null) {
+                    mRecentsView.post(() -> {
+                        mRecentsView.resetTaskVisuals();
+                        if (taskView != null) {
+                            taskView.setClickable(true);
+                        }
+                    });
+                }
+            }
+
             @Override
             public void onAnimationSuccess(Animator animator) {
-                if (mRecentsView != null) {
-                    mRecentsView.post(mRecentsView::resetTaskVisuals);
-                }
                 // Make sure recents is in its final state
                 maybeUpdateRecentsAttachedState(false);
                 mContainerInterface.onSwipeUpToHomeComplete();
             }
+        };
+    }
+
+    private void setupWindowAnimationToHome(RectFSpringAnim[] anims) {
+        anims[0].addOnUpdateListener((r, p) -> {
+            updateSysUiFlags(Math.max(p, mCurrentShift.value));
         });
+        anims[0].addAnimatorListener(getWindowAnimationToHomeListener());
         if (mRecentsAnimationTargets != null) {
             mRecentsAnimationTargets.addReleaseCheck(anims[0]);
         }
