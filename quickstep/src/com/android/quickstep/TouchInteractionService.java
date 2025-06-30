@@ -815,10 +815,9 @@ public class TouchInteractionService extends Service {
     private void disposeEventHandlers(String reason) {
         Log.d(TAG, "disposeEventHandlers: Reason: " + reason
                 + " instance=" + System.identityHashCode(this));
-        if (ENABLE_GESTURE_NAV_ON_CONNECTED_DISPLAYS.isTrue()) {
-            if (mInputMonitorDisplayModel == null) return;
+        if (mInputMonitorDisplayModel != null) {
             mInputMonitorDisplayModel.destroy();
-            return;
+            mInputMonitorDisplayModel = null;
         }
         if (mInputEventReceiver != null) {
             mInputEventReceiver.dispose();
