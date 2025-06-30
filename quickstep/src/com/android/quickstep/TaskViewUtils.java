@@ -54,6 +54,7 @@ import android.graphics.Matrix.ScaleToFit;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.util.Log;
 import android.util.Pair;
 import android.view.RemoteAnimationTarget;
 import android.view.SurfaceControl;
@@ -109,6 +110,7 @@ public final class TaskViewUtils {
     private static final Rect TEMP_FULLSCREEN_BOUNDS = new Rect();
     private static final PointF TEMP_TASK_DIMENSION = new PointF();
     private static final PointF TEMP_PIVOT = new PointF();
+    private static final String TAG = "TaskViewUtils";
 
     /**
      * Try to find a TaskView that corresponds with the component of the launched view.
@@ -632,6 +634,10 @@ public final class TaskViewUtils {
         boolean skipLauncherChanges = !launcherClosing;
 
         TaskView taskView = findTaskViewToLaunch(recentsView, v, appTargets);
+        if (taskView == null) {
+            Log.w(TAG, "composeRecentsLaunchAnimator - no TaskView to launch");
+            return;
+        }
         PendingAnimation pa = new PendingAnimation(RECENTS_LAUNCH_DURATION);
         createRecentsWindowAnimator(recentsView, taskView, skipLauncherChanges, appTargets,
                 wallpaperTargets, nonAppTargets, depthController, transitionInfo, pa);
