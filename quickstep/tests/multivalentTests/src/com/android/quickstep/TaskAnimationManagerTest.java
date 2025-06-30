@@ -27,7 +27,6 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -48,10 +47,10 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 
+import com.android.launcher3.util.DisplayController;
 import com.android.systemui.shared.system.RecentsAnimationControllerCompat;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -74,19 +73,21 @@ public class TaskAnimationManagerTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        mTaskAnimationManager = new TaskAnimationManager(mContext, Display.DEFAULT_DISPLAY) {
+        DisplayController displayController = DisplayController.INSTANCE.get(mContext);
+        mTaskAnimationManager = new TaskAnimationManager(mContext, Display.DEFAULT_DISPLAY,
+                displayController) {
             @Override
             SystemUiProxy getSystemUiProxy() {
                 return mSystemUiProxy;
             }
         };
         mTaskAnimationManagerWithExternalDisplay =
-            new TaskAnimationManager(mContext, EXTERNAL_DISPLAY_ID) {
-                @Override
-                SystemUiProxy getSystemUiProxy() {
-                    return mSystemUiProxy;
-                }
-            };
+                new TaskAnimationManager(mContext, EXTERNAL_DISPLAY_ID, displayController) {
+                    @Override
+                    SystemUiProxy getSystemUiProxy() {
+                        return mSystemUiProxy;
+                    }
+                };
     }
 
     @Test

@@ -57,6 +57,7 @@ import com.android.launcher3.taskbar.bubbles.BubblePinController;
 import com.android.launcher3.taskbar.bubbles.BubbleStashedHandleViewController;
 import com.android.launcher3.taskbar.bubbles.DragToBubbleController;
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController;
+import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.LockedUserState;
 import com.android.launcher3.util.SandboxApplication;
 import com.android.launcher3.views.BaseDragLayer;
@@ -130,7 +131,8 @@ public class InputConsumerUtilsTest {
 
     @Before
     public void setupTaskAnimationManager() {
-        mTaskAnimationManager = new TaskAnimationManager(mContext, mDisplayId);
+        DisplayController displayController = DisplayController.INSTANCE.get(mContext);
+        mTaskAnimationManager = new TaskAnimationManager(mContext, mDisplayId, displayController);
     }
 
     @Before
