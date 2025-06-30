@@ -46,11 +46,14 @@ import androidx.graphics.shapes.toPath
 import androidx.graphics.shapes.transformed
 import com.android.launcher3.Flags
 import com.android.launcher3.anim.SpringAnimationBuilder
+import com.android.launcher3.icons.DefaultRenderer
 import com.android.launcher3.icons.GraphicsUtils
+import com.android.launcher3.icons.ShapeRenderer
 import com.android.launcher3.views.ClipPathView
 
 /** Abstract representation of the shape of an icon shape */
 interface ShapeDelegate {
+    fun getShapeRenderer(pathSize: Float): ShapeRenderer
 
     fun getPath(pathSize: Float = DEFAULT_PATH_SIZE) =
         Path().apply { addToPath(this, 0f, 0f, pathSize / 2) }
@@ -94,6 +97,14 @@ interface ShapeDelegate {
 
     /** Rounded square with [radiusRatio] as a ratio of its half edge size */
     open class RoundedSquare(val radiusRatio: Float) : ShapeDelegate {
+
+        override fun getShapeRenderer(pathSize: Float): ShapeRenderer {
+            return object : ShapeRenderer {
+                override fun render(path: Path, canvas: Canvas, paint: Paint) {
+                    drawShape(canvas, 0f, 0f, pathSize / 2f, paint)
+                }
+            }
+        }
 
         override fun drawShape(
             canvas: Canvas,
@@ -173,6 +184,8 @@ interface ShapeDelegate {
             }
         private val tmpPath = Path()
         private val tmpMatrix = Matrix()
+
+        override fun getShapeRenderer(pathSize: Float) = DefaultRenderer
 
         override fun drawShape(
             canvas: Canvas,
