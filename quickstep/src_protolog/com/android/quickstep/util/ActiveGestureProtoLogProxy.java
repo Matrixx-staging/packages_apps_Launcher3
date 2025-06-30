@@ -36,6 +36,7 @@ import static com.android.quickstep.util.ActiveGestureErrorDetector.GestureEvent
 import static com.android.quickstep.util.ActiveGestureErrorDetector.GestureEvent.RECENT_TASKS_MISSING;
 import static com.android.quickstep.util.ActiveGestureErrorDetector.GestureEvent.SET_END_TARGET;
 import static com.android.quickstep.util.ActiveGestureErrorDetector.GestureEvent.START_RECENTS_ANIMATION;
+import static com.android.quickstep.util.ActiveGestureErrorDetector.GestureEvent.UNFINISHED_TASK_LAUNCH;
 import static com.android.quickstep.util.QuickstepProtoLogGroup.ACTIVE_GESTURE_LOG;
 import static com.android.quickstep.util.QuickstepProtoLogGroup.isProtoLogInitialized;
 
@@ -103,12 +104,6 @@ public class ActiveGestureProtoLogProxy {
         ActiveGestureLog.INSTANCE.addLog("AbsSwipeUpHandler.handOffAnimation");
         if (!isProtoLogInitialized()) return;
         ProtoLog.d(ACTIVE_GESTURE_LOG, "AbsSwipeUpHandler.handOffAnimation");
-    }
-
-    public static void logFinishRecentsAnimationOnTasksAppeared() {
-        ActiveGestureLog.INSTANCE.addLog("finishRecentsAnimationOnTasksAppeared");
-        if (!isProtoLogInitialized()) return;
-        ProtoLog.d(ACTIVE_GESTURE_LOG, "finishRecentsAnimationOnTasksAppeared");
     }
 
     public static void logRecentsAnimationCallbacksOnAnimationCancelled() {
@@ -479,12 +474,15 @@ public class ActiveGestureProtoLogProxy {
         ProtoLog.d(ACTIVE_GESTURE_LOG, "MotionPauseDetector: %s", event.toString());
     }
 
-    public static void logHandleTaskAppearedFailed(
-            @NonNull ActiveGestureLog.CompoundString reason) {
+    public static void logOnInvalidTasksAppeared(@NonNull ActiveGestureLog.CompoundString reason) {
         ActiveGestureLog.INSTANCE.addLog(new ActiveGestureLog.CompoundString(
-                "handleTaskAppeared check failed: ").append(reason));
+                "AbsSwipeHandler.onTasksAppeared check failed, "
+                        + "attempting to forcefully finish recents animation. Reason: ")
+                .append(reason));
         if (!isProtoLogInitialized()) return;
-        ProtoLog.d(ACTIVE_GESTURE_LOG, "handleTaskAppeared check failed: %s", reason.toString());
+        ProtoLog.d(ACTIVE_GESTURE_LOG, "AbsSwipeHandler.onTasksAppeared check failed, "
+                + "attempting to forcefully finish recents animation. Reason: ",
+                reason.toString());
     }
 
     /**
@@ -520,18 +518,6 @@ public class ActiveGestureProtoLogProxy {
                 velocityX,
                 velocityY,
                 angle);
-    }
-
-    public static void logUnexpectedTaskAppeared(int taskId, @NonNull String packageName) {
-        ActiveGestureLog.INSTANCE.addLog(new ActiveGestureLog.CompoundString(
-                "Forcefully finishing recents animation: Unexpected task appeared id=%d, pkg=%s",
-                taskId,
-                packageName));
-        if (!isProtoLogInitialized()) return;
-        ProtoLog.d(ACTIVE_GESTURE_LOG,
-                "Forcefully finishing recents animation: Unexpected task appeared id=%d, pkg=%s",
-                taskId,
-                packageName);
     }
 
     public static void logCreateTouchRegionForDisplay(int displayRotation,
@@ -590,5 +576,20 @@ public class ActiveGestureProtoLogProxy {
         if (!isProtoLogInitialized()) return;
         ProtoLog.d(ACTIVE_GESTURE_LOG, "Recents animation start has timed out; forcefully "
                 + "cleaning up the recents animation.");
+    }
+
+    public static void logHandleUnfinishedTaskLaunch(
+            @NonNull String endTarget,
+            @NonNull ActiveGestureLog.CompoundString reason) {
+        ActiveGestureLog.INSTANCE.addLog(new ActiveGestureLog.CompoundString(
+                "Recents animation interrupted unexpectedly during gesture to %s, reason=",
+                        endTarget)
+                        .append(reason),
+                /* gestureEvent= */ UNFINISHED_TASK_LAUNCH);
+        if (!isProtoLogInitialized()) return;
+        ProtoLog.d(ACTIVE_GESTURE_LOG,
+                "Recents animation interrupted unexpectedly during gesture to %s, reason=%s",
+                endTarget,
+                reason.toString());
     }
 }

@@ -51,17 +51,17 @@ import static com.android.launcher3.util.SystemUiController.UI_STATE_FULLSCREEN_
 import static com.android.launcher3.util.VibratorWrapper.OVERVIEW_HAPTIC;
 import static com.android.launcher3.util.window.RefreshRateTracker.getSingleFrameMs;
 import static com.android.quickstep.BaseContainerInterface.AnimationFactory;
-import static com.android.quickstep.GestureState.displaySupportsHomeGesture;
 import static com.android.quickstep.GestureState.GestureEndTarget.HOME;
-import static com.android.quickstep.GestureState.GestureEndTarget.REJECT_HOME;
 import static com.android.quickstep.GestureState.GestureEndTarget.LAST_TASK;
 import static com.android.quickstep.GestureState.GestureEndTarget.NEW_TASK;
 import static com.android.quickstep.GestureState.GestureEndTarget.RECENTS;
+import static com.android.quickstep.GestureState.GestureEndTarget.REJECT_HOME;
 import static com.android.quickstep.GestureState.STATE_END_TARGET_ANIMATION_FINISHED;
 import static com.android.quickstep.GestureState.STATE_END_TARGET_SET;
 import static com.android.quickstep.GestureState.STATE_RECENTS_ANIMATION_CANCELED;
 import static com.android.quickstep.GestureState.STATE_RECENTS_ANIMATION_STARTED;
 import static com.android.quickstep.GestureState.STATE_RECENTS_SCROLLING_FINISHED;
+import static com.android.quickstep.GestureState.displaySupportsHomeGesture;
 import static com.android.quickstep.MultiStateCallback.DEBUG_STATES;
 import static com.android.quickstep.TaskViewUtils.extractTargetsAndStates;
 import static com.android.quickstep.util.ActiveGestureErrorDetector.GestureEvent.EXPECTING_TASK_APPEARED;
@@ -262,7 +262,7 @@ public abstract class AbsSwipeUpHandler<
             getNextStateFlag("STATE_HANDLER_INVALIDATED");
     private static final int STATE_GESTURE_STARTED =
             getNextStateFlag("STATE_GESTURE_STARTED");
-    private static final int STATE_GESTURE_CANCELLED =
+    protected static final int STATE_GESTURE_CANCELLED =
             getNextStateFlag("STATE_GESTURE_CANCELLED");
     private static final int STATE_GESTURE_COMPLETED =
             getNextStateFlag("STATE_GESTURE_COMPLETED");
@@ -1056,6 +1056,7 @@ public abstract class AbsSwipeUpHandler<
         if (mRecentsView != null) {
             mRecentsView.setRecentsAnimationTargets(null, null);
         }
+        maybeHandleUnfinishedTaskLaunch("onRecentsAnimationCanceled");
     }
 
     @UiThread
@@ -1272,29 +1273,6 @@ public abstract class AbsSwipeUpHandler<
             mContainerInterface.getTaskbarController().setUserIsNotGoingHome(false);
         }
         ActiveGestureProtoLogProxy.logOnSettledOnEndTarget(endTarget.name());
-    }
-
-    /** @return Whether this was the task we were waiting to appear, and thus handled it. */
-    protected boolean handleTaskAppeared(@NonNull RemoteAnimationTarget[] appearedTaskTargets,
-            @NonNull ActiveGestureLog.CompoundString failureReason) {
-        if (mStateCallback.hasStates(STATE_HANDLER_INVALIDATED)) {
-            failureReason.append("State handler was invalidated");
-            return false;
-        }
-        boolean stateStartNewTaskSet = mStateCallback.hasStates(STATE_START_NEW_TASK);
-        if (!stateStartNewTaskSet || !hasStartedTaskBefore(appearedTaskTargets)) {
-            if (!stateStartNewTaskSet) {
-                failureReason.append("STATE_START_NEW_TASK was never set");
-            } else {
-                TaskInfo taskInfo = appearedTaskTargets[0].taskInfo;
-                failureReason.append("Unexpected task appeared id=%d, pkg=%s",
-                        taskInfo.taskId,
-                        taskInfo.baseIntent.getComponent().getPackageName());
-            }
-            return false;
-        }
-        reset();
-        return true;
     }
 
     private float dpiFromPx(float pixels) {
@@ -2171,9 +2149,14 @@ public abstract class AbsSwipeUpHandler<
 
     @UiThread
     private void startNewTask() {
-        TaskView taskToLaunch = mRecentsView == null ? null : mRecentsView.getNextPageTaskView();
+        // Launch the task user scrolled to (mRecentsView.getNextPage()).
+        startNewTask(mRecentsView == null ? null : mRecentsView.getNextPageTaskView());
+    }
+
+    @UiThread
+    private void startNewTask(@Nullable TaskView taskToLaunch) {
         doLogGesture(NEW_TASK, taskToLaunch);
-        startNewTask(success -> {
+        startNewTask(taskToLaunch, success -> {
             if (!success) {
                 reset();
                 // We couldn't launch the task, so take user to overview so they can
@@ -2524,49 +2507,50 @@ public abstract class AbsSwipeUpHandler<
         }
     }
 
-    protected void startNewTask(Consumer<Boolean> resultCallback) {
-        // Launch the task user scrolled to (mRecentsView.getNextPage()).
-        if (!mCanceled) {
-            TaskView nextTask = mRecentsView == null ? null : mRecentsView.getNextPageTaskView();
-            if (nextTask != null) {
-                int[] taskIds = nextTask.getTaskIds();
-                ActiveGestureLog.CompoundString nextTaskLog =
-                        ActiveGestureLog.CompoundString.newEmptyString();
-                for (TaskContainer container : nextTask.getTaskContainers()) {
-                    nextTaskLog.append("[id: %d, pkg: %s] | ",
-                            container.getTask().key.id,
-                            container.getTask().key.getPackageName());
+    protected void startNewTask(@Nullable TaskView taskToLaunch, Consumer<Boolean> resultCallback) {
+        if (mCanceled) {
+            mCanceled = false;
+            return;
+        }
+        if (taskToLaunch == null) {
+            mContainerInterface.onLaunchTaskFailed();
+            Toast.makeText(mContext, R.string.activity_not_available, LENGTH_SHORT).show();
+            if (mRecentsAnimationController != null) {
+                mRecentsAnimationController.finish(true /* toRecents */, null);
+            }
+            mCanceled = false;
+            return;
+        }
+        int[] taskIds = taskToLaunch.getTaskIds();
+        ActiveGestureLog.CompoundString nextTaskLog =
+                ActiveGestureLog.CompoundString.newEmptyString();
+        for (TaskContainer container : taskToLaunch.getTaskContainers()) {
+            nextTaskLog.append("[id: %d, pkg: %s] | ",
+                    container.getTask().key.id,
+                    container.getTask().key.getPackageName());
+        }
+        mGestureState.updateLastStartedTaskIds(taskIds);
+        boolean hasTaskPreviouslyAppeared = Arrays.stream(taskIds).anyMatch(
+                        taskId -> mGestureState.getPreviouslyAppearedTaskIds()
+                                .contains(taskId));
+        if (!hasTaskPreviouslyAppeared) {
+            ActiveGestureLog.INSTANCE.trackEvent(EXPECTING_TASK_APPEARED);
+        }
+        ActiveGestureProtoLogProxy.logStartNewTask(nextTaskLog);
+        taskToLaunch.launchWithoutAnimation(true, success -> {
+            resultCallback.accept(success);
+            if (success) {
+                if (hasTaskPreviouslyAppeared) {
+                    onRestartPreviouslyAppearedTask();
                 }
-                mGestureState.updateLastStartedTaskIds(taskIds);
-                boolean hasTaskPreviouslyAppeared = Arrays.stream(taskIds).anyMatch(
-                                taskId -> mGestureState.getPreviouslyAppearedTaskIds()
-                                        .contains(taskId));
-                if (!hasTaskPreviouslyAppeared) {
-                    ActiveGestureLog.INSTANCE.trackEvent(EXPECTING_TASK_APPEARED);
-                }
-                ActiveGestureProtoLogProxy.logStartNewTask(nextTaskLog);
-                nextTask.launchWithoutAnimation(true, success -> {
-                    resultCallback.accept(success);
-                    if (success) {
-                        if (hasTaskPreviouslyAppeared) {
-                            onRestartPreviouslyAppearedTask();
-                        }
-                    } else {
-                        mContainerInterface.onLaunchTaskFailed();
-                        if (mRecentsAnimationController != null) {
-                            mRecentsAnimationController.finish(true /* toRecents */, null);
-                        }
-                    }
-                    return Unit.INSTANCE;
-                }  /* freezeTaskList */);
             } else {
                 mContainerInterface.onLaunchTaskFailed();
-                Toast.makeText(mContext, R.string.activity_not_available, LENGTH_SHORT).show();
                 if (mRecentsAnimationController != null) {
                     mRecentsAnimationController.finish(true /* toRecents */, null);
                 }
             }
-        }
+            return Unit.INSTANCE;
+        }  /* freezeTaskList */);
         mCanceled = false;
     }
 
@@ -2613,7 +2597,7 @@ public abstract class AbsSwipeUpHandler<
 
     private boolean hasStartedTaskBefore(@NonNull RemoteAnimationTarget[] appearedTaskTargets) {
         return Arrays.stream(appearedTaskTargets)
-                .anyMatch(mGestureState.mLastStartedTaskIdPredicate);
+                .anyMatch(mGestureState.getLastStartedTaskIdPredicate());
     }
 
     @Override
@@ -2626,35 +2610,54 @@ public abstract class AbsSwipeUpHandler<
             ActiveGestureProtoLogProxy.logAbsSwipeUpHandlerOnTasksAppeared();
             mStateCallback.setStateOnUiThread(STATE_GESTURE_CANCELLED | STATE_HANDLER_INVALIDATED);
         };
-        ActiveGestureLog.CompoundString forceFinishReason =
-                ActiveGestureLog.CompoundString.newEmptyString();
         if (!mStateCallback.hasStates(STATE_GESTURE_COMPLETED)
                 && !hasStartedTaskBefore(appearedTaskTargets)) {
             // This is a special case, if a task is started mid-gesture that wasn't a part of a
             // previous quickswitch task launch, then cancel the animation back to the app
             RemoteAnimationTarget appearedTaskTarget = appearedTaskTargets[0];
             TaskInfo taskInfo = appearedTaskTarget.taskInfo;
-            ActiveGestureProtoLogProxy.logUnexpectedTaskAppeared(
+            onInvalidTasksAppeared(
+                    () -> {
+                        onFinishComplete.run();
+                        maybeHandleUnfinishedTaskLaunch(
+                                "onTasksAppeared: unexpected task appeared mid-gesture");
+                    },
+                    new ActiveGestureLog.CompoundString(
+                            "Unexpected task appeared id=%d, pkg=%s",
+                            taskInfo.taskId,
+                            taskInfo.baseIntent.getComponent().getPackageName()));
+            return;
+        }
+        ActiveGestureLog.CompoundString forceFinishReason =
+                ActiveGestureLog.CompoundString.newEmptyString();
+        if (mStateCallback.hasStates(STATE_HANDLER_INVALIDATED)) {
+            forceFinishReason.append("State handler was invalidated");
+            onInvalidTasksAppeared(onFinishComplete, forceFinishReason);
+            return;
+        }
+        if (!mStateCallback.hasStates(STATE_START_NEW_TASK)) {
+            forceFinishReason.append("STATE_START_NEW_TASK was never set");
+            onInvalidTasksAppeared(onFinishComplete, forceFinishReason);
+            return;
+        }
+        if (!hasStartedTaskBefore(appearedTaskTargets)) {
+            TaskInfo taskInfo = appearedTaskTargets[0].taskInfo;
+            forceFinishReason.append("Unexpected task appeared id=%d, pkg=%s",
                     taskInfo.taskId,
                     taskInfo.baseIntent.getComponent().getPackageName());
-            finishRecentsAnimationOnTasksAppeared(onFinishComplete);
+            onInvalidTasksAppeared(() -> {
+                onFinishComplete.run();
+                maybeHandleUnfinishedTaskLaunch("onTasksAppeared: unexpected task appeared");
+            }, forceFinishReason);
             return;
         }
-        ActiveGestureLog.CompoundString handleTaskFailureReason =
-                ActiveGestureLog.CompoundString.newEmptyString();
-        if (!handleTaskAppeared(appearedTaskTargets, handleTaskFailureReason)) {
-            forceFinishReason.append(handleTaskFailureReason);
-            ActiveGestureProtoLogProxy.logHandleTaskAppearedFailed(forceFinishReason);
-            finishRecentsAnimationOnTasksAppeared(onFinishComplete);
-            return;
-        }
+        reset();
         RemoteAnimationTarget[] taskTargets = Arrays.stream(appearedTaskTargets)
-                .filter(mGestureState.mLastStartedTaskIdPredicate)
+                .filter(mGestureState.getLastStartedTaskIdPredicate())
                 .toArray(RemoteAnimationTarget[]::new);
         if (taskTargets.length == 0) {
             forceFinishReason.append("No appeared task matching started task id");
-            ActiveGestureProtoLogProxy.logHandleTaskAppearedFailed(forceFinishReason);
-            finishRecentsAnimationOnTasksAppeared(onFinishComplete);
+            onInvalidTasksAppeared(onFinishComplete, forceFinishReason);
             return;
         }
         RemoteAnimationTarget taskTarget = taskTargets[0];
@@ -2663,17 +2666,33 @@ public abstract class AbsSwipeUpHandler<
         if (taskView == null || taskView.getTaskContainers().stream().noneMatch(
                 TaskContainer::getShouldShowSplashView)) {
             forceFinishReason.append("Splash not needed");
-            ActiveGestureProtoLogProxy.logHandleTaskAppearedFailed(forceFinishReason);
-            finishRecentsAnimationOnTasksAppeared(onFinishComplete);
+            onInvalidTasksAppeared(onFinishComplete, forceFinishReason);
             return;
         }
         if (mContainer == null) {
             forceFinishReason.append("Activity destroyed");
-            ActiveGestureProtoLogProxy.logHandleTaskAppearedFailed(forceFinishReason);
-            finishRecentsAnimationOnTasksAppeared(onFinishComplete);
+            onInvalidTasksAppeared(onFinishComplete, forceFinishReason);
             return;
         }
         animateSplashScreenExit(mContainer, appearedTaskTargets, taskTargets);
+    }
+
+    private void maybeHandleUnfinishedTaskLaunch(@NonNull String reason) {
+        GestureEndTarget endTarget = mGestureState.getEndTarget();
+        // Edge cases where a gesture that would have launched/resumed a task was interrupted.
+        // These are just fallback cases to prevent leaving the user in a broken state.
+        ActiveGestureLog.CompoundString msg = new ActiveGestureLog.CompoundString(reason);
+        if (endTarget == NEW_TASK || endTarget == LAST_TASK) {
+            if (endTarget == NEW_TASK && mRecentsView != null) {
+                int nextTaskIndex = mRecentsView.getCurrentPage() + 1;
+                msg.append(". Attempting to start new task at index %d.", nextTaskIndex);
+                startNewTask(mRecentsView.getTaskViewAt(nextTaskIndex));
+            } else if (endTarget == LAST_TASK) {
+                msg.append(". Attempting to resume last task.");
+                resumeLastTask();
+            }
+            ActiveGestureProtoLogProxy.logHandleUnfinishedTaskLaunch(endTarget.toString(), msg);
+        }
     }
 
     private void animateSplashScreenExit(
@@ -2715,17 +2734,21 @@ public abstract class AbsSwipeUpHandler<
                                 quickstepLauncher.getDepthController()
                                         .pauseBlursOnWindows(false);
                             }
-                            finishRecentsAnimationOnTasksAppeared(() -> splashView.setAlpha(1));
+                            if (mRecentsAnimationController != null) {
+                                mRecentsAnimationController.finish(
+                                        /* toRecents= */ false, () -> splashView.setAlpha(1));
+                            }
                         }
                     });
         }
     }
 
-    private void finishRecentsAnimationOnTasksAppeared(Runnable onFinishComplete) {
+    private void onInvalidTasksAppeared(
+            Runnable onFinishComplete, ActiveGestureLog.CompoundString failureReason) {
+        ActiveGestureProtoLogProxy.logOnInvalidTasksAppeared(failureReason);
         if (mRecentsAnimationController != null) {
-            mRecentsAnimationController.finish(false /* toRecents */, onFinishComplete);
+            mRecentsAnimationController.finish(/* toRecents= */ false, onFinishComplete);
         }
-        ActiveGestureProtoLogProxy.logFinishRecentsAnimationOnTasksAppeared();
     }
 
     /**
