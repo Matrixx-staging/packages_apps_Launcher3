@@ -18,6 +18,7 @@ package com.android.quickstep;
 
 import static android.view.Display.DEFAULT_DISPLAY;
 
+import static com.android.launcher3.Flags.FLAG_ENABLE_LATER_IS_LOCKED_CHECK;
 import static com.android.window.flags.Flags.FLAG_ENABLE_MULTIPLE_DESKTOPS_BACKEND;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -87,6 +88,8 @@ public class RecentTasksListTest {
     private SystemUiProxy mSystemUiProxy;
     @Mock
     private TopTaskTracker mTopTaskTracker;
+    @Mock
+    private KeyguardManager mKeyguardManager;
 
     // Class under test
     private RecentTasksList mRecentTasksList;
@@ -95,7 +98,6 @@ public class RecentTasksListTest {
     public void setup() {
         MockitoAnnotations.initMocks(this);
         LooperExecutor mainThreadExecutor = Executors.MAIN_EXECUTOR;
-        KeyguardManager mockKeyguardManager = mock(KeyguardManager.class);
 
         // Set desktop mode supported
         when(mContext.getResources()).thenReturn(mResources);
@@ -104,7 +106,7 @@ public class RecentTasksListTest {
                 .thenReturn(true);
 
         mRecentTasksList = new RecentTasksList(mContext, mainThreadExecutor,
-                mockKeyguardManager, mSystemUiProxy, mTopTaskTracker,
+                mKeyguardManager, mSystemUiProxy, mTopTaskTracker,
                 mock(DaggerSingletonTracker.class));
     }
 
@@ -231,6 +233,19 @@ public class RecentTasksListTest {
         assertEquals(2, tasks.size());
         assertEquals(taskDescription, tasks.get(0).taskDescription.getLabel());
         assertNull(tasks.get(1).taskDescription.getLabel());
+    }
+
+    @Test
+    @EnableFlags(FLAG_ENABLE_LATER_IS_LOCKED_CHECK)
+    public void loadTasksInBackground_moreThanKeys_doesNotCallIsDeviceLocked() throws Exception {
+        GroupedTaskInfo recentTaskInfos =
+                GroupedTaskInfo.forFullscreenTasks(createRecentTaskInfo(1, DEFAULT_DISPLAY));
+        when(mSystemUiProxy.getRecentTasks(anyInt(), anyInt()))
+                .thenReturn(new ArrayList<>(Collections.singletonList(recentTaskInfos)));
+
+        mRecentTasksList.loadTasksInBackground(Integer.MAX_VALUE, -1, false);
+
+        verify(mKeyguardManager, times(0)).isDeviceLocked();
     }
 
     @Test
