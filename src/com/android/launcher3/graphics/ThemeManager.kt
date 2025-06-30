@@ -212,6 +212,6 @@ constructor(
         private val MONO_THEME_CONTROLLER = MonoIconThemeController(shouldForceThemeIcon = true)
 
         private fun ShapeDelegate.createIconShape(size: Int) =
-            generateIconShape(size, getPath(size.toFloat()))
+            generateIconShape(size, getPath(size.toFloat()), getShapeRenderer(size.toFloat()))
     }
 }
