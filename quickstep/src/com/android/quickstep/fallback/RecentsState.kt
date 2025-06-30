@@ -17,10 +17,14 @@ package com.android.quickstep.fallback
 
 import android.content.Context
 import android.graphics.Color
+import androidx.annotation.FloatRange
+import com.android.app.animation.Interpolators
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.Flags
 import com.android.launcher3.LauncherState.FLAG_CLOSE_POPUPS
 import com.android.launcher3.R
+import com.android.launcher3.anim.AnimatorPlaybackController
+import com.android.launcher3.anim.PendingAnimation
 import com.android.launcher3.statemanager.BaseState
 import com.android.launcher3.statemanager.BaseState.FLAG_DISABLE_RESTORE
 import com.android.launcher3.uioverrides.states.OverviewModalTaskState
@@ -28,6 +32,7 @@ import com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview
 import com.android.launcher3.util.Themes
 import com.android.launcher3.views.ActivityContext
 import com.android.launcher3.views.ScrimColors
+import com.android.quickstep.views.RecentsView
 import com.android.quickstep.views.RecentsViewContainer
 
 /** State definition for Fallback recents */
@@ -36,6 +41,8 @@ open class RecentsState(@JvmField val ordinal: Int, private val mFlags: Int) :
     init {
         sAllStates[ordinal] = this
     }
+
+    private var backAnimationController: AnimatorPlaybackController? = null
 
     override fun toString() =
         when (ordinal) {
@@ -98,6 +105,75 @@ open class RecentsState(@JvmField val ordinal: Int, private val mFlags: Int) :
     /** True if the state has overview panel visible. */
     fun isRecentsViewVisible() = hasFlag(FLAG_RECENTS_VIEW_VISIBLE)
 
+    /**
+     * Handles the back invocation. If a live task is present and visible, launch it; if present but
+     * not fully visible, snap scroll to it; otherwise, return home.
+     *
+     * @param container The RecentsViewContainer.
+     */
+    open fun onBackInvoked(container: RecentsViewContainer) {
+        val recentsView = container.getOverviewPanel<RecentsView<*, *>>()
+        val runningTaskView = recentsView.runningTaskView
+        when {
+            runningTaskView == null -> container.startHome()
+            recentsView.isTaskViewVisible(runningTaskView) -> runningTaskView.launchWithAnimation()
+            else -> {
+                backAnimationController?.reverse()
+                recentsView.snapToPage(recentsView.indexOfChild(runningTaskView))
+            }
+        }
+    }
+
+    /**
+     * Creates the back animation.
+     *
+     * @param container The RecentsViewContainer.
+     */
+    open fun onBackStarted(container: RecentsViewContainer) {
+        val recentsView = container.getOverviewPanel<RecentsView<*, *>>()
+        val runningTaskView = recentsView.runningTaskView
+
+        val targetScale: Float =
+            when {
+                runningTaskView == null -> PREDICTIVE_BACK_MIN_RECENTS_SCALE_HOME
+                recentsView.isTaskViewFullyVisible(runningTaskView) ->
+                    PREDICTIVE_BACK_MAX_RECENTS_SCALE_LAUNCH
+                else -> PREDICTIVE_BACK_MIN_RECENTS_SCALE_SCROLL
+            }
+        backAnimationController =
+            PendingAnimation(PREDICTIVE_BACK_DURATION)
+                .apply {
+                    addFloat(
+                        recentsView,
+                        RecentsView.RECENTS_SCALE_PROPERTY,
+                        1f,
+                        targetScale,
+                        Interpolators.LINEAR,
+                    )
+                    addFloat(
+                        recentsView,
+                        RecentsView.FULLSCREEN_PROGRESS,
+                        0f,
+                        PREDICTIVE_BACK_MAX_FULLSCREEN_PROGRESS_LAUNCH,
+                        Interpolators.LINEAR,
+                    )
+                }
+                .createPlaybackController()
+    }
+
+    /**
+     * Updates the back animation progress.
+     *
+     * @param container The RecentsViewContainer.
+     * @param backProgress The current back progress (0.0 to 1.0).
+     */
+    open fun onBackProgressed(
+        container: RecentsViewContainer?,
+        @FloatRange(from = 0.0, to = 1.0) backProgress: Float,
+    ) {
+        backAnimationController?.setPlayFraction(backProgress)
+    }
+
     private class ModalState(id: Int, flags: Int) : RecentsState(id, flags) {
         override fun getOverviewScaleAndOffset(container: RecentsViewContainer): FloatArray =
             if (enableGridOnlyOverview()) {
@@ -106,6 +182,19 @@ open class RecentsState(@JvmField val ordinal: Int, private val mFlags: Int) :
                 OverviewModalTaskState.getOverviewScaleAndOffsetForModalState(
                     container.getOverviewPanel()
                 )
+
+        override fun onBackInvoked(container: RecentsViewContainer) {
+            val recentsView = container.getOverviewPanel<RecentsView<*, RecentsState>>()
+            recentsView.stateManager.goToState(DEFAULT, true)
+        }
+
+        override fun onBackStarted(container: RecentsViewContainer) {
+            // TODO(b/429298217): Add predictive back animation for Modal state
+        }
+
+        override fun onBackProgressed(container: RecentsViewContainer?, backProgress: Float) {
+            // TODO(b/429298217): Add predictive back animation for Modal state
+        }
     }
 
     private class BackgroundAppState(id: Int, flags: Int) : RecentsState(id, flags) {
@@ -131,6 +220,12 @@ open class RecentsState(@JvmField val ordinal: Int, private val mFlags: Int) :
         private val FLAG_TASK_THUMBNAIL_SPLASH = BaseState.getFlag(8)
         private val FLAG_ADD_DESK_BUTTON = BaseState.getFlag(9)
         private val FLAG_SHOW_EXPLODED_DESKTOP_VIEW = BaseState.getFlag(10)
+
+        private const val PREDICTIVE_BACK_DURATION = 1000L
+        private const val PREDICTIVE_BACK_MAX_RECENTS_SCALE_LAUNCH = 1.1f
+        private const val PREDICTIVE_BACK_MIN_RECENTS_SCALE_HOME = 0.9f
+        private const val PREDICTIVE_BACK_MAX_FULLSCREEN_PROGRESS_LAUNCH = 0.1f
+        private const val PREDICTIVE_BACK_MIN_RECENTS_SCALE_SCROLL = 0.95f
 
         const val DEFAULT_STATE_ORDINAL = 0
         const val MODAL_TASK_ORDINAL = 1
