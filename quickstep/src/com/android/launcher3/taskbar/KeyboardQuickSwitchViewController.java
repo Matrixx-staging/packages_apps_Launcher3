@@ -314,23 +314,15 @@ public class KeyboardQuickSwitchViewController {
 
     private boolean tryLaunchingCombinedTask(GroupTask task, RemoteTransition slideInTransition,
             SystemUiProxy systemUiProxy) {
-        TaskbarActivityContext context = mControllers.taskbarActivityContext;
         int taskId = task.getTasks().getFirst().key.id;
 
         // All DesktopTasks, irrespective of whether desktop mode is active, are launched here as
         // the class DesktopTask is used in a special way by KQS view for showing thumbnails of
         // freeform tasks.
         if (task instanceof DesktopTask desktopTask) {
-            boolean canUnminimizeDesktopTask = context.canUnminimizeDesktopTask(taskId);
-            UI_HELPER_EXECUTOR.execute(() -> {
-                if (!mOnDesktop) {
-                    systemUiProxy.activateDesk(desktopTask.getDeskId(), slideInTransition);
-                }
-
-                systemUiProxy.showDesktopApp(taskId,
-                        canUnminimizeDesktopTask ? getUnminimizeTransition() : null,
-                        DesktopTaskToFrontReason.ALT_TAB);
-            });
+            UI_HELPER_EXECUTOR.execute(
+                    () -> systemUiProxy.activateDesk(desktopTask.getDeskId(), slideInTransition,
+                            taskId));
             return true;
         } else if (mOnDesktop && task instanceof SingleTask) {
             // Use the special API if user wants to switch to a fullscreen app while in desktop.
