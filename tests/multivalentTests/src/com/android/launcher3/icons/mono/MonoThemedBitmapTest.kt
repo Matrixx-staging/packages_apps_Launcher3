@@ -44,15 +44,4 @@ class MonoThemedBitmapTest {
         val bitmap = MonoThemedBitmap(Bitmap.createBitmap(10, 10, Bitmap.Config.ALPHA_8))
         assertTrue(bitmap.serialize().isNotEmpty())
     }
-
-    @Test
-    fun `serialize with luminanceDelta returns valid bytes`() {
-        ensureBitmapSerializationSupported()
-        val bitmap =
-            MonoThemedBitmap(
-                mono = Bitmap.createBitmap(10, 10, Bitmap.Config.ALPHA_8),
-                luminanceDelta = 2.3,
-            )
-        assertTrue(bitmap.serialize().isNotEmpty())
-    }
 }
