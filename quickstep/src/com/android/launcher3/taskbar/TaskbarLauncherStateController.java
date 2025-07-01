@@ -1077,7 +1077,9 @@ public class TaskbarLauncherStateController {
          * should not be visible at the same time.
          */
         float targetAlpha = hotseatVisible ? 1 : 0;
-        if (mControllers.taskbarActivityContext.isTransientTaskbar()) {
+        if (mControllers.taskbarActivityContext.isTransientTaskbar()
+                || mControllers.taskbarActivityContext.showLockedTaskbarOnHome()
+                || mControllers.taskbarActivityContext.showDesktopTaskbarForFreeformDisplay()) {
             mLauncher.getHotseat().setIconsAlpha(targetAlpha, alphaChannel);
             if (mIsQsbInline) {
                 mLauncher.getHotseat().setQsbAlpha(targetAlpha, alphaChannel);
