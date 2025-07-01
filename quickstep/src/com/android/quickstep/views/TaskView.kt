@@ -42,6 +42,8 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.annotation.IntDef
 import androidx.annotation.VisibleForTesting
+import androidx.core.view.isGone
+import androidx.core.view.isInvisible
 import androidx.core.view.updateLayoutParams
 import com.android.app.animation.Interpolators
 import com.android.app.tracing.traceSection
@@ -1845,15 +1847,26 @@ constructor(
      *
      * @param taskId is only used when setting visibility to a non-[View.VISIBLE] value
      */
-    open fun setThumbnailVisibility(visibility: Int, taskId: Int) {
-        taskContainers.forEach {
-            if (visibility == VISIBLE || it.task.key.id == taskId) {
-                it.taskContentView.visibility = visibility
-                it.digitalWellBeingToast?.visibility = visibility
-                it.showWindowsView?.visibility = visibility
-                it.overlay.setVisibility(visibility)
+    open fun setThumbnailVisibility(isVisible: Boolean, taskId: Int) {
+        taskContainers
+            .filter { isVisible || it.task.key.id == taskId }
+            .forEach { taskContainer ->
+                sequenceOf(
+                        taskContainer.taskContentView,
+                        taskContainer.digitalWellBeingToast,
+                        taskContainer.showWindowsView,
+                        taskContainer.overlay.suggestView,
+                    )
+                    .filterNotNull()
+                    .forEach {
+                        // Prevent setting to INVISIBLE when already GONE to avoid onLayout pass.
+                        // Use isInvisible to set visible/invisible. Using isVisible sets GONE if
+                        // false.
+                        if (it.isInvisible != !isVisible && !it.isGone) {
+                            it.isInvisible = !isVisible
+                        }
+                    }
             }
-        }
     }
 
     open fun setOverlayEnabled(overlayEnabled: Boolean) {

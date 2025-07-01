@@ -3628,7 +3628,7 @@ public abstract class RecentsView<
                         () -> mSplitHiddenTaskView, () -> mSplitSelectSource);
         if (mSplitSelectStateController.isAnimateCurrentTaskDismissal()) {
             // Create the split select animation from Overview
-            mSplitHiddenTaskView.setThumbnailVisibility(INVISIBLE,
+            mSplitHiddenTaskView.setThumbnailVisibility(false,
                     mSplitSelectStateController.getInitialTaskId());
             anim.setViewAlpha(splitAnimInitProps.getIconView(), 0, clampToProgress(LINEAR,
                     timings.getIconFadeStartOffset(),
@@ -5451,7 +5451,7 @@ public abstract class RecentsView<
 
         mSecondSplitHiddenView = containerTaskView;
         if (mSecondSplitHiddenView != null) {
-            mSecondSplitHiddenView.setThumbnailVisibility(INVISIBLE,
+            mSecondSplitHiddenView.setThumbnailVisibility(false,
                     mSplitSelectStateController.getSecondTaskId());
         }
 
@@ -5477,7 +5477,7 @@ public abstract class RecentsView<
                 .removeSplitInstructionsView(mContainer);
 
         if (mSecondSplitHiddenView != null) {
-            mSecondSplitHiddenView.setThumbnailVisibility(VISIBLE, INVALID_TASK_ID);
+            mSecondSplitHiddenView.setThumbnailVisibility(true, INVALID_TASK_ID);
             mSecondSplitHiddenView = null;
         }
 
@@ -5503,7 +5503,7 @@ public abstract class RecentsView<
         resetTaskVisuals();
         mSplitHiddenTaskViewIndex = -1;
         if (mSplitHiddenTaskView != null) {
-            mSplitHiddenTaskView.setThumbnailVisibility(VISIBLE, INVALID_TASK_ID);
+            mSplitHiddenTaskView.setThumbnailVisibility(true, INVALID_TASK_ID);
             // mSplitHiddenTaskView is set when split select animation starts. The TaskView is only
             // removed when when the animation finishes. So in the case of overview being dismissed
             // during the animation, we should not call clearAndRecycleTaskView() because it has

@@ -161,14 +161,33 @@ constructor(
             dismissedTaskViewSpring?.let { SpringSet(it, dismissedTaskData.finalPosition) }
 
         if (isDismissing) {
+            val reflowSplitFromDesktopTile =
+                isSplitSelection &&
+                    recentsView.showAsGrid() &&
+                    dismissedTaskView != null &&
+                    recentsView.currentPageTaskView is DesktopTaskView
             // The spring set that will reflow the tasks to fill the gap left by the dismissed task.
-            val reflowSpringSet =
+            var (reflowSpringSet, tasksToReflow) =
                 createTaskGridReflowSpringSet(
                     dismissedTaskView,
                     getDismissedTaskGapForReflow(dismissedTaskView, isSplitSelection),
                     gridEndData,
                     isSplitSelection,
+                    reflowSplitFromDesktopTile,
                 )
+            // Animate remaining tasks when splitting a task while focused on a desktop task.
+            if (reflowSplitFromDesktopTile && dismissedTaskView != null) {
+                val splitWithLargeTileReflowSpringSet =
+                    createSplitWithCurrentPageFadeOutReflowSpringSet(
+                        dismissedTaskView,
+                        tasksToReflow,
+                    )
+                if (reflowSpringSet == null) {
+                    reflowSpringSet = splitWithLargeTileReflowSpringSet
+                } else {
+                    reflowSpringSet.playTogether(splitWithLargeTileReflowSpringSet)
+                }
+            }
             if (springSet == null) {
                 // Only reflow, as there is no dismissed task to animate.
                 springSet = reflowSpringSet
@@ -487,13 +506,15 @@ constructor(
         dismissedTaskGap: Float,
         gridEndData: GridEndData,
         isSplitSelection: Boolean,
-    ): SpringSet? {
+        reflowSplitFromDesktopTile: Boolean,
+    ): Pair<SpringSet?, List<TaskView>> {
         val towardsStart = if (recentsView.isRtl) dismissedTaskGap < 0 else dismissedTaskGap > 0
         // Grid end translation to run after all reflow animations have completed.
-        val gridEndSpringSet = createGridEndTranslationSpringSet(gridEndData)
+        val gridEndSpringSet =
+            if (reflowSplitFromDesktopTile) null else createGridEndTranslationSpringSet(gridEndData)
         val tasksWithOffsetsToReflow = getTasksToReflow(dismissedTaskView, towardsStart)
         if (tasksWithOffsetsToReflow.isEmpty()) {
-            return gridEndSpringSet
+            return Pair(gridEndSpringSet, emptyList())
         } else {
             // Empty spring exists for conditional start, and to drive neighboring springs.
             val reflowSpringAnimationDriver =
@@ -511,13 +532,14 @@ constructor(
                 reflowSpringSet,
                 isSplitSelection,
             )
-
-            // Animate the settling of the neighbors as reflow tasks settle into place.
-            if (dismissedTaskView != null) {
+            val tasksToExclude = tasksWithOffsetsToReflow.map { (taskView, _) -> taskView }
+            // When reflowing other tasks when splitting from a large tile, do not settle neighbors.
+            if (!reflowSplitFromDesktopTile && dismissedTaskView != null) {
+                // Animate the settling of the neighbors as reflow tasks settle into place.
                 val neighborSettlingSpringSet =
                     createNeighborSettlingSpringSet(
                         dismissedTaskView,
-                        tasksToExclude = tasksWithOffsetsToReflow.map { (taskView, _) -> taskView },
+                        tasksToExclude,
                         isSpringDirectionVertical = false,
                     )
                 reflowSpringSet.playAfterThreshold(
@@ -531,7 +553,7 @@ constructor(
                     triggeredSpringSet = gridEndSpringSet,
                 )
             }
-            return reflowSpringSet
+            return Pair(reflowSpringSet, tasksToExclude)
         }
     }
 
@@ -558,21 +580,9 @@ constructor(
                     (pagedOrientationHandler.getPrimarySize(dismissedTaskView) + pageSpacing) *
                         dismissHorizontalFactor
                 }
-            // Sliding translation for splitting tasks with large tiles present.
-            val slidingTranslation =
-                if (isSplitSelection && currentPageTaskView is DesktopTaskView) {
-                    val nextSnappedPage = indexOfChild(mUtils.getFirstNonDesktopTaskView())
-                    val newClearAllShortTotalWidthTranslation =
-                        getGridEndData(dismissedTaskView = null)
-                            .newClearAllShortTotalWidthTranslation
-                    pagedOrientationHandler.getPrimaryScroll(this) -
-                        getScrollForPage(nextSnappedPage) +
-                        if (isRtl) newClearAllShortTotalWidthTranslation
-                        else -newClearAllShortTotalWidthTranslation
-                } else {
-                    0f
-                }
-            return dismissedTaskGap + if (isRtl) slidingTranslation else -slidingTranslation
+            // Add sliding translation for splitting tasks with large tiles present.
+            val slidingTranslation = getSlidingTranslation(isSplitSelection)
+            return dismissedTaskGap + slidingTranslation
         }
     }
 
@@ -582,13 +592,7 @@ constructor(
     ): List<Pair<TaskView, Int>> {
         // Null if splitting tasks while Desktop tasks are visible. Reflow all remaining grid tasks.
         if (dismissedTaskView == null) {
-            return (recentsView.mUtils.getTopRowTaskViews().mapIndexed { index, taskView ->
-                    taskView to index
-                } +
-                    recentsView.mUtils.getBottomRowTaskViews().mapIndexed { index, taskView ->
-                        taskView to index
-                    })
-                .sortedBy { it.second }
+            return getGridTasksWithOffsets()
         }
         val isDismissedTaskViewOnTopRow = recentsView.isOnGridTopRow(dismissedTaskView)
         val isDismissedTaskViewOnBottomRow = recentsView.isOnGridBottomRow(dismissedTaskView)
@@ -602,6 +606,39 @@ constructor(
             }
             .toList()
     }
+
+    private fun getSlidingTranslation(isSplitSelection: Boolean) =
+        with(recentsView) {
+            if (isSplitSelection && currentPageTaskView is DesktopTaskView) {
+                val nextSnappedPage = indexOfChild(mUtils.getFirstNonDesktopTaskView())
+                val newClearAllShortTotalWidthTranslation =
+                    getGridEndData(dismissedTaskView = null).newClearAllShortTotalWidthTranslation
+                pagedOrientationHandler.getPrimaryScroll(this@with) -
+                    getScrollForPage(nextSnappedPage) +
+                    if (isRtl) newClearAllShortTotalWidthTranslation
+                    else -newClearAllShortTotalWidthTranslation
+            } else {
+                0f
+            } * (if (isRtl) 1f else -1f)
+        }
+
+    /**
+     * Returns all grid tasks with their column offset.
+     *
+     * <p>Providing the dismissedTaskView will exclude it from the output.
+     */
+    private fun getGridTasksWithOffsets(
+        dismissedTaskView: TaskView? = null
+    ): List<Pair<TaskView, Int>> =
+        (recentsView.mUtils
+                .getTopRowTaskViews()
+                .filterNot { it == dismissedTaskView }
+                .mapIndexed { index, taskView -> taskView to index } +
+                recentsView.mUtils
+                    .getBottomRowTaskViews()
+                    .filterNot { it == dismissedTaskView }
+                    .mapIndexed { index, taskView -> taskView to index })
+            .sortedBy { it.second }
 
     private fun willTaskBeVisibleAfterDismiss(taskView: TaskView, taskTranslation: Int): Boolean {
         val screenStart = recentsView.pagedOrientationHandler.getPrimaryScroll(recentsView)
@@ -677,6 +714,31 @@ constructor(
                     dismissedTaskGap.toInt()
             }
         return lastTaskViewSpring
+    }
+
+    /** Animates non-reflowing tasks when splitting while current page is a desktop tile. */
+    private fun createSplitWithCurrentPageFadeOutReflowSpringSet(
+        dismissedTaskView: TaskView,
+        tasksToReflow: List<TaskView>,
+    ): SpringSet {
+        val slidingTranslation = getSlidingTranslation(isSplitSelection = true)
+        val otherGridRowToReflow =
+            SpringAnimation(FloatValueHolder())
+                .setSpring(createExpressiveGridReflowSpringForce(slidingTranslation))
+        val otherGridRowReflowSpringSet = SpringSet(otherGridRowToReflow, slidingTranslation)
+        // All grid tasks which are not reflowing to be animated.
+        val taskViewOffsetPairs =
+            getGridTasksWithOffsets(dismissedTaskView).filterNot { (taskView, _) ->
+                taskView in tasksToReflow
+            }
+        buildDismissReflowSpringAnimationChain(
+            taskViewOffsetPairs,
+            slidingTranslation,
+            otherGridRowToReflow,
+            otherGridRowReflowSpringSet,
+            isSplitSelection = true,
+        )
+        return otherGridRowReflowSpringSet
     }
 
     /** Animates the grid to compensate the clear all gap after dismissal. */
@@ -1367,6 +1429,12 @@ constructor(
                     triggeredSpringSet.start()
                 }
             }
+            return this
+        }
+
+        fun playTogether(springSet: SpringSet): SpringSet {
+            trackSpringSet(springSet)
+            addStartListener { springSet.start() }
             return this
         }
 
