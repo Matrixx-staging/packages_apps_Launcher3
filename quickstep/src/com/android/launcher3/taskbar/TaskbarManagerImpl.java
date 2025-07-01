@@ -40,6 +40,7 @@ import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 import static com.android.launcher3.util.FlagDebugUtils.formatFlagChange;
 import static com.android.quickstep.util.SystemActionConstants.ACTION_SHOW_TASKBAR;
 import static com.android.quickstep.util.SystemActionConstants.SYSTEM_ACTION_ID_TASKBAR;
+import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_NAVIGATION_BAR_DISABLED;
 import static com.android.wm.shell.shared.desktopmode.DesktopModeStatus.enableMultipleDesktops;
 
 import android.animation.AnimatorSet;
@@ -191,7 +192,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
             new SparseArray<>();
     /** DisplayId - {@link ComponentCallbacks} map for Connected Display. */
     private final SparseArray<ComponentCallbacks> mComponentCallbacks = new SparseArray<>();
-    /** DisplayId - {@link deviceprofile} map for Connected Display. */
+    /** DisplayId - {@link DeviceProfile} map for Connected Display. */
     private final SparseArray<DeviceProfile> mExternalDeviceProfiles = new SparseArray<>();
     private StatefulActivity mActivity;
     private RecentsViewContainer mRecentsViewContainer;
@@ -505,7 +506,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
         removeTaskbarFromMap(displayId);
 
         DeviceProfile dp = getDeviceProfile(displayId);
-        if (dp == null || !isTaskbarEnabled(dp)) {
+        if (dp == null || !isTaskbarEnabled(displayId, dp)) {
             removeTaskbarRootViewFromWindow(displayId);
         }
     }
@@ -738,11 +739,12 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
             destroyTaskbarForDisplay(displayId);
 
             boolean displayExists = getDisplay(displayId) != null;
-            boolean isTaskbarEnabled = dp != null && isTaskbarEnabled(dp);
+            boolean isTaskbarEnabled = dp != null && isTaskbarEnabled(displayId, dp);
             debugTaskbarManager("recreateTaskbarForDisplay: isTaskbarEnabled=" + isTaskbarEnabled
                     + " [dp != null (i.e. mUserUnlocked)]=" + (dp != null)
                     + " FLAG_HIDE_NAVBAR_WINDOW=" + ENABLE_TASKBAR_NAVBAR_UNIFICATION
                     + " dp.isTaskbarPresent=" + (dp == null ? "null" : dp.isTaskbarPresent)
+                    + " isTaskbarEnabled=" + isTaskbarEnabled
                     + " displayExists=" + displayExists, displayId);
             if (!isTaskbarEnabled || !isLargeScreenTaskbar || !displayExists) {
                 SystemUiProxy systemUiProxy = SystemUiProxy.INSTANCE.get(mBaseContext);
@@ -815,7 +817,12 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
             Log.d(TAG, "SysUI flags changed: " + formatFlagChange(systemUiStateFlags,
                     sharedState.sysuiStateFlags, QuickStepContract::getSystemUiStateString));
         }
+        long changedFlags = systemUiStateFlags ^ sharedState.sysuiStateFlags;
         sharedState.sysuiStateFlags = systemUiStateFlags;
+        if ((changedFlags & SYSUI_STATE_NAVIGATION_BAR_DISABLED) != 0) {
+            recreateTaskbarForDisplay(displayId, 0);
+            return;
+        }
         TaskbarActivityContext taskbar = getTaskbarForDisplay(displayId);
         if (taskbar != null) {
             taskbar.updateSysuiStateFlags(systemUiStateFlags, false /* fromInit */);
@@ -890,8 +897,14 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
         }
     }
 
-    private boolean isTaskbarEnabled(DeviceProfile deviceProfile) {
-        return ENABLE_TASKBAR_NAVBAR_UNIFICATION || deviceProfile.isTaskbarPresent;
+    private boolean isTaskbarEnabled(int displayId, DeviceProfile deviceProfile) {
+        boolean taskbarDisallowedByDisplayPolicy = (getSharedStateForDisplay(displayId)
+                .sysuiStateFlags & SYSUI_STATE_NAVIGATION_BAR_DISABLED) != 0;
+        if (taskbarDisallowedByDisplayPolicy) {
+            debugTaskbarManager("No taskbar due to SYSUI_STATE_NAVIGATION_BAR_DISABLED", displayId);
+        }
+        return !taskbarDisallowedByDisplayPolicy
+                && (ENABLE_TASKBAR_NAVBAR_UNIFICATION || deviceProfile.isTaskbarPresent);
     }
 
     public void onRotationProposal(int rotation, boolean isValid) {
@@ -1451,7 +1464,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
                     recreateTaskbarForDisplay(displayId, /* duration= */ 0);
                 } else if (dp != null) {
                     // Config change might be handled without re-creating the taskbar
-                    if (!isTaskbarEnabled(dp)) {
+                    if (!isTaskbarEnabled(displayId, dp)) {
                         debugPrimaryTaskbar(
                                 "onConfigurationChanged: isTaskbarEnabled(dp)=False | "
                                         + "destroyTaskbarForDisplay");
