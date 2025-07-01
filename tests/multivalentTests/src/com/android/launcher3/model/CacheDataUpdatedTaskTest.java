@@ -26,12 +26,15 @@ import static com.android.launcher3.util.ModelTestExtensions.getBgDataModel;
 import static com.android.launcher3.util.ModelTestExtensions.nonPredictedItemCount;
 import static com.android.launcher3.util.TestUtil.runOnExecutorSync;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import android.content.pm.PackageInstaller;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
 
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -75,6 +78,9 @@ public class CacheDataUpdatedTaskTest {
     private static final String PENDING_APP_1 = TEST_PACKAGE + ".pending1";
     private static final String PENDING_APP_2 = TEST_PACKAGE + ".pending2";
 
+    public final BitmapInfo mFixedBitmapInfo =
+            BitmapInfo.fromBitmap(Bitmap.createBitmap(30, 30, Config.ARGB_8888));
+
     private int mSession1;
 
     @Before
@@ -113,7 +119,7 @@ public class CacheDataUpdatedTaskTest {
         // Run on model executor so that no other task runs in the middle.
         runOnExecutorSync(MODEL_EXECUTOR, () -> {
             // Clear all icons from apps list so that its easy to check what was updated
-            allItems().forEach(wi -> wi.bitmap = BitmapInfo.LOW_RES_INFO);
+            allItems().forEach(wi -> wi.bitmap = mFixedBitmapInfo);
 
             getModel().enqueueModelUpdateTask(
                     newTask(CacheDataUpdatedTask.OP_CACHE_UPDATE, TEST_PACKAGE));
@@ -128,7 +134,7 @@ public class CacheDataUpdatedTaskTest {
         // Run on model executor so that no other task runs in the middle.
         runOnExecutorSync(MODEL_EXECUTOR, () -> {
             // Clear all icons from apps list so that its easy to check what was updated
-            allItems().forEach(wi -> wi.bitmap = BitmapInfo.LOW_RES_INFO);
+            allItems().forEach(wi -> wi.bitmap = mFixedBitmapInfo);
 
             getModel().enqueueModelUpdateTask(
                     newTask(CacheDataUpdatedTask.OP_SESSION_UPDATE, TEST_PACKAGE));
@@ -150,7 +156,7 @@ public class CacheDataUpdatedTaskTest {
                     sessionInfo);
 
             // Clear all icons from apps list so that its easy to check what was updated
-            allItems().forEach(wi -> wi.bitmap = BitmapInfo.LOW_RES_INFO);
+            allItems().forEach(wi -> wi.bitmap = mFixedBitmapInfo);
 
             getModel().enqueueModelUpdateTask(
                     newTask(CacheDataUpdatedTask.OP_SESSION_UPDATE, PENDING_APP_1));
@@ -164,9 +170,10 @@ public class CacheDataUpdatedTaskTest {
         IntSet updates = IntSet.wrap(idsUpdated);
         for (WorkspaceItemInfo info : allItems()) {
             if (updates.contains(info.id)) {
+                assertThat(info.bitmap.icon).isNotSameInstanceAs(mFixedBitmapInfo.icon);
                 assertFalse(info.bitmap.isLowRes());
             } else {
-                assertTrue(info.bitmap.isLowRes());
+                assertThat(info.bitmap.icon).isSameInstanceAs(mFixedBitmapInfo.icon);
             }
         }
     }
