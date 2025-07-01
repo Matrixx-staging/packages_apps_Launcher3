@@ -183,6 +183,10 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
 
     private var taskRemoveAnimator: ObjectAnimator? = null
 
+    // The id of the task that is being reordered to the front. This is used to animate the task
+    // properly when it is minimized.
+    private var taskIdReorderToFront: Int? = null
+
     var remoteTargetHandles: Array<RemoteTargetHandle>? = null
         set(value) {
             field = value
@@ -303,7 +307,13 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                         } else {
                             set(overviewTaskBounds)
                         }
-                        lerpRect(fullscreenTaskBounds, this, explodeProgress)
+
+                        // If the task is minimized but not being launched, we can just fade it in.
+                        // Otherwise, we need to translate it from its actual position on the
+                        // desktop.
+                        if (!taskContainer.task.isMinimized || taskId == taskIdReorderToFront) {
+                            lerpRect(fullscreenTaskBounds, this, explodeProgress)
+                        }
                     }
                 } else {
                     fullscreenTaskBounds
@@ -343,16 +353,22 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                     if (shouldBeDisplayedInOverview) explodeProgress else 0f
                 )
 
-                if (taskContainer.task.isMinimized) {
-                    // Minimized tasks are immediately placed in the exploded position and then fade
-                    // in during the course of EXPLODE_PROGRESS.
-                    taskContainer.taskContentView.alpha =
-                        if (shouldBeDisplayedInOverview) explodeProgress else 0f
-                } else {
-                    // Normal tasks - animate to hide if it should not show in desktop tile.
-                    taskContainer.taskContentView.alpha =
-                        if (shouldBeDisplayedInOverview) 1f else (1f - explodeProgress)
-                }
+                taskContainer.taskContentView.alpha =
+                    when {
+                        !taskContainer.task.isMinimized ->
+                            // Normal tasks - animate to hide if it should not show in desktop tile.
+                            if (shouldBeDisplayedInOverview) 1f else (1f - explodeProgress)
+                        taskId == taskIdReorderToFront ->
+                            // If the task is being reordered to the front, we want it to stay at
+                            // full opacity.
+                            1f
+                        shouldBeDisplayedInOverview ->
+                            // Minimized tasks are immediately placed in the exploded position and
+                            // then fade in during the course of EXPLODE_PROGRESS.
+                            explodeProgress
+                        else ->
+                            0f
+                    }
             }
 
             val overviewTaskLeft = overviewTaskBounds.left * widthScale
@@ -518,6 +534,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         visibility = VISIBLE
         taskContainers.forEach { removeAndRecycleThumbnailView(it) }
         remoteTargetHandles = null
+        taskIdReorderToFront = null
     }
 
     @SuppressLint("RtlHardcoded")
@@ -585,6 +602,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
             // will bring the [remoteTargetHandles] above Recents, therefore this call won't affect
             // the base surface in [DepthController].
             remoteTargetHandle?.taskViewSimulator?.setDrawsAboveOtherApps(true)
+            taskIdReorderToFront = taskIdToReorderToFront
         }
         val launchDesktopFromRecents = {
             desktopController.launchDesktopFromRecents(this, animated, taskIdToReorderToFront) {
