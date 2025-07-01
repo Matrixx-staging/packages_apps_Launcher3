@@ -67,7 +67,7 @@ import java.util.function.Predicate;
  */
 public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationListener {
 
-    final Predicate<RemoteAnimationTarget> mLastStartedTaskIdPredicate = new Predicate<>() {
+    private final Predicate<RemoteAnimationTarget> mLastStartedTaskIdPredicate = new Predicate<>() {
         @Override
         public boolean test(RemoteAnimationTarget targetCompat) {
             for (int taskId : mLastStartedTaskId) {
@@ -578,6 +578,10 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
             return data;
         }
         return null;
+    }
+
+    Predicate<RemoteAnimationTarget> getLastStartedTaskIdPredicate() {
+        return mLastStartedTaskIdPredicate;
     }
 
     long getSwipeUpStartTimeMs() {

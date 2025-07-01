@@ -23,25 +23,31 @@ import android.content.pm.PackageInstaller.SessionParams
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
+import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherModel
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPLICATION
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET
+import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APP_PAIR
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_FOLDER
 import com.android.launcher3.icons.BitmapInfo
+import com.android.launcher3.model.data.AppPairInfo
 import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY
+import com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY2
 import com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE
 import com.android.launcher3.util.ModelTestExtensions.bgDataModel
 import java.util.function.Supplier
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assume.assumeNotNull
 import org.junit.Assume.assumeTrue
 import org.junit.Rule
 import org.junit.Test
@@ -158,7 +164,7 @@ class LayoutImportExportHelperTest {
         importVerifyExportClearReImportVerify(
             LauncherLayoutBuilder()
                 .atHotseat(0)
-                .putFolder(android.R.string.copy)
+                .putFolder(R.string.copy)
                 .addApp(TEST_PACKAGE, TEST_ACTIVITY)
                 .addApp(TEST_PACKAGE, TEST_ACTIVITY)
                 .addShortcut(TEST_PACKAGE, "shortcut2")
@@ -186,6 +192,68 @@ class LayoutImportExportHelperTest {
                 CONTAINER_HOTSEAT == workspaceItems[0].container &&
                 ITEM_TYPE_DEEP_SHORTCUT == workspaceItems[0].itemType
         }
+    }
+
+    @Test
+    fun exportAndImportAppPairOnWorkspace() {
+        importVerifyExportClearReImportVerify(
+            LauncherLayoutBuilder()
+                .atWorkspace(1, 1, 1)
+                .putAppPair("CustomAppPair")
+                .addApp(TEST_PACKAGE, TEST_ACTIVITY)
+                .addApp(TEST_PACKAGE, TEST_ACTIVITY2)
+                .build()
+        ) {
+            1 == workspaceItems.size &&
+                ITEM_TYPE_APP_PAIR == workspaceItems[0].itemType &&
+                2 == (workspaceItems[0] as AppPairInfo).getContents().size &&
+                "CustomAppPair" == workspaceItems[0].title
+        }
+    }
+
+    @Test
+    fun exportAndImportAppPairInFolder() {
+        importVerifyExportClearReImportVerify(
+            LauncherLayoutBuilder()
+                .atWorkspace(1, 1, 1)
+                .putFolder("CustomFolder")
+                .addApp(TEST_PACKAGE, TEST_ACTIVITY)
+                .putAppPair("CustomAppPair")
+                .addApp(TEST_PACKAGE, TEST_ACTIVITY)
+                .addApp(TEST_PACKAGE, TEST_ACTIVITY2)
+                .build()
+        ) {
+            if (workspaceItems.size != 1) return@importVerifyExportClearReImportVerify false
+
+            val folderInfo = workspaceItems[0] as FolderInfo
+            val appPairInfo = folderInfo.getContents()[1] as AppPairInfo
+
+            ITEM_TYPE_APP_PAIR == appPairInfo.itemType &&
+                2 == appPairInfo.getContents().size &&
+                "CustomAppPair" == appPairInfo.title
+        }
+    }
+
+    @Test
+    fun importSetsGridToXmlAttributes() {
+        val idp = InvariantDeviceProfile.INSTANCE.get(context)
+        val differentGridOption =
+            idp.parseAllGridOptions(context).firstOrNull {
+                it.numRows != idp.numRows || it.numColumns != idp.numColumns
+            }
+        assumeNotNull(differentGridOption)
+        val layoutXml =
+            LauncherLayoutBuilder(differentGridOption!!.numRows, differentGridOption.numColumns)
+                .atWorkspace(1, 1, 1)
+                .putFolder("CustomFolder")
+                .addApp(TEST_PACKAGE, TEST_ACTIVITY)
+                .putAppPair("CustomAppPair")
+                .addApp(TEST_PACKAGE, TEST_ACTIVITY)
+                .addApp(TEST_PACKAGE, TEST_ACTIVITY2)
+                .build()
+        LayoutImportExportHelper.importModelFromXml(context, layoutXml.build())
+        assertEquals(differentGridOption.numRows, idp.numRows)
+        assertEquals(differentGridOption.numColumns, idp.numColumns)
     }
 
     private fun importVerifyExportClearReImportVerify(

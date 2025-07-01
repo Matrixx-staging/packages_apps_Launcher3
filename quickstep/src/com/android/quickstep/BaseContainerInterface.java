@@ -220,7 +220,8 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
     /**
      * Returns the expected STATE_TYPE from the provided GestureEndTarget.
      */
-    public abstract STATE_TYPE stateFromGestureEndTarget(GestureState.GestureEndTarget endTarget);
+    public abstract STATE_TYPE stateFromGestureEndTarget(
+            @NonNull GestureState.GestureEndTarget endTarget);
 
     public abstract void switchRunningTaskViewToScreenshot(HashMap<Integer,
             ThumbnailData> thumbnailDatas, Runnable runnable);

@@ -153,6 +153,9 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
     private static final Uri NAV_BAR_KIDS_MODE = Settings.Secure.getUriFor(
             Settings.Secure.NAV_BAR_KIDS_MODE);
 
+    private static final LooperExecutor TASKBAR_UI_THREAD =
+            new LooperExecutor("TASKBAR_UI_THREAD", THREAD_PRIORITY_FOREGROUND);
+
     private final Context mBaseContext;
     private final WindowManager mBaseWindowManager;
     private final int mPrimaryDisplayId;
@@ -166,9 +169,6 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
 
     private final SimpleBroadcastReceiver mShutdownReceiver;
     private final DisplaysWithDecorationsRepositoryCompat mDisplaysWithDecorationsRepositoryCompat;
-
-    private final LooperExecutor mPerWindowUiExecutor =
-            new LooperExecutor("TaskbarUiThread", THREAD_PRIORITY_FOREGROUND);
 
     // The source for this provider is set when Launcher is available
     // We use 'non-destroyable' version here so the original provider won't be destroyed
@@ -465,7 +465,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
     }
 
     public LooperExecutor getPerWindowUiExecutor() {
-        return mPerWindowUiExecutor;
+        return TASKBAR_UI_THREAD;
     }
 
     private boolean getFreeformWindowsManagementInfo() {

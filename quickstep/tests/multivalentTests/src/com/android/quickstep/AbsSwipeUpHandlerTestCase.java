@@ -20,6 +20,7 @@ import static android.view.Display.DEFAULT_DISPLAY;
 
 import static com.android.launcher3.BaseActivity.EVENT_DESTROYED;
 import static com.android.launcher3.statehandlers.DesktopVisibilityController.INACTIVE_DESK_ID;
+import static com.android.quickstep.AbsSwipeUpHandler.STATE_GESTURE_CANCELLED;
 import static com.android.quickstep.AbsSwipeUpHandler.STATE_HANDLER_INVALIDATED;
 import static com.android.quickstep.AbsSwipeUpHandler.STATE_LAUNCHER_PRESENT;
 import static com.android.wm.shell.shared.ShellSharedConstants.KEY_EXTRA_SHELL_CAN_HAND_OFF_ANIMATION;
@@ -34,6 +35,7 @@ import static junit.framework.TestCase.assertTrue;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
@@ -49,6 +51,7 @@ import static org.mockito.Mockito.when;
 
 import android.animation.ValueAnimator;
 import android.app.ActivityManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -79,6 +82,7 @@ import com.android.quickstep.util.ContextInitListener;
 import com.android.quickstep.util.MotionPauseDetector;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
+import com.android.quickstep.views.TaskView;
 import com.android.systemui.shared.system.InputConsumerController;
 import com.android.wm.shell.shared.split.SplitBounds;
 
@@ -94,6 +98,7 @@ import org.mockito.junit.MockitoRule;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Set;
 
 public abstract class AbsSwipeUpHandlerTestCase<
         STATE_TYPE extends BaseState<STATE_TYPE>,
@@ -175,6 +180,8 @@ public abstract class AbsSwipeUpHandlerTestCase<
     protected RecentsAnimationTargets mRecentsAnimationTargets;
     protected TaskAnimationManager mTaskAnimationManager;
     protected StateManager<STATE_TYPE, RECENTS_CONTAINER> mStateManager;
+    protected int[] mCurrentPageTaskIds = new int[] { 0 };
+    protected int[] mNextPageTaskIds = new int[] { 1 };
 
     @Mock protected CONTAINER_INTERFACE mActivityInterface;
     @Mock protected ContextInitListener<?> mContextInitListener;
@@ -189,6 +196,8 @@ public abstract class AbsSwipeUpHandlerTestCase<
     @Mock protected RecentsAnimationDeviceState mDeviceState;
     @Mock protected RotationTouchHelper mRotationTouchHelper;
     @Mock protected StateManager.AtomicAnimationFactory<STATE_TYPE> mAtomicAnimationFactory;
+    @Mock protected TaskView mCurrentPageTaskView;
+    @Mock protected TaskView mNextPageTaskView;
 
     @Before
     public void setUpAnimationTargets() {
@@ -213,18 +222,29 @@ public abstract class AbsSwipeUpHandlerTestCase<
         mRunningTaskInfo.baseIntent = new Intent(Intent.ACTION_MAIN)
                 .addCategory(Intent.CATEGORY_HOME)
                 .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        mRunningTaskInfo.baseIntent.setComponent(new ComponentName("test.package", "test.class"));
     }
 
     @Before
     public void setUpGestureState() {
         when(mGestureState.getRunningTask()).thenReturn(getTaskInfo());
         when(mGestureState.getLastAppearedTaskIds()).thenReturn(new int[0]);
-        when(mGestureState.getLastStartedTaskIds()).thenReturn(new int[1]);
+        when(mGestureState.getLastStartedTaskIds()).thenReturn(mNextPageTaskIds);
+        when(mGestureState.getRunningTaskIds(anyBoolean())).thenReturn(mCurrentPageTaskIds);
         when(mGestureState.getHomeIntent()).thenReturn(new Intent(Intent.ACTION_MAIN)
                 .addCategory(Intent.CATEGORY_HOME)
                 .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         doReturn(mActivityInterface).when(mGestureState).getContainerInterface();
         when(mGestureState.getDisplayId()).thenAnswer(invocation -> mDisplayId);
+        when(mGestureState.getPreviouslyAppearedTaskIds()).thenReturn(Set.of(0));
+        when(mGestureState.getLastStartedTaskIdPredicate()).thenReturn(
+                appearedTarget -> appearedTarget.taskId == mRemoteAnimationTarget.taskId);
+    }
+
+    @Before
+    public void setupTaskViews() {
+        when(mCurrentPageTaskView.getTaskIds()).thenReturn(mCurrentPageTaskIds);
+        when(mNextPageTaskView.getTaskIds()).thenReturn(mNextPageTaskIds);
     }
 
     @Before
@@ -235,6 +255,16 @@ public abstract class AbsSwipeUpHandlerTestCase<
             runOnMainSync(() -> answer.<Runnable>getArgument(0).run());
             return this;
         }).when(recentsView).runOnPageScrollsInitialized(any());
+        when(recentsView.getCurrentPage()).thenReturn(0);
+        when(recentsView.getNextPage()).thenReturn(1);
+        when(recentsView.getCurrentPageTaskView()).thenReturn(mCurrentPageTaskView);
+        when(recentsView.getNextPageTaskView()).thenReturn(mNextPageTaskView);
+        when(recentsView.getTaskViewAt(anyInt())).thenAnswer(
+                invocation -> switch ((int) invocation.getArgument(0)) {
+                    case 0 -> mCurrentPageTaskView;
+                    case 1 -> mNextPageTaskView;
+                    default -> null;
+                });
     }
 
     @Before
@@ -272,11 +302,16 @@ public abstract class AbsSwipeUpHandlerTestCase<
 
     @Test
     public void testOnRecentsAnimationCanceled_unregistersActivityInitListener() {
-        createSwipeHandler()
-                .onRecentsAnimationCanceled(new HashMap<>());
+        SWIPE_HANDLER swipeHandler = createSwipeHandler();
 
-        runOnMainSync(() -> verify(mContextInitListener)
-                .unregister(eq("AbsSwipeUpHandler.onRecentsAnimationCanceled")));
+        swipeHandler.onRecentsAnimationCanceled(new HashMap<>());
+
+        runOnMainSync(() -> {
+            verify(mContextInitListener)
+                    .unregister(eq("AbsSwipeUpHandler.onRecentsAnimationCanceled"));
+            assertTrue(swipeHandler.mStateCallback.hasStates(
+                    STATE_GESTURE_CANCELLED | STATE_HANDLER_INVALIDATED));
+        });
     }
 
     @Test
@@ -297,14 +332,65 @@ public abstract class AbsSwipeUpHandlerTestCase<
     }
 
     @Test
-    public void testStartNewTask_finishesRecentsAnimationController() {
-        SWIPE_HANDLER absSwipeUpHandler = createSwipeHandler();
+    public void testStartNewTask_withNullTask_finishesRecentsAnimationController() {
+        SWIPE_HANDLER swipeHandler = createSwipeHandler();
 
-        onRecentsAnimationStart(absSwipeUpHandler);
+        onRecentsAnimationStart(swipeHandler);
 
         runOnMainSync(() -> {
-            absSwipeUpHandler.startNewTask(unused -> {});
+            swipeHandler.startNewTask(null, unused -> {});
             verifyRecentsAnimationFinishedAndCallCallback();
+        });
+    }
+
+    @Test
+    public void testOnTasksAppeared_withUnexpectedTaskAppeared_launchesCorrectTask() {
+        SWIPE_HANDLER swipeHandler = createSwipeHandler();
+        RemoteAnimationTarget unexpectedRemoteAnimationTarget = new RemoteAnimationTarget(
+                /* taskId= */ 2, // unexpected task id
+                /* mode= */ RemoteAnimationTarget.MODE_CLOSING,
+                /* leash= */ new SurfaceControl(),
+                /* isTranslucent= */ false,
+                /* clipRect= */ null,
+                /* contentInsets= */ null,
+                /* prefixOrderIndex= */ 0,
+                /* position= */ null,
+                /* localBounds= */ null,
+                /* screenSpaceBounds= */ null,
+                new Configuration().windowConfiguration,
+                /* isNotInRecents= */ false,
+                /* startLeash= */ null,
+                /* startBounds= */ null,
+                /* taskInfo= */ mRunningTaskInfo,
+                /* allowEnterPip= */ false);
+
+        when(mGestureState.getEndTarget()).thenReturn(GestureState.GestureEndTarget.NEW_TASK);
+
+        swipeHandler.onActivityInit(/* alreadyOnHome= */ false);
+        onRecentsAnimationStart(swipeHandler);
+        onTasksAppeared(
+                swipeHandler, new RemoteAnimationTarget[] { unexpectedRemoteAnimationTarget });
+
+        runOnMainSync(() -> {
+            verifyRecentsAnimationFinishedAndCallCallback();
+            verify(mCurrentPageTaskView, never()).launchWithoutAnimation(anyBoolean(), any());
+            verify(mNextPageTaskView).launchWithoutAnimation(anyBoolean(), any());
+        });
+    }
+
+    @Test
+    public void testOnRecentsAnimationCanceled_midQuickSwitch_launchesCorrectTask() {
+        SWIPE_HANDLER swipeHandler = createSwipeHandler();
+
+        when(mGestureState.getEndTarget()).thenReturn(GestureState.GestureEndTarget.NEW_TASK);
+
+        swipeHandler.onActivityInit(/* alreadyOnHome= */ false);
+        onRecentsAnimationStart(swipeHandler);
+        swipeHandler.onRecentsAnimationCanceled(new HashMap<>());
+
+        runOnMainSync(() -> {
+            verify(mCurrentPageTaskView, never()).launchWithoutAnimation(anyBoolean(), any());
+            verify(mNextPageTaskView).launchWithoutAnimation(anyBoolean(), any());
         });
     }
 
@@ -485,6 +571,8 @@ public abstract class AbsSwipeUpHandlerTestCase<
         boolean isQuickSwitch = endTarget == GestureState.GestureEndTarget.NEW_TASK;
 
         doReturn(mState).when(mActivityInterface).stateFromGestureEndTarget(any());
+        when(mGestureState.getEndTarget()).thenReturn(endTarget);
+        when(mGestureState.isRecentsAnimationRunning()).thenReturn(isQuickSwitch);
 
         SWIPE_HANDLER swipeHandler = createSwipeHandler(SystemClock.uptimeMillis(), isQuickSwitch);
 
@@ -494,11 +582,8 @@ public abstract class AbsSwipeUpHandlerTestCase<
         swipeHandler.onGestureStarted(isQuickSwitch);
         onRecentsAnimationStart(swipeHandler);
 
-        when(mGestureState.getRunningTaskIds(anyBoolean())).thenReturn(new int[0]);
         runOnMainSync(swipeHandler::switchToScreenshot);
 
-        when(mGestureState.getEndTarget()).thenReturn(endTarget);
-        when(mGestureState.isRecentsAnimationRunning()).thenReturn(isQuickSwitch);
         float xVelocityPxPerMs = isQuickSwitch ? 100 : 0;
         float yVelocityPxPerMs = isQuickSwitch ? 0 : -100;
         swipeHandler.onGestureEnded(
@@ -509,9 +594,16 @@ public abstract class AbsSwipeUpHandlerTestCase<
         return swipeHandler;
     }
 
-    private void onRecentsAnimationStart(SWIPE_HANDLER absSwipeUpHandler) {
+    private void onRecentsAnimationStart(@NonNull SWIPE_HANDLER absSwipeUpHandler) {
         runOnMainSync(() -> absSwipeUpHandler.onRecentsAnimationStart(
                 mRecentsAnimationController, mRecentsAnimationTargets, /* transitionInfo= */ null));
+    }
+
+    private void onTasksAppeared(
+            @NonNull SWIPE_HANDLER absSwipeUpHandler,
+            @NonNull RemoteAnimationTarget[] remoteAnimationTargets) {
+        runOnMainSync(() -> absSwipeUpHandler.onTasksAppeared(
+                remoteAnimationTargets, /* transitionInfo= */ null));
     }
 
     protected static void runOnMainSync(Runnable runnable) {
