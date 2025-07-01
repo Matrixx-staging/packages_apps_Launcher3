@@ -23,6 +23,7 @@ import android.content.pm.PackageInstaller.SessionParams
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
+import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherModel
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP
@@ -43,8 +44,10 @@ import com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY2
 import com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE
 import com.android.launcher3.util.ModelTestExtensions.bgDataModel
 import java.util.function.Supplier
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assume.assumeNotNull
 import org.junit.Assume.assumeTrue
 import org.junit.Rule
 import org.junit.Test
@@ -229,6 +232,28 @@ class LayoutImportExportHelperTest {
                 2 == appPairInfo.getContents().size &&
                 "CustomAppPair" == appPairInfo.title
         }
+    }
+
+    @Test
+    fun importSetsGridToXmlAttributes() {
+        val idp = InvariantDeviceProfile.INSTANCE.get(context)
+        val differentGridOption =
+            idp.parseAllGridOptions(context).firstOrNull {
+                it.numRows != idp.numRows || it.numColumns != idp.numColumns
+            }
+        assumeNotNull(differentGridOption)
+        val layoutXml =
+            LauncherLayoutBuilder(differentGridOption!!.numRows, differentGridOption.numColumns)
+                .atWorkspace(1, 1, 1)
+                .putFolder("CustomFolder")
+                .addApp(TEST_PACKAGE, TEST_ACTIVITY)
+                .putAppPair("CustomAppPair")
+                .addApp(TEST_PACKAGE, TEST_ACTIVITY)
+                .addApp(TEST_PACKAGE, TEST_ACTIVITY2)
+                .build()
+        LayoutImportExportHelper.importModelFromXml(context, layoutXml.build())
+        assertEquals(differentGridOption.numRows, idp.numRows)
+        assertEquals(differentGridOption.numColumns, idp.numColumns)
     }
 
     private fun importVerifyExportClearReImportVerify(

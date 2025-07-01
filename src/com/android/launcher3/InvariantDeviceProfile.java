@@ -520,7 +520,6 @@ public class InvariantDeviceProfile {
      * Updates the current grid, this triggers a new IDP, reloads the database and triggers a grid
      * migration.
      */
-    @VisibleForTesting
     public void setCurrentGrid(Context context, String newGridName) {
         if (TextUtils.equals(mPrefs.get(GRID_NAME), newGridName)) return;
         mPrefs.put(GRID_NAME, newGridName);
