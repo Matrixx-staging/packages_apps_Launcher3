@@ -36,6 +36,7 @@ import android.window.BackEvent
 import android.window.OnBackInvokedCallback
 import android.window.RemoteTransition
 import androidx.core.view.isVisible
+import com.android.app.animation.Interpolators
 import com.android.app.displaylib.PerDisplayInstanceProviderWithTeardown
 import com.android.app.displaylib.PerDisplayRepository
 import com.android.launcher3.AbstractFloatingView
@@ -44,6 +45,8 @@ import com.android.launcher3.Flags.enablePredictiveBackInOverview
 import com.android.launcher3.LauncherAnimationRunner
 import com.android.launcher3.LauncherAnimationRunner.RemoteAnimationFactory
 import com.android.launcher3.R
+import com.android.launcher3.anim.AnimatorPlaybackController
+import com.android.launcher3.anim.PendingAnimation
 import com.android.launcher3.compat.AccessibilityManagerCompat
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.dagger.WindowContext
@@ -92,6 +95,8 @@ import com.android.quickstep.util.SplitSelectStateController
 import com.android.quickstep.util.TISBindHelper
 import com.android.quickstep.views.OverviewActionsView
 import com.android.quickstep.views.RecentsView
+import com.android.quickstep.views.RecentsView.FULLSCREEN_PROGRESS
+import com.android.quickstep.views.RecentsView.RECENTS_SCALE_PROPERTY
 import com.android.quickstep.views.RecentsViewContainer
 import com.android.systemui.animation.back.FlingOnBackAnimationCallback
 import com.android.systemui.shared.recents.model.ThumbnailData
@@ -126,6 +131,10 @@ constructor(
     companion object {
         private const val HOME_APPEAR_DURATION: Long = 250
         private const val TAG = "RecentsWindowManager"
+        private const val PREDICTIVE_BACK_MAX_RECENTS_SCALE: Float = 1.1f
+        private const val PREDICTIVE_BACK_MIN_RECENTS_SCALE: Float = 0.9f
+        private const val PREDICTIVE_BACK_MAX_FULLSCREEN_PROGRESS: Float = 0.1f
+        private const val PREDICTIVE_BACK_DURATION: Long = 1000
 
         @JvmField
         val REPOSITORY_INSTANCE =
@@ -161,6 +170,9 @@ constructor(
     private var callbacks: RecentsAnimationCallbacks? = null
 
     private var taskbarUIController: TaskbarUIController? = null
+
+    private var backAnimationController: AnimatorPlaybackController? = null
+
     private val tisBindHelper: TISBindHelper = TISBindHelper(this) {}
     private val splitSelectStateController: SplitSelectStateController =
         SplitSelectStateController(
@@ -235,16 +247,39 @@ constructor(
             }
 
             override fun onBackStartedCompat(backEvent: BackEvent) {
-                // TODO(b/427401688): Implement predictive back callbacks in follow-up CLs
+
+                backAnimationController =
+                    PendingAnimation(PREDICTIVE_BACK_DURATION)
+                        .apply {
+                            val targetScale =
+                                if (recentsView?.runningTaskView != null) {
+                                    PREDICTIVE_BACK_MAX_RECENTS_SCALE
+                                } else {
+                                    PREDICTIVE_BACK_MIN_RECENTS_SCALE
+                                }
+                            addFloat(
+                                recentsView,
+                                RECENTS_SCALE_PROPERTY,
+                                1f,
+                                targetScale,
+                                Interpolators.LINEAR,
+                            )
+                            addFloat(
+                                recentsView,
+                                FULLSCREEN_PROGRESS,
+                                0f,
+                                PREDICTIVE_BACK_MAX_FULLSCREEN_PROGRESS,
+                                Interpolators.LINEAR,
+                            )
+                        }
+                        .createPlaybackController()
             }
 
             override fun onBackProgressedCompat(backEvent: BackEvent) {
-                // TODO(b/427401688): Implement predictive back callbacks in follow-up CLs
+                backAnimationController?.setPlayFraction(backEvent.progress)
             }
 
-            override fun onBackCancelledCompat() {
-                // TODO(b/427401688): Implement predictive back callbacks in follow-up CLs
-            }
+            override fun onBackCancelledCompat() {}
         }
 
     private val homeVisibilityState = SystemUiProxy.INSTANCE.get(this).homeVisibilityState
