@@ -32,8 +32,7 @@
     <string name="recent_task_option_aspect_ratio" msgid="7008605516391096989">"දර්ශන අනුපාතය වෙනස් කරන්න"</string>
     <string name="split_app_info_accessibility" msgid="5475288491241414932">"%1$s සඳහා යෙදුම් තතු"</string>
     <string name="split_app_usage_settings" msgid="7214375263347964093">"%1$s සඳහා භාවිත සැකසීම්"</string>
-    <!-- no translation found for close_task_accessibility (4765872229211282647) -->
-    <skip />
+    <string name="close_task_accessibility" msgid="4765872229211282647">"%1$s වසන්න"</string>
     <string name="new_window_option_taskbar" msgid="6448780542727767211">"නව කවුළුව"</string>
     <string name="manage_windows_option_taskbar" msgid="2294109489960654212">"කවුළු කළමනාකරණය කරන්න"</string>
     <string name="save_app_pair" msgid="5647523853662686243">"යෙදුම් යුගල සුරකින්න"</string>
