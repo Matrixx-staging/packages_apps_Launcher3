@@ -131,9 +131,10 @@ constructor(
     companion object {
         private const val HOME_APPEAR_DURATION: Long = 250
         private const val TAG = "RecentsWindowManager"
-        private const val PREDICTIVE_BACK_MAX_RECENTS_SCALE: Float = 1.1f
-        private const val PREDICTIVE_BACK_MIN_RECENTS_SCALE: Float = 0.9f
-        private const val PREDICTIVE_BACK_MAX_FULLSCREEN_PROGRESS: Float = 0.1f
+        private const val PREDICTIVE_BACK_MAX_RECENTS_SCALE_LAUNCH: Float = 1.1f
+        private const val PREDICTIVE_BACK_MIN_RECENTS_SCALE_HOME: Float = 0.9f
+        private const val PREDICTIVE_BACK_MIN_RECENTS_SCALE_SCROLL: Float = 0.95f
+        private const val PREDICTIVE_BACK_MAX_FULLSCREEN_PROGRESS_LAUNCH: Float = 0.1f
         private const val PREDICTIVE_BACK_DURATION: Long = 1000
 
         @JvmField
@@ -234,28 +235,33 @@ constructor(
             override fun onBackInvokedCompat() {
                 // if a live task is present and visible, launch it; if present but not fully
                 // visible, snap scroll to it; otherwise, return home.
-                recentsView?.let { recents ->
-                    recents.runningTaskView?.let { taskView ->
-                        if (recents.isTaskViewFullyVisible(taskView)) {
-                            taskView.launchWithAnimation()
-                        } else {
-                            recents.snapToPage(recents.indexOfChild(taskView))
-                        }
-                    } ?: startHome()
+                val recentsView = recentsView
+                val runningTaskView = recentsView?.runningTaskView
+                when {
+                    runningTaskView == null -> startHome()
+                    recentsView.isTaskViewFullyVisible(runningTaskView) ->
+                        runningTaskView.launchWithAnimation()
+                    else -> {
+                        backAnimationController?.reverse()
+                        recentsView.snapToPage(recentsView.indexOfChild(runningTaskView))
+                    }
                 }
                 TestLogging.recordEvent(SEQUENCE_MAIN, "onBackInvokedCompat")
             }
 
             override fun onBackStartedCompat(backEvent: BackEvent) {
-
                 backAnimationController =
                     PendingAnimation(PREDICTIVE_BACK_DURATION)
                         .apply {
+                            val recentsView = recentsView
+                            val runningTaskView = recentsView?.runningTaskView
                             val targetScale =
-                                if (recentsView?.runningTaskView != null) {
-                                    PREDICTIVE_BACK_MAX_RECENTS_SCALE
-                                } else {
-                                    PREDICTIVE_BACK_MIN_RECENTS_SCALE
+                                when {
+                                    runningTaskView == null ->
+                                        PREDICTIVE_BACK_MIN_RECENTS_SCALE_HOME
+                                    recentsView.isTaskViewFullyVisible(runningTaskView) ->
+                                        PREDICTIVE_BACK_MAX_RECENTS_SCALE_LAUNCH
+                                    else -> PREDICTIVE_BACK_MIN_RECENTS_SCALE_SCROLL
                                 }
                             addFloat(
                                 recentsView,
@@ -268,7 +274,7 @@ constructor(
                                 recentsView,
                                 FULLSCREEN_PROGRESS,
                                 0f,
-                                PREDICTIVE_BACK_MAX_FULLSCREEN_PROGRESS,
+                                PREDICTIVE_BACK_MAX_FULLSCREEN_PROGRESS_LAUNCH,
                                 Interpolators.LINEAR,
                             )
                         }
