@@ -26,6 +26,7 @@ import android.view.ViewConfiguration;
 
 import androidx.annotation.Nullable;
 
+import com.android.launcher3.taskbar.NavbarButtonsViewController;
 import com.android.launcher3.taskbar.TaskbarActivityContext;
 import com.android.launcher3.taskbar.bubbles.BubbleBarSwipeController;
 import com.android.launcher3.taskbar.bubbles.BubbleBarViewController;
@@ -35,6 +36,7 @@ import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.TestProtocol;
 import com.android.quickstep.InputConsumer;
 import com.android.systemui.shared.system.InputMonitorCompat;
+import com.android.wm.shell.Flags;
 
 /**
  * Listens for touch events on the bubble bar.
@@ -185,6 +187,8 @@ public class BubbleBarInputConsumer implements InputConsumer {
             return false;
         }
         BubbleControllers controllers = tac.getBubbleControllers();
+        NavbarButtonsViewController navbarButtonsViewController =
+                tac.getNavBarButtonsViewController();
         if (controllers == null || !controllers.bubbleBarViewController.hasBubbles()) {
             return false;
         }
@@ -192,7 +196,12 @@ public class BubbleBarInputConsumer implements InputConsumer {
                 && controllers.bubbleStashedHandleViewController.isPresent()) {
             return controllers.bubbleStashedHandleViewController.get().isEventOverHandle(ev);
         } else if (controllers.bubbleBarViewController.isBubbleBarVisible()) {
-            return controllers.bubbleBarViewController.isEventOverBubbleBar(ev);
+            if (Flags.bugRotationButtonCoverBubble()) {
+                return !navbarButtonsViewController.isEventOverAnyItem(ev)
+                        && controllers.bubbleBarViewController.isEventOverBubbleBar(ev);
+            } else {
+                return controllers.bubbleBarViewController.isEventOverBubbleBar(ev);
+            }
         }
         return false;
     }
