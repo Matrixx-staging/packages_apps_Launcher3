@@ -49,6 +49,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
 import android.app.ActivityManager;
 import android.content.ComponentName;
@@ -71,6 +72,7 @@ import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.LauncherRootView;
+import com.android.launcher3.anim.AnimationSuccessListener;
 import com.android.launcher3.dragndrop.DragLayer;
 import com.android.launcher3.statemanager.BaseState;
 import com.android.launcher3.statemanager.StateManager;
@@ -258,6 +260,7 @@ public abstract class AbsSwipeUpHandlerTestCase<
         }).when(recentsView).runOnPageScrollsInitialized(any());
         when(recentsView.getCurrentPage()).thenReturn(0);
         when(recentsView.getNextPage()).thenReturn(1);
+        when(recentsView.getRunningTaskView()).thenReturn(mCurrentPageTaskView);
         when(recentsView.getCurrentPageTaskView()).thenReturn(mCurrentPageTaskView);
         when(recentsView.getNextPageTaskView()).thenReturn(mNextPageTaskView);
         when(recentsView.getTaskViewAt(anyInt())).thenAnswer(
@@ -543,6 +546,83 @@ public abstract class AbsSwipeUpHandlerTestCase<
         // AbsSwipeUpHandler.mContainer are null
         createSwipeUpHandlerForGesture(
                 GestureState.GestureEndTarget.HOME, /* triggerOnActivityInit= */ false);
+    }
+
+    @Test
+    public void testWindowAnimationToHome_setsAndResetsTaskViewClickableState_whenSuccessful() {
+        SWIPE_HANDLER swipeHandler = createSwipeHandler();
+        ArgumentCaptor<Runnable> callbackCaptor = ArgumentCaptor.forClass(Runnable.class);
+
+        // Call onActivityInit to set RecentsView
+        swipeHandler.onActivityInit(/* isHomeStarted= */ false);
+
+        AnimationSuccessListener listener = swipeHandler.getWindowAnimationToHomeListener();
+
+        runOnMainSync(() -> {
+            listener.onAnimationStart(new AnimatorSet());
+
+            verify(mCurrentPageTaskView, times(1)).setClickable(eq(false));
+            verify(mCurrentPageTaskView, never()).setClickable(eq(true));
+
+            listener.onAnimationEnd(new AnimatorSet());
+
+            verify(getRecentsView()).post(callbackCaptor.capture());
+
+            callbackCaptor.getValue().run();
+
+            verify(mCurrentPageTaskView, times(1)).setClickable(eq(false));
+            verify(mCurrentPageTaskView, times(1)).setClickable(eq(true));
+        });
+    }
+
+    @Test
+    public void testWindowAnimationToHome_setsAndResetsTaskViewClickableState_whenCanceled() {
+        SWIPE_HANDLER swipeHandler = createSwipeHandler();
+        ArgumentCaptor<Runnable> callbackCaptor = ArgumentCaptor.forClass(Runnable.class);
+
+        // Call onActivityInit to set RecentsView
+        swipeHandler.onActivityInit(/* isHomeStarted= */ false);
+
+        AnimationSuccessListener listener = swipeHandler.getWindowAnimationToHomeListener();
+
+        runOnMainSync(() -> {
+            listener.onAnimationStart(new AnimatorSet());
+
+            verify(mCurrentPageTaskView, times(1)).setClickable(eq(false));
+            verify(mCurrentPageTaskView, never()).setClickable(eq(true));
+
+            listener.onAnimationCancel(new AnimatorSet());
+            listener.onAnimationEnd(new AnimatorSet());
+
+            verify(getRecentsView()).post(callbackCaptor.capture());
+
+            callbackCaptor.getValue().run();
+
+            verify(mCurrentPageTaskView, times(1)).setClickable(eq(false));
+            verify(mCurrentPageTaskView, times(1)).setClickable(eq(true));
+        });
+    }
+
+    @Test
+    public void testWindowAnimationToHome_neverSetsTaskViewClickableState_ifNeverStarted() {
+        SWIPE_HANDLER swipeHandler = createSwipeHandler();
+        ArgumentCaptor<Runnable> callbackCaptor = ArgumentCaptor.forClass(Runnable.class);
+
+        // Call onActivityInit to set RecentsView
+        swipeHandler.onActivityInit(/* isHomeStarted= */ false);
+
+        AnimationSuccessListener listener = swipeHandler.getWindowAnimationToHomeListener();
+
+        runOnMainSync(() -> {
+            listener.onAnimationEnd(new AnimatorSet());
+
+            verify(getRecentsView()).post(callbackCaptor.capture());
+
+            callbackCaptor.getValue().run();
+
+            verify(mCurrentPageTaskView, never()).setClickable(eq(false));
+            verify(mCurrentPageTaskView, never()).setClickable(eq(true));
+        });
     }
 
     /**
