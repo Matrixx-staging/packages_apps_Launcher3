@@ -20,7 +20,6 @@ import static android.platform.test.flag.junit.SetFlagsRule.DefaultInitValueType
 
 import static com.android.dx.mockito.inline.extended.ExtendedMockito.spyOn;
 import static com.android.launcher3.AbstractFloatingView.TYPE_SNACKBAR;
-import static com.android.launcher3.Flags.FLAG_ENABLE_DISMISS_PREDICTION_UNDO;
 import static com.android.launcher3.Flags.FLAG_ENABLE_PRIVATE_SPACE;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION;
@@ -187,25 +186,6 @@ public class SystemShortcutTest {
     }
 
     @Test
-    @DisableFlags(FLAG_ENABLE_DISMISS_PREDICTION_UNDO)
-    public void testDontSuggestAppForPredictedItem() {
-        mAppInfo = new AppInfo();
-        mAppInfo.componentName = new ComponentName(mTestContext, getClass());
-        mAppInfo.container = CONTAINER_HOTSEAT_PREDICTION;
-        assertTrue(mAppInfo.isPredictedItem());
-        SystemShortcut systemShortcut = SystemShortcut.DONT_SUGGEST_APP
-                .getShortcut(mTestContext, mAppInfo, mView);
-        assertNotNull(systemShortcut);
-
-        TestUtil.runOnExecutorSync(MAIN_EXECUTOR, () -> systemShortcut.onClick(mView));
-        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
-
-        verify(mStatsLogger).log(eq(LAUNCHER_SYSTEM_SHORTCUT_DONT_SUGGEST_APP_TAP));
-        assertFalse(AbstractFloatingView.hasOpenView(mTestContext, TYPE_SNACKBAR));
-    }
-
-    @Test
-    @EnableFlags(FLAG_ENABLE_DISMISS_PREDICTION_UNDO)
     public void testDontSuggestAppForPredictedItemWithUndo() {
         mAppInfo = new AppInfo();
         mAppInfo.componentName = new ComponentName(mTestContext, getClass());
