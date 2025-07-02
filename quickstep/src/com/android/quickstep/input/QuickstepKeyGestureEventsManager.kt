@@ -16,8 +16,10 @@
 
 package com.android.quickstep.input
 
+import android.Manifest.permission.MANAGE_KEY_GESTURES
 import android.app.PendingIntent
 import android.content.Context
+import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.hardware.input.InputManager
 import android.hardware.input.InputManager.KeyGestureEventHandler
 import android.hardware.input.KeyGestureEvent
@@ -41,7 +43,7 @@ import com.android.window.flags.Flags
  * Manages subscription and unsubscription to launcher's key gesture events, e.g. all apps and
  * recents (incl. alt + tab).
  */
-class QuickstepKeyGestureEventsManager(context: Context) {
+class QuickstepKeyGestureEventsManager(private val context: Context) {
     private val settingsCache = SettingsCache.INSTANCE[context]
     @VisibleForTesting
     val onUserSetupCompleteListener = OnChangeListener { isUserSetupCompleted = it }
@@ -59,7 +61,7 @@ class QuickstepKeyGestureEventsManager(context: Context) {
     val allAppsKeyGestureEventHandler =
         object : KeyGestureEventHandler {
             override fun handleKeyGestureEvent(event: KeyGestureEvent, focusedToken: IBinder?) {
-                if (!Flags.grantManageKeyGesturesToRecents()) {
+                if (!isManageKeyGesturesGrantedToRecents()) {
                     return
                 }
                 if (!isUserSetupCompleted) {
@@ -80,7 +82,7 @@ class QuickstepKeyGestureEventsManager(context: Context) {
     val overviewKeyGestureEventHandler =
         object : KeyGestureEventHandler {
             override fun handleKeyGestureEvent(event: KeyGestureEvent, focusedToken: IBinder?) {
-                if (!Flags.grantManageKeyGesturesToRecents()) {
+                if (!isManageKeyGesturesGrantedToRecents()) {
                     return
                 }
                 if (!isUserSetupCompleted) {
@@ -114,7 +116,7 @@ class QuickstepKeyGestureEventsManager(context: Context) {
 
     /** Registers the all apps key gesture events. */
     fun registerAllAppsKeyGestureEvent(allAppsPendingIntent: PendingIntent) {
-        if (Flags.grantManageKeyGesturesToRecents()) {
+        if (isManageKeyGesturesGrantedToRecents()) {
             this.allAppsPendingIntent = allAppsPendingIntent
             inputManager.registerKeyGestureEventHandler(
                 listOf(KEY_GESTURE_TYPE_ALL_APPS),
@@ -125,14 +127,14 @@ class QuickstepKeyGestureEventsManager(context: Context) {
 
     /** Unregisters the all apps key gesture events. */
     fun unregisterAllAppsKeyGestureEvent() {
-        if (Flags.grantManageKeyGesturesToRecents()) {
+        if (isManageKeyGesturesGrantedToRecents()) {
             inputManager.unregisterKeyGestureEventHandler(allAppsKeyGestureEventHandler)
         }
     }
 
     /** Registers the overview key gesture events. */
     fun registerOverviewKeyGestureEvent(overviewGestureHandler: OverviewGestureHandler) {
-        if (Flags.grantManageKeyGesturesToRecents()) {
+        if (isManageKeyGesturesGrantedToRecents()) {
             this.overviewGestureHandler = overviewGestureHandler
             inputManager.registerKeyGestureEventHandler(
                 listOf(KEY_GESTURE_TYPE_RECENT_APPS, KEY_GESTURE_TYPE_RECENT_APPS_SWITCHER),
@@ -143,7 +145,7 @@ class QuickstepKeyGestureEventsManager(context: Context) {
 
     /** Unregisters the overview key gesture events. */
     fun unregisterOverviewKeyGestureEvent() {
-        if (Flags.grantManageKeyGesturesToRecents()) {
+        if (isManageKeyGesturesGrantedToRecents()) {
             inputManager.unregisterKeyGestureEventHandler(overviewKeyGestureEventHandler)
         }
     }
@@ -153,6 +155,10 @@ class QuickstepKeyGestureEventsManager(context: Context) {
         unregisterOverviewKeyGestureEvent()
         unregisterAllAppsKeyGestureEvent()
     }
+
+    private fun isManageKeyGesturesGrantedToRecents(): Boolean =
+        Flags.grantManageKeyGesturesToRecents() &&
+            context.checkSelfPermission(MANAGE_KEY_GESTURES) == PERMISSION_GRANTED
 
     /** Callbacks for overview events, including alt + tab. */
     interface OverviewGestureHandler {
