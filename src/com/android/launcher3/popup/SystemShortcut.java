@@ -394,14 +394,12 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
             mTarget.getStatsLogManager().logger()
                     .withItemInfo(mItemInfo)
                     .log(LAUNCHER_SYSTEM_SHORTCUT_DONT_SUGGEST_APP_TAP);
-            if (Flags.enableDismissPredictionUndo()) {
-                Snackbar.show(mTarget,
-                        view.getContext().getString(R.string.item_removed), R.string.undo,
-                        () -> { }, () ->
-                            mTarget.getStatsLogManager().logger()
-                                    .withItemInfo(mItemInfo)
-                                    .log(LAUNCHER_DISMISS_PREDICTION_UNDO));
-            }
+            Snackbar.show(mTarget,
+                    view.getContext().getString(R.string.item_removed), R.string.undo,
+                    () -> { }, () ->
+                        mTarget.getStatsLogManager().logger()
+                                .withItemInfo(mItemInfo)
+                                .log(LAUNCHER_DISMISS_PREDICTION_UNDO));
         }
     }
 

@@ -207,20 +207,18 @@ class PopupDataSource {
                 .logger()
                 .withItemInfo(itemInfo)
                 .log(LauncherEvent.LAUNCHER_SYSTEM_SHORTCUT_DONT_SUGGEST_APP_TAP)
-            if (Flags.enableDismissPredictionUndo()) {
-                Snackbar.show(
-                    activityContext,
-                    view.context.getString(R.string.item_removed),
-                    R.string.undo,
-                    {},
-                    {
-                        activityContext.statsLogManager
-                            .logger()
-                            .withItemInfo(itemInfo)
-                            .log(LauncherEvent.LAUNCHER_DISMISS_PREDICTION_UNDO)
-                    },
-                )
-            }
+            Snackbar.show(
+                activityContext,
+                view.context.getString(R.string.item_removed),
+                R.string.undo,
+                {},
+                {
+                    activityContext.statsLogManager
+                        .logger()
+                        .withItemInfo(itemInfo)
+                        .log(LauncherEvent.LAUNCHER_DISMISS_PREDICTION_UNDO)
+                },
+            )
         }
 
     // Popup data the "don't suggest app" shortcut.
