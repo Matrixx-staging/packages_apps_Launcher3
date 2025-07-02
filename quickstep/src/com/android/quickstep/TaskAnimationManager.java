@@ -35,7 +35,6 @@ import android.content.Intent;
 import android.os.SystemProperties;
 import android.util.Log;
 import android.view.RemoteAnimationTarget;
-import android.window.DesktopExperienceFlags;
 import android.window.TransitionInfo;
 
 import androidx.annotation.NonNull;
@@ -78,6 +77,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
     public static final boolean SHELL_TRANSITIONS_ROTATION =
             SystemProperties.getBoolean("persist.wm.debug.shell_transit_rotate", false);
     private final Context mCtx;
+    private final DisplayController mDisplayController;
     private RecentsAnimationController mController;
     private RecentsAnimationCallbacks mCallbacks;
     private RecentsAnimationTargets mTargets;
@@ -124,9 +124,11 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
     @AssistedInject
     public TaskAnimationManager(
             @ApplicationContext Context ctx,
-            @Assisted int displayId) {
+            @Assisted int displayId,
+            DisplayController displayController) {
         mCtx = ctx;
         mDisplayId = displayId;
+        mDisplayController = displayController;
     }
 
     SystemUiProxy getSystemUiProxy() {
@@ -286,11 +288,13 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
                 RemoteAnimationTarget appearedTaskTarget = appearedTaskTargets[0];
                 BaseContainerInterface containerInterface =
                         mLastGestureState.getContainerInterface();
+                DisplayController.Info displayInfo = mDisplayController.getInfoForDisplay(
+                        mDisplayId);
                 for (RemoteAnimationTarget compat : appearedTaskTargets) {
                     if (compat.windowConfiguration.getActivityType() == ACTIVITY_TYPE_HOME
                             && containerInterface.getCreatedContainer() instanceof RecentsActivity
-                            && DisplayController.INSTANCE.get(mCtx).getInfoForDisplay(
-                            mDisplayId).getNavigationMode() != NO_BUTTON) {
+                            && displayInfo != null
+                            && displayInfo.getNavigationMode() != NO_BUTTON) {
                         // The only time we get onTasksAppeared() in button navigation with a
                         // 3p launcher is if the user goes to overview first, and in this case we
                         // can immediately finish the transition
