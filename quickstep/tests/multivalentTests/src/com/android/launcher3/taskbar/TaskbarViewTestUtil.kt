@@ -23,6 +23,7 @@ import android.graphics.Bitmap.createBitmap
 import android.os.Process
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
 import com.android.launcher3.icons.BitmapInfo
+import com.android.launcher3.icons.ThemedBitmap
 import com.android.launcher3.model.data.AppPairInfo
 import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.model.data.ItemInfo
@@ -79,7 +80,12 @@ object TaskbarViewTestUtil {
         item.user = user
         item.container = container
         // Create a placeholder icon so that the test  doesn't try to load a high-res icon.
-        item.bitmap = BitmapInfo.fromBitmap(createBitmap(1, 1, Bitmap.Config.ALPHA_8))
+        item.bitmap =
+            BitmapInfo(
+                icon = createBitmap(1, 1, Bitmap.Config.ALPHA_8),
+                color = 0,
+                themedBitmap = ThemedBitmap.NOT_SUPPORTED,
+            )
         return item
     }
 
