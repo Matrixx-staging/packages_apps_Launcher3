@@ -75,6 +75,7 @@ import com.android.launcher3.dragndrop.DragLayer;
 import com.android.launcher3.statemanager.BaseState;
 import com.android.launcher3.statemanager.StateManager;
 import com.android.launcher3.statemanager.StatefulContainer;
+import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.MSDLPlayerWrapper;
 import com.android.launcher3.util.SandboxApplication;
 import com.android.launcher3.util.SystemUiController;
@@ -269,7 +270,9 @@ public abstract class AbsSwipeUpHandlerTestCase<
 
     @Before
     public void setUpRecentsContainer() {
-        mTaskAnimationManager = spy(new TaskAnimationManager(mContext, mDisplayId));
+        DisplayController displayController = DisplayController.INSTANCE.get(mContext);
+        mTaskAnimationManager = spy(
+                new TaskAnimationManager(mContext, mDisplayId, displayController));
         RECENTS_CONTAINER recentsContainer = getRecentsContainer();
         RECENTS_VIEW recentsView = getRecentsView();
 

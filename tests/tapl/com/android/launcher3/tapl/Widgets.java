@@ -257,8 +257,9 @@ public final class Widgets extends LauncherInstrumentation.VisibleContainer
         mLauncher.assertTrue("Header not found", header != null);
 
         mLauncher.waitForIdle();
-        header.click();
-        mLauncher.waitForIdle();
+        UiObject2 headerParent = header.getParent();
+        headerParent.wait(Until.clickable(true), WAIT_TIME_MS);
+        headerParent.click();
 
         LauncherInstrumentation.log("Clicked header");
 
@@ -299,23 +300,31 @@ public final class Widgets extends LauncherInstrumentation.VisibleContainer
                 mLauncher.waitForObjectBySelector(BROWSE_WIDGETS_LIST_SELECTOR);
             } else {
                 if (isSinglePane) {
-                    // Ensure header is fully visible.
-                    mLauncher.linearGesture(
-                            startX,
-                            startY,
-                            endX,
-                            endY,
-                            SCROLL_STEPS,
-                            /* slowDown= */ true,
-                            LauncherInstrumentation.GestureScope.DONT_EXPECT_PILFER);
+                    // Ensure header is fully visible (e.g. not occluded by browse tabs) and
+                    // scroll is finished.
+                    scrollAndWait(startX, startY, endX, endY);
+                } else {
+                    // Wait for scroll to be stabilized
+                    scrollAndWait(startX, startY, endX, startY - 1);
                 }
-                mLauncher.waitForIdle();
                 // Return latest matching header.
                 return mLauncher.waitForObjectBySelector(headerSelector);
             }
         }
         LauncherInstrumentation.log("[findWidgetHeader]: exceeded scroll attempts");
         return null;
+    }
+
+    private void scrollAndWait(int startX, int startY, int endX, int endY) {
+        mLauncher.getDevice().performActionAndWait(() -> mLauncher.linearGesture(
+                        startX,
+                        startY,
+                        endX,
+                        endY,
+                        SCROLL_STEPS,
+                        /* slowDown= */ true,
+                        LauncherInstrumentation.GestureScope.DONT_EXPECT_PILFER),
+                Until.scrollFinished(Direction.DOWN), WAIT_TIME_MS);
     }
 
     private UiObject2 findWidget(String labelText, boolean isSinglePane) {

@@ -109,7 +109,6 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
     public static final int FLAG_TASKBAR_HIDDEN = 1 << 14; // taskbar hidden during dream, etc...
     // taskbar should always be stashed for bubble bar on phone
     public static final int FLAG_STASHED_BUBBLE_BAR_ON_PHONE = 1 << 15;
-
     public static final int FLAG_IGNORE_IN_APP = 1 << 16; // used to sync with app launch animation
 
     // If any of these flags are enabled, isInApp should return true.
@@ -187,11 +186,6 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
      * The scale that the stashed handle animates to when hinting towards the unstashed state.
      */
     private static final float UNSTASHED_TASKBAR_HANDLE_HINT_SCALE = 1.1f;
-
-    /**
-     * Whether taskbar should be stashed out of the box.
-     */
-    private static final boolean DEFAULT_STASHED_PREF = false;
 
     // Auto stashes when user has not interacted with the Taskbar after X ms.
     private static final long NO_TOUCH_TIMEOUT_TO_STASH_MS = 5000;
@@ -1345,13 +1339,19 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
                         () -> mControllers.taskbarViewController.commitRunningAppsToUI());
             }
         }
-        mActivity.applyForciblyShownFlagWhileTransientTaskbarUnstashed(!isStashedInApp());
+        updateTaskbarWindowForciblyShownFlag();
     }
 
     private void notifyStashChange(boolean visible, boolean stashed) {
         mSystemUiProxy.notifyTaskbarStatus(visible, stashed);
         setUpTaskbarSystemAction(visible);
         mControllers.rotationButtonController.onTaskbarStateChange(visible, stashed);
+    }
+
+    private void updateTaskbarWindowForciblyShownFlag() {
+        boolean autoHideSuspended = mControllers.taskbarAutohideSuspendController.isSuspended();
+        boolean forceShow = !isStashedInApp() || autoHideSuspended;
+        mActivity.applyForciblyShownFlagWhileTransientTaskbarUnstashed(forceShow);
     }
 
     /**
@@ -1416,6 +1416,9 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
         }
         if (isAutohideSuspended) {
             cancelTimeoutIfExists();
+        } else if (mIsStashed) {
+            // auto hide is no longer suspended and we're already stashed; hide taskbar if needed
+            updateTaskbarWindowForciblyShownFlag();
         } else {
             tryStartTaskbarTimeout();
         }

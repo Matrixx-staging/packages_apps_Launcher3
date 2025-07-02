@@ -31,7 +31,6 @@ import com.android.launcher3.Flags.FLAG_ENABLE_MULTI_INSTANCE_MENU_TASKBAR
 import com.android.launcher3.R
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
-import com.android.launcher3.desktop.DesktopAppLaunchTransition
 import com.android.launcher3.model.BgDataModel
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.TaskItemInfo
@@ -65,6 +64,7 @@ import com.android.quickstep.util.DesktopTask
 import com.android.quickstep.util.GroupTask
 import com.android.quickstep.util.SingleTask
 import com.android.quickstep.util.SingleTask.Companion.createTaskItemInfo
+import com.android.quickstep.util.SlideInRemoteTransition
 import com.android.systemui.shared.recents.model.Task
 import com.android.window.flags.Flags.FLAG_ENABLE_DESKTOP_WINDOWING_MODE
 import com.android.window.flags.Flags.FLAG_ENABLE_DESKTOP_WINDOWING_TASKBAR_RUNNING_APPS
@@ -72,7 +72,6 @@ import com.android.window.flags.Flags.FLAG_ENABLE_PINNING_APP_WITH_CONTEXT_MENU
 import com.android.window.flags.Flags.FLAG_ENABLE_TASKBAR_OVERFLOW
 import com.android.wm.shell.Flags.FLAG_ENABLE_BUBBLE_BAR
 import com.android.wm.shell.desktopmode.IDesktopTaskListener
-import com.android.wm.shell.shared.desktopmode.DesktopTaskToFrontReason
 import com.google.common.truth.Truth.assertThat
 import dagger.BindsInstance
 import dagger.Component
@@ -81,11 +80,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doAnswer
-import org.mockito.kotlin.eq
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -421,17 +418,19 @@ class TaskbarOverflowTest {
 
         runOnMainSync { keyboardQuickSwitchController.launchFocusedTask() }
 
+        val deskIdCaptor = argumentCaptor<Int>()
         val taskIdCaptor = argumentCaptor<Int>()
         val transitionCaptor = argumentCaptor<RemoteTransition>()
         verify(systemUiProxySpy)
-            ?.showDesktopApp(
-                taskIdCaptor.capture(),
+            ?.activateDesk(
+                deskIdCaptor.capture(),
                 transitionCaptor.capture(),
-                eq(DesktopTaskToFrontReason.ALT_TAB),
+                taskIdCaptor.capture(),
             )
+        assertThat(deskIdCaptor.firstValue).isEqualTo(0)
         assertThat(taskIdCaptor.firstValue).isEqualTo(0)
         assertThat(transitionCaptor.firstValue.remoteTransition)
-            .isInstanceOf(DesktopAppLaunchTransition::class.java)
+            .isInstanceOf(SlideInRemoteTransition::class.java)
     }
 
     @Test

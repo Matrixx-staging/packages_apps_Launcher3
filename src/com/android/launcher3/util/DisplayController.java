@@ -627,28 +627,32 @@ public class DisplayController implements DesktopVisibilityListener {
             if (navigationMode != NavigationMode.NO_BUTTON) {
                 return false;
             }
+
+            if (!enableTaskbarPinning()) {
+                return true;
+            }
+
+            // If "freeform" display taskbar is enabled, ensure the taskbar is pinned.
+            if (mShowDesktopTaskbarForFreeformDisplay) {
+                return false;
+            }
+
+            // If Launcher is visible on the freeform display, ensure the taskbar is pinned.
+            if (mShowLockedTaskbarOnHome && mIsHomeVisible) {
+                return false;
+            }
+            if (mIsInDesktopMode) {
+                return false;
+            }
+
             if (Utilities.isRunningInTestHarness() && !sTaskbarModePreferenceStatusForTests) {
                 // TODO(b/258604917): Once ENABLE_TASKBAR_PINNING is enabled, remove usage of
                 //  sTransientTaskbarStatusForTests and update test to directly
                 //  toggle shared preference to switch transient taskbar on/off.
                 return sTransientTaskbarStatusForTests;
             }
-            if (enableTaskbarPinning()) {
-                // If "freeform" display taskbar is enabled, ensure the taskbar is pinned.
-                if (mShowDesktopTaskbarForFreeformDisplay) {
-                    return false;
-                }
 
-                // If Launcher is visible on the freeform display, ensure the taskbar is pinned.
-                if (mShowLockedTaskbarOnHome && mIsHomeVisible) {
-                    return false;
-                }
-                if (mIsInDesktopMode) {
-                    return false;
-                }
-                return !mIsTaskbarPinned;
-            }
-            return true;
+            return !mIsTaskbarPinned;
         }
 
         /**

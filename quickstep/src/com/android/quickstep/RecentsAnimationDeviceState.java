@@ -167,7 +167,10 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
 
         // Register for display changes changes
         mDisplayController.addChangeListener(this);
-        onDisplayInfoChanged(context, mDisplayController.getInfoForDisplay(mDisplayId), CHANGE_ALL);
+        Info displayInfo = mDisplayController.getInfoForDisplay(mDisplayId);
+        if (displayInfo != null) {
+            onDisplayInfoChanged(context, displayInfo, CHANGE_ALL);
+        }
         lifeCycle.addCloseable(() -> mDisplayController.removeChangeListener(this));
 
         if (mIsOneHandedModeSupported) {
@@ -595,7 +598,8 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
         if (mIsOneHandedModeEnabled) {
             final Info displayInfo = mDisplayController.getInfoForDisplay(mDisplayId);
             return (mRotationTouchHelper.touchInOneHandedModeRegion(ev)
-                    && (displayInfo.currentSize.x < displayInfo.currentSize.y));
+                    && (displayInfo != null
+                    && displayInfo.currentSize.x < displayInfo.currentSize.y));
         }
         return false;
     }

@@ -242,14 +242,14 @@ public class RotationTouchHelper implements DisplayInfoChangeListener {
     }
 
     @Override
-    public void onDisplayInfoChanged(Context context, @NonNull Info info, int flags) {
+    public void onDisplayInfoChanged(Context context, @NonNull Info displayInfo, int flags) {
         if ((flags & (CHANGE_ROTATION | CHANGE_ACTIVE_SCREEN | CHANGE_NAVIGATION_MODE
                 | CHANGE_SUPPORTED_BOUNDS)) != 0) {
-            mDisplayRotation = info.rotation;
+            mDisplayRotation = displayInfo.rotation;
 
             if (hasGestures(mMode)) {
                 updateGestureTouchRegions();
-                mOrientationTouchTransformer.createOrAddTouchRegion(info,
+                mOrientationTouchTransformer.createOrAddTouchRegion(displayInfo,
                         "RTH.onDisplayInfoChanged");
                 mCurrentAppRotation = mDisplayRotation;
 
@@ -271,9 +271,8 @@ public class RotationTouchHelper implements DisplayInfoChangeListener {
         }
 
         if ((flags & CHANGE_NAVIGATION_MODE) != 0) {
-            NavigationMode newMode = info.getNavigationMode();
-            mOrientationTouchTransformer.setNavigationMode(newMode,
-                    mDisplayController.getInfoForDisplay(mDisplayId),
+            NavigationMode newMode = displayInfo.getNavigationMode();
+            mOrientationTouchTransformer.setNavigationMode(newMode, displayInfo,
                     mWindowContext.getResources());
 
             TaskStackChangeListeners.getInstance()
@@ -294,9 +293,11 @@ public class RotationTouchHelper implements DisplayInfoChangeListener {
      * Sets the gestural height.
      */
     void setGesturalHeight(int newGesturalHeight) {
-        mOrientationTouchTransformer.setGesturalHeight(
-                newGesturalHeight, mDisplayController.getInfoForDisplay(mDisplayId),
-                mWindowContext.getResources());
+        Info displayInfo = mDisplayController.getInfoForDisplay(mDisplayId);
+        if (displayInfo != null) {
+            mOrientationTouchTransformer.setGesturalHeight(
+                    newGesturalHeight, displayInfo, mWindowContext.getResources());
+        }
     }
 
     /**
@@ -312,8 +313,10 @@ public class RotationTouchHelper implements DisplayInfoChangeListener {
     }
 
     private void enableMultipleRegions(boolean enable) {
-        mOrientationTouchTransformer.enableMultipleRegions(enable,
-                mDisplayController.getInfoForDisplay(mDisplayId));
+        Info displayInfo = mDisplayController.getInfoForDisplay(mDisplayId);
+        if (displayInfo != null) {
+            mOrientationTouchTransformer.enableMultipleRegions(enable, displayInfo);
+        }
         notifySysuiOfCurrentRotation(mOrientationTouchTransformer.getQuickStepStartingRotation());
         if (enable && !mInOverview && !TestProtocol.sDisableSensorRotation) {
             // Clear any previous state from sensor manager
@@ -376,9 +379,9 @@ public class RotationTouchHelper implements DisplayInfoChangeListener {
      * notifies system UI of the primary rotation the user is interacting with
      */
     private void toggleSecondaryNavBarsForRotation() {
-        DisplayController.Info info = mDisplayController.getInfoForDisplay(mDisplayId);
-        if (info != null) {
-            mOrientationTouchTransformer.setSingleActiveRegion(info);
+        Info displayInfo = mDisplayController.getInfoForDisplay(mDisplayId);
+        if (displayInfo != null) {
+            mOrientationTouchTransformer.setSingleActiveRegion(displayInfo);
         } else {
             Log.w(TAG, "Info null for display " + mDisplayId);
         }
