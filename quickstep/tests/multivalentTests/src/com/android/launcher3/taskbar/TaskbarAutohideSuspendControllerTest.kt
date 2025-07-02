@@ -19,6 +19,7 @@ package com.android.launcher3.taskbar
 import android.animation.AnimatorTestRule
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
+import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_BUBBLES_EXPANDED
 import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_DRAGGING
 import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_IN_LAUNCHER
 import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_TOUCHING
@@ -105,5 +106,31 @@ class TaskbarAutohideSuspendControllerTest {
             autohideSuspendController.updateFlag(FLAG_AUTOHIDE_SUSPEND_TOUCHING, true)
         }
         assertThat(stashController.timeoutAlarm.alarmPending()).isFalse()
+    }
+
+    @Test
+    fun isSuspended() {
+        autohideSuspendController.updateFlag(FLAG_AUTOHIDE_SUSPEND_BUBBLES_EXPANDED, true)
+        assertThat(autohideSuspendController.isSuspended).isTrue()
+
+        autohideSuspendController.updateFlag(FLAG_AUTOHIDE_SUSPEND_BUBBLES_EXPANDED, false)
+        assertThat(autohideSuspendController.isSuspended).isFalse()
+    }
+
+    @Test
+    @TaskbarMode(TRANSIENT)
+    fun suspendAutoHideForBubbles_doesNotSuspendTransientTaskbarStashing() {
+        // Unstash and verify alarm.
+        getInstrumentation().runOnMainSync {
+            stashController.updateAndAnimateTransientTaskbar(false)
+            animatorTestRule.advanceTimeBy(stashController.stashDuration)
+        }
+        assertThat(stashController.timeoutAlarm.alarmPending()).isTrue()
+
+        getInstrumentation().runOnMainSync {
+            autohideSuspendController.updateFlag(FLAG_AUTOHIDE_SUSPEND_BUBBLES_EXPANDED, true)
+        }
+        assertThat(stashController.timeoutAlarm.alarmPending()).isTrue()
+        assertThat(autohideSuspendController.isTransientTaskbarStashingSuspended).isFalse()
     }
 }
