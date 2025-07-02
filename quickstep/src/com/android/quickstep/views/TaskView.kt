@@ -927,6 +927,8 @@ constructor(
                 thumbnail = container.thumbnailData,
                 width = container.thumbnailView.width,
                 height = container.thumbnailView.height,
+                splitBounds = (this as? GroupedTaskView)?.splitBoundsConfig,
+                stagePosition = container.stagePosition
             )
         applyThumbnailSplashAlpha()
     }

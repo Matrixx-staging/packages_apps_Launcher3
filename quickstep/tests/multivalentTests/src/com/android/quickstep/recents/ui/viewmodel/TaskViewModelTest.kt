@@ -17,11 +17,13 @@
 package com.android.quickstep.recents.ui.viewmodel
 
 import android.graphics.Color
+import android.graphics.Rect
 import android.graphics.drawable.ShapeDrawable
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_CAPTION_BARS
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT
 import com.android.launcher3.util.SystemUiController.FLAG_LIGHT_NAV
 import com.android.launcher3.util.SystemUiController.FLAG_LIGHT_STATUS
 import com.android.launcher3.util.TestDispatcherProvider
@@ -34,8 +36,9 @@ import com.android.quickstep.recents.domain.usecase.IsThumbnailValidUseCase
 import com.android.quickstep.recents.viewmodel.RecentsViewData
 import com.android.quickstep.views.TaskViewType
 import com.android.systemui.shared.recents.model.ThumbnailData
+import com.android.wm.shell.shared.split.SplitBounds
+import com.android.wm.shell.shared.split.SplitScreenConstants
 import com.google.common.truth.Truth.assertThat
-import java.time.Duration
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -49,8 +52,10 @@ import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import java.time.Duration
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
@@ -336,8 +341,29 @@ class TaskViewModelTest {
 
     @Test
     fun shouldShowSplash_calls_useCase() {
-        sut.isThumbnailValid(null, 0, 0)
-        verify(isThumbnailValidUseCase).invoke(anyOrNull(), anyInt(), anyInt())
+        val splitBounds = SplitBounds(
+            /* leftTopBounds = */ Rect(),
+            /* rightBottomBounds = */ Rect(),
+            /* leftTopTaskId = */ 1,
+            /* rightBottomTaskId = */ 2,
+            /* leftTopTaskIds = */ listOf(1),
+            /* rightBottomTaskIds = */ listOf(2),
+            /* snapPosition = */ SplitScreenConstants.SNAP_TO_2_90_10,
+        )
+        sut.isThumbnailValid(
+            thumbnail = null,
+            width = 0,
+            height = 0,
+            splitBounds = splitBounds,
+            stagePosition = STAGE_POSITION_BOTTOM_OR_RIGHT
+        )
+        verify(isThumbnailValidUseCase).invoke(
+            anyOrNull(),
+            anyInt(),
+            anyInt(),
+            eq(splitBounds),
+            eq(STAGE_POSITION_BOTTOM_OR_RIGHT)
+        )
     }
 
     private fun TaskModel.toUiState(isLiveTile: Boolean = false) =

@@ -114,8 +114,12 @@ class TaskViewModel(
         taskIds.value = taskId.toSet().also { Log.d(TAG, "bind: $it") }
     }
 
-    fun isThumbnailValid(thumbnail: ThumbnailData?, width: Int, height: Int): Boolean =
-        isThumbnailValidUseCase(thumbnail, width, height)
+    fun isThumbnailValid(
+        thumbnail: ThumbnailData?, width: Int, height: Int,
+        splitBounds: SplitBounds?,
+        stagePosition: Int
+    ): Boolean =
+        isThumbnailValidUseCase(thumbnail, width, height, splitBounds, stagePosition)
 
     fun getThumbnailPosition(
         thumbnail: ThumbnailData?,
