@@ -1297,7 +1297,14 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                 && !AbstractFloatingView.hasOpenView(
                 this, TYPE_ALL & ~TYPE_TASKBAR_OVERLAY_PROXY)) {
             // Reverts Taskbar window to its original size
-            Runnable resetTaskbarFullscreen = () -> setTaskbarWindowFullscreen(false);
+            Runnable resetTaskbarFullscreen = () -> {
+                // If the app layout transition is running, the window reset will be handled
+                // after the transition is complete. See {@link TaskbarViewController
+                // .TransitionEndBoundsChangedNotifier}.
+                if (!mControllers.taskbarViewController.isTaskbarAppTransitionRunning()) {
+                    setTaskbarWindowFullscreen(false);
+                }
+            };
             mControllers.bubbleControllers.ifPresentOrElse(
                     bc -> bc.dragToBubbleController.runAfterDropTargetsHidden(
                             resetTaskbarFullscreen), resetTaskbarFullscreen);

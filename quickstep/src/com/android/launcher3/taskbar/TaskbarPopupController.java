@@ -93,6 +93,9 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
     // Saves the ItemInfos in the hotseat without the predicted items.
     private SparseArray<ItemInfo> mHotseatInfosList;
     private ManageWindowsTaskbarShortcut<BaseTaskbarContext> mManageWindowsTaskbarShortcut;
+    // Whether the popup is currently open. This is reset to false when the close animation is
+    // complete.
+    private boolean mIsPopupOpened = false;
 
 
     public TaskbarPopupController(TaskbarActivityContext context) {
@@ -196,9 +199,15 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
         context.onPopupVisibilityChanged(true);
         container.addOnCloseCallback(() -> {
             context.getDragLayer().post(() -> context.onPopupVisibilityChanged(false));
+            mIsPopupOpened = false;
         });
+        mIsPopupOpened = true;
 
         return container;
+    }
+
+    public boolean isPopupOpened() {
+        return mIsPopupOpened;
     }
 
     // Create a Stream of all applicable system shortcuts
