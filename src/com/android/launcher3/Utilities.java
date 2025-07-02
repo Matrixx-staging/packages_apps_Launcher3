@@ -728,6 +728,9 @@ public final class Utilities {
                 result = li.wrapToAdaptiveIcon(mainIcon);
             }
         }
+        if (result == null) {
+            return null;
+        }
 
         // Inject theme icon drawable
         if (ATLEAST_T && useTheme) {
