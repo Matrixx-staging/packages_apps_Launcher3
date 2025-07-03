@@ -27,12 +27,6 @@
         android:layout_height="match_parent"
         android:background="@color/suw_all_set_scrim"/>
 
-    <com.android.quickstep.views.WallpaperScreenshotClipView
-        android:id="@+id/wallpaper_clip_path"
-        android:visibility="gone"
-        android:layout_height="match_parent"
-        android:layout_width="match_parent" />
-
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -94,5 +88,11 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </ScrollView>
+
+    <com.android.quickstep.views.WallpaperScreenshotClipView
+        android:id="@+id/wallpaper_clip_path"
+        android:visibility="gone"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
