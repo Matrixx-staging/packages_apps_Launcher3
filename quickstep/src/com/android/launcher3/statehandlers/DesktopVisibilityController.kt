@@ -257,7 +257,7 @@ constructor(
         onLauncherStateChanged(
             state,
             state === RecentsState.BACKGROUND_APP,
-            state.isRecentsViewVisible,
+            state.isRecentsViewVisible(),
         )
     }
 

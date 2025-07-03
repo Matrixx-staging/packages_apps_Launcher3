@@ -16,12 +16,9 @@
 
 package com.android.launcher3.popup;
 
-import static android.multiuser.Flags.enableMovingContentIntoPrivateSpace;
-
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_SHORTCUTS;
 import static com.android.launcher3.Utilities.squaredHypot;
 import static com.android.launcher3.Utilities.squaredTouchSlop;
-import static com.android.launcher3.allapps.AlphabeticalAppsList.PRIVATE_SPACE_PACKAGE;
 import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_NOT_PINNABLE;
 import static com.android.launcher3.popup.PopupPopulator.MAX_SHORTCUTS;
 import static com.android.launcher3.shortcuts.DeepShortcutTextView.GOOGLE_SANS_FLEX_LABEL_LARGE;
@@ -217,13 +214,33 @@ public class PopupContainerWithArrow<T extends Context & ActivityContext>
                 R.layout.popup_container, launcher.getDragLayer(), false);
 
         container.configureForLauncher(launcher, item);
-        boolean shouldHideSystemShortcuts = enableMovingContentIntoPrivateSpace()
-                && Objects.equals(item.getTargetPackage(), PRIVATE_SPACE_PACKAGE);
-        container.populateAndShowRows(icon, deepShortcutCount,
-                shouldHideSystemShortcuts ? Collections.emptyList() : systemShortcuts);
+        container.populateAndShowRows(icon, deepShortcutCount, systemShortcuts);
         launcher.refreshAndBindWidgetsForPackageUser(PackageUserKey.fromItemInfo(item));
         container.requestFocus();
         return container;
+    }
+
+    /**
+     * Shows the popup specifically for the Private Space app. This is specifically special in which
+     * no system shortcuts are shown for this icon.
+     *
+     * @param icon the app icon to show the popup for
+     */
+    public static void showForPrivateSpaceApp(BubbleTextView icon) {
+        ActivityContext activityContext = ActivityContext.lookupContext(icon.getContext());
+        if (getOpen(ActivityContext.lookupContext(icon.getContext())) != null) {
+            // There is already an items container open, so don't open this one.
+            icon.clearFocus();
+            return;
+        }
+        ItemInfo item = (ItemInfo) icon.getTag();
+        int deepShortcutCount =
+                activityContext.getPopupDataProvider().getShortcutCountForItem(item);
+        PopupContainerWithArrow<Launcher> container =
+                (PopupContainerWithArrow) activityContext.getLayoutInflater().inflate(
+                        R.layout.popup_container, activityContext.getDragLayer(), false);
+        container.populateAndShowRows(icon, deepShortcutCount, Collections.emptyList());
+        container.requestFocus();
     }
 
     private void configureForLauncher(Launcher launcher, ItemInfo itemInfo) {

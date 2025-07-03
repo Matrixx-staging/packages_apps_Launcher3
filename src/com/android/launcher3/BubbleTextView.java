@@ -24,7 +24,6 @@ import static com.android.launcher3.BubbleTextView.RunningAppState.MINIMIZED;
 import static com.android.launcher3.BubbleTextView.RunningAppState.RUNNING;
 import static com.android.launcher3.Flags.enableContrastTiles;
 import static com.android.launcher3.Flags.enableScalabilityForDesktopExperience;
-import static com.android.launcher3.allapps.AlphabeticalAppsList.PRIVATE_SPACE_PACKAGE;
 import static com.android.launcher3.graphics.PreloadIconDelegate.extractPreloadDelegate;
 import static com.android.launcher3.graphics.PreloadIconDelegate.hasPendingAnimationCompleted;
 import static com.android.launcher3.graphics.PreloadIconDelegate.newPendingIcon;
@@ -111,7 +110,6 @@ import com.android.launcher3.views.FloatingIconViewCompanion;
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Locale;
-import java.util.Objects;
 
 /**
  * TextView that draws a bubble behind the text. We cannot use a LineBackgroundSpan
@@ -210,6 +208,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     protected DotRenderer.DrawParams mDotParams;
     private Animator mDotScaleAnim;
     private boolean mForceHideDot;
+    private boolean mIconAnimationDisabled;
 
     // These fields, related to showing running apps, are only used for Taskbar.
     private final int mRunningAppIndicatorHeight;
@@ -369,6 +368,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         mDotParams.scale = 0f;
         mForceHideDot = false;
         setBackground(null);
+        setIconAnimationDisabled(false);
 
         mLineIndicatorColor = Color.TRANSPARENT;
         mLineIndicatorWidth = 0;
@@ -540,10 +540,14 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
                 info.newIcon(getContext(), getIconCreationFlagsForInfo(info));
         mDotParams.appColor = iconDrawable.getIconColor();
         mDotParams.dotColor = Themes.getAttrColor(getContext(), R.attr.notificationDotColor);
-        if (Objects.equals(info.getTargetPackage(), PRIVATE_SPACE_PACKAGE)) {
+        if (mIconAnimationDisabled) {
             iconDrawable.setAnimationEnabled(false);
         }
         setIcon(iconDrawable);
+    }
+
+    public void setIconAnimationDisabled(boolean shouldDisableAnimation) {
+        mIconAnimationDisabled = shouldDisableAnimation;
     }
 
     /**

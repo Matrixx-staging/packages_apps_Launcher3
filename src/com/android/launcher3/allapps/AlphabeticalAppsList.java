@@ -63,7 +63,7 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
         AllAppsStore.OnUpdateListener {
 
     public static final String TAG = "AlphabeticalAppsList";
-    public static final String PRIVATE_SPACE_PACKAGE = "com.android.privatespace";
+    private static final String PRIVATE_SPACE_PACKAGE = "com.android.privatespace";
 
     private final WorkProfileManager mWorkProviderManager;
 
@@ -432,8 +432,8 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
                 if (currentItem.viewType == VIEW_TYPE_MASK_PRIVATE_SPACE_HEADER) {
                     headerIndex = i;
                 }
-                if (currentItem.itemInfo != null && Objects.equals(
-                        currentItem.itemInfo.getTargetPackage(), PRIVATE_SPACE_PACKAGE)) {
+                if (currentItem.itemInfo != null && isPrivateSpaceApp(currentItem.itemInfo)) {
+                    // TODO: Somehow do the theming bitmap change in the model layer.
                     currentItem.itemInfo.bitmap = mPrivateProviderManager.preparePSBitmapInfo();
                     currentItem.itemInfo.title = mPrivateProviderManager.getPSAppTitleOverride();
                     currentItem.itemInfo.contentDescription =
@@ -466,7 +466,8 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
             if (hasPrivateApps) {
                 mAdapterItems.add(AdapterItem.asAppWithDecorationInfo(info,
                         new SectionDecorationInfo(mActivityContext,
-                                getRoundRegions(i, appList.size()))));
+                                getRoundRegions(i, appList.size())),
+                        isPrivateSpaceApp(info)));
             } else {
                 mAdapterItems.add(AdapterItem.asApp(info));
             }
@@ -486,6 +487,10 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
             position++;
         }
         return position;
+    }
+
+    private boolean isPrivateSpaceApp(AppInfo appInfo) {
+        return Objects.equals(appInfo.getTargetPackage(), PRIVATE_SPACE_PACKAGE);
     }
 
     /**
