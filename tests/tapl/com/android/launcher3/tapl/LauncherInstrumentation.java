@@ -37,6 +37,8 @@ import static com.android.launcher3.testing.shared.TestProtocol.REQUEST_GET_SPLI
 import static com.android.launcher3.testing.shared.TestProtocol.REQUEST_NUM_ALL_APPS_COLUMNS;
 import static com.android.launcher3.testing.shared.TestProtocol.TEST_INFO_RESPONSE_FIELD;
 
+import static org.junit.Assert.assertFalse;
+
 import android.app.ActivityManager;
 import android.app.Instrumentation;
 import android.app.UiAutomation;
@@ -1676,6 +1678,42 @@ public final class LauncherInstrumentation {
                     + container.getResourceName(), objects);
             assertTrue("Can't find views in Launcher, id: " + selector + " in container: "
                     + container.getResourceName(), objects.size() > 0);
+            return objects;
+        } catch (StaleObjectException e) {
+            fail("The container disappeared from screen");
+            return null;
+        }
+    }
+
+    /**
+     * Waits for and returns the {@link UiObject2} within the {@code container} that matches any of
+     * the selectors in {@code matchAnySelectors}.
+     *
+     * @param matchAnySelectors the {@link BySelector} list to match
+     * @return the found {@link UiObject2}
+     */
+    @NonNull
+    List<UiObject2> waitForAnyObjectsInContainer(
+            UiObject2 container,
+            List<BySelector> matchAnySelectors) {
+        try {
+            var searchConditions = new SearchCondition<List<UiObject2>>() {
+                @Override
+                public List<UiObject2> apply(Searchable searchable) {
+                    for (BySelector selector : matchAnySelectors) {
+                        List<UiObject2> objects = searchable.findObjects(selector);
+                        if (!objects.isEmpty()) {
+                            return objects;
+                        }
+                    }
+                    return new ArrayList<>();
+                }
+            };
+            final List<UiObject2> objects = container.wait(searchConditions, WAIT_TIME_MS);
+            assertNotNull("Can't find views in Launcher in selectors: " + matchAnySelectors
+                    + " in container: " + container.getResourceName(), objects);
+            assertFalse("Can't find views in Launcher in selectors: " + matchAnySelectors
+                    + " in container:" + container.getResourceName(), objects.isEmpty());
             return objects;
         } catch (StaleObjectException e) {
             fail("The container disappeared from screen");
