@@ -70,6 +70,7 @@ import com.android.launcher3.util.MultiValueAlpha
 import com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview
 import com.android.launcher3.util.OverviewReleaseFlags.enableOverviewIconMenu
 import com.android.launcher3.util.RunnableList
+import com.android.launcher3.util.SplitConfigurationOptions
 import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_UNDEFINED
 import com.android.launcher3.util.SplitConfigurationOptions.StagePosition
 import com.android.launcher3.util.TraceHelper
@@ -111,6 +112,7 @@ import com.android.quickstep.window.RecentsWindowFlags.enableOverviewOnConnected
 import com.android.systemui.shared.recents.model.Task
 import com.android.systemui.shared.recents.model.ThumbnailData
 import com.android.systemui.shared.system.ActivityManagerWrapper
+import com.android.wm.shell.shared.split.SplitScreenConstants
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -925,6 +927,8 @@ constructor(
                 thumbnail = container.thumbnailData,
                 width = container.thumbnailView.width,
                 height = container.thumbnailView.height,
+                splitBounds = (this as? GroupedTaskView)?.splitBoundsConfig,
+                stagePosition = container.stagePosition
             )
         applyThumbnailSplashAlpha()
     }
@@ -946,12 +950,23 @@ constructor(
         height: Int,
     ): ThumbnailPosition =
         traceSection("TaskView.updateThumbnailMatrix") {
+            // TODO: b/428764855: Refactor `TaskViewModel` to include Split data.
+            val splitPosition =
+                when (container.stagePosition) {
+                    SplitConfigurationOptions.STAGE_POSITION_TOP_OR_LEFT ->
+                        SplitScreenConstants.SPLIT_POSITION_TOP_OR_LEFT
+                    SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT ->
+                        SplitScreenConstants.SPLIT_POSITION_BOTTOM_OR_RIGHT
+                    else -> SplitScreenConstants.SPLIT_POSITION_UNDEFINED
+                }
             val thumbnailPosition =
                 viewModel!!.getThumbnailPosition(
                     container.thumbnailData,
                     width,
                     height,
                     isLayoutRtl,
+                    (this as? GroupedTaskView)?.splitBoundsConfig,
+                    splitPosition,
                 )
             container.updateThumbnailMatrix(thumbnailPosition.matrix)
             return thumbnailPosition

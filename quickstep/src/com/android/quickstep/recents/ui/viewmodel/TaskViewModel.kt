@@ -30,6 +30,7 @@ import com.android.quickstep.recents.domain.usecase.ThumbnailPosition
 import com.android.quickstep.recents.viewmodel.RecentsViewData
 import com.android.quickstep.views.TaskViewType
 import com.android.systemui.shared.recents.model.ThumbnailData
+import com.android.wm.shell.shared.split.SplitBounds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -113,20 +114,28 @@ class TaskViewModel(
         taskIds.value = taskId.toSet().also { Log.d(TAG, "bind: $it") }
     }
 
-    fun isThumbnailValid(thumbnail: ThumbnailData?, width: Int, height: Int): Boolean =
-        isThumbnailValidUseCase(thumbnail, width, height)
+    fun isThumbnailValid(
+        thumbnail: ThumbnailData?, width: Int, height: Int,
+        splitBounds: SplitBounds?,
+        stagePosition: Int
+    ): Boolean =
+        isThumbnailValidUseCase(thumbnail, width, height, splitBounds, stagePosition)
 
     fun getThumbnailPosition(
         thumbnail: ThumbnailData?,
         width: Int,
         height: Int,
         isRtl: Boolean,
+        splitBounds: SplitBounds?,
+        splitPosition: Int,
     ): ThumbnailPosition =
         getThumbnailPositionUseCase(
             thumbnailData = thumbnail,
             width = width,
             height = height,
             isRtl = isRtl,
+            splitBounds,
+            splitPosition,
         )
 
     private fun mapToTaskTile(
