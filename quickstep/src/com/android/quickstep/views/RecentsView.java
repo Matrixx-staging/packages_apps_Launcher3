@@ -6943,8 +6943,12 @@ public abstract class RecentsView<
             return;
         }
 
-        mDesktopRecentsTransitionController.moveToDesktop(taskContainer, transitionSource,
-                successCallback);
+        mDesktopRecentsTransitionController.moveToDesktop(taskContainer, transitionSource, () -> {
+            successCallback.run();
+            if (mContainer instanceof RecentsWindowManager recentsWindowManager) {
+                post(recentsWindowManager::hideRecentsWindow);
+            }
+        });
     }
 
     /**
