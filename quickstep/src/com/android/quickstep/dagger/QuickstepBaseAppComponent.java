@@ -24,6 +24,7 @@ import com.android.launcher3.dagger.LauncherBaseAppComponent;
 import com.android.launcher3.model.WellbeingModel;
 import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.taskbar.TaskbarModelCallbacksFactory;
+import com.android.launcher3.taskbar.TaskbarUiStateMonitor;
 import com.android.launcher3.taskbar.TaskbarViewCallbacksFactory;
 import com.android.launcher3.taskbar.overlay.TaskbarOverlayContextFactory;
 import com.android.quickstep.FallbackWindowInterface;
@@ -109,4 +110,6 @@ public interface QuickstepBaseAppComponent extends LauncherBaseAppComponent {
     TaskbarOverlayContextFactory getTaskbarOverlayContextFactory();
 
     TaskOverlayFactory getTaskOverlayFactory();
+
+    TaskbarUiStateMonitor getTaskbarUiStateMonitor();
 }

@@ -215,6 +215,8 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
 
     private final @Nullable Context mNavigationBarPanelContext;
 
+    private final TaskbarUiState mTaskbarUiState;
+
     private final TaskbarDragLayer mDragLayer;
     private final TaskbarControllers mControllers;
 
@@ -271,6 +273,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             ScopedUnfoldTransitionProgressProvider unfoldTransitionProgressProvider,
             boolean isPrimaryDisplay, int primaryDisplayId, SystemUiProxy sysUiProxy) {
         super(windowContext, displayId, isPrimaryDisplay);
+        mTaskbarUiState = TaskbarUiStateMonitor.INSTANCE.get(this).getTaskbarUiState(displayId);
         mNavigationBarPanelContext = navigationBarPanelContext;
         mSysUiProxy = sysUiProxy;
         mPrimaryDisplayId = primaryDisplayId;
@@ -329,7 +332,8 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                     launcherDp.getBubbleBarVerticalCenterForHome());
             bubbleControllersOptional = Optional.of(new BubbleControllers(
                     new BubbleBarController(this, bubbleBarView),
-                    new BubbleBarViewController(this, bubbleBarView, bubbleBarContainer),
+                    new BubbleBarViewController(
+                            this, mTaskbarUiState, bubbleBarView, bubbleBarContainer),
                     bubbleStashController,
                     bubbleHandleController,
                     new BubbleDragController(this, mDragLayer),
