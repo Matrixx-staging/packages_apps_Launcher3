@@ -42,7 +42,7 @@ open class RecentsState(@JvmField val ordinal: Int, private val mFlags: Int) :
         sAllStates[ordinal] = this
     }
 
-    private var backAnimationController: AnimatorPlaybackController? = null
+    protected var backAnimationController: AnimatorPlaybackController? = null
 
     override fun toString() =
         when (ordinal) {
@@ -189,11 +189,19 @@ open class RecentsState(@JvmField val ordinal: Int, private val mFlags: Int) :
         }
 
         override fun onBackStarted(container: RecentsViewContainer) {
-            // TODO(b/429298217): Add predictive back animation for Modal state
-        }
-
-        override fun onBackProgressed(container: RecentsViewContainer?, backProgress: Float) {
-            // TODO(b/429298217): Add predictive back animation for Modal state
+            val recentsView = container.getOverviewPanel<RecentsView<*, *>>()
+            backAnimationController =
+                PendingAnimation(PREDICTIVE_BACK_DURATION)
+                    .apply {
+                        addFloat(
+                            recentsView,
+                            RecentsView.TASK_MODALNESS,
+                            1f,
+                            PREDICTIVE_BACK_MIN_TASK_MODALNESS,
+                            Interpolators.LINEAR,
+                        )
+                    }
+                    .createPlaybackController()
         }
     }
 
@@ -226,6 +234,7 @@ open class RecentsState(@JvmField val ordinal: Int, private val mFlags: Int) :
         private const val PREDICTIVE_BACK_MIN_RECENTS_SCALE_HOME = 0.9f
         private const val PREDICTIVE_BACK_MAX_FULLSCREEN_PROGRESS_LAUNCH = 0.1f
         private const val PREDICTIVE_BACK_MIN_RECENTS_SCALE_SCROLL = 0.95f
+        private const val PREDICTIVE_BACK_MIN_TASK_MODALNESS = 0.8f
 
         const val DEFAULT_STATE_ORDINAL = 0
         const val MODAL_TASK_ORDINAL = 1
