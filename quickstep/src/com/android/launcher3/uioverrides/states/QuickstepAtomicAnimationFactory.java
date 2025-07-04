@@ -21,6 +21,8 @@ import static com.android.launcher3.WorkspaceStateTransitionAnimation.getWorkspa
 
 import android.animation.ValueAnimator;
 
+import androidx.annotation.NonNull;
+
 import com.android.launcher3.CellLayout;
 import com.android.launcher3.Hotseat;
 import com.android.launcher3.LauncherState;
@@ -57,7 +59,7 @@ public class QuickstepAtomicAnimationFactory extends
             boolean isThreeButton) {
         super.applyOverviewToHomeAnimConfig(fromState, config, overview, isPinnedTaskbar,
                 isThreeButton);
-        Workspace<?> workspace = mContainer.getWorkspace();
+        Workspace<?> workspace = getContainer().getWorkspace();
         // Start from a higher workspace scale, but only if we're invisible so we don't jump.
         boolean isWorkspaceVisible = workspace.getVisibility() == VISIBLE;
         if (isWorkspaceVisible) {
@@ -70,7 +72,7 @@ public class QuickstepAtomicAnimationFactory extends
             workspace.setScaleX(WORKSPACE_PREPARE_SCALE);
             workspace.setScaleY(WORKSPACE_PREPARE_SCALE);
         }
-        Hotseat hotseat = mContainer.getHotseat();
+        Hotseat hotseat = getContainer().getHotseat();
         boolean isHotseatVisible = hotseat.getVisibility() == VISIBLE && hotseat.getAlpha() > 0;
         if (!isHotseatVisible) {
             hotseat.setScaleX(WORKSPACE_PREPARE_SCALE);
@@ -79,25 +81,27 @@ public class QuickstepAtomicAnimationFactory extends
     }
 
     @Override
-    protected int getHintToNormalAnimationDuration(LauncherState toState) {
+    protected int getHintToNormalAnimationDuration(@NonNull LauncherState toState) {
         if (mHintToNormalDuration == -1) {
-            ValueAnimator va = getWorkspaceSpringScaleAnimator(mContainer,
-                    mContainer.getWorkspace(),
-                    toState.getWorkspaceScaleAndTranslation(mContainer).scale);
+            QuickstepLauncher container = getContainer();
+            ValueAnimator va = getWorkspaceSpringScaleAnimator(
+                    container,
+                    container.getWorkspace(),
+                    toState.getWorkspaceScaleAndTranslation(container).scale);
             mHintToNormalDuration = (int) va.getDuration();
         }
         return mHintToNormalDuration;
     }
 
     @Override
-    protected void applyAllAppsToNormalConfig(StateAnimationConfig config) {
+    protected void applyAllAppsToNormalConfig(@NonNull StateAnimationConfig config) {
         super.applyAllAppsToNormalConfig(config);
-        AllAppsSwipeController.applyAllAppsToNormalConfig(mContainer, config);
+        AllAppsSwipeController.applyAllAppsToNormalConfig(getContainer(), config);
     }
 
     @Override
-    protected void applyNormalToAllAppsAnimConfig(StateAnimationConfig config) {
+    protected void applyNormalToAllAppsAnimConfig(@NonNull StateAnimationConfig config) {
         super.applyNormalToAllAppsAnimConfig(config);
-        AllAppsSwipeController.applyNormalToAllAppsAnimConfig(mContainer, config);
+        AllAppsSwipeController.applyNormalToAllAppsAnimConfig(getContainer(), config);
     }
 }
