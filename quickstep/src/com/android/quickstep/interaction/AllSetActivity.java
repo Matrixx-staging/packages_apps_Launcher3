@@ -15,6 +15,7 @@
  */
 package com.android.quickstep.interaction;
 
+import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 import static android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;
 import static android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS;
@@ -22,6 +23,7 @@ import static android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS;
 import static com.android.app.animation.Interpolators.ACCELERATE;
 import static com.android.app.animation.Interpolators.FAST_OUT_SLOW_IN;
 import static com.android.app.animation.Interpolators.LINEAR;
+import static com.android.app.animation.Interpolators.clampToProgress;
 import static com.android.launcher3.Utilities.mapBoundToRange;
 import static com.android.launcher3.Utilities.mapRange;
 import static com.android.launcher3.Utilities.mapToRange;
@@ -60,6 +62,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.AccessibilityDelegate;
 import android.view.ViewTreeObserver;
+import android.view.ViewTreeObserver.OnWindowVisibilityChangeListener;
 import android.view.Window;
 import android.view.WindowInsetsController;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -80,7 +83,10 @@ import com.android.launcher3.Utilities;
 import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.anim.AnimatorPlaybackController;
 import com.android.launcher3.taskbar.StashedHandleViewController;
+import com.android.launcher3.taskbar.TaskbarActivityContext;
+import com.android.launcher3.taskbar.TaskbarActivityContext.UIControllerChangeListener;
 import com.android.launcher3.taskbar.TaskbarManager;
+import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.util.Executors;
 import com.android.quickstep.GestureState;
 import com.android.quickstep.OverviewComponentObserver;
@@ -101,9 +107,11 @@ import java.util.Map;
  * A page shows after SUW flow to hint users to swipe up from the bottom of the screen to go home
  * for the gestural system navigation.
  */
-public class AllSetActivity extends Activity {
+public class AllSetActivity extends Activity implements UIControllerChangeListener {
 
     public static final float ALL_SET_SWIPE_THRESHOLD_FOR_WORKSPACE_ANIM = 0.95f;
+    // The fade-out happens in the last 65% of the animation.
+    private static final float CONTENT_FADE_OUT_START_PROGRESS = 0.35f;
 
     private static final String TAG = "AllSetActivity";
 
@@ -302,26 +310,50 @@ public class AllSetActivity extends Activity {
                 Typeface.create(FontFamily.GSF_HEADLINE_SMALL_EMPHASIZED.getValue(),
                         Typeface.NORMAL));
 
-        if (Flags.enableNewAllSetAnimation()) {
+        if (mIsExpressiveThemeEnabledInSUW && Flags.enableNewAllSetAnimation()) {
             mWallpaperClipPath = findViewById(R.id.wallpaper_clip_path);
             mWallpaperClipPath.setVisibility(VISIBLE);
 
-            mWallpaperClipPath.getViewTreeObserver().addOnGlobalLayoutListener(
-                    new ViewTreeObserver.OnGlobalLayoutListener() {
-                        @Override
-                        public void onGlobalLayout() {
-                            mWallpaperClipPath.getViewTreeObserver().removeOnGlobalLayoutListener(
-                                    this);
-                            mWallpaperClipPath.setupWallpaperScreenshot(
-                                    getWindow(), getDisplayId(), mRootView, WALLPAPER_BLUR_RADIUS);
-                        }
-                    });
+            // Attempt to pre-load screenshot.
+            ViewTreeObserver observer = mWallpaperClipPath.getViewTreeObserver();
+            observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    mWallpaperClipPath.getViewTreeObserver().removeOnGlobalLayoutListener(
+                            this);
+
+                    tryCaptureWallpaperScreenshot();
+                }
+            });
+
+            // If wallpaper is not ready for pre-load, we try one more time.
+            observer.addOnWindowVisibilityChangeListener(new OnWindowVisibilityChangeListener() {
+                @Override
+                public void onWindowVisibilityChanged(int visibility) {
+                    mWallpaperClipPath.getViewTreeObserver()
+                            .removeOnWindowVisibilityChangeListener(this);
+                    tryCaptureWallpaperScreenshot();
+
+                }
+            });
             mExpressiveAnimSet = buildExpressiveAnimatorSet();
         }
     }
 
+    private void tryCaptureWallpaperScreenshot() {
+        if (mWallpaperClipPath != null) {
+            View wallpaperScrim = findViewById(R.id.wallpaper_scrim);
+            wallpaperScrim.setVisibility(GONE);
+            Runnable resetScrim = () -> {
+                wallpaperScrim.setVisibility(VISIBLE);
+            };
+            mWallpaperClipPath.tryCaptureWallpaperScreenshot(
+                    getWindow(), getDisplayId(), mRootView, WALLPAPER_BLUR_RADIUS, resetScrim);
+        }
+    }
+
     private AnimatorSet buildExpressiveAnimatorSet() {
-        if (!Flags.enableNewAllSetAnimation()) {
+        if (!mIsExpressiveThemeEnabledInSUW || !Flags.enableNewAllSetAnimation()) {
             return null;
         }
 
@@ -335,7 +367,6 @@ public class AllSetActivity extends Activity {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 float transY = (float) animation.getAnimatedValue();
-                View.TRANSLATION_Y.set(content, transY);
                 mWallpaperClipPath.setClipTranslationY(transY, animation.getAnimatedFraction());
                 StashedHandleViewController controller = getStashedHandleViewController();
                 if (controller != null) {
@@ -344,10 +375,22 @@ public class AllSetActivity extends Activity {
             }
         });
 
-        ValueAnimator alpha = ValueAnimator.ofFloat(1, 0);
-        alpha.setDuration(10);
-        alpha.setInterpolator(LINEAR);
-        alpha.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+        ValueAnimator contentAlpha = ValueAnimator.ofFloat(1, 0);
+        contentAlpha.setInterpolator(LINEAR);
+        contentAlpha.setDuration(100);
+        contentAlpha.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                float progress = valueAnimator.getAnimatedFraction();
+                float alpha = 1f - clampToProgress(progress, CONTENT_FADE_OUT_START_PROGRESS, 1f);
+                content.setAlpha(alpha);
+            }
+        });
+
+        ValueAnimator hintAndHandleAlpha = ValueAnimator.ofFloat(1, 0);
+        hintAndHandleAlpha.setDuration(10);
+        hintAndHandleAlpha.setInterpolator(LINEAR);
+        hintAndHandleAlpha.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
                 float alpha = (float) valueAnimator.getAnimatedValue();
@@ -364,7 +407,8 @@ public class AllSetActivity extends Activity {
         AnimatorSet as = new AnimatorSet();
         mWallpaperClipPath.addClipAnimation(as);
         as.play(transYAnimator);
-        as.play(alpha);
+        as.play(contentAlpha);
+        as.play(hintAndHandleAlpha);
         as.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
@@ -493,14 +537,41 @@ public class AllSetActivity extends Activity {
         if (mIsExpressiveThemeEnabledInSUW) {
             getWindow().setBackgroundBlurRadius(WALLPAPER_BLUR_RADIUS);
         }
+        setUIControllerChangeListener(this);
     }
 
     private void onTISConnected(TISBinder binder) {
         setSetupUIVisible(isResumed());
         binder.setSwipeUpProxy(isResumed() ? this::createSwipeUpProxy : null);
-        TaskbarManager taskbarManager = binder.getTaskbarManager();
+
+        setUIControllerChangeListener(this);
+        TaskbarManager taskbarManager = mTISBindHelper.getTaskbarManager();
+        if (taskbarManager != null) {
+            // Initial call
+            onUIControllerChanged(
+                    taskbarManager.getUIControllerForDisplay(taskbarManager.getPrimaryDisplayId()));
+        }
+    }
+
+    private void setUIControllerChangeListener(UIControllerChangeListener listener) {
+        TaskbarManager taskbarManager = mTISBindHelper.getTaskbarManager();
+        if (taskbarManager != null) {
+            TaskbarActivityContext context = taskbarManager.getCurrentActivityContext();
+            if (context != null) {
+                context.setUIControllerChangeListener(listener);
+            }
+        }
+    }
+
+    @Override
+    public void onUIControllerChanged(TaskbarUIController uiController) {
+        TaskbarManager taskbarManager = mTISBindHelper.getTaskbarManager();
         if (taskbarManager != null) {
             mLauncherStartAnim = taskbarManager.createLauncherStartFromSuwAnim(MAX_SWIPE_DURATION);
+            if (mWallpaperClipPath != null) {
+                mWallpaperClipPath.setForceFallbackAnimation(
+                        taskbarManager.shouldForceAllSetFallbackAnimation());
+            }
         }
     }
 
@@ -517,6 +588,7 @@ public class AllSetActivity extends Activity {
             finishAndRemoveTask();
             dispatchLauncherAnimStartEnd();
         }
+        setUIControllerChangeListener(null);
     }
 
     private void clearBinderOverride() {
@@ -544,6 +616,7 @@ public class AllSetActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         getIDP().removeOnChangeListener(mOnIDPChangeListener);
+        setUIControllerChangeListener(null);
         mTISBindHelper.onDestroy();
         clearBinderOverride();
         if (mBackgroundAnimatorListener != null) {
