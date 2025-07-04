@@ -1494,7 +1494,11 @@ public abstract class RecentsView<
             anim.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    finishRecentsAnimation(false /* toRecents */, true /*shouldPip*/, null);
+                    finishRecentsAnimation(false /* toRecents */, true /*shouldPip*/, () -> {
+                        if (mContainer instanceof RecentsWindowManager recentsWindowManager) {
+                            recentsWindowManager.hideRecentsWindow();
+                        }
+                    });
                 }
             });
         } else {
