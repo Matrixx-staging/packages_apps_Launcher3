@@ -18,6 +18,7 @@ package com.android.quickstep;
 
 import static android.content.Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS;
 
+import static com.android.launcher3.Flags.enableLaterIsLockedCheck;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 import static com.android.wm.shell.shared.GroupedTaskInfo.TYPE_DESK;
 import static com.android.wm.shell.shared.GroupedTaskInfo.TYPE_SPLIT;
@@ -368,7 +369,7 @@ public class RecentTasksList {
         SparseBooleanArray tmpLockedUsers = new SparseBooleanArray() {
             @Override
             public boolean get(int key) {
-                if (indexOfKey(key) < 0) {
+                if (!enableLaterIsLockedCheck() && indexOfKey(key) < 0) {
                     // Fill the cached locked state as we fetch
                     put(key, mKeyguardManager.isDeviceLocked(key));
                 }

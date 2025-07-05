@@ -40,6 +40,7 @@ import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.os.Process;
 import android.os.RemoteException;
 import android.platform.test.rule.ExtendedLongPressTimeoutRule;
 
@@ -79,7 +80,6 @@ import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.model.Statement;
 
-import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -263,7 +263,7 @@ public class FallbackRecentsTest {
     }
 
     @Test
-    public void testOverview() throws IOException {
+    public void testOverview() throws Exception {
         startAppFast(getAppPackageName());
         startAppFast(resolveSystemApp(Intent.CATEGORY_APP_CALCULATOR));
         startTestActivity(2);
@@ -317,9 +317,11 @@ public class FallbackRecentsTest {
                 mOtherLauncherActivity.packageName).text(FALLBACK_LAUNCHER_TITLE)), WAIT_TIME_MS));
     }
 
-    private void checkTestLauncher() throws IOException {
+    private void checkTestLauncher() throws Exception {
+        String launcherCmdForMainUser = String.format("cmd shortcut get-default-launcher --user %d",
+                Process.myUserHandle().getIdentifier());
         final Matcher matcher = COMPONENT_INFO_REGEX.matcher(
-                mDevice.executeShellCommand("cmd shortcut get-default-launcher"));
+                mDevice.executeShellCommand(launcherCmdForMainUser));
         assertTrue("Incorrect output from get-default-launcher", matcher.find());
         assertEquals("Current Launcher activity is incorrect",
                 "com.google.android.apps.nexuslauncher.tests/com.android"

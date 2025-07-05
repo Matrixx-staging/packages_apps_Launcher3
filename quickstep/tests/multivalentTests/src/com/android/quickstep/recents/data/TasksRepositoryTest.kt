@@ -21,8 +21,10 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
+import android.platform.test.annotations.EnableFlags
 import android.view.Display.DEFAULT_DISPLAY
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.launcher3.Flags
 import com.android.launcher3.util.TestDispatcherProvider
 import com.android.quickstep.util.DesktopTask
 import com.android.quickstep.util.SingleTask
@@ -91,6 +93,7 @@ class TasksRepositoryTest {
     private val taskIconDataSource = FakeTaskIconDataSource()
     private val taskVisualsChangeNotifier = FakeTaskVisualsChangeNotifier()
     private val highResLoadingStateNotifier = FakeHighResLoadingStateNotifier()
+    private val userLockedStateRepository = FakeUserLockedStateRepository()
     private val taskVisualsChangedDelegate =
         spy(TaskVisualsChangedDelegateImpl(taskVisualsChangeNotifier, highResLoadingStateNotifier))
 
@@ -101,6 +104,7 @@ class TasksRepositoryTest {
             recentsModel,
             taskThumbnailDataSource,
             taskIconDataSource,
+            userLockedStateRepository,
             taskVisualsChangedDelegate,
             testScope.backgroundScope,
             TestDispatcherProvider(dispatcher),
@@ -118,6 +122,19 @@ class TasksRepositoryTest {
             recentsModel.seedTasks(defaultTaskList)
             assertThat(systemUnderTest.getAllTaskData(DEFAULT_DISPLAY, forceRefresh = true).first())
                 .isEqualTo(tasks)
+        }
+
+    @Test
+    @EnableFlags(Flags.FLAG_ENABLE_LATER_IS_LOCKED_CHECK)
+    fun getAllTaskDataInvalidatesUserLockedCache() =
+        testScope.runTest {
+            recentsModel.seedTasks(defaultTaskList)
+            userLockedStateRepository.setLockedStates(mapOf(1 to true))
+
+            assertThat(userLockedStateRepository.getIsUserLocked(1)).isTrue()
+            systemUnderTest.getAllTaskData(DEFAULT_DISPLAY, forceRefresh = true)
+
+            assertThat(userLockedStateRepository.getIsUserLocked(1)).isFalse()
         }
 
     @Test
