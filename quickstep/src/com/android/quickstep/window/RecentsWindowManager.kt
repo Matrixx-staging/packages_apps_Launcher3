@@ -392,7 +392,7 @@ constructor(
             return
         }
         recentsView.switchToScreenshot {
-            recentsView.finishRecentsAnimation(/* toRecents= */ true) { startHomeInternal() }
+            recentsView.finishRecentsAnimation(/* toHome= */ true) { startHomeInternal() }
         }
     }
 

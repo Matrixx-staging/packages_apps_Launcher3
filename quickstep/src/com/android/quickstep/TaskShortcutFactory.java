@@ -200,7 +200,7 @@ public interface TaskShortcutFactory {
             dismissTaskMenuView();
             RecentsView rv = mTarget.getOverviewPanel();
             rv.switchToScreenshot(() -> {
-                rv.finishRecentsAnimation(true /* toRecents */, false /* shouldPip */, () -> {
+                rv.finishRecentsAnimation(true /* toHome */, false /* shouldPip */, () -> {
                     mTarget.returnToHomescreen();
                     rv.getHandler().post(this::startActivity);
                 });

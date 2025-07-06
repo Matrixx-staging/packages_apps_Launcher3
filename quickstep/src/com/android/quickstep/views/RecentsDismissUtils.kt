@@ -359,7 +359,7 @@ constructor(
                     systemUiProxy.removeAllDesks()
 
                     // Remove all the task views now
-                    finishRecentsAnimation(/* toRecents */ true, /* shouldPip */ false) {
+                    finishRecentsAnimation(/* toHome */ true, /* shouldPip */ false) {
                         uiHelperExecutor.execute { activityManagerWrapper.removeAllRecentTasks() }
                         removeAllTaskViews()
                         if (!switchToNewDesk) {
@@ -1012,11 +1012,7 @@ constructor(
 
             // Run the final page snapping and relayout
             if (enableDrawingLiveTile && dismissedTaskView?.isRunningTask == true) {
-                finishRecentsAnimation(
-                    /* toRecents */ true,
-                    /* shouldPip */ false,
-                    onFinishComplete,
-                )
+                finishRecentsAnimation(/* toHome */ true, /* shouldPip */ false, onFinishComplete)
             } else {
                 onFinishComplete()
             }
@@ -1050,7 +1046,7 @@ constructor(
                 mUtils.addOnDeskAddedListener(launchNewDeskListener)
             }
             if (dismissedTaskView.isRunningTask) {
-                finishRecentsAnimation(/* toRecents */ true, /* shouldPip */ false) {
+                finishRecentsAnimation(/* toHome */ true, /* shouldPip */ false) {
                     removeGroupTaskInternal(groupTask)
                 }
             } else {

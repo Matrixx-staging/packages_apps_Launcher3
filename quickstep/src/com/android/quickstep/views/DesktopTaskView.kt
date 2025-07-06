@@ -362,8 +362,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                             // Minimized tasks are immediately placed in the exploded position and
                             // then fade in during the course of EXPLODE_PROGRESS.
                             explodeProgress
-                        else ->
-                            0f
+                        else -> 0f
                     }
             }
 
@@ -608,7 +607,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         if (enableMultipleDesktops(context) && desktopTask?.tasks?.isEmpty() == true) {
             recentsView.switchToScreenshot {
                 recentsView.finishRecentsAnimation(
-                    /* toRecents= */ true,
+                    /* toHome= */ true,
                     /* shouldPip= */ false,
                     launchDesktopFromRecents,
                 )

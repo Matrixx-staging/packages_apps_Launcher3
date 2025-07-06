@@ -97,18 +97,18 @@ public class RecentsAnimationController {
 
     @UiThread
     public void finishAnimationToHome() {
-        finishController(true /* toRecents */, null, false /* sendUserLeaveHint */);
+        finishController(true /* toHome */, null, false /* sendUserLeaveHint */);
     }
 
     @UiThread
     public void finishAnimationToApp() {
-        finishController(false /* toRecents */, null, false /* sendUserLeaveHint */);
+        finishController(false /* toHome */, null, false /* sendUserLeaveHint */);
     }
 
     /** See {@link #finish(boolean, Runnable, boolean)} */
     @UiThread
-    public void finish(boolean toRecents, Runnable onFinishComplete) {
-        finish(toRecents, onFinishComplete, false /* sendUserLeaveHint */);
+    public void finish(boolean toHome, Runnable onFinishComplete) {
+        finish(toHome, onFinishComplete, false /* sendUserLeaveHint */);
     }
 
     /**
@@ -119,18 +119,18 @@ public class RecentsAnimationController {
      *                          picture-in-picture mode upon being paused.
      */
     @UiThread
-    public void finish(boolean toRecents, Runnable onFinishComplete, boolean sendUserLeaveHint) {
+    public void finish(boolean toHome, Runnable onFinishComplete, boolean sendUserLeaveHint) {
         Preconditions.assertUIThread();
-        finishController(toRecents, onFinishComplete, sendUserLeaveHint);
+        finishController(toHome, onFinishComplete, sendUserLeaveHint);
     }
 
     @UiThread
-    public void finishController(boolean toRecents, Runnable callback, boolean sendUserLeaveHint) {
-        finishController(toRecents, callback, sendUserLeaveHint, false /* forceFinish */);
+    public void finishController(boolean toHome, Runnable callback, boolean sendUserLeaveHint) {
+        finishController(toHome, callback, sendUserLeaveHint, false /* forceFinish */);
     }
 
     @UiThread
-    public void finishController(boolean toRecents, Runnable callback, boolean sendUserLeaveHint,
+    public void finishController(boolean toHome, Runnable callback, boolean sendUserLeaveHint,
             boolean forceFinish) {
         mPendingFinishCallbacks.add(callback);
         if (!forceFinish && mFinishRequested) {
@@ -139,13 +139,13 @@ public class RecentsAnimationController {
             // trigger the callback to be called immediately
             return;
         }
-        ActiveGestureProtoLogProxy.logFinishRecentsAnimation(toRecents);
+        ActiveGestureProtoLogProxy.logFinishRecentsAnimation(toHome);
         // Finish not yet requested
         mFinishRequested = true;
-        mFinishTargetIsLauncher = toRecents;
+        mFinishTargetIsLauncher = toHome;
         mOnFinishedListener.accept(this);
         Runnable finishCb = () -> {
-            mController.finish(toRecents, sendUserLeaveHint, new IResultReceiver.Stub() {
+            mController.finish(toHome, sendUserLeaveHint, new IResultReceiver.Stub() {
                 @Override
                 public void send(int i, Bundle bundle) throws RemoteException {
                     ActiveGestureProtoLogProxy.logFinishRecentsAnimationCallback();

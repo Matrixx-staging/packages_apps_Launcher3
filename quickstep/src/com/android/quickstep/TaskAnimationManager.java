@@ -449,7 +449,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
             return false;
         }
         recentsView.switchToScreenshot(null, () -> recentsView.finishRecentsAnimation(
-                true /* toRecents */, false /* shouldPip */, null));
+                true /* toHome */, false /* shouldPip */, null));
         return true;
     }
 
