@@ -23,15 +23,23 @@ import static com.android.launcher3.statemanager.BaseState.FLAG_NON_INTERACTIVE;
 import static com.android.launcher3.taskbar.TaskbarEduTooltipControllerKt.TOOLTIP_STEP_FEATURES;
 import static com.android.launcher3.taskbar.TaskbarLauncherStateController.FLAG_VISIBLE;
 import static com.android.launcher3.taskbar.TaskbarStashController.FLAG_IGNORE_IN_APP;
+import static com.android.launcher3.taskbar.navbutton.SetupNavLayoutterKt.GLIF_EXPRESSIVE_LIGHT_THEME;
+import static com.android.launcher3.taskbar.navbutton.SetupNavLayoutterKt.GLIF_EXPRESSIVE_THEME;
+import static com.android.launcher3.taskbar.navbutton.SetupNavLayoutterKt.SUW_THEME_SYSTEM_PROPERTY;
+import static com.android.quickstep.interaction.AllSetActivity.ALL_SET_SWIPE_THRESHOLD_FOR_WORKSPACE_ANIM;
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;
+import android.animation.ValueAnimator;
+import android.os.SystemProperties;
 import android.window.RemoteTransition;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.android.app.animation.Interpolators;
 import com.android.launcher3.DeviceProfile;
+import com.android.launcher3.Flags;
 import com.android.launcher3.Hotseat;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.Utilities;
@@ -52,6 +60,7 @@ import com.android.quickstep.LauncherActivityInterface;
 import com.android.quickstep.OverviewComponentObserver;
 import com.android.quickstep.RecentsAnimationCallbacks;
 import com.android.quickstep.SystemUiProxy;
+import com.android.quickstep.util.ScalingWorkspaceRevealAnim;
 import com.android.quickstep.util.SplitTask;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
@@ -214,6 +223,32 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
                 placeholderDuration));
     }
 
+    protected void addWorkspaceRevealAnim(AnimatorSet as, int duration) {
+        String SUWTheme = SystemProperties.get(SUW_THEME_SYSTEM_PROPERTY, "");
+        boolean isExpressiveTheme = SUWTheme.equals(GLIF_EXPRESSIVE_THEME)
+                || SUWTheme.equals(GLIF_EXPRESSIVE_LIGHT_THEME);
+        if (!isExpressiveTheme || !Flags.enableNewAllSetAnimation()) {
+            return;
+        }
+        ScalingWorkspaceRevealAnim anim =
+                new ScalingWorkspaceRevealAnim(mLauncher, null, null, true, false);
+
+        ValueAnimator autoPlayAnimator = ValueAnimator.ofFloat(0f, 1f);
+        autoPlayAnimator.setDuration(duration);
+        autoPlayAnimator.setInterpolator(Interpolators.LINEAR);
+        autoPlayAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            private boolean mCanAutoPlay = true;
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                if (mCanAutoPlay && valueAnimator.getAnimatedFraction()
+                        > ALL_SET_SWIPE_THRESHOLD_FOR_WORKSPACE_ANIM) {
+                    anim.start();
+                    mCanAutoPlay = false;
+                }
+            }
+        });
+        as.play(autoPlayAnimator);
+    }
     /**
      * Should be called from onResume() and onPause(), and animates the Taskbar accordingly.
      */

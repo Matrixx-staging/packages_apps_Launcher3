@@ -15,17 +15,26 @@
  */
 package com.android.quickstep.interaction;
 
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
 import static android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;
 import static android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS;
 
 import static com.android.app.animation.Interpolators.ACCELERATE;
 import static com.android.app.animation.Interpolators.FAST_OUT_SLOW_IN;
 import static com.android.app.animation.Interpolators.LINEAR;
+import static com.android.app.animation.Interpolators.clampToProgress;
 import static com.android.launcher3.Utilities.mapBoundToRange;
 import static com.android.launcher3.Utilities.mapRange;
+import static com.android.launcher3.Utilities.mapToRange;
+import static com.android.launcher3.taskbar.StashedHandleViewController.ALPHA_INDEX_ALL_SET_TRANSITION;
 import static com.android.quickstep.OverviewComponentObserver.startHomeIntentSafely;
+import static com.android.quickstep.views.WallpaperScreenshotClipView.CLIP_ANIM_DURATION;
 
 import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -52,6 +61,8 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.View.AccessibilityDelegate;
+import android.view.ViewTreeObserver;
+import android.view.ViewTreeObserver.OnWindowVisibilityChangeListener;
 import android.view.Window;
 import android.view.WindowInsetsController;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -63,6 +74,7 @@ import androidx.annotation.Nullable;
 import androidx.core.graphics.ColorUtils;
 
 import com.android.launcher3.DeviceProfile;
+import com.android.launcher3.Flags;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.R;
@@ -70,7 +82,11 @@ import com.android.launcher3.RemoveAnimationSettingsTracker;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.anim.AnimatorPlaybackController;
+import com.android.launcher3.taskbar.StashedHandleViewController;
+import com.android.launcher3.taskbar.TaskbarActivityContext;
+import com.android.launcher3.taskbar.TaskbarActivityContext.UIControllerChangeListener;
 import com.android.launcher3.taskbar.TaskbarManager;
+import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.util.Executors;
 import com.android.quickstep.GestureState;
 import com.android.quickstep.OverviewComponentObserver;
@@ -79,6 +95,7 @@ import com.android.quickstep.TouchInteractionService.TISBinder;
 import com.android.quickstep.util.ActivityPreloadUtil;
 import com.android.quickstep.util.LottieAnimationColorUtils;
 import com.android.quickstep.util.TISBindHelper;
+import com.android.quickstep.views.WallpaperScreenshotClipView;
 import com.android.wm.shell.shared.TypefaceUtils.FontFamily;
 
 import com.airbnb.lottie.LottieAnimationView;
@@ -90,7 +107,12 @@ import java.util.Map;
  * A page shows after SUW flow to hint users to swipe up from the bottom of the screen to go home
  * for the gestural system navigation.
  */
-public class AllSetActivity extends Activity {
+public class AllSetActivity extends Activity implements UIControllerChangeListener {
+
+    public static final float ALL_SET_SWIPE_THRESHOLD_FOR_WORKSPACE_ANIM = 0.95f;
+    // The fade-out happens in the last 65% of the animation.
+    private static final float CONTENT_FADE_OUT_START_PROGRESS = 0.35f;
+
     private static final String TAG = "AllSetActivity";
 
     private static final String LOG_TAG = "AllSetActivity";
@@ -143,14 +165,16 @@ public class AllSetActivity extends Activity {
     private boolean mBackgroundAnimationToggledOn = true;
 
     private TextView mHintView;
-
     private final OverviewChangeListener mOverviewChangeListener = this::onOverviewTargetChange;
+
+    @Nullable private AnimatorSet mExpressiveAnimSet;
+    @Nullable private WallpaperScreenshotClipView mWallpaperClipPath;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         String SUWTheme = SystemProperties.get(SUW_THEME_SYSTEM_PROPERTY, "");
-        mIsExpressiveThemeEnabledInSUW = SUWTheme.equals(GLIF_EXPRESSIVE_THEME) || SUWTheme.equals(
-                GLIF_EXPRESSIVE_LIGHT_THEME);
+        mIsExpressiveThemeEnabledInSUW = SUWTheme.equals(GLIF_EXPRESSIVE_THEME)
+                || SUWTheme.equals(GLIF_EXPRESSIVE_LIGHT_THEME);
         if (mIsExpressiveThemeEnabledInSUW) setTheme(R.style.AllSetTheme_Expressive);
 
         super.onCreate(savedInstanceState);
@@ -285,6 +309,130 @@ public class AllSetActivity extends Activity {
         navigationSettings.setTypeface(
                 Typeface.create(FontFamily.GSF_HEADLINE_SMALL_EMPHASIZED.getValue(),
                         Typeface.NORMAL));
+
+        if (mIsExpressiveThemeEnabledInSUW && Flags.enableNewAllSetAnimation()) {
+            mWallpaperClipPath = findViewById(R.id.wallpaper_clip_path);
+            mWallpaperClipPath.setVisibility(VISIBLE);
+
+            // Attempt to pre-load screenshot.
+            ViewTreeObserver observer = mWallpaperClipPath.getViewTreeObserver();
+            observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    mWallpaperClipPath.getViewTreeObserver().removeOnGlobalLayoutListener(
+                            this);
+
+                    tryCaptureWallpaperScreenshot();
+                }
+            });
+
+            // If wallpaper is not ready for pre-load, we try one more time.
+            observer.addOnWindowVisibilityChangeListener(new OnWindowVisibilityChangeListener() {
+                @Override
+                public void onWindowVisibilityChanged(int visibility) {
+                    mWallpaperClipPath.getViewTreeObserver()
+                            .removeOnWindowVisibilityChangeListener(this);
+                    tryCaptureWallpaperScreenshot();
+
+                }
+            });
+            mExpressiveAnimSet = buildExpressiveAnimatorSet();
+        }
+    }
+
+    private void tryCaptureWallpaperScreenshot() {
+        if (mWallpaperClipPath != null) {
+            View wallpaperScrim = findViewById(R.id.wallpaper_scrim);
+            wallpaperScrim.setVisibility(GONE);
+            Runnable resetScrim = () -> {
+                wallpaperScrim.setVisibility(VISIBLE);
+            };
+            mWallpaperClipPath.tryCaptureWallpaperScreenshot(
+                    getWindow(), getDisplayId(), mRootView, WALLPAPER_BLUR_RADIUS, resetScrim);
+        }
+    }
+
+    private AnimatorSet buildExpressiveAnimatorSet() {
+        if (!mIsExpressiveThemeEnabledInSUW || !Flags.enableNewAllSetAnimation()) {
+            return null;
+        }
+
+        View content = findViewById(R.id.content);
+        int height = getWindowManager().getCurrentWindowMetrics().getBounds().height();
+
+        ValueAnimator transYAnimator = ValueAnimator.ofFloat(0, -height);
+        transYAnimator.setDuration(100);
+        transYAnimator.setInterpolator(LINEAR);
+        transYAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float transY = (float) animation.getAnimatedValue();
+                mWallpaperClipPath.setClipTranslationY(transY, animation.getAnimatedFraction());
+                StashedHandleViewController controller = getStashedHandleViewController();
+                if (controller != null) {
+                    controller.setTranslationYForSwipe(transY);
+                }
+            }
+        });
+
+        ValueAnimator contentAlpha = ValueAnimator.ofFloat(1, 0);
+        contentAlpha.setInterpolator(LINEAR);
+        contentAlpha.setDuration(100);
+        contentAlpha.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                float progress = valueAnimator.getAnimatedFraction();
+                float alpha = 1f - clampToProgress(progress, CONTENT_FADE_OUT_START_PROGRESS, 1f);
+                content.setAlpha(alpha);
+            }
+        });
+
+        ValueAnimator hintAndHandleAlpha = ValueAnimator.ofFloat(1, 0);
+        hintAndHandleAlpha.setDuration(10);
+        hintAndHandleAlpha.setInterpolator(LINEAR);
+        hintAndHandleAlpha.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                float alpha = (float) valueAnimator.getAnimatedValue();
+                mHintView.setAlpha(alpha);
+                StashedHandleViewController controller = getStashedHandleViewController();
+                if (controller != null) {
+                    controller.getStashedHandleAlpha()
+                            .get(ALPHA_INDEX_ALL_SET_TRANSITION)
+                            .setValue(alpha);
+                }
+            }
+        });
+
+        AnimatorSet as = new AnimatorSet();
+        mWallpaperClipPath.addClipAnimation(as);
+        as.play(transYAnimator);
+        as.play(contentAlpha);
+        as.play(hintAndHandleAlpha);
+        as.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                StashedHandleViewController controller = getStashedHandleViewController();
+                if (controller != null) {
+                    controller.setTranslationYForSwipe(0);
+                    controller.getStashedHandleAlpha()
+                            .get(ALPHA_INDEX_ALL_SET_TRANSITION)
+                            .setValue(1f);
+                }
+            }
+        });
+        return as;
+    }
+
+    private @Nullable StashedHandleViewController getStashedHandleViewController() {
+        if (mTISBindHelper != null) {
+            TaskbarManager taskbarManager = mTISBindHelper.getTaskbarManager();
+            if (taskbarManager != null) {
+                return taskbarManager.getCurrentActivityContext()
+                        .getControllers().stashedHandleViewController;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -389,14 +537,41 @@ public class AllSetActivity extends Activity {
         if (mIsExpressiveThemeEnabledInSUW) {
             getWindow().setBackgroundBlurRadius(WALLPAPER_BLUR_RADIUS);
         }
+        setUIControllerChangeListener(this);
     }
 
     private void onTISConnected(TISBinder binder) {
         setSetupUIVisible(isResumed());
         binder.setSwipeUpProxy(isResumed() ? this::createSwipeUpProxy : null);
-        TaskbarManager taskbarManager = binder.getTaskbarManager();
+
+        setUIControllerChangeListener(this);
+        TaskbarManager taskbarManager = mTISBindHelper.getTaskbarManager();
+        if (taskbarManager != null) {
+            // Initial call
+            onUIControllerChanged(
+                    taskbarManager.getUIControllerForDisplay(taskbarManager.getPrimaryDisplayId()));
+        }
+    }
+
+    private void setUIControllerChangeListener(UIControllerChangeListener listener) {
+        TaskbarManager taskbarManager = mTISBindHelper.getTaskbarManager();
+        if (taskbarManager != null) {
+            TaskbarActivityContext context = taskbarManager.getCurrentActivityContext();
+            if (context != null) {
+                context.setUIControllerChangeListener(listener);
+            }
+        }
+    }
+
+    @Override
+    public void onUIControllerChanged(TaskbarUIController uiController) {
+        TaskbarManager taskbarManager = mTISBindHelper.getTaskbarManager();
         if (taskbarManager != null) {
             mLauncherStartAnim = taskbarManager.createLauncherStartFromSuwAnim(MAX_SWIPE_DURATION);
+            if (mWallpaperClipPath != null) {
+                mWallpaperClipPath.setForceFallbackAnimation(
+                        taskbarManager.shouldForceAllSetFallbackAnimation());
+            }
         }
     }
 
@@ -413,6 +588,7 @@ public class AllSetActivity extends Activity {
             finishAndRemoveTask();
             dispatchLauncherAnimStartEnd();
         }
+        setUIControllerChangeListener(null);
     }
 
     private void clearBinderOverride() {
@@ -440,6 +616,7 @@ public class AllSetActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         getIDP().removeOnChangeListener(mOnIDPChangeListener);
+        setUIControllerChangeListener(null);
         mTISBindHelper.onDestroy();
         clearBinderOverride();
         if (mBackgroundAnimatorListener != null) {
@@ -482,17 +659,18 @@ public class AllSetActivity extends Activity {
     }
 
     private void onSwipeProgressUpdate() {
-        if (!mIsExpressiveThemeEnabledInSUW) {
-            mBackground.setProgress(mSwipeProgress.value);
-        } else {
+        if (mIsExpressiveThemeEnabledInSUW) {
             getWindow().setBackgroundBlurRadius((int) mapBoundToRange(
                     mSwipeProgress.value, 0, HINT_BOTTOM_FACTOR, WALLPAPER_BLUR_RADIUS, 0,
                     ACCELERATE));
+            if (mExpressiveAnimSet != null) {
+                long progress = (long) mapToRange(
+                        mSwipeProgress.value, 0, 1, 0, CLIP_ANIM_DURATION, LINEAR);
+                mExpressiveAnimSet.setCurrentPlayTime(Math.min(CLIP_ANIM_DURATION, progress));
+            }
+        } else {
+            mBackground.setProgress(mSwipeProgress.value);
         }
-        float alpha = getContentViewAlphaForSwipeProgress();
-        mRootView.setAlpha(alpha);
-        mRootView.setTranslationY((alpha - 1) * mSwipeUpShift);
-
         if (mLauncherStartAnim != null) {
             mLauncherStartAnim.setPlayFraction(
                     FAST_OUT_SLOW_IN.getInterpolation(mSwipeProgress.value));
