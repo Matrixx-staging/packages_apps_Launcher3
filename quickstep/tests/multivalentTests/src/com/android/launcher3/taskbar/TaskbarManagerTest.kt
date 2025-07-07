@@ -27,6 +27,9 @@ import com.android.launcher3.taskbar.rules.TaskbarWindowSandboxContext
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.LauncherMultivalentJUnit.EmulatedDevices
 import com.android.launcher3.util.SandboxApplication
+import com.android.quickstep.SystemUiProxy
+import com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_STATUS_BAR_KEYGUARD_GOING_AWAY
+import com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_STATUS_BAR_KEYGUARD_SHOWING
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
@@ -118,5 +121,31 @@ class TaskbarManagerTest {
         taskbarUnitTestRule.unlockUser()
         val dp2 = checkNotNull(taskbarManager.getTaskbarForDisplay(displayId)).deviceProfile
         assertThat(dp1).isNotSameInstanceAs(dp2)
+    }
+
+    @Test
+    fun toggleAllAppsSearch_deviceLocked_allAppsNotOpened() {
+        SystemUiProxy.INSTANCE[context].focusState.focusedDisplayId = context.displayId
+        runOnMainSync {
+            taskbarManager.onSystemUiFlagsChanged(
+                SYSUI_STATE_STATUS_BAR_KEYGUARD_SHOWING,
+                context.displayId,
+            )
+            taskbarManager.toggleAllAppsSearch()
+        }
+        assertThat(activityContext.controllers.taskbarAllAppsController.isOpen).isFalse()
+    }
+
+    @Test
+    fun toggleAllAppsSearch_deviceUnlocked_allAppsOpened() {
+        SystemUiProxy.INSTANCE[context].focusState.focusedDisplayId = context.displayId
+        runOnMainSync {
+            taskbarManager.onSystemUiFlagsChanged(
+                SYSUI_STATE_STATUS_BAR_KEYGUARD_GOING_AWAY,
+                context.displayId,
+            )
+            taskbarManager.toggleAllAppsSearch()
+        }
+        assertThat(activityContext.controllers.taskbarAllAppsController.isOpen).isTrue()
     }
 }
