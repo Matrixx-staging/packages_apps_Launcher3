@@ -303,8 +303,6 @@ constructor(
             homeVisibilityState.removeListener(homeVisibilityListener)
             recentsWindowTracker.onContextDestroyed(this)
             recentsView?.destroy()
-            recentsView = null
-            windowView = null
         }
     }
 
