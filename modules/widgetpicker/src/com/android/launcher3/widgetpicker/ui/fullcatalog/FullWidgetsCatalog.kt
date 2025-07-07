@@ -16,22 +16,22 @@
 
 package com.android.launcher3.widgetpicker.ui.fullcatalog
 
-import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.unit.dp
 import com.android.launcher3.widgetpicker.ui.WidgetPickerEventListeners
 import com.android.launcher3.widgetpicker.ui.components.bottomsheet.ModalBottomSheetHeightStyle
 import com.android.launcher3.widgetpicker.ui.components.bottomsheet.TitledBottomSheet
-import com.android.launcher3.widgetpicker.ui.components.bottomsheet.TitledBottomSheetDefaults
 import com.android.launcher3.widgetpicker.ui.components.widgetPickerTestTag
 import com.android.launcher3.widgetpicker.ui.components.widgetPickerTestTagContainer
+import com.android.launcher3.widgetpicker.ui.fullcatalog.FullWidgetsCatalogDimens.compactHeightBreakpoint
+import com.android.launcher3.widgetpicker.ui.fullcatalog.FullWidgetsCatalogDimens.compactWidthBreakpoint
 import com.android.launcher3.widgetpicker.ui.fullcatalog.FullWidgetsCatalogViewModel.Screen
 import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.LandingScreen
 import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.search.SearchScreen
 import com.android.launcher3.widgetpicker.ui.rememberViewModel
-import com.android.launcher3.widgetpicker.ui.windowsizeclass.calculateWindowInfo
 import javax.inject.Inject
 
 /**
@@ -46,17 +46,14 @@ class FullWidgetsCatalog
 constructor(private val viewModelFactory: FullWidgetsCatalogViewModel.Factory) {
     @Composable
     fun Content(eventListeners: WidgetPickerEventListeners) {
-        val viewModel: FullWidgetsCatalogViewModel =
-            rememberViewModel(
-                animationDelay = TitledBottomSheetDefaults.SLIDE_IN_ANIMATION_DURATION
-            ) {
-                viewModelFactory.create()
-            }
-        val windowInfo = LocalConfiguration.current.calculateWindowInfo()
-        val isCompactWidth =
-            windowInfo.windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact
+        val viewModel: FullWidgetsCatalogViewModel = rememberViewModel { viewModelFactory.create() }
+
+        val density = LocalDensity.current
+        val windowSize = LocalWindowInfo.current.containerSize
         val isCompactHeight =
-            windowInfo.windowSizeClass.heightSizeClass == WindowHeightSizeClass.Compact
+            with(density) { windowSize.height < compactWidthBreakpoint.roundToPx() }
+        val isCompactWidth =
+            with(density) { windowSize.width < compactHeightBreakpoint.roundToPx() }
 
         TitledBottomSheet(
             title = viewModel.title.takeIf { !isCompactHeight },
@@ -67,6 +64,7 @@ constructor(private val viewModelFactory: FullWidgetsCatalogViewModel.Factory) {
             heightStyle = ModalBottomSheetHeightStyle.FILL_HEIGHT,
             showDragHandle = true,
             onDismissSheet = { eventListeners.onClose() },
+            onSheetOpen = { viewModel.landingScreenViewModel.onUiReady() },
         ) {
             when (viewModel.activeScreen) {
                 Screen.LANDING -> {
@@ -94,3 +92,21 @@ constructor(private val viewModelFactory: FullWidgetsCatalogViewModel.Factory) {
 }
 
 private const val WIDGET_CATALOG_TEST_TAG = "widgets_catalog"
+
+private object FullWidgetsCatalogDimens {
+    /**
+     * Width below which screen is considered compact and the horizontally compact view of catalog
+     * can be displayed e.g. single pane.
+     *
+     * Same breakpoint as material3's `WindowWidthSizeClass.Compact`
+     */
+    val compactWidthBreakpoint = 480.dp
+
+    /**
+     * Height below which screen is considered compact and the vertically compact view of catalog
+     * can be displayed. e.g. hide header etc.
+     *
+     * Same breakpoint as material3's `WindowHeightSizeClass.Compact`
+     */
+    val compactHeightBreakpoint = 600.dp
+}

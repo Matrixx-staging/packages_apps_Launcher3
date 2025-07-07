@@ -40,8 +40,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
-import com.android.launcher3.widgetpicker.ui.components.bottomsheet.BottomSheetDismissDimensions.OFFSET_DIFF_TO_TRIGGER_DISMISS_CALLBACK
 import com.android.launcher3.widgetpicker.ui.components.bottomsheet.BottomSheetDismissDimensions.NOT_VISIBLE_PREDICTIVE_BACK_SCALE
+import com.android.launcher3.widgetpicker.ui.components.bottomsheet.BottomSheetDismissDimensions.OFFSET_DIFF_TO_TRIGGER_DISMISS_CALLBACK
 import com.android.launcher3.widgetpicker.ui.components.bottomsheet.BottomSheetDismissDimensions.PredictiveBackContentTransformOrigin
 import com.android.launcher3.widgetpicker.ui.components.bottomsheet.BottomSheetDismissDimensions.SETTLE_ANIMATION_SPEC
 import com.android.launcher3.widgetpicker.ui.components.bottomsheet.BottomSheetDismissDimensions.VISIBLE_PREDICTIVE_BACK_SCALE
@@ -50,12 +50,12 @@ import com.android.launcher3.widgetpicker.ui.components.bottomsheet.BottomSheetD
 import com.android.launcher3.widgetpicker.ui.components.bottomsheet.BottomSheetDismissDimensions.predictiveBackMaxScaleYDistance
 import com.android.launcher3.widgetpicker.ui.components.bottomsheet.BottomSheetDismissDimensions.sheetPositionalThreshold
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import kotlin.math.abs
 
 /**
  * A modifier that handles the dismiss gestures (e.g. pull down to dismiss, predictive back) for
@@ -63,12 +63,14 @@ import kotlin.math.abs
  *
  * Use in combination with [dismissableBottomSheetContent] that's applied on the content.
  *
+ * @param onSheetOpen callback invoked when sheet is fully opened first time.
  * @param onDismissSheet final callback invoked when the sheet has settled animating after a gesture
  *   that led to dismissing the sheet.
  * @param maxHeight max height available for the sheet
  */
 fun Modifier.dismissibleBottomSheet(
     sheetState: BottomSheetDismissState,
+    onSheetOpen: () -> Unit,
     onDismissSheet: () -> Unit,
     maxHeight: Float,
 ): Modifier = composed {
@@ -100,7 +102,7 @@ fun Modifier.dismissibleBottomSheet(
 
     LaunchedEffect(Unit) { sheetState.expand() }
 
-    LaunchedEffect(sheetState) {
+    LaunchedEffect(sheetState, maxHeight) {
         var previous = SheetPositionValue.COLLAPSED
         snapshotFlow { sheetState.anchoredDraggableState.currentValue }
             .collect {
@@ -112,6 +114,25 @@ fun Modifier.dismissibleBottomSheet(
                             val offsetRemaining = abs(offset - maxHeight)
                             if (offsetRemaining < OFFSET_DIFF_TO_TRIGGER_DISMISS_CALLBACK) {
                                 onDismissSheet()
+                                cancel()
+                            }
+                        }
+                }
+                previous = it
+            }
+    }
+
+    LaunchedEffect(sheetState) {
+        var previous = SheetPositionValue.COLLAPSED
+        snapshotFlow { sheetState.anchoredDraggableState.currentValue }
+            .collect {
+                if (previous == SheetPositionValue.COLLAPSED && it == SheetPositionValue.EXPANDED) {
+                    // We are about to open, monitor close offset and invoke sheet open callback
+                    // once fully open
+                    snapshotFlow { sheetState.anchoredDraggableState.offset }
+                        .collect { offset ->
+                            if (offset <= 5f) {
+                                onSheetOpen()
                                 cancel()
                             }
                         }
