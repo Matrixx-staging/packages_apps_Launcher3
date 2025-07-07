@@ -106,7 +106,7 @@ fun WidgetPreview(
     ) {
         when (preview) {
             is WidgetPreview.PlaceholderWidgetPreview ->
-                PlaceholderWidgetPreview(size = containerSize, widgetRadius = widgetRadius)
+                PlaceholderWidgetPreview(size = containerSize)
 
             is WidgetPreview.BitmapWidgetPreview ->
                 BitmapWidgetPreview(
@@ -149,7 +149,7 @@ fun WidgetPreview(
 }
 
 @Composable
-private fun PlaceholderWidgetPreview(size: DpSize, widgetRadius: Dp) {
+private fun PlaceholderWidgetPreview(size: DpSize) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier.width(size.width).height(size.height),
