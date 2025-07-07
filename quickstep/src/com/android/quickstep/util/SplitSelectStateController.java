@@ -1044,8 +1044,7 @@ public class SplitSelectStateController {
 
             private AnimatorSet createHomeRevealAnimation() {
                 return new ScalingWorkspaceRevealAnim(mLauncher, /* siblingAnimation= */ null,
-                        /* windowTargetRect= */ null, true /* playAlphaReveal */,
-                        true /* playBlur */)
+                        /* windowTargetRect= */ null, true /* playAlphaReveal */)
                         .getAnimators();
             }
 

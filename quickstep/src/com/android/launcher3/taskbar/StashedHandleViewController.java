@@ -59,8 +59,7 @@ public class StashedHandleViewController implements TaskbarControllers.LoggableT
     public static final int ALPHA_INDEX_ASSISTANT_INVOKED = 2;
     public static final int ALPHA_INDEX_HIDDEN_WHILE_DREAMING = 3;
     public static final int ALPHA_INDEX_NUDGED = 4;
-    public static final int ALPHA_INDEX_ALL_SET_TRANSITION = 5;
-    private static final int NUM_ALPHA_CHANNELS = 6;
+    private static final int NUM_ALPHA_CHANNELS = 5;
 
     // Values for long press animations, picked to most closely match navbar spec.
     private static final float SCALE_TOUCH_ANIMATION_SHRINK = 0.85f;
@@ -298,7 +297,7 @@ public class StashedHandleViewController implements TaskbarControllers.LoggableT
     /**
      * Sets the translation of the stashed handle during the swipe up gesture.
      */
-    public void setTranslationYForSwipe(float transY) {
+    protected void setTranslationYForSwipe(float transY) {
         mTranslationYForSwipe = transY;
         updateTranslationY();
     }

@@ -267,8 +267,6 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     private @Nullable View mTaskbarSnapshotView;
     private @Nullable TaskbarOverlayContext mTaskbarSnapshotOverlay;
 
-    private @Nullable UIControllerChangeListener mUIControllerChangeListener;
-
     public TaskbarActivityContext(int displayId, Context windowContext,
             @Nullable Context navigationBarPanelContext, DeviceProfile launcherDp,
             TaskbarNavButtonController buttonController,
@@ -1029,9 +1027,6 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
      */
     public void setUIController(@NonNull TaskbarUIController uiController) {
         mControllers.setUiController(uiController);
-        if (mUIControllerChangeListener != null) {
-            mUIControllerChangeListener.onUIControllerChanged(uiController);
-        }
         if (BubbleBarController.isBubbleBarEnabled() && mControllers.bubbleControllers.isEmpty()) {
             // if the bubble bar was visible in a previous configuration of taskbar and is being
             // recreated now without bubbles, clean up any bubble bar adjustments from hotseat
@@ -2136,9 +2131,9 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         fullAnimation.setDuration(duration);
 
         TaskbarUIController uiController = mControllers.uiController;
-        if (uiController instanceof LauncherTaskbarUIController taskbarUiController) {
-            taskbarUiController.addLauncherVisibilityChangedAnimation(fullAnimation, duration);
-            taskbarUiController.addWorkspaceRevealAnim(fullAnimation, duration);
+        if (uiController instanceof LauncherTaskbarUIController) {
+            ((LauncherTaskbarUIController) uiController).addLauncherVisibilityChangedAnimation(
+                    fullAnimation, duration);
         }
         mControllers.taskbarStashController.addUnstashToHotseatAnimationFromSuw(fullAnimation,
                 duration);
@@ -2157,13 +2152,6 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         }
 
         return AnimatorPlaybackController.wrap(fullAnimation, duration);
-    }
-
-    /**
-     * @return true if we should force the fallback animation for All Set page
-     */
-    public boolean shouldForceAllSetFallbackAnimation() {
-        return !(mControllers.uiController instanceof LauncherTaskbarUIController);
     }
 
     void notifyUpdateLayoutParams() {
@@ -2254,22 +2242,5 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     @VisibleForTesting(otherwise = PACKAGE_PRIVATE)
     public TaskbarControllers getControllers() {
         return mControllers;
-    }
-
-    /**
-     * Sets a new UIControllerChangeListener
-     */
-    public void setUIControllerChangeListener(UIControllerChangeListener listener) {
-        mUIControllerChangeListener = listener;
-    }
-
-    /**
-     * Listens to when TaskbarUIController changes.
-     */
-    public interface UIControllerChangeListener {
-        /**
-         * Called whenever the UIIController changes.
-         */
-        void onUIControllerChanged(TaskbarUIController uiController);
     }
 }

@@ -1755,8 +1755,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                     anim.play(
                             new ScalingWorkspaceRevealAnim(mLauncher, rectFSpringAnim,
                                     rectFSpringAnim.getTargetRect(),
-                                    !fromPredictiveBack /* playAlphaReveal */,
-                                    true /* playBlur */).getAnimators());
+                                    !fromPredictiveBack /* playAlphaReveal */).getAnimators());
                 } else {
                     anim.play(new StaggeredWorkspaceAnim(mLauncher, velocity.y,
                             true /* animateOverviewScrim */, launcherView).getAnimators());

@@ -555,14 +555,6 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
         return taskbar == null ? null : taskbar.createLauncherStartFromSuwAnim(duration);
     }
 
-    /**
-     * @return true if we should force the fallback animation for All Set page
-     */
-    public boolean shouldForceAllSetFallbackAnimation() {
-        TaskbarActivityContext taskbar = getTaskbarForDisplay(mPrimaryDisplayId);
-        return taskbar == null ? true : taskbar.shouldForceAllSetFallbackAnimation();
-    }
-
     /** Called when the user is unlocked */
     public void onUserUnlocked() {
         debugPrimaryTaskbar("onUserUnlocked");
