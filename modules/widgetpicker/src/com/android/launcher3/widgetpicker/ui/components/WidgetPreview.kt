@@ -24,7 +24,6 @@ import android.view.View.DragShadowBuilder
 import android.widget.FrameLayout
 import android.widget.RemoteViews
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -33,7 +32,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -69,7 +67,6 @@ import com.android.launcher3.widgetpicker.shared.model.WidgetSizeInfo
 import com.android.launcher3.widgetpicker.shared.model.isAppWidget
 import com.android.launcher3.widgetpicker.ui.WidgetInteractionInfo
 import com.android.launcher3.widgetpicker.ui.WidgetInteractionSource
-import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 import kotlin.math.roundToInt
 
 /** Renders a different types of preview for an appwidget. */
@@ -155,16 +152,8 @@ fun WidgetPreview(
 private fun PlaceholderWidgetPreview(size: DpSize, widgetRadius: Dp) {
     Box(
         contentAlignment = Alignment.Center,
-        modifier =
-            Modifier.width(size.width)
-                .height(size.height)
-                .background(
-                    color = WidgetPickerTheme.colors.widgetPlaceholderBackground,
-                    shape = RoundedCornerShape(widgetRadius),
-                ),
-    ) {
-        CircularProgressIndicator(color = WidgetPickerTheme.colors.widgetPlaceholderContent)
-    }
+        modifier = Modifier.width(size.width).height(size.height),
+    ) {}
 }
 
 @Composable
@@ -215,6 +204,7 @@ private fun BitmapWidgetPreview(
             Modifier.onGloballyPositioned { coordinates ->
                     imagePositionInParent = coordinates.positionInParent()
                 }
+                .fadeInWhenVisible("BitmapWidgetPreview")
                 .pointerInput(bitmap) {
                     detectDragGesturesAfterLongPress(
                         onDrag = { change, _ -> change.consume() },
@@ -341,7 +331,8 @@ private fun RemoteViewsWidgetPreview(
     key(appWidgetHostView) {
         AndroidView(
             modifier =
-                Modifier.pointerInput(appWidgetHostView) {
+                Modifier.fadeInWhenVisible("RemoteViewsWidgetPreview")
+                    .pointerInput(appWidgetHostView) {
                         detectDragGesturesAfterLongPress(
                             onDrag = { change, _ -> change.consume() },
                             onDragStart = { offset ->
