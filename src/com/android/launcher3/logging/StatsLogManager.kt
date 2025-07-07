@@ -623,6 +623,8 @@ open class StatsLogManager protected constructor(@JvmField protected val mContex
         LAUNCHER_DESKTOP_MODE_TASKBAR_PINNED(2241),
         @UiEvent(doc = "User has unpinned taskbar in desktop mode using taskbar divider menu")
         LAUNCHER_DESKTOP_MODE_TASKBAR_UNPINNED(2242),
+        @UiEvent(doc = "Launcher window insets controller reportedly null")
+        LAUNCHER_WINDOW_INSETS_CONTROLLER_NULL(2400),
         // ADD MORE
     }
 
