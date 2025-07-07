@@ -50,15 +50,15 @@ object TaskUiStateMapper {
         clickCloseListener: OnClickListener?,
     ): TaskHeaderUiState =
         when {
-            taskData !is TaskData.Data -> TaskHeaderUiState.HideHeader
-            canHeaderBeCreated(taskData, hasHeader, clickCloseListener) -> {
+            taskData is TaskData.Data &&
+                hasHeader &&
+                enableDesktopExplodedView() &&
+                clickCloseListener != null -> {
                 TaskHeaderUiState.ShowHeader(
                     TaskHeaderUiState.ThumbnailHeader(
-                        // TODO(http://b/353965691): figure out what to do when `icon` or
-                        // `titleDescription` is null.
-                        taskData.icon!!,
-                        taskData.titleDescription!!,
-                        clickCloseListener!!,
+                        taskData.icon,
+                        taskData.titleDescription,
+                        clickCloseListener,
                     )
                 )
             }
@@ -104,17 +104,6 @@ object TaskUiStateMapper {
 
     private fun isSnapshotSplash(taskData: TaskData.Data) =
         taskData.thumbnailData?.thumbnail != null && !taskData.isLocked
-
-    private fun canHeaderBeCreated(
-        taskData: TaskData.Data,
-        hasHeader: Boolean,
-        clickCloseListener: OnClickListener?,
-    ) =
-        enableDesktopExplodedView() &&
-            hasHeader &&
-            taskData.icon != null &&
-            taskData.titleDescription != null &&
-            clickCloseListener != null
 
     /**
      * Converts a [TaskData] object into a [TaskAppTimerUiState] for displaying an app timer toast

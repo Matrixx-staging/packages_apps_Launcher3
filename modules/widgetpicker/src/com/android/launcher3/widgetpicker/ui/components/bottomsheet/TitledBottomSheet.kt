@@ -17,6 +17,7 @@
 package com.android.launcher3.widgetpicker.ui.components.bottomsheet
 
 import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -45,7 +46,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
@@ -60,9 +61,6 @@ import com.android.launcher3.widgetpicker.ui.components.bottomsheet.TitledBottom
 import com.android.launcher3.widgetpicker.ui.components.bottomsheet.TitledBottomSheetDimens.sheetShape
 import com.android.launcher3.widgetpicker.ui.components.bottomsheet.TitledBottomSheetDimens.sheetWindowInsets
 import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
-import com.android.launcher3.widgetpicker.ui.windowsizeclass.WindowInfo
-import com.android.launcher3.widgetpicker.ui.windowsizeclass.calculateWindowInfo
-import com.android.launcher3.widgetpicker.ui.windowsizeclass.isExtraTall
 
 /**
  * A bottom sheet with title and description on the top. Intended to serve as a common container
@@ -86,11 +84,11 @@ fun TitledBottomSheet(
     description: String?,
     heightStyle: ModalBottomSheetHeightStyle,
     showDragHandle: Boolean = true,
+    onSheetOpen: () -> Unit,
     onDismissSheet: () -> Unit,
     content: @Composable () -> Unit,
 ) {
     val density = LocalDensity.current
-    val windowInfo = LocalConfiguration.current.calculateWindowInfo()
 
     BoxWithConstraints(modifier = modifier.windowInsetsPadding(sheetWindowInsets)) {
         val animSpec: AnimationSpec<Float> = MaterialTheme.motionScheme.slowSpatialSpec()
@@ -100,11 +98,11 @@ fun TitledBottomSheet(
 
         Surface(
             modifier =
-                Modifier
-                    .semantics { isTraversalGroup = true }
+                Modifier.semantics { isTraversalGroup = true }
                     .fillMaxSize()
                     .dismissibleBottomSheet(
                         sheetState = sheetState,
+                        onSheetOpen = onSheetOpen,
                         onDismissSheet = onDismissSheet,
                         maxHeight = with(density) { maxHeight.toPx() },
                     ),
@@ -113,10 +111,9 @@ fun TitledBottomSheet(
             content = {
                 Column(
                     modifier =
-                        Modifier
-                            .imePadding()
+                        Modifier.imePadding()
                             .windowInsetsPadding(contentWindowInsets)
-                            .sheetContentHeight(heightStyle, windowInfo, maxHeight)
+                            .sheetContentHeight(heightStyle, maxHeight)
                             .padding(horizontal = sheetInnerHorizontalPadding)
                             .padding(top = sheetInnerTopPadding.takeIf { !showDragHandle } ?: 0.dp)
                             .dismissableBottomSheetContent(sheetState)
@@ -136,9 +133,11 @@ fun TitledBottomSheet(
 
 @Composable
 private fun Header(title: String, description: String?) {
-    Column(modifier = Modifier.padding(bottom = headerBottomMargin).fillMaxWidth()) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(bottom = headerBottomMargin).fillMaxWidth(),
+    ) {
         Text(
-            modifier = Modifier.wrapContentHeight().fillMaxWidth(),
             maxLines = 1,
             text = title,
             textAlign = TextAlign.Center,
@@ -147,7 +146,6 @@ private fun Header(title: String, description: String?) {
         )
         description?.let {
             Text(
-                modifier = Modifier.wrapContentHeight().fillMaxWidth(),
                 maxLines = 2,
                 text = it,
                 textAlign = TextAlign.Center,
@@ -161,7 +159,6 @@ private fun Header(title: String, description: String?) {
 @Composable
 private fun Modifier.sheetContentHeight(
     style: ModalBottomSheetHeightStyle,
-    windowInfo: WindowInfo,
     maxHeight: Dp,
 ): Modifier {
     val heightModifier =
@@ -171,7 +168,7 @@ private fun Modifier.sheetContentHeight(
             ModalBottomSheetHeightStyle.WRAP_CONTENT -> this.wrapContentHeight()
         }
 
-    return if (windowInfo.isExtraTall()) {
+    return if (maxHeight > 1200.dp) {
         // Cap the height to max 2/3 of total window height; so the bottom sheet doesn't feel too
         // huge.
         heightModifier.heightIn(max = 2 * maxHeight / 3)
@@ -182,18 +179,16 @@ private fun Modifier.sheetContentHeight(
 
 @Composable
 private fun DecorativeDragHandle(modifier: Modifier) {
-    Surface(
-        modifier = modifier,
-        color = MaterialTheme.colorScheme.outline,
-        shape = MaterialTheme.shapes.medium,
-    ) {
-        Box(
-            Modifier.size(
-                width = DragHandleDimens.dragHandleWidth,
-                height = DragHandleDimens.dragHandleHeight,
-            )
-        )
-    }
+    Box(
+        modifier =
+            modifier
+                .clip(MaterialTheme.shapes.medium)
+                .background(MaterialTheme.colorScheme.outline)
+                .size(
+                    width = DragHandleDimens.dragHandleWidth,
+                    height = DragHandleDimens.dragHandleHeight,
+                )
+    )
 }
 
 /**

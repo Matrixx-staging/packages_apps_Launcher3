@@ -115,23 +115,46 @@ class TaskUiStateMapperTest {
 
     @EnableFlags(Flags.FLAG_ENABLE_DESKTOP_EXPLODED_VIEW)
     @Test
-    fun taskData_hasHeader_emptyTaskData_returns_HideHeader() {
-        val inputs =
-            listOf(
-                TASK_DATA.copy(isLiveTile = true, icon = null),
-                TASK_DATA.copy(isLiveTile = true, titleDescription = null),
-                TASK_DATA.copy(isLiveTile = true, icon = null, titleDescription = null),
+    fun taskData_hasHeader_noIcon_returns_ShowHeader() {
+        val closeCallback = View.OnClickListener {}
+        val result =
+            TaskUiStateMapper.toTaskHeaderState(
+                taskData = TASK_DATA.copy(isLiveTile = true, icon = null),
+                hasHeader = true,
+                clickCloseListener = closeCallback,
             )
+        val expected =
+            TaskHeaderUiState.ShowHeader(
+                header =
+                    TaskHeaderUiState.ThumbnailHeader(
+                        icon = null,
+                        title = TASK_TITLE_DESCRIPTION,
+                        clickCloseListener = closeCallback,
+                    )
+            )
+        assertThat(result).isEqualTo(expected)
+    }
 
-        inputs.forEach { taskData ->
-            val result =
-                TaskUiStateMapper.toTaskHeaderState(
-                    taskData = taskData,
-                    hasHeader = true,
-                    clickCloseListener = {},
-                )
-            assertThat(result).isEqualTo(TaskHeaderUiState.HideHeader)
-        }
+    @EnableFlags(Flags.FLAG_ENABLE_DESKTOP_EXPLODED_VIEW)
+    @Test
+    fun taskData_hasHeader_noTitle_returns_ShowHeader() {
+        val closeCallback = View.OnClickListener {}
+        val result =
+            TaskUiStateMapper.toTaskHeaderState(
+                taskData = TASK_DATA.copy(isLiveTile = true, titleDescription = null),
+                hasHeader = true,
+                clickCloseListener = closeCallback,
+            )
+        val expected =
+            TaskHeaderUiState.ShowHeader(
+                header =
+                    TaskHeaderUiState.ThumbnailHeader(
+                        icon = TASK_ICON,
+                        title = null,
+                        clickCloseListener = closeCallback,
+                    )
+            )
+        assertThat(result).isEqualTo(expected)
     }
 
     /** TaskThumbnailUiState */

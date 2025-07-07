@@ -21,6 +21,7 @@ import android.platform.test.rule.DeviceProduct
 import android.platform.test.rule.LimitDevicesRule
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
@@ -130,6 +131,8 @@ class LandingScreenSinglePaneTest {
                 viewModel = viewModel,
             )
         }
+
+        LaunchedEffect(Unit) { viewModel.onUiReady() }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
