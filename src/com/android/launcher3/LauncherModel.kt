@@ -317,6 +317,13 @@ constructor(
     }
 
     /**
+     * Checks whether the launcher model is active.
+     *
+     * @return true if the model is loaded or if loader task is running.
+     */
+    fun isActive(): Boolean = mModelLoaded || mIsLoaderTaskRunning
+
+    /**
      * Loads the model if not loaded
      *
      * @param callback called with the data model upon successful load or null on model thread.
