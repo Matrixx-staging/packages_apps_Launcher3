@@ -111,6 +111,8 @@
     <color name="widget_picker_menu_options_color_light">@color/system_on_surface_variant_light</color>
     <color name="widget_picker_header_app_title_color_light">@color/system_on_surface_light</color>
     <color name="widget_picker_header_app_subtitle_color_light">@color/system_on_surface_variant_light</color>
+    <color name="widget_picker_selected_header_app_title_color_light">@color/system_on_secondary_container_light</color>
+    <color name="widget_picker_selected_header_app_subtitle_color_light">@color/system_on_secondary_container_light</color>
     <color name="widget_picker_header_background_color_light">#C2E7FF</color>
     <color name="widget_picker_suggestions_icon_background_color_light">#FFFFFF</color>
     <color name="widget_picker_suggestions_icon_color_light">#0B57D0</color>
@@ -189,6 +191,8 @@
     <color name="widget_picker_menu_options_color_dark">@color/system_on_surface_variant_dark</color>
     <color name="widget_picker_header_app_title_color_dark">@color/system_on_surface_dark</color>
     <color name="widget_picker_header_app_subtitle_color_dark">@color/system_on_surface_variant_dark</color>
+    <color name="widget_picker_selected_header_app_title_color_dark">@color/system_on_secondary_container_dark</color>
+    <color name="widget_picker_selected_header_app_subtitle_color_dark">@color/system_on_secondary_container_dark</color>
     <color name="widget_picker_header_background_color_dark">#004A77</color>
     <color name="widget_picker_suggestions_icon_background_color_dark">#FFFFFFFF</color>
     <color name="widget_picker_suggestions_icon_color_dark">#062E6F</color>

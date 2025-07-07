@@ -28,13 +28,17 @@ import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTextStyles
 @Composable
 fun launcherWidgetPickerTextStyles(): WidgetPickerTextStyles {
     val searchBarTextStyle = textStyleFromResource(R.style.WidgetSearchBarText)
+    val widgetHeaderTitleStyle = textStyleFromResource(R.style.WidgetListHeader_Title)
+    val widgetHeaderSubTitleStyle = textStyleFromResource(R.style.WidgetListHeader_SubTitle)
 
     return WidgetPickerTextStyles(
         sheetTitle = textStyleFromResource(R.style.WidgetsTitle),
         sheetDescription = textStyleFromResource(R.style.WidgetPickerDescription),
-        unSelectedListHeaderTitle = textStyleFromResource(R.style.WidgetListHeader_Title),
+        expandableListHeaderTitle = widgetHeaderTitleStyle,
+        expandableListHeaderSubTitle = widgetHeaderSubTitleStyle,
+        unSelectedListHeaderTitle = widgetHeaderSubTitleStyle,
         selectedListHeaderTitle = textStyleFromResource(R.style.WidgetListHeader_Title_Selected),
-        unSelectedListHeaderSubTitle = textStyleFromResource(R.style.WidgetListHeader_SubTitle),
+        unSelectedListHeaderSubTitle = widgetHeaderSubTitleStyle,
         selectedListHeaderSubTitle =
             textStyleFromResource(R.style.WidgetListHeader_SubTitle_Selected),
         widgetLabel = textStyleFromResource(R.style.WidgetLabel),
