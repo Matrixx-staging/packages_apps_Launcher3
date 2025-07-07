@@ -15,6 +15,7 @@
  */
 package com.android.launcher3.taskbar;
 
+import static com.android.launcher3.Flags.enableRefactorTaskThumbnail;
 import static com.android.quickstep.util.BorderAnimator.DEFAULT_BORDER_COLOR;
 
 import android.animation.AnimatorSet;
@@ -24,6 +25,7 @@ import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -318,7 +320,13 @@ public class KeyboardQuickSwitchTaskView extends ConstraintLayout {
             thumbnailView.setVisibility(VISIBLE);
         }
         thumbnailView.getBackground().setTint(bm == null ? backgroundColor : Color.TRANSPARENT);
-        thumbnailView.setImageDrawable(new BlurredBitmapDrawable(bm, THUMBNAIL_BLUR_RADIUS));
+        if (enableRefactorTaskThumbnail()) {
+            // This reduces artifacts when performing heavy downscaling as is likely in KQS.
+            thumbnailView.setLayerPaint(new Paint(Paint.FILTER_BITMAP_FLAG));
+            thumbnailView.setImageBitmap(bm);
+        } else {
+            thumbnailView.setImageDrawable(new BlurredBitmapDrawable(bm, THUMBNAIL_BLUR_RADIUS));
+        }
     }
 
     private void applyIcon(@Nullable ImageView iconView, @Nullable Task task) {
