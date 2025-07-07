@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,7 +41,6 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.android.launcher3.widgetpicker.R
 import com.android.launcher3.widgetpicker.TestUtils
 import com.android.launcher3.widgetpicker.TestUtils.PERSONAL_TEST_APPS
 import com.android.launcher3.widgetpicker.TestUtils.WORK_TEST_APPS
@@ -110,11 +110,11 @@ class LandingScreenTest {
             )
 
         searchBarHint = "Search"
-            //context.applicationContext.resources.getString(R.string.widgets_search_bar_hint)
+        // context.applicationContext.resources.getString(R.string.widgets_search_bar_hint)
         featuredTabLabel = "Featured"
-        //context.resources.getString(R.string.featured_widgets_tab_label)
+        // context.resources.getString(R.string.featured_widgets_tab_label)
         browseTabLabel = "Browse"
-        //context.resources.getString(R.string.browse_widgets_tab_label)
+        // context.resources.getString(R.string.browse_widgets_tab_label)
 
         widgetsRepository.seedWidgets(PERSONAL_TEST_APPS)
         widgetsRepository.seedFeaturedWidgets(setOf(featuredWidgetA.id, featuredWidgetB.id))
@@ -256,6 +256,8 @@ class LandingScreenTest {
                 )
             }
         }
+
+        LaunchedEffect(Unit) { viewModel.onUiReady() }
     }
 
     companion object {

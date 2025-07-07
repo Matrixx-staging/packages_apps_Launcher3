@@ -20,7 +20,6 @@ import android.graphics.Matrix
 import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.drawable.AdaptiveIconDrawable
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -70,20 +69,18 @@ import kotlin.math.roundToInt
 fun WidgetAppIcon(
     widgetAppIcon: WidgetAppIcon,
     size: AppIconSize,
-    iconShape: Shape = WidgetAppIconShape
+    iconShape: Shape = WidgetAppIconShape,
 ) {
     val appIcon = widgetAppIcon.icon
     val badge = widgetAppIcon.badge
 
-    AnimatedContent(targetState = appIcon) { icon ->
-        when (icon) {
-            AppIcon.PlaceHolderAppIcon -> PlaceholderAppIcon(size, iconShape)
+    when (appIcon) {
+        AppIcon.PlaceHolderAppIcon -> PlaceholderAppIcon(size, iconShape)
 
-            is AppIcon.LowResColorIcon -> LowResAppIcon(size, icon, iconShape)
+        is AppIcon.LowResColorIcon -> LowResAppIcon(size, appIcon, iconShape)
 
-            is AppIcon.HighResBitmapIcon -> {
-                HighResAppIcon(size, icon, badge, iconShape)
-            }
+        is AppIcon.HighResBitmapIcon -> {
+            HighResAppIcon(size, appIcon, badge, iconShape)
         }
     }
 }
@@ -95,65 +92,44 @@ private fun HighResAppIcon(
     badge: AppIconBadge,
     iconShape: Shape,
 ) {
-    val clipModifier = if (icon.isFullBleed) {
-        Modifier
-            .shadow(
-                elevation = ShadowElevation,
-                shape = iconShape,
-                ambientColor = ShadowAmbientColor
-            )
-            .clip(iconShape)
-    } else {
-        Modifier
-    }
+    val clipModifier =
+        if (icon.isFullBleed) {
+            Modifier.shadow(
+                    elevation = ShadowElevation,
+                    shape = iconShape,
+                    ambientColor = ShadowAmbientColor,
+                )
+                .clip(iconShape)
+        } else {
+            Modifier
+        }
 
-    Box(
-        modifier = Modifier
-            .size(size.iconSize)
-    ) {
+    Box(modifier = Modifier.size(size.iconSize)) {
         Icon(
             bitmap = icon.bitmap.asImageBitmap(),
-            modifier = Modifier
-                .fillMaxSize()
-                .then(clipModifier),
+            modifier = Modifier.fillMaxSize().then(clipModifier).fadeInWhenVisible("WidgetAppIcon"),
             contentDescription = null,
             tint = Color.Unspecified,
         )
         if (badge is AppIconBadge.DrawableBadge) {
-            DrawableAppIconBadge(
-                badge = badge,
-                size = size,
-            )
+            DrawableAppIconBadge(badge = badge, size = size)
         }
     }
 }
 
 @Composable
-private fun LowResAppIcon(
-    size: AppIconSize,
-    icon: AppIcon.LowResColorIcon,
-    iconShape: Shape,
-) {
+private fun LowResAppIcon(size: AppIconSize, icon: AppIcon.LowResColorIcon, iconShape: Shape) {
     Box(
         modifier =
-            Modifier
-                .size(size.iconSize)
-                .background(
-                    color = Color(icon.color),
-                    shape = iconShape
-                )
+            Modifier.size(size.iconSize).background(color = Color(icon.color), shape = iconShape)
     )
 }
 
 @Composable
-private fun PlaceholderAppIcon(
-    size: AppIconSize,
-    iconShape: Shape
-) {
+private fun PlaceholderAppIcon(size: AppIconSize, iconShape: Shape) {
     Box(
         modifier =
-            Modifier
-                .size(size.iconSize)
+            Modifier.size(size.iconSize)
                 .background(
                     color = WidgetPickerTheme.colors.placeholderAppIcon.copy(alpha = 0.2f),
                     shape = iconShape,
@@ -168,30 +144,31 @@ private fun BoxScope.DrawableAppIconBadge(
     badgeShape: Shape = CircleShape,
 ) {
     val density = LocalDensity.current
-    val scaleOffset = remember(size, density) {
-        with(density) {
-            val iconSizePx = size.iconSize.roundToPx()
-            val badgeSizePx = size.badgeSize.roundToPx()
-            IntOffset(
-                x = badgeSizePx - (BADGE_SCALE * iconSizePx).roundToInt(),
-                y = badgeSizePx - (BADGE_SCALE * iconSizePx).roundToInt()
-            )
+    val scaleOffset =
+        remember(size, density) {
+            with(density) {
+                val iconSizePx = size.iconSize.roundToPx()
+                val badgeSizePx = size.badgeSize.roundToPx()
+                IntOffset(
+                    x = badgeSizePx - (BADGE_SCALE * iconSizePx).roundToInt(),
+                    y = badgeSizePx - (BADGE_SCALE * iconSizePx).roundToInt(),
+                )
+            }
         }
-    }
 
     Icon(
         painter = painterResource(badge.drawableResId),
         modifier =
-            Modifier
-                .offset { scaleOffset }
+            Modifier.offset { scaleOffset }
                 .align(alignment = Alignment.BottomEnd)
                 .size(size.badgeSize)
                 .shadow(
                     elevation = ShadowElevation,
                     shape = badgeShape,
-                    ambientColor = ShadowAmbientColor
+                    ambientColor = ShadowAmbientColor,
                 )
-                .background(color = Color.White, shape = badgeShape),
+                .background(color = Color.White, shape = badgeShape)
+                .fadeInWhenVisible("WidgetAppIcon"),
         contentDescription = null,
         tint = colorResource(badge.tintColor),
     )
@@ -203,14 +180,14 @@ private class IconShape : Shape {
     override fun createOutline(
         size: Size,
         layoutDirection: LayoutDirection,
-        density: Density
+        density: Density,
     ): Outline {
         val scaledPath = Path()
         val matrix = Matrix()
         matrix.setRectToRect(
             RectF(0f, 0f, DEFAULT_PATH_SIZE, DEFAULT_PATH_SIZE),
             RectF(0f, 0f, size.width, size.height),
-            Matrix.ScaleToFit.CENTER
+            Matrix.ScaleToFit.CENTER,
         )
         IconMask.transform(matrix, scaledPath)
 
@@ -221,11 +198,11 @@ private class IconShape : Shape {
         private const val DEFAULT_PATH_SIZE = 100f
         private val IconMask: Path =
             AdaptiveIconDrawable(
-                /*backgroundDrawable=*/ android.graphics.Color.WHITE.toDrawable(),
-                /*foregroundDrawable=*/ null
-            ).apply {
-                setBounds(0, 0, DEFAULT_PATH_SIZE.toInt(), DEFAULT_PATH_SIZE.toInt())
-            }.iconMask
+                    /*backgroundDrawable=*/ android.graphics.Color.WHITE.toDrawable(),
+                    /*foregroundDrawable=*/ null,
+                )
+                .apply { setBounds(0, 0, DEFAULT_PATH_SIZE.toInt(), DEFAULT_PATH_SIZE.toInt()) }
+                .iconMask
     }
 }
 

@@ -107,16 +107,21 @@ private fun LandingScreen(
     onSelectedSubSectionChange: (LandingScreenSubSection) -> Unit,
 ) {
     val featuredWidgetsContent: @Composable () -> Unit = {
-        WidgetsGrid(
-            modifier = Modifier.fillMaxSize().wrapContentSize(),
-            widgetSizeGroups = featuredWidgetsState.sizeGroups,
-            showAllWidgetDetails = false,
-            previews = featuredWidgetPreviewsState.previews,
-            appIcons = widgetAppIconsState.icons,
-            onWidgetInteraction = onWidgetInteraction,
-            showDragShadow = showDragShadow,
-            widgetInteractionSource = WidgetInteractionSource.FEATURED,
-        )
+        // Show featured widgets only once previews are available. Since we bind them only once the
+        // animations for the landing screen are complete, we don't want to do extra work of
+        // rendering placeholders and instead show previews as soon as they are available.
+        if (featuredWidgetPreviewsState.previews.isNotEmpty()) {
+            WidgetsGrid(
+                modifier = Modifier.fillMaxSize().wrapContentSize(),
+                widgetSizeGroups = featuredWidgetsState.sizeGroups,
+                showAllWidgetDetails = false,
+                previews = featuredWidgetPreviewsState.previews,
+                appIcons = widgetAppIconsState.icons,
+                onWidgetInteraction = onWidgetInteraction,
+                showDragShadow = showDragShadow,
+                widgetInteractionSource = WidgetInteractionSource.FEATURED,
+            )
+        }
     }
 
     when {

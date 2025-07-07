@@ -86,8 +86,7 @@ fun ExpandableListHeader(
     Column(modifier = finalModifier) {
         WidgetAppHeader(
             modifier =
-                Modifier
-                    .clickable {
+                Modifier.clickable {
                         haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                         onClick()
                     }
@@ -202,11 +201,8 @@ fun SelectableSuggestionsHeader(
                 contentDescription = null,
                 tint = WidgetPickerTheme.colors.featuredHeaderLeadingIcon,
                 modifier =
-                    Modifier
-                        .clip(shape)
-                        .background(
-                            WidgetPickerTheme.colors.featuredHeaderLeadingIconBackground
-                        )
+                    Modifier.clip(shape)
+                        .background(WidgetPickerTheme.colors.featuredHeaderLeadingIconBackground)
                         .minimumInteractiveComponentSize(),
             )
         },
@@ -237,8 +233,7 @@ private fun WidgetAppHeader(
         leadingIcon()
         CenterText(
             modifier =
-                Modifier
-                    .weight(1f)
+                Modifier.weight(1f)
                     .padding(horizontal = ListHeaderDimensions.centerTextHorizontalPadding),
             title = title,
             subTitle = subTitle,
@@ -286,5 +281,9 @@ private object ListHeaderDimensions {
 
 private object ExpandedListHeaderDefaults {
     val contentExpandAnimationSpec = fadeIn(tween(durationMillis = 500)) + expandVertically()
-    val contentCollapseAnimationSpec = fadeOut(tween(durationMillis = 500)) + shrinkVertically()
+
+    // Fade out content faster than shrink timing for smoother visual of closing.
+    val contentCollapseAnimationSpec =
+        fadeOut(tween(durationMillis = 250)) +
+            shrinkVertically(animationSpec = tween(500), targetHeight = { 0 })
 }

@@ -26,12 +26,15 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -65,6 +68,7 @@ import com.android.launcher3.widgetpicker.ui.WidgetInteractionSource
 import com.android.launcher3.widgetpicker.ui.components.AddButtonDefaults.TOGGLE_ANIMATION_DURATION
 import com.android.launcher3.widgetpicker.ui.components.WidgetDetailsDimensions.INVISIBLE_ALPHA
 import com.android.launcher3.widgetpicker.ui.components.WidgetDetailsDimensions.VISIBLE_ALPHA
+import com.android.launcher3.widgetpicker.ui.components.WidgetDetailsDimensions.singleLineDetailsHeight
 import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 
 /**
@@ -108,11 +112,19 @@ fun WidgetDetails(
             label = "detailsAlphaAnimation",
         )
 
+    // Set fixed size where possible to improve text measurements.
+    val sizeModifier =
+        if (!showAllDetails || widget.description == null) {
+            Modifier.height(singleLineDetailsHeight).fillMaxWidth()
+        } else {
+            Modifier.fillMaxSize()
+        }
+
     Box(
         contentAlignment = Alignment.Center,
         modifier =
             modifier
-                .fillMaxSize()
+                .then(sizeModifier)
                 .clickable(
                     onClickLabel =
                         if (showAddButton) {
@@ -135,27 +147,25 @@ fun WidgetDetails(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top,
             modifier =
-                Modifier
-                    .defaultMinSize(minHeight = LocalMinimumInteractiveComponentSize.current)
+                Modifier.defaultMinSize(minHeight = LocalMinimumInteractiveComponentSize.current)
                     .graphicsLayer { alpha = detailsAlpha }
                     .fillMaxSize(),
         ) {
             WidgetLabel(
                 label = widget.label,
                 appIcon = appIcon,
-                modifier = Modifier.semantics {
-                    this.contentDescription = if (showAllDetails) {
-                        widget.label
-                    } else {
-                        widgetLabelContentDescription
-                    }
-                }
+                modifier =
+                    Modifier.semantics {
+                        this.contentDescription =
+                            if (showAllDetails) {
+                                widget.label
+                            } else {
+                                widgetLabelContentDescription
+                            }
+                    },
             )
             if (showAllDetails) {
-                WidgetSpanSizeLabel(
-                    spanX = widget.sizeInfo.spanX,
-                    spanY = widget.sizeInfo.spanY,
-                )
+                WidgetSpanSizeLabel(spanX = widget.sizeInfo.spanX, spanY = widget.sizeInfo.spanY)
                 widget.description?.let { WidgetDescription(it) }
             }
         }
@@ -190,6 +200,7 @@ private fun AddButton(widget: PickableWidget, onClick: () -> Unit) {
         Button(
             modifier = Modifier.minimumInteractiveComponentSize(),
             contentPadding = AddButtonDimensions.paddingValues,
+            elevation = null, // not needed, set to null to avoid extra work.
             colors =
                 ButtonDefaults.buttonColors(
                     containerColor = WidgetPickerTheme.colors.addButtonBackground,
@@ -204,6 +215,7 @@ private fun AddButton(widget: PickableWidget, onClick: () -> Unit) {
             Text(
                 modifier = Modifier.semantics { this.contentDescription = accessibleDescription },
                 text = stringResource(R.string.widget_tap_to_add_button_label),
+                maxLines = 1,
             )
         }
     }
@@ -221,12 +233,11 @@ private fun WidgetLabel(label: String, appIcon: (@Composable () -> Unit)?, modif
             appIcon()
             Spacer(
                 modifier =
-                    Modifier
-                        .width(WidgetDetailsDimensions.appIconLabelSpacing)
-                        .fillMaxHeight()
+                    Modifier.width(WidgetDetailsDimensions.appIconLabelSpacing).fillMaxHeight()
             )
         }
         Text(
+            modifier = Modifier.width(IntrinsicSize.Max),
             text = label,
             overflow = TextOverflow.Ellipsis,
             maxLines = 1,
@@ -269,6 +280,8 @@ private object WidgetDetailsDimensions {
     val horizontalPadding: Dp = 4.dp
     val verticalPadding: Dp = 12.dp
     val appIconLabelSpacing = 8.dp
+
+    val singleLineDetailsHeight = 72.dp
 
     const val VISIBLE_ALPHA = 1f
     const val INVISIBLE_ALPHA = 0f

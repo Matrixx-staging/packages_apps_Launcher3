@@ -18,13 +18,9 @@ package com.android.launcher3.widgetpicker.ui.components
 
 import androidx.activity.BackEventCompat
 import androidx.activity.compose.PredictiveBackHandler
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.CircleShape
@@ -218,45 +214,42 @@ private fun WidgetsSearchBarContent(
         },
         placeholder = { PlaceholderText() },
         leadingIcon = { LeadingButton(isSearching = isSearching, onBack = exitSearchMode) },
-        trailingIcon = {
+        trailingIcon =
             if (text.isNotEmpty()) {
-                ClearButton(onClick = onClear)
-            }
-        },
+                { ClearButton(onClick = onClear) }
+            } else {
+                null
+            },
     )
 }
 
 @Composable
 private fun LeadingButton(isSearching: Boolean, onBack: () -> Unit) {
-    AnimatedContent(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier.minimumInteractiveComponentSize(),
-        targetState = isSearching,
-        transitionSpec = {
-            fadeIn(animationSpec = tween(durationMillis = 300)) togetherWith
-                fadeOut(animationSpec = tween(durationMillis = 300))
-        },
-    ) { showBackButton ->
-        if (showBackButton) {
-            BackButton(onClick = onBack)
-        } else {
-            SearchIcon()
-        }
+    if (isSearching) {
+        BackButton(onClick = onBack)
+    } else {
+        SearchIcon()
     }
 }
 
 @Composable
 private fun SearchIcon() {
-    Icon(
-        imageVector = Icons.Filled.Search,
-        tint = WidgetPickerTheme.colors.searchBarSearchIcon,
-        contentDescription = null, // decorative
-    )
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.minimumInteractiveComponentSize().fadeInWhenVisible("WidgetSearchIcon"),
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Search,
+            tint = WidgetPickerTheme.colors.searchBarSearchIcon,
+            contentDescription = null, // decorative
+        )
+    }
 }
 
 @Composable
 private fun BackButton(onClick: () -> Unit) {
     IconButton(
+        modifier = Modifier.fadeInWhenVisible("WidgetSearchBackButton"),
         colors =
             IconButtonDefaults.iconButtonColors()
                 .copy(
