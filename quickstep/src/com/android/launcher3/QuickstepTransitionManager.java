@@ -1239,7 +1239,9 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         homeCheck.mRequirements[0].mActivityType = ACTIVITY_TYPE_HOME;
         homeCheck.mRequirements[0].mTopActivity = mLauncher.getComponentName();
         homeCheck.mRequirements[0].mModes = new int[]{TRANSIT_OPEN, TRANSIT_TO_FRONT};
-        homeCheck.mRequirements[0].mOrder = CONTAINER_ORDER_TOP;
+        if (!com.android.window.flags.Flags.polishCloseWallpaperIncludesOpenChange()) {
+            homeCheck.mRequirements[0].mOrder = CONTAINER_ORDER_TOP;
+        }
 
         homeCheck.mRequirements[1].mActivityType = ACTIVITY_TYPE_STANDARD;
         homeCheck.mRequirements[1].mModes = new int[]{TRANSIT_CLOSE, TRANSIT_TO_BACK};
