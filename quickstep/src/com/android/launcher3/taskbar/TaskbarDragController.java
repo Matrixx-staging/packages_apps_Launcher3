@@ -17,6 +17,7 @@ package com.android.launcher3.taskbar;
 
 import static com.android.app.animation.Interpolators.FAST_OUT_SLOW_IN;
 import static com.android.launcher3.AbstractFloatingView.TYPE_TASKBAR_ALL_APPS;
+import static com.android.launcher3.Flags.enableTaskbarUiThread;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS_PREDICTION;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT;
@@ -124,13 +125,15 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
     private boolean mDisallowLongClick;
     private @Nullable DragToBubbleController mDragToBubbleController;
 
+    private @Nullable DragListener mUpdateIsTaskbarDraggingListener;
+
     public TaskbarDragController(BaseTaskbarContext activity) {
         super(activity);
         Resources resources = mActivity.getResources();
         mDragIconSize = resources.getDimensionPixelSize(R.dimen.taskbar_icon_drag_icon_size);
     }
 
-    public void init(TaskbarControllers controllers) {
+    public void init(TaskbarControllers controllers, TaskbarUiState taskbarUiState) {
         mControllers = controllers;
         mControllers.runAfterInit(() ->
                 mControllers.bubbleControllers
@@ -139,6 +142,24 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
                             mDragToBubbleController = dragToBubbleController;
                             mDragToBubbleController.addBubbleBarDropTargets(this);
                         }));
+        if (enableTaskbarUiThread()) {
+            mUpdateIsTaskbarDraggingListener = new DragListener() {
+                @Override
+                public void onDragStart(DropTarget.DragObject dragObject, DragOptions options) {
+                    updateIsDragging();
+                }
+
+                @Override
+                public void onDragEnd() {
+                    updateIsDragging();
+                }
+
+                private void updateIsDragging() {
+                    taskbarUiState.setIsTaskbarDragging(isDragging());
+                }
+            };
+            addDragListener(mUpdateIsTaskbarDraggingListener);
+        }
     }
 
     /** Called when the controller is destroyed. */

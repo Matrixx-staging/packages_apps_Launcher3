@@ -30,6 +30,7 @@ import androidx.annotation.Nullable;
 import androidx.dynamicanimation.animation.FloatPropertyCompat;
 
 import com.android.launcher3.taskbar.TaskbarActivityContext;
+import com.android.launcher3.taskbar.TaskbarUiState;
 import com.android.launcher3.taskbar.bubbles.BubbleBarController.BubbleBarLocationListener;
 import com.android.wm.shell.shared.bubbles.BaseBubblePinController.LocationChangeListener;
 import com.android.wm.shell.shared.bubbles.BubbleAnythingFlagHelper;
@@ -85,6 +86,7 @@ public class BubbleDragController {
     };
 
     private final TaskbarActivityContext mActivity;
+    private final TaskbarUiState mTaskbarUiState;
     private BubbleBarController mBubbleBarController;
     private BubbleBarViewController mBubbleBarViewController;
     private BubbleDismissController mBubbleDismissController;
@@ -97,8 +99,10 @@ public class BubbleDragController {
 
     private boolean mIsDragging;
 
-    public BubbleDragController(TaskbarActivityContext activity, FrameLayout dropTargetParent) {
+    public BubbleDragController(TaskbarActivityContext activity, FrameLayout dropTargetParent,
+            TaskbarUiState taskbarUiState) {
         mActivity = activity;
+        mTaskbarUiState = taskbarUiState;
         WindowManager windowManager =
                 mActivity.getApplicationContext().getSystemService(WindowManager.class);
         DeviceConfig deviceConfig =
@@ -380,6 +384,7 @@ public class BubbleDragController {
     /** Sets whether something is being dragged or not. */
     public void setIsDragging(boolean isDragging) {
         mIsDragging = isDragging;
+        mTaskbarUiState.setIsBubbleDragging(isDragging);
     }
 
     /**

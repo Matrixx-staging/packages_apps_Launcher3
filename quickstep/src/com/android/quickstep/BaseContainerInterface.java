@@ -18,6 +18,7 @@ package com.android.quickstep;
 import static com.android.app.animation.Interpolators.ACCELERATE_2;
 import static com.android.app.animation.Interpolators.INSTANT;
 import static com.android.app.animation.Interpolators.LINEAR;
+import static com.android.launcher3.Flags.enableTaskbarUiThread;
 import static com.android.launcher3.LauncherAnimUtils.SCRIM_COLORS;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMultiFingerSwipe;
 import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
@@ -54,11 +55,12 @@ import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.statemanager.BaseState;
 import com.android.launcher3.statemanager.StatefulContainer;
 import com.android.launcher3.taskbar.TaskbarUIController;
+import com.android.launcher3.taskbar.TaskbarUiStateMonitor;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.WindowBounds;
 import com.android.launcher3.views.ScrimColors;
-import com.android.launcher3.views.ScrimView;
 import com.android.launcher3.views.ScrimColorsEvaluator;
+import com.android.launcher3.views.ScrimView;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
 import com.android.quickstep.util.AnimatorControllerWithResistance;
 import com.android.quickstep.util.ContextInitListener;
@@ -252,9 +254,16 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
     /**
      * @return Whether the gesture in progress should be cancelled.
      */
-    public boolean shouldCancelCurrentGesture() {
-        TaskbarUIController uiController = getTaskbarController();
-        return uiController != null && uiController.isDraggingItem();
+    public boolean shouldCancelCurrentGesture(int displayId) {
+        if (enableTaskbarUiThread()) {
+            CONTAINER_TYPE container = getCreatedContainer();
+            return container != null
+                    && TaskbarUiStateMonitor.INSTANCE.get(container.asContext())
+                            .getTaskbarUiState(displayId).isDraggingItemRef().getValue();
+        } else {
+            TaskbarUIController uiController = getTaskbarController();
+            return uiController != null && uiController.isDraggingItem();
+        }
     }
 
     public void runOnInitBackgroundStateUI(Runnable callback) {
