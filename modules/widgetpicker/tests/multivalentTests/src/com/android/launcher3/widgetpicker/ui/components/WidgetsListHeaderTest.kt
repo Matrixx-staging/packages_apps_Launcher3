@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,9 +39,13 @@ import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.launcher3.widgetpicker.ui.LocalWidgetPickerCuiReporter
+import com.android.launcher3.widgetpicker.ui.WidgetPickerCui
+import com.android.launcher3.widgetpicker.ui.WidgetPickerCuiReporter
 import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
@@ -49,12 +54,24 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.Mock
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.junit.MockitoJUnit
+import org.mockito.junit.MockitoRule
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 
 @RunWith(AndroidJUnit4::class)
 @DeniedDevices(denied = [DeviceProduct.ROBOLECTRIC])
 class WidgetsListHeaderTest {
     @get:Rule val limitDevicesRule = LimitDevicesRule()
+
+    @get:Rule val mockito: MockitoRule = MockitoJUnit.rule()
+
     @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
+
+    @Mock private lateinit var cuiReporterMock: WidgetPickerCuiReporter
 
     @OptIn(ExperimentalCoroutinesApi::class) private val testDispatcher = UnconfinedTestDispatcher()
     private val testScope = TestScope(testDispatcher)
@@ -114,6 +131,34 @@ class WidgetsListHeaderTest {
                         it.config.getOrNull(SemanticsActions.Expand) != null
                     }
                 )
+        }
+
+    @Test
+    fun expand_reportsCuiEventsForExpandAnimation() =
+        testScope.runTest {
+            composeTestRule.setContent {
+                var expanded by remember { mutableStateOf(false) }
+                CompositionLocalProvider(LocalWidgetPickerCuiReporter provides cuiReporterMock) {
+                    WidgetListHeaderTestContent(
+                        expanded = expanded,
+                        onClick = { expanded = !expanded },
+                    )
+                }
+            }
+            composeTestRule.waitForIdle()
+
+            composeTestRule
+                .onNode(hasText(TITLE))
+                .assertExists()
+                .assertHasClickAction()
+                .performClick()
+            composeTestRule.waitForIdle()
+
+            composeTestRule.onNode(hasText(EXPANDED_CONTENT_TEXT)).assertExists()
+            verify(cuiReporterMock, times(1))
+                .report(eq(WidgetPickerCui.WIDGET_APP_EXPAND_BEGIN), any())
+            verify(cuiReporterMock, times(1))
+                .report(eq(WidgetPickerCui.WIDGET_APP_EXPAND_END), any())
         }
 
     @Composable
