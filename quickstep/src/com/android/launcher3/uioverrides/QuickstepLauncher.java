@@ -498,6 +498,10 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         }
     }
 
+    public TaskbarUiState getTaskbarUiState() {
+        return mTaskbarUiState;
+    }
+
     protected void onItemClicked(View view) {
         if (!mSplitToWorkspaceController.handleSecondAppSelectionForSplit(view)) {
             super.getItemOnClickListener().onClick(view);

@@ -514,6 +514,9 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         mIsNavBarKidsMode = settingsCache.getValue(
                 Settings.Secure.getUriFor(Settings.Secure.NAV_BAR_KIDS_MODE), 0);
         mIsNavBarForceVisible = mIsNavBarKidsMode;
+        if (mControllers != null) {
+            mControllers.taskbarEduTooltipController.onShouldShowEduOnAppLaunchChanged();
+        }
     }
 
     /** Called when the visibility of the bubble bar changed. */
@@ -540,7 +543,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         }
 
         // Initialize controllers after all are constructed.
-        mControllers.init(sharedState, recreateAnim);
+        mControllers.init(sharedState, recreateAnim, mTaskbarUiState);
         // This may not be necessary and can be reverted once we move towards recreating all
         // controllers without re-creating the window
         mControllers.rotationButtonController.onNavigationModeChanged(mNavMode.resValue);
