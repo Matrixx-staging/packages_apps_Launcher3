@@ -137,6 +137,7 @@ public class FloatingTaskView extends FrameLayout {
 
         // Copy bounds of exiting thumbnail into ImageView
         mThumbnailView.setThumbnail(thumbnail);
+        mThumbnailView.setDrawCallback(this::drawRoundedRect);
 
         mThumbnailView.setVisibility(VISIBLE);
 
@@ -404,6 +405,18 @@ public class FloatingTaskView extends FrameLayout {
 
     public int getStagePosition() {
         return mStagePosition;
+    }
+
+    /** Add the given view underneath the existing open task menu view (if there is one). */
+    public static void addViewBelowTaskMenu(RecentsViewContainer launcher, View view) {
+        ViewGroup dragLayer = launcher.getDragLayer();
+        View openTaskView = AbstractFloatingView.getOpenView(launcher, TYPE_TASK_MENU);
+        int openTaskViewIndex = dragLayer.indexOfChild(openTaskView);
+        if (openTaskViewIndex == -1) {
+            // Add to top if not
+            openTaskViewIndex = dragLayer.getChildCount();
+        }
+        dragLayer.addView(view, openTaskViewIndex);
     }
 
     private static class SplitOverlayProperties {

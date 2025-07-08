@@ -98,6 +98,7 @@ import com.android.quickstep.RecentsModel;
 import com.android.quickstep.RemoteAnimationTargets;
 import com.android.quickstep.SplitSelectionListener;
 import com.android.quickstep.SystemUiProxy;
+import com.android.quickstep.views.FloatingDesktopTaskView;
 import com.android.quickstep.views.FloatingTaskView;
 import com.android.quickstep.views.GroupedTaskView;
 import com.android.quickstep.views.RecentsView;
@@ -112,6 +113,7 @@ import com.android.wm.shell.splitscreen.ISplitSelectListener;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -970,8 +972,7 @@ public class SplitSelectStateController {
                         mSplitPosition == STAGE_POSITION_BOTTOM_OR_RIGHT ?
                                 LAUNCHER_DESKTOP_MODE_SPLIT_RIGHT_BOTTOM :
                                 LAUNCHER_DESKTOP_MODE_SPLIT_LEFT_TOP;
-                setInitialTaskSelect(mTaskInfo, mSplitPosition,
-                        null, launcherDesktopSplitEvent);
+                setInitialTaskSelect(mTaskInfo, mSplitPosition, null, launcherDesktopSplitEvent);
 
                 final RecentsView recentsView = mLauncher.getOverviewPanel();
                 recentsView.getPagedOrientationHandler().getInitialSplitPlaceholderBounds(
@@ -980,21 +981,9 @@ public class SplitSelectStateController {
 
                 final PendingAnimation anim = new PendingAnimation(
                         SplitAnimationTimings.TABLET_HOME_TO_SPLIT.getDuration());
-                Bitmap thumbnail = getTaskThumbnail(mTaskInfo);
-                final FloatingTaskView floatingTaskView = FloatingTaskView.getFloatingTaskView(
-                        mLauncher, mLauncher.getDragLayer(), thumbnail, mAppIcon,
-                        /* positionOut= */new RectF());
-                floatingTaskView.setOnClickListener(view ->
-                        getSplitAnimationController()
-                                .playAnimPlaceholderToFullscreen(mContainer, view,
-                                        Optional.of(() -> resetState())));
-                if (isBugfixFlagEnabled) {
-                    floatingTaskView.setUseFitXYThumbnailScale();
-                }
-                floatingTaskView.setAlpha(1);
-                floatingTaskView.addStagingAnimation(anim, mTaskBounds, mTempRect,
-                        isBugfixFlagEnabled /* fadeWithThumbnail */, true /* isStagedTask */);
-                setFirstFloatingTaskView(floatingTaskView);
+                List<FloatingDesktopTaskView> closingTaskViews =
+                        setUpClosingWindowViews(anim, targets);
+                final FloatingTaskView floatingTaskView = setUpStagingTaskView(anim);
 
                 anim.addListener(new AnimatorListenerAdapter() {
                     @Override
@@ -1016,15 +1005,20 @@ public class SplitSelectStateController {
                         SystemUiProxy.INSTANCE.get(mLauncher.getApplicationContext())
                                 .onDesktopSplitSelectAnimComplete(mTaskInfo);
                         if (isBugfixFlagEnabled) {
+                            for (FloatingDesktopTaskView taskView : closingTaskViews) {
+                                mLauncher.getDragLayer().removeView(taskView);
+                            }
                             finishController.run();
                         }
                     }
                     @Override
                     public void onAnimationCancel(Animator animation) {
                         mLauncher.getDragLayer().removeView(floatingTaskView);
-                        getSplitAnimationController()
-                                .removeSplitInstructionsView(mLauncher);
+                        getSplitAnimationController().removeSplitInstructionsView(mLauncher);
                         if (isBugfixFlagEnabled) {
+                            for (FloatingDesktopTaskView taskView : closingTaskViews) {
+                                mLauncher.getDragLayer().removeView(taskView);
+                            }
                             finishController.run();
                         }
                         resetState();
@@ -1038,11 +1032,57 @@ public class SplitSelectStateController {
                 anim.buildAnim().start();
             }
 
+            private List<FloatingDesktopTaskView> setUpClosingWindowViews(
+                    PendingAnimation anim, RemoteAnimationTargets targets) {
+                if (targets == null || !isBugfixFlagEnabled) {
+                    return Collections.emptyList();
+                }
+                RemoteAnimationTarget[] appTargets = Arrays.stream(targets.apps)
+                        // Fetch all closing freeform targets, except the staging task
+                        .filter(target ->
+                                target.taskInfo != null
+                                        && target.taskInfo.isFreeform()
+                                        && target.taskInfo.taskId != mTaskInfo.taskId
+                                        && target.mode == RemoteAnimationTarget.MODE_CLOSING)
+                        .toArray(RemoteAnimationTarget[]::new);
+                List<FloatingDesktopTaskView> floatingTaskViews = new ArrayList<>();
+                for (int i = 0; i < appTargets.length; i++) {
+                    RemoteAnimationTarget appTarget = appTargets[i];
+                    RectF startBounds = new RectF(appTarget.localBounds);
+                    final FloatingDesktopTaskView taskView =
+                            FloatingDesktopTaskView.Companion.create(
+                                    mLauncher, startBounds, getTaskThumbnail(appTarget.taskInfo));
+                    taskView.setAlpha(1);
+                    taskView.addClosingAnimation(mLauncher, anim);
+                    floatingTaskViews.add(taskView);
+                }
+                return floatingTaskViews;
+            }
+
+            private FloatingTaskView setUpStagingTaskView(PendingAnimation anim) {
+                FloatingTaskView floatingTaskView = FloatingTaskView.getFloatingTaskView(
+                        mLauncher, mLauncher.getDragLayer(),
+                        getTaskThumbnail(mTaskInfo),
+                        mAppIcon, /* positionOut= */ new RectF());
+                floatingTaskView.setOnClickListener(view ->
+                        getSplitAnimationController()
+                                .playAnimPlaceholderToFullscreen(mContainer, view,
+                                        Optional.of(() -> resetState())));
+                if (isBugfixFlagEnabled) {
+                    floatingTaskView.setUseFitXYThumbnailScale();
+                }
+                floatingTaskView.setAlpha(1);
+                floatingTaskView.addStagingAnimation(anim, mTaskBounds, mTempRect,
+                        isBugfixFlagEnabled /* fadeWithThumbnail */, true /* isStagedTask */);
+                setFirstFloatingTaskView(floatingTaskView);
+                return floatingTaskView;
+            }
+
             private @Nullable Bitmap getTaskThumbnail(ActivityManager.RunningTaskInfo taskInfo) {
                 if (taskInfo == null) return null;
                 if (!isBugfixFlagEnabled) return null;
                 if (mRecentsAnimationController == null) return null;
-                return mRecentsAnimationController.screenshotTask(mTaskInfo.taskId).getThumbnail();
+                return mRecentsAnimationController.screenshotTask(taskInfo.taskId).getThumbnail();
             }
 
             private AnimatorSet createHomeRevealAnimation() {
