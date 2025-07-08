@@ -1056,7 +1056,9 @@ public abstract class AbsSwipeUpHandler<
         if (mRecentsView != null) {
             mRecentsView.setRecentsAnimationTargets(null, null);
         }
-        maybeHandleUnfinishedTaskLaunch("onRecentsAnimationCanceled");
+        if (!mGestureState.useSyntheticRecentsTransition()) {
+            maybeHandleUnfinishedTaskLaunch("onRecentsAnimationCanceled");
+        }
     }
 
     @UiThread
