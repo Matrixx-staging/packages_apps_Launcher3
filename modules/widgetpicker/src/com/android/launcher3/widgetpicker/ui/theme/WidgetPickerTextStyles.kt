@@ -31,10 +31,14 @@ import androidx.compose.ui.unit.sp
  *
  * @param sheetTitle style for the title of entire bottom sheet
  * @param sheetDescription style for the long description displayed below the [sheetTitle].
- * @param selectedListHeaderTitle style for the label of widget app that's currently expanded /
- *   selected in the list of widget apps.
- * @param unSelectedListHeaderTitle style for the label of widget's app that's currently collapsed /
- *   not-selected in the list of widget apps.
+ * @param expandableListHeaderTitle style for the title of expandable widget app header (in the
+ *   single pane variant of widget picker).
+ * @param expandableListHeaderSubTitle style for the subtitle of expandable widget app header (in
+ *   the single pane variant of widget picker).
+ * @param selectedListHeaderTitle style for the title of widget app that's currently selected
+ *   selected in the list of widget apps (in the two pane variant of widget picker)
+ * @param unSelectedListHeaderTitle style for the title of widget's app that's currently
+ *   not-selected in the list of widget apps (in the two pane variant of widget picker).
  * @param selectedListHeaderSubTitle style for the sub-title text shown below the
  *   [selectedListHeaderTitle] for the widget app that's currently expanded / selected in the list
  *   of widget apps.
@@ -61,7 +65,11 @@ data class WidgetPickerTextStyles(
     val sheetTitle: TextStyle,
     val sheetDescription: TextStyle,
 
-    // Expandable list
+    // Expandable List
+    val expandableListHeaderTitle: TextStyle,
+    val expandableListHeaderSubTitle: TextStyle,
+
+    // Selectable list
     val selectedListHeaderTitle: TextStyle,
     val unSelectedListHeaderTitle: TextStyle,
     val selectedListHeaderSubTitle: TextStyle,
@@ -110,7 +118,13 @@ fun defaultWidgetPickerTextStyles() =
         sheetTitle = MaterialTheme.typography.headlineSmallEmphasized,
         sheetDescription = MaterialTheme.typography.bodyMedium,
 
-        // Expandable list
+        // Expandable list headers
+        expandableListHeaderTitle =
+            MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal),
+        expandableListHeaderSubTitle =
+            MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Normal),
+
+        // Clickable List headers
         selectedListHeaderTitle =
             MaterialTheme.typography.titleMediumEmphasized.copy(fontWeight = FontWeight.Medium),
         unSelectedListHeaderTitle =

@@ -41,7 +41,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.android.launcher3.widgetpicker.goldenpathmanager.WidgetPickerGoldenPathManager
 import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -194,6 +193,7 @@ private fun TestComposable(
                 {
                     LeadingIconToolbarTab(
                         label = it.label,
+                        contentDescription = it.label,
                         leadingIcon = it.leadingIcon,
                         selected = it.id == selectedIndex,
                         onClick = { onClick(it.id) },

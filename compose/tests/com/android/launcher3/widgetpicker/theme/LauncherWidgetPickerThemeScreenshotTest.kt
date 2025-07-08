@@ -16,6 +16,7 @@
 
 package com.android.launcher3.widgetpicker.theme
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -80,7 +81,8 @@ class LauncherWidgetPickerThemeScreenshotTest(emulationSpec: DeviceEmulationSpec
 }
 
 @Composable
-@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
 private fun LauncherWidgetPickerStyles() {
     LauncherWidgetPickerTheme {
         Column(modifier = Modifier.background(Color.Gray).padding(2.dp)) {
@@ -93,6 +95,10 @@ private fun LauncherWidgetPickerStyles() {
             AddButtonStyle()
             Divider()
             WidgetPickerToolbarStyle()
+            Divider()
+            WidgetListExpandableHeaderStyle()
+            Divider()
+            WidgetListSelectableHeaderStyle()
         }
     }
 }
@@ -209,6 +215,67 @@ private fun WidgetPickerToolbarStyle() {
                 text = "Selected Tab",
                 color = WidgetPickerTheme.colors.toolbarSelectedTabContent,
                 style = WidgetPickerTheme.typography.toolbarSelectedTabLabel,
+            )
+        }
+    }
+}
+
+@Composable
+private fun WidgetListExpandableHeaderStyle() {
+    Column(
+        modifier =
+            Modifier.fillMaxWidth()
+                .background(WidgetPickerTheme.colors.expandableListItemsBackground)
+                .padding(8.dp)
+    ) {
+        Text(
+            text = "Expandable App Title",
+            color = WidgetPickerTheme.colors.expandableListHeaderTitle,
+            style = WidgetPickerTheme.typography.expandableListHeaderTitle,
+        )
+        Text(
+            text = "x widgets, y shortcuts",
+            color = WidgetPickerTheme.colors.expandableListHeaderTitle,
+            style = WidgetPickerTheme.typography.expandableListHeaderTitle,
+        )
+    }
+}
+
+@Composable
+private fun WidgetListSelectableHeaderStyle() {
+    Row(modifier = Modifier.background(WidgetPickerTheme.colors.sheetBackground)) {
+        Column(
+            modifier =
+                Modifier.weight(0.5f)
+                    .background(WidgetPickerTheme.colors.selectedListHeaderBackground)
+                    .padding(8.dp)
+        ) {
+            Text(
+                text = "Selected App Title",
+                color = WidgetPickerTheme.colors.selectedListHeaderTitle,
+                style = WidgetPickerTheme.typography.selectedListHeaderTitle,
+            )
+            Text(
+                text = "x widgets, y shortcuts",
+                color = WidgetPickerTheme.colors.selectedListHeaderSubTitle,
+                style = WidgetPickerTheme.typography.selectedListHeaderSubTitle,
+            )
+        }
+        Column(
+            modifier =
+                Modifier.weight(0.5f)
+                    .background(WidgetPickerTheme.colors.unselectedListHeaderBackground)
+                    .padding(8.dp)
+        ) {
+            Text(
+                text = "Unselected App Title",
+                color = WidgetPickerTheme.colors.unSelectedListHeaderTitle,
+                style = WidgetPickerTheme.typography.unSelectedListHeaderTitle,
+            )
+            Text(
+                text = "x widgets, y shortcuts",
+                color = WidgetPickerTheme.colors.unSelectedListHeaderSubTitle,
+                style = WidgetPickerTheme.typography.unSelectedListHeaderSubTitle,
             )
         }
     }

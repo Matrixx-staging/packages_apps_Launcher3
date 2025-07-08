@@ -40,6 +40,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 
@@ -53,6 +55,7 @@ import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 fun LeadingIconToolbarTab(
     leadingIcon: ImageVector,
     label: String,
+    contentDescription: String,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -99,6 +102,7 @@ fun LeadingIconToolbarTab(
             )
         }
         Text(
+            modifier = Modifier.semantics { this.contentDescription = contentDescription },
             text = label,
             style =
                 if (selected) {
