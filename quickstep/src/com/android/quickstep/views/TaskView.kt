@@ -325,8 +325,7 @@ constructor(
     var taskViewId = UNBOUND_TASK_VIEW_ID
     var isEndQuickSwitchCuj = false
     var isBeingDraggedForDismissal = false
-    val isBeingDismissed
-        get() = secondaryDismissTranslationProperty.get(this) != 0f
+    var isBeingDismissed: Boolean = false
 
     var sysUiStatusNavFlags: Int = 0
         get() =
@@ -705,6 +704,7 @@ constructor(
 
     override fun onRecycle() {
         isBeingDraggedForDismissal = false
+        isBeingDismissed = false
         resetPersistentViewTransforms()
 
         groupTask = null
@@ -928,7 +928,7 @@ constructor(
                 width = container.thumbnailView.width,
                 height = container.thumbnailView.height,
                 splitBounds = (this as? GroupedTaskView)?.splitBoundsConfig,
-                stagePosition = container.stagePosition
+                stagePosition = container.stagePosition,
             )
         applyThumbnailSplashAlpha()
     }
