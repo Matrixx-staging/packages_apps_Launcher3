@@ -213,8 +213,7 @@ constructor(
         }
 
     private val onBackInvokedCallback = OnBackInvokedCallback {
-        // If we are in live tile mode, launch the live task, otherwise return home
-        recentsView?.runningTaskView?.launchWithAnimation() ?: startHome()
+        stateManager.state.onBackInvoked(this@RecentsWindowManager)
         TestLogging.recordEvent(SEQUENCE_MAIN, "onBackInvoked")
     }
 
