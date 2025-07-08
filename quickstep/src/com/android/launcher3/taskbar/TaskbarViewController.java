@@ -87,7 +87,6 @@ import com.android.launcher3.taskbar.bubbles.BubbleBarController;
 import com.android.launcher3.taskbar.bubbles.BubbleControllers;
 import com.android.launcher3.taskbar.customization.TaskbarAllAppsButtonContainer;
 import com.android.launcher3.taskbar.customization.TaskbarDividerContainer;
-import com.android.launcher3.taskbar.customization.TaskbarFeatureEvaluator;
 import com.android.launcher3.util.ItemInfoMatcher;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
 import com.android.launcher3.util.MultiPropertyFactory;
@@ -910,8 +909,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     }
 
     void notifyIconLayoutBoundsChanged() {
-        final LayoutTransition layoutTransition = mTaskbarView.getLayoutTransition();
-        if (layoutTransition != null && layoutTransition.isRunning()) {
+        if (isTaskbarAppTransitionRunning()) {
             // Defers notify until after transitions finish.
             mTransitionEndBoundsChangedNotifier.mIsCanceled = false;
         } else {
@@ -943,10 +941,9 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
             mIsIconAlignedWithHotseat = isIconAlignedWithHotseat;
             mIsStashed = isStashed;
 
-            final LayoutTransition layoutTransition = mTaskbarView.getLayoutTransition();
-            if (layoutTransition != null && layoutTransition.isRunning()) {
+            if (isTaskbarAppTransitionRunning()) {
                 mTransitionEndBoundsChangedNotifier.mIsCanceled = true;
-                layoutTransition.cancel();
+                mTaskbarView.getLayoutTransition().cancel();
             }
             mIconAlignControllerLazy = createIconAlignmentController(launcherDp);
         }
@@ -1384,6 +1381,13 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
         return layoutTransition;
     }
 
+
+    /** Returns whether a LayoutTransition is currently running on the TaskbarView. */
+    public boolean isTaskbarAppTransitionRunning() {
+        LayoutTransition transition = mTaskbarView.getLayoutTransition();
+        return transition != null && transition.isRunning();
+    }
+
     public boolean isTaskbarInMinimalState() {
         return mTaskbarView.isTaskbarInMinimalState();
     }
@@ -1435,16 +1439,24 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
 
     private class TransitionEndBoundsChangedNotifier implements TransitionListener {
         private boolean mIsCanceled = true; // Start as disabled.
+        private int mRunningTransitionsCount;
 
         @Override
         public void startTransition(
                 LayoutTransition transition, ViewGroup container, View view, int type) {
-            // Do nothing.
+            mRunningTransitionsCount++;
         }
 
         @Override
         public void endTransition(
                 LayoutTransition transition, ViewGroup container, View view, int type) {
+            mRunningTransitionsCount--;
+            if (mRunningTransitionsCount == 0
+                    && !mControllers.taskbarPopupController.isPopupOpened()) {
+                // Reset the taskbar window size to default after all animations are done so
+                // there won't be janky animation with window resize.
+                mActivity.setTaskbarWindowFullscreen(false);
+            }
             if (!transition.isRunning() && !mIsCanceled) {
                 mControllers.uiController.onIconLayoutBoundsChanged();
             }
