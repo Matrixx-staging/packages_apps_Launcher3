@@ -66,9 +66,9 @@ import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.Landing
 import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.LandingScreenSinglePaneDimens.contentShape
 import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.LandingScreenSinglePaneDimens.pagerItemsSpacing
 import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.LandingScreenSinglePaneTestTags.FEATURED_WIDGETS_TAB_TEST_TAG
+import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.LandingScreenSinglePaneTestTags.PERSONAL_WIDGETS_LIST_TEST_TAG
 import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.LandingScreenSinglePaneTestTags.PERSONAL_WIDGETS_TAB_TEST_TAG
 import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.LandingScreenSinglePaneTestTags.WORK_WIDGETS_TAB_TEST_TAG
-import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.LandingScreenSinglePaneTestTags.PERSONAL_WIDGETS_LIST_TEST_TAG
 import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -143,9 +143,9 @@ fun LandingScreenSinglePane(
                     PERSONAL_TAB_INDEX -> {
                         Box(modifier = Modifier.fillMaxSize()) {
                             WidgetAppsList(
-                                modifier = Modifier
-                                    .widgetPickerTestTag(PERSONAL_WIDGETS_LIST_TEST_TAG)
-                                    .fillMaxSize(),
+                                modifier =
+                                    Modifier.widgetPickerTestTag(PERSONAL_WIDGETS_LIST_TEST_TAG)
+                                        .fillMaxSize(),
                                 widgetApps = browseWidgetsState.personalWidgetApps,
                                 selectedWidgetAppId = selectedPersonalWidgetAppId,
                                 widgetAppHeaderStyle = WidgetAppHeaderStyle.EXPANDABLE,
@@ -213,8 +213,11 @@ private fun BottomTabs(
 
     val tabs: List<@Composable () -> Unit> = buildList {
         add {
+            val tabLabel = stringResource(R.string.featured_widgets_tab_label)
             LeadingIconToolbarTab(
-                label = stringResource(R.string.featured_widgets_tab_label),
+                label = tabLabel,
+                contentDescription =
+                    stringResource(R.string.widgets_tab_accessibility_label, tabLabel),
                 leadingIcon = Icons.Filled.Star,
                 selected = pagerState.currentPage == FEATURED_TAB_INDEX,
                 onClick = { scope.launch { pagerState.animateScrollToPage(FEATURED_TAB_INDEX) } },
@@ -224,8 +227,11 @@ private fun BottomTabs(
 
         if (workUserProfile == null) {
             add {
+                val tabLabel = stringResource(R.string.browse_widgets_tab_label)
                 LeadingIconToolbarTab(
-                    label = stringResource(R.string.browse_widgets_tab_label),
+                    label = tabLabel,
+                    contentDescription =
+                        stringResource(R.string.widgets_tab_accessibility_label, tabLabel),
                     leadingIcon = Icons.AutoMirrored.Filled.List,
                     selected = pagerState.currentPage == PERSONAL_TAB_INDEX,
                     onClick = {
@@ -236,8 +242,11 @@ private fun BottomTabs(
             }
         } else {
             add {
+                val tabLabel = personalUserProfile.label
                 LeadingIconToolbarTab(
-                    label = personalUserProfile.label,
+                    label = tabLabel,
+                    contentDescription =
+                        stringResource(R.string.widgets_tab_accessibility_label, tabLabel),
                     leadingIcon = Icons.Filled.Person,
                     selected = pagerState.currentPage == PERSONAL_TAB_INDEX,
                     onClick = {
@@ -247,8 +256,11 @@ private fun BottomTabs(
                 )
             }
             add {
+                val tabLabel = workUserProfile.label
                 LeadingIconToolbarTab(
-                    label = workUserProfile.label,
+                    label = tabLabel,
+                    contentDescription =
+                        stringResource(R.string.widgets_tab_accessibility_label, tabLabel),
                     leadingIcon = Icons.Outlined.Work,
                     selected = pagerState.currentPage == WORK_TAB_INDEX,
                     onClick = { scope.launch { pagerState.animateScrollToPage(WORK_TAB_INDEX) } },

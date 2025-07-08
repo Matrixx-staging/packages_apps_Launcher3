@@ -142,7 +142,6 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
     private var viewModel =
         DesktopTaskViewModel(
             organizeDesktopTasksUseCase = RecentsDependencies.get(context),
-            removeTaskAndRebalanceLayoutUseCase = RecentsDependencies.get(context),
             desktopTileBackgroundRepository = RecentsDependencies.get(context),
             dispatcherProvider = dispatcherProvider,
         )
@@ -741,11 +740,12 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
 
         if (enableDesktopExplodedView()) {
             val layoutConfig = getDesktopLayoutConfig()
-            if (dismissedTaskId != null) {
-                viewModel?.removeTaskAndRebalanceLayout(dismissedTaskId, layoutConfig)
-            } else {
-                viewModel.organizeDesktopTasks(desktopSize, fullscreenTaskPositions, layoutConfig)
-            }
+            viewModel.organizeDesktopTasks(
+                desktopSize,
+                fullscreenTaskPositions,
+                layoutConfig,
+                dismissedTaskId,
+            )
         }
         positionTaskWindows(updateLayout = true)
     }

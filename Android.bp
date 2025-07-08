@@ -536,12 +536,16 @@ android_library {
         "dagger2",
         "protolog-group",
         "displaylib",
+        "com.android.window.flags.window-aconfig-java",
     ],
     manifest: "quickstep/AndroidManifest.xml",
     min_sdk_version: "current",
     lint: {
         disabled_checks: ["MissingClass"],
     },
+    flags_packages: [
+        "com.android.window.flags.window-aconfig",
+    ],
 }
 
 // Library with all the source code and dependencies for building Launcher Go

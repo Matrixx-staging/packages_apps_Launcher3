@@ -104,3 +104,10 @@ flag {
     description: "Enables predictive back animation in Overview on back navigation"
     bug: "421292121"
 }
+
+flag {
+    name: "show_close_button_on_taskview_hover"
+    namespace: "launcher_overview"
+    description: "Enables showing a button to close the task in Overview when the TaskView is hovered."
+    bug: "426125944"
+}

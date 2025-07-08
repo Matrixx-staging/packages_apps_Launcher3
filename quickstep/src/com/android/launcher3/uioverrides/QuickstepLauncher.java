@@ -498,6 +498,10 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         }
     }
 
+    public TaskbarUiState getTaskbarUiState() {
+        return mTaskbarUiState;
+    }
+
     protected void onItemClicked(View view) {
         if (!mSplitToWorkspaceController.handleSecondAppSelectionForSplit(view)) {
             super.getItemOnClickListener().onClick(view);
@@ -531,9 +535,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
             shortcuts.add(REMOVE);
         }
         shortcuts.add(DONT_SUGGEST_APP);
-        if (Flags.enablePrivateSpaceInstallShortcut()) {
-            shortcuts.add(PRIVATE_PROFILE_INSTALL);
-        }
+        shortcuts.add(PRIVATE_PROFILE_INSTALL);
         if (Flags.enablePrivateSpace()) {
             shortcuts.add(UNINSTALL_APP);
         }
@@ -760,7 +762,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     }
 
     @Override
-    public AtomicAnimationFactory createAtomicAnimationFactory() {
+    public AtomicAnimationFactory<LauncherState> createAtomicAnimationFactory() {
         return new QuickstepAtomicAnimationFactory(this);
     }
 

@@ -37,6 +37,7 @@ import androidx.annotation.VisibleForTesting
 import androidx.core.text.HtmlCompat
 import androidx.core.view.updateLayoutParams
 import com.airbnb.lottie.LottieAnimationView
+import com.android.launcher3.Flags.enableTaskbarUiThread
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.R
 import com.android.launcher3.RemoveAnimationSettingsTracker
@@ -102,6 +103,7 @@ open class TaskbarEduTooltipController(context: Context) :
         get() = isTooltipEnabled && tooltipStep <= TOOLTIP_STEP_FEATURES
 
     private lateinit var controllers: TaskbarControllers
+    private lateinit var taskbarUIState: TaskbarUiState
 
     // Keep track of whether the user has seen the Search Edu
     @VisibleForTesting
@@ -120,14 +122,27 @@ open class TaskbarEduTooltipController(context: Context) :
         }
         private set(step) {
             TASKBAR_EDU_TOOLTIP_STEP.set(step, activityContext)
+            onShouldShowEduOnAppLaunchChanged()
         }
 
     private var tooltip: TaskbarEduTooltip? = null
 
-    fun init(controllers: TaskbarControllers) {
+    fun init(controllers: TaskbarControllers, taskbarUiState: TaskbarUiState) {
         this.controllers = controllers
+        this.taskbarUIState = taskbarUiState
+        onShouldShowEduOnAppLaunchChanged()
         // We want to show the Search Edu right after pinning the taskbar, so we post it here
         activityContext.dragLayer.post { maybeShowSearchEdu() }
+    }
+
+    fun onShouldShowEduOnAppLaunchChanged() {
+        if (!enableTaskbarUiThread()) {
+            return
+        }
+        val uiController = controllers.uiController
+        if (uiController is LauncherTaskbarUIController) {
+            taskbarUIState.onNewShouldShowEduOnAppLaunch(uiController.shouldShowEduOnAppLaunch())
+        }
     }
 
     /**

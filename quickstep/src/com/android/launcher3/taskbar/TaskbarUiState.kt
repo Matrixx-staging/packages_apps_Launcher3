@@ -18,17 +18,34 @@ package com.android.launcher3.taskbar
 
 import com.android.launcher3.util.MutableListenableRef
 
-/** Data class represents taskbar states. */
+/**
+ * Data class that represents taskbar's UI states. This state is shared to launcher and recents.
+ * Taskbar's UI thread is responsible to update below fields whenever any field is changed.
+ *
+ * Timings when each field is changed:
+ * - [_hasBubblesRef]: when BubbleBarView's child bubble view count is changed between 0 vs non-zero
+ * - [_shouldShowEduOnAppLaunchRef]: when DeviceProfile or tooltip steps is changed
+ */
 data class TaskbarUiState(
-    private val _hasBubblesRef: MutableListenableRef<Boolean> = MutableListenableRef(false)
+    private val _hasBubblesRef: MutableListenableRef<Boolean> = MutableListenableRef(false),
+    private val _shouldShowEduOnAppLaunchRef: MutableListenableRef<Boolean> =
+        MutableListenableRef(false),
 ) {
 
+    private fun <T> MutableListenableRef<T>.diffAndDispatch(newValue: T) {
+        if (value != newValue) {
+            dispatchValue(newValue)
+        }
+    }
+
     val hasBubblesRef = _hasBubblesRef.asListenable()
+    val shouldShowEduOnAppLaunchRef = _shouldShowEduOnAppLaunchRef.asListenable()
 
     fun onNewHasBubble(hasBubbles: Boolean) {
-        if (_hasBubblesRef.value == hasBubbles) {
-            return
-        }
-        _hasBubblesRef.dispatchValue(hasBubbles)
+        _hasBubblesRef.diffAndDispatch(hasBubbles)
+    }
+
+    fun onNewShouldShowEduOnAppLaunch(shouldShowEduOnAppLaunch: Boolean) {
+        _shouldShowEduOnAppLaunchRef.diffAndDispatch(shouldShowEduOnAppLaunch)
     }
 }

@@ -292,10 +292,12 @@ public class GridCustomizationsProxy implements ProxyProvider {
                     return 0;
                 }
                 mIdp.setCurrentGrid(mContext, gridName);
-                if (Flags.newCustomizationPickerUi()) {
+
+                LauncherModel launcherModel = LauncherAppState.getInstance(mContext).getModel();
+                if (Flags.newCustomizationPickerUi() && launcherModel.isActive()) {
                     try {
                         // Wait for device profile to be fully reloaded and applied to the launcher
-                        loadModelSync(mContext);
+                        loadModelSync(launcherModel);
                     } catch (ExecutionException | InterruptedException e) {
                         Log.e(TAG, "Fail to load model", e);
                     }
@@ -321,10 +323,10 @@ public class GridCustomizationsProxy implements ProxyProvider {
     /**
      * Loads the model in memory synchronously
      */
-    private void loadModelSync(Context context) throws ExecutionException, InterruptedException {
+    private void loadModelSync(LauncherModel launcherModel) throws ExecutionException,
+            InterruptedException {
         Preconditions.assertNonUiThread();
         BgDataModel.Callbacks emptyCallbacks = new BgDataModel.Callbacks() { };
-        LauncherModel launcherModel = LauncherAppState.getInstance(context).getModel();
         MAIN_EXECUTOR.submit(
                 () -> launcherModel.addCallbacksAndLoad(emptyCallbacks)
         ).get();

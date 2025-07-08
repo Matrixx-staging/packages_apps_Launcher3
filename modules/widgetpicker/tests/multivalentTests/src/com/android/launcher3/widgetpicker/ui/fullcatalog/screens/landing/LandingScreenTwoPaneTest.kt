@@ -26,6 +26,7 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertIsNotSelected
@@ -150,8 +151,16 @@ class LandingScreenTwoPaneTest {
             // Featured tab as list item
             composeTestRule.onNode(hasText(featuredTabLabel)).assertIsSelected()
             // And toolbar also simultaneously shows one of the tabs as selected
-            composeTestRule.onNode(hasTextExactly(PERSONAL_LABEL)).assertExists().assertIsSelected()
-            composeTestRule.onNode(hasTextExactly(WORK_LABEL)).assertExists().assertIsNotSelected()
+            composeTestRule
+                .onNode(hasTextExactly(PERSONAL_LABEL))
+                .assertExists()
+                .assertContentDescriptionEquals("$PERSONAL_LABEL widgets")
+                .assertIsSelected()
+            composeTestRule
+                .onNode(hasTextExactly(WORK_LABEL))
+                .assertExists()
+                .assertContentDescriptionEquals("$WORK_LABEL widgets")
+                .assertIsNotSelected()
             // Featured Widgets state
             composeTestRule
                 .onNode(hasContentDescription(featuredWidgetA.label, substring = true))

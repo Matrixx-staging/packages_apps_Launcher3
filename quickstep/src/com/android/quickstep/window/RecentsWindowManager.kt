@@ -586,8 +586,8 @@ constructor(
         return isShowing() || getStateManager().state!!.isRecentsViewVisible()
     }
 
-    override fun createAtomicAnimationFactory(): AtomicAnimationFactory<RecentsState?>? {
-        return RecentsAtomicAnimationFactory<RecentsWindowManager, RecentsState>(this)
+    override fun createAtomicAnimationFactory(): AtomicAnimationFactory<RecentsState> {
+        return RecentsAtomicAnimationFactory(this)
     }
 
     override fun getOverviewBlurStyleResId(): Int {
