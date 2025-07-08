@@ -641,15 +641,18 @@ public class DisplayController implements DesktopVisibilityListener {
             if (mShowLockedTaskbarOnHome && mIsHomeVisible) {
                 return false;
             }
-            if (mIsInDesktopMode) {
-                return false;
-            }
 
             if (Utilities.isRunningInTestHarness() && !sTaskbarModePreferenceStatusForTests) {
                 // TODO(b/258604917): Once ENABLE_TASKBAR_PINNING is enabled, remove usage of
                 //  sTransientTaskbarStatusForTests and update test to directly
                 //  toggle shared preference to switch transient taskbar on/off.
                 return sTransientTaskbarStatusForTests;
+            }
+
+            // TODO(b/430318143): Move this before checking for test harness taskbar once perf
+            //  regressions caused by using pinned taskbar in desktop mode have been investigated.
+            if (mIsInDesktopMode) {
+                return false;
             }
 
             return !mIsTaskbarPinned;
