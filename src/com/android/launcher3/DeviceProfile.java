@@ -167,7 +167,7 @@ public class DeviceProfile {
     private int mIconDrawablePaddingOriginalPx;
 
 
-    private WorkspaceIconProfile mWorkspaceIconProfile;
+    public WorkspaceIconProfile mWorkspaceIconProfile;
     public int workspaceCellPaddingXPx;
 
 
@@ -924,42 +924,6 @@ public class DeviceProfile {
             // TODO(420933882) Group all modifications of AllAppsProfile in one place
             mAllAppsProfile = AllAppsProfile.Factory.autoResizeAllAppsCells(getAllAppsProfile());
         }
-    }
-
-    /**
-     * @deprecated Once we finish updating the device profile this function should be change for
-     * a factory.
-     */
-    @Deprecated
-    public void updateWorkspaceIconProfile(int iconSize, Context context) {
-        context = getContext(context, mInfo, isLandscapeOrientation()
-                        ? Configuration.ORIENTATION_LANDSCAPE
-                        : Configuration.ORIENTATION_PORTRAIT,
-                createWindowBounds(mDeviceProperties)
-        );
-        final boolean isVerticalLayout = isVerticalBarLayout();
-        Point cellLayoutBorderSpacePx = getCellLayoutBorderSpace(inv, 1f);
-        mWorkspaceIconProfile = WorkspaceIconProfile.Factory.createWorkspaceIconProfile(
-                context.getResources(),
-                mDeviceProperties,
-                1f,
-                inv,
-                mIconSizeSteps,
-                isVerticalLayout,
-                mIsResponsiveGrid,
-                mIsScalableGrid,
-                mResponsiveWorkspaceWidthSpec,
-                mResponsiveWorkspaceHeightSpec,
-                mResponsiveWorkspaceCellSpec,
-                getCellSize(new Point(), cellLayoutBorderSpacePx),
-                mIconDrawablePaddingOriginalPx,
-                mTypeIndex,
-                mMetrics,
-                getPanelCount(),
-                desiredWorkspaceHorizontalMarginOriginalPx,
-                cellLayoutBorderSpacePx,
-                iconSize
-        );
     }
 
     /**
