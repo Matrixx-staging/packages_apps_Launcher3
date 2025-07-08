@@ -149,7 +149,7 @@ public class LauncherProvider extends ContentProvider {
             // 1. Ensure that externally added items have a valid item id. Don't update Folder ids
             // because items inside the folder need to reference the original ID as their container
             // id, or else be deleted.
-            if (Flags.externalDataAccess() && values.containsKey(Favorites._ID)
+            if (values.containsKey(Favorites._ID)
                     && Favorites.ITEM_TYPE_FOLDER != values.getAsInteger(Favorites.ITEM_TYPE)
                     && Favorites.ITEM_TYPE_APP_PAIR != values.getAsInteger(Favorites.ITEM_TYPE)) {
                 int id = controller.generateNewItemId();
