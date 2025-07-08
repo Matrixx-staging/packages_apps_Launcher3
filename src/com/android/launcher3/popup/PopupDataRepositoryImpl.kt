@@ -72,10 +72,8 @@ class PopupDataRepositoryImpl(
                         popupDataSource.appInfoPopupData,
                         popupDataSource.installPopupData,
                         popupDataSource.dontSuggestAppPopupData,
+                        popupDataSource.privateProfileInstallPopupData,
                     )
-                if (Flags.enablePrivateSpaceInstallShortcut()) {
-                    shortcuts.add(popupDataSource.privateProfileInstallPopupData)
-                }
                 if (Flags.enablePrivateSpace()) {
                     shortcuts.add(popupDataSource.uninstallAppPopupData)
                 }
