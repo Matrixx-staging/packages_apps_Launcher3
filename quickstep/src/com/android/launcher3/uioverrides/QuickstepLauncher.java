@@ -758,7 +758,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     }
 
     @Override
-    public AtomicAnimationFactory createAtomicAnimationFactory() {
+    public AtomicAnimationFactory<LauncherState> createAtomicAnimationFactory() {
         return new QuickstepAtomicAnimationFactory(this);
     }
 

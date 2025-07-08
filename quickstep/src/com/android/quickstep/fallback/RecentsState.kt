@@ -21,6 +21,7 @@ import androidx.annotation.FloatRange
 import com.android.app.animation.Interpolators
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.Flags
+import com.android.launcher3.LauncherState
 import com.android.launcher3.LauncherState.FLAG_CLOSE_POPUPS
 import com.android.launcher3.R
 import com.android.launcher3.anim.AnimatorPlaybackController
@@ -211,10 +212,17 @@ open class RecentsState(@JvmField val ordinal: Int, private val mFlags: Int) :
                 .getOverviewScaleAndOffsetForBackgroundState(container.getOverviewPanel())
     }
 
-    private class LauncherState(id: Int, flags: Int) : RecentsState(id, flags) {
+    private class BgLauncherState(id: Int, flags: Int) : RecentsState(id, flags) {
         override fun getOverviewScaleAndOffset(container: RecentsViewContainer) =
             floatArrayOf(NO_SCALE, 1f)
     }
+
+    override fun equals(other: Any?) =
+        when (other) {
+            is RecentsState -> other === this
+            is LauncherState -> other === this.toLauncherState()
+            else -> false
+        }
 
     companion object {
         private val FLAG_MODAL = BaseState.getFlag(0)
@@ -283,7 +291,7 @@ open class RecentsState(@JvmField val ordinal: Int, private val mFlags: Int) :
                     FLAG_TASK_THUMBNAIL_SPLASH),
             )
         @JvmField val HOME: RecentsState = RecentsState(HOME_STATE_ORDINAL, 0)
-        @JvmField val BG_LAUNCHER: RecentsState = LauncherState(BG_LAUNCHER_ORDINAL, 0)
+        @JvmField val BG_LAUNCHER: RecentsState = BgLauncherState(BG_LAUNCHER_ORDINAL, 0)
         @JvmField
         val OVERVIEW_SPLIT_SELECT: RecentsState =
             RecentsState(
