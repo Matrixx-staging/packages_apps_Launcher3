@@ -30,25 +30,12 @@ import org.junit.runner.RunWith
 class OrganizeDesktopTasksUseCaseTest {
 
     private val useCase: OrganizeDesktopTasksUseCase = OrganizeDesktopTasksUseCase()
-    private val testLayoutConfig: DesktopLayoutConfig =
-        DesktopLayoutConfig(
-            topBottomMarginOneRow = 20,
-            topMarginMultiRows = 20,
-            bottomMarginMultiRows = 20,
-            leftRightMarginOneRow = 20,
-            leftRightMarginMultiRows = 20,
-            horizontalPaddingBetweenTasks = 10,
-            verticalPaddingBetweenTasks = 10,
-            minTaskWidth = 100,
-            maxRows = 4,
-        )
 
     @Test
     fun test_emptyTaskBounds_returnsEmptyList() {
-        val desktopBounds = Rect(0, 0, 1000, 2000)
         val taskBounds = emptyList<RenderedDesktopTaskBoundsData>()
 
-        val result = useCase.invoke(desktopBounds, taskBounds, testLayoutConfig)
+        val result = useCase.invoke(taskBounds, TEST_LAYOUT_CONFIG)
 
         assertThat(result).isEmpty()
     }
@@ -58,19 +45,19 @@ class OrganizeDesktopTasksUseCaseTest {
         val desktopBounds = Rect(0, 0, 0, 0)
         val taskBounds = listOf(RenderedDesktopTaskBoundsData(1, Rect(0, 0, 100, 100)))
         val expected = listOf(HiddenDesktopTaskBoundsData(1))
+        val layoutConfig = TEST_LAYOUT_CONFIG.copy(desktopBounds = desktopBounds)
 
-        val result = useCase.invoke(desktopBounds, taskBounds, testLayoutConfig)
+        val result = useCase.invoke(taskBounds, layoutConfig)
 
         assertThat(result).isEqualTo(expected)
     }
 
     @Test
     fun test_singleTask_isCenteredAndScaled() {
-        val desktopBounds = Rect(0, 0, 1000, 2000)
         val originalAppRect = Rect(0, 0, 800, 1200)
         val taskBounds = listOf(RenderedDesktopTaskBoundsData(1, originalAppRect))
 
-        val result = useCase.invoke(desktopBounds, taskBounds, testLayoutConfig)
+        val result = useCase.invoke(taskBounds, TEST_LAYOUT_CONFIG)
 
         assertThat(result).hasSize(1)
         val renderedTask = result[0] as RenderedDesktopTaskBoundsData
@@ -92,7 +79,6 @@ class OrganizeDesktopTasksUseCaseTest {
 
     @Test
     fun test_multiTasks_formRows() {
-        val desktopBounds = Rect(0, 0, 1000, 2000)
         // Make tasks wide enough so they likely won't all fit in one row
         val taskRect = Rect(0, 0, 600, 400)
         val taskBounds =
@@ -102,7 +88,7 @@ class OrganizeDesktopTasksUseCaseTest {
                 RenderedDesktopTaskBoundsData(3, taskRect),
             )
 
-        val result = useCase.invoke(desktopBounds, taskBounds, testLayoutConfig)
+        val result = useCase.invoke(taskBounds, TEST_LAYOUT_CONFIG)
         assertThat(result).hasSize(3)
         val bounds1 = (result[0] as RenderedDesktopTaskBoundsData).bounds
 
@@ -173,7 +159,8 @@ class OrganizeDesktopTasksUseCaseTest {
         // of the screen.
         // Expected Rect for Task 1: Rect(254, 149, 756, 401)
         val config =
-            testLayoutConfig.copy(
+            TEST_LAYOUT_CONFIG.copy(
+                desktopBounds = desktopBounds,
                 // testLayoutConfig has topBottomMarginOneRow = 20
                 maxRows = 1,
                 minTaskWidth = 50, // Low enough not to dominate height calculation
@@ -184,7 +171,7 @@ class OrganizeDesktopTasksUseCaseTest {
                 horizontalPaddingBetweenTasks = 10,
             )
 
-        val result = useCase.invoke(desktopBounds, tasks, config)
+        val result = useCase.invoke(tasks, config)
 
         val expected =
             listOf(
@@ -199,13 +186,11 @@ class OrganizeDesktopTasksUseCaseTest {
     fun removeTask_fromEmptyLayout_returnsEmptyList_merged() {
         val currentLayout = emptyList<RenderedDesktopTaskBoundsData>()
         val taskIdToRemove = 1
-        val desktopBounds = DEFAULT_DESKTOP_BOUNDS
 
         val result =
             useCase.invoke(
-                desktopBounds = desktopBounds,
                 allCurrentOriginalTaskBounds = currentLayout,
-                layoutConfig = testLayoutConfig,
+                layoutConfig = DEFAULT_LAYOUT_CONFIG,
                 taskPositionsHint = null,
                 dismissedTaskId = taskIdToRemove,
             )
@@ -216,13 +201,11 @@ class OrganizeDesktopTasksUseCaseTest {
     fun removeTask_whenTaskNotFoundInSingleItemLayout_returnsOriginalLayout_merged() {
         val currentLayout = listOf(RenderedDesktopTaskBoundsData(1, Rect(0, 0, 100, 200)))
         val taskIdToRemove = 2 // Task not in currentLayout
-        val desktopBounds = DEFAULT_DESKTOP_BOUNDS
 
         val result =
             useCase.invoke(
-                desktopBounds = desktopBounds,
                 allCurrentOriginalTaskBounds = currentLayout,
-                layoutConfig = testLayoutConfig,
+                layoutConfig = DEFAULT_LAYOUT_CONFIG,
                 dismissedTaskId = taskIdToRemove,
             )
         // The new invoke logic might return a full re-organization if task not found for reflow.
@@ -230,7 +213,7 @@ class OrganizeDesktopTasksUseCaseTest {
         // The orchestrator invoke will call performFullOrganization on currentLayout (all tasks).
         // So, the result should be the organized version of currentLayout.
         val expectedResult =
-            useCase.invoke(desktopBounds, currentLayout, testLayoutConfig, dismissedTaskId = null)
+            useCase.invoke(currentLayout, DEFAULT_LAYOUT_CONFIG, dismissedTaskId = null)
         assertThat(result).isEqualTo(expectedResult)
     }
 
@@ -250,13 +233,11 @@ class OrganizeDesktopTasksUseCaseTest {
                 RenderedDesktopTaskBoundsData(3, Rect(0, 420, 100, 620)),
             )
         val taskIdToRemove = 1
-        val desktopBounds = DEFAULT_DESKTOP_BOUNDS
 
         val result =
             useCase.invoke(
-                desktopBounds = desktopBounds,
                 allCurrentOriginalTaskBounds = currentLayout,
-                layoutConfig = testLayoutConfig,
+                layoutConfig = DEFAULT_LAYOUT_CONFIG,
                 taskPositionsHint = currentLayout,
                 dismissedTaskId = taskIdToRemove,
             )
@@ -285,13 +266,11 @@ class OrganizeDesktopTasksUseCaseTest {
                 RenderedDesktopTaskBoundsData(3, Rect(0, 420, 100, 620)),
             )
         val taskIdToRemove = 2
-        val desktopBounds = DEFAULT_DESKTOP_BOUNDS
 
         val result =
             useCase.invoke(
-                desktopBounds = desktopBounds,
                 allCurrentOriginalTaskBounds = currentLayout,
-                layoutConfig = testLayoutConfig,
+                layoutConfig = DEFAULT_LAYOUT_CONFIG,
                 taskPositionsHint = currentLayout,
                 dismissedTaskId = taskIdToRemove,
             )
@@ -320,13 +299,11 @@ class OrganizeDesktopTasksUseCaseTest {
                 RenderedDesktopTaskBoundsData(3, Rect(0, 420, 100, 620)),
             )
         val taskIdToRemove = 3
-        val desktopBounds = DEFAULT_DESKTOP_BOUNDS
 
         val result =
             useCase.invoke(
-                desktopBounds = desktopBounds,
                 allCurrentOriginalTaskBounds = currentLayout,
-                layoutConfig = testLayoutConfig,
+                layoutConfig = DEFAULT_LAYOUT_CONFIG,
                 taskPositionsHint = currentLayout,
                 dismissedTaskId = taskIdToRemove,
             )
@@ -357,13 +334,11 @@ class OrganizeDesktopTasksUseCaseTest {
                 RenderedDesktopTaskBoundsData(5, Rect(110, 420, 210, 620)),
             )
         val taskIdToRemove = 3
-        val desktopBounds = DEFAULT_DESKTOP_BOUNDS
 
         val result =
             useCase.invoke(
-                desktopBounds = desktopBounds,
                 allCurrentOriginalTaskBounds = currentLayout,
-                layoutConfig = testLayoutConfig,
+                layoutConfig = DEFAULT_LAYOUT_CONFIG,
                 taskPositionsHint = currentLayout,
                 dismissedTaskId = taskIdToRemove,
             )
@@ -391,13 +366,11 @@ class OrganizeDesktopTasksUseCaseTest {
                 RenderedDesktopTaskBoundsData(3, Rect(220, 0, 320, 200)),
             )
         val taskIdToRemove = 1
-        val desktopBounds = DEFAULT_DESKTOP_BOUNDS
 
         val result =
             useCase.invoke(
-                desktopBounds = desktopBounds,
                 allCurrentOriginalTaskBounds = currentLayout,
-                layoutConfig = testLayoutConfig,
+                layoutConfig = DEFAULT_LAYOUT_CONFIG,
                 taskPositionsHint = currentLayout,
                 dismissedTaskId = taskIdToRemove,
             )
@@ -423,13 +396,11 @@ class OrganizeDesktopTasksUseCaseTest {
                 RenderedDesktopTaskBoundsData(3, Rect(220, 0, 320, 200)),
             )
         val taskIdToRemove = 2
-        val desktopBounds = DEFAULT_DESKTOP_BOUNDS
 
         val result =
             useCase.invoke(
-                desktopBounds = desktopBounds,
                 allCurrentOriginalTaskBounds = currentLayout,
-                layoutConfig = testLayoutConfig,
+                layoutConfig = DEFAULT_LAYOUT_CONFIG,
                 taskPositionsHint = currentLayout,
                 dismissedTaskId = taskIdToRemove,
             )
@@ -455,13 +426,11 @@ class OrganizeDesktopTasksUseCaseTest {
                 RenderedDesktopTaskBoundsData(3, Rect(220, 0, 320, 200)),
             )
         val taskIdToRemove = 3
-        val desktopBounds = DEFAULT_DESKTOP_BOUNDS
 
         val result =
             useCase.invoke(
-                desktopBounds = desktopBounds,
                 allCurrentOriginalTaskBounds = currentLayout,
-                layoutConfig = testLayoutConfig,
+                layoutConfig = DEFAULT_LAYOUT_CONFIG,
                 taskPositionsHint = currentLayout,
                 dismissedTaskId = taskIdToRemove,
             )
@@ -473,8 +442,6 @@ class OrganizeDesktopTasksUseCaseTest {
             )
         assertThat(result).isEqualTo(expectedResult)
     }
-
-    private val defaultDesktopBounds = Rect(0, 0, 10000, 10000)
 
     // Helper for creating RenderedDesktopTaskBoundsData
     private fun createRenderedData(taskId: Int, l: Int, t: Int, r: Int, b: Int) =
@@ -493,9 +460,8 @@ class OrganizeDesktopTasksUseCaseTest {
 
         val result =
             useCase.invoke(
-                desktopBounds = defaultDesktopBounds,
                 allCurrentOriginalTaskBounds = allOriginalTasks,
-                layoutConfig = testLayoutConfig,
+                layoutConfig = DEFAULT_LAYOUT_CONFIG,
                 taskPositionsHint = previousLayout,
                 dismissedTaskId = dismissedTaskId,
             )
@@ -514,9 +480,8 @@ class OrganizeDesktopTasksUseCaseTest {
 
         val result =
             useCase.invoke(
-                desktopBounds = defaultDesktopBounds,
                 allCurrentOriginalTaskBounds = allOriginalTasks,
-                layoutConfig = testLayoutConfig,
+                layoutConfig = DEFAULT_LAYOUT_CONFIG,
                 taskPositionsHint = null,
                 dismissedTaskId = dismissedTaskId,
             )
@@ -524,9 +489,8 @@ class OrganizeDesktopTasksUseCaseTest {
         // Expected: performFullOrganization on remainingOriginalTaskBounds ([task2Orig])
         val expectedResultByFullOrganization =
             useCase.invoke(
-                desktopBounds = defaultDesktopBounds,
                 allCurrentOriginalTaskBounds = remainingOriginalTaskBounds,
-                layoutConfig = testLayoutConfig,
+                layoutConfig = DEFAULT_LAYOUT_CONFIG,
                 taskPositionsHint = null,
                 dismissedTaskId = null,
             )
@@ -545,9 +509,8 @@ class OrganizeDesktopTasksUseCaseTest {
 
         val result =
             useCase.invoke(
-                desktopBounds = defaultDesktopBounds,
                 allCurrentOriginalTaskBounds = allOriginalTasks,
-                layoutConfig = testLayoutConfig,
+                layoutConfig = DEFAULT_LAYOUT_CONFIG,
                 taskPositionsHint = previousLayout,
                 dismissedTaskId = dismissedTaskId,
             )
@@ -587,9 +550,8 @@ class OrganizeDesktopTasksUseCaseTest {
 
         val result =
             useCase.invoke(
-                desktopBounds = defaultDesktopBounds, // Use large bounds for full re-layout
                 allCurrentOriginalTaskBounds = allOriginalTasks,
-                layoutConfig = testLayoutConfig,
+                layoutConfig = DEFAULT_LAYOUT_CONFIG,
                 taskPositionsHint = previousLayout,
                 dismissedTaskId = dismissedTaskId,
             )
@@ -598,9 +560,8 @@ class OrganizeDesktopTasksUseCaseTest {
         // task3Orig])
         val expectedResultByFullOrganization =
             useCase.invoke(
-                desktopBounds = defaultDesktopBounds,
                 allCurrentOriginalTaskBounds = remainingOriginalTasks,
-                layoutConfig = testLayoutConfig,
+                layoutConfig = DEFAULT_LAYOUT_CONFIG,
                 taskPositionsHint = null, // Not used for this call path
                 dismissedTaskId = null,
             )
@@ -633,9 +594,8 @@ class OrganizeDesktopTasksUseCaseTest {
         val dismissedTaskId = 1
         val result =
             useCase.invoke(
-                desktopBounds = defaultDesktopBounds,
                 allCurrentOriginalTaskBounds = allOriginalTasks,
-                layoutConfig = testLayoutConfig,
+                layoutConfig = DEFAULT_LAYOUT_CONFIG,
                 taskPositionsHint = previousLayout,
                 dismissedTaskId = dismissedTaskId,
             )
@@ -661,6 +621,21 @@ class OrganizeDesktopTasksUseCaseTest {
     }
 
     companion object {
+        private val TEST_LAYOUT_CONFIG =
+            DesktopLayoutConfig(
+                desktopBounds = Rect(0, 0, 1000, 2000),
+                topBottomMarginOneRow = 20,
+                topMarginMultiRows = 20,
+                bottomMarginMultiRows = 20,
+                leftRightMarginOneRow = 20,
+                leftRightMarginMultiRows = 20,
+                horizontalPaddingBetweenTasks = 10,
+                verticalPaddingBetweenTasks = 10,
+                minTaskWidth = 100,
+                maxRows = 4,
+            )
         private val DEFAULT_DESKTOP_BOUNDS = Rect(0, 0, 10000, 10000)
+        private val DEFAULT_LAYOUT_CONFIG =
+            TEST_LAYOUT_CONFIG.copy(desktopBounds = DEFAULT_DESKTOP_BOUNDS)
     }
 }

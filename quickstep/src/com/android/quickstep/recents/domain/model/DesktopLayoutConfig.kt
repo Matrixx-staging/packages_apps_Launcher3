@@ -16,11 +16,14 @@
 
 package com.android.quickstep.recents.domain.model
 
+import android.graphics.Rect
+
 /**
  * Holds pre-scaled configuration values related to desktop task layout dimensions. These values are
  * typically derived from resources and then scaled according to the current view and screen
  * dimensions.
  *
+ * @property desktopBounds The rectangular area for layout.
  * @property topBottomMarginOneRow Scaled margin for top/bottom when one row is shown.
  * @property topMarginMultiRows Scaled top margin when multiple rows are shown.
  * @property bottomMarginMultiRows Scaled bottom margin when multiple rows are shown.
@@ -32,6 +35,7 @@ package com.android.quickstep.recents.domain.model
  * @property maxRows Maximum rows in the desktop exploded view layout.
  */
 data class DesktopLayoutConfig(
+    val desktopBounds: Rect,
     val topBottomMarginOneRow: Int,
     val topMarginMultiRows: Int,
     val bottomMarginMultiRows: Int,

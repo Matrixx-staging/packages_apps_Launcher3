@@ -33,7 +33,6 @@ class OrganizeDesktopTasksUseCase {
     /**
      * Arranges desktop tasks or rebalances layout after a task dismissal.
      *
-     * @param desktopBounds The rectangular area for layout.
      * @param allCurrentOriginalTaskBounds List of all tasks currently considered for layout, with
      *   their original, unorganized bounds. If a task is being dismissed, it should be included in
      *   this list.
@@ -47,7 +46,6 @@ class OrganizeDesktopTasksUseCase {
      *   bounds or inability to fit) are [HiddenDesktopTaskBoundsData].
      */
     operator fun invoke(
-        desktopBounds: Rect,
         allCurrentOriginalTaskBounds: List<RenderedDesktopTaskBoundsData>,
         layoutConfig: DesktopLayoutConfig,
         taskPositionsHint: List<DesktopTaskBoundsData>? = null,
@@ -55,12 +53,9 @@ class OrganizeDesktopTasksUseCase {
     ): List<DesktopTaskBoundsData> {
         if (dismissedTaskId == null) {
             // No task dismissed, perform full organization on all current tasks.
-            return performFullOrganization(
-                desktopBounds,
-                allCurrentOriginalTaskBounds,
-                layoutConfig,
-            )
+            return performFullOrganization(allCurrentOriginalTaskBounds, layoutConfig)
         }
+
         // A task is being dismissed.
         val remainingOriginalTaskBounds =
             allCurrentOriginalTaskBounds.filterNot { it.taskId == dismissedTaskId }
@@ -68,7 +63,7 @@ class OrganizeDesktopTasksUseCase {
         if (remainingOriginalTaskBounds.isEmpty() || taskPositionsHint == null) {
             // Last task was dismissed or we don't have any previous layout position data,
             // performFullOrganization will be performed.
-            return performFullOrganization(desktopBounds, remainingOriginalTaskBounds, layoutConfig)
+            return performFullOrganization(remainingOriginalTaskBounds, layoutConfig)
         }
 
         val remainingPreviousOrganizedTaskPosition =
@@ -86,7 +81,7 @@ class OrganizeDesktopTasksUseCase {
             // Now, check whether the new full layout can show/hide different set of task
             // windows, if so, use the full layout, otherwise, use the reflow layout.
             val tentativeLayoutForRemaining =
-                performFullOrganization(desktopBounds, remainingOriginalTaskBounds, layoutConfig)
+                performFullOrganization(remainingOriginalTaskBounds, layoutConfig)
 
             val taskIds1 =
                 tentativeLayoutForRemaining
@@ -148,7 +143,6 @@ class OrganizeDesktopTasksUseCase {
      *
      * For more details on the original layout strategy and goals, see b/421417134.
      *
-     * @param desktopBounds The rectangular area on the screen available for laying out the tasks.
      * @param taskBounds A list of [RenderedDesktopTaskBoundsData] representing the tasks to be
      *   arranged. Each item includes the task's ID and its original bounds.
      * @param layoutConfig Configuration parameters for the layout, including margins, padding,
@@ -159,7 +153,6 @@ class OrganizeDesktopTasksUseCase {
      *   not fit into the layout.
      */
     private fun performFullOrganization(
-        desktopBounds: Rect,
         taskBounds: List<RenderedDesktopTaskBoundsData>,
         layoutConfig: DesktopLayoutConfig,
     ): List<DesktopTaskBoundsData> {
@@ -172,7 +165,7 @@ class OrganizeDesktopTasksUseCase {
                 .filterNot { it.bounds.isEmpty }
                 .map { RenderedDesktopTaskBoundsData(taskId = it.taskId, bounds = it.bounds) }
 
-        if (desktopBounds.isEmpty || validTaskBounds.isEmpty()) {
+        if (layoutConfig.desktopBounds.isEmpty || validTaskBounds.isEmpty()) {
             return taskBounds.map { HiddenDesktopTaskBoundsData(it.taskId) }
         }
 
@@ -180,7 +173,7 @@ class OrganizeDesktopTasksUseCase {
         // windows can fit.
         // Use [validTaskBounds] here to calculate the desired effective layout bounds.
         var availableLayoutBounds =
-            desktopBounds.getLayoutEffectiveBounds(
+            layoutConfig.desktopBounds.getLayoutEffectiveBounds(
                 singleRow = true,
                 taskNumber = validTaskBounds.size,
                 layoutConfig,
@@ -191,7 +184,7 @@ class OrganizeDesktopTasksUseCase {
         // If the windows can't fit in one row, try to fit them in multiple rows.
         if (!canFitInOneRow(resultRects)) {
             availableLayoutBounds =
-                desktopBounds.getLayoutEffectiveBounds(
+                layoutConfig.desktopBounds.getLayoutEffectiveBounds(
                     singleRow = false,
                     taskNumber = validTaskBounds.size,
                     layoutConfig,
