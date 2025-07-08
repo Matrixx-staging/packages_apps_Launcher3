@@ -100,6 +100,7 @@ import com.android.quickstep.RecentsActivity;
 import com.android.quickstep.SystemDecorationChangeObserver;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.util.ContextualSearchInvoker;
+import com.android.quickstep.util.SystemUiFlagUtils;
 import com.android.quickstep.views.RecentsViewContainer;
 import com.android.quickstep.window.RecentsWindowManager;
 import com.android.systemui.shared.statusbar.phone.BarTransitions;
@@ -317,6 +318,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
             };
 
     private boolean mUserUnlocked;
+    private boolean mDeviceUnlocked;
 
     private final Map<Integer, SimpleBroadcastReceiver> mTaskbarBroadcastReceivers =
             new ConcurrentHashMap<>();
@@ -533,7 +535,10 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
      * Shows or hides the All Apps view in the Taskbar or Launcher, based on its current
      * visibility on the System UI tracked focused display.
      */
-    private void toggleAllAppsSearch() {
+    @VisibleForTesting
+    void toggleAllAppsSearch() {
+        if (!mDeviceUnlocked) return;
+
         TaskbarActivityContext taskbar = getTaskbarForDisplay(getFocusedDisplayId());
         if (taskbar == null) {
             // Home All Apps should be toggled from this class, because the controllers are not
@@ -802,6 +807,9 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
 
     /** Called when the SysUI flags for a given display change. */
     public void onSystemUiFlagsChanged(@SystemUiStateFlags long systemUiStateFlags, int displayId) {
+        if (displayId == mPrimaryDisplayId) {
+            mDeviceUnlocked = !SystemUiFlagUtils.isLocked(systemUiStateFlags);
+        }
         TaskbarSharedState sharedState = getSharedStateForDisplay(displayId);
         if (DEBUG) {
             Log.d(TAG, "SysUI flags changed: " + formatFlagChange(systemUiStateFlags,
@@ -1131,6 +1139,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
     public void dumpLogs(String prefix, PrintWriter pw) {
         pw.println(prefix + "TaskbarManager:");
         pw.println(prefix + "\tmUserUnlocked=" + mUserUnlocked);
+        pw.println(prefix + "\tmDeviceUnlocked=" + mDeviceUnlocked);
         pw.println(prefix + "\thasBootAppContext=" + (mBootAppContext != null));
         // iterate through taskbars and do the dump for each
         for (Entry<Integer, TaskbarActivityContext> entry : mTaskbars.entrySet()) {

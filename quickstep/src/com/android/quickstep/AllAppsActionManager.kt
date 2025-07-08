@@ -28,6 +28,7 @@ import com.android.launcher3.R
 import com.android.launcher3.util.SettingsCache
 import com.android.launcher3.util.SettingsCache.OnChangeListener
 import com.android.quickstep.input.QuickstepKeyGestureEventsManager
+import java.io.PrintWriter
 import java.util.concurrent.Executor
 
 private val USER_SETUP_COMPLETE_URI = Settings.Secure.getUriFor(USER_SETUP_COMPLETE)
@@ -132,5 +133,15 @@ class AllAppsActionManager(
             USER_SETUP_COMPLETE_URI,
             onSettingsChangeListener,
         )
+    }
+
+    fun dump(pw: PrintWriter) {
+        pw.println("AllAppsActionManager:")
+        pw.println("\tisHomeAndOverviewSame=$isHomeAndOverviewSame")
+        pw.println("\tisTaskbarPresent=$isTaskbarPresent")
+        pw.println("\tisSetupUiVisible=$isSetupUiVisible")
+        pw.println("\tisUserSetupComplete=$isUserSetupComplete")
+        pw.println("\tisActionRegistered=$isActionRegistered")
+        pw.println("\tisUserUnlocked=$isUserUnlocked")
     }
 }
