@@ -39,6 +39,7 @@ import com.android.systemui.shared.recents.model.ThumbnailData
 import com.android.wm.shell.shared.split.SplitBounds
 import com.android.wm.shell.shared.split.SplitScreenConstants
 import com.google.common.truth.Truth.assertThat
+import java.time.Duration
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -55,7 +56,6 @@ import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.time.Duration
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
@@ -341,29 +341,31 @@ class TaskViewModelTest {
 
     @Test
     fun shouldShowSplash_calls_useCase() {
-        val splitBounds = SplitBounds(
-            /* leftTopBounds = */ Rect(),
-            /* rightBottomBounds = */ Rect(),
-            /* leftTopTaskId = */ 1,
-            /* rightBottomTaskId = */ 2,
-            /* leftTopTaskIds = */ listOf(1),
-            /* rightBottomTaskIds = */ listOf(2),
-            /* snapPosition = */ SplitScreenConstants.SNAP_TO_2_90_10,
-        )
+        val splitBounds =
+            SplitBounds(
+                /* leftTopBounds = */ Rect(),
+                /* rightBottomBounds = */ Rect(),
+                /* leftTopTaskId = */ 1,
+                /* rightBottomTaskId = */ 2,
+                /* leftTopTaskIds = */ listOf(1),
+                /* rightBottomTaskIds = */ listOf(2),
+                /* snapPosition = */ SplitScreenConstants.SNAP_TO_2_90_10,
+            )
         sut.isThumbnailValid(
             thumbnail = null,
             width = 0,
             height = 0,
             splitBounds = splitBounds,
-            stagePosition = STAGE_POSITION_BOTTOM_OR_RIGHT
+            stagePosition = STAGE_POSITION_BOTTOM_OR_RIGHT,
         )
-        verify(isThumbnailValidUseCase).invoke(
-            anyOrNull(),
-            anyInt(),
-            anyInt(),
-            eq(splitBounds),
-            eq(STAGE_POSITION_BOTTOM_OR_RIGHT)
-        )
+        verify(isThumbnailValidUseCase)
+            .invoke(
+                anyOrNull(),
+                anyInt(),
+                anyInt(),
+                eq(splitBounds),
+                eq(STAGE_POSITION_BOTTOM_OR_RIGHT),
+            )
     }
 
     private fun TaskModel.toUiState(isLiveTile: Boolean = false) =
@@ -410,9 +412,9 @@ class TaskViewModelTest {
                 ShapeDrawable(),
                 ThumbnailData(appearance = APPEARANCE_LIGHT_THEME),
                 Color.BLACK,
-                /* isLocked= */ false,
-                /* isMinimized= */ false,
-                /*remainingAppDuration= */ Duration.ofMillis(30),
+                isLocked = false,
+                isMinimized = false,
+                remainingAppDuration = Duration.ofMillis(30),
             )
         val TASK_MODEL_2 =
             TaskModel(
@@ -423,9 +425,9 @@ class TaskViewModelTest {
                 ShapeDrawable(),
                 ThumbnailData(appearance = APPEARANCE_LIGHT_THEME),
                 Color.RED,
-                /* isLocked= */ true,
-                /* isMinimized= */ false,
-                /*remainingAppDuration= */ Duration.ofHours(5).plusMinutes(2),
+                isLocked = true,
+                isMinimized = false,
+                remainingAppDuration = Duration.ofHours(5).plusMinutes(2),
             )
         val TASK_MODEL_3 =
             TaskModel(
@@ -436,9 +438,9 @@ class TaskViewModelTest {
                 ShapeDrawable(),
                 ThumbnailData(appearance = APPEARANCE_LIGHT_THEME),
                 Color.BLUE,
-                /* isLocked= */ false,
-                /* isMinimized= */ false,
-                /* remainingAppDuration= */ null,
+                isLocked = false,
+                isMinimized = false,
+                remainingAppDuration = null,
             )
         val TASK_MODEL_MINIMIZED =
             TaskModel(
@@ -449,9 +451,9 @@ class TaskViewModelTest {
                 ShapeDrawable(),
                 ThumbnailData(appearance = APPEARANCE_LIGHT_THEME),
                 Color.BLUE,
-                /* isLocked= */ false,
-                /* isMinimized= */ true,
-                /* remainingAppDuration= */ null,
+                isLocked = false,
+                isMinimized = true,
+                remainingAppDuration = null,
             )
     }
 }
