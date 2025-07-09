@@ -272,7 +272,7 @@ class DesktopSystemShortcutTest {
         verify(recentsView)
             .moveTaskToDesktop(
                 eq(taskContainer),
-                eq(DesktopModeTransitionSource.APP_FROM_OVERVIEW),
+                eq(DesktopModeTransitionSource.OVERVIEW_TASK_MENU),
                 any(),
             )
         verify(statsLogger).withItemInfo(taskViewItemInfo)
