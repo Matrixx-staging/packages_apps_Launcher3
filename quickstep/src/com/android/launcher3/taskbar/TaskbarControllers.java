@@ -162,7 +162,7 @@ public class TaskbarControllers {
         mAreAllControllersInitialized = false;
         mSharedState = sharedState;
 
-        taskbarDragController.init(this);
+        taskbarDragController.init(this, taskbarUiState);
         navbarButtonsViewController.init(this);
         rotationButtonController.init();
         taskbarDragLayerController.init(this, startAnimation);

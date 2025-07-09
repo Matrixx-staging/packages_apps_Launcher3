@@ -338,7 +338,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                             this, mTaskbarUiState, bubbleBarView, bubbleBarContainer),
                     bubbleStashController,
                     bubbleHandleController,
-                    new BubbleDragController(this, mDragLayer),
+                    new BubbleDragController(this, mDragLayer, mTaskbarUiState),
                     new BubbleDismissController(this, mDragLayer),
                     new BubbleBarPinController(this, bubbleBarContainer, this::getScreenSize),
                     new BubblePinController(this, bubbleBarContainer, this::getScreenSize),
@@ -416,6 +416,10 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
 
     public final int getPrimaryDisplayId() {
         return mPrimaryDisplayId;
+    }
+
+    public TaskbarUiState getTaskbarUiState() {
+        return mTaskbarUiState;
     }
 
     @Override

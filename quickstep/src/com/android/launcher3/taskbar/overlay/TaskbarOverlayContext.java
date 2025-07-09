@@ -72,7 +72,7 @@ public class TaskbarOverlayContext extends BaseTaskbarContext {
         mOverlayController = controllers.taskbarOverlayController;
         mDragToBubbleController = controllers.bubbleControllers.map(c -> c.dragToBubbleController);
         mDragController = new TaskbarDragController(this);
-        mDragController.init(controllers);
+        mDragController.init(controllers, taskbarContext.getTaskbarUiState());
         mDragLayer = new TaskbarOverlayDragLayer(this);
         mStashedTaskbarHeight = controllers.taskbarStashController.getStashedHeight();
         updateBlurStyle();
