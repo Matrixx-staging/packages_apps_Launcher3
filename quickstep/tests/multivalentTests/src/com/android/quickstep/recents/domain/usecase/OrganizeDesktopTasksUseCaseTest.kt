@@ -157,7 +157,8 @@ class OrganizeDesktopTasksUseCaseTest {
         //
         // Expected: Task 1 gets bounds and centered, Tasks 2 and 3 get a small bounds in the center
         // of the screen.
-        // Expected Rect for Task 1: Rect(254, 149, 756, 401)
+        // Expected Rect for Task 1: Rect(25, 37 - 975, 513) after relayout to calculate the optimal
+        // height to fit one window.
         val config =
             TEST_LAYOUT_CONFIG.copy(
                 desktopBounds = desktopBounds,
@@ -175,7 +176,7 @@ class OrganizeDesktopTasksUseCaseTest {
 
         val expected =
             listOf(
-                RenderedDesktopTaskBoundsData(1, Rect(254, 149, 756, 401)),
+                RenderedDesktopTaskBoundsData(1, Rect(25, 37, 975, 513)),
                 HiddenDesktopTaskBoundsData(2),
                 HiddenDesktopTaskBoundsData(3),
             )
@@ -618,6 +619,40 @@ class OrganizeDesktopTasksUseCaseTest {
         assertThat(result).hasSize(2)
         assertThat(result).contains(expectedReflowedT2)
         assertThat(result).contains(prevHiddenT3)
+    }
+
+    @Test
+    fun layoutWithHiddenTasks_relayoutsVisibleTasksOptimally() {
+        val taskRect = Rect(0, 0, 200, 100) // Same size for all tasks
+
+        val tasks =
+            listOf(
+                RenderedDesktopTaskBoundsData(1, taskRect),
+                RenderedDesktopTaskBoundsData(2, taskRect),
+                RenderedDesktopTaskBoundsData(3, taskRect),
+            )
+
+        val constrainedConfig =
+            TEST_LAYOUT_CONFIG.copy(desktopBounds = Rect(0, 0, 1000, 400), maxRows = 1)
+
+        // With the constrained config, only 2 tasks should fit, so task 3 will be hidden.
+        val visibleTasks = tasks.take(2)
+
+        // 1. Get layout for all tasks (where one should be hidden due to constraints)
+        val resultWithHidden = useCase.invoke(tasks, constrainedConfig)
+
+        // 2. Get layout for only the tasks that are expected to be visible
+        val resultVisibleOnly = useCase.invoke(visibleTasks, constrainedConfig)
+
+        // 3. Filter out the hidden task from the first result
+        val renderedTasksFromResultWithHidden =
+            resultWithHidden.filterIsInstance<RenderedDesktopTaskBoundsData>()
+
+        // 4. Assert that the layouts are the same
+        assertThat(renderedTasksFromResultWithHidden).isEqualTo(resultVisibleOnly)
+        // Also assert that task 3 was indeed hidden
+        assertThat(resultWithHidden.find { it.taskId == 3 })
+            .isInstanceOf(HiddenDesktopTaskBoundsData::class.java)
     }
 
     companion object {
