@@ -44,13 +44,15 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito.spy
 import org.mockito.kotlin.KArgumentCaptor
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doNothing
+import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.stub
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
@@ -58,11 +60,19 @@ import org.mockito.kotlin.whenever
 @SmallTest
 @RunWith(AndroidJUnit4::class)
 class QuickstepKeyGestureEventsHandlerTest {
-    @get:Rule val context = spy(SandboxApplication())
+    @get:Rule
+    val context =
+        spy(SandboxApplication()) {
+            on { checkSelfPermission(eq(MANAGE_KEY_GESTURES)) } doReturn PERMISSION_GRANTED
+        }
 
     @get:Rule val setFlagsRule = SetFlagsRule(SetFlagsRule.DefaultInitValueType.DEVICE_DEFAULT)
 
-    private val inputManager = context.spyService(InputManager::class.java)
+    private val inputManager =
+        context.spyService(InputManager::class.java).stub {
+            doNothing().whenever(it).registerKeyGestureEventHandler(any(), any())
+            doNothing().whenever(it).unregisterKeyGestureEventHandler(any())
+        }
     private val allAppsPendingIntent: PendingIntent = mock()
     private val keyGestureEventsCaptor: KArgumentCaptor<List<Int>> = argumentCaptor()
     private val fakeOverviewHandler = FakeOverviewHandler()
@@ -70,12 +80,8 @@ class QuickstepKeyGestureEventsHandlerTest {
 
     @Before
     fun setup() {
-        doNothing().whenever(inputManager).registerKeyGestureEventHandler(any(), any())
-        doNothing().whenever(inputManager).unregisterKeyGestureEventHandler(any())
         keyGestureEventsManager = QuickstepKeyGestureEventsManager(context)
         keyGestureEventsManager.onUserSetupCompleteListener.onSettingsChanged(/* isEnabled= */ true)
-        whenever(context.checkSelfPermission(eq(MANAGE_KEY_GESTURES)))
-            .thenReturn(PERMISSION_GRANTED)
     }
 
     @Test
