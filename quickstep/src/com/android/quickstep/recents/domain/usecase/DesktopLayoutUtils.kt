@@ -60,11 +60,13 @@ object DesktopLayoutUtils {
     }
 
     /**
-     * Creates a small, square placeholder Rect centered within the given [desktopBounds]. The size
-     * of the square is determined by `layoutConfig.minTaskWidth`. Used for tasks that cannot be
-     * laid out due to the size constraints.
+     * Creates a small, square placeholder Rect centered within the given
+     * [layoutConfig.desktopBounds]. The size of the square is determined by
+     * [layoutConfig.minTaskWidth]. Used for tasks that cannot be laid out due to the size
+     * constraints.
      */
-    fun createPlaceholderBounds(desktopBounds: Rect, layoutConfig: DesktopLayoutConfig): Rect {
+    fun createPlaceholderBounds(layoutConfig: DesktopLayoutConfig): Rect {
+        val desktopBounds = layoutConfig.desktopBounds
         if (desktopBounds.isEmpty) {
             // If desktopBounds is empty, we can't really center. Return an empty rect.
             return Rect()

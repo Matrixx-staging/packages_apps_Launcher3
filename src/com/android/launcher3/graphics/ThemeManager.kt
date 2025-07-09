@@ -106,9 +106,7 @@ constructor(
         iconState = newState
         if (hasThemedChanged) {
             // trigger listeners only for theme change, not shape change
-            listeners.forEach {
-                it.onThemeChanged()
-            }
+            listeners.forEach { it.onThemeChanged() }
         }
     }
 
@@ -212,6 +210,6 @@ constructor(
         private val MONO_THEME_CONTROLLER = MonoIconThemeController(shouldForceThemeIcon = true)
 
         private fun ShapeDelegate.createIconShape(size: Int) =
-            generateIconShape(size, getPath(size.toFloat()), getShapeRenderer(size.toFloat()))
+            generateIconShape(size, getPath(size.toFloat()))
     }
 }

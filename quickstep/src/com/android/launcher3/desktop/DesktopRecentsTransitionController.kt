@@ -66,7 +66,12 @@ class DesktopRecentsTransitionController(
             )
         val transition = RemoteTransition(animRunner, appThread, "RecentsToDesktop")
         if (areMultiDesksFlagsEnabled()) {
-            systemUiProxy.activateDesk(desktopTaskView.deskId, transition, taskIdToReorderToFront)
+            systemUiProxy.activateDesk(
+                desktopTaskView.deskId,
+                transition,
+                taskIdToReorderToFront,
+                DesktopModeTransitionSource.RECENTS,
+            )
         } else {
             systemUiProxy.showDesktopApps(
                 desktopTaskView.displayId,

@@ -228,6 +228,7 @@ constructor(
                     gridEndData,
                 )
             } else {
+                dismissedTaskView?.isBeingDismissed = false
                 recentsView.onDismissAnimationEnds()
             }
         }
@@ -255,6 +256,7 @@ constructor(
         isDismissing: Boolean,
         dismissedTaskData: DismissedTaskData,
     ): SpringAnimation? {
+        dismissedTaskView.isBeingDismissed = true
         val taskDismissFloatProperty =
             FloatPropertyCompat.createFloatPropertyCompat(
                 dismissedTaskView.secondaryDismissTranslationProperty
@@ -1202,6 +1204,7 @@ constructor(
             updateCurrentTaskActionsVisibility()
             onDismissAnimationEnds()
             mTaskViewsDismissPrimaryTranslations.clear()
+            dismissedTaskView?.isBeingDismissed = false
         }
     }
 
