@@ -275,7 +275,12 @@ class KeyboardQuickSwitchControllerTest {
         triggerAltTabAndLaunchFocusedTask()
 
         val deskIdCaptor = argumentCaptor<Int>()
-        verify(systemUiProxySpy)?.activateDesk(deskIdCaptor.capture(), transitionCaptor.capture())
+        verify(systemUiProxySpy)
+            ?.activateDesk(
+                deskIdCaptor.capture(),
+                transitionCaptor.capture(),
+                transitionSource = eq(DesktopModeTransitionSource.KEYBOARD_SHORTCUT),
+            )
         assertThat(deskIdCaptor.firstValue).isEqualTo(deskId)
         assertThat(transitionCaptor.firstValue.remoteTransition)
             .isInstanceOf(SlideInRemoteTransition::class.java)

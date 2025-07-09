@@ -322,7 +322,7 @@ public class KeyboardQuickSwitchViewController {
         if (task instanceof DesktopTask desktopTask) {
             UI_HELPER_EXECUTOR.execute(
                     () -> systemUiProxy.activateDesk(desktopTask.getDeskId(), slideInTransition,
-                            taskId));
+                            taskId, DesktopModeTransitionSource.KEYBOARD_SHORTCUT));
             return true;
         } else if (mOnDesktop && task instanceof SingleTask) {
             // Use the special API if user wants to switch to a fullscreen app while in desktop.

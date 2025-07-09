@@ -72,6 +72,7 @@ import com.android.window.flags.Flags.FLAG_ENABLE_PINNING_APP_WITH_CONTEXT_MENU
 import com.android.window.flags.Flags.FLAG_ENABLE_TASKBAR_OVERFLOW
 import com.android.wm.shell.Flags.FLAG_ENABLE_BUBBLE_BAR
 import com.android.wm.shell.desktopmode.IDesktopTaskListener
+import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource
 import com.google.common.truth.Truth.assertThat
 import dagger.BindsInstance
 import dagger.Component
@@ -421,16 +422,20 @@ class TaskbarOverflowTest {
         val deskIdCaptor = argumentCaptor<Int>()
         val taskIdCaptor = argumentCaptor<Int>()
         val transitionCaptor = argumentCaptor<RemoteTransition>()
+        val transitionSource = argumentCaptor<DesktopModeTransitionSource>()
         verify(systemUiProxySpy)
             ?.activateDesk(
                 deskIdCaptor.capture(),
                 transitionCaptor.capture(),
                 taskIdCaptor.capture(),
+                transitionSource.capture(),
             )
         assertThat(deskIdCaptor.firstValue).isEqualTo(0)
         assertThat(taskIdCaptor.firstValue).isEqualTo(0)
         assertThat(transitionCaptor.firstValue.remoteTransition)
             .isInstanceOf(SlideInRemoteTransition::class.java)
+        assertThat(transitionSource.firstValue)
+            .isEqualTo(DesktopModeTransitionSource.KEYBOARD_SHORTCUT)
     }
 
     @Test
