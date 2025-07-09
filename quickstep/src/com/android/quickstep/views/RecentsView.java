@@ -4527,7 +4527,7 @@ public abstract class RecentsView<
             if (removeTask) {
                 ActivityManagerWrapper.getInstance().removeTask(taskId);
             }
-        } else {
+        } else if (!taskView.isBeingDismissed()) {
             dismissTaskView(taskView, animate, removeTask);
         }
     }
