@@ -232,8 +232,14 @@
     <string name="allset_title_expressive">Your <xliff:g id="device" example="Pixel 9">%1$s</xliff:g> is \nready!</string>
     <!-- Description of "All Set" page on the user's device when no device name is provided [CHAR LIMIT=NONE] -->
     <string name="allset_title_expressive_fallback">Your device is \nready!</string>
+    <!-- Fixed Title of "All Set" page [CHAR LIMIT=NONE] -->
+    <string name="allset_title_expressive_fixed">You\'re ready to roll!</string>
     <!-- New subtitle of "All Set" page [CHAR LIMIT=NONE] -->
     <string name="allset_subtitle_expressive">Enjoy your new <xliff:g id="device" example="phone">%1$s</xliff:g>!</string>
+    <!-- Subtitle of "All Set" page for Gesture Navigation [CHAR LIMIT=NONE] -->
+    <string name="allset_subtitle_expressive_gesture_navigation">Swipe up to get started with your <xliff:g id="device" example="phone">%1$s</xliff:g></string>
+    <!-- Subtitle of "All Set" page for 3 Button Navigation [CHAR LIMIT=NONE] -->
+    <string name="allset_subtitle_expressive_button_navigation">Tap get started with your <xliff:g id="device" example="phone">%1$s</xliff:g></string>
     <!-- String linking to navigation settings on "All Set" page [CHAR LIMIT=NONE] -->
     <string name="allset_navigation_settings_expressive"><annotation id="link">Choose how to navigate</annotation></string>
     <!-- Hint string at the bottom of "All Set" page [CHAR LIMIT=NONE] -->
