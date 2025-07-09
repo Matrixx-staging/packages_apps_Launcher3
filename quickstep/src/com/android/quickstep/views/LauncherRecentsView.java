@@ -213,7 +213,6 @@ public class LauncherRecentsView extends RecentsView<QuickstepLauncher, Launcher
             boolean hasAddDeskButton = (state.getVisibleElements(mContainer)
                     & ADD_DESK_BUTTON) != 0;
             setDisallowScrollToClearAll(!hasClearAllButton);
-            setDisallowScrollToAddDesk(!hasAddDeskButton);
         }
     }
 

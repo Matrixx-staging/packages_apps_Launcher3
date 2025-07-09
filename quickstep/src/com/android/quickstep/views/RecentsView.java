@@ -587,8 +587,6 @@ public abstract class RecentsView<
     protected final TaskOverlayFactory mTaskOverlayFactory;
 
     protected boolean mDisallowScrollToClearAll;
-    // True if it is not allowed to scroll to [AddDesktopButton].
-    protected boolean mDisallowScrollToAddDesk;
     private boolean mOverlayEnabled;
     protected boolean mFreezeViewVisibility;
     private boolean mOverviewGridEnabled;
@@ -4775,7 +4773,7 @@ public abstract class RecentsView<
     @Override
     public int getNextPage() {
         int nextPage = super.getNextPage();
-        if (mDisallowScrollToAddDesk && getPageAt(nextPage) instanceof AddDesktopButton) {
+        if (getPageAt(nextPage) instanceof AddDesktopButton) {
             nextPage = mUtils.getAlternatePageWithSameScroll(nextPage);
         }
         return nextPage;
@@ -6088,17 +6086,6 @@ public abstract class RecentsView<
             updateMinAndMaxScrollX();
         }
     }
-    /**
-     * Update the value of [mDisallowScrollToAddDesk]
-     */
-    public void setDisallowScrollToAddDesk(boolean disallowScrollToAddDesk) {
-        if (mDisallowScrollToAddDesk != disallowScrollToAddDesk) {
-            mDisallowScrollToAddDesk = disallowScrollToAddDesk;
-            updateMinAndMaxScrollX();
-        }
-    }
-
-
 
     /**
      * Updates page scroll synchronously after measure and layout child views.
