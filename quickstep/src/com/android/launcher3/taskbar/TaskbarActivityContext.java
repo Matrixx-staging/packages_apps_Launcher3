@@ -15,6 +15,7 @@
  */
 package com.android.launcher3.taskbar;
 
+import static android.app.WindowConfiguration.WINDOWING_MODE_FULLSCREEN;
 import static android.os.Trace.TRACE_TAG_APP;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM;
@@ -1872,7 +1873,12 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             if (shouldLaunchInDesktop(displayId, info)) {
                 launchDesktopApp(intent, info, displayId);
             } else {
-                startActivity(intent, null);
+                // Launch single non-desktop activities in fullscreen to match launches from the
+                // hotseat. This needs to be explicitly set to ensure that tasks in other windowing
+                // modes are moved to fullscreen as well (otherwise they are shown in their existing
+                // mode)
+                opts.options.setLaunchWindowingMode(WINDOWING_MODE_FULLSCREEN);
+                startActivity(intent, opts.toBundle());
             }
         } catch (NullPointerException | ActivityNotFoundException | SecurityException e) {
             Toast.makeText(this, R.string.activity_not_found, Toast.LENGTH_SHORT)
