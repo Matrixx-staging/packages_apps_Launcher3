@@ -19,9 +19,11 @@ package com.android.quickstep.recents.ui.mapper
 import android.util.Log
 import android.view.View.OnClickListener
 import com.android.launcher3.Flags.enableDesktopExplodedView
+import com.android.launcher3.Flags.showCloseButtonOnTaskviewHover
 import com.android.launcher3.R
 import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT
 import com.android.quickstep.recents.ui.viewmodel.TaskData
+import com.android.quickstep.task.TaskDismissButtonState
 import com.android.quickstep.task.apptimer.TaskAppTimerUiState
 import com.android.quickstep.task.thumbnail.TaskHeaderUiState
 import com.android.quickstep.task.thumbnail.TaskThumbnailUiState
@@ -137,4 +139,13 @@ object TaskUiStateMapper {
                         },
                 )
         }
+
+    fun toTaskDismissButtonState(
+        isDesktopTaskView: Boolean,
+        isGroupedTaskView: Boolean,
+        clickCloseListener: OnClickListener,
+    ) =
+        if (showCloseButtonOnTaskviewHover() && !isDesktopTaskView && !isGroupedTaskView) {
+            TaskDismissButtonState.Enabled(clickCloseListener)
+        } else TaskDismissButtonState.Disabled
 }
