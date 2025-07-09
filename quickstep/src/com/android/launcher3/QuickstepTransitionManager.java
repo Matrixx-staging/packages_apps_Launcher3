@@ -62,10 +62,10 @@ import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.MultiPropertyFactory.MULTI_PROPERTY_VALUE;
 import static com.android.launcher3.util.window.RefreshRateTracker.getSingleFrameMs;
 import static com.android.launcher3.views.FloatingIconView.SHAPE_PROGRESS_DURATION;
-import static com.android.launcher3.views.FloatingIconView.getFloatingIconView;
 import static com.android.quickstep.TaskViewUtils.findTaskViewToLaunch;
 import static com.android.quickstep.util.AnimUtils.clampToDuration;
 import static com.android.quickstep.util.AnimUtils.completeRunnableListCallback;
+import static com.android.quickstep.util.FloatingIconViewHelper.getFloatingIconView;
 import static com.android.systemui.shared.system.QuickStepContract.getWindowCornerRadius;
 import static com.android.systemui.shared.system.QuickStepContract.supportsRoundedCornersOnWindows;
 import static com.android.wm.shell.Flags.enableDynamicInsetsForAppLaunch;
@@ -1458,13 +1458,6 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                             ? null
                             : mLauncher.getTaskbarUIController().findMatchingView(launcherView),
                     true /* hideOriginal */, targetRect, false /* isOpening */);
-            if (launcherView.getTag() instanceof ItemInfo itemInfo) {
-                isInHotseat = itemInfo.isInHotseat();
-                if (isInHotseat) {
-                    int dx = mLauncher.getHotseatItemTranslationX(itemInfo);
-                    targetRect.offset(dx, 0);
-                }
-            }
         } else {
             targetRect.set(getDefaultWindowTargetRect());
         }

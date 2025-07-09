@@ -1222,20 +1222,21 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         return mTaskbarUIController;
     }
 
-    /** Provides the translation X for the hotseat item. */
-    public int getHotseatItemTranslationX(ItemInfo itemInfo) {
-        int translationX = 0;
+    /** Offset [targetRect] to account for the hotseat translation if applicable. */
+    public void offsetBoundsXToHotseatIfApplicable(RectF targetRect, View targetView) {
+        if (!(targetView.getTag() instanceof ItemInfo itemInfo) || !itemInfo.isInHotseat()) {
+            return;
+        }
+        int dx = 0;
         if (isBubbleBarEnabled() && mBubbleBarLocation != null) {
             boolean isBubblesOnLeft = mBubbleBarLocation.isOnLeft(isRtl(getResources()));
-            translationX += mDeviceProfile
-                    .getHotseatTranslationXForNavBar(this, isBubblesOnLeft);
+            dx += mDeviceProfile.getHotseatTranslationXForNavBar(this, isBubblesOnLeft);
         }
         if (isBubbleBarEnabled()
                 && mDeviceProfile.shouldAdjustHotseatForBubbleBar(asContext(), hasBubbles())) {
-            translationX += (int) mDeviceProfile
-                    .getHotseatAdjustedTranslation(asContext(), itemInfo.cellX);
+            dx += (int) mDeviceProfile.getHotseatAdjustedTranslation(asContext(), itemInfo.cellX);
         }
-        return translationX;
+        targetRect.offset(dx, 0);
     }
 
     public SplitToWorkspaceController getSplitToWorkspaceController() {
