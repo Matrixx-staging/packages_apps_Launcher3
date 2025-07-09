@@ -145,7 +145,7 @@ class TaskHeaderViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
     companion object {
         private const val CONTAINER_HEIGHT = 65
         private const val CONTAINER_WIDTH = 400
-        private const val CONTAINER_NARROW_WIDTH = 300
+        private const val CONTAINER_NARROW_WIDTH = 200
 
         @Parameters(name = "{0}")
         @JvmStatic
