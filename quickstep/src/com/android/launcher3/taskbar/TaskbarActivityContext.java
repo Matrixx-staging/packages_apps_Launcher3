@@ -477,14 +477,17 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
      * the icon size
      */
     private void applyDeviceProfile(DeviceProfile originDeviceProfile) {
+        //TODO(b/430382569) Keep DeviceProfile immutable.
         Consumer<DeviceProfile> overrideProvider = deviceProfile -> {
             // Taskbar should match the number of icons of hotseat
             deviceProfile.numShownHotseatIcons = originDeviceProfile.numShownHotseatIcons;
             // Same QSB width to have a smooth animation
             deviceProfile.hotseatQsbWidth = originDeviceProfile.hotseatQsbWidth;
 
-            deviceProfile.updateWorkspaceIconProfile(
-                    deviceProfile.getTaskbarProfile().getIconSize(), this);
+            deviceProfile.mWorkspaceIconProfile = deviceProfile
+                    .mWorkspaceIconProfile
+                    .changeIconSize(deviceProfile.getTaskbarProfile().getIconSize());
+
             // Update icon size
             deviceProfile.updateIconSize(1f, this);
         };

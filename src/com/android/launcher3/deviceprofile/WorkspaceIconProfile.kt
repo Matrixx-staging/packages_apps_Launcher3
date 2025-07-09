@@ -49,6 +49,15 @@ data class WorkspaceIconProfile(
     val isLabelHidden: Boolean = false,
 ) {
 
+    // TODO(b/430382569)
+    @Deprecated(
+        "This classes should be treated as immutable, in order to change it we" +
+            "should use a factory and create a new one."
+    )
+    fun changeIconSize(iconSizePx: Int): WorkspaceIconProfile {
+        return copy(iconSizePx = iconSizePx)
+    }
+
     companion object Factory {
 
         private fun hideWorkspaceLabelsIfNotEnoughSpace(
