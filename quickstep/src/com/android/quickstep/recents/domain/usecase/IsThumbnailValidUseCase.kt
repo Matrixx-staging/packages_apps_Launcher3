@@ -53,15 +53,13 @@ class IsThumbnailValidUseCase(private val rotationStateRepository: RecentsRotati
         rotation: Int,
         splitBounds: SplitBounds?,
         stagePosition: Int,
-    ): Boolean {
-        return isAspectRatioDifferentFromViewAspectRatio(
+    ) = isAspectRatioDifferentFromViewAspectRatio(
             thumbnail = thumbnail,
             width = viewWidth.toFloat(),
             height = viewHeight.toFloat(),
             splitBounds = splitBounds,
             stagePosition = stagePosition
         ) || isRotationDifferentFromTask(rotation)
-    }
 
     private fun isAspectRatioDifferentFromViewAspectRatio(
         thumbnail: Bitmap,
