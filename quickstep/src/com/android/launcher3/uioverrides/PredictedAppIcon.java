@@ -34,6 +34,7 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.FloatProperty;
@@ -51,6 +52,7 @@ import com.android.launcher3.celllayout.CellLayoutLayoutParams;
 import com.android.launcher3.celllayout.DelegatedCellDrawing;
 import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.icons.FastBitmapDrawable;
+import com.android.launcher3.icons.IconShape;
 import com.android.launcher3.icons.LauncherIcons;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
@@ -139,8 +141,7 @@ public class PredictedAppIcon extends DoubleShadowBubbleTextView {
         int shadowSize = context.getResources().getDimensionPixelSize(
                 R.dimen.blur_size_thin_outline);
         mShadowFilter = new BlurMaskFilter(shadowSize, BlurMaskFilter.Blur.OUTER);
-        mShapePath = ThemeManager.INSTANCE.get(context)
-                .getIconShape().getPath(mNormalizedIconSize);
+        updateShapePath();
     }
 
     @Override
@@ -325,11 +326,8 @@ public class PredictedAppIcon extends DoubleShadowBubbleTextView {
     }
 
     private void updateRingPath() {
-        mShapePath = ThemeManager.INSTANCE.get(mContext)
-                .getIconShape()
-                .getPath(mNormalizedIconSize);
+        updateShapePath();
         mRingPath.reset();
-        mTmpMatrix.reset();
         mTmpMatrix.setTranslate(getOutlineOffsetX(), getOutlineOffsetY());
         mRingPath.addPath(mShapePath, mTmpMatrix);
 
@@ -345,6 +343,20 @@ public class PredictedAppIcon extends DoubleShadowBubbleTextView {
             mRingPath.addPath(mShapePath, mTmpMatrix);
         }
         invalidate();
+    }
+
+    private void updateShapePath() {
+        IconShape iconShapeData = ThemeManager.INSTANCE.get(mContext).getIconShapeData().getValue();
+        mShapePath = new Path();
+        mShapePath.addPath(iconShapeData.path);
+        mTmpMatrix.reset();
+        mTmpMatrix.setRectToRect(
+                new RectF(0f, 0f, iconShapeData.pathSize, iconShapeData.pathSize),
+                new RectF(0f, 0f, mNormalizedIconSize, mNormalizedIconSize),
+                Matrix.ScaleToFit.CENTER
+        );
+        mShapePath.transform(mTmpMatrix);
+        mTmpMatrix.reset();
     }
 
     @Override
