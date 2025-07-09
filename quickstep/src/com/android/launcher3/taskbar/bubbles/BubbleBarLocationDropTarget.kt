@@ -31,7 +31,7 @@ import com.android.wm.shell.shared.bubbles.DropTargetManager
 class BubbleBarLocationDropTarget(
     private val bubbleBarDropTargetController: BubbleBarDropTargetController,
     dragZoneFactory: DragZoneFactory,
-    private val dropTargetManager: DropTargetManager,
+    private var dropTargetManager: DropTargetManager,
     private val isLeftDropTarget: Boolean,
 ) : DropTarget {
 
@@ -42,6 +42,11 @@ class BubbleBarLocationDropTarget(
 
         /** Called after [DragObject] dropped on the bubble bar drop target. */
         fun onDrop(dragObject: DragObject, isLeftDropTarget: Boolean)
+    }
+
+    /** Sets the drop target manager that drop target will use. */
+    fun setDropTargetManager(dropTargetManager: DropTargetManager) {
+        this.dropTargetManager = dropTargetManager
     }
 
     private val dropRect = dragZoneFactory.getBubbleBarDropRect(isLeftDropTarget)
