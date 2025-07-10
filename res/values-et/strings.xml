@@ -32,7 +32,7 @@
     <string name="recent_task_option_aspect_ratio" msgid="7008605516391096989">"Kuvasuhte muutmine"</string>
     <string name="split_app_info_accessibility" msgid="5475288491241414932">"Rakenduse teave: %1$s"</string>
     <string name="split_app_usage_settings" msgid="7214375263347964093">"Kasutuse seaded: %1$s"</string>
-    <string name="close_task_accessibility" msgid="4765872229211282647">"Ülesande %1$s sulgemine"</string>
+    <string name="close_task_accessibility" msgid="4765872229211282647">"Üksuse %1$s sulgemine"</string>
     <string name="new_window_option_taskbar" msgid="6448780542727767211">"Uus aken"</string>
     <string name="manage_windows_option_taskbar" msgid="2294109489960654212">"Akende haldamine"</string>
     <string name="save_app_pair" msgid="5647523853662686243">"Salvesta rakendusepaar"</string>

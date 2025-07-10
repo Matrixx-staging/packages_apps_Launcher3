@@ -219,7 +219,7 @@
     <string name="ps_container_settings" msgid="6059734123353320479">"प्राइवेट स्पेस सेटिंग"</string>
     <string name="ps_container_unlock_button_content_description" msgid="9181551784092204234">"प्राइवेट स्पेस को अनलॉक किया गया."</string>
     <string name="ps_container_lock_button_content_description" msgid="5961993384382649530">"प्राइवेट स्पेस को लॉक किया गया."</string>
-    <string name="ps_container_lock_title" msgid="2640257399982364682">"लॉक"</string>
+    <string name="ps_container_lock_title" msgid="2640257399982364682">"लॉक करें"</string>
     <string name="ps_container_transition" msgid="8667331812048014412">"प्राइवेट स्पेस की सेटिंग में बदलाव किया जा रहा है"</string>
     <string name="ps_add_button_label" msgid="8127988716897128773">"इंस्टॉल करें"</string>
     <string name="ps_app_label_override" msgid="6876160706011676804">"जोड़ें"</string>
