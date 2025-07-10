@@ -85,6 +85,9 @@ class BubbleBarViewAnimatorTest {
     private val flyoutView: View?
         get() = flyoutContainer.findViewById(R.id.bubble_bar_flyout_view)
 
+    private var animationEnded = false
+    private val onAnimationEnded = { animationEnded = true }
+
     @Before
     fun setUp() {
         animatorScheduler = TestBubbleBarViewAnimatorScheduler()
@@ -110,6 +113,7 @@ class BubbleBarViewAnimatorTest {
                 bubbleBarParentViewController,
                 onExpanded = emptyRunnable,
                 onBubbleBarVisible = emptyRunnable,
+                onAnimationEnded = onAnimationEnded,
                 animatorScheduler,
             )
 
@@ -148,6 +152,7 @@ class BubbleBarViewAnimatorTest {
         assertThat(bubbleBarView.alpha).isEqualTo(0)
         assertThat(animator.isAnimating).isFalse()
         assertThat(bubbleStashController.isStashed).isTrue()
+        assertThat(animationEnded).isTrue()
     }
 
     @Test
@@ -166,6 +171,7 @@ class BubbleBarViewAnimatorTest {
                 bubbleBarParentViewController,
                 onExpanded = emptyRunnable,
                 onBubbleBarVisible = emptyRunnable,
+                onAnimationEnded = onAnimationEnded,
                 animatorScheduler,
             )
 
@@ -205,6 +211,7 @@ class BubbleBarViewAnimatorTest {
         assertThat(bubbleBarView.visibility).isEqualTo(VISIBLE)
         assertThat(bubbleBarView.translationY).isEqualTo(BAR_TRANSLATION_Y_FOR_TASKBAR)
         assertThat(animator.isAnimating).isFalse()
+        assertThat(animationEnded).isTrue()
     }
 
     @Test
@@ -223,6 +230,7 @@ class BubbleBarViewAnimatorTest {
                 bubbleBarParentViewController,
                 onExpanded = emptyRunnable,
                 onBubbleBarVisible = emptyRunnable,
+                onAnimationEnded = onAnimationEnded,
                 animatorScheduler,
             )
 
@@ -261,6 +269,7 @@ class BubbleBarViewAnimatorTest {
         // again
         InstrumentationRegistry.getInstrumentation().waitForIdleSync()
         handleAnimator.assertIsNotRunning()
+        assertThat(animationEnded).isTrue()
     }
 
     @Test
@@ -279,6 +288,7 @@ class BubbleBarViewAnimatorTest {
                 bubbleBarParentViewController,
                 onExpanded = emptyRunnable,
                 onBubbleBarVisible = emptyRunnable,
+                onAnimationEnded = onAnimationEnded,
                 animatorScheduler,
             )
 
@@ -313,6 +323,7 @@ class BubbleBarViewAnimatorTest {
         // again
         InstrumentationRegistry.getInstrumentation().waitForIdleSync()
         handleAnimator.assertIsNotRunning()
+        assertThat(animationEnded).isTrue()
     }
 
     @Test
@@ -333,6 +344,7 @@ class BubbleBarViewAnimatorTest {
                 bubbleBarParentViewController,
                 onExpanded = onExpanded,
                 onBubbleBarVisible = emptyRunnable,
+                onAnimationEnded = onAnimationEnded,
                 animatorScheduler,
             )
 
@@ -359,6 +371,7 @@ class BubbleBarViewAnimatorTest {
 
         assertThat(bubbleStashController.isStashed).isFalse()
         assertThat(notifiedExpanded).isTrue()
+        assertThat(animationEnded).isTrue()
     }
 
     @Test
@@ -379,6 +392,7 @@ class BubbleBarViewAnimatorTest {
                 bubbleBarParentViewController,
                 onExpanded = onExpanded,
                 onBubbleBarVisible = emptyRunnable,
+                onAnimationEnded = onAnimationEnded,
                 animatorScheduler,
             )
 
@@ -411,6 +425,7 @@ class BubbleBarViewAnimatorTest {
         verifyBubbleBarIsExpandedWithTranslation(BAR_TRANSLATION_Y_FOR_TASKBAR)
         assertThat(animator.isAnimating).isFalse()
         assertThat(notifiedExpanded).isTrue()
+        assertThat(animationEnded).isTrue()
     }
 
     @Test
@@ -431,6 +446,7 @@ class BubbleBarViewAnimatorTest {
                 bubbleBarParentViewController,
                 onExpanded = onExpanded,
                 onBubbleBarVisible = emptyRunnable,
+                onAnimationEnded = onAnimationEnded,
                 animatorScheduler,
             )
 
@@ -466,6 +482,7 @@ class BubbleBarViewAnimatorTest {
         verifyBubbleBarIsExpandedWithTranslation(BAR_TRANSLATION_Y_FOR_TASKBAR)
         assertThat(animator.isAnimating).isFalse()
         assertThat(notifiedExpanded).isTrue()
+        assertThat(animationEnded).isTrue()
     }
 
     @Test
@@ -489,6 +506,7 @@ class BubbleBarViewAnimatorTest {
                 bubbleBarParentViewController,
                 onExpanded = emptyRunnable,
                 onBubbleBarVisible = onBubbleBarVisible,
+                onAnimationEnded = onAnimationEnded,
                 animatorScheduler,
             )
 
@@ -523,8 +541,8 @@ class BubbleBarViewAnimatorTest {
         assertThat(handle.alpha).isEqualTo(1)
         assertThat(bubbleBarView.visibility).isEqualTo(VISIBLE)
         assertThat(notifiedBubbleBarVisible).isTrue()
-
         assertThat(bubbleStashController.isStashed).isTrue()
+        assertThat(animationEnded).isTrue()
     }
 
     @Test
@@ -548,6 +566,7 @@ class BubbleBarViewAnimatorTest {
                 bubbleBarParentViewController,
                 onExpanded = emptyRunnable,
                 onBubbleBarVisible = onBubbleBarVisible,
+                onAnimationEnded = onAnimationEnded,
                 animatorScheduler,
             )
 
@@ -586,6 +605,7 @@ class BubbleBarViewAnimatorTest {
         assertThat(handle.translationY).isEqualTo(0)
         assertThat(bubbleBarView.visibility).isEqualTo(VISIBLE)
         assertThat(notifiedBubbleBarVisible).isTrue()
+        assertThat(animationEnded).isTrue()
     }
 
     @Test
@@ -609,6 +629,7 @@ class BubbleBarViewAnimatorTest {
                 bubbleBarParentViewController,
                 onExpanded = onExpanded,
                 onBubbleBarVisible = emptyRunnable,
+                onAnimationEnded = onAnimationEnded,
                 animatorScheduler,
             )
 
@@ -627,6 +648,7 @@ class BubbleBarViewAnimatorTest {
         assertThat(animatorScheduler.delayedBlock).isNull()
         assertThat(bubbleStashController.isStashed).isFalse()
         assertThat(notifiedExpanded).isTrue()
+        assertThat(animationEnded).isTrue()
     }
 
     @Test
@@ -644,6 +666,7 @@ class BubbleBarViewAnimatorTest {
                 bubbleBarParentViewController,
                 onExpanded = emptyRunnable,
                 onBubbleBarVisible = emptyRunnable,
+                onAnimationEnded = onAnimationEnded,
                 animatorScheduler,
             )
 
@@ -670,8 +693,8 @@ class BubbleBarViewAnimatorTest {
         assertThat(animator.isAnimating).isFalse()
         assertThat(bubbleBarView.alpha).isEqualTo(1)
         assertThat(bubbleBarView.translationY).isEqualTo(BAR_TRANSLATION_Y_FOR_HOTSEAT)
-
         assertThat(bubbleStashController.isStashed).isFalse()
+        assertThat(animationEnded).isTrue()
     }
 
     @Test
@@ -689,6 +712,7 @@ class BubbleBarViewAnimatorTest {
                 bubbleBarParentViewController,
                 onExpanded = onExpanded,
                 onBubbleBarVisible = emptyRunnable,
+                onAnimationEnded = onAnimationEnded,
                 animatorScheduler,
             )
 
@@ -721,6 +745,7 @@ class BubbleBarViewAnimatorTest {
         assertThat(animator.isAnimating).isFalse()
         assertThat(bubbleStashController.isStashed).isFalse()
         assertThat(notifiedExpanded).isTrue()
+        assertThat(animationEnded).isTrue()
     }
 
     @Test
@@ -738,6 +763,7 @@ class BubbleBarViewAnimatorTest {
                 bubbleBarParentViewController,
                 onExpanded = onExpanded,
                 onBubbleBarVisible = emptyRunnable,
+                onAnimationEnded = onAnimationEnded,
                 animatorScheduler,
             )
 
@@ -768,6 +794,7 @@ class BubbleBarViewAnimatorTest {
         verifyBubbleBarIsExpandedWithTranslation(BAR_TRANSLATION_Y_FOR_HOTSEAT)
         assertThat(animator.isAnimating).isFalse()
         assertThat(notifiedExpanded).isTrue()
+        assertThat(animationEnded).isTrue()
     }
 
     @Test
@@ -785,6 +812,7 @@ class BubbleBarViewAnimatorTest {
                 bubbleBarParentViewController,
                 onExpanded = emptyRunnable,
                 onBubbleBarVisible = emptyRunnable,
+                onAnimationEnded = onAnimationEnded,
                 animatorScheduler,
             )
 
@@ -818,6 +846,7 @@ class BubbleBarViewAnimatorTest {
         // the bubble bar translation y should be back to its initial value
         assertThat(bubbleBarView.translationY).isEqualTo(BAR_TRANSLATION_Y_FOR_HOTSEAT)
         assertThat(bubbleStashController.isStashed).isFalse()
+        assertThat(animationEnded).isTrue()
     }
 
     @Test
@@ -839,6 +868,7 @@ class BubbleBarViewAnimatorTest {
                 bubbleBarParentViewController,
                 onExpanded = onExpanded,
                 onBubbleBarVisible = emptyRunnable,
+                onAnimationEnded = onAnimationEnded,
                 animatorScheduler,
             )
 
@@ -872,6 +902,7 @@ class BubbleBarViewAnimatorTest {
         assertThat(bubbleBarView.translationY).isEqualTo(BAR_TRANSLATION_Y_FOR_HOTSEAT)
         assertThat(bubbleStashController.isStashed).isFalse()
         assertThat(notifiedExpanded).isTrue()
+        assertThat(animationEnded).isTrue()
     }
 
     @Test
@@ -893,6 +924,7 @@ class BubbleBarViewAnimatorTest {
                 bubbleBarParentViewController,
                 onExpanded = onExpanded,
                 onBubbleBarVisible = emptyRunnable,
+                onAnimationEnded = onAnimationEnded,
                 animatorScheduler,
             )
 
@@ -938,6 +970,7 @@ class BubbleBarViewAnimatorTest {
         assertThat(bubbleBarView.isExpanded).isTrue()
         assertThat(bubbleStashController.isStashed).isFalse()
         assertThat(notifiedExpanded).isTrue()
+        assertThat(animationEnded).isTrue()
     }
 
     @Test
@@ -957,6 +990,7 @@ class BubbleBarViewAnimatorTest {
                 bubbleBarParentViewController,
                 onExpanded = onExpanded,
                 onBubbleBarVisible = emptyRunnable,
+                onAnimationEnded = onAnimationEnded,
                 animatorScheduler,
             )
 
@@ -999,6 +1033,7 @@ class BubbleBarViewAnimatorTest {
         assertThat(bubbleBarView.isExpanded).isTrue()
         assertThat(bubbleStashController.isStashed).isFalse()
         assertThat(notifiedExpanded).isTrue()
+        assertThat(animationEnded).isTrue()
     }
 
     @Test
@@ -1017,6 +1052,7 @@ class BubbleBarViewAnimatorTest {
                 bubbleBarParentViewController,
                 onExpanded = emptyRunnable,
                 onBubbleBarVisible = emptyRunnable,
+                onAnimationEnded = onAnimationEnded,
                 animatorScheduler,
             )
 
@@ -1069,6 +1105,7 @@ class BubbleBarViewAnimatorTest {
         assertThat(bubbleBarView.alpha).isEqualTo(0)
         assertThat(animator.isAnimating).isFalse()
         assertThat(bubbleStashController.isStashed).isTrue()
+        assertThat(animationEnded).isTrue()
     }
 
     @Test
@@ -1087,6 +1124,7 @@ class BubbleBarViewAnimatorTest {
                 bubbleBarParentViewController,
                 onExpanded = emptyRunnable,
                 onBubbleBarVisible = emptyRunnable,
+                onAnimationEnded = onAnimationEnded,
                 animatorScheduler,
             )
 
@@ -1145,6 +1183,7 @@ class BubbleBarViewAnimatorTest {
         assertThat(bubbleBarView.alpha).isEqualTo(0)
         assertThat(animator.isAnimating).isFalse()
         assertThat(bubbleStashController.isStashed).isTrue()
+        assertThat(animationEnded).isTrue()
     }
 
     @Test
@@ -1163,6 +1202,7 @@ class BubbleBarViewAnimatorTest {
                 bubbleBarParentViewController,
                 onExpanded = emptyRunnable,
                 onBubbleBarVisible = emptyRunnable,
+                onAnimationEnded = onAnimationEnded,
                 animatorScheduler,
             )
 
@@ -1232,6 +1272,7 @@ class BubbleBarViewAnimatorTest {
         assertThat(bubbleBarView.alpha).isEqualTo(0)
         assertThat(animator.isAnimating).isFalse()
         assertThat(bubbleStashController.isStashed).isTrue()
+        assertThat(animationEnded).isTrue()
     }
 
     @Test
@@ -1250,6 +1291,7 @@ class BubbleBarViewAnimatorTest {
                 bubbleBarParentViewController,
                 onExpanded = emptyRunnable,
                 onBubbleBarVisible = emptyRunnable,
+                onAnimationEnded = onAnimationEnded,
                 animatorScheduler,
             )
 
@@ -1346,6 +1388,7 @@ class BubbleBarViewAnimatorTest {
         assertThat(bubbleBarView.alpha).isEqualTo(0)
         assertThat(animator.isAnimating).isFalse()
         assertThat(bubbleStashController.isStashed).isTrue()
+        assertThat(animationEnded).isTrue()
     }
 
     @Test
@@ -1364,6 +1407,7 @@ class BubbleBarViewAnimatorTest {
                 bubbleBarParentViewController,
                 onExpanded = emptyRunnable,
                 onBubbleBarVisible = emptyRunnable,
+                onAnimationEnded = onAnimationEnded,
                 animatorScheduler,
             )
 
@@ -1392,6 +1436,7 @@ class BubbleBarViewAnimatorTest {
         // again
         InstrumentationRegistry.getInstrumentation().waitForIdleSync()
         handleAnimator.assertIsNotRunning()
+        assertThat(animationEnded).isTrue()
     }
 
     @Test
@@ -1411,6 +1456,7 @@ class BubbleBarViewAnimatorTest {
                 bubbleBarParentViewController,
                 onExpanded = onExpanded,
                 onBubbleBarVisible = emptyRunnable,
+                onAnimationEnded = onAnimationEnded,
                 animatorScheduler,
             )
 
@@ -1439,6 +1485,7 @@ class BubbleBarViewAnimatorTest {
         assertThat(bubbleBarView.translationY).isEqualTo(BAR_TRANSLATION_Y_FOR_HOTSEAT)
         assertThat(bubbleBarExpanded).isFalse()
         assertThat(bubbleBarView.isExpanded).isFalse()
+        assertThat(animationEnded).isTrue()
     }
 
     @Test
@@ -1458,6 +1505,7 @@ class BubbleBarViewAnimatorTest {
                 bubbleBarParentViewController,
                 onExpanded = onExpanded,
                 onBubbleBarVisible = emptyRunnable,
+                onAnimationEnded = onAnimationEnded,
                 animatorScheduler,
             )
 
@@ -1482,6 +1530,7 @@ class BubbleBarViewAnimatorTest {
         assertThat(bubbleStashController.isStashed).isTrue()
         assertThat(bubbleBarExpanded).isFalse()
         assertThat(bubbleBarView.isExpanded).isFalse()
+        assertThat(animationEnded).isTrue()
     }
 
     private fun setUpBubbleBar() {
