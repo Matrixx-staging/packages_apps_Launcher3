@@ -450,6 +450,7 @@
         <item name="android:stateListAnimator">@animator/all_apps_fastscroll_icon_anim</item>
         <item name="android:paddingLeft">@dimen/dynamic_grid_cell_padding_x</item>
         <item name="android:paddingRight">@dimen/dynamic_grid_cell_padding_x</item>
+        <item name="android:textColor">@color/materialColorOnSurface</item>
         <item name="android:fontFamily">variable-title-small</item>
     </style>
 
