@@ -96,7 +96,13 @@
     <string name="allset_navigation_settings" msgid="4713404605961476027"><annotation id="link">"ସିଷ୍ଟମ ନାଭିଗେସନ ସେଟିଂସ"</annotation></string>
     <string name="allset_title_expressive" msgid="474399969304146994">"ଆପଣଙ୍କ <xliff:g id="DEVICE">%1$s</xliff:g> \nପ୍ରସ୍ତୁତ ଅଛି!"</string>
     <string name="allset_title_expressive_fallback" msgid="2829102990606405239">"ଆପଣଙ୍କ ଡିଭାଇସ \nପ୍ରସ୍ତୁତ ଅଛି!"</string>
+    <!-- no translation found for allset_title_expressive_fixed (3564219469262883526) -->
+    <skip />
     <string name="allset_subtitle_expressive" msgid="419688197551192358">"ଆପଣଙ୍କ ନୂଆ <xliff:g id="DEVICE">%1$s</xliff:g>ର ମଜା ନିଅନ୍ତୁ!"</string>
+    <!-- no translation found for allset_subtitle_expressive_gesture_navigation (8931442349501593934) -->
+    <skip />
+    <!-- no translation found for allset_subtitle_expressive_button_navigation (6968509640793602176) -->
+    <skip />
     <string name="allset_navigation_settings_expressive" msgid="3745595273748356"><annotation id="link">"କିପରି ନାଭିଗେଟ କରିବେ ତାହା ବାଛନ୍ତୁ"</annotation></string>
     <string name="allset_hint_expressive" msgid="756856423510976261">"ଉପରକୁ ସ୍ୱାଇପ କରନ୍ତୁ"</string>
     <string name="allset_button_hint_expressive" msgid="667643693410494225">"ହୋମ ବଟନରେ ଟାପ କରନ୍ତୁ"</string>
