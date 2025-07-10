@@ -17,6 +17,7 @@
 package com.android.launcher3.widgetpicker.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -36,12 +37,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.collapse
 import androidx.compose.ui.semantics.expand
@@ -51,6 +56,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.android.launcher3.widgetpicker.R
+import com.android.launcher3.widgetpicker.ui.LocalWidgetPickerCuiReporter
+import com.android.launcher3.widgetpicker.ui.WidgetPickerCui
 import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 
 /**
@@ -79,11 +86,30 @@ fun ExpandableListHeader(
     shape: RoundedCornerShape,
 ) {
     val haptic = LocalHapticFeedback.current
+    val cuiReporter = LocalWidgetPickerCuiReporter.current
+    val localView = LocalView.current
 
     val finalModifier =
         modifier
             .clip(shape = shape)
             .background(color = WidgetPickerTheme.colors.expandableListItemsBackground)
+
+    val expandedState = remember { MutableTransitionState(false) }
+    expandedState.targetState = expanded
+    LaunchedEffect(Unit) {
+        snapshotFlow { Pair(expandedState.currentState, expandedState.targetState) }
+            .collect {
+                if (it.first == it.second) {
+                    if (expandedState.currentState) {
+                        cuiReporter.report(WidgetPickerCui.WIDGET_APP_EXPAND_END, localView)
+                    }
+                } else {
+                    if (expandedState.targetState) {
+                        cuiReporter.report(WidgetPickerCui.WIDGET_APP_EXPAND_BEGIN, localView)
+                    }
+                }
+            }
+    }
 
     Column(modifier = finalModifier) {
         WidgetAppHeader(
@@ -112,7 +138,7 @@ fun ExpandableListHeader(
             trailingButton = { ExpandCollapseIndicator(expanded) },
         )
         AnimatedVisibility(
-            visible = expanded,
+            visibleState = expandedState,
             enter = ExpandedListHeaderDefaults.contentExpandAnimationSpec,
             exit = ExpandedListHeaderDefaults.contentCollapseAnimationSpec,
             modifier = Modifier.fillMaxWidth(),

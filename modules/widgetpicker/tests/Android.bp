@@ -128,6 +128,7 @@ android_test {
         "androidx.test.ext.junit",
         "androidx.test.rules",
         "androidx.test.runner",
+        "mockito-kotlin2",
     ],
     libs: [
         "android.test.base.impl",
@@ -172,6 +173,7 @@ android_robolectric_test {
         "androidx.test.ext.junit",
         "platform-test-annotations",
         "androidx.test.rules",
+        "mockito-kotlin2",
     ],
     libs: [
         "android.test.runner.impl",

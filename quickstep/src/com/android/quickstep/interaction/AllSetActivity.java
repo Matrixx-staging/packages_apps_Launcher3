@@ -144,10 +144,12 @@ public class AllSetActivity extends Activity implements UIControllerChangeListen
     private static final String KEY_BACKGROUND_ANIMATION_TOGGLED_ON =
             "background_animation_toggled_on";
 
+    private boolean mIsTablet;
+
     private final AnimatedFloat mSwipeProgress = new AnimatedFloat(this::onSwipeProgressUpdate);
 
     private final InvariantDeviceProfile.OnIDPChangeListener mOnIDPChangeListener =
-            modelPropertiesChanged -> updateHint();
+            modelPropertiesChanged -> updateTextForNavigationMode();
 
     private TISBindHelper mTISBindHelper;
 
@@ -178,14 +180,15 @@ public class AllSetActivity extends Activity implements UIControllerChangeListen
         if (mIsExpressiveThemeEnabledInSUW) setTheme(R.style.AllSetTheme_Expressive);
 
         super.onCreate(savedInstanceState);
+        mIsTablet = getDP().getDeviceProperties().isTablet()
+                    && !getDP().getDeviceProperties().isTwoPanels();
         boolean isDarkTheme =
                 (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
                         == Configuration.UI_MODE_NIGHT_YES;
-        String suwDeviceName = getIntent().getStringExtra(EXTRA_DEVICE_NAME);
         if (mIsExpressiveThemeEnabledInSUW) {
-            setupExpressiveTheme(suwDeviceName);
+            setupExpressiveTheme();
         } else {
-            setupDefaultTheme(savedInstanceState, isDarkTheme, suwDeviceName);
+            setupDefaultTheme(savedInstanceState, isDarkTheme);
         }
         initializeCommonViewsAndListeners();
         configureSystemUI(isDarkTheme);
@@ -220,7 +223,7 @@ public class AllSetActivity extends Activity implements UIControllerChangeListen
     private void initializeCommonViewsAndListeners() {
         mHintView = findViewById(R.id.hint);
         mHintView.setAccessibilityDelegate(new SkipButtonAccessibilityDelegate());
-        updateHint();
+        updateTextForNavigationMode();
 
         mSwipeUpShift = getResources().getDimension(R.dimen.allset_swipe_up_shift);
 
@@ -236,8 +239,7 @@ public class AllSetActivity extends Activity implements UIControllerChangeListen
         });
     }
 
-    private void setupDefaultTheme(@Nullable Bundle savedInstanceState, boolean isDarkTheme,
-            String suwDeviceName) {
+    private void setupDefaultTheme(@Nullable Bundle savedInstanceState, boolean isDarkTheme) {
         setContentView(R.layout.activity_allset);
         mRootView = findViewById(R.id.root_view);
 
@@ -252,6 +254,7 @@ public class AllSetActivity extends Activity implements UIControllerChangeListen
         TextView navigationSettings = findViewById(R.id.navigation_settings);
         navigationSettings.setTextColor(accentColor);
 
+        String suwDeviceName = getIntent().getStringExtra(EXTRA_DEVICE_NAME);
         TextView subtitle = findViewById(R.id.subtitle);
         subtitle.setText(TextUtils.isEmpty(suwDeviceName)
                 ? getString(R.string.allset_description_fallback)
@@ -282,7 +285,7 @@ public class AllSetActivity extends Activity implements UIControllerChangeListen
         setUpBackgroundAnimation(getDP().getDeviceProperties().isTablet());
     }
 
-    private void setupExpressiveTheme(String suwDeviceName) {
+    private void setupExpressiveTheme() {
         setContentView(R.layout.activity_allset_expressive);
         mRootView = findViewById(R.id.root_view);
 
@@ -290,14 +293,7 @@ public class AllSetActivity extends Activity implements UIControllerChangeListen
         TextView subtitle = findViewById(R.id.subtitle);
         mHintView = findViewById(R.id.hint);
         TextView navigationSettings = findViewById(R.id.navigation_settings);
-        title.setText(TextUtils.isEmpty(suwDeviceName)
-                ? getString(R.string.allset_title_expressive_fallback)
-                : getString(R.string.allset_title_expressive, suwDeviceName));
-        String deviceType = getDP().getDeviceProperties().isTablet()
-                ? getString(R.string.allset_device_type_tablet)
-                : getString(R.string.allset_device_type_phone);
-        subtitle.setText(getString(R.string.allset_subtitle_expressive, deviceType));
-
+        title.setText(R.string.allset_title_expressive_fixed);
         title.setTypeface(
                 Typeface.create(FontFamily.GSF_HEADLINE_LARGE_EMPHASIZED.getValue(),
                         Typeface.NORMAL));
@@ -451,17 +447,34 @@ public class AllSetActivity extends Activity implements UIControllerChangeListen
         return getIDP().getDeviceProfile(this);
     }
 
-    private void updateHint() {
+    private void updateTextForNavigationMode() {
+        boolean isGestureMode = getDP().getDeviceProperties().isGestureMode();
+        int hintTextResId;
+        String subtitleText = null;
+
         if (mIsExpressiveThemeEnabledInSUW) {
-            mHintView.setText(
-                    getDP().getDeviceProperties().isGestureMode()
-                            ? R.string.allset_hint_expressive
-                            : R.string.allset_button_hint_expressive);
+            hintTextResId = isGestureMode
+                    ? R.string.allset_hint_expressive
+                    : R.string.allset_button_hint_expressive;
+            String deviceName = getString(mIsTablet
+                    ? R.string.allset_device_type_tablet
+                    : R.string.allset_device_type_phone);
+            int subtitleFormatResId = isGestureMode
+                    ? R.string.allset_subtitle_expressive_gesture_navigation
+                    : R.string.allset_subtitle_expressive_button_navigation;
+
+            subtitleText = getString(subtitleFormatResId, deviceName);
         } else {
-            mHintView.setText(
-                    getDP().getDeviceProperties().isGestureMode()
-                            ? R.string.allset_hint
-                            : R.string.allset_button_hint);
+            hintTextResId = isGestureMode
+                    ? R.string.allset_hint
+                    : R.string.allset_button_hint;
+        }
+
+        mHintView.setText(hintTextResId);
+
+        TextView subtitle = findViewById(R.id.subtitle);
+        if (subtitleText != null) {
+            subtitle.setText(subtitleText);
         }
     }
 

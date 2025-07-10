@@ -171,6 +171,7 @@ android_library {
     ],
     static_libs: [
         "widget_picker_event_listeners",
+        "widget_picker_cui_reporter",
         "widget_picker_ui_theme",
         "widget_picker_ui_data_types",
         "androidx.compose.foundation_foundation",
@@ -202,6 +203,18 @@ android_library {
 }
 
 android_library {
+    name: "widget_picker_cui_reporter",
+    sdk_version: "current",
+    min_sdk_version: min_launcher3_sdk_version,
+    srcs: [
+        "src/com/android/launcher3/widgetpicker/ui/WidgetPickerCuiReporter.kt",
+    ],
+    static_libs: [
+        "androidx.compose.runtime_runtime",
+    ],
+}
+
+android_library {
     name: "widget_picker_ui",
     sdk_version: "current",
     plugins: ["dagger2-compiler"],
@@ -221,6 +234,7 @@ android_library {
         "widget_picker_ui_theme",
         "widget_picker_ui_components",
         "widget_picker_event_listeners",
+        "widget_picker_cui_reporter",
         "widget_picker_ui_data_types",
         "widget_picker_domain_layer",
         "dagger2",

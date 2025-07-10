@@ -1664,7 +1664,8 @@ public abstract class AbsSwipeUpHandler<
                         if (DisplayController.isInDesktopMode(mContext)
                                 && mGestureState.getEndTarget() == HOME) {
                             DesktopVisibilityController.INSTANCE.get(
-                                    mContext).onLauncherAnimationFromDesktopEnd();
+                                    mContext).onLauncherAnimationFromDesktopEnd(
+                                    mGestureState.getDisplayId());
                         }
                     }
                 });

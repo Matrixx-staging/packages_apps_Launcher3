@@ -338,7 +338,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                             this, mTaskbarUiState, bubbleBarView, bubbleBarContainer),
                     bubbleStashController,
                     bubbleHandleController,
-                    new BubbleDragController(this, mDragLayer),
+                    new BubbleDragController(this, mDragLayer, mTaskbarUiState),
                     new BubbleDismissController(this, mDragLayer),
                     new BubbleBarPinController(this, bubbleBarContainer, this::getScreenSize),
                     new BubblePinController(this, bubbleBarContainer, this::getScreenSize),
@@ -418,6 +418,10 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         return mPrimaryDisplayId;
     }
 
+    public TaskbarUiState getTaskbarUiState() {
+        return mTaskbarUiState;
+    }
+
     @Override
     public boolean isTransientTaskbar() {
         return DisplayController.isTransientTaskbar(this) && isPrimaryDisplay() && !isPhoneMode();
@@ -477,14 +481,17 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
      * the icon size
      */
     private void applyDeviceProfile(DeviceProfile originDeviceProfile) {
+        //TODO(b/430382569) Keep DeviceProfile immutable.
         Consumer<DeviceProfile> overrideProvider = deviceProfile -> {
             // Taskbar should match the number of icons of hotseat
             deviceProfile.numShownHotseatIcons = originDeviceProfile.numShownHotseatIcons;
             // Same QSB width to have a smooth animation
             deviceProfile.hotseatQsbWidth = originDeviceProfile.hotseatQsbWidth;
 
-            deviceProfile.updateWorkspaceIconProfile(
-                    deviceProfile.getTaskbarProfile().getIconSize(), this);
+            deviceProfile.mWorkspaceIconProfile = deviceProfile
+                    .mWorkspaceIconProfile
+                    .changeIconSize(deviceProfile.getTaskbarProfile().getIconSize());
+
             // Update icon size
             deviceProfile.updateIconSize(1f, this);
         };

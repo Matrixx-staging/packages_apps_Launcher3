@@ -65,7 +65,6 @@ import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.logging.FileLog;
 import com.android.launcher3.util.window.CachedDisplayInfo;
 import com.android.launcher3.util.window.WindowManagerProxy;
-import com.android.launcher3.util.window.WindowManagerProxy.DesktopVisibilityListener;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -86,7 +85,7 @@ import javax.inject.Inject;
  */
 @SuppressLint("NewApi")
 @LauncherAppSingleton
-public class DisplayController implements DesktopVisibilityListener {
+public class DisplayController {
 
     private static final String TAG = "DisplayController";
     private static final boolean DEBUG = false;
@@ -169,7 +168,6 @@ public class DisplayController implements DesktopVisibilityListener {
         mReceiver = new SimpleBroadcastReceiver(context, MAIN_EXECUTOR, this::onIntent);
         mReceiver.registerPkgActions(TARGET_OVERLAY_PACKAGE, ACTION_OVERLAY_CHANGED);
 
-        wmProxy.registerDesktopVisibilityListener(this);
         FileLog.i(TAG, "(CTOR) perDisplayBounds: "
                 + defaultPerDisplayInfo.mInfo.mPerDisplayBounds);
 
@@ -208,7 +206,6 @@ public class DisplayController implements DesktopVisibilityListener {
             mDestroyed = true;
             defaultPerDisplayInfo.cleanup();
             mReceiver.unregisterReceiverSafely();
-            wmProxy.unregisterDesktopVisibilityListener(this);
         });
     }
 
@@ -293,11 +290,6 @@ public class DisplayController implements DesktopVisibilityListener {
             }
         }
         return controller.getInfo();
-    }
-
-    @Override
-    public void onIsInDesktopModeChanged(int displayId, boolean isInDesktopModeAndNotInOverview) {
-        notifyConfigChange(displayId);
     }
 
     /**
