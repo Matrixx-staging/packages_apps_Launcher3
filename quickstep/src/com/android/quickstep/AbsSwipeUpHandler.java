@@ -438,13 +438,16 @@ public abstract class AbsSwipeUpHandler<
 
         mIsTransientTaskbar = mDp.isTaskbarPresent
                 && DisplayController.isTransientTaskbar(context);
-        TaskbarUIController controller = mContainerInterface.getTaskbarController();
-        TaskbarUiState taskbarUiState = TaskbarUiStateMonitor.INSTANCE.get(context)
-                .getTaskbarUiState(context.getDisplayId());
-        mTaskbarAlreadyOpen = enableTaskbarUiThread()
-                ? taskbarUiState.isTaskbarStashedRef().getValue()
-                : controller != null && !controller.isTaskbarStashed();
-        mIsTaskbarAllAppsOpen = controller != null && controller.isTaskbarAllAppsOpen();
+        if (enableTaskbarUiThread()) {
+            TaskbarUiState taskbarUiState = TaskbarUiStateMonitor.INSTANCE.get(context)
+                    .getTaskbarUiState(context.getDisplayId());
+            mTaskbarAlreadyOpen = taskbarUiState.isTaskbarStashedRef().getValue();
+            mIsTaskbarAllAppsOpen = taskbarUiState.isTaskbarAllAppsOpenRef().getValue();
+        } else {
+            TaskbarUIController controller = mContainerInterface.getTaskbarController();
+            mTaskbarAlreadyOpen = controller != null && !controller.isTaskbarStashed();
+            mIsTaskbarAllAppsOpen = controller != null && controller.isTaskbarAllAppsOpen();
+        }
         mTaskbarAppWindowThreshold =
                 TaskbarThresholdUtils.getAppWindowThreshold(res, mDp);
         boolean swipeWillNotShowTaskbar = mTaskbarAlreadyOpen || mGestureState.isTrackpadGesture();
