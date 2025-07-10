@@ -39,6 +39,7 @@ import com.android.launcher3.widgetpicker.data.repository.WidgetUsersRepository
 import com.android.launcher3.widgetpicker.data.repository.WidgetsRepository
 import com.android.launcher3.widgetpicker.listeners.WidgetPickerAddItemListener
 import com.android.launcher3.widgetpicker.listeners.WidgetPickerDragItemListener
+import com.android.launcher3.widgetpicker.logging.LauncherWidgetPickerCuiReporter
 import com.android.launcher3.widgetpicker.shared.model.HostConstraint
 import com.android.launcher3.widgetpicker.shared.model.WidgetHostInfo
 import com.android.launcher3.widgetpicker.shared.model.isAppWidget
@@ -75,6 +76,7 @@ constructor(
     ) {
         val widgetPickerComponent = newWidgetPickerComponent(widgetPickerConfig)
         val callbacks = activity.buildEventListeners(widgetPickerConfig, apiWrapper)
+        val uiEventsReporter = LauncherWidgetPickerCuiReporter(activity.statsLogManager)
 
         val fullWidgetsCatalog = widgetPickerComponent.getFullWidgetsCatalog()
         val composeView = ComposeFacade.initComposeView(activity.asContext()) as ComposeView
@@ -86,7 +88,7 @@ constructor(
 
                 LauncherWidgetPickerTheme {
                     val eventListeners = remember { callbacks }
-                    fullWidgetsCatalog.Content(eventListeners)
+                    fullWidgetsCatalog.Content(eventListeners, uiEventsReporter)
                 }
 
                 DisposableEffect(view) {

@@ -17,10 +17,16 @@
 package com.android.launcher3.widgetpicker.ui.fullcatalog
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
+import com.android.launcher3.widgetpicker.ui.LocalWidgetPickerCuiReporter
+import com.android.launcher3.widgetpicker.ui.WidgetPickerCui
+import com.android.launcher3.widgetpicker.ui.WidgetPickerCuiReporter
 import com.android.launcher3.widgetpicker.ui.WidgetPickerEventListeners
 import com.android.launcher3.widgetpicker.ui.components.bottomsheet.ModalBottomSheetHeightStyle
 import com.android.launcher3.widgetpicker.ui.components.bottomsheet.TitledBottomSheet
@@ -45,15 +51,36 @@ class FullWidgetsCatalog
 @Inject
 constructor(private val viewModelFactory: FullWidgetsCatalogViewModel.Factory) {
     @Composable
-    fun Content(eventListeners: WidgetPickerEventListeners) {
+    fun Content(eventListeners: WidgetPickerEventListeners, cuiReporter: WidgetPickerCuiReporter) {
         val viewModel: FullWidgetsCatalogViewModel = rememberViewModel { viewModelFactory.create() }
 
         val density = LocalDensity.current
         val windowSize = LocalWindowInfo.current.containerSize
         val isCompactHeight =
-            with(density) { windowSize.height < compactWidthBreakpoint.roundToPx() }
-        val isCompactWidth =
-            with(density) { windowSize.width < compactHeightBreakpoint.roundToPx() }
+            with(density) { windowSize.height < compactHeightBreakpoint.roundToPx() }
+        val isCompactWidth = with(density) { windowSize.width < compactWidthBreakpoint.roundToPx() }
+
+        CompositionLocalProvider(LocalWidgetPickerCuiReporter provides cuiReporter) {
+            FullWidgetsCatalogContent(
+                viewModel = viewModel,
+                isCompactHeight = isCompactHeight,
+                isCompactWidth = isCompactWidth,
+                eventListeners = eventListeners,
+            )
+        }
+    }
+
+    @Composable
+    private fun FullWidgetsCatalogContent(
+        viewModel: FullWidgetsCatalogViewModel,
+        isCompactHeight: Boolean,
+        isCompactWidth: Boolean,
+        eventListeners: WidgetPickerEventListeners,
+    ) {
+        val cuiReporter = LocalWidgetPickerCuiReporter.current
+        val localView = LocalView.current
+
+        LaunchedEffect(Unit) { cuiReporter.report(WidgetPickerCui.OPEN_ANIMATION_BEGIN, localView) }
 
         TitledBottomSheet(
             title = viewModel.title.takeIf { !isCompactHeight },
@@ -63,8 +90,16 @@ constructor(private val viewModelFactory: FullWidgetsCatalogViewModel.Factory) {
             description = viewModel.description,
             heightStyle = ModalBottomSheetHeightStyle.FILL_HEIGHT,
             showDragHandle = true,
-            onDismissSheet = { eventListeners.onClose() },
-            onSheetOpen = { viewModel.landingScreenViewModel.onUiReady() },
+            onDismissSheet = {
+                // Report end of cui in case user tried to close picker while it was opening.
+                // If there was no begin, this won't do anything.
+                cuiReporter.report(WidgetPickerCui.OPEN_ANIMATION_END, localView)
+                eventListeners.onClose()
+            },
+            onSheetOpen = {
+                cuiReporter.report(WidgetPickerCui.OPEN_ANIMATION_END, localView)
+                viewModel.landingScreenViewModel.onUiReady()
+            },
         ) {
             when (viewModel.activeScreen) {
                 Screen.LANDING -> {
@@ -95,18 +130,18 @@ private const val WIDGET_CATALOG_TEST_TAG = "widgets_catalog"
 
 private object FullWidgetsCatalogDimens {
     /**
-     * Width below which screen is considered compact and the horizontally compact view of catalog
-     * can be displayed e.g. single pane.
-     *
-     * Same breakpoint as material3's `WindowWidthSizeClass.Compact`
-     */
-    val compactWidthBreakpoint = 480.dp
-
-    /**
      * Height below which screen is considered compact and the vertically compact view of catalog
      * can be displayed. e.g. hide header etc.
      *
      * Same breakpoint as material3's `WindowHeightSizeClass.Compact`
      */
-    val compactHeightBreakpoint = 600.dp
+    val compactHeightBreakpoint = 480.dp
+
+    /**
+     * Width below which screen is considered compact and the horizontally compact view of catalog
+     * can be displayed e.g. single pane.
+     *
+     * Same breakpoint as material3's `WindowWidthSizeClass.Compact`
+     */
+    val compactWidthBreakpoint = 600.dp
 }
