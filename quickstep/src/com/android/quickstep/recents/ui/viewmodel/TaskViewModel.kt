@@ -17,7 +17,6 @@
 package com.android.quickstep.recents.ui.viewmodel
 
 import android.annotation.ColorInt
-import android.graphics.Bitmap
 import android.util.Log
 import androidx.core.graphics.ColorUtils
 import com.android.launcher3.util.coroutines.DispatcherProvider
@@ -116,12 +115,11 @@ class TaskViewModel(
     }
 
     fun isThumbnailValid(
-        thumbnail: ThumbnailData?,
-        width: Int,
-        height: Int,
+        thumbnail: ThumbnailData?, width: Int, height: Int,
         splitBounds: SplitBounds?,
-        stagePosition: Int,
-    ): Boolean = isThumbnailValidUseCase(thumbnail, width, height, splitBounds, stagePosition)
+        stagePosition: Int
+    ): Boolean =
+        isThumbnailValidUseCase(thumbnail, width, height, splitBounds, stagePosition)
 
     fun getThumbnailPosition(
         thumbnail: ThumbnailData?,
@@ -168,27 +166,13 @@ class TaskViewModel(
                 title = result.title,
                 titleDescription = result.titleDescription,
                 icon = result.icon,
-                thumbnailData = result.thumbnail?.clearHardwareBitmapDensity(),
+                thumbnailData = result.thumbnail,
                 backgroundColor = result.backgroundColor.removeAlpha(),
                 isLocked = result.isLocked,
                 isLiveTile = isLiveTile && !result.isMinimized,
                 remainingAppTimerDuration = result.remainingAppDuration,
             )
         } ?: TaskData.NoData(taskId)
-
-    private fun ThumbnailData.clearHardwareBitmapDensity() =
-        copy(
-            thumbnail =
-                thumbnail?.let {
-                    try {
-                        Bitmap.wrapHardwareBuffer(it.hardwareBuffer, it.colorSpace)?.apply {
-                            density = Bitmap.DENSITY_NONE
-                        }
-                    } catch (ex: IllegalStateException) {
-                        thumbnail
-                    }
-                }
-        )
 
     @ColorInt private fun Int.removeAlpha(): Int = ColorUtils.setAlphaComponent(this, 0xff)
 
