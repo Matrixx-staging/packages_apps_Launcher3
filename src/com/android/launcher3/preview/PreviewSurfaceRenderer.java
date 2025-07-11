@@ -40,6 +40,7 @@ import android.text.TextUtils;
 import android.util.SparseIntArray;
 import android.view.ContextThemeWrapper;
 import android.view.Display;
+import android.view.Gravity;
 import android.view.SurfaceControlViewHost;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
@@ -345,15 +346,14 @@ public class PreviewSurfaceRenderer {
     }
 
     private void setContentRoot(View view) {
-        view.setPivotX(0);
-        view.setPivotY(0);
         // This aspect scales the view to fit in the surface and centers it
         final float scale = Math.min(mWidth / (float) view.getMeasuredWidth(),
                 mHeight / (float) view.getMeasuredHeight());
         view.setScaleX(scale);
         view.setScaleY(scale);
-        view.setTranslationX((mWidth - scale * view.getWidth()) / 2);
-        view.setTranslationY((mHeight - scale * view.getHeight()) / 2);
+        LayoutParams lp = new LayoutParams(view.getMeasuredWidth(), view.getMeasuredHeight());
+        lp.gravity = Gravity.CENTER;
+        view.setLayoutParams(lp);
 
         if (!Flags.newCustomizationPickerUi()) {
             view.setAlpha(mSkipAnimations ? 1 : 0);
