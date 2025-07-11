@@ -397,6 +397,24 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
         }
         mDisplayingRecentTasks = !groupTasks.isEmpty() || useDesktopTaskView;
 
+
+        // Update scroll view outline to clip its contents with rounded corners. If the KQS view
+        // does not support scroll arrows, use the KQS view corner radii for outline so scroll
+        // view content is clipped to those rounded corners (clipping the parent KQS view to outline
+        // would prevent it from displaying shadow).
+        mScrollView.setClipToOutline(true);
+        mScrollView.setOutlineProvider(new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                int spacingWithoutBorder = mSupportsScrollArrows
+                        ? mSpacing - mTaskViewBorderWidth : 0;
+                outline.setRoundRect(spacingWithoutBorder,
+                        spacingWithoutBorder, view.getWidth() - spacingWithoutBorder,
+                        view.getHeight() - spacingWithoutBorder,
+                        mSupportsScrollArrows ? mTaskViewRadius : mOutlineRadius);
+            }
+        });
+
         getViewTreeObserver().addOnGlobalLayoutListener(
                 new ViewTreeObserver.OnGlobalLayoutListener() {
                     @Override
@@ -408,7 +426,6 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
                     }
                 });
     }
-
 
     void enableScrollArrowSupport() {
         if (mSupportsScrollArrows) {
@@ -463,19 +480,6 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
                 updateArrowButtonsEnabledState();
             }
         });
-
-        // Update scroll view outline to clip its contents with rounded corners.
-        mScrollView.setClipToOutline(true);
-        mScrollView.setOutlineProvider(new ViewOutlineProvider() {
-            @Override
-            public void getOutline(View view, Outline outline) {
-                int spacingWithoutBorder = mSpacing - mTaskViewBorderWidth;
-                outline.setRoundRect(spacingWithoutBorder,
-                        spacingWithoutBorder, view.getWidth() - spacingWithoutBorder,
-                        view.getHeight() - spacingWithoutBorder,
-                        mTaskViewRadius);
-            }
-        });
     }
 
     private void updateArrowButtonsEnabledState() {
@@ -528,6 +532,8 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
 
     protected Animator getCloseAnimation() {
         AnimatorSet closeAnimation = new AnimatorSet();
+
+        setClipToOutline(true);
 
         Animator outlineAnimation = mOutlineAnimationProgress.animateToValue(0f);
         outlineAnimation.setDuration(OUTLINE_ANIMATION_DURATION_MS);
@@ -624,6 +630,7 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
                 InteractionJankMonitorWrapper.begin(
                         KeyboardQuickSwitchView.this, Cuj.CUJ_LAUNCHER_KEYBOARD_QUICK_SWITCH_OPEN);
                 setClipToPadding(false);
+                setClipToOutline(true);
                 setOutlineProvider(new ViewOutlineProvider() {
                     @Override
                     public void getOutline(View view, Outline outline) {
@@ -690,6 +697,7 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
             public void onAnimationEnd(Animator animation) {
                 super.onAnimationEnd(animation);
                 setClipToPadding(true);
+                setClipToOutline(false);
                 setOutlineProvider(outlineProvider);
                 invalidateOutline();
                 mOpenAnimation = null;
