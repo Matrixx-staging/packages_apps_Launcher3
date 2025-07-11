@@ -267,7 +267,9 @@ constructor(
 
     init {
         fallbackWindowInterface.setRecentsWindowManager(this)
-        homeVisibilityState.addListener(homeVisibilityListener)
+        if (displayId == DEFAULT_DISPLAY) {
+            homeVisibilityState.addListener(homeVisibilityListener)
+        }
     }
 
     override fun handleConfigurationChanged(configuration: Configuration?) {
@@ -300,7 +302,9 @@ constructor(
                     }
                 )
             callbacks?.removeListener(recentsAnimationListener)
-            homeVisibilityState.removeListener(homeVisibilityListener)
+            if (displayId == DEFAULT_DISPLAY) {
+                homeVisibilityState.removeListener(homeVisibilityListener)
+            }
             recentsWindowTracker.onContextDestroyed(this)
             recentsView?.destroy()
         }
