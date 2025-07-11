@@ -36,6 +36,7 @@ import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction
 import android.widget.TextView
 import androidx.annotation.IdRes
+import androidx.annotation.VisibleForTesting
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
@@ -67,7 +68,10 @@ import kotlin.math.max
 class TaskContentView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
     ConstraintLayout(context, attrs), ViewPool.Reusable {
 
-    private var taskHeaderView: TaskHeaderView? = null
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    var taskHeaderView: TaskHeaderView? = null
+        private set
+
     private var taskThumbnailView: TaskThumbnailView? = null
     private var taskAppTimerToast: TextView? = null
 
