@@ -186,7 +186,7 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
 
         // TODO (b/198438631): configure for taskbar/context
         container.setPopupItemDragHandler(new TaskbarPopupItemDragHandler());
-        mControllers.taskbarDragController.addDragListener(container);
+        context.getDragController().addDragListener(container);
         container.requestFocus();
 
         // Make focusable to receive back events
