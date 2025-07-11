@@ -16,10 +16,12 @@
 
 package com.android.launcher3.deviceprofile
 
+import android.content.Context
 import android.content.res.Resources
 import android.graphics.Point
 import android.util.DisplayMetrics
 import com.android.launcher3.InvariantDeviceProfile
+import com.android.launcher3.R
 import com.android.launcher3.Utilities.getIconSizeWithOverlap
 import com.android.launcher3.Utilities.getNormalizedIconDrawablePadding
 import com.android.launcher3.deviceprofile.WorkspaceProfileNonResponsiveFactory.createWorkspaceProfileNonResponsive
@@ -48,7 +50,17 @@ data class WorkspaceProfile(
     val cellYPaddingPx: Int = -1,
     val maxIconTextLineCount: Int,
     val iconCenterVertically: Boolean,
+    val desiredWorkspaceHorizontalMarginOriginalPx: Int,
+
+    // Visualization
+    val gridVisualizationPaddingX: Int,
+    val gridVisualizationPaddingY: Int,
+
+    // Workspace page indicator
+    val workspacePageIndicatorHeight: Int,
+    val workspacePageIndicatorOverlapWorkspace: Int,
     val isLabelHidden: Boolean = false,
+    val iconDrawablePaddingOriginalPx: Int,
 ) {
 
     // TODO(b/430382569)
@@ -63,6 +75,7 @@ data class WorkspaceProfile(
     companion object Factory {
 
         fun createWorkspaceProfileResponsiveGrid(
+            res: Resources,
             iconSizeSteps: IconSizeSteps,
             isVerticalLayout: Boolean,
             responsiveWorkspaceWidthSpec: CalculatedResponsiveSpec,
@@ -130,10 +143,22 @@ data class WorkspaceProfile(
                 cellYPaddingPx = cellYPaddingPx,
                 maxIconTextLineCount = maxIconTextLineCount,
                 iconCenterVertically = isVerticalLayout,
+                gridVisualizationPaddingX =
+                    res.getDimensionPixelSize(R.dimen.grid_visualization_horizontal_cell_spacing),
+                gridVisualizationPaddingY =
+                    res.getDimensionPixelSize(R.dimen.grid_visualization_vertical_cell_spacing),
+                workspacePageIndicatorHeight =
+                    res.getDimensionPixelSize(R.dimen.workspace_page_indicator_height),
+                workspacePageIndicatorOverlapWorkspace =
+                    res.getDimensionPixelSize(R.dimen.workspace_page_indicator_overlap_workspace),
+                iconDrawablePaddingOriginalPx = responsiveWorkspaceCellSpec.iconDrawablePadding,
+                desiredWorkspaceHorizontalMarginOriginalPx =
+                    responsiveWorkspaceWidthSpec.startPaddingPx,
             )
         }
 
         fun createWorkspaceProfile(
+            context: Context,
             res: Resources,
             deviceProperties: DeviceProperties,
             scale: Float,
@@ -146,11 +171,9 @@ data class WorkspaceProfile(
             mResponsiveWorkspaceHeightSpec: CalculatedResponsiveSpec?,
             mResponsiveWorkspaceCellSpec: CalculatedCellSpec?,
             cellSize: Point,
-            iconDrawablePaddingOriginalPx: Int,
             typeIndex: Int,
             metrics: DisplayMetrics,
             panelCount: Int,
-            desiredWorkspaceHorizontalMarginOriginalPx: Int,
             cellLayoutBorderSpacePx: Point,
             iconSizePx: Int,
         ): WorkspaceProfile {
@@ -164,6 +187,7 @@ data class WorkspaceProfile(
                     mResponsiveWorkspaceHeightSpec != null &&
                     mResponsiveWorkspaceCellSpec != null) ->
                     createWorkspaceProfileResponsiveGrid(
+                        res = res,
                         iconSizeSteps = iconSizeSteps,
                         isVerticalLayout = isVerticalLayout,
                         responsiveWorkspaceWidthSpec = mResponsiveWorkspaceWidthSpec,
@@ -177,20 +201,19 @@ data class WorkspaceProfile(
 
                 else ->
                     createWorkspaceProfileNonResponsive(
+                        res = res,
                         deviceProperties = deviceProperties,
                         scale = scale,
                         inv = inv,
                         isVerticalLayout = isVerticalLayout,
                         isScalableGrid = isScalableGrid,
                         cellSize = cellSize,
-                        iconDrawablePaddingOriginalPx = iconDrawablePaddingOriginalPx,
                         typeIndex = typeIndex,
                         metrics = metrics,
                         panelCount = panelCount,
-                        desiredWorkspaceHorizontalMarginOriginalPx =
-                            desiredWorkspaceHorizontalMarginOriginalPx,
                         cellLayoutBorderSpacePx = cellLayoutBorderSpacePx,
                         iconSizePx = iconSizePx,
+                        context = context,
                     )
             }
         }
