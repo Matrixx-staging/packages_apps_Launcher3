@@ -368,6 +368,11 @@ public final class LauncherInstrumentation {
         mCheckEventsForSuccessfulGestures = true;
     }
 
+    /** Returns the runnable that will be invoked upon assertion failures. */
+    public Runnable getOnFailure() {
+        return mOnFailure;
+    }
+
     /** Sets a runnable that will be invoked upon assertion failures. */
     public void setOnFailure(Runnable onFailure) {
         mOnFailure = onFailure;

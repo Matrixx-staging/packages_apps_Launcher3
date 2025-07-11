@@ -177,7 +177,7 @@ public class TaplOpenCloseAllAppsTest extends AbstractLauncherUiTest<Launcher, V
             assertNotNull("All apps: can't find Camera", allApps.getAppIcon("AAA"));
             // Test failing to find a non-existing app.
             final AllApps allAppsFinal = allApps;
-            expectFail("All apps: could find a non-existing app",
+            expectFail(mLauncher, "All apps: could find a non-existing app",
                     () -> allAppsFinal.getAppIcon("NO APP"));
 
             assertTrue(
