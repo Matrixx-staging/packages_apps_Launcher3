@@ -383,6 +383,19 @@ class PersistentBubbleStashControllerTest {
         verify(bubbleBarViewController, never()).animateExpanded(any(), any())
     }
 
+    @Test
+    fun launcherStateChanged_toHome_doesNotCallAnimateExpandedForStateChange() {
+        clearInvocations(bubbleBarViewController)
+
+        // When switch to home screen
+        getInstrumentation().runOnMainSync {
+            persistentTaskBarStashController.launcherState = BubbleLauncherState.HOME
+        }
+
+        // Crucially, animateExpanded is NOT called
+        verify(bubbleBarViewController, never()).animateExpanded(any(), any())
+    }
+
     private fun advanceTimeBy(advanceMs: Long) {
         // Advance animator for on-device tests
         getInstrumentation().runOnMainSync { animatorTestRule.advanceTimeBy(advanceMs) }
