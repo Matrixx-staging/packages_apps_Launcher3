@@ -377,18 +377,9 @@ constructor(
         startHome(/* finishRecentsAnimation= */ true)
     }
 
+    // This will exit to the corresponding home depending on the display.
     fun startHome(finishRecentsAnimation: Boolean) {
         val recentsView: RecentsView<*, *> = getOverviewPanel()
-
-        // Don't go to home on connected displays
-        if (displayId != DEFAULT_DISPLAY) {
-            val taskView =
-                recentsView.runningTaskView
-                    ?: recentsView.currentPageTaskView
-                    ?: recentsView.firstTaskView
-            taskView?.launchWithAnimation()
-            return
-        }
 
         if (!finishRecentsAnimation) {
             recentsView.switchToScreenshot /* onFinishRunnable= */ {}
@@ -545,7 +536,7 @@ constructor(
             stateManager.goToState(DEFAULT, true)
             true
         } else if (isInState(DEFAULT)) {
-            startHome()
+            stateManager.state.onBackInvoked(this@RecentsWindowManager)
             true
         } else {
             super.onRootViewDispatchKeyEvent(event)

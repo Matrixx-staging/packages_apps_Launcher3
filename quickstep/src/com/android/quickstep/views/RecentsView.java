@@ -65,6 +65,7 @@ import static com.android.launcher3.util.SystemUiController.UI_STATE_FULLSCREEN_
 import static com.android.quickstep.BaseContainerInterface.getTaskDimension;
 import static com.android.quickstep.TaskUtils.checkCurrentOrManagedUserId;
 import static com.android.quickstep.util.DesksUtils.areMultiDesksFlagsEnabled;
+import static com.android.quickstep.util.ExternalDisplaysKt.isExternalDisplay;
 import static com.android.quickstep.util.LogUtils.splitFailureMessage;
 import static com.android.quickstep.views.ClearAllButton.DISMISS_ALPHA;
 import static com.android.quickstep.views.OverviewActionsView.HIDDEN_ACTIONS_IN_MENU;
@@ -1764,7 +1765,13 @@ public abstract class RecentsView<
         switch (ev.getAction()) {
             case MotionEvent.ACTION_UP:
                 if (mTouchDownToStartHome) {
-                    startHome();
+                    TaskView taskView = getCurrentPageTaskView();
+                    if (isExternalDisplay(mContainer.getDisplayId()) && taskView != null
+                            && !taskView.isBeingDismissed() && isTaskViewVisible(taskView)) {
+                        taskView.launchWithAnimation();
+                    } else {
+                        startHome();
+                    }
                 }
                 mTouchDownToStartHome = false;
                 break;
