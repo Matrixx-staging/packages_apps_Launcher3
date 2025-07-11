@@ -119,13 +119,13 @@ class PreloadIconDelegate(
 
     override fun drawContent(
         info: BitmapInfo,
-        host: FastBitmapDrawable,
+        iconShape: IconShape,
         canvas: Canvas,
         bounds: Rect,
         paint: Paint,
     ) {
         if (ranFinishAnimation) {
-            parentDelegate.drawContent(info, host, canvas, bounds, paint)
+            parentDelegate.drawContent(info, iconShape, canvas, bounds, paint)
         } else if (Flags.enableLauncherIconShapes()) {
             drawShapedProgressIcon(info, canvas, bounds, paint)
         } else {
@@ -248,7 +248,7 @@ class PreloadIconDelegate(
                 fixedDelegateBounds.exactCenterY(),
             )
 
-            parentDelegate.drawContent(info, host, canvas, fixedDelegateBounds, paint)
+            parentDelegate.drawContent(info, iconShape, canvas, fixedDelegateBounds, paint)
         }
     }
 
