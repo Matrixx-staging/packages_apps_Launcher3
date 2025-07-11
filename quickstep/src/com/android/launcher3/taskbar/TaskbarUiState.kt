@@ -27,6 +27,7 @@ import com.android.launcher3.util.MutableListenableRef
  * - [_shouldShowEduOnAppLaunchRef]: when DeviceProfile or tooltip steps is changed
  * - [_isDraggingItemRef]: when ether bubble or taskbar is dragging item
  * - [_isTaskbarStashedRef]: when [TaskbarStashController.mIsStashed] has changed
+ * - [_isTaskbarAllAppsOpenRef]: when [TaskbarAllAppsController.isOpen] has changed
  */
 class TaskbarUiState {
 
@@ -34,6 +35,7 @@ class TaskbarUiState {
     private val _shouldShowEduOnAppLaunchRef = MutableListenableRef(false)
     private val _isDraggingItemRef = MutableListenableRef(false)
     private val _isTaskbarStashedRef = MutableListenableRef(false)
+    private val _isTaskbarAllAppsOpenRef = MutableListenableRef(false)
 
     private fun <T> MutableListenableRef<T>.diffAndDispatch(newValue: T) {
         if (value != newValue) {
@@ -45,6 +47,7 @@ class TaskbarUiState {
     val shouldShowEduOnAppLaunchRef = _shouldShowEduOnAppLaunchRef.asListenable()
     val isDraggingItemRef = _isDraggingItemRef.asListenable()
     val isTaskbarStashedRef = _isTaskbarStashedRef.asListenable()
+    val isTaskbarAllAppsOpenRef = _isTaskbarAllAppsOpenRef.asListenable()
 
     private var _isBubbleDragging = false
     private var _isTaskbarDragging = false
@@ -69,5 +72,9 @@ class TaskbarUiState {
 
     fun setIsTaskbarStashed(isTaskbarStashed: Boolean) {
         _isTaskbarStashedRef.diffAndDispatch(isTaskbarStashed)
+    }
+
+    fun setIsTaskbarAllAppsOpen(isTaskbarAllAppsOpen: Boolean) {
+        _isTaskbarAllAppsOpenRef.diffAndDispatch(isTaskbarAllAppsOpen)
     }
 }
