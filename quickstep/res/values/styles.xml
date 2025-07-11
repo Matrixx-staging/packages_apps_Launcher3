@@ -294,10 +294,6 @@
         <item name="lineHeight">20sp</item>
     </style>
 
-    <style name="KeyboardQuickSwitchText.LargeText" parent="KeyboardQuickSwitchText">
-        <item name="android:textSize">32sp</item>
-    </style>
-
     <style name="KeyboardQuickSwitchText.OnBackground" parent="KeyboardQuickSwitchText">
         <item name="android:textColor">@color/materialColorOnSurface</item>
     </style>
@@ -308,7 +304,14 @@
         <item name="android:fadingEdgeLength">20dp</item>
         <item name="android:ellipsize">none</item>
         <item name="android:singleLine">true</item>
+        <item name="android:textColor">@color/materialColorOnPrimaryContainer</item>
     </style>
+
+    <style name="KeyboardQuickSwitchText.LargeTextOnTaskView"
+           parent="KeyboardQuickSwitchText.OnTaskView">
+        <item name="android:textSize">32sp</item>
+    </style>
+
 
     <style name="GestureTutorialActivity" parent="@style/AppTheme">
         <item name="background">@android:color/transparent</item>

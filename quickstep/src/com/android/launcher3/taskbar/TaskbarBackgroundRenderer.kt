@@ -65,7 +65,6 @@ class TaskbarBackgroundRenderer(private val context: TaskbarActivityContext) {
     private val transientBackgroundBounds = context.transientTaskbarBounds
 
     private val shadowAlpha: Float
-    private val strokeAlpha: Int
     private var shadowBlur = 0f
     private var keyShadowDistance = 0f
     private var bottomMargin = 0
@@ -94,10 +93,8 @@ class TaskbarBackgroundRenderer(private val context: TaskbarActivityContext) {
         strokePaint.strokeWidth =
             context.resources.getDimension(R.dimen.transient_taskbar_stroke_width)
         if (Utilities.isDarkTheme(context)) {
-            strokeAlpha = DARK_THEME_STROKE_ALPHA
             shadowAlpha = DARK_THEME_SHADOW_ALPHA
         } else {
-            strokeAlpha = LIGHT_THEME_STROKE_ALPHA
             shadowAlpha = LIGHT_THEME_SHADOW_ALPHA
         }
 
@@ -253,7 +250,7 @@ class TaskbarBackgroundRenderer(private val context: TaskbarActivityContext) {
             keyShadowDistance,
             setColorAlphaBound(Color.BLACK, Math.round(newShadowAlpha)),
         )
-        strokePaint.alpha = (paint.alpha * strokeAlpha) / 255
+        strokePaint.alpha = (paint.alpha * STROKE_ALPHA) / 255
         val currentTranslationX = translationXForBubbleBar * progress
         lastDrawnTransientRect.set(
             transientBackgroundBounds.left + halfWidthDelta + currentTranslationX,
@@ -278,8 +275,7 @@ class TaskbarBackgroundRenderer(private val context: TaskbarActivityContext) {
 
     companion object {
         const val MAX_ROUNDNESS = 1f
-        private const val DARK_THEME_STROKE_ALPHA = 51
-        private const val LIGHT_THEME_STROKE_ALPHA = 41
+        private const val STROKE_ALPHA = 51
         private const val DARK_THEME_SHADOW_ALPHA = 51f
         private const val LIGHT_THEME_SHADOW_ALPHA = 25f
     }
