@@ -547,6 +547,13 @@ flag {
 }
 
 flag {
+  name: "simplified_launcher_model_binding"
+  namespace: "launcher"
+  description: "Simplified approach to binding launcher model asynchronously"
+  bug: "390572144"
+}
+
+flag {
   name: "home_screen_edit_improvements"
   namespace: "launcher"
   description: "Improves item removal and resizing within home screen"
