@@ -488,8 +488,8 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             // Same QSB width to have a smooth animation
             deviceProfile.hotseatQsbWidth = originDeviceProfile.hotseatQsbWidth;
 
-            deviceProfile.mWorkspaceIconProfile = deviceProfile
-                    .mWorkspaceIconProfile
+            deviceProfile.mWorkspaceProfile = deviceProfile
+                    .mWorkspaceProfile
                     .changeIconSize(deviceProfile.getTaskbarProfile().getIconSize());
 
             // Update icon size
