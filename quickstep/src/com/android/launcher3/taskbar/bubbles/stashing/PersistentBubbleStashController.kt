@@ -64,8 +64,6 @@ class PersistentBubbleStashController(
                 // was on -1 page and leaving it, - reset the inAppDisplayOverrideProgress
                 inAppDisplayOverrideProgress = 0f
             }
-            // If we're transitioning anywhere, bubble bar should be collapsed
-            updateExpandedState(expand = false)
             if (transitionFromHome || field == BubbleLauncherState.HOME) {
                 // If we're transitioning to or from home, animate the Y because we're in hotseat
                 // on home but in persistent taskbar elsewhere so the position is different.

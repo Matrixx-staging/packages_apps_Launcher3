@@ -96,7 +96,13 @@
     <string name="allset_navigation_settings" msgid="4713404605961476027"><annotation id="link">"ছিষ্টেম নেভিগেশ্বনৰ ছেটিং"</annotation></string>
     <string name="allset_title_expressive" msgid="474399969304146994">"আপোনাৰ <xliff:g id="DEVICE">%1$s</xliff:g>টো \nসাজু হৈছে!"</string>
     <string name="allset_title_expressive_fallback" msgid="2829102990606405239">"আপোনাৰ ডিভাইচটো \nসাজু হৈছে!"</string>
+    <!-- no translation found for allset_title_expressive_fixed (3564219469262883526) -->
+    <skip />
     <string name="allset_subtitle_expressive" msgid="419688197551192358">"আপোনাৰ নতুন <xliff:g id="DEVICE">%1$s</xliff:g>টো উপভোগ কৰক!"</string>
+    <!-- no translation found for allset_subtitle_expressive_gesture_navigation (8931442349501593934) -->
+    <skip />
+    <!-- no translation found for allset_subtitle_expressive_button_navigation (6968509640793602176) -->
+    <skip />
     <string name="allset_navigation_settings_expressive" msgid="3745595273748356"><annotation id="link">"নেভিগে’ট কেনেকৈ কৰিব লাগে বাছনি কৰক"</annotation></string>
     <string name="allset_hint_expressive" msgid="756856423510976261">"ওপৰলৈ ছোৱাইপ কৰক"</string>
     <string name="allset_button_hint_expressive" msgid="667643693410494225">"বুটামটোত টিপক"</string>

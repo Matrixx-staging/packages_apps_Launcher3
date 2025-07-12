@@ -33,6 +33,7 @@ import static com.android.launcher3.BaseActivity.INVISIBLE_BY_STATE_HANDLER;
 import static com.android.launcher3.BaseActivity.STATE_HANDLER_INVISIBILITY_FLAGS;
 import static com.android.launcher3.Flags.enableGestureNavHorizontalTouchSlop;
 import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
+import static com.android.launcher3.Flags.enableTaskbarUiThread;
 import static com.android.launcher3.Flags.msdlFeedback;
 import static com.android.launcher3.PagedView.INVALID_PAGE;
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_BACKGROUND;
@@ -130,6 +131,8 @@ import com.android.launcher3.statemanager.BaseState;
 import com.android.launcher3.statemanager.StatefulContainer;
 import com.android.launcher3.taskbar.TaskbarThresholdUtils;
 import com.android.launcher3.taskbar.TaskbarUIController;
+import com.android.launcher3.taskbar.TaskbarUiState;
+import com.android.launcher3.taskbar.TaskbarUiStateMonitor;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.MSDLPlayerWrapper;
@@ -435,9 +438,16 @@ public abstract class AbsSwipeUpHandler<
 
         mIsTransientTaskbar = mDp.isTaskbarPresent
                 && DisplayController.isTransientTaskbar(context);
-        TaskbarUIController controller = mContainerInterface.getTaskbarController();
-        mTaskbarAlreadyOpen = controller != null && !controller.isTaskbarStashed();
-        mIsTaskbarAllAppsOpen = controller != null && controller.isTaskbarAllAppsOpen();
+        if (enableTaskbarUiThread()) {
+            TaskbarUiState taskbarUiState = TaskbarUiStateMonitor.INSTANCE.get(context)
+                    .getTaskbarUiState(context.getDisplayId());
+            mTaskbarAlreadyOpen = taskbarUiState.isTaskbarStashedRef().getValue();
+            mIsTaskbarAllAppsOpen = taskbarUiState.isTaskbarAllAppsOpenRef().getValue();
+        } else {
+            TaskbarUIController controller = mContainerInterface.getTaskbarController();
+            mTaskbarAlreadyOpen = controller != null && !controller.isTaskbarStashed();
+            mIsTaskbarAllAppsOpen = controller != null && controller.isTaskbarAllAppsOpen();
+        }
         mTaskbarAppWindowThreshold =
                 TaskbarThresholdUtils.getAppWindowThreshold(res, mDp);
         boolean swipeWillNotShowTaskbar = mTaskbarAlreadyOpen || mGestureState.isTrackpadGesture();

@@ -28,6 +28,8 @@
     <string name="widget_tap_to_add_button_content_description" msgid="3591512565497536699">"<xliff:g id="WIDGET_NAME">%1$s</xliff:g> విడ్జెట్‌ను జోడించండి"</string>
     <string name="featured_widgets_tab_label" msgid="5911854248145111652">"ఫీచర్ చేసినవి"</string>
     <string name="browse_widgets_tab_label" msgid="7179933202350730737">"బ్రౌజ్ చేయండి"</string>
+    <!-- no translation found for widgets_tab_accessibility_label (559010210491169400) -->
+    <skip />
     <string name="widget_picker_right_pane_accessibility_label" msgid="5095301787174820892">"కుడి వైపున <xliff:g id="SELECTED_HEADER">%1$s</xliff:g> విడ్జెట్‌లు, ఎడమ వైపున సెర్చ్, ఇతర ఆప్షన్‌లు"</string>
     <string name="widgets_search_bar_hint" msgid="5705758627532180867">"సెర్చ్ చేయండి"</string>
     <string name="widget_search_bar_clear_button_label" msgid="6120140737164336517">"క్లియర్ చేయండి"</string>

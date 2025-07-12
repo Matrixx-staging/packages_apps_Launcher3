@@ -29,6 +29,7 @@ import com.android.launcher3.dragndrop.DragOptions.PreDragCondition;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.taskbar.TaskbarControllers;
+import com.android.launcher3.taskbar.TaskbarUiState;
 import com.android.launcher3.taskbar.overlay.TaskbarOverlayContext;
 import com.android.launcher3.util.PackageUserKey;
 
@@ -49,6 +50,7 @@ import java.util.Map;
 public final class TaskbarAllAppsController {
 
     private TaskbarControllers mControllers;
+    private TaskbarUiState mTaskbarUiState;
     private @Nullable TaskbarOverlayContext mOverlayContext;
     private @Nullable TaskbarAllAppsSlideInView mSlideInView;
     private @Nullable TaskbarAllAppsContainerView mAppsView;
@@ -65,9 +67,10 @@ public final class TaskbarAllAppsController {
     private Map<PackageUserKey, Integer> mPackageUserKeytoUidMap = Collections.emptyMap();
 
     /** Initialize the controller. */
-    public void init(TaskbarControllers controllers, boolean allAppsVisible) {
+    public void init(
+            TaskbarControllers controllers, TaskbarUiState taskbarUiState, boolean allAppsVisible) {
         mControllers = controllers;
-
+        mTaskbarUiState = taskbarUiState;
         /*
          * Recreate All Apps if it was open in the previous Taskbar instance (e.g. the configuration
          * changed).
@@ -188,6 +191,7 @@ public final class TaskbarAllAppsController {
         // doesn't also close
         mOverlayContext.getDragController().setDisallowGlobalDrag(mDisallowGlobalDrag);
         mOverlayContext.getDragController().setDisallowLongClick(mDisallowLongClick);
+        mTaskbarUiState.setIsTaskbarAllAppsOpen(true);
     }
 
     private void cleanUpOverlay() {
@@ -209,6 +213,7 @@ public final class TaskbarAllAppsController {
         }
         mSlideInView = null;
         mAppsView = null;
+        mTaskbarUiState.setIsTaskbarAllAppsOpen(false);
     }
 
     @Nullable

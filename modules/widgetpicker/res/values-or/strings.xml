@@ -28,6 +28,8 @@
     <string name="widget_tap_to_add_button_content_description" msgid="3591512565497536699">"<xliff:g id="WIDGET_NAME">%1$s</xliff:g> ୱିଜେଟ ଯୋଗ କରନ୍ତୁ"</string>
     <string name="featured_widgets_tab_label" msgid="5911854248145111652">"ଫିଚର କରାଯାଇଛି"</string>
     <string name="browse_widgets_tab_label" msgid="7179933202350730737">"ବ୍ରାଉଜ କରନ୍ତୁ"</string>
+    <!-- no translation found for widgets_tab_accessibility_label (559010210491169400) -->
+    <skip />
     <string name="widget_picker_right_pane_accessibility_label" msgid="5095301787174820892">"ଡାହାଣରେ <xliff:g id="SELECTED_HEADER">%1$s</xliff:g> ୱିଜେଟଗୁଡ଼ିକ ଅଛି, ବାମରେ ସର୍ଚ୍ଚ ଓ ବିକଳ୍ପଗୁଡ଼ିକ ଅଛି"</string>
     <string name="widgets_search_bar_hint" msgid="5705758627532180867">"ସର୍ଚ୍ଚ କରନ୍ତୁ"</string>
     <string name="widget_search_bar_clear_button_label" msgid="6120140737164336517">"ଖାଲି କରନ୍ତୁ"</string>

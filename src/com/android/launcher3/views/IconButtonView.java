@@ -127,7 +127,7 @@ public class IconButtonView extends BubbleTextView {
 
         @Override
         public void drawContent(@NonNull BitmapInfo info,
-                @NonNull FastBitmapDrawable host,
+                @NonNull IconShape shape,
                 @NonNull Canvas canvas, @NonNull Rect bounds, @NonNull Paint paint) {
             mFg.draw(canvas);
         }

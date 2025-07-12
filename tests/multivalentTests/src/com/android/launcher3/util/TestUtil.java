@@ -215,13 +215,31 @@ public class TestUtil {
         }
     }
 
-    // Please don't add negative test cases for methods that fail only after a long wait.
-    public static void expectFail(String message, Runnable action) {
+    /**
+     * Executes the provided {@code action} and asserts that it throws an {@link AssertionError}.
+     * <p>
+     * This method is useful for testing scenarios where an action is expected to fail.
+     * It temporarily disables the default failure handling of the {@link LauncherInstrumentation}
+     * (like saving error artifacts) during the execution of the action.
+     *
+     * Please don't add negative test cases for methods that fail only after a long wait.
+     *
+     * @param launcher The {@link LauncherInstrumentation} instance to use.
+     * @param message  The message to display if the action does not fail as expected.
+     * @param action   The {@link Runnable} containing the code that is expected to throw an
+     *                 {@link AssertionError}.
+     */
+    public static void expectFail(LauncherInstrumentation launcher,
+            String message, Runnable action) {
         boolean failed = false;
+        final Runnable savedOnFailure = launcher.getOnFailure();
+        launcher.setOnFailure(null); // Disable failure handling, such as saving error artifacts.
         try {
             action.run();
         } catch (AssertionError e) {
             failed = true;
+        } finally {
+            launcher.setOnFailure(savedOnFailure);
         }
         assertTrue(message, failed);
     }
