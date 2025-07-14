@@ -39,6 +39,7 @@ import android.view.animation.PathInterpolator;
 import androidx.test.annotation.UiThreadTest;
 import androidx.test.filters.SmallTest;
 
+import com.android.launcher3.icons.FastBitmapDrawableDelegate.SimpleDelegateFactory;
 import com.android.launcher3.util.LauncherMultivalentJUnit;
 
 import org.junit.Before;
@@ -321,10 +322,17 @@ public class FastBitmapDrawableTest {
 
     @Test
     public void testUpdateBadgeAlpha() {
-        mFastBitmapDrawable.setBadge(mBadge);
+        FastBitmapDrawable drawable = new FastBitmapDrawable(
+                BitmapInfo.LOW_RES_INFO,
+                IconShape.EMPTY,
+                SimpleDelegateFactory.INSTANCE,
+                0 /* creation flags */,
+                1f /* disabledAlpha */,
+                mBadge
+            );
 
-        mFastBitmapDrawable.setAlpha(1);
-        mFastBitmapDrawable.setAlpha(0);
+        drawable.setAlpha(1);
+        drawable.setAlpha(0);
 
         verify(mBadge).setAlpha(1);
         verify(mBadge).setAlpha(0);
