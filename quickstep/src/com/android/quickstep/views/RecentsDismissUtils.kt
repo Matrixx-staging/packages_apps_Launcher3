@@ -535,9 +535,13 @@ constructor(
                 isSplitSelection,
             )
             val tasksToExclude = tasksWithOffsetsToReflow.map { (taskView, _) -> taskView }
-            // When reflowing other tasks when splitting from a large tile, do not settle neighbors.
-            if (!reflowSplitFromDesktopTile && dismissedTaskView != null) {
-                // Animate the settling of the neighbors as reflow tasks settle into place.
+            if (gridEndSpringSet != null) {
+                reflowSpringSet.playAfterThreshold(
+                    driverThreshold = dismissedTaskGap,
+                    triggeredSpringSet = gridEndSpringSet,
+                )
+            } else if (!reflowSplitFromDesktopTile && dismissedTaskView != null) {
+                // When reflowing tasks when splitting from a large tile, do not settle neighbors.
                 val neighborSettlingSpringSet =
                     createNeighborSettlingSpringSet(
                         dismissedTaskView,
@@ -547,12 +551,6 @@ constructor(
                 reflowSpringSet.playAfterThreshold(
                     driverThreshold = dismissedTaskGap,
                     triggeredSpringSet = neighborSettlingSpringSet,
-                )
-            }
-            if (gridEndSpringSet != null) {
-                reflowSpringSet.playAfterThreshold(
-                    driverThreshold = dismissedTaskGap,
-                    triggeredSpringSet = gridEndSpringSet,
                 )
             }
             return Pair(reflowSpringSet, tasksToExclude)
