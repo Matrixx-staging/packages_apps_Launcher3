@@ -18,7 +18,7 @@ package com.android.launcher3.taskbar.bubbles;
 import static android.view.View.INVISIBLE;
 import static android.view.View.VISIBLE;
 
-import static com.android.launcher3.Flags.enableTaskbarUiThread;
+import static com.android.launcher3.Flags.refactorTaskbarUiState;
 import static com.android.launcher3.Utilities.mapRange;
 import static com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_BUBBLES_ANIMATING;
 import static com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_BUBBLES_EXPANDED;
@@ -162,7 +162,7 @@ public class BubbleBarViewController {
             FrameLayout bubbleBarContainer) {
         mActivity = activity;
         mBarView = barView;
-        if (enableTaskbarUiThread()) {
+        if (refactorTaskbarUiState()) {
             mBarView.setOnHierarchyChangeListener(new ViewGroup.OnHierarchyChangeListener() {
                 @Override
                 public void onChildViewAdded(View view, View view1) {
@@ -175,7 +175,7 @@ public class BubbleBarViewController {
                 }
 
                 private void onChildViewCountChanged() {
-                    taskbarUiState.onNewHasBubble(mBarView.getBubbleChildCount() > 0);
+                    taskbarUiState.setHasBubble(mBarView.getBubbleChildCount() > 0);
                 }
             });
         }

@@ -37,7 +37,7 @@ import androidx.annotation.VisibleForTesting
 import androidx.core.text.HtmlCompat
 import androidx.core.view.updateLayoutParams
 import com.airbnb.lottie.LottieAnimationView
-import com.android.launcher3.Flags.enableTaskbarUiThread
+import com.android.launcher3.Flags.refactorTaskbarUiState
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.R
 import com.android.launcher3.RemoveAnimationSettingsTracker
@@ -136,12 +136,12 @@ open class TaskbarEduTooltipController(context: Context) :
     }
 
     fun onShouldShowEduOnAppLaunchChanged() {
-        if (!enableTaskbarUiThread()) {
+        if (!refactorTaskbarUiState()) {
             return
         }
         val uiController = controllers.uiController
         if (uiController is LauncherTaskbarUIController) {
-            taskbarUIState.onNewShouldShowEduOnAppLaunch(uiController.shouldShowEduOnAppLaunch())
+            taskbarUIState.setShouldShowEduOnAppLaunch(uiController.shouldShowEduOnAppLaunch())
         }
     }
 
