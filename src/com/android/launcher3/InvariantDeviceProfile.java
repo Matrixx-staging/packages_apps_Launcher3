@@ -281,6 +281,7 @@ public class InvariantDeviceProfile {
 
         String gridName = prefs.get(GRID_NAME);
         initGrid(context, gridName);
+        mThemeManager.generateIconShape(iconBitmapSize);
 
         dc.setPriorityListener(
                 (displayContext, info, flags) -> {
@@ -418,7 +419,6 @@ public class InvariantDeviceProfile {
             maxIconSize = Math.max(maxIconSize, iconSize[i]);
         }
         iconBitmapSize = ResourceUtils.pxFromDp(maxIconSize, metrics);
-        mThemeManager.generateIconShape(iconBitmapSize);
 
         fillResIconDpi = getLauncherIconDensity(iconBitmapSize);
 
@@ -544,13 +544,13 @@ public class InvariantDeviceProfile {
         // Re-init grid
         initGrid(context, mPrefs.get(GRID_NAME));
 
-        // Generate new Icon Shape info
-        mThemeManager.generateIconShape(iconBitmapSize);
-
         boolean modelPropsChanged = !Arrays.equals(oldState, toModelState());
         for (OnIDPChangeListener listener : mChangeListeners) {
             listener.onIdpChanged(modelPropsChanged);
         }
+
+        // Generate new Icon Shape info
+        mThemeManager.generateIconShape(iconBitmapSize);
     }
 
     private static boolean firstGridFilter(GridOption gridOption, int deviceType,
