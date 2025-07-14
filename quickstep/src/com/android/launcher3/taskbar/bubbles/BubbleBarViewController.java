@@ -20,8 +20,7 @@ import static android.view.View.VISIBLE;
 
 import static com.android.launcher3.Flags.enableTaskbarUiThread;
 import static com.android.launcher3.Utilities.mapRange;
-import static com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_BUBBLES_ANIMATING;
-import static com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_BUBBLES_EXPANDED;
+import static com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_BUBBLES;
 import static com.android.launcher3.taskbar.TaskbarPinningController.PINNING_PERSISTENT;
 import static com.android.launcher3.taskbar.TaskbarPinningController.PINNING_TRANSIENT;
 
@@ -272,8 +271,7 @@ public class BubbleBarViewController {
 
             @Override
             public void onBubbleBarExpandedStateChanged(boolean expanded) {
-                mTaskbarAutohideSuspendController.updateFlag(
-                        FLAG_AUTOHIDE_SUSPEND_BUBBLES_EXPANDED, expanded);
+                ensureTaskbarWindowVisibilityForBubbles(expanded);
                 if (expanded && !mTaskbarStashController.isStashed()) {
                     mTaskbarStashController.updateAndAnimateTransientTaskbar(true /* stash */,
                             false /* shouldBubblesFollow */);
@@ -308,10 +306,11 @@ public class BubbleBarViewController {
         };
     }
 
+    /** Called when animations for new and updated bubbles ended. */
     private void onBubbleAnimationEnded() {
-        mTaskbarAutohideSuspendController.updateFlag(
-                FLAG_AUTOHIDE_SUSPEND_BUBBLES_ANIMATING, false);
+        ensureTaskbarWindowVisibilityForBubbles(isExpanded());
     }
+
     /** Returns animated float property responsible for pinning transition animation. */
     public AnimatedFloat getBubbleBarPinning() {
         return mBubbleBarPinning;
@@ -1157,8 +1156,8 @@ public class BubbleBarViewController {
         if (isExpanded()) {
             return;
         }
-        // we're going to animate the bubble; suspend taskbar hiding
-        mTaskbarAutohideSuspendController.updateFlag(FLAG_AUTOHIDE_SUSPEND_BUBBLES_ANIMATING, true);
+        // we're going to animate the bubble; make sure the taskbar window is visible
+        ensureTaskbarWindowVisibilityForBubbles(true);
         boolean isInApp = mTaskbarStashController.isInApp();
         // if this is the first bubble, animate to the initial state.
         if (mBarView.getBubbleChildCount() == 1 && !isUpdate) {
@@ -1180,6 +1179,20 @@ public class BubbleBarViewController {
 
         if (isInApp && mBubbleStashController.getHasHandleView()) {
             mBubbleBarViewAnimator.animateBubbleInForStashed(bubble, isExpanding);
+        }
+    }
+
+    /**
+     * Ensures the taskbar window is forcibly shown for bubbles.
+     *
+     * <p>The window has to be visible whenever new and updated bubbles are animating, and when the
+     * bubble bar is expanded.
+     */
+    private void ensureTaskbarWindowVisibilityForBubbles(boolean visible) {
+        if (mBubbleStashController.isTransientTaskBar()) {
+            mTaskbarAutohideSuspendController.updateFlag(FLAG_AUTOHIDE_SUSPEND_BUBBLES, visible);
+        } else {
+            mActivity.applyForciblyShownFlagForBubblesInPersistentTaskbar(visible);
         }
     }
 

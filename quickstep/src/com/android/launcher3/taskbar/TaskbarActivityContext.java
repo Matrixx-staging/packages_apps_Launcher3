@@ -399,7 +399,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         onViewCreated();
     }
 
-    /** Updates {@link deviceprofile} instances for any Taskbar windows. */
+    /** Updates {@link DeviceProfile} instances for any Taskbar windows. */
     public void updateDeviceProfile(DeviceProfile launcherDp) {
         applyDeviceProfile(launcherDp);
         mControllers.taskbarOverlayController.updateLauncherDeviceProfile(launcherDp);
@@ -1480,6 +1480,29 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
      */
     public void applyForciblyShownFlagWhileTransientTaskbarUnstashed(boolean shouldForceShow) {
         if (!isTransientTaskbar() || isPhoneMode()) {
+            return;
+        }
+        if (shouldForceShow) {
+            mWindowLayoutParams.forciblyShownTypes |= WindowInsets.Type.navigationBars();
+        } else {
+            mWindowLayoutParams.forciblyShownTypes &= ~WindowInsets.Type.navigationBars();
+        }
+        notifyUpdateLayoutParams();
+    }
+
+    /**
+     * Applies forcibly show flag to taskbar window in persistent taskbar for bubbles.
+     *
+     * <p>This is called by Bubbles to ensure that the taskbar window is visible when a new or an
+     * updated bubble is animating, and when the bubble bar is expanded. When the bubble bar is
+     * collapsed and when bubbles no longer animate, this method is called again to remove the
+     * forcibly shown flag so that the taskbar window can hide if it needs to.
+     *
+     * <p>This method is a no-op for transient taskbar, where this flag is updated through
+     * {@link #applyForciblyShownFlagWhileTransientTaskbarUnstashed(boolean)}
+     */
+    public void applyForciblyShownFlagForBubblesInPersistentTaskbar(boolean shouldForceShow) {
+        if (isTransientTaskbar()) {
             return;
         }
         if (shouldForceShow) {
