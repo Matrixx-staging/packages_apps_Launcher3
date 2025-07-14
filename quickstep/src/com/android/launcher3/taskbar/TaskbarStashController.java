@@ -1420,6 +1420,8 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
         }
         if (isAutohideSuspended) {
             cancelTimeoutIfExists();
+            // make sure taskbar is visible if auto hide is suspended
+            updateTaskbarWindowForciblyShownFlag();
         } else if (mIsStashed) {
             // auto hide is no longer suspended and we're already stashed; hide taskbar if needed
             updateTaskbarWindowForciblyShownFlag();

@@ -55,6 +55,8 @@ public class TaskbarAutohideSuspendController implements
     public static final int FLAG_AUTOHIDE_SUSPEND_GROWTH_NUDGE_OPEN = 1 << 9;
     // Taskbar hiding is suspended due to expanded bubbles.
     public static final int FLAG_AUTOHIDE_SUSPEND_BUBBLES_EXPANDED = 1 << 10;
+    /** Taskbar hiding is suspended due to bubbles animating. */
+    public static final int FLAG_AUTOHIDE_SUSPEND_BUBBLES_ANIMATING = 1 << 11;
 
     @IntDef(flag = true, value = {
             FLAG_AUTOHIDE_SUSPEND_FULLSCREEN,
@@ -68,6 +70,7 @@ public class TaskbarAutohideSuspendController implements
             FLAG_AUTOHIDE_SUSPEND_TASKBAR_OVERFLOW,
             FLAG_AUTOHIDE_SUSPEND_GROWTH_NUDGE_OPEN,
             FLAG_AUTOHIDE_SUSPEND_BUBBLES_EXPANDED,
+            FLAG_AUTOHIDE_SUSPEND_BUBBLES_ANIMATING,
     })
     @Retention(RetentionPolicy.SOURCE)
     public @interface AutohideSuspendFlag {}
@@ -124,8 +127,10 @@ public class TaskbarAutohideSuspendController implements
      * Returns whether Transient Taskbar should avoid auto-stashing.
      */
     public boolean isTransientTaskbarStashingSuspended() {
-        return (mAutohideSuspendFlags & ~FLAG_AUTOHIDE_SUSPEND_TRANSIENT_TASKBAR
-                & ~FLAG_AUTOHIDE_SUSPEND_BUBBLES_EXPANDED) != 0;
+        return (mAutohideSuspendFlags
+                & ~FLAG_AUTOHIDE_SUSPEND_TRANSIENT_TASKBAR
+                & ~FLAG_AUTOHIDE_SUSPEND_BUBBLES_EXPANDED
+                & ~FLAG_AUTOHIDE_SUSPEND_BUBBLES_ANIMATING) != 0;
     }
 
     @Override
@@ -156,6 +161,8 @@ public class TaskbarAutohideSuspendController implements
                 "FLAG_AUTOHIDE_SUSPEND_GROWTH_NUDGE_OPEN");
         appendFlag(str, flags, FLAG_AUTOHIDE_SUSPEND_BUBBLES_EXPANDED,
                 "FLAG_AUTOHIDE_SUSPEND_BUBBLES_EXPANDED");
+        appendFlag(str, flags, FLAG_AUTOHIDE_SUSPEND_BUBBLES_ANIMATING,
+                "FLAG_AUTOHIDE_SUSPEND_BUBBLES_ANIMATING");
         return str.toString();
     }
 }
