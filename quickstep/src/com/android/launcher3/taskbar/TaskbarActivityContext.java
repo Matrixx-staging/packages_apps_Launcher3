@@ -1852,7 +1852,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                         // we get both leashes for the animation
                         mControllers.uiController.setSkipNextRecentsAnimEnd();
                         recents.switchToScreenshot(() ->
-                                recents.finishRecentsAnimation(true /*toRecents*/,
+                                recents.finishRecentsAnimation(true /*toHome*/,
                                         false /*shouldPip*/,
                                         () -> recents
                                                 .getSplitSelectController()

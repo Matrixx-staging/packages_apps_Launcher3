@@ -238,11 +238,11 @@ public class ProgressDelegateInputConsumer implements InputConsumer,
     }
 
     private void onFlingFinished() {
-        boolean endToRecents = mFlingEndsOnHome == null ? true : mFlingEndsOnHome;
+        boolean endToHome = mFlingEndsOnHome == null ? true : mFlingEndsOnHome;
         if (mRecentsAnimationController != null) {
-            mRecentsAnimationController.finishController(endToRecents /* toRecents */,
+            mRecentsAnimationController.finishController(endToHome /* toHome */,
                     null /* callback */, false /* sendUserLeaveHint */);
-        } else if (endToRecents) {
+        } else if (endToHome) {
             startHomeIntentSafely(mContext, null, TAG, getDisplayId());
         }
         reset();

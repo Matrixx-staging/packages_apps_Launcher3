@@ -21,8 +21,6 @@ import static com.android.quickstep.fallback.RecentsStateUtilsKt.toLauncherState
 
 import static org.junit.Assert.assertTrue;
 
-import android.os.SystemProperties;
-
 import androidx.annotation.Nullable;
 import androidx.test.uiautomator.By;
 import androidx.test.uiautomator.Until;
@@ -67,7 +65,7 @@ public abstract class AbstractQuickStepTest
         }
         RecentsView recentsView = launcher.getOverviewPanel();
         if (recentsView != null) {
-            recentsView.finishRecentsAnimation(false /* toRecents */, null);
+            recentsView.finishRecentsAnimation(false /* toHome */, null);
         }
     }
 
