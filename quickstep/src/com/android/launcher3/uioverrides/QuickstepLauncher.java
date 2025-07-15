@@ -114,6 +114,7 @@ import androidx.annotation.RequiresApi;
 
 import com.android.app.viewcapture.ViewCaptureFactory;
 import com.android.launcher3.AbstractFloatingView;
+import com.android.launcher3.BuildConfig;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Flags;
 import com.android.launcher3.GestureNavContract;
@@ -548,22 +549,32 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         return shortcuts.stream();
     }
 
-    /**
-     * When {@link refactorTaskbarUiState} is on, we mimic the impl of
-     * {@link TaskbarPopupController#canPinAppWithContextMenu}
-     */
     private boolean canPinAppWithContextMenu() {
-        if (!refactorTaskbarUiState()) {
-            return mTaskbarUIController != null
-                    && mTaskbarUIController.canPinAppWithContextMenu();
+        if (refactorTaskbarUiState()) {
+            final boolean ret = newCanPinAppWithContextMenu();
+            if (BuildConfig.IS_STUDIO_BUILD && ret != legacyCanPinAppWithContextMenu()) {
+                throw new IllegalStateException("canPinAppWithContextMenu() doesn't match");
+            }
+            return ret;
+        } else {
+            return legacyCanPinAppWithContextMenu();
         }
+    }
+
+    private boolean legacyCanPinAppWithContextMenu() {
+        return mTaskbarUIController != null
+                && mTaskbarUIController.canPinAppWithContextMenu();
+    }
+
+    /** Mimic the impl of {@link TaskbarPopupController#canPinAppWithContextMenu}. */
+    private boolean newCanPinAppWithContextMenu() {
         if (!DesktopExperienceFlags.ENABLE_PINNING_APP_WITH_CONTEXT_MENU.isTrue()) {
             return false;
         }
         return DesktopVisibilityController.INSTANCE.get(this).isInDesktopMode(getDisplayId())
                 || mTaskbarUiState.getShowDesktopTaskbarForFreeformDisplayRef().getValue()
                 || (mTaskbarUiState.getShowLockedTaskbarOnHome().getValue()
-                    && mTaskbarUiState.isTaskbarOnHomeRef().getValue());
+                && mTaskbarUiState.isTaskbarOnHomeRef().getValue());
     }
 
     private List<SystemShortcut.Factory<QuickstepLauncher>> getSplitShortcuts() {
@@ -1525,9 +1536,22 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     @Override
     public boolean hasBubbles() {
         if (refactorTaskbarUiState()) {
-            return mTaskbarUiState.getHasBubblesRef().getValue();
+            final boolean ret = newHasBubbles();
+            if (BuildConfig.IS_STUDIO_BUILD && ret != legacyHasBubbles()) {
+                throw new IllegalStateException("hasBubbles() doesn't match");
+            }
+            return ret;
+        } else {
+            return legacyHasBubbles();
         }
-        return (mTaskbarUIController != null && mTaskbarUIController.hasBubbles());
+    }
+
+    private boolean newHasBubbles() {
+        return mTaskbarUiState.getHasBubblesRef().getValue();
+    }
+
+    private boolean legacyHasBubbles() {
+        return mTaskbarUIController != null && mTaskbarUIController.hasBubbles();
     }
 
     @Override
