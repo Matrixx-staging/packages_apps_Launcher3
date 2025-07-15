@@ -65,6 +65,7 @@ import static com.android.launcher3.util.SystemUiController.UI_STATE_FULLSCREEN_
 import static com.android.quickstep.BaseContainerInterface.getTaskDimension;
 import static com.android.quickstep.TaskUtils.checkCurrentOrManagedUserId;
 import static com.android.quickstep.util.DesksUtils.areMultiDesksFlagsEnabled;
+import static com.android.quickstep.util.ExternalDisplaysKt.isExternalDisplay;
 import static com.android.quickstep.util.LogUtils.splitFailureMessage;
 import static com.android.quickstep.views.ClearAllButton.DISMISS_ALPHA;
 import static com.android.quickstep.views.OverviewActionsView.HIDDEN_ACTIONS_IN_MENU;
@@ -698,6 +699,7 @@ public abstract class RecentsView<
                 dismissTask(task.taskId, /* animate= */ true, /* removeTask= */ false);
             }
         }
+
     };
 
     private final PinnedStackAnimationListener mIPipAnimationListener =
@@ -1763,7 +1765,13 @@ public abstract class RecentsView<
         switch (ev.getAction()) {
             case MotionEvent.ACTION_UP:
                 if (mTouchDownToStartHome) {
-                    startHome();
+                    TaskView taskView = getCurrentPageTaskView();
+                    if (isExternalDisplay(mContainer.getDisplayId()) && taskView != null
+                            && !taskView.isBeingDismissed() && isTaskViewVisible(taskView)) {
+                        taskView.launchWithAnimation();
+                    } else {
+                        startHome();
+                    }
                 }
                 mTouchDownToStartHome = false;
                 break;
@@ -2767,7 +2775,7 @@ public abstract class RecentsView<
         if (mEnableDrawingLiveTile) {
             if (mRecentsAnimationController != null) {
                 // We owns mRecentsAnimationController, finish it now to clean up.
-                finishRecentsAnimation(true /* toRecents */, null);
+                finishRecentsAnimation(true /* toHome */, null);
             } else {
                 // Only clean up target set if we no longer owns mRecentsAnimationController.
                 runActionOnRemoteHandles(remoteTargetHandle ->
@@ -2967,7 +2975,7 @@ public abstract class RecentsView<
             // Animate the rotation and stops running task
             switchToScreenshot(() -> {
                 animateRotation(newRotation);
-                finishRecentsAnimation(true /* toRecents */, false /* shouldPip */,
+                finishRecentsAnimation(true /* toHome */, false /* shouldPip */,
                         null /* onFinishComplete */);
             });
         }
@@ -3676,7 +3684,7 @@ public abstract class RecentsView<
             @Override
             public void onAnimationStart(Animator animation) {
                 switchToScreenshot(
-                        () -> finishRecentsAnimation(true /* toRecents */,
+                        () -> finishRecentsAnimation(true /* toHome */,
                                 false /* shouldPip */, null /* onFinishComplete */));
             }
         });
@@ -4017,7 +4025,7 @@ public abstract class RecentsView<
             public void accept(Boolean success) {
                 if (mEnableDrawingLiveTile && dismissedTaskView != null
                         && dismissedTaskView.isRunningTask() && success) {
-                    finishRecentsAnimation(true /* toRecents */, false /* shouldPip */,
+                    finishRecentsAnimation(true /* toHome */, false /* shouldPip */,
                             () -> onEnd(true));
                 } else {
                     onEnd(success);
@@ -4039,7 +4047,7 @@ public abstract class RecentsView<
                     if (shouldRemoveTask && dismissedTaskView != null
                             && (groupTask = dismissedTaskView.getGroupTask()) != null) {
                         if (dismissedTaskView.isRunningTask()) {
-                            finishRecentsAnimation(true /* toRecents */, false /* shouldPip */,
+                            finishRecentsAnimation(true /* toHome */, false /* shouldPip */,
                                     () -> removeGroupTaskInternal(groupTask));
                         } else {
                             removeGroupTaskInternal(groupTask);
@@ -4431,7 +4439,7 @@ public abstract class RecentsView<
                 SystemUiProxy.INSTANCE.get(getContext()).removeAllDesks();
 
                 // Remove all the task views now
-                finishRecentsAnimation(true /* toRecents */, false /* shouldPip */, () -> {
+                finishRecentsAnimation(true /* toHome */, false /* shouldPip */, () -> {
                     UI_HELPER_EXECUTOR.getHandler().post(
                             ActivityManagerWrapper.getInstance()::removeAllRecentTasks);
                     removeAllTaskViews();
@@ -5832,10 +5840,10 @@ public abstract class RecentsView<
                             });
                 }
                 if (taskView.isRunningTask()) {
-                    finishRecentsAnimation(false /* toRecents */, null);
+                    finishRecentsAnimation(false /* toHome */, null);
                     onTaskLaunchAnimationEnd(true /* success */);
                 } else {
-                    finishRecentsAnimation(true /* toRecents */,
+                    finishRecentsAnimation(true /* toHome */,
                             () -> taskView.launchWithoutAnimation(this::onTaskLaunchAnimationEnd));
                 }
                 mContainer.getStatsLogManager().logger().withItemInfo(taskView.getItemInfo())
@@ -6006,15 +6014,15 @@ public abstract class RecentsView<
     /**
      * Finish recents animation.
      */
-    public void finishRecentsAnimation(boolean toRecents, @Nullable Runnable onFinishComplete) {
-        finishRecentsAnimation(toRecents, true /* shouldPip */, onFinishComplete);
+    public void finishRecentsAnimation(boolean toHome, @Nullable Runnable onFinishComplete) {
+        finishRecentsAnimation(toHome, true /* shouldPip */, onFinishComplete);
     }
 
     /**
-     * NOTE: Whatever value gets passed through to the toRecents param may need to also be set on
+     * NOTE: Whatever value gets passed through to the toHome param may need to also be set on
      * {@link #mRecentsAnimationController#setWillFinishToHome}.
      */
-    public void finishRecentsAnimation(boolean toRecents, boolean shouldPip,
+    public void finishRecentsAnimation(boolean toHome, boolean shouldPip,
             @Nullable Runnable onFinishComplete) {
         Log.d(TAG, "finishRecentsAnimation - mRecentsAnimationController: "
                 + mRecentsAnimationController);
@@ -6028,7 +6036,7 @@ public abstract class RecentsView<
             return;
         }
 
-        final boolean sendUserLeaveHint = toRecents && shouldPip;
+        final boolean sendUserLeaveHint = toHome && shouldPip;
         if (sendUserLeaveHint && !PipFlags.isPip2ExperimentEnabled()) {
             // Notify the SysUI to use fade-in animation when entering PiP from live tile.
             // Note: PiP2 handles entering differently, so skip if enable_pip2=true.
@@ -6051,7 +6059,7 @@ public abstract class RecentsView<
         if (enableOverviewBackgroundWallpaperBlur()) {
             mBlurUtils.setDrawLiveTileBelowRecents(false);
         }
-        mRecentsAnimationController.finish(toRecents, () -> {
+        mRecentsAnimationController.finish(toHome, () -> {
             if (onFinishComplete != null) {
                 onFinishComplete.run();
             }
@@ -6927,7 +6935,7 @@ public abstract class RecentsView<
         if (!DesktopModeStatus.canEnterDesktopMode(mContext)) {
             return;
         }
-        switchToScreenshot(() -> finishRecentsAnimation(/* toRecents= */true, /* shouldPip= */false,
+        switchToScreenshot(() -> finishRecentsAnimation(/* toHome= */true, /* shouldPip= */false,
                 () -> moveTaskToDesktopInternal(taskContainer, successCallback, transitionSource)));
     }
 
@@ -6952,7 +6960,7 @@ public abstract class RecentsView<
         if (!DesktopModeStatus.canEnterDesktopMode(mContext)) {
             return;
         }
-        switchToScreenshot(() -> finishRecentsAnimation(/* toRecents= */true, /* shouldPip= */false,
+        switchToScreenshot(() -> finishRecentsAnimation(/* toHome= */true, /* shouldPip= */false,
                 () -> moveTaskToDesktopInternal(taskContainer, successCallback)));
     }
 

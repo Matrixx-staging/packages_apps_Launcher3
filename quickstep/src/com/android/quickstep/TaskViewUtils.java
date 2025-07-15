@@ -684,7 +684,7 @@ public final class TaskViewUtils {
                 // interfere with a rapid swipe up to home in the live tile + running task case.
                 @Override
                 public void onAnimationSuccess(Animator animation) {
-                    recentsView.finishRecentsAnimation(false /* toRecents */, () -> {
+                    recentsView.finishRecentsAnimation(false /* toHome */, () -> {
                         recentsView.post(() -> {
                             stateManager.moveToRestState();
                             stateManager.reapplyState();
@@ -730,7 +730,7 @@ public final class TaskViewUtils {
             windowAnimEndListener = new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    recentsView.finishRecentsAnimation(false /* toRecents */,
+                    recentsView.finishRecentsAnimation(false /* toHome */,
                             () -> stateManager.goToState(NORMAL, false));
                 }
             };

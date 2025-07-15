@@ -254,7 +254,7 @@ internal constructor(
         val recentsView: RecentsView<*, *> = recentsViewContainer.getOverviewPanel()
         recentsView.switchToScreenshot {
             recentsView.finishRecentsAnimation(
-                true, /* toRecents */
+                true, /* toHome */
                 false, /* shouldPip */
                 onCompleteRunnable,
             )

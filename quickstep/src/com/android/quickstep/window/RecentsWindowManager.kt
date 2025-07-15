@@ -267,7 +267,9 @@ constructor(
 
     init {
         fallbackWindowInterface.setRecentsWindowManager(this)
-        homeVisibilityState.addListener(homeVisibilityListener)
+        if (displayId == DEFAULT_DISPLAY) {
+            homeVisibilityState.addListener(homeVisibilityListener)
+        }
     }
 
     override fun handleConfigurationChanged(configuration: Configuration?) {
@@ -300,7 +302,9 @@ constructor(
                     }
                 )
             callbacks?.removeListener(recentsAnimationListener)
-            homeVisibilityState.removeListener(homeVisibilityListener)
+            if (displayId == DEFAULT_DISPLAY) {
+                homeVisibilityState.removeListener(homeVisibilityListener)
+            }
             recentsWindowTracker.onContextDestroyed(this)
             recentsView?.destroy()
         }
@@ -373,18 +377,9 @@ constructor(
         startHome(/* finishRecentsAnimation= */ true)
     }
 
+    // This will exit to the corresponding home depending on the display.
     fun startHome(finishRecentsAnimation: Boolean) {
         val recentsView: RecentsView<*, *> = getOverviewPanel()
-
-        // Don't go to home on connected displays
-        if (displayId != DEFAULT_DISPLAY) {
-            val taskView =
-                recentsView.runningTaskView
-                    ?: recentsView.currentPageTaskView
-                    ?: recentsView.firstTaskView
-            taskView?.launchWithAnimation()
-            return
-        }
 
         if (!finishRecentsAnimation) {
             recentsView.switchToScreenshot /* onFinishRunnable= */ {}
@@ -392,7 +387,7 @@ constructor(
             return
         }
         recentsView.switchToScreenshot {
-            recentsView.finishRecentsAnimation(/* toRecents= */ true) { startHomeInternal() }
+            recentsView.finishRecentsAnimation(/* toHome= */ true) { startHomeInternal() }
         }
     }
 
@@ -541,7 +536,7 @@ constructor(
             stateManager.goToState(DEFAULT, true)
             true
         } else if (isInState(DEFAULT)) {
-            startHome()
+            stateManager.state.onBackInvoked(this@RecentsWindowManager)
             true
         } else {
             super.onRootViewDispatchKeyEvent(event)

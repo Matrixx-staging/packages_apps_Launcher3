@@ -61,7 +61,7 @@ import com.android.launcher3.deviceprofile.FolderProfile;
 import com.android.launcher3.deviceprofile.HotseatProfile;
 import com.android.launcher3.deviceprofile.OverviewProfile;
 import com.android.launcher3.deviceprofile.TaskbarProfile;
-import com.android.launcher3.deviceprofile.WorkspaceIconProfile;
+import com.android.launcher3.deviceprofile.WorkspaceProfile;
 import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.icons.DotRenderer;
 import com.android.launcher3.model.data.ItemInfo;
@@ -147,7 +147,6 @@ public class DeviceProfile {
 
     public int gridVisualizationPaddingX;
     public int gridVisualizationPaddingY;
-    public Point cellLayoutBorderSpaceOriginalPx;
 
     public Rect cellLayoutPaddingPx = new Rect();
 
@@ -167,7 +166,7 @@ public class DeviceProfile {
     private int mIconDrawablePaddingOriginalPx;
 
 
-    public WorkspaceIconProfile mWorkspaceIconProfile;
+    public WorkspaceProfile mWorkspaceProfile;
     public int workspaceCellPaddingXPx;
 
 
@@ -232,7 +231,8 @@ public class DeviceProfile {
     /** Used only as an alternative to mocking when null values cannot be used. */
     @VisibleForTesting
     public DeviceProfile() {
-        mWorkspaceIconProfile = new WorkspaceIconProfile(0f, 0, 0, 0, 0f, 0, 0, new Point(), 0, 0, 0, false, false);
+        mWorkspaceProfile = new WorkspaceProfile(0f, 0, 0, 0, 0f, 0, 0, new Point(), 0, 0, 0, false,
+                false);
         mDeviceProperties = new DeviceProperties(
                 0, 0,
                 0,
@@ -640,12 +640,12 @@ public class DeviceProfile {
         return hotseatProfile;
     }
 
-    public WorkspaceIconProfile getWorkspaceIconProfile() {
-        return mWorkspaceIconProfile;
+    public WorkspaceProfile getWorkspaceIconProfile() {
+        return mWorkspaceProfile;
     }
 
-    public void setWorkspaceIconProfile(WorkspaceIconProfile workspaceIconProfile) {
-        mWorkspaceIconProfile = workspaceIconProfile;
+    public void setWorkspaceIconProfile(WorkspaceProfile workspaceProfile) {
+        mWorkspaceProfile = workspaceProfile;
     }
 
     /**
@@ -933,7 +933,7 @@ public class DeviceProfile {
         final boolean isVerticalLayout = isVerticalBarLayout();
 
         Point cellLayoutBorderSpacePx = getCellLayoutBorderSpace(inv, 1f);
-        mWorkspaceIconProfile = WorkspaceIconProfile.Factory.createWorkspaceIconProfile(
+        mWorkspaceProfile = WorkspaceProfile.Factory.createWorkspaceProfile(
                 context.getResources(),
                 mDeviceProperties,
                 1f,
@@ -985,7 +985,7 @@ public class DeviceProfile {
 
         if (shouldScale) {
             float scale = Math.min(scaleX, scaleY);
-            mWorkspaceIconProfile = WorkspaceIconProfile.Factory.createWorkspaceIconProfile(
+            mWorkspaceProfile = WorkspaceProfile.Factory.createWorkspaceProfile(
                     context.getResources(),
                     mDeviceProperties,
                     scale,
@@ -1024,28 +1024,6 @@ public class DeviceProfile {
         return (getWorkspaceIconProfile().getCellWidthPx() * numColumns) + (
                 getWorkspaceIconProfile().getCellLayoutBorderSpacePx().x * (numColumns - 1))
                 + cellLayoutPaddingPx.left + cellLayoutPaddingPx.right;
-    }
-
-    private int getNormalizedIconDrawablePadding(int iconSizePx, int iconDrawablePadding) {
-        return max(0, iconDrawablePadding
-                - ((iconSizePx - getIconVisibleSizePx(iconSizePx)) / 2));
-    }
-
-    private int getNormalizedIconDrawablePadding() {
-        return getNormalizedIconDrawablePadding(getWorkspaceIconProfile().getIconSizePx(),
-                mIconDrawablePaddingOriginalPx);
-    }
-
-    private int getNormalizedFolderChildDrawablePaddingPx(int textHeight) {
-        // TODO(b/235886078): workaround needed because of this bug
-        // Icons are 10% larger on XML than their visual size,
-        // so remove that extra space to get labels closer to the correct padding
-        int drawablePadding = (mFolderProfile.getCellHeightPx()
-                - mFolderProfile.getChildIconSizePx() - textHeight) / 3;
-
-        int iconSizeDiff = mFolderProfile.getChildIconSizePx() - getIconVisibleSizePx(
-                mFolderProfile.getChildIconSizePx());
-        return max(0, drawablePadding - iconSizeDiff / 2);
     }
 
     private int getIconSizeWithOverlap(int iconSize) {

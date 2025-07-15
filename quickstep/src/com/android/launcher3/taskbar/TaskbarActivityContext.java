@@ -489,8 +489,8 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             // Same QSB width to have a smooth animation
             deviceProfile.hotseatQsbWidth = originDeviceProfile.hotseatQsbWidth;
 
-            deviceProfile.mWorkspaceIconProfile = deviceProfile
-                    .mWorkspaceIconProfile
+            deviceProfile.mWorkspaceProfile = deviceProfile
+                    .mWorkspaceProfile
                     .changeIconSize(deviceProfile.getTaskbarProfile().getIconSize());
 
             // Update icon size
@@ -1852,7 +1852,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                         // we get both leashes for the animation
                         mControllers.uiController.setSkipNextRecentsAnimEnd();
                         recents.switchToScreenshot(() ->
-                                recents.finishRecentsAnimation(true /*toRecents*/,
+                                recents.finishRecentsAnimation(true /*toHome*/,
                                         false /*shouldPip*/,
                                         () -> recents
                                                 .getSplitSelectController()

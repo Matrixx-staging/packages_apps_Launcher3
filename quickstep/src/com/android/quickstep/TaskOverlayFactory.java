@@ -234,7 +234,7 @@ public class TaskOverlayFactory {
             // Task has already been dismissed
             if (recentsView == null) return;
             recentsView.switchToScreenshot(
-                    () -> recentsView.finishRecentsAnimation(true /* toRecents */,
+                    () -> recentsView.finishRecentsAnimation(true /* toHome */,
                             false /* shouldPip */, callback));
         }
 

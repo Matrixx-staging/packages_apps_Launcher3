@@ -362,8 +362,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                             // Minimized tasks are immediately placed in the exploded position and
                             // then fade in during the course of EXPLODE_PROGRESS.
                             explodeProgress
-                        else ->
-                            0f
+                        else -> 0f
                     }
             }
 
@@ -380,6 +379,18 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                     height = overviewTaskHeight.toInt()
                     leftMargin = overviewTaskLeft.toInt()
                     topMargin = overviewTaskTop.toInt()
+                }
+
+                if (enableDesktopExplodedView() && enableRefactorTaskContentView()) {
+                    // The taskContentView and its descendant close button should only be focusable
+                    // if the task is actually visible. Note that disabling the view also makes
+                    // it not hoverable.
+                    val taskContentView = taskContainer.taskContentView as TaskContentView
+                    taskContentView.isHoverable = shouldBeDisplayedInOverview
+                    taskContentView.isFocusable = shouldBeDisplayedInOverview
+                    taskContentView.descendantFocusability =
+                        if (shouldBeDisplayedInOverview) FOCUS_BEFORE_DESCENDANTS
+                        else FOCUS_BLOCK_DESCENDANTS
                 }
             }
 
@@ -488,8 +499,6 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                         launchTaskWithDesktopController(animated = true, task.key.id)
                     }
                     if (taskContentView is TaskContentView) {
-                        taskContentView.isFocusable = true
-                        taskContentView.isHoverable = true
                         // Desktop tasks should have their own accessibility nodes so specific
                         // actions can be performed on them.
                         taskContentView.importantForAccessibility =
@@ -608,7 +617,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         if (enableMultipleDesktops(context) && desktopTask?.tasks?.isEmpty() == true) {
             recentsView.switchToScreenshot {
                 recentsView.finishRecentsAnimation(
-                    /* toRecents= */ true,
+                    /* toHome= */ true,
                     /* shouldPip= */ false,
                     launchDesktopFromRecents,
                 )
