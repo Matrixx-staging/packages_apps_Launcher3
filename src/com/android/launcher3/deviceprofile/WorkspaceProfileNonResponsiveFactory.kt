@@ -16,13 +16,18 @@
 
 package com.android.launcher3.deviceprofile
 
+import android.content.Context
+import android.content.res.Resources
+import android.content.res.TypedArray
 import android.graphics.Point
 import android.util.DisplayMetrics
 import com.android.launcher3.InvariantDeviceProfile
+import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.launcher3.Utilities.getIconSizeWithOverlap
 import com.android.launcher3.Utilities.getNormalizedIconDrawablePadding
 import com.android.launcher3.Utilities.pxFromSp
+import com.android.launcher3.testing.shared.ResourceUtils.INVALID_RESOURCE_HANDLE
 import com.android.launcher3.testing.shared.ResourceUtils.pxFromDp
 import kotlin.math.max
 import kotlin.math.min
@@ -69,6 +74,7 @@ object WorkspaceProfileNonResponsiveFactory {
     }
 
     fun createWorkspaceProfileNonScalable(
+        res: Resources,
         deviceProperties: DeviceProperties,
         cellScaleToFit: Float,
         iconScale: Float,
@@ -78,8 +84,12 @@ object WorkspaceProfileNonResponsiveFactory {
         cellSize: Point,
         iconDrawablePaddingOriginalPx: Int,
         cellLayoutBorderSpacePx: Point,
-        desiredWorkspaceHorizontalMarginOriginalPx: Int,
     ): WorkspaceProfile {
+        val desiredWorkspaceHorizontalMarginOriginalPx =
+            when {
+                isVerticalLayout -> 0
+                else -> res.getDimensionPixelSize(R.dimen.dynamic_grid_left_right_margin)
+            }
         var iconDrawablePaddingPx =
             (getNormalizedIconDrawablePadding(iconSizePx, iconDrawablePaddingOriginalPx) *
                     iconScale)
@@ -116,32 +126,47 @@ object WorkspaceProfileNonResponsiveFactory {
             cellYPaddingPx = -1,
             maxIconTextLineCount = 1,
             iconCenterVertically = false,
+            gridVisualizationPaddingX =
+                res.getDimensionPixelSize(R.dimen.grid_visualization_horizontal_cell_spacing),
+            gridVisualizationPaddingY =
+                res.getDimensionPixelSize(R.dimen.grid_visualization_vertical_cell_spacing),
+            workspacePageIndicatorHeight =
+                res.getDimensionPixelSize(R.dimen.workspace_page_indicator_height),
+            workspacePageIndicatorOverlapWorkspace =
+                res.getDimensionPixelSize(R.dimen.workspace_page_indicator_overlap_workspace),
+            iconDrawablePaddingOriginalPx = iconDrawablePaddingOriginalPx,
+            desiredWorkspaceHorizontalMarginOriginalPx = desiredWorkspaceHorizontalMarginOriginalPx,
         )
     }
 
     fun createWorkspaceProfileScalable(
+        res: Resources,
         scale: Float,
         inv: InvariantDeviceProfile,
         typeIndex: Int,
-        mMetrics: DisplayMetrics,
+        metrics: DisplayMetrics,
         iconSizePxParam: Int,
         iconTextSizePxParam: Int,
         iconScale: Float,
         cellLayoutBorderSpacePx: Point,
-        mIconDrawablePaddingOriginalPx: Int,
+        iconDrawablePaddingOriginalPx: Int,
         cellScaleToFit: Float,
-        desiredWorkspaceHorizontalMarginOriginalPx: Int,
         panelCount: Int,
         isVerticalLayout: Boolean,
     ): WorkspaceProfile {
+        val desiredWorkspaceHorizontalMarginOriginalPx =
+            when {
+                isVerticalLayout -> 0
+                else -> pxFromDp(inv.horizontalMargin[typeIndex], metrics)
+            }
         var iconTextSizePx = iconTextSizePxParam
         var iconSizePx = iconSizePxParam
         var iconDrawablePaddingPx =
-            (getNormalizedIconDrawablePadding(iconSizePx, mIconDrawablePaddingOriginalPx) *
+            (getNormalizedIconDrawablePadding(iconSizePx, iconDrawablePaddingOriginalPx) *
                     iconScale)
                 .toInt()
-        var cellWidthPx = pxFromDp(inv.minCellSize.get(typeIndex).x, mMetrics, scale)
-        var cellHeightPx = pxFromDp(inv.minCellSize.get(typeIndex).y, mMetrics, scale)
+        var cellWidthPx = pxFromDp(inv.minCellSize.get(typeIndex).x, metrics, scale)
+        var cellHeightPx = pxFromDp(inv.minCellSize.get(typeIndex).y, metrics, scale)
 
         if (cellWidthPx < iconSizePx) {
             // If cellWidth no longer fit iconSize, reduce borderSpace to make cellWidth bigger.
@@ -210,21 +235,31 @@ object WorkspaceProfileNonResponsiveFactory {
             cellYPaddingPx = max(0, (cellHeightPx - cellContentHeight)) / 2,
             maxIconTextLineCount = 1,
             iconCenterVertically = isVerticalLayout,
+            gridVisualizationPaddingX =
+                res.getDimensionPixelSize(R.dimen.grid_visualization_horizontal_cell_spacing),
+            gridVisualizationPaddingY =
+                res.getDimensionPixelSize(R.dimen.grid_visualization_vertical_cell_spacing),
+            workspacePageIndicatorHeight =
+                res.getDimensionPixelSize(R.dimen.workspace_page_indicator_height),
+            workspacePageIndicatorOverlapWorkspace =
+                res.getDimensionPixelSize(R.dimen.workspace_page_indicator_overlap_workspace),
+            iconDrawablePaddingOriginalPx = iconDrawablePaddingOriginalPx,
+            desiredWorkspaceHorizontalMarginOriginalPx = desiredWorkspaceHorizontalMarginOriginalPx,
         )
     }
 
     fun createWorkspaceProfileNonResponsive(
+        context: Context,
+        res: Resources,
         deviceProperties: DeviceProperties,
         scale: Float,
         inv: InvariantDeviceProfile,
         isVerticalLayout: Boolean,
         isScalableGrid: Boolean,
         cellSize: Point,
-        iconDrawablePaddingOriginalPx: Int,
         typeIndex: Int,
         metrics: DisplayMetrics,
         panelCount: Int,
-        desiredWorkspaceHorizontalMarginOriginalPx: Int,
         cellLayoutBorderSpacePx: Point,
         iconSizePx: Int,
     ): WorkspaceProfile {
@@ -232,22 +267,33 @@ object WorkspaceProfileNonResponsiveFactory {
         val iconScale = min(1f, scale)
         val cellScaleToFit = scale
         val iconTextSizePx = pxFromSp(inv.iconTextSize[typeIndex], metrics)
+
+        val cellStyle: TypedArray =
+            when {
+                inv.cellStyle != INVALID_RESOURCE_HANDLE ->
+                    context.obtainStyledAttributes(inv.cellStyle, R.styleable.CellStyle)
+
+                else ->
+                    context.obtainStyledAttributes(R.style.CellStyleDefault, R.styleable.CellStyle)
+            }
+        val iconDrawablePaddingOriginalPx =
+            cellStyle.getDimensionPixelSize(R.styleable.CellStyle_iconDrawablePadding, 0)
+        cellStyle.recycle()
         // Workspace
         return when {
             isScalableGrid ->
                 createWorkspaceProfileScalable(
+                        res = res,
                         scale = scale,
                         inv = inv,
                         typeIndex = typeIndex,
-                        mMetrics = metrics,
+                        metrics = metrics,
                         iconSizePxParam = iconSizePx,
                         iconTextSizePxParam = iconTextSizePx,
                         iconScale = iconScale,
                         cellLayoutBorderSpacePx = cellLayoutBorderSpacePx,
-                        mIconDrawablePaddingOriginalPx = iconDrawablePaddingOriginalPx,
+                        iconDrawablePaddingOriginalPx = iconDrawablePaddingOriginalPx,
                         cellScaleToFit = cellScaleToFit,
-                        desiredWorkspaceHorizontalMarginOriginalPx =
-                            desiredWorkspaceHorizontalMarginOriginalPx,
                         panelCount = panelCount,
                         isVerticalLayout = isVerticalLayout,
                     )
@@ -255,6 +301,7 @@ object WorkspaceProfileNonResponsiveFactory {
 
             else ->
                 createWorkspaceProfileNonScalable(
+                        res = res,
                         deviceProperties = deviceProperties,
                         cellScaleToFit = cellScaleToFit,
                         iconScale = iconScale,
@@ -264,8 +311,6 @@ object WorkspaceProfileNonResponsiveFactory {
                         cellSize = cellSize,
                         iconDrawablePaddingOriginalPx = iconDrawablePaddingOriginalPx,
                         cellLayoutBorderSpacePx = cellLayoutBorderSpacePx,
-                        desiredWorkspaceHorizontalMarginOriginalPx =
-                            desiredWorkspaceHorizontalMarginOriginalPx,
                     )
                     .let { hideWorkspaceLabelsIfNotEnoughSpace(cellSize, isVerticalLayout, it) }
         }
