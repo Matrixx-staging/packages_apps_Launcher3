@@ -115,6 +115,7 @@ fun LandingScreenTwoPane(
     Box(modifier = Modifier.fillMaxSize()) {
         TwoPaneLayout(
             searchBar = searchBar,
+            leftPaneTitle = stringResource(R.string.widget_picker_left_pane_accessibility_label),
             leftContent = {
                 LeftPaneContent(
                     isFeaturedSectionSelected = isFeaturedSectionShowing,

@@ -21,6 +21,9 @@ import android.platform.test.rule.DeviceProduct
 import android.platform.test.rule.LimitDevicesRule
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasText
@@ -201,6 +204,16 @@ class SearchScreenTest {
             runCurrent()
             composeTestRule.waitForIdle()
 
+            // Has left pane
+            val expectedLeftPaneTitle =
+                context.resources.getString(R.string.widget_picker_left_pane_accessibility_label)
+            composeTestRule
+                .onNode(
+                    SemanticsMatcher("Left paneTitle") {
+                        it.config.getOrNull(SemanticsProperties.PaneTitle) == expectedLeftPaneTitle
+                    }
+                )
+                .assertExists()
             // has both apps
             composeTestRule.onNode(hasText(PERSONAL_TEST_APPS[0].title!!.toString())).assertExists()
             composeTestRule.onNode(hasText(PERSONAL_TEST_APPS[1].title!!.toString())).assertExists()

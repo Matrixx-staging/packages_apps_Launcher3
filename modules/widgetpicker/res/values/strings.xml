@@ -56,6 +56,8 @@
 
     <!-- accessibilityPaneTitle for the right pane when showing widgets selected on left. -->
     <string name="widget_picker_right_pane_accessibility_label"><xliff:g id="selected_header" example="Calendar">%1$s</xliff:g> widgets on right, search and options on left</string>
+    <!-- accessibilityPaneTitle for the left pane that displays list of widget apps and search bar. -->
+    <string name="widget_picker_left_pane_accessibility_label">Search and widget options on left, widgets on right</string>
 
     <!-- Search bar strings -->
     <!-- Placeholder text displayed in the widget's search bar [CHAR_LIMIT=50] -->
