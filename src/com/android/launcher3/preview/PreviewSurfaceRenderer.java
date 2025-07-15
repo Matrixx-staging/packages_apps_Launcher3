@@ -352,9 +352,6 @@ public class PreviewSurfaceRenderer {
                 mHeight / (float) view.getMeasuredHeight());
         view.setScaleX(scale);
         view.setScaleY(scale);
-        LayoutParams lp = new LayoutParams(view.getMeasuredWidth(), view.getMeasuredHeight());
-        lp.gravity = Gravity.CENTER;
-        view.setLayoutParams(lp);
 
         if (!Flags.newCustomizationPickerUi()) {
             view.setAlpha(mSkipAnimations ? 1 : 0);
@@ -370,7 +367,9 @@ public class PreviewSurfaceRenderer {
             return;
         }
 
-        view.setLayoutParams(new LayoutParams(view.getMeasuredWidth(), view.getMeasuredHeight()));
+        LayoutParams lp = new LayoutParams(view.getMeasuredWidth(), view.getMeasuredHeight());
+        lp.gravity = Gravity.CENTER;
+        view.setLayoutParams(lp);
         if (mViewRoot.getChildCount() == 0) {
             mViewRoot.addView(view);
             mViewRoot.animate().alpha(1)
