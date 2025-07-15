@@ -94,8 +94,10 @@ fun ExpandableListHeader(
             .clip(shape = shape)
             .background(color = WidgetPickerTheme.colors.expandableListItemsBackground)
 
-    val expandedState = remember { MutableTransitionState(false) }
-    expandedState.targetState = expanded
+    val expandedState = remember { MutableTransitionState(expanded) }
+    LaunchedEffect(expanded) {
+        expandedState.targetState = expanded
+    }
     LaunchedEffect(Unit) {
         snapshotFlow { Pair(expandedState.currentState, expandedState.targetState) }
             .collect {
