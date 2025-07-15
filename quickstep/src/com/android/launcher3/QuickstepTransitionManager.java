@@ -48,7 +48,7 @@ import static com.android.launcher3.BaseActivity.INVISIBLE_BY_PENDING_FLAGS;
 import static com.android.launcher3.BaseActivity.PENDING_INVISIBLE_BY_WALLPAPER_ANIMATION;
 import static com.android.launcher3.Flags.enableContainerReturnAnimations;
 import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
-import static com.android.launcher3.Flags.enableTaskbarUiThread;
+import static com.android.launcher3.Flags.refactorTaskbarUiState;
 import static com.android.launcher3.Flags.syncAppLaunchWithTaskbarStash;
 import static com.android.launcher3.LauncherAnimUtils.SCALE_PROPERTY;
 import static com.android.launcher3.LauncherState.ALL_APPS;
@@ -770,7 +770,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         appAnimator.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationStart(Animator animation) {
-                final boolean shouldShowEduOnAppLaunch = enableTaskbarUiThread()
+                final boolean shouldShowEduOnAppLaunch = refactorTaskbarUiState()
                         ? mLauncher.getTaskbarUiState().getShouldShowEduOnAppLaunchRef().getValue()
                         : mLauncher.getTaskbarUIController() != null
                                 && mLauncher.getTaskbarUIController().shouldShowEduOnAppLaunch();

@@ -33,7 +33,7 @@ import static com.android.launcher3.BaseActivity.INVISIBLE_BY_STATE_HANDLER;
 import static com.android.launcher3.BaseActivity.STATE_HANDLER_INVISIBILITY_FLAGS;
 import static com.android.launcher3.Flags.enableGestureNavHorizontalTouchSlop;
 import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
-import static com.android.launcher3.Flags.enableTaskbarUiThread;
+import static com.android.launcher3.Flags.refactorTaskbarUiState;
 import static com.android.launcher3.Flags.msdlFeedback;
 import static com.android.launcher3.PagedView.INVALID_PAGE;
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_BACKGROUND;
@@ -438,7 +438,7 @@ public abstract class AbsSwipeUpHandler<
 
         mIsTransientTaskbar = mDp.isTaskbarPresent
                 && DisplayController.isTransientTaskbar(context);
-        if (enableTaskbarUiThread()) {
+        if (refactorTaskbarUiState()) {
             TaskbarUiState taskbarUiState = TaskbarUiStateMonitor.INSTANCE.get(context)
                     .getTaskbarUiState(context.getDisplayId());
             mTaskbarAlreadyOpen = taskbarUiState.isTaskbarStashedRef().getValue();

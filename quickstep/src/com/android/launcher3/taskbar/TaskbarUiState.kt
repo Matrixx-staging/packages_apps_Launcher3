@@ -52,11 +52,11 @@ class TaskbarUiState {
     private var _isBubbleDragging = false
     private var _isTaskbarDragging = false
 
-    fun onNewHasBubble(hasBubbles: Boolean) {
+    fun setHasBubble(hasBubbles: Boolean) {
         _hasBubblesRef.diffAndDispatch(hasBubbles)
     }
 
-    fun onNewShouldShowEduOnAppLaunch(shouldShowEduOnAppLaunch: Boolean) {
+    fun setShouldShowEduOnAppLaunch(shouldShowEduOnAppLaunch: Boolean) {
         _shouldShowEduOnAppLaunchRef.diffAndDispatch(shouldShowEduOnAppLaunch)
     }
 

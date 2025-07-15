@@ -520,6 +520,13 @@ flag {
 }
 
 flag {
+  name: "refactor_taskbar_ui_state"
+  namespace: "launcher"
+  description: "Refactor taskbar ui states into TaskbarUiState class."
+  bug: "404636836"
+}
+
+flag {
   name: "home_button_uses_keycode_home"
   namespace: "launcher"
   description: "Sends KEYCODE_HOME to framework instead of calling startActivity directly"

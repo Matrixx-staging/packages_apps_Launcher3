@@ -25,7 +25,7 @@ import static com.android.app.animation.Interpolators.EMPHASIZED;
 import static com.android.internal.jank.Cuj.CUJ_LAUNCHER_LAUNCH_APP_PAIR_FROM_WORKSPACE;
 import static com.android.launcher3.Flags.enableExpressiveDismissTaskMotion;
 import static com.android.launcher3.Flags.enableOverviewBackgroundWallpaperBlur;
-import static com.android.launcher3.Flags.enableTaskbarUiThread;
+import static com.android.launcher3.Flags.refactorTaskbarUiState;
 import static com.android.launcher3.Flags.enableUnfoldStateAnimation;
 import static com.android.launcher3.LauncherConstants.SavedInstanceKeys.PENDING_SPLIT_SELECT_INFO;
 import static com.android.launcher3.LauncherConstants.SavedInstanceKeys.RUNTIME_STATE;
@@ -355,7 +355,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         getWorkspace().addOverlayCallback(progress ->
                 onTaskbarInAppDisplayProgressUpdate(progress, MINUS_ONE_PAGE_PROGRESS_INDEX));
         addBackAnimationCallback(mSplitSelectStateController.getSplitBackHandler());
-        if (enableTaskbarUiThread()) {
+        if (refactorTaskbarUiState()) {
             mTaskbarUiState = TaskbarUiStateMonitor.INSTANCE.get(this)
                     .getTaskbarUiState(getDisplayId());
         }
@@ -1503,7 +1503,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
     @Override
     public boolean hasBubbles() {
-        if (enableTaskbarUiThread()) {
+        if (refactorTaskbarUiState()) {
             return mTaskbarUiState.getHasBubblesRef().getValue();
         }
         return (mTaskbarUIController != null && mTaskbarUIController.hasBubbles());
