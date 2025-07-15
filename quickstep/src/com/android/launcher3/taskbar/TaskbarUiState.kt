@@ -31,6 +31,7 @@ import com.android.launcher3.util.MutableListenableRef
  * - [_isTaskbarOnHomeRef]: when [TaskbarStashController.mState] is changed
  * - [_showDesktopTaskbarForFreeformDisplayRef]: when [DisplayInfo] is changed
  * - [_showLockedTaskbarOnHome]: when [DisplayInfo] is changed
+ * - [_isPrimaryDisplayRef]: when [TaskbarActivityContext] is constructed
  */
 class TaskbarUiState {
 
@@ -42,6 +43,7 @@ class TaskbarUiState {
     private val _isTaskbarOnHomeRef = MutableListenableRef(false)
     private val _showDesktopTaskbarForFreeformDisplayRef = MutableListenableRef(false)
     private val _showLockedTaskbarOnHome = MutableListenableRef(false)
+    private val _isPrimaryDisplayRef = MutableListenableRef(false)
 
     private fun <T> MutableListenableRef<T>.diffAndDispatch(newValue: T) {
         if (value != newValue) {
@@ -58,6 +60,7 @@ class TaskbarUiState {
     val showDesktopTaskbarForFreeformDisplayRef =
         _showDesktopTaskbarForFreeformDisplayRef.asListenable()
     val showLockedTaskbarOnHome = _showLockedTaskbarOnHome.asListenable()
+    val isPrimaryDisplayRef = _isPrimaryDisplayRef.asListenable()
 
     private var _isBubbleDragging = false
     private var _isTaskbarDragging = false
@@ -105,5 +108,9 @@ class TaskbarUiState {
 
     fun setShowLockedTaskbarOnHome(showLockedTaskbarOnHome: Boolean) {
         _showLockedTaskbarOnHome.diffAndDispatch(showLockedTaskbarOnHome)
+    }
+
+    fun setIsPrimaryDisplay(isPrimaryDisplay: Boolean) {
+        _isPrimaryDisplayRef.diffAndDispatch(isPrimaryDisplay)
     }
 }

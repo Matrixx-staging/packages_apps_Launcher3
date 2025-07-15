@@ -33,9 +33,10 @@ import static com.android.launcher3.BaseActivity.INVISIBLE_BY_STATE_HANDLER;
 import static com.android.launcher3.BaseActivity.STATE_HANDLER_INVISIBILITY_FLAGS;
 import static com.android.launcher3.Flags.enableGestureNavHorizontalTouchSlop;
 import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
-import static com.android.launcher3.Flags.refactorTaskbarUiState;
 import static com.android.launcher3.Flags.msdlFeedback;
+import static com.android.launcher3.Flags.refactorTaskbarUiState;
 import static com.android.launcher3.PagedView.INVALID_PAGE;
+import static com.android.launcher3.config.FeatureFlags.ENABLE_TASKBAR_NAVBAR_UNIFICATION;
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_BACKGROUND;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.IGNORE;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_HOME_GESTURE;
@@ -117,6 +118,7 @@ import com.android.internal.jank.Cuj;
 import com.android.internal.util.LatencyTracker;
 import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.DeviceProfile;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.QuickstepTransitionManager;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
@@ -2944,11 +2946,7 @@ public abstract class AbsSwipeUpHandler<
      */
     @Override
     protected float overrideDisplacementForTransientTaskbar(float displacement) {
-        boolean shouldReturnDisplacement = mContainerInterface.getTaskbarController() == null
-                ? !mIsTransientTaskbar
-                : !mContainerInterface.getTaskbarController().shouldAllowTaskbarToAutoStash();
-
-        if (shouldReturnDisplacement) {
+        if (!shouldAllowTaskbarToAutoStash()) {
             return displacement;
         }
 
@@ -2967,6 +2965,35 @@ public abstract class AbsSwipeUpHandler<
         }
 
         return displacement;
+    }
+
+    private boolean shouldAllowTaskbarToAutoStash() {
+        if (!refactorTaskbarUiState()) {
+            return mContainerInterface.getTaskbarController() == null
+                    ? mIsTransientTaskbar
+                    : mContainerInterface.getTaskbarController().shouldAllowTaskbarToAutoStash();
+        }
+        final int displayId = mContext.getDisplayId();
+        final TaskbarUiState taskbarUiState = TaskbarUiStateMonitor.INSTANCE.get(mContext)
+                .getTaskbarUiState(displayId);
+
+        // Mimic TaskbarActivityContext.isTransientTaskbar
+        final DeviceProfile deviceProfile = mContainer.getDeviceProfile();
+        final boolean isInPhoneMode =  ENABLE_TASKBAR_NAVBAR_UNIFICATION
+                && deviceProfile.getDeviceProperties().isPhone() && !deviceProfile.isTaskbarPresent;
+        if (DisplayController.isTransientTaskbar(mContext)
+                && taskbarUiState.isPrimaryDisplayRef().getValue() && isInPhoneMode) {
+            return true;
+        }
+
+        final boolean isTaskbarPinningOnInDesktopMode =
+                LauncherPrefs.TASKBAR_PINNING_IN_DESKTOP_MODE.get(mContext);
+        final boolean isTaskbarShowingDesktopTasks =
+                DesktopVisibilityController.INSTANCE.get(mContext).isInDesktopMode(displayId)
+                || taskbarUiState.getShowDesktopTaskbarForFreeformDisplayRef().getValue()
+                || (taskbarUiState.getShowLockedTaskbarOnHome().getValue()
+                        && taskbarUiState.isTaskbarOnHomeRef().getValue());
+        return !isTaskbarPinningOnInDesktopMode && isTaskbarShowingDesktopTasks;
     }
 
     private void setDividerShown(boolean shown) {
