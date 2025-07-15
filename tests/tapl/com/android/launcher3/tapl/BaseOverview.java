@@ -446,10 +446,7 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
      * The bubble bar must already be visible when calling this method.
      */
     public BubbleBar getBubbleBar() {
-        try (LauncherInstrumentation.Closable c = mLauncher.addContextLayer(
-                "want to get the bubble bar")) {
-            return new BubbleBar(mLauncher);
-        }
+        return mLauncher.getBubbleBar();
     }
 
     protected boolean isActionsViewVisible() {

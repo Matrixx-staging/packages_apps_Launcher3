@@ -477,6 +477,10 @@ public final class LauncherInstrumentation {
                 .getInt(TestProtocol.TEST_INFO_RESPONSE_FIELD);
     }
 
+    void collapseBubbleBar() {
+        getTestInfo(TestProtocol.REQUEST_COLLAPSE_BUBBLE_BAR);
+    }
+
     public int getOverviewCurrentPageIndex() {
         return getTestInfo(TestProtocol.REQUEST_GET_OVERVIEW_CURRENT_PAGE_INDEX)
                 .getInt(TestProtocol.TEST_INFO_RESPONSE_FIELD);
@@ -1498,6 +1502,16 @@ public final class LauncherInstrumentation {
     public HomeAllApps getAllApps() {
         try (LauncherInstrumentation.Closable c = addContextLayer("want to get all apps object")) {
             return new HomeAllApps(this);
+        }
+    }
+
+    /**
+     * Returns the bubble bar.
+     * The bubble bar must already be visible when calling this method.
+     */
+    BubbleBar getBubbleBar() {
+        try (LauncherInstrumentation.Closable c = addContextLayer("want to get the bubble bar")) {
+            return new BubbleBar(this);
         }
     }
 
