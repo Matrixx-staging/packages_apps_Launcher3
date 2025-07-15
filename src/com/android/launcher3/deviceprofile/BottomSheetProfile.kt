@@ -41,7 +41,7 @@ data class BottomSheetProfile(
             res: Resources,
             edgeMarginPx: Int,
             shouldShowAllAppsOnSheet: Boolean,
-            workspaceContentScale: Float,
+            workspaceProfile: WorkspaceProfile,
         ): BottomSheetProfile {
 
             // In large screens, in portrait mode, a bottom sheet can appear too elongated, so, we
@@ -66,7 +66,7 @@ data class BottomSheetProfile(
                     else -> {
                         val maxWallpaperScale = res.getFloat(R.dimen.config_wallpaperMaxScale)
                         Utilities.mapToRange(
-                            maxWallpaperScale * workspaceContentScale,
+                            maxWallpaperScale * workspaceProfile.workspaceContentScale,
                             maxWallpaperScale,
                             1f,
                             0f,
@@ -86,7 +86,7 @@ data class BottomSheetProfile(
                 bottomSheetCloseDuration =
                     res.getInteger(R.integer.config_bottomSheetCloseDuration),
                 bottomSheetWorkspaceScale =
-                    if (shouldShowAllAppsOnSheet) workspaceContentScale else 1f,
+                    if (shouldShowAllAppsOnSheet) workspaceProfile.workspaceContentScale else 1f,
                 bottomSheetDepth = bottomSheetDepth,
             )
         }

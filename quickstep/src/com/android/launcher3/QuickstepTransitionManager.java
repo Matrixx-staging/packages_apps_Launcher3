@@ -555,8 +555,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 : new float[]{0, 1};
 
         float[] scales = isAppOpening
-                ? new float[]{1, mDeviceProfile.workspaceContentScale}
-                : new float[]{mDeviceProfile.workspaceContentScale, 1};
+                ? new float[]{1, mDeviceProfile.mWorkspaceProfile.getWorkspaceContentScale()}
+                : new float[]{mDeviceProfile.mWorkspaceProfile.getWorkspaceContentScale(), 1};
 
         // Pause expensive view updates as they can lead to layer thrashing and skipped frames.
         mLauncher.pauseExpensiveViewUpdates();

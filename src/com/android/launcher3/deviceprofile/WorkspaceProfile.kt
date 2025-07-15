@@ -20,6 +20,7 @@ import android.content.Context
 import android.content.res.Resources
 import android.graphics.Point
 import android.util.DisplayMetrics
+import com.android.launcher3.DevicePaddings
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.R
 import com.android.launcher3.Utilities.getIconSizeWithOverlap
@@ -27,6 +28,7 @@ import com.android.launcher3.Utilities.getNormalizedIconDrawablePadding
 import com.android.launcher3.deviceprofile.WorkspaceProfileNonResponsiveFactory.createWorkspaceProfileNonResponsive
 import com.android.launcher3.responsive.CalculatedCellSpec
 import com.android.launcher3.responsive.CalculatedResponsiveSpec
+import com.android.launcher3.testing.shared.ResourceUtils
 import com.android.launcher3.util.CellContentDimensions
 import com.android.launcher3.util.IconSizeSteps
 import kotlin.math.max
@@ -51,6 +53,12 @@ data class WorkspaceProfile(
     val maxIconTextLineCount: Int,
     val iconCenterVertically: Boolean,
     val desiredWorkspaceHorizontalMarginOriginalPx: Int,
+    val workspaceContentScale: Float,
+    val workspaceSpringLoadedMinNextPageVisiblePx: Int,
+    val maxEmptySpace: Int,
+    val workspaceTopPadding: Int,
+    val workspaceBottomPadding: Int,
+    val workspaceCellPaddingXPx: Int,
 
     // Visualization
     val gridVisualizationPaddingX: Int,
@@ -62,6 +70,34 @@ data class WorkspaceProfile(
     val isLabelHidden: Boolean = false,
     val iconDrawablePaddingOriginalPx: Int,
 ) {
+
+    // TODO(b/432070502)
+    @Deprecated(
+        "This is only used for scalable which is deprecated. This should also go away once " +
+            "we add extraSpace into the WorkspaceProfile"
+    )
+    fun calculateAndSetWorkspaceVerticalPadding(
+        context: Context,
+        inv: InvariantDeviceProfile,
+        extraSpace: Int,
+    ): WorkspaceProfile {
+        if (inv.devicePaddingId != ResourceUtils.INVALID_RESOURCE_HANDLE) {
+            // Paddings were created assuming no scaling, so we first unscale the extra space.
+            val unscaledExtraSpace: Int = (extraSpace / cellScaleToFit).toInt()
+            val devicePaddings = DevicePaddings(context, inv.devicePaddingId)
+            val padding = devicePaddings.getDevicePadding(unscaledExtraSpace)
+            return copy(
+                maxEmptySpace = padding.maxEmptySpacePx,
+                workspaceTopPadding =
+                    Math.round(padding.getWorkspaceTopPadding(unscaledExtraSpace) * cellScaleToFit),
+                workspaceBottomPadding =
+                    Math.round(
+                        padding.getWorkspaceBottomPadding(unscaledExtraSpace) * cellScaleToFit
+                    ),
+            )
+        }
+        return this
+    }
 
     // TODO(b/430382569)
     @Deprecated(
@@ -154,6 +190,16 @@ data class WorkspaceProfile(
                 iconDrawablePaddingOriginalPx = responsiveWorkspaceCellSpec.iconDrawablePadding,
                 desiredWorkspaceHorizontalMarginOriginalPx =
                     responsiveWorkspaceWidthSpec.startPaddingPx,
+                workspaceContentScale = res.getFloat(R.dimen.workspace_content_scale),
+                workspaceSpringLoadedMinNextPageVisiblePx =
+                    res.getDimensionPixelSize(
+                        R.dimen.dynamic_grid_spring_loaded_min_next_space_visible
+                    ),
+                workspaceCellPaddingXPx =
+                    res.getDimensionPixelSize(R.dimen.dynamic_grid_cell_padding_x),
+                workspaceTopPadding = responsiveWorkspaceHeightSpec.startPaddingPx,
+                workspaceBottomPadding = responsiveWorkspaceHeightSpec.endPaddingPx,
+                maxEmptySpace = 0,
             )
         }
 
