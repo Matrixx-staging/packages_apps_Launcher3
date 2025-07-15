@@ -17,6 +17,7 @@ package com.android.launcher3.uioverrides.states;
 
 import static com.android.app.animation.Interpolators.DECELERATE_2;
 import static com.android.launcher3.Flags.enableDesktopExplodedView;
+import static com.android.launcher3.Flags.enablePredictiveBackInOverview;
 import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_OVERVIEW;
 
@@ -30,14 +31,15 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.R;
+import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.ScrimColors;
+import com.android.quickstep.fallback.RecentsStateUtilsKt;
 import com.android.quickstep.util.BaseDepthController;
 import com.android.quickstep.util.LayoutUtils;
 import com.android.quickstep.views.RecentsView;
-import com.android.quickstep.views.TaskView;
 
 /**
  * Definition for overview state
@@ -217,21 +219,27 @@ public class OverviewState extends LauncherState {
     }
 
     @Override
-    public void onBackInvoked(Launcher launcher) {
-        if (launcher.getStateManager().isInTransition()) {
-            return;
-        }
-        RecentsView recentsView = launcher.getOverviewPanel();
-        TaskView taskView = recentsView.getRunningTaskView();
-        if (taskView != null && !taskView.isBeingDismissed()) {
-            if (recentsView.isTaskViewFullyVisible(taskView)) {
-                taskView.launchWithAnimation();
-            } else {
-                recentsView.snapToPage(recentsView.indexOfChild(taskView));
-            }
+    public void onBackStarted(Launcher launcher) {
+        if (enablePredictiveBackInOverview()) {
+            RecentsStateUtilsKt.toRecentsState(this).onBackStarted((QuickstepLauncher) launcher);
         } else {
-            super.onBackInvoked(launcher);
+            super.onBackStarted(launcher);
         }
+    }
+
+    @Override
+    public void onBackProgressed(Launcher launcher, float backProgress) {
+        if (enablePredictiveBackInOverview()) {
+            RecentsStateUtilsKt.toRecentsState(this).onBackProgressed((QuickstepLauncher) launcher,
+                    backProgress);
+        } else {
+            super.onBackProgressed(launcher, backProgress);
+        }
+    }
+
+    @Override
+    public void onBackInvoked(Launcher launcher) {
+        RecentsStateUtilsKt.toRecentsState(this).onBackInvoked((QuickstepLauncher) launcher);
     }
 
     public static OverviewState newBackgroundState(int id) {

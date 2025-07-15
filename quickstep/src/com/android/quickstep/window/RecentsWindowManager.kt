@@ -509,6 +509,10 @@ constructor(
         return splitSelectStateController
     }
 
+    override fun goToRecentsState(recentsState: RecentsState, animated: Boolean) {
+        stateManager.goToState(recentsState, animated)
+    }
+
     override fun getRootView(): View {
         return windowRootView
     }
