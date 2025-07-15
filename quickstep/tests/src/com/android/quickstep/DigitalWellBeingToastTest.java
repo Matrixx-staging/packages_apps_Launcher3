@@ -18,6 +18,8 @@ package com.android.quickstep;
 import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
 
 import static com.android.launcher3.util.TestUtil.resolveSystemAppInfo;
+import static com.android.launcher3.util.rule.TestStabilityRule.LOCAL;
+import static com.android.launcher3.util.rule.TestStabilityRule.PLATFORM_POSTSUBMIT;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -36,6 +38,7 @@ import com.android.launcher3.LauncherState;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.BaseLauncherActivityTest;
 import com.android.launcher3.util.rule.ScreenRecordRule;
+import com.android.launcher3.util.rule.TestStabilityRule;
 import com.android.quickstep.views.DigitalWellBeingToast;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.TaskContainer;
@@ -43,6 +46,7 @@ import com.android.quickstep.views.TaskView;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 
 import java.time.Duration;
@@ -52,13 +56,16 @@ import java.time.Duration;
 public class DigitalWellBeingToastTest extends BaseLauncherActivityTest<QuickstepLauncher> {
 
     @Rule
-    public ScreenRecordRule mScreenRecordRule = new ScreenRecordRule();
+    public TestRule mTestStabilityRule = new TestStabilityRule();
 
+    @Rule
+    public ScreenRecordRule mScreenRecordRule = new ScreenRecordRule();
 
     public final String calculatorPackage =
             resolveSystemAppInfo(Intent.CATEGORY_APP_CALCULATOR).packageName;
 
     @Test
+    @TestStabilityRule.Stability(flavors = LOCAL | PLATFORM_POSTSUBMIT) // b/413155327
     public void testToast() {
         startAppFast(calculatorPackage);
 
