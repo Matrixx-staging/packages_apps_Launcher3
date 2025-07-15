@@ -263,7 +263,8 @@ public class DisplayController {
     }
 
     /**
-     * Returns whether the taskbar is forced to be pinned when home is visible.
+     * Returns whether the taskbar is forced to be pinned when home is visible on the display
+     * associated with the context.
      */
     public static boolean showLockedTaskbarOnHome(Context context) {
         return getInfo(context).showLockedTaskbarOnHome();
@@ -535,12 +536,11 @@ public class DisplayController {
 
         private final boolean mIsNightModeActive;
 
-        public Info(Context displayInfoContext) {
-            /* don't need system overrides for external displays */
+        public Info(Context displayInfoContext, WindowManagerProxy wmProxy) {
             this(displayInfoContext, enableScalabilityForDesktopExperience()
                             && displayInfoContext.getResources().getBoolean(
                             R.bool.desktop_form_factor),
-                    new WindowManagerProxy(), new ArrayMap<>(),
+                    wmProxy, new ArrayMap<>(),
                     DisplayMetrics.DENSITY_DEVICE_STABLE);
         }
 
