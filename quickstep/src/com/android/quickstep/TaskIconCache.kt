@@ -40,8 +40,6 @@ import com.android.launcher3.util.FlagOp
 import com.android.launcher3.util.OverviewReleaseFlags.enableOverviewIconMenu
 import com.android.launcher3.util.Preconditions
 import com.android.launcher3.util.coroutines.DispatcherProvider
-import com.android.quickstep.recents.di.RecentsDependencies
-import com.android.quickstep.recents.di.inject
 import com.android.quickstep.task.thumbnail.data.TaskIconDataSource
 import com.android.quickstep.util.IconLabelUtil.getBadgedContentDescription
 import com.android.quickstep.util.TaskKeyLruCache
@@ -58,6 +56,7 @@ class TaskIconCache(
     private val bgExecutor: Executor,
     private val iconProvider: IconProvider,
     displayController: DisplayController,
+    val dispatcherProvider: DispatcherProvider,
 ) : TaskIconDataSource, DisplayInfoChangeListener {
     private val iconCache =
         TaskKeyLruCache<TaskCacheEntry>(
@@ -74,7 +73,6 @@ class TaskIconCache(
             else _iconFactory ?: createIconFactory().also { _iconFactory = it }
 
     var taskVisualsChangeListener: TaskVisualsChangeListener? = null
-    val dispatcherProvider: DispatcherProvider by RecentsDependencies.inject()
 
     init {
         // TODO (b/397205964): this will need to be updated when we support caches for different

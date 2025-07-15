@@ -24,8 +24,6 @@ import com.android.launcher3.util.Executors
 import com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview
 import com.android.launcher3.util.Preconditions
 import com.android.launcher3.util.coroutines.DispatcherProvider
-import com.android.quickstep.recents.di.RecentsDependencies
-import com.android.quickstep.recents.di.inject
 import com.android.quickstep.task.thumbnail.data.TaskThumbnailDataSource
 import com.android.quickstep.util.TaskKeyByLastActiveTimeCache
 import com.android.quickstep.util.TaskKeyCache
@@ -44,22 +42,24 @@ internal constructor(
     private val context: Context,
     private val bgExecutor: Executor,
     private val cache: TaskKeyCache<ThumbnailData>,
+    val dispatcherProvider: DispatcherProvider,
 ) : TaskThumbnailDataSource {
     val highResLoadingState = HighResLoadingState()
     private val enableTaskSnapshotPreloading =
         context.resources.getBoolean(R.bool.config_enableTaskSnapshotPreloading)
-    val dispatcherProvider: DispatcherProvider by RecentsDependencies.inject()
 
     @JvmOverloads
     constructor(
         context: Context,
         bgExecutor: Executor,
         cacheSize: Int = context.resources.getInteger(R.integer.recentsThumbnailCacheSize),
+        dispatcherProvider: DispatcherProvider,
     ) : this(
         context,
         bgExecutor,
         if (enableGridOnlyOverview()) TaskKeyByLastActiveTimeCache(cacheSize)
         else TaskKeyLruCache(cacheSize),
+        dispatcherProvider,
     )
 
     /**
