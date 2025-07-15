@@ -134,6 +134,13 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
                 });
                 return response;
 
+            case TestProtocol.REQUEST_COLLAPSE_BUBBLE_BAR:
+                runOnTISBinder(tisBinder -> {
+                    // Allow null-pointer to catch illegal states.
+                    tisBinder.getTaskbarManager().getCurrentActivityContext().removeAllBubbles();
+                });
+                return response;
+
             case TestProtocol.REQUEST_TASKBAR_FROM_NAV_THRESHOLD: {
                 final Resources resources = mContext.getResources();
                 response.putInt(TestProtocol.TEST_INFO_RESPONSE_FIELD,

@@ -2104,6 +2104,13 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         }
     }
 
+    /** Removes bubble bar if present on the screen */
+    @VisibleForTesting
+    public void removeAllBubbles() {
+        mControllers.bubbleControllers.ifPresent(
+                controllers -> controllers.bubbleBarViewController.onDismissAllBubbles());
+    }
+
     /** Unstashes the Bubble Bar if it is stashed. */
     @VisibleForTesting
     public void unstashBubbleBarIfStashed() {

@@ -34,11 +34,11 @@ import org.junit.runner.RunWith
 @RequiresFlagsEnabled(Flags.FLAG_ENABLE_BUBBLE_ANYTHING)
 class TaplTestTaskbarIconDrag : AbstractQuickStepTest() {
 
-    private var mLauncherLayout: AutoCloseable? = null
+    private var launcherLayout: AutoCloseable? = null
+    private var bubbleBar: BubbleBar? = null
 
     override fun setUp() {
-        Assume.assumeTrue("Ignoring test because device is not a tablet",
-            mLauncher.isTablet)
+        Assume.assumeTrue("Ignoring test because device is not a tablet", mLauncher.isTablet)
         super.setUp()
         val layoutBuilder =
             LauncherLayoutBuilder()
@@ -47,7 +47,7 @@ class TaplTestTaskbarIconDrag : AbstractQuickStepTest() {
                     "com.google.android.apps.nexuslauncher.tests",
                     "com.android.launcher3.testcomponent.BaseTestingActivity",
                 )
-        mLauncherLayout = TestUtil.setLauncherDefaultLayout(mTargetContext, layoutBuilder)
+        launcherLayout = TestUtil.setLauncherDefaultLayout(mTargetContext, layoutBuilder)
         performInitialization()
         mLauncher.enableBlockTimeout(true)
     }
@@ -55,17 +55,20 @@ class TaplTestTaskbarIconDrag : AbstractQuickStepTest() {
     @After
     fun tearDown() {
         mLauncher.enableBlockTimeout(false)
-        mLauncherLayout?.close()
+        bubbleBar?.cleanup()
+        launcherLayout?.close()
     }
 
     @Test
     fun testAppIconDragOnOverviewFromTaskBarToBubbleBar() {
         val overview = mLauncher.workspace.switchToOverview()
         // test left drop target
-        overview.taskbar!!
-            .getAppIcon(TEST_APP_NAME)
-            .dragToBubbleBarLocation(/* isBubbleBarLeftDropTarget= */ true)
-        dismissExpandedBubbleBar(overview.bubbleBar)
+        bubbleBar =
+            overview.taskbar!!
+                .getAppIcon(TEST_APP_NAME)
+                .dragToBubbleBarLocation(/* isBubbleBarLeftDropTarget= */ true)
+        // close expanded bubble
+        dismissExpandedBubbleBar()
     }
 
     @Test
@@ -74,14 +77,16 @@ class TaplTestTaskbarIconDrag : AbstractQuickStepTest() {
         val launchedAppState = mLauncher.launchedAppState
         mLauncher.showTaskbarIfHidden()
         // test right drop target
-        launchedAppState.taskbar
-            .getAppIcon(TEST_APP_NAME)
-            .dragToBubbleBarLocation(/* isBubbleBarLeftDropTarget= */ false)
+        bubbleBar =
+            launchedAppState.taskbar
+                .getAppIcon(TEST_APP_NAME)
+                .dragToBubbleBarLocation(/* isBubbleBarLeftDropTarget= */ false)
         // close expanded bubble
-        dismissExpandedBubbleBar(launchedAppState.bubbleBar)
+        dismissExpandedBubbleBar()
     }
 
-    private fun dismissExpandedBubbleBar(bubbleBar: BubbleBar) {
+    private fun dismissExpandedBubbleBar() {
+        val bubbleBar = this.bubbleBar!!
         // close expanded bubble bar
         mLauncher.pressBack()
         bubbleBar.verifyCollapsed()
