@@ -182,6 +182,7 @@ public class BubbleBarController extends IBubblesListener.Stub {
         // Saves bubble bar state
         mSharedState.bubbleBarExpanded = mBubbleBarViewController.isExpanded();
         mSharedState.bubbleBarStashed = mBubbleStashController.isStashed();
+        mSharedState.bubbleBarHasOverflow = mBubbleBarViewController.isOverflowAdded();
         mSharedState.selectedBubbleKey = mSelectedBubble != null ? mSelectedBubble.getKey() : null;
         BubbleInfo[] bubbleInfoItems = new BubbleInfo[mBubbles.size()];
         mBubbles.values().forEach(bubbleBarBubble -> {
@@ -319,6 +320,9 @@ public class BubbleBarController extends IBubblesListener.Stub {
         }
         restoreSuppressed(sharedState.suppressedBubbleInfoItems);
         if (hasSavedBubbles) {
+            if (sharedState.bubbleBarHasOverflow) {
+                mBubbleBarViewController.showOverflow(true);
+            }
             setSelectedBubbleInternal(mBubbles.get(sharedState.selectedBubbleKey));
             if (sharedState.bubbleBarExpanded) {
                 // We don't want state restore to have side effects which update the Shell state.
@@ -379,7 +383,11 @@ public class BubbleBarController extends IBubblesListener.Stub {
             // clear restored state
             mBubbleBarViewController.removeAllBubbles();
             mBubbles.clear();
-            mBubbleBarViewController.showOverflow(update.showOverflow);
+            // During the initial sync, Shell's update might not have the correct overflow
+            // state yet. Trust our restored state in this case to prevent the overflow
+            // button from disappearing on rotation.
+            mBubbleBarViewController.showOverflow(
+                    mSharedState.bubbleBarHasOverflow || update.showOverflow);
         }
 
         if (update.addedBubble != null) {

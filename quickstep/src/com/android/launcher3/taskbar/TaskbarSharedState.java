@@ -81,6 +81,8 @@ public class TaskbarSharedState {
 
     public boolean bubbleBarStashed = false;
 
+    public boolean bubbleBarHasOverflow;
+
     public String selectedBubbleKey;
 
     public BubbleBarLocation bubbleBarLocation;
