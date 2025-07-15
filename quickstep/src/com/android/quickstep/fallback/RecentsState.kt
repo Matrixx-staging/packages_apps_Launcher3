@@ -110,14 +110,18 @@ open class RecentsState(@JvmField val ordinal: Int, private val mFlags: Int) :
      * Handles the back invocation. If a live task is present and visible, launch it; if present but
      * not fully visible, snap scroll to it; otherwise, return home.
      *
+     * <p>Ignore the invocation if a state transition is still in progress.
+     *
      * @param container The RecentsViewContainer.
      */
     open fun onBackInvoked(container: RecentsViewContainer) {
         val recentsView = container.getOverviewPanel<RecentsView<*, *>>()
         val runningTaskView = recentsView.runningTaskView
         when {
-            runningTaskView == null -> container.startHome()
-            recentsView.isTaskViewVisible(runningTaskView) -> runningTaskView.launchWithAnimation()
+            recentsView.stateManager.isInTransition -> {} // NO-OP.
+            runningTaskView == null || runningTaskView.isBeingDismissed -> container.startHome()
+            recentsView.isTaskViewFullyVisible(runningTaskView) ->
+                runningTaskView.launchWithAnimation()
             else -> {
                 backAnimationController?.reverse()
                 recentsView.snapToPage(recentsView.indexOfChild(runningTaskView))
