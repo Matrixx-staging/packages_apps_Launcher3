@@ -37,7 +37,10 @@ class WidgetPreviewHostView(context: Context) : AppWidgetHostView(context) {
     init {
         clipToPadding = false
         clipChildren = false
+        // Preview themselves are not focusable.
         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        focusable = View.NOT_FOCUSABLE
+        descendantFocusability = FOCUS_BLOCK_DESCENDANTS
     }
 
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
@@ -114,10 +117,8 @@ class WidgetPreviewHostView(context: Context) : AppWidgetHostView(context) {
         val height: Int = (measuredHeight)
         val bounds = Rect(0, 0, width, height)
 
-        val xOffset: Int =
-            left - (offset.x * contentScale).toInt()
-        val yOffset: Int =
-            top - (offset.y * contentScale).toInt()
+        val xOffset: Int = left - (offset.x * contentScale).toInt()
+        val yOffset: Int = top - (offset.y * contentScale).toInt()
         bounds.offset(xOffset, yOffset)
 
         return bounds
