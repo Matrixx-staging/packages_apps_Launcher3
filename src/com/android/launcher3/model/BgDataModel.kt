@@ -89,7 +89,8 @@ constructor(
     @JvmField val deepShortcutMap = HashMap<ComponentKey, Int>()
 
     /** Cache for strings used in launcher */
-    @JvmField val stringCache = StringCache()
+    var stringCache = StringCache.EMPTY
+        private set
 
     private val repo = if (Flags.modelRepository()) homeDataProvider.get() else null
 
@@ -207,6 +208,11 @@ constructor(
         for (user in UserCache.INSTANCE[context].userProfiles) {
             updateShortcutPinnedState(context, user)
         }
+    }
+
+    /** Reloads the [stringCache] */
+    fun updateStringCache(context: Context) {
+        stringCache = StringCache.fromContext(context)
     }
 
     /**

@@ -97,7 +97,7 @@ public class BaseLauncherBinder {
                     mBgDataModel.lastLoadId = mModel.getLastLoadId();
                 }
                 mMyBindingId = mBgDataModel.lastBindId;
-                stringCache = mBgDataModel.stringCache.clone();
+                stringCache = mBgDataModel.getStringCache();
             }
 
             for (Callbacks cb : mCallbacksList) {
