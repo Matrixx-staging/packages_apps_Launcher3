@@ -66,7 +66,6 @@ import com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_BUBBLES_
 import com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_IME_VISIBLE
 import com.android.wm.shell.Flags.FLAG_ENABLE_BUBBLE_BAR
 import com.google.common.truth.Truth.assertThat
-import com.google.common.truth.TruthJUnit.assume
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
@@ -631,145 +630,146 @@ class TaskbarStashControllerTest {
     @Test
     @TaskbarMode(PINNED)
     fun testAnimatePinnedTaskbar_imeShown_replacesIconsWithHandle() {
-        assume()
-            .withMessage("Ignoring test because hardware keyboard is present")
-            .that(activityContext.isHardwareKeyboard)
-            .isFalse()
-
-        getInstrumentation().runOnMainSync {
-            stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, false)
-            animatorTestRule.advanceTimeBy(TASKBAR_STASH_DURATION_FOR_IME)
+        try {
+            activityContext.setImeDockedOverrideForTest(true)
+            getInstrumentation().runOnMainSync {
+                stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, false)
+                animatorTestRule.advanceTimeBy(TASKBAR_STASH_DURATION_FOR_IME)
+            }
+            assertThat(viewController.areIconsVisible()).isFalse()
+            assertThat(stashedHandleViewController.isStashedHandleVisible).isTrue()
+        } finally {
+            activityContext.setImeDockedOverrideForTest(null)
         }
-        assertThat(viewController.areIconsVisible()).isFalse()
-        assertThat(stashedHandleViewController.isStashedHandleVisible).isTrue()
     }
 
     @Test
     @TaskbarMode(PINNED)
     fun testAnimatePinnedTaskbar_imeHidden_replacesHandleWithIcons() {
-        assume()
-            .withMessage("Ignoring test because hardware keyboard is present")
-            .that(activityContext.isHardwareKeyboard)
-            .isFalse()
+        try {
+            activityContext.setImeDockedOverrideForTest(true)
+            getInstrumentation().runOnMainSync {
+                stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, true)
+                animatorTestRule.advanceTimeBy(0)
+            }
 
-        getInstrumentation().runOnMainSync {
-            stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, true)
-            animatorTestRule.advanceTimeBy(0)
+            getInstrumentation().runOnMainSync {
+                stashController.updateStateForSysuiFlags(0, true)
+                animatorTestRule.advanceTimeBy(0)
+            }
+            assertThat(stashedHandleViewController.isStashedHandleVisible).isFalse()
+            assertThat(viewController.areIconsVisible()).isTrue()
+        } finally {
+            activityContext.setImeDockedOverrideForTest(null)
         }
-
-        getInstrumentation().runOnMainSync {
-            stashController.updateStateForSysuiFlags(0, true)
-            animatorTestRule.advanceTimeBy(0)
-        }
-        assertThat(stashedHandleViewController.isStashedHandleVisible).isFalse()
-        assertThat(viewController.areIconsVisible()).isTrue()
     }
 
     @Test
     @TaskbarMode(PINNED)
     fun testAnimatePinnedTaskbar_imeHidden_verifyAnimationDuration() {
-        assume()
-            .withMessage("Ignoring test because hardware keyboard is present")
-            .that(activityContext.isHardwareKeyboard)
-            .isFalse()
+        try {
+            activityContext.setImeDockedOverrideForTest(true)
+            // Start with IME shown.
+            getInstrumentation().runOnMainSync {
+                stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, true)
+                animatorTestRule.advanceTimeBy(0)
+            }
 
-        // Start with IME shown.
-        getInstrumentation().runOnMainSync {
-            stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, true)
-            animatorTestRule.advanceTimeBy(0)
-        }
+            // Hide IME with animation.
+            getInstrumentation().runOnMainSync {
+                stashController.updateStateForSysuiFlags(0, false)
+                // Fast forward without start delay.
+                animatorTestRule.advanceTimeBy(TASKBAR_STASH_DURATION_FOR_IME)
+            }
+            // Icons should not be visible yet due to start delay.
+            assertThat(viewController.areIconsVisible()).isFalse()
 
-        // Hide IME with animation.
-        getInstrumentation().runOnMainSync {
-            stashController.updateStateForSysuiFlags(0, false)
-            // Fast forward without start delay.
-            animatorTestRule.advanceTimeBy(TASKBAR_STASH_DURATION_FOR_IME)
+            // Advance by start delay retroactively. Animation should complete.
+            getInstrumentation().runOnMainSync {
+                animatorTestRule.advanceTimeBy(stashController.taskbarStashStartDelayForIme)
+            }
+            assertThat(viewController.areIconsVisible()).isTrue()
+        } finally {
+            activityContext.setImeDockedOverrideForTest(null)
         }
-        // Icons should not be visible yet due to start delay.
-        assertThat(viewController.areIconsVisible()).isFalse()
-
-        // Advance by start delay retroactively. Animation should complete.
-        getInstrumentation().runOnMainSync {
-            animatorTestRule.advanceTimeBy(stashController.taskbarStashStartDelayForIme)
-        }
-        assertThat(viewController.areIconsVisible()).isTrue()
     }
 
     @Test
     @TaskbarMode(THREE_BUTTONS)
     fun testAnimateThreeButtonsTaskbar_imeShown_hidesIconsAndBg() {
-        assume()
-            .withMessage("Ignoring test because hardware keyboard is present")
-            .that(activityContext.isHardwareKeyboard)
-            .isFalse()
-
-        getInstrumentation().runOnMainSync {
-            stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, false)
-            animatorTestRule.advanceTimeBy(TASKBAR_STASH_DURATION_FOR_IME)
+        try {
+            activityContext.setImeDockedOverrideForTest(true)
+            getInstrumentation().runOnMainSync {
+                stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, false)
+                animatorTestRule.advanceTimeBy(TASKBAR_STASH_DURATION_FOR_IME)
+            }
+            assertThat(stashController.isStashed).isTrue()
+            assertThat(viewController.areIconsVisible()).isFalse()
+            assertThat(dragLayerController.imeBgTaskbar.value).isEqualTo(0)
+        } finally {
+            activityContext.setImeDockedOverrideForTest(null)
         }
-        assertThat(viewController.areIconsVisible()).isFalse()
-        assertThat(dragLayerController.imeBgTaskbar.value).isEqualTo(0)
     }
 
     @Test
     @TaskbarMode(THREE_BUTTONS)
     fun testAnimateThreeButtonsTaskbar_imeHidden_showsIconsAndBg() {
-        assume()
-            .withMessage("Ignoring test because hardware keyboard is present")
-            .that(activityContext.isHardwareKeyboard)
-            .isFalse()
+        try {
+            activityContext.setImeDockedOverrideForTest(true)
+            getInstrumentation().runOnMainSync {
+                stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, false)
+                animatorTestRule.advanceTimeBy(TASKBAR_STASH_DURATION_FOR_IME)
+            }
 
-        getInstrumentation().runOnMainSync {
-            stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, false)
-            animatorTestRule.advanceTimeBy(TASKBAR_STASH_DURATION_FOR_IME)
+            getInstrumentation().runOnMainSync {
+                stashController.updateStateForSysuiFlags(0, false)
+                animatorTestRule.advanceTimeBy(
+                    TASKBAR_STASH_DURATION_FOR_IME + stashController.taskbarStashStartDelayForIme
+                )
+            }
+            assertThat(viewController.areIconsVisible()).isTrue()
+            assertThat(dragLayerController.imeBgTaskbar.value).isEqualTo(1)
+        } finally {
+            activityContext.setImeDockedOverrideForTest(null)
         }
-
-        getInstrumentation().runOnMainSync {
-            stashController.updateStateForSysuiFlags(0, false)
-            animatorTestRule.advanceTimeBy(
-                TASKBAR_STASH_DURATION_FOR_IME + stashController.taskbarStashStartDelayForIme
-            )
-        }
-        assertThat(viewController.areIconsVisible()).isTrue()
-        assertThat(dragLayerController.imeBgTaskbar.value).isEqualTo(1)
     }
 
     @Test
     @TaskbarMode(PINNED)
     fun testSetSystemGestureInProgress_whileImeShown_unstashesTaskbar() {
-        assume()
-            .withMessage("Ignoring test because hardware keyboard is present")
-            .that(activityContext.isHardwareKeyboard)
-            .isFalse()
+        try {
+            activityContext.setImeDockedOverrideForTest(true)
+            getInstrumentation().runOnMainSync {
+                stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, true)
+                animatorTestRule.advanceTimeBy(0)
+            }
 
-        getInstrumentation().runOnMainSync {
-            stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, true)
-            animatorTestRule.advanceTimeBy(0)
+            getInstrumentation().runOnMainSync {
+                stashController.setSystemGestureInProgress(true)
+                animatorTestRule.advanceTimeBy(
+                    TASKBAR_STASH_DURATION_FOR_IME + stashController.taskbarStashStartDelayForIme
+                )
+            }
+            assertThat(stashController.isStashed).isFalse()
+        } finally {
+            activityContext.setImeDockedOverrideForTest(null)
         }
-
-        getInstrumentation().runOnMainSync {
-            stashController.setSystemGestureInProgress(true)
-            animatorTestRule.advanceTimeBy(
-                TASKBAR_STASH_DURATION_FOR_IME + stashController.taskbarStashStartDelayForIme
-            )
-        }
-        assertThat(stashController.isStashed).isFalse()
     }
 
     @Test
     @TaskbarMode(PINNED)
-    fun testSysuiStateImeShowingInApp_hardwareKeyboardWithPinnedMode_notStashedForIme() {
-        assume()
-            .withMessage("Ignoring test because hardware keyboard is not present")
-            .that(activityContext.isHardwareKeyboard)
-            .isTrue()
+    fun testSysuiStateImeShowingInApp_imeNotDocked_notStashedForIme() {
+        try {
+            activityContext.setImeDockedOverrideForTest(false)
+            getInstrumentation().runOnMainSync {
+                stashController.updateStateForFlag(FLAG_IN_APP, true)
+                stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, true)
+            }
 
-        getInstrumentation().runOnMainSync {
-            stashController.updateStateForFlag(FLAG_IN_APP, true)
-            stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, true)
+            assertThat(stashController.isStashed).isFalse()
+        } finally {
+            activityContext.setImeDockedOverrideForTest(null)
         }
-
-        assertThat(stashController.isStashed).isFalse()
     }
 
     @Test
