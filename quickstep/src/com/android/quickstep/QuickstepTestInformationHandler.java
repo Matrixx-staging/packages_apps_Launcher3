@@ -13,6 +13,7 @@ import android.view.WindowInsets;
 import androidx.annotation.Nullable;
 
 import com.android.launcher3.R;
+import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.taskbar.TaskbarActivityContext;
 import com.android.launcher3.testing.TestInformationHandler;
 import com.android.launcher3.testing.shared.TestProtocol;
@@ -32,12 +33,27 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import javax.inject.Inject;
+
 public class QuickstepTestInformationHandler extends TestInformationHandler {
 
     protected final Context mContext;
+    private final RecentsModel mRecentsModel;
+    private final SystemUiProxy mSystemUiProxy;
+    private final  OverviewComponentObserver mOverviewComponentObserver;
+    private final  DisplayController mDisplayController;
 
-    public QuickstepTestInformationHandler(Context context) {
+
+    @Inject
+    public QuickstepTestInformationHandler(@ApplicationContext Context context,
+            RecentsModel recentsModel,
+            SystemUiProxy systemUiProxy, OverviewComponentObserver overviewComponentObserver,
+            DisplayController displayController) {
         mContext = context;
+        mRecentsModel = recentsModel;
+        mSystemUiProxy = systemUiProxy;
+        mOverviewComponentObserver = overviewComponentObserver;
+        mDisplayController = displayController;
     }
 
     @Override
@@ -47,7 +63,7 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
             case TestProtocol.REQUEST_RECENT_TASKS_LIST: {
                 ArrayList<String> taskBaseIntentComponents = new ArrayList<>();
                 CountDownLatch latch = new CountDownLatch(1);
-                RecentsModel.INSTANCE.get(mContext).getTasks((taskGroups) -> {
+                mRecentsModel.getTasks((taskGroups) -> {
                     for (GroupTask group : taskGroups) {
                         for (Task t : group.getTasks()) {
                             taskBaseIntentComponents.add(
@@ -187,7 +203,7 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
 
             case TestProtocol.REQUEST_SHELL_DRAG_READY:
                 response.putBoolean(TestProtocol.TEST_INFO_RESPONSE_FIELD,
-                        SystemUiProxy.INSTANCE.get(mContext).isDragAndDropReady());
+                        mSystemUiProxy.isDragAndDropReady());
                 return response;
 
             case TestProtocol.REQUEST_REFRESH_OVERVIEW_TARGET:
@@ -257,9 +273,8 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
     @Nullable
     private RecentsViewContainer getRecentsViewContainer() {
         // TODO (b/400647896): support per-display container in e2e tests
-        BaseContainerInterface<?, ?> containerInterface = OverviewComponentObserver.INSTANCE.get(
-                        mContext)
-                .getContainerInterface(DEFAULT_DISPLAY);
+        BaseContainerInterface<?, ?> containerInterface =
+                mOverviewComponentObserver.getContainerInterface(DEFAULT_DISPLAY);
         if (containerInterface != null) {
             return containerInterface.getCreatedContainer();
         } else {
@@ -269,7 +284,7 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
 
     @Override
     protected boolean isLauncherInitialized() {
-        return super.isLauncherInitialized() && SystemUiProxy.INSTANCE.get(mContext).isActive();
+        return super.isLauncherInitialized() && mSystemUiProxy.isActive();
     }
 
     private void enableBlockingTimeout(
@@ -282,7 +297,7 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
     }
 
     private void enableTransientTaskbar(boolean enable) {
-        DisplayController.INSTANCE.get(mContext).enableTransientTaskbarForTests(enable);
+        mDisplayController.enableTransientTaskbarForTests(enable);
     }
 
     /**

@@ -23,7 +23,7 @@ import static com.android.app.animation.Interpolators.INSTANT;
 import static com.android.app.animation.Interpolators.LINEAR;
 import static com.android.internal.jank.InteractionJankMonitor.Configuration;
 import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
-import static com.android.launcher3.Flags.enableTaskbarUiThread;
+import static com.android.launcher3.Flags.refactorTaskbarUiState;
 import static com.android.launcher3.Flags.syncAppLaunchWithTaskbarStash;
 import static com.android.launcher3.QuickstepTransitionManager.PINNED_TASKBAR_TRANSITION_DURATION;
 import static com.android.launcher3.config.FeatureFlags.ENABLE_TASKBAR_NAVBAR_UNIFICATION;
@@ -1124,7 +1124,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
                     isStashed && supportsVisualStashing());
             mControllers.taskbarInsetsController.onTaskbarOrBubblebarWindowHeightOrInsetsChanged();
         });
-        if (enableTaskbarUiThread()) {
+        if (refactorTaskbarUiState()) {
             mActivity.getTaskbarUiState().setIsTaskbarStashed(isStashed);
         }
     }
@@ -1253,43 +1253,29 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
     }
 
     /**
-     * We stash when the IME is visible.
-     *
-     * <p>Do not stash if in small screen, with 3 button nav, and in landscape (or seascape).
-     * <p>Do not stash if taskbar is transient.
-     * <p>Do not stash if hardware keyboard is attached and taskbar is pinned and IME is docked.
-     * <p>Do not stash if a system gesture is started.
+     * Whether the Taskbar should be stashed when the IME is visible. This is {@code false} if:
+     * <ul>
+     *     <li>IME is not visible
+     *     <li>A system gesture (e.g. quick switching apps) is in progress.
+     *     <li>Device is a phone (non-large screen)
+     *     <li>Taskbar is transient
+     *     <li>IME is not docked
+     * </ul>
      */
     private boolean shouldStashForIme() {
-        if (mActivity.isTransientTaskbar()) {
+        if (!mIsImeVisible) {
             return false;
         }
-        // Do not stash if in small screen, with 3 button nav, and in landscape.
-        if (mActivity.isPhoneMode() && mActivity.isThreeButtonNav()
-                && mActivity.getDeviceProfile().getDeviceProperties().isLandscape()) {
-            return false;
-        }
-
-        // Do not stash if pinned taskbar, hardware keyboard is attached and no IME is docked
-        if (mActivity.isHardwareKeyboard() && mActivity.isPinnedTaskbar()
-                && !mActivity.isImeDocked()) {
-            return false;
-        }
-
-        // Do not stash if hardware keyboard is attached, in 3 button nav and desktop windowing mode
-        if (mActivity.isHardwareKeyboard()
-                && mActivity.isThreeButtonNav()
-                && mControllers.taskbarDesktopModeController
-                    .isInDesktopModeAndNotInOverview(mActivity.getDisplayId())) {
-            return false;
-        }
-
-        // Do not stash if a gesture started.
         if (mIsSystemGestureInProgress) {
             return false;
         }
-
-        return mIsImeVisible;
+        if (mActivity.isPhoneMode()) {
+            return false;
+        }
+        if (mActivity.isTransientTaskbar()) {
+            return false;
+        }
+        return mActivity.isImeDocked();
     }
 
     /**
@@ -1420,6 +1406,8 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
         }
         if (isAutohideSuspended) {
             cancelTimeoutIfExists();
+            // make sure taskbar is visible if auto hide is suspended
+            updateTaskbarWindowForciblyShownFlag();
         } else if (mIsStashed) {
             // auto hide is no longer suspended and we're already stashed; hide taskbar if needed
             updateTaskbarWindowForciblyShownFlag();

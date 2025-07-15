@@ -312,20 +312,21 @@ public class PreviewSurfaceRenderer {
 
         final SparseIntArray wallpaperColorResources;
 
+        LocalColorExtractor localColorExtractor = mAppComponent.getLocalColorExtractor();
         if (Flags.newCustomizationPickerUi() && mPreviewColorOverride != null) {
-            LocalColorExtractor.newInstance(context)
+            localColorExtractor
                     .applyColorsOverride(context, mPreviewColorOverride);
             wallpaperColorResources = mPreviewColorOverride;
         } else if (mWallpaperColors != null) {
-            LocalColorExtractor.newInstance(context)
+            localColorExtractor
                     .applyColorsOverride(context, mWallpaperColors);
-            wallpaperColorResources = LocalColorExtractor.newInstance(context)
+            wallpaperColorResources = localColorExtractor
                     .generateColorsOverride(mWallpaperColors);
         } else {
             WallpaperColors wallpaperColors =
                     WallpaperManager.getInstance(context).getWallpaperColors(FLAG_SYSTEM);
             wallpaperColorResources = wallpaperColors == null ? null
-                    : LocalColorExtractor.newInstance(context)
+                    : localColorExtractor
                             .generateColorsOverride(wallpaperColors);
         }
 
@@ -351,9 +352,6 @@ public class PreviewSurfaceRenderer {
                 mHeight / (float) view.getMeasuredHeight());
         view.setScaleX(scale);
         view.setScaleY(scale);
-        LayoutParams lp = new LayoutParams(view.getMeasuredWidth(), view.getMeasuredHeight());
-        lp.gravity = Gravity.CENTER;
-        view.setLayoutParams(lp);
 
         if (!Flags.newCustomizationPickerUi()) {
             view.setAlpha(mSkipAnimations ? 1 : 0);
@@ -369,7 +367,9 @@ public class PreviewSurfaceRenderer {
             return;
         }
 
-        view.setLayoutParams(new LayoutParams(view.getMeasuredWidth(), view.getMeasuredHeight()));
+        LayoutParams lp = new LayoutParams(view.getMeasuredWidth(), view.getMeasuredHeight());
+        lp.gravity = Gravity.CENTER;
+        view.setLayoutParams(lp);
         if (mViewRoot.getChildCount() == 0) {
             mViewRoot.addView(view);
             mViewRoot.animate().alpha(1)

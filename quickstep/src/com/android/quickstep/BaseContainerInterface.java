@@ -18,7 +18,7 @@ package com.android.quickstep;
 import static com.android.app.animation.Interpolators.ACCELERATE_2;
 import static com.android.app.animation.Interpolators.INSTANT;
 import static com.android.app.animation.Interpolators.LINEAR;
-import static com.android.launcher3.Flags.enableTaskbarUiThread;
+import static com.android.launcher3.Flags.refactorTaskbarUiState;
 import static com.android.launcher3.LauncherAnimUtils.SCRIM_COLORS;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMultiFingerSwipe;
 import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
@@ -255,7 +255,7 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
      * @return Whether the gesture in progress should be cancelled.
      */
     public boolean shouldCancelCurrentGesture(int displayId) {
-        if (enableTaskbarUiThread()) {
+        if (refactorTaskbarUiState()) {
             CONTAINER_TYPE container = getCreatedContainer();
             return container != null
                     && TaskbarUiStateMonitor.INSTANCE.get(container.asContext())

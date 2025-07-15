@@ -479,8 +479,8 @@
     <!-- Taskbar Multi Instance Menu -->
     <dimen name="taskbar_multi_instance_menu_min_padding_from_screen_edge">8dp</dimen>
 
-    <!--- Floating Ime Inset height-->
-    <dimen name="floating_ime_inset_height">60dp</dimen>
+    <!--- The minimum insets size for the IME to be considered docked. -->
+    <dimen name="ime_docked_threshold">80dp</dimen>
 
     <!-- Recents overview -->
     <dimen name="recents_filter_icon_size">30dp</dimen>

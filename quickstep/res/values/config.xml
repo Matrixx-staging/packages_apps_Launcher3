@@ -18,9 +18,6 @@
         <item>com.android.launcher3/com.android.quickstep.interaction.GestureSandboxActivity</item>
     </string-array>
 
-    <string name="test_information_handler_class" translatable="false">com.android.quickstep.QuickstepTestInformationHandler</string>
-    <string name="taskbar_edu_tooltip_controller_class" translatable="false">com.android.launcher3.taskbar.TaskbarEduTooltipController</string>
-
     <!-- The number of thumbnails and icons to keep in the cache. The thumbnail cache size also
          determines how many thumbnails will be fetched in the background. -->
     <integer name="recentsThumbnailCacheSize">3</integer>

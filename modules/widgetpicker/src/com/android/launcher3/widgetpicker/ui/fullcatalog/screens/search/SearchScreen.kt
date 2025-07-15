@@ -183,6 +183,7 @@ fun SearchScreenTwoPane(
     TwoPaneLayout(
         modifier = Modifier.hideKeyboardOnTouch(),
         searchBar = searchBar,
+        leftPaneTitle = stringResource(R.string.widget_picker_left_pane_accessibility_label),
         leftContent = {
             Box(modifier = Modifier.fillMaxSize()) {
                 WidgetAppsList(

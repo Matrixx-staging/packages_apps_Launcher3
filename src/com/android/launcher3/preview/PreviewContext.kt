@@ -47,6 +47,7 @@ import com.android.launcher3.util.SandboxContext
 import com.android.launcher3.util.dagger.LauncherExecutorsModule
 import com.android.launcher3.widget.LauncherWidgetHolder
 import com.android.launcher3.widget.LauncherWidgetHolder.WidgetHolderFactory
+import com.android.launcher3.widget.LocalColorExtractor
 import com.android.launcher3.widget.util.WidgetSizeHandler
 import com.android.systemui.shared.Flags
 import dagger.BindsInstance
@@ -187,6 +188,7 @@ constructor(
     interface PreviewAppComponent : LauncherAppComponent {
         val model: LauncherModel
         val modelInitializer: ModelInitializer
+        val localColorExtractor: LocalColorExtractor
 
         /** Builder for NexusLauncherAppComponent. */
         @Component.Builder

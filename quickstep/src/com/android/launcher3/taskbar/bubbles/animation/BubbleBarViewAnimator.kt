@@ -43,6 +43,7 @@ constructor(
     private val bubbleBarParentViewHeightUpdateNotifier: BubbleBarParentViewHeightUpdateNotifier,
     private val onExpanded: Runnable,
     private val onBubbleBarVisible: Runnable,
+    private val onAnimationEnded: Runnable,
     private val scheduler: Scheduler = HandlerScheduler(bubbleBarView),
 ) {
 
@@ -550,7 +551,7 @@ constructor(
         cancelFlyout()
         val hideAnimation = animatingBubble?.hideAnimation ?: return
         scheduler.cancel(hideAnimation)
-        animatingBubble = null
+        clearAnimatingBubble()
         bubbleStashController.getStashedHandlePhysicsAnimator().cancelIfRunning()
         resetBubbleBarPropertiesOnInterrupt()
         // stash the bubble bar since the IME is now visible
@@ -758,6 +759,7 @@ constructor(
     private fun clearAnimatingBubble() {
         animatingBubble = null
         bubbleBarParentViewHeightUpdateNotifier.updateTopBoundary()
+        onAnimationEnded.run()
     }
 
     private fun expandBubbleBar() {

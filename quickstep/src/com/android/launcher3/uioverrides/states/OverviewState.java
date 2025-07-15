@@ -218,6 +218,9 @@ public class OverviewState extends LauncherState {
 
     @Override
     public void onBackInvoked(Launcher launcher) {
+        if (launcher.getStateManager().isInTransition()) {
+            return;
+        }
         RecentsView recentsView = launcher.getOverviewPanel();
         TaskView taskView = recentsView.getRunningTaskView();
         if (taskView != null && !taskView.isBeingDismissed()) {
