@@ -148,6 +148,16 @@ class LandingScreenTwoPaneTest {
             runCurrent()
             composeTestRule.waitForIdle()
 
+            // Has left pane
+            val expectedLeftPaneTitle =
+                context.resources.getString(R.string.widget_picker_left_pane_accessibility_label)
+            composeTestRule
+                .onNode(
+                    SemanticsMatcher("Left paneTitle") {
+                        it.config.getOrNull(SemanticsProperties.PaneTitle) == expectedLeftPaneTitle
+                    }
+                )
+                .assertExists()
             // Featured tab as list item
             composeTestRule.onNode(hasText(featuredTabLabel)).assertIsSelected()
             // And toolbar also simultaneously shows one of the tabs as selected
