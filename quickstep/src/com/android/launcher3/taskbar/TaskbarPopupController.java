@@ -17,6 +17,7 @@ package com.android.launcher3.taskbar;
 
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT;
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION;
 import static com.android.launcher3.model.data.AppInfo.COMPONENT_KEY_COMPARATOR;
 import static com.android.launcher3.model.data.AppInfo.PACKAGE_KEY_COMPARATOR;
 import static com.android.launcher3.util.SplitConfigurationOptions.getLogEventForPosition;
@@ -238,7 +239,7 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
     SystemShortcut createPinShortcut(BaseTaskbarContext target, ItemInfo itemInfo,
             BubbleTextView originalView) {
         // Predicted items use {@code HotseatPredictionController.PinPrediction} shortcut to pin.
-        if (itemInfo.isPredictedItem()) {
+        if (itemInfo.container == CONTAINER_HOTSEAT_PREDICTION) {
             return null;
         }
         if (itemInfo.container == CONTAINER_HOTSEAT) {
@@ -246,7 +247,7 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
                     mHotseatInfosList);
         }
 
-        if (itemInfo.container == CONTAINER_ALL_APPS) {
+        if (itemInfo.isInAllApps()) {
             // If the target ItemInfo is already pinned on taskbar. Show the unpin option instead.
             for (int i = 0; i < mHotseatInfosList.size(); i++) {
                 if (Objects.equals(mHotseatInfosList.valueAt(i).getComponentKey(),
