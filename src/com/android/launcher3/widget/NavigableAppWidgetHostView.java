@@ -27,6 +27,7 @@ import android.view.ViewGroup;
 
 import com.android.launcher3.Reorderable;
 import com.android.launcher3.dragndrop.DraggableView;
+import com.android.launcher3.logging.FileLog;
 import com.android.launcher3.util.MultiTranslateDelegate;
 import com.android.launcher3.views.ActivityContext;
 
@@ -37,6 +38,7 @@ import java.util.ArrayList;
  */
 public abstract class NavigableAppWidgetHostView extends AppWidgetHostView
         implements DraggableView, Reorderable {
+    private static final String TAG = "NavigableAppWidgetHostView";
 
     private final MultiTranslateDelegate mTranslateDelegate = new MultiTranslateDelegate(this);
 
@@ -172,6 +174,8 @@ public abstract class NavigableAppWidgetHostView extends AppWidgetHostView
     }
 
     private void updateScale() {
+        FileLog.d(TAG, "updateScale - [fitScale,bounceScale]: ["
+                + mScaleToFit + "," + mScaleForReorderBounce + "]");
         super.setScaleX(mScaleToFit * mScaleForReorderBounce);
         super.setScaleY(mScaleToFit * mScaleForReorderBounce);
     }
