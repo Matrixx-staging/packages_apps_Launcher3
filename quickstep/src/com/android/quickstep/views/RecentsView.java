@@ -2772,17 +2772,15 @@ public abstract class RecentsView<
 
         Log.d(TAG, "reset - mEnableDrawingLiveTile: " + mEnableDrawingLiveTile
                 + ", mRecentsAnimationController: " + mRecentsAnimationController);
-        if (mEnableDrawingLiveTile) {
-            if (mRecentsAnimationController != null) {
-                // We owns mRecentsAnimationController, finish it now to clean up.
-                finishRecentsAnimation(true /* toHome */, null);
-            } else {
-                // Only clean up target set if we no longer owns mRecentsAnimationController.
-                runActionOnRemoteHandles(remoteTargetHandle ->
-                        remoteTargetHandle.getTransformParams().setTargetSet(null));
-            }
-            setEnableDrawingLiveTile(false);
+        if (mEnableDrawingLiveTile && mRecentsAnimationController != null) {
+            // We own mRecentsAnimationController, finish it now to clean up.
+            finishRecentsAnimation(true /* toHome */, null);
+        } else {
+            // We don't own mRecentsAnimationController, just clear the reference.
+            mRecentsAnimationController = null;
+            cleanupRemoteTargets();
         }
+        setEnableDrawingLiveTile(false);
         mBlurUtils.setDrawLiveTileBelowRecents(false);
 
         if (enableRefactorTaskThumbnail()) {
