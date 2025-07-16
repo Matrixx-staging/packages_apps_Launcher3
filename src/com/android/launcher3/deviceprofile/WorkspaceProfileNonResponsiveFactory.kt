@@ -136,6 +136,16 @@ object WorkspaceProfileNonResponsiveFactory {
                 res.getDimensionPixelSize(R.dimen.workspace_page_indicator_overlap_workspace),
             iconDrawablePaddingOriginalPx = iconDrawablePaddingOriginalPx,
             desiredWorkspaceHorizontalMarginOriginalPx = desiredWorkspaceHorizontalMarginOriginalPx,
+            workspaceContentScale = res.getFloat(R.dimen.workspace_content_scale),
+            workspaceSpringLoadedMinNextPageVisiblePx =
+                res.getDimensionPixelSize(
+                    R.dimen.dynamic_grid_spring_loaded_min_next_space_visible
+                ),
+            workspaceCellPaddingXPx =
+                res.getDimensionPixelSize(R.dimen.dynamic_grid_cell_padding_x),
+            workspaceTopPadding = 0,
+            workspaceBottomPadding = 0,
+            maxEmptySpace = 0,
         )
     }
 
@@ -220,6 +230,7 @@ object WorkspaceProfileNonResponsiveFactory {
             }
             cellContentHeight = iconSizePx + cellTextAndPaddingHeight
         }
+
         return WorkspaceProfile(
             // Workspace icons
             iconScale = iconScale,
@@ -245,6 +256,16 @@ object WorkspaceProfileNonResponsiveFactory {
                 res.getDimensionPixelSize(R.dimen.workspace_page_indicator_overlap_workspace),
             iconDrawablePaddingOriginalPx = iconDrawablePaddingOriginalPx,
             desiredWorkspaceHorizontalMarginOriginalPx = desiredWorkspaceHorizontalMarginOriginalPx,
+            workspaceContentScale = res.getFloat(R.dimen.workspace_content_scale),
+            workspaceSpringLoadedMinNextPageVisiblePx =
+                res.getDimensionPixelSize(
+                    R.dimen.dynamic_grid_spring_loaded_min_next_space_visible
+                ),
+            workspaceCellPaddingXPx =
+                res.getDimensionPixelSize(R.dimen.dynamic_grid_cell_padding_x),
+            workspaceTopPadding = 0,
+            workspaceBottomPadding = 0,
+            maxEmptySpace = 0,
         )
     }
 
