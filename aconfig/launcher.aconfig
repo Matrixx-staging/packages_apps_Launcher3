@@ -380,17 +380,6 @@ flag {
 }
 
 flag {
-  name: "external_data_access"
-  namespace: "launcher"
-  description: "For LauncherProvider bug fixes and new static permissions as part of the cross oem backup / restore effort."
-  bug: "395145453"
-  is_fixed_read_only: true
-  metadata {
-    purpose: PURPOSE_BUGFIX
-  }
-}
-
-flag {
   name: "restore_archived_shortcuts"
   namespace: "launcher"
   description: "Makes sure pre-archived pinned shortcuts also get restored"
@@ -550,6 +539,13 @@ flag {
   name: "model_repository"
   namespace: "launcher"
   description: "Adds various data repositories for the model"
+  bug: "390572144"
+}
+
+flag {
+  name: "simplified_launcher_model_binding"
+  namespace: "launcher"
+  description: "Simplified approach to binding launcher model asynchronously"
   bug: "390572144"
 }
 

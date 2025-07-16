@@ -331,12 +331,6 @@ private constructor(appContext: Context, dispatcherProvider: DispatcherProvider)
     }
 }
 
-inline fun <reified T> RecentsDependencies.Companion.inject(
-    scope: Any = "",
-    vararg extras: Pair<String, Any>,
-    noinline factory: ((extras: RecentsDependenciesExtras) -> T)? = null,
-): Lazy<T> = lazy { get(scope, RecentsDependenciesExtras(extras), factory) }
-
 inline fun <reified T> RecentsDependencies.Companion.get(
     scope: Any = "",
     extras: RecentsDependenciesExtras = RecentsDependenciesExtras(),

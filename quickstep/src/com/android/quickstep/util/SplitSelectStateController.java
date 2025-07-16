@@ -27,6 +27,7 @@ import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCH
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT;
+import static com.android.internal.jank.Cuj.CUJ_DESKTOP_MODE_MOVE_TO_SPLIT_SCREEN;
 import static com.android.quickstep.util.SplitSelectDataHolder.SPLIT_PENDINGINTENT_PENDINGINTENT;
 import static com.android.quickstep.util.SplitSelectDataHolder.SPLIT_PENDINGINTENT_TASK;
 import static com.android.quickstep.util.SplitSelectDataHolder.SPLIT_SHORTCUT_TASK;
@@ -988,6 +989,8 @@ public class SplitSelectStateController {
                 anim.addListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationStart(Animator animation) {
+                        InteractionJankMonitorWrapper.begin(
+                                floatingTaskView, CUJ_DESKTOP_MODE_MOVE_TO_SPLIT_SCREEN);
                         if (!isBugfixFlagEnabled) {
                             finishController.run();
                             return;
@@ -1002,6 +1005,7 @@ public class SplitSelectStateController {
                     }
                     @Override
                     public void onAnimationEnd(Animator animation) {
+                        InteractionJankMonitorWrapper.end(CUJ_DESKTOP_MODE_MOVE_TO_SPLIT_SCREEN);
                         SystemUiProxy.INSTANCE.get(mLauncher.getApplicationContext())
                                 .onDesktopSplitSelectAnimComplete(mTaskInfo);
                         if (isBugfixFlagEnabled) {
@@ -1013,6 +1017,7 @@ public class SplitSelectStateController {
                     }
                     @Override
                     public void onAnimationCancel(Animator animation) {
+                        InteractionJankMonitorWrapper.cancel(CUJ_DESKTOP_MODE_MOVE_TO_SPLIT_SCREEN);
                         mLauncher.getDragLayer().removeView(floatingTaskView);
                         getSplitAnimationController().removeSplitInstructionsView(mLauncher);
                         if (isBugfixFlagEnabled) {
@@ -1064,10 +1069,12 @@ public class SplitSelectStateController {
                         mLauncher, mLauncher.getDragLayer(),
                         getTaskThumbnail(mTaskInfo),
                         mAppIcon, /* positionOut= */ new RectF());
-                floatingTaskView.setOnClickListener(view ->
-                        getSplitAnimationController()
-                                .playAnimPlaceholderToFullscreen(mContainer, view,
-                                        Optional.of(() -> resetState())));
+                floatingTaskView.setOnClickListener(view -> {
+                    InteractionJankMonitorWrapper.cancel(CUJ_DESKTOP_MODE_MOVE_TO_SPLIT_SCREEN);
+                    getSplitAnimationController()
+                            .playAnimPlaceholderToFullscreen(mContainer, view,
+                                    Optional.of(() -> resetState()));
+                });
                 if (isBugfixFlagEnabled) {
                     floatingTaskView.setUseFitXYThumbnailScale();
                 }

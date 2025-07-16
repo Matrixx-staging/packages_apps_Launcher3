@@ -343,6 +343,13 @@ public class ItemInfo {
     }
 
     /**
+     * Returns if an Item is in the All Apps container.
+     */
+    public boolean isInAllApps() {
+        return container == CONTAINER_ALL_APPS || container == CONTAINER_ALL_APPS_PREDICTION;
+    }
+
+    /**
      * Returns whether this item should use the background animation.
      */
     public boolean shouldUseBackgroundAnimation() {

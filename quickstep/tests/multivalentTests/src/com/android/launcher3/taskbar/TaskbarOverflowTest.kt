@@ -54,6 +54,7 @@ import com.android.launcher3.taskbar.rules.TaskbarSandboxComponent
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.InjectController
 import com.android.launcher3.taskbar.rules.TaskbarWindowSandboxContext
+import com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.LauncherMultivalentJUnit.EmulatedDevices
 import com.android.launcher3.util.Preconditions.assertNotNull
@@ -418,6 +419,11 @@ class TaskbarOverflowTest {
             .containsExactlyElementsIn(0..targetOverflowSize)
 
         runOnMainSync { keyboardQuickSwitchController.launchFocusedTask() }
+
+        // `keyboardQuickSwitchController.launchFocusedTask()` will post a task to activate target
+        // desk to `UI_HELPER_EXECUTOR`. Flush the executor to make sure the task runs before
+        // verifying mocks.
+        UI_HELPER_EXECUTOR.submit<Any?> { null }.get()
 
         val deskIdCaptor = argumentCaptor<Int>()
         val taskIdCaptor = argumentCaptor<Int>()

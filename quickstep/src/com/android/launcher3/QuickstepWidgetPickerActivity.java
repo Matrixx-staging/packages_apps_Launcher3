@@ -35,7 +35,6 @@ import android.os.Bundle;
 import android.os.UserHandle;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowInsetsController;
 import android.window.BackEvent;
 import android.window.OnBackAnimationCallback;
 import android.window.OnBackInvokedDispatcher;
@@ -147,15 +146,14 @@ public class QuickstepWidgetPickerActivity extends
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setWidgetPickerConfig(parseIntentExtras());
-
         super.onCreate(savedInstanceState);
 
-        if (!Flags.enableWidgetPickerRefactor() || !ComposeFacade.INSTANCE.isComposeAvailable()) {
-            if (getWidgetPickerConfig().getUiSurface().equals(LOCKSCREEN_WIDGETS_HUB_UI_SURFACE)) {
-                WindowInsetsController wc = getDragLayer().getWindowInsetsController();
-                wc.hide(navigationBars() + statusBars());
-            }
+        if (getWidgetPickerConfig().getUiSurface().equals(LOCKSCREEN_WIDGETS_HUB_UI_SURFACE)) {
+            getWindow().getDecorView().getWindowInsetsController().hide(
+                    navigationBars() + statusBars());
+        }
 
+        if (!Flags.enableWidgetPickerRefactor() || !ComposeFacade.INSTANCE.isComposeAvailable()) {
             LauncherAppComponent component = LauncherComponentProvider.get(this);
             InvariantDeviceProfile idp = component.getIDP();
             mDeviceProfile = idp.getDeviceProfile(this);

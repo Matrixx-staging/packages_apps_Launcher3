@@ -380,7 +380,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                                 UI_HELPER_EXECUTOR.getHandler(), getMainThreadHandler())),
                 new TaskbarKeyguardController(this),
                 new StashedHandleViewController(this, stashedHandleView),
-                new TaskbarStashController(this),
+                new TaskbarStashController(this, mTaskbarUiState),
                 new TaskbarAutohideSuspendController(this),
                 new TaskbarPopupController(this),
                 new TaskbarForceVisibleImmersiveController(this),
@@ -2123,6 +2123,13 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         if (isTransientTaskbar()) {
             mControllers.taskbarStashController.updateAndAnimateTransientTaskbar(false);
         }
+    }
+
+    /** Removes bubble bar if present on the screen */
+    @VisibleForTesting
+    public void removeAllBubbles() {
+        mControllers.bubbleControllers.ifPresent(
+                controllers -> controllers.bubbleBarViewController.onDismissAllBubbles());
     }
 
     /** Unstashes the Bubble Bar if it is stashed. */

@@ -36,7 +36,6 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.app.ActivityOptions;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -237,6 +236,11 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
     @Override
     public SplitSelectStateController getSplitSelectStateController() {
         return mSplitSelectStateController;
+    }
+
+    @Override
+    public void goToRecentsState(RecentsState recentsState, boolean animated) {
+        getStateManager().goToState(recentsState, animated);
     }
 
     @Override
@@ -471,8 +475,7 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
 
     @Override
     public void onBackPressed() {
-        // TODO: Launch the task we came from
-        startHome();
+        getStateManager().getState().onBackInvoked(this);
     }
 
     public void startHome() {

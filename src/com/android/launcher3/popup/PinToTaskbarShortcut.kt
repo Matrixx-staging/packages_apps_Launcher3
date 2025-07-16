@@ -23,7 +23,6 @@ import androidx.annotation.VisibleForTesting
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.Launcher
 import com.android.launcher3.LauncherAppState
-import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
 import com.android.launcher3.R
 import com.android.launcher3.Workspace.mapOverCellLayouts
@@ -69,7 +68,7 @@ constructor(
 
         if (!mIsPin) {
             var infoToUnpin = mItemInfo
-            if (mItemInfo.container == CONTAINER_ALL_APPS) {
+            if (mItemInfo.isInAllApps) {
                 for (i in 0..<mPinnedInfoList.size()) {
                     if (
                         mPinnedInfoList.valueAt(i)?.getComponentKey() == mItemInfo.getComponentKey()

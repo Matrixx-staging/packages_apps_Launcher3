@@ -18,12 +18,10 @@ package com.android.launcher3.uioverrides.states;
 import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_OVERVIEW;
 
-import android.graphics.Rect;
-
 import com.android.launcher3.Launcher;
-import com.android.launcher3.LauncherState;
+import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.views.ActivityContext;
-import com.android.quickstep.views.RecentsView;
+import com.android.quickstep.fallback.RecentsState;
 
 /**
  * An Overview state that shows the current task in a modal fashion. Modal state is where the
@@ -50,10 +48,7 @@ public class OverviewModalTaskState extends OverviewState {
 
     @Override
     public float[] getOverviewScaleAndOffset(Launcher launcher) {
-        if (enableGridOnlyOverview()) {
-            return super.getOverviewScaleAndOffset(launcher);
-        }
-        return getOverviewScaleAndOffsetForModalState(launcher.getOverviewPanel());
+        return RecentsState.MODAL_TASK.getOverviewScaleAndOffset((QuickstepLauncher) launcher);
     }
 
     @Override
@@ -62,26 +57,10 @@ public class OverviewModalTaskState extends OverviewState {
     }
 
     @Override
-    public void onBackInvoked(Launcher launcher) {
-        launcher.getStateManager().goToState(LauncherState.OVERVIEW);
-    }
-
-    @Override
     public boolean isTaskbarStashed(Launcher launcher) {
         if (enableGridOnlyOverview()) {
             return true;
         }
         return super.isTaskbarStashed(launcher);
-    }
-
-    public static float[] getOverviewScaleAndOffsetForModalState(RecentsView recentsView) {
-        Rect taskSize = recentsView.getSelectedTaskBounds();
-        Rect modalTaskSize = new Rect();
-        recentsView.getModalTaskSize(modalTaskSize);
-
-        float scale = Math.min((float) modalTaskSize.height() / taskSize.height(),
-                (float) modalTaskSize.width() / taskSize.width());
-
-        return new float[] {scale, NO_OFFSET};
     }
 }

@@ -157,6 +157,8 @@ public final class TestProtocol {
 
     public static final String REQUEST_GET_BUBBLE_BAR_DROP_TARGET_SIZE =
             "request-get-bubble-bar-drop-target-size";
+    public static final String REQUEST_COLLAPSE_BUBBLE_BAR =
+            "request-collapse-bubble-bar";
     public static final String REQUEST_GET_OVERVIEW_CURRENT_PAGE_INDEX =
             "get-overview-current-page-index";
     public static final String REQUEST_GET_OVERVIEW_FIRST_TASKVIEW_INDEX =

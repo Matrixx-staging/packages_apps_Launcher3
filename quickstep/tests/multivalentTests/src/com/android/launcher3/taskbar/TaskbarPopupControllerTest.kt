@@ -160,4 +160,20 @@ class TaskbarPopupControllerTest {
             AbstractFloatingView.TYPE_ACTION_POPUP,
         )
     }
+
+    @Test
+    fun createPinShortcut_forAllAppsPredictedApp_returnsShortcut() {
+        val item = ItemInfo()
+        item.container = LauncherSettings.Favorites.CONTAINER_ALL_APPS_PREDICTION
+        val shortcut =
+            popupController.createPinShortcut(
+                taskbarContext,
+                item,
+                Mockito.mock(BubbleTextView::class.java),
+            )
+        Assert.assertNotNull(
+            "Pin shortcut should be available for predicted All Apps items",
+            shortcut,
+        )
+    }
 }

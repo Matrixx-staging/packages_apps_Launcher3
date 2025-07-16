@@ -15,17 +15,24 @@
  */
 package com.android.quickstep
 
+import android.platform.test.annotations.EnableFlags
 import android.platform.test.rule.AllowedDevices
 import android.platform.test.rule.DeviceProduct
 import android.platform.test.rule.IgnoreLimit
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.Until
 import com.android.launcher3.BuildConfig
+import com.android.launcher3.Flags.FLAG_ENABLE_DESKTOP_EXPLODED_VIEW
+import com.android.launcher3.LauncherState
+import com.android.launcher3.tapl.BaseOverview
 import com.android.launcher3.tapl.LaunchedAppState
 import com.android.launcher3.tapl.OverviewTask
 import com.android.launcher3.util.TestUtil
 import com.android.launcher3.util.ui.PortraitLandscapeRunner.PortraitLandscape
+import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
+import java.util.function.Supplier
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -40,18 +47,48 @@ class TaplTestsOverviewDesktop : AbstractQuickStepTest() {
         mLauncher.goHome()
     }
 
+    @EnableFlags(FLAG_ENABLE_DESKTOP_EXPLODED_VIEW)
+    @Test
+    fun testAllTasksRemovalFromCloseButtonInExplodedView() {
+        val desktopTaskView =
+            mLauncher.workspace
+                .switchToOverview()
+                // Move last launched TEST_ACTIVITY_2 into Desktop
+                .moveTaskToDesktop(TEST_ACTIVITY_2)
+                .switchToOverview()
+                // Scroll back to TEST_ACTIVITY_1, then move it into Desktop
+                .apply { flingForward() }
+                .moveTaskToDesktop(TEST_ACTIVITY_1)
+                .switchToOverview()
+                .currentTask
+
+        // There should be two desktop thumbnail views in Overview.
+        assertThat(desktopTaskView.getDesktopThumbnailViewCount()).isEqualTo(2)
+
+        // Tap on the close button of [TEST_ACTIVITY_1]'s thumbnail view header.
+        desktopTaskView.tapCloseDesktopThumbnailView(TEST_ACTIVITY_1)
+        assertThat(desktopTaskView.getDesktopThumbnailViewCount()).isEqualTo(1)
+
+        // Tap on the second close button. Since there will be no thumbnail windows and no other
+        // task view tiles, Overview should have dismissed.
+        desktopTaskView.tapCloseDesktopThumbnailView(TEST_ACTIVITY_2)
+        assertTrue(
+            "Launcher internal state is not Workspace",
+            isInState(Supplier { LauncherState.NORMAL }),
+        )
+    }
+
     @Test
     @PortraitLandscape
     fun enterDesktopViaOverviewMenu() {
-        mLauncher.workspace.switchToOverview()
-        moveTaskToDesktop(TEST_ACTIVITY_2) // Move last launched TEST_ACTIVITY_2 into Desktop
-
+        // Move last launched TEST_ACTIVITY_2 into Desktop
+        mLauncher.workspace.switchToOverview().moveTaskToDesktop(TEST_ACTIVITY_2)
         // Scroll back to TEST_ACTIVITY_1, then move it into Desktop
         mLauncher
             .goHome()
             .switchToOverview()
             .apply { flingForward() }
-            .also { moveTaskToDesktop(TEST_ACTIVITY_1) }
+            .moveTaskToDesktop(TEST_ACTIVITY_1)
         TEST_ACTIVITIES.forEach { assertTestAppLaunched(it) }
 
         // Launch static DesktopTaskView without live tile in Overview
@@ -78,8 +115,7 @@ class TaplTestsOverviewDesktop : AbstractQuickStepTest() {
     @PortraitLandscape
     fun dismissFocusedTasks_thenDesktopIsCentered() {
         // Create DesktopTaskView
-        mLauncher.goHome().switchToOverview()
-        moveTaskToDesktop(TEST_ACTIVITY_2)
+        mLauncher.goHome().switchToOverview().moveTaskToDesktop(TEST_ACTIVITY_2)
 
         // Create a new task activity to be the focused task
         mLauncher.goHome()
@@ -112,18 +148,21 @@ class TaplTestsOverviewDesktop : AbstractQuickStepTest() {
     fun dismissTasks_whenDesktopTask_IsInTheCenter() {
         // Create extra activity to be DesktopTaskView
         startTestActivity(TEST_ACTIVITY_EXTRA)
-        mLauncher.goHome().switchToOverview()
-
-        val desktop = moveTaskToDesktop(TEST_ACTIVITY_EXTRA)
-        var overview = desktop.switchToOverview()
 
         // Open first fullscreen task and go back to Overview to validate whether it has adjacent
         // tasks in its both sides (grid task on left and desktop tasks at its right side)
-        val firstFullscreenTaskOpened = overview.getTestActivityTask(TEST_ACTIVITY_2).open()
+        val firstFullscreenTaskOpened =
+            mLauncher
+                .goHome()
+                .switchToOverview()
+                .moveTaskToDesktop(TEST_ACTIVITY_EXTRA)
+                .switchToOverview()
+                .getTestActivityTask(TEST_ACTIVITY_2)
+                .open()
 
         // Fling to desktop task and dismiss the first fullscreen task to check repositioning of
         // grid tasks.
-        overview = firstFullscreenTaskOpened.switchToOverview().apply { flingBackward() }
+        val overview = firstFullscreenTaskOpened.switchToOverview().apply { flingBackward() }
         val desktopTask = overview.currentTask
         assertWithMessage("The current task is not a Desktop.").that(desktopTask.isDesktop).isTrue()
 
@@ -151,14 +190,6 @@ class TaplTestsOverviewDesktop : AbstractQuickStepTest() {
             .isTrue()
     }
 
-    private fun moveTaskToDesktop(activityIndex: Int): LaunchedAppState {
-        return mLauncher.overview
-            .getTestActivityTask(activityIndex)
-            .tapMenu()
-            .tapDesktopMenuItem()
-            .also { assertTestAppLaunched(activityIndex) }
-    }
-
     private fun startTestAppsWithCheck() {
         TEST_ACTIVITIES.forEach {
             startTestActivity(it)
@@ -181,6 +212,14 @@ class TaplTestsOverviewDesktop : AbstractQuickStepTest() {
                 )
             )
             .isTrue()
+    }
+
+    private fun BaseOverview.moveTaskToDesktop(activityIndex: Int): LaunchedAppState {
+        return mLauncher.overview
+            .getTestActivityTask(activityIndex)
+            .tapMenu()
+            .tapDesktopMenuItem()
+            .also { assertTestAppLaunched(activityIndex) }
     }
 
     companion object {

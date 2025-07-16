@@ -187,7 +187,7 @@ public class TaskbarControllers {
         taskbarEduTooltipController.init(this, taskbarUiState);
         keyboardQuickSwitchController.init(this);
         taskbarPinningController.init(this, mSharedState);
-        taskbarDesktopModeController.init(this, mSharedState);
+        taskbarDesktopModeController.init(this, mSharedState, taskbarUiState);
         nudgeController.init(this);
 
         mControllersToLog = new LoggableTaskbarController[] {

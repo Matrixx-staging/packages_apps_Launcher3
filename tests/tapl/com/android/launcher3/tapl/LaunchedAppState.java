@@ -112,10 +112,7 @@ public final class LaunchedAppState extends Background {
      * The bubble bar must already be visible when calling this method.
      */
     public BubbleBar getBubbleBar() {
-        try (LauncherInstrumentation.Closable c = mLauncher.addContextLayer(
-                "want to get the bubble bar")) {
-            return new BubbleBar(mLauncher);
-        }
+        return mLauncher.getBubbleBar();
     }
 
     /**

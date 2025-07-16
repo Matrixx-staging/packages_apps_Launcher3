@@ -60,8 +60,8 @@ class PersistentBubbleStashController(
                 // if there are no bubbles, there's nothing to show, so just return.
                 return
             }
-            if (transitionFromHome && inAppDisplayOverrideProgress != 0f) {
-                // was on -1 page and leaving it, - reset the inAppDisplayOverrideProgress
+            if (field == BubbleLauncherState.OVERVIEW && inAppDisplayOverrideProgress != 0f) {
+                // we will never return to launcher -1 page from the overview state
                 inAppDisplayOverrideProgress = 0f
             }
             if (transitionFromHome || field == BubbleLauncherState.HOME) {

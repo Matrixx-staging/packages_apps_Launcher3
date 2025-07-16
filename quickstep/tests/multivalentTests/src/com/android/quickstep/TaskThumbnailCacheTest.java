@@ -32,6 +32,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 
 import com.android.launcher3.R;
+import com.android.launcher3.util.coroutines.ProductionDispatchers;
 import com.android.quickstep.util.TaskKeyCache;
 
 import org.junit.Before;
@@ -66,7 +67,7 @@ public class TaskThumbnailCacheTest {
         when(mTaskKeyCache.getMaxSize()).thenReturn(3);
         when(mResource.getInteger((R.integer.recentsThumbnailCacheSize))).thenReturn(8);
         TaskThumbnailCache thumbnailCache = new TaskThumbnailCache(mContext, mock(Executor.class),
-                mTaskKeyCache);
+                mTaskKeyCache, ProductionDispatchers.INSTANCE);
 
         // Preload is needed when increasing size
         assertTrue(thumbnailCache.updateCacheSizeAndRemoveExcess());
@@ -79,7 +80,7 @@ public class TaskThumbnailCacheTest {
         when(mTaskKeyCache.getMaxSize()).thenReturn(8);
         when(mResource.getInteger((R.integer.recentsThumbnailCacheSize))).thenReturn(3);
         TaskThumbnailCache thumbnailCache = new TaskThumbnailCache(mContext, mock(Executor.class),
-                mTaskKeyCache);
+                mTaskKeyCache, ProductionDispatchers.INSTANCE);
         // Preload is not needed when decreasing size
         assertFalse(thumbnailCache.updateCacheSizeAndRemoveExcess());
         verify(mTaskKeyCache, times(1)).updateCacheSizeAndRemoveExcess(3);
@@ -90,7 +91,7 @@ public class TaskThumbnailCacheTest {
         when(mTaskKeyCache.getMaxSize()).thenReturn(3);
         when(mResource.getInteger((R.integer.recentsThumbnailCacheSize))).thenReturn(3);
         TaskThumbnailCache thumbnailCache = new TaskThumbnailCache(mContext, mock(Executor.class),
-                mTaskKeyCache);
+                mTaskKeyCache, ProductionDispatchers.INSTANCE);
         // Preload is not needed when it has the same cache size
         assertFalse(thumbnailCache.updateCacheSizeAndRemoveExcess());
         verify(mTaskKeyCache, never()).updateCacheSizeAndRemoveExcess(anyInt());

@@ -613,9 +613,9 @@ public class CellLayout extends ViewGroup {
     protected void visualizeGrid(Canvas canvas) {
         DeviceProfile dp = mActivity.getDeviceProfile();
         int paddingX = Math.min((mCellWidth - dp.getWorkspaceIconProfile().getIconSizePx()) / 2,
-                dp.gridVisualizationPaddingX);
+                dp.mWorkspaceProfile.getGridVisualizationPaddingX());
         int paddingY = Math.min((mCellHeight - dp.getWorkspaceIconProfile().getIconSizePx()) / 2,
-                dp.gridVisualizationPaddingY);
+                dp.mWorkspaceProfile.getGridVisualizationPaddingY());
 
         mVisualizeGridPaint.setStrokeWidth(8);
 

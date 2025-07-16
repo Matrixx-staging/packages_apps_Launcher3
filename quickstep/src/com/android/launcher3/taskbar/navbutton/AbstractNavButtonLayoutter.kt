@@ -19,7 +19,7 @@ package com.android.launcher3.taskbar.navbutton
 import android.content.res.Resources
 import android.graphics.drawable.RotateDrawable
 import android.net.Uri
-import android.provider.Settings.Secure.NAV_BAR_ORDER
+import android.provider.Settings.Secure.NAVIGATIONBAR_KEY_ORDER
 import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -57,7 +57,7 @@ abstract class AbstractNavButtonLayoutter(
 ) : NavButtonLayoutter {
 
     open val orientation: Int = LinearLayout.HORIZONTAL
-    private val orderUri: Uri = android.provider.Settings.Secure.getUriFor(NAV_BAR_ORDER)
+    private val orderUri: Uri = android.provider.Settings.Secure.getUriFor(NAVIGATIONBAR_KEY_ORDER)
 
     init {
         // setup back button drawable

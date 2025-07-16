@@ -33,6 +33,7 @@ import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.ScrimView;
 import com.android.quickstep.BaseContainerInterface;
+import com.android.quickstep.fallback.RecentsState;
 import com.android.quickstep.util.SplitSelectStateController;
 
 /**
@@ -193,4 +194,12 @@ public interface RecentsViewContainer extends ActivityContext {
      * Returns the Split Select State Controller
      */
     SplitSelectStateController getSplitSelectStateController();
+
+    /**
+     * Changes the state to the provided {@link RecentsState} or equivalent.
+     *
+     * @param animated false if the state should change immediately without any animation,
+     *                true otherwise
+     */
+    void goToRecentsState(RecentsState recentsState, boolean animated);
 }

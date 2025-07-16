@@ -235,6 +235,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
     }
 
     private final TaskbarActivityContext mActivity;
+    private final TaskbarUiState mTaskbarUiState;
     private final int mStashedHeight;
     private final int mUnstashedHeight;
     private final SystemUiProxy mSystemUiProxy;
@@ -295,8 +296,9 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
     @VisibleForTesting
     Boolean mNavbarHiddenOverrideForTest = null;
 
-    public TaskbarStashController(TaskbarActivityContext activity) {
+    public TaskbarStashController(TaskbarActivityContext activity, TaskbarUiState taskbarUiState) {
         mActivity = activity;
+        mTaskbarUiState = taskbarUiState;
         mSystemUiProxy = SystemUiProxy.INSTANCE.get(activity);
         mAccessibilityManager = mActivity.getSystemService(AccessibilityManager.class);
 
@@ -1295,6 +1297,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
         } else {
             mState &= ~flag;
         }
+        mTaskbarUiState.setStashStateRef(mState);
         return mState != oldState;
     }
 
