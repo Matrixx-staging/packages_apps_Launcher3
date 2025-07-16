@@ -1049,6 +1049,21 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         return makeDefaultActivityOptions(SPLASH_SCREEN_STYLE_UNDEFINED);
     }
 
+    /**
+     * Returns activity options for launching a single activity from the taskbar on the display
+     * associated with the taskbar.
+     */
+    private ActivityOptionsWrapper getSingleActivityLaunchOptions(@Nullable ItemInfo item) {
+        final ActivityOptionsWrapper opts = getActivityLaunchOptions(null, item);
+        opts.options.setLaunchDisplayId(getDisplayId());
+        // Launch single non-desktop activities in fullscreen to match launches from the
+        // hotseat. This needs to be explicitly set to ensure that tasks in other windowing
+        // modes are moved to fullscreen as well (otherwise they are shown in their existing
+        // mode)
+        opts.options.setLaunchWindowingMode(WINDOWING_MODE_FULLSCREEN);
+        return opts;
+    }
+
     private ActivityOptionsWrapper getActivityLaunchDesktopOptions() {
         ActivityOptions options = ActivityOptions.makeRemoteTransition(
                 createDesktopAppLaunchRemoteTransition(
@@ -1654,15 +1669,16 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                                     TestProtocol.SEQUENCE_MAIN, "start: taskbarPromiseIcon");
                             intent = ApiWrapper.INSTANCE.get(this).getAppMarketActivityIntent(
                                     info.getTargetPackage(), Process.myUserHandle());
-                            startActivity(intent);
-
+                            startActivity(intent, getSingleActivityLaunchOptions(info).toBundle());
                         } else if (info.itemType == Favorites.ITEM_TYPE_DEEP_SHORTCUT) {
                             TestLogging.recordEvent(
                                     TestProtocol.SEQUENCE_MAIN, "start: taskbarDeepShortcut");
                             String id = info.getDeepShortcutId();
                             String packageName = intent.getPackage();
                             getSystemService(LauncherApps.class)
-                                    .startShortcut(packageName, id, null, null, info.user);
+                                    .startShortcut(packageName, id, null,
+                                            getSingleActivityLaunchOptions(info).toBundle(),
+                                            info.user);
                         } else {
                             launchFromTaskbar(recents, view, Collections.singletonList(info));
                         }
@@ -1924,12 +1940,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             if (shouldLaunchInDesktop(displayId, info)) {
                 launchDesktopApp(intent, info, displayId);
             } else {
-                // Launch single non-desktop activities in fullscreen to match launches from the
-                // hotseat. This needs to be explicitly set to ensure that tasks in other windowing
-                // modes are moved to fullscreen as well (otherwise they are shown in their existing
-                // mode)
-                opts.options.setLaunchWindowingMode(WINDOWING_MODE_FULLSCREEN);
-                startActivity(intent, opts.toBundle());
+                startActivity(intent, getSingleActivityLaunchOptions(info).toBundle());
             }
         } catch (NullPointerException | ActivityNotFoundException | SecurityException e) {
             Toast.makeText(this, R.string.activity_not_found, Toast.LENGTH_SHORT)
