@@ -87,7 +87,6 @@ import com.android.quickstep.TaskViewUtils
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler
 import com.android.quickstep.recents.di.RecentsDependencies
 import com.android.quickstep.recents.di.get
-import com.android.quickstep.recents.di.inject
 import com.android.quickstep.recents.domain.usecase.ThumbnailPosition
 import com.android.quickstep.recents.ui.viewmodel.TaskData
 import com.android.quickstep.recents.ui.viewmodel.TaskTileUiState
@@ -564,8 +563,8 @@ constructor(
                 dispatcherProvider = RecentsDependencies.get(context),
             )
         } else null
-    private val dispatcherProvider: DispatcherProvider by RecentsDependencies.inject()
-    private val coroutineScope: CoroutineScope by RecentsDependencies.inject()
+    private val dispatcherProvider: DispatcherProvider = RecentsDependencies.get(context)
+    private val coroutineScope: CoroutineScope = RecentsDependencies.get(context)
     private val coroutineJobs = mutableListOf<Job>()
 
     /**

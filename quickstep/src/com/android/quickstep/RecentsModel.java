@@ -49,6 +49,7 @@ import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.Executors.SimpleThreadFactory;
 import com.android.launcher3.util.LockedUserState;
 import com.android.launcher3.util.SafeCloseable;
+import com.android.launcher3.util.coroutines.DispatcherProvider;
 import com.android.quickstep.dagger.QuickstepBaseAppComponent;
 import com.android.quickstep.recents.data.RecentTasksDataSource;
 import com.android.quickstep.recents.data.TaskVisualsChangeNotifier;
@@ -116,12 +117,13 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
             DisplayController displayController,
             LockedUserState lockedUserState,
             Lazy<ThemeManager> themeManagerLazy,
-            DaggerSingletonTracker tracker
+            DaggerSingletonTracker tracker,
+            DispatcherProvider dispatcherProvider
             ) {
         // Lazily inject the ThemeManager and access themeManager once the device is
         // unlocked. See b/393248495 for details.
         this(context, new IconProvider(context), systemUiProxy, topTaskTracker,
-                displayController, lockedUserState, themeManagerLazy, tracker);
+                displayController, lockedUserState, themeManagerLazy, tracker, dispatcherProvider);
     }
 
     @SuppressLint("VisibleForTests")
@@ -132,7 +134,8 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
             DisplayController displayController,
             LockedUserState lockedUserState,
             Lazy<ThemeManager> themeManagerLazy,
-            DaggerSingletonTracker tracker) {
+            DaggerSingletonTracker tracker,
+            DispatcherProvider dispatcherProvider) {
         this(context,
                 new RecentTasksList(
                         context,
@@ -140,8 +143,9 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
                         context.getSystemService(KeyguardManager.class),
                         systemUiProxy,
                         topTaskTracker, tracker),
-                new TaskIconCache(context, RECENTS_MODEL_EXECUTOR, iconProvider, displayController),
-                new TaskThumbnailCache(context, RECENTS_MODEL_EXECUTOR),
+                new TaskIconCache(context, RECENTS_MODEL_EXECUTOR, iconProvider, displayController,
+                        dispatcherProvider),
+                new TaskThumbnailCache(context, RECENTS_MODEL_EXECUTOR, dispatcherProvider),
                 iconProvider,
                 TaskStackChangeListeners.getInstance(),
                 lockedUserState,
