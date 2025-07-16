@@ -30,6 +30,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.os.Process;
 import android.os.RemoteException;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.window.DesktopExperienceFlags;
 
@@ -208,6 +209,7 @@ public class RecentTasksList {
             Predicate<GroupTask> filter) {
         final int requestLoadId = mChangeId;
         if (mResultsUi.isValidForRequest(requestLoadId, loadKeysOnly)) {
+            Log.d("b/417220811", "getTasks - mResultsUi still valid: " + mResultsUi.mRequestId);
             // The list is up to date, send the callback on the next frame,
             // so that requestID can be returned first.
             if (callback != null) {
@@ -230,11 +232,13 @@ public class RecentTasksList {
         UI_HELPER_EXECUTOR.execute(() -> {
             if (!mResultsBg.isValidForRequest(requestLoadId, loadKeysOnly)) {
                 mResultsBg = loadTasksInBackground(Integer.MAX_VALUE, requestLoadId, loadKeysOnly);
+                Log.d("b/417220811", "getTasks - loadTasksInBackground: " + mResultsBg.mRequestId);
             }
             TaskLoadResult loadResult = mResultsBg;
             mMainThreadExecutor.execute(() -> {
                 mLoadingTasksInBackground = false;
                 mResultsUi = loadResult;
+                Log.d("b/417220811", "getTasks - updating mResultsUi: " + mResultsUi.mRequestId);
                 if (callback != null) {
                     // filter the tasks if needed before passing them into the callback
                     ArrayList<GroupTask> result = mResultsUi.stream().filter(filter)
@@ -264,6 +268,8 @@ public class RecentTasksList {
     }
 
     private synchronized void invalidateLoadedTasks() {
+        Log.d("b/417220811",
+                "invalidateLoadedTasks - previous requestLoadId: " + mResultsBg.mRequestId);
         UI_HELPER_EXECUTOR.execute(() -> mResultsBg = INVALID_RESULT);
         mResultsUi = INVALID_RESULT;
         mChangeId++;
@@ -372,6 +378,8 @@ public class RecentTasksList {
                 if (!enableLaterIsLockedCheck() && indexOfKey(key) < 0) {
                     // Fill the cached locked state as we fetch
                     put(key, mKeyguardManager.isDeviceLocked(key));
+                    Log.d("b/417220811",
+                            "loadTasksInBackground - isDeviceLocked(" + key + "): " + get(key));
                 }
                 return super.get(key);
             }
