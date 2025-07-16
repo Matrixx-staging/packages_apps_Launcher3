@@ -192,6 +192,8 @@ import com.android.quickstep.RecentsModel;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.TaskUtils;
 import com.android.quickstep.TouchInteractionService.TISBinder;
+import com.android.quickstep.fallback.RecentsState;
+import com.android.quickstep.fallback.RecentsStateUtilsKt;
 import com.android.quickstep.util.ActiveGestureProtoLogProxy;
 import com.android.quickstep.util.AsyncClockEventDelegate;
 import com.android.quickstep.util.LauncherUnfoldAnimationController;
@@ -1650,5 +1652,10 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     @Override
     public SplitSelectStateController getSplitSelectStateController() {
         return mSplitSelectStateController;
+    }
+
+    @Override
+    public void goToRecentsState(RecentsState recentsState, boolean animated) {
+        getStateManager().goToState(RecentsStateUtilsKt.toLauncherState(recentsState), animated);
     }
 }
