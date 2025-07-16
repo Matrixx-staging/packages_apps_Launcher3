@@ -103,7 +103,8 @@ public class WorkspaceTouchListener extends GestureDetector.SimpleOnGestureListe
 
                 mTempRect.set(insets.left, insets.top, dl.getWidth() - insets.right,
                         dl.getHeight() - insets.bottom);
-                mTempRect.inset(dp.edgeMarginPx, dp.edgeMarginPx);
+                mTempRect.inset(dp.mWorkspaceProfile.getEdgeMarginPx(),
+                        dp.mWorkspaceProfile.getEdgeMarginPx());
                 handleLongPress = mTempRect.contains((int) ev.getX(), (int) ev.getY());
             }
 

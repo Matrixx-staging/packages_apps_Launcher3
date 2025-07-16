@@ -20,6 +20,7 @@ import android.content.Context
 import android.content.res.Resources
 import android.content.res.TypedArray
 import android.graphics.Point
+import android.graphics.Rect
 import android.util.DisplayMetrics
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.R
@@ -27,6 +28,8 @@ import com.android.launcher3.Utilities
 import com.android.launcher3.Utilities.getIconSizeWithOverlap
 import com.android.launcher3.Utilities.getNormalizedIconDrawablePadding
 import com.android.launcher3.Utilities.pxFromSp
+import com.android.launcher3.deviceprofile.WorkspaceProfile.Factory.calculateHotseatBarSizePx
+import com.android.launcher3.deviceprofile.WorkspaceProfile.Factory.insetPadding
 import com.android.launcher3.testing.shared.ResourceUtils.INVALID_RESOURCE_HANDLE
 import com.android.launcher3.testing.shared.ResourceUtils.pxFromDp
 import kotlin.math.max
@@ -45,6 +48,73 @@ import kotlin.math.min
  * For reference please look at {@code WorkspaceProfile#Factory}.
  */
 object WorkspaceProfileNonResponsiveFactory {
+
+    fun createWorkspacePadding(
+        isVerticalLayout: Boolean,
+        isSeascape: Boolean,
+        isFixedLandscape: Boolean,
+        isScalableGrid: Boolean,
+        iconSize: Int,
+        desiredWorkspaceHorizontalMarginPx: Int,
+        insets: Rect,
+        edgeMarginPx: Int,
+        workspacePageIndicatorHeight: Int,
+        workspacePageIndicatorOverlapWorkspace: Int,
+        workspaceTopPadding: Int,
+        workspaceBottomPadding: Int,
+        hotseatProfile: HotseatProfile,
+        hotseatBarBottomSpacePx: Int,
+        hotseatQsbSpace: Int,
+    ): Rect {
+        // TODO : This is to update updateHotseatSizes, we need a better way to do
+        // this
+        val hotseatBarSizePx =
+            calculateHotseatBarSizePx(
+                iconSizePx = iconSize,
+                isVerticalLayout = isVerticalLayout,
+                hotseatProfile = hotseatProfile,
+                hotseatBarBottomSpacePx = hotseatBarBottomSpacePx,
+                hotseatQsbSpace = hotseatQsbSpace,
+                isQsbInline = isFixedLandscape,
+            )
+        if (isVerticalLayout) {
+            return Rect(
+                /* left */ if (isSeascape) hotseatBarSizePx else hotseatProfile.barEdgePaddingPx,
+                /* top */ 0,
+                /* right */ if (isSeascape) hotseatProfile.barEdgePaddingPx else hotseatBarSizePx,
+                /* bottom */ edgeMarginPx,
+            )
+        } else {
+            // Pad the bottom of the workspace with hotseat bar
+            // and leave a bit of space in case a widget go all the way down
+            val padding =
+                Rect(
+                    /*Left */
+                    desiredWorkspaceHorizontalMarginPx,
+                    /*Top */
+                    workspaceTopPadding + (if (isScalableGrid) 0 else edgeMarginPx),
+                    /*Right */
+                    desiredWorkspaceHorizontalMarginPx,
+                    /*Bottom */
+                    (hotseatBarSizePx - insets.bottom) +
+                        workspaceBottomPadding +
+                        (workspacePageIndicatorHeight - workspacePageIndicatorOverlapWorkspace),
+                )
+
+            // In fixed Landscape we don't need padding on the side next to the cutout because
+            // the cutout is already adding padding to all of Launcher, we only need on the other
+            // side
+            if (isFixedLandscape) {
+                return Rect(
+                    if (isSeascape) padding.left else 0,
+                    padding.top,
+                    if (isSeascape) 0 else padding.right,
+                    padding.bottom,
+                )
+            }
+            return padding
+        }
+    }
 
     fun hideWorkspaceLabelsIfNotEnoughSpace(
         cellSize: Point,
@@ -76,6 +146,7 @@ object WorkspaceProfileNonResponsiveFactory {
     fun createWorkspaceProfileNonScalable(
         res: Resources,
         deviceProperties: DeviceProperties,
+        inv: InvariantDeviceProfile,
         cellScaleToFit: Float,
         iconScale: Float,
         iconSizePx: Int,
@@ -84,6 +155,12 @@ object WorkspaceProfileNonResponsiveFactory {
         cellSize: Point,
         iconDrawablePaddingOriginalPx: Int,
         cellLayoutBorderSpacePx: Point,
+        isFirstPass: Boolean,
+        insets: Rect,
+        isSeascape: Boolean,
+        hotseatProfile: HotseatProfile,
+        hotseatBarBottomSpacePx: Int,
+        hotseatQsbSpace: Int,
     ): WorkspaceProfile {
         val desiredWorkspaceHorizontalMarginOriginalPx =
             when {
@@ -111,6 +188,41 @@ object WorkspaceProfileNonResponsiveFactory {
             cellHeightPx -= (iconDrawablePaddingPx - cellPaddingY)
             iconDrawablePaddingPx = cellPaddingY
         }
+        val edgeMarginPx = res.getDimensionPixelSize(R.dimen.dynamic_grid_edge_margin)
+        val desiredWorkspaceHorizontalMarginPx = desiredWorkspaceHorizontalMarginOriginalPx
+        val workspacePageIndicatorHeight =
+            res.getDimensionPixelSize(R.dimen.workspace_page_indicator_height)
+        val workspacePageIndicatorOverlapWorkspace =
+            res.getDimensionPixelSize(R.dimen.workspace_page_indicator_overlap_workspace)
+        val noInsetWorkspacePadding =
+            createWorkspacePadding(
+                isVerticalLayout = isVerticalLayout,
+                isSeascape = isSeascape,
+                isFixedLandscape = inv.isFixedLandscape,
+                isScalableGrid = false,
+                hotseatProfile = hotseatProfile,
+                desiredWorkspaceHorizontalMarginPx = desiredWorkspaceHorizontalMarginPx,
+                insets = insets,
+                edgeMarginPx = edgeMarginPx,
+                workspacePageIndicatorHeight = workspacePageIndicatorHeight,
+                workspacePageIndicatorOverlapWorkspace = workspacePageIndicatorOverlapWorkspace,
+                workspaceTopPadding = 0,
+                workspaceBottomPadding = 0,
+                iconSize = iconSizePx,
+                hotseatBarBottomSpacePx = hotseatBarBottomSpacePx,
+                hotseatQsbSpace = hotseatQsbSpace,
+            )
+        val cellLayoutPadding =
+            when {
+                isFirstPass -> 0
+                deviceProperties.isTwoPanels -> cellLayoutBorderSpacePx.x / 2
+                else -> res.getDimensionPixelSize(R.dimen.cell_layout_padding)
+            }
+        val (workspacePadding, cellLayoutPaddingPx) =
+            insetPadding(
+                noInsetWorkspacePadding,
+                Rect(cellLayoutPadding, cellLayoutPadding, cellLayoutPadding, cellLayoutPadding),
+            )
 
         return WorkspaceProfile(
             // Workspace icons
@@ -122,7 +234,7 @@ object WorkspaceProfileNonResponsiveFactory {
             cellWidthPx = cellWidthPx,
             cellHeightPx = cellHeightPx,
             cellLayoutBorderSpacePx = cellLayoutBorderSpacePx,
-            desiredWorkspaceHorizontalMarginPx = desiredWorkspaceHorizontalMarginOriginalPx,
+            desiredWorkspaceHorizontalMarginPx = desiredWorkspaceHorizontalMarginPx,
             cellYPaddingPx = -1,
             maxIconTextLineCount = 1,
             iconCenterVertically = false,
@@ -130,10 +242,8 @@ object WorkspaceProfileNonResponsiveFactory {
                 res.getDimensionPixelSize(R.dimen.grid_visualization_horizontal_cell_spacing),
             gridVisualizationPaddingY =
                 res.getDimensionPixelSize(R.dimen.grid_visualization_vertical_cell_spacing),
-            workspacePageIndicatorHeight =
-                res.getDimensionPixelSize(R.dimen.workspace_page_indicator_height),
-            workspacePageIndicatorOverlapWorkspace =
-                res.getDimensionPixelSize(R.dimen.workspace_page_indicator_overlap_workspace),
+            workspacePageIndicatorHeight = workspacePageIndicatorHeight,
+            workspacePageIndicatorOverlapWorkspace = workspacePageIndicatorOverlapWorkspace,
             iconDrawablePaddingOriginalPx = iconDrawablePaddingOriginalPx,
             desiredWorkspaceHorizontalMarginOriginalPx = desiredWorkspaceHorizontalMarginOriginalPx,
             workspaceContentScale = res.getFloat(R.dimen.workspace_content_scale),
@@ -146,6 +256,9 @@ object WorkspaceProfileNonResponsiveFactory {
             workspaceTopPadding = 0,
             workspaceBottomPadding = 0,
             maxEmptySpace = 0,
+            workspacePadding = workspacePadding,
+            cellLayoutPaddingPx = cellLayoutPaddingPx,
+            edgeMarginPx = edgeMarginPx,
         )
     }
 
@@ -163,6 +276,13 @@ object WorkspaceProfileNonResponsiveFactory {
         cellScaleToFit: Float,
         panelCount: Int,
         isVerticalLayout: Boolean,
+        isFirstPass: Boolean,
+        deviceProperties: DeviceProperties,
+        isSeascape: Boolean,
+        insets: Rect,
+        hotseatProfile: HotseatProfile,
+        hotseatBarBottomSpacePx: Int,
+        hotseatQsbSpace: Int,
     ): WorkspaceProfile {
         val desiredWorkspaceHorizontalMarginOriginalPx =
             when {
@@ -231,6 +351,43 @@ object WorkspaceProfileNonResponsiveFactory {
             cellContentHeight = iconSizePx + cellTextAndPaddingHeight
         }
 
+        val edgeMarginPx = res.getDimensionPixelSize(R.dimen.dynamic_grid_edge_margin)
+        val desiredWorkspaceHorizontalMarginPx =
+            (desiredWorkspaceHorizontalMarginOriginalPx * scale).toInt()
+        val workspacePageIndicatorHeight =
+            res.getDimensionPixelSize(R.dimen.workspace_page_indicator_height)
+        val workspacePageIndicatorOverlapWorkspace =
+            res.getDimensionPixelSize(R.dimen.workspace_page_indicator_overlap_workspace)
+        val noInsetWorkspacePadding =
+            createWorkspacePadding(
+                isVerticalLayout = isVerticalLayout,
+                isSeascape = isSeascape,
+                isFixedLandscape = inv.isFixedLandscape,
+                isScalableGrid = true,
+                hotseatProfile = hotseatProfile,
+                desiredWorkspaceHorizontalMarginPx = desiredWorkspaceHorizontalMarginPx,
+                insets = insets,
+                edgeMarginPx = edgeMarginPx,
+                workspacePageIndicatorHeight = workspacePageIndicatorHeight,
+                workspacePageIndicatorOverlapWorkspace = workspacePageIndicatorOverlapWorkspace,
+                workspaceTopPadding = 0,
+                workspaceBottomPadding = 0,
+                iconSize = iconSizePx,
+                hotseatBarBottomSpacePx = hotseatBarBottomSpacePx,
+                hotseatQsbSpace = hotseatQsbSpace,
+            )
+        val cellLayoutPadding =
+            when {
+                isFirstPass -> 0
+                deviceProperties.isTwoPanels -> cellLayoutBorderSpacePx.x / 2
+                else -> res.getDimensionPixelSize(R.dimen.cell_layout_padding)
+            }
+        val (workspacePadding, cellLayoutPaddingPx) =
+            insetPadding(
+                noInsetWorkspacePadding,
+                Rect(cellLayoutPadding, cellLayoutPadding, cellLayoutPadding, cellLayoutPadding),
+            )
+
         return WorkspaceProfile(
             // Workspace icons
             iconScale = iconScale,
@@ -241,8 +398,7 @@ object WorkspaceProfileNonResponsiveFactory {
             cellWidthPx = cellWidthPx,
             cellHeightPx = cellHeightPx,
             cellLayoutBorderSpacePx = cellLayoutBorderSpacePx,
-            desiredWorkspaceHorizontalMarginPx =
-                (desiredWorkspaceHorizontalMarginOriginalPx * scale).toInt(),
+            desiredWorkspaceHorizontalMarginPx = desiredWorkspaceHorizontalMarginPx,
             cellYPaddingPx = max(0, (cellHeightPx - cellContentHeight)) / 2,
             maxIconTextLineCount = 1,
             iconCenterVertically = isVerticalLayout,
@@ -250,10 +406,8 @@ object WorkspaceProfileNonResponsiveFactory {
                 res.getDimensionPixelSize(R.dimen.grid_visualization_horizontal_cell_spacing),
             gridVisualizationPaddingY =
                 res.getDimensionPixelSize(R.dimen.grid_visualization_vertical_cell_spacing),
-            workspacePageIndicatorHeight =
-                res.getDimensionPixelSize(R.dimen.workspace_page_indicator_height),
-            workspacePageIndicatorOverlapWorkspace =
-                res.getDimensionPixelSize(R.dimen.workspace_page_indicator_overlap_workspace),
+            workspacePageIndicatorHeight = workspacePageIndicatorHeight,
+            workspacePageIndicatorOverlapWorkspace = workspacePageIndicatorOverlapWorkspace,
             iconDrawablePaddingOriginalPx = iconDrawablePaddingOriginalPx,
             desiredWorkspaceHorizontalMarginOriginalPx = desiredWorkspaceHorizontalMarginOriginalPx,
             workspaceContentScale = res.getFloat(R.dimen.workspace_content_scale),
@@ -266,6 +420,9 @@ object WorkspaceProfileNonResponsiveFactory {
             workspaceTopPadding = 0,
             workspaceBottomPadding = 0,
             maxEmptySpace = 0,
+            workspacePadding = workspacePadding,
+            cellLayoutPaddingPx = cellLayoutPaddingPx,
+            edgeMarginPx = edgeMarginPx,
         )
     }
 
@@ -283,6 +440,12 @@ object WorkspaceProfileNonResponsiveFactory {
         panelCount: Int,
         cellLayoutBorderSpacePx: Point,
         iconSizePx: Int,
+        isFirstPass: Boolean,
+        insets: Rect,
+        isSeascape: Boolean,
+        hotseatProfile: HotseatProfile,
+        hotseatBarBottomSpacePx: Int,
+        hotseatQsbSpace: Int,
     ): WorkspaceProfile {
         // Icon scale should never exceed 1, otherwise pixellation may occur.
         val iconScale = min(1f, scale)
@@ -317,6 +480,13 @@ object WorkspaceProfileNonResponsiveFactory {
                         cellScaleToFit = cellScaleToFit,
                         panelCount = panelCount,
                         isVerticalLayout = isVerticalLayout,
+                        isFirstPass = isFirstPass,
+                        insets = insets,
+                        isSeascape = isSeascape,
+                        hotseatProfile = hotseatProfile,
+                        deviceProperties = deviceProperties,
+                        hotseatBarBottomSpacePx = hotseatBarBottomSpacePx,
+                        hotseatQsbSpace = hotseatQsbSpace,
                     )
                     .let { hideWorkspaceLabelsIfNotEnoughSpace(cellSize, isVerticalLayout, it) }
 
@@ -332,6 +502,13 @@ object WorkspaceProfileNonResponsiveFactory {
                         cellSize = cellSize,
                         iconDrawablePaddingOriginalPx = iconDrawablePaddingOriginalPx,
                         cellLayoutBorderSpacePx = cellLayoutBorderSpacePx,
+                        inv = inv,
+                        isFirstPass = isFirstPass,
+                        insets = insets,
+                        isSeascape = isSeascape,
+                        hotseatProfile = hotseatProfile,
+                        hotseatBarBottomSpacePx = hotseatBarBottomSpacePx,
+                        hotseatQsbSpace = hotseatQsbSpace,
                     )
                     .let { hideWorkspaceLabelsIfNotEnoughSpace(cellSize, isVerticalLayout, it) }
         }
