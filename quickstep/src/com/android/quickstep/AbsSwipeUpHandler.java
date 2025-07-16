@@ -443,7 +443,7 @@ public abstract class AbsSwipeUpHandler<
         if (refactorTaskbarUiState()) {
             TaskbarUiState taskbarUiState = TaskbarUiStateMonitor.INSTANCE.get(context)
                     .getTaskbarUiState(context.getDisplayId());
-            mTaskbarAlreadyOpen = taskbarUiState.isTaskbarStashedRef().getValue();
+            mTaskbarAlreadyOpen = !taskbarUiState.isTaskbarStashedRef().getValue();
             mIsTaskbarAllAppsOpen = taskbarUiState.isTaskbarAllAppsOpenRef().getValue();
         } else {
             TaskbarUIController controller = mContainerInterface.getTaskbarController();
@@ -2979,10 +2979,10 @@ public abstract class AbsSwipeUpHandler<
 
         // Mimic TaskbarActivityContext.isTransientTaskbar
         final DeviceProfile deviceProfile = mContainer.getDeviceProfile();
-        final boolean isInPhoneMode =  ENABLE_TASKBAR_NAVBAR_UNIFICATION
+        final boolean isInPhoneMode = ENABLE_TASKBAR_NAVBAR_UNIFICATION
                 && deviceProfile.getDeviceProperties().isPhone() && !deviceProfile.isTaskbarPresent;
         if (DisplayController.isTransientTaskbar(mContext)
-                && taskbarUiState.isPrimaryDisplayRef().getValue() && isInPhoneMode) {
+                && taskbarUiState.isPrimaryDisplayRef().getValue() && !isInPhoneMode) {
             return true;
         }
 
