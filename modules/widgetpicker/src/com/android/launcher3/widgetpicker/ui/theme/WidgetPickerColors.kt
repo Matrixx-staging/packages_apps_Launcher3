@@ -87,6 +87,7 @@ import androidx.compose.ui.graphics.Color
  * @param searchBarClearButtonIcon color of close icon button shown trailing in the search bar when
  *   user has typed some text.
  * @param searchBarCursor color of the cursor in the search bar
+ * @param focusOutline default color of the focus outlines on focusable items such as buttons.
  */
 @Stable
 @Immutable
@@ -148,6 +149,9 @@ data class WidgetPickerColors(
     val searchBarClearButtonIcon: Color,
     val searchBarBackButtonIcon: Color,
     val searchBarCursor: Color,
+
+    // Outline color
+    val focusOutline: Color,
 )
 
 /**
@@ -229,4 +233,5 @@ fun defaultWidgetPickerColors() =
         searchBarBackButtonIcon = MaterialTheme.colorScheme.onSurfaceVariant,
         searchBarClearButtonIcon = MaterialTheme.colorScheme.onSurfaceVariant,
         searchBarCursor = MaterialTheme.colorScheme.primary,
+        focusOutline = MaterialTheme.colorScheme.secondary,
     )

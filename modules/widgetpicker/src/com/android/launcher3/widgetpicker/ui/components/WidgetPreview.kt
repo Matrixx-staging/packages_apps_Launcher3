@@ -42,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -95,14 +96,19 @@ fun WidgetPreview(
 
     Box(
         modifier =
-            modifier.wrapContentSize().clickable(
-                interactionSource = interactionSource,
-                // no ripples for preview taps that toggle the add button.
-                indication = null,
-            ) {
-                haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-                onAddButtonToggle(id)
-            }
+            modifier
+                .wrapContentSize()
+                // Preview can be dragged and this container can be clicked. But we don't support
+                // keyboard focus as the details is focusable.
+                .focusProperties { canFocus = false }
+                .clickable(
+                    interactionSource = interactionSource,
+                    // no ripples for preview taps that toggle the add button.
+                    indication = null,
+                ) {
+                    haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                    onAddButtonToggle(id)
+                }
     ) {
         when (preview) {
             is WidgetPreview.PlaceholderWidgetPreview ->
@@ -205,6 +211,9 @@ private fun BitmapWidgetPreview(
                     imagePositionInParent = coordinates.positionInParent()
                 }
                 .fadeInWhenVisible("BitmapWidgetPreview")
+                // Preview can be dragged / clicked. But we don't support keyboard focus as
+                // the details is focusable.
+                .focusProperties { canFocus = false }
                 .pointerInput(bitmap) {
                     detectDragGesturesAfterLongPress(
                         onDrag = { change, _ -> change.consume() },
@@ -332,6 +341,9 @@ private fun RemoteViewsWidgetPreview(
         AndroidView(
             modifier =
                 Modifier.fadeInWhenVisible("RemoteViewsWidgetPreview")
+                    // Preview can be dragged / clicked. But we don't support keyboard focus as
+                    // the details is focusable.
+                    .focusProperties { canFocus = false }
                     .pointerInput(appWidgetHostView) {
                         detectDragGesturesAfterLongPress(
                             onDrag = { change, _ -> change.consume() },

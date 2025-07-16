@@ -106,6 +106,7 @@ fun darkWidgetPickerColors() =
         searchBarClearButtonIcon = colorResource(R.color.widget_picker_search_text_color_dark),
         searchBarBackButtonIcon = colorResource(R.color.widget_picker_search_text_color_dark),
         searchBarCursor = colorResource(R.color.widget_picker_search_cursor_color_dark),
+        focusOutline = colorResource(R.color.widget_picker_focus_outline_color_dark),
     )
 
 /**
@@ -194,4 +195,5 @@ fun lightWidgetPickerColors() =
         searchBarClearButtonIcon = colorResource(R.color.widget_picker_search_text_color_light),
         searchBarBackButtonIcon = colorResource(R.color.widget_picker_search_text_color_light),
         searchBarCursor = colorResource(R.color.widget_picker_search_cursor_color_light),
+        focusOutline = colorResource(R.color.widget_picker_focus_outline_color_light),
     )
