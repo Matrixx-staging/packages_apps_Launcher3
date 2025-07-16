@@ -237,7 +237,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
     private final Rect mFloatingRotationButtonBounds = new Rect();
 
     private final Uri mButtonOrderChangedUri = Settings.Secure.getUriFor(
-            Settings.Secure.NAV_BAR_ORDER);
+            Settings.Secure.NAVIGATIONBAR_KEY_ORDER);
 
     // Initialized in init.
     private TaskbarControllers mControllers;
