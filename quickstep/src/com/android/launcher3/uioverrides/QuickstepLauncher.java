@@ -25,8 +25,8 @@ import static com.android.app.animation.Interpolators.EMPHASIZED;
 import static com.android.internal.jank.Cuj.CUJ_LAUNCHER_LAUNCH_APP_PAIR_FROM_WORKSPACE;
 import static com.android.launcher3.Flags.enableExpressiveDismissTaskMotion;
 import static com.android.launcher3.Flags.enableOverviewBackgroundWallpaperBlur;
-import static com.android.launcher3.Flags.refactorTaskbarUiState;
 import static com.android.launcher3.Flags.enableUnfoldStateAnimation;
+import static com.android.launcher3.Flags.refactorTaskbarUiState;
 import static com.android.launcher3.LauncherConstants.SavedInstanceKeys.PENDING_SPLIT_SELECT_INFO;
 import static com.android.launcher3.LauncherConstants.SavedInstanceKeys.RUNTIME_STATE;
 import static com.android.launcher3.LauncherSettings.Animation.DEFAULT_NO_ICON;
@@ -101,6 +101,7 @@ import android.view.View;
 import android.widget.AnalogClock;
 import android.widget.TextClock;
 import android.window.BackEvent;
+import android.window.DesktopExperienceFlags;
 import android.window.OnBackAnimationCallback;
 import android.window.OnBackInvokedDispatcher;
 import android.window.RemoteTransition;
@@ -521,9 +522,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         // Order matters as it affects order of appearance in popup container
         List<SystemShortcut.Factory> shortcuts = new ArrayList(Arrays.asList(
                 APP_INFO, WellbeingModel.SHORTCUT_FACTORY, mHotseatPredictionController));
-
-        if (mTaskbarUIController != null
-                && mTaskbarUIController.canPinAppWithContextMenu()
+        if (canPinAppWithContextMenu()
                 && DisplayController.showDesktopTaskbarForFreeformDisplay(this)
                 && (container == CONTAINER_ALL_APPS
                 || container == CONTAINER_ALL_APPS_PREDICTION)) {
@@ -547,6 +546,24 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
             shortcuts.add(BUBBLE_SHORTCUT);
         }
         return shortcuts.stream();
+    }
+
+    /**
+     * When {@link refactorTaskbarUiState} is on, we mimic the impl of
+     * {@link TaskbarPopupController#canPinAppWithContextMenu}
+     */
+    private boolean canPinAppWithContextMenu() {
+        if (!refactorTaskbarUiState()) {
+            return mTaskbarUIController != null
+                    && mTaskbarUIController.canPinAppWithContextMenu();
+        }
+        if (!DesktopExperienceFlags.ENABLE_PINNING_APP_WITH_CONTEXT_MENU.isTrue()) {
+            return false;
+        }
+        return DesktopVisibilityController.INSTANCE.get(this).isInDesktopMode(getDisplayId())
+                || mTaskbarUiState.getShowDesktopTaskbarForFreeformDisplayRef().getValue()
+                || (mTaskbarUiState.getShowLockedTaskbarOnHome().getValue()
+                    && mTaskbarUiState.isTaskbarOnHomeRef().getValue());
     }
 
     private List<SystemShortcut.Factory<QuickstepLauncher>> getSplitShortcuts() {

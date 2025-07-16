@@ -28,6 +28,9 @@ import com.android.launcher3.util.MutableListenableRef
  * - [_isDraggingItemRef]: when ether bubble or taskbar is dragging item
  * - [_isTaskbarStashedRef]: when [TaskbarStashController.mIsStashed] has changed
  * - [_isTaskbarAllAppsOpenRef]: when [TaskbarAllAppsController.isOpen] has changed
+ * - [_isTaskbarOnHomeRef]: when [TaskbarStashController.mState] is changed
+ * - [_showDesktopTaskbarForFreeformDisplayRef]: when [DisplayInfo] is changed
+ * - [_showLockedTaskbarOnHome]: when [DisplayInfo] is changed
  */
 class TaskbarUiState {
 
@@ -36,6 +39,9 @@ class TaskbarUiState {
     private val _isDraggingItemRef = MutableListenableRef(false)
     private val _isTaskbarStashedRef = MutableListenableRef(false)
     private val _isTaskbarAllAppsOpenRef = MutableListenableRef(false)
+    private val _isTaskbarOnHomeRef = MutableListenableRef(false)
+    private val _showDesktopTaskbarForFreeformDisplayRef = MutableListenableRef(false)
+    private val _showLockedTaskbarOnHome = MutableListenableRef(false)
 
     private fun <T> MutableListenableRef<T>.diffAndDispatch(newValue: T) {
         if (value != newValue) {
@@ -48,9 +54,14 @@ class TaskbarUiState {
     val isDraggingItemRef = _isDraggingItemRef.asListenable()
     val isTaskbarStashedRef = _isTaskbarStashedRef.asListenable()
     val isTaskbarAllAppsOpenRef = _isTaskbarAllAppsOpenRef.asListenable()
+    val isTaskbarOnHomeRef = _isTaskbarOnHomeRef.asListenable()
+    val showDesktopTaskbarForFreeformDisplayRef =
+        _showDesktopTaskbarForFreeformDisplayRef.asListenable()
+    val showLockedTaskbarOnHome = _showLockedTaskbarOnHome.asListenable()
 
     private var _isBubbleDragging = false
     private var _isTaskbarDragging = false
+    private var _stashState = 0L
 
     fun setHasBubble(hasBubbles: Boolean) {
         _hasBubblesRef.diffAndDispatch(hasBubbles)
@@ -76,5 +87,23 @@ class TaskbarUiState {
 
     fun setIsTaskbarAllAppsOpen(isTaskbarAllAppsOpen: Boolean) {
         _isTaskbarAllAppsOpenRef.diffAndDispatch(isTaskbarAllAppsOpen)
+    }
+
+    fun setStashStateRef(state: Long) {
+        _stashState = state
+        _isTaskbarOnHomeRef.diffAndDispatch(
+            (_stashState and TaskbarStashController.FLAG_IN_OVERVIEW.toLong()) == 0L &&
+                (_stashState and TaskbarStashController.FLAG_IN_APP.toLong()) == 0L
+        )
+    }
+
+    fun setShowDesktopTaskbarForFreeformDisplay(showDesktopTaskbarForFreeformDisplay: Boolean) {
+        _showDesktopTaskbarForFreeformDisplayRef.diffAndDispatch(
+            showDesktopTaskbarForFreeformDisplay
+        )
+    }
+
+    fun setShowLockedTaskbarOnHome(showLockedTaskbarOnHome: Boolean) {
+        _showLockedTaskbarOnHome.diffAndDispatch(showLockedTaskbarOnHome)
     }
 }
