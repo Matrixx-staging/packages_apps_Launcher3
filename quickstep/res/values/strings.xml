@@ -239,7 +239,7 @@
     <!-- Subtitle of "All Set" page for Gesture Navigation [CHAR LIMIT=NONE] -->
     <string name="allset_subtitle_expressive_gesture_navigation">Swipe up to get started with your <xliff:g id="device" example="phone">%1$s</xliff:g></string>
     <!-- Subtitle of "All Set" page for 3 Button Navigation [CHAR LIMIT=NONE] -->
-    <string name="allset_subtitle_expressive_button_navigation">Tap get started with your <xliff:g id="device" example="phone">%1$s</xliff:g></string>
+    <string name="allset_subtitle_expressive_button_navigation">Tap to get started with your <xliff:g id="device" example="phone">%1$s</xliff:g></string>
     <!-- String linking to navigation settings on "All Set" page [CHAR LIMIT=NONE] -->
     <string name="allset_navigation_settings_expressive"><annotation id="link">Choose how to navigate</annotation></string>
     <!-- Hint string at the bottom of "All Set" page [CHAR LIMIT=NONE] -->
