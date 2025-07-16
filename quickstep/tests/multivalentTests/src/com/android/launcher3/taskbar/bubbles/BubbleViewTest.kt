@@ -18,7 +18,6 @@ package com.android.launcher3.taskbar.bubbles
 
 import android.content.Context
 import android.graphics.Color
-import android.graphics.Path
 import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import androidx.core.graphics.drawable.toBitmap
@@ -79,17 +78,7 @@ class BubbleViewTest {
                     null,
                 )
             bubbleView = inflater.inflate(R.layout.bubblebar_item_view, null, false) as BubbleView
-            bubble =
-                BubbleBarBubble(
-                    bubbleInfo,
-                    bubbleView,
-                    bitmap,
-                    bitmap,
-                    Color.WHITE,
-                    Path(),
-                    "",
-                    null,
-                )
+            bubble = BubbleBarBubble(bubbleInfo, bubbleView, bitmap, bitmap, Color.WHITE, "", null)
             bubbleView.setBubble(bubble)
         }
         InstrumentationRegistry.getInstrumentation().waitForIdleSync()

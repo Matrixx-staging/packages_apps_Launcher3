@@ -16,7 +16,6 @@
 package com.android.launcher3.taskbar.bubbles
 
 import android.graphics.Bitmap
-import android.graphics.Path
 import com.android.launcher3.taskbar.bubbles.flyout.BubbleBarFlyoutMessage
 import com.android.wm.shell.shared.bubbles.BubbleInfo
 
@@ -30,7 +29,6 @@ data class BubbleBarBubble(
     var badge: Bitmap,
     var icon: Bitmap,
     var dotColor: Int,
-    var dotPath: Path,
     var appName: String,
     var flyoutMessage: BubbleBarFlyoutMessage?,
 ) : BubbleBarItem(info.key, view)

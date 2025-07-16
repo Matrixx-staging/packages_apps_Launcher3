@@ -18,7 +18,6 @@ package com.android.launcher3.taskbar.bubbles.animation
 
 import android.content.Context
 import android.graphics.Color
-import android.graphics.Path
 import android.graphics.PointF
 import android.graphics.Rect
 import android.graphics.drawable.ColorDrawable
@@ -1585,7 +1584,6 @@ class BubbleBarViewAnimatorTest {
                     bitmap,
                     bitmap,
                     Color.WHITE,
-                    Path(),
                     "",
                     BubbleBarFlyoutMessage(icon = null, title = "title", message = "message"),
                 )

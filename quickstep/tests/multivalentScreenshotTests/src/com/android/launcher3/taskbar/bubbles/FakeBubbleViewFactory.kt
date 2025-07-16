@@ -22,7 +22,6 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.util.PathParser
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import com.android.launcher3.R
@@ -66,21 +65,8 @@ object FakeBubbleViewFactory {
                 null,
             )
         val bubbleView = inflater.inflate(R.layout.bubblebar_item_view, parent, false) as BubbleView
-        val dotPath =
-            PathParser.createPathFromPathData(
-                context.resources.getString(com.android.internal.R.string.config_icon_mask)
-            )
         val bubble =
-            BubbleBarBubble(
-                bubbleInfo,
-                bubbleView,
-                badge,
-                icon,
-                dotColor,
-                dotPath,
-                "test app",
-                null,
-            )
+            BubbleBarBubble(bubbleInfo, bubbleView, badge, icon, dotColor, "test app", null)
         bubbleView.setBubble(bubble)
         return bubbleView
     }

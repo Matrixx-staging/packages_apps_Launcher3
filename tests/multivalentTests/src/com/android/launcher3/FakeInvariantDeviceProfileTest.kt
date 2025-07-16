@@ -72,7 +72,6 @@ abstract class FakeInvariantDeviceProfileTest {
             inv,
             info,
             context.appComponent.wmProxy,
-            context.appComponent.themeManager,
             windowBounds,
             SparseArray(),
             /*isExternalDisplay=*/ false,
