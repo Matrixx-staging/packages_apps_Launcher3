@@ -28,6 +28,7 @@ import com.android.launcher3.popup.PopupContainerWithArrow
 import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.Executors
 import com.android.launcher3.util.Executors.MAIN_EXECUTOR
+import com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR
 import com.android.launcher3.util.IntArray as LIntArray
 import com.android.launcher3.util.IntArray
 import com.android.launcher3.util.IntSet as LIntSet
@@ -39,6 +40,8 @@ import com.android.launcher3.util.RunnableList
 import com.android.launcher3.util.TraceHelper
 import com.android.launcher3.util.ViewOnDrawExecutor
 import com.android.launcher3.widget.model.WidgetsListBaseEntry
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionStage
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Predicate
@@ -387,6 +390,10 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
 
     @AnyThread
     override fun bindCompleteModelAsync(itemIdMap: WorkspaceData, isBindingSync: Boolean) {
+        if (Flags.simplifiedLauncherModelBinding()) {
+            bindModelWithAsyncInflation(itemIdMap, isBindingSync)
+            return
+        }
         val taskTracker = CancellationSignal()
         activeBindTask.getAndSet(taskTracker).cancel()
         val inflater = launcher.itemInflater
@@ -482,6 +489,81 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
                 isBindingSync,
             )
         }
+    }
+
+    /**
+     * Helper method for chaining calls while keeping the callback cancelable. This executes the
+     * [block] on the [executor] passing in the result of the previous block. If the [taskTracker]
+     * is cancelled, everything in the chain is cancelled
+     */
+    private inline fun <T, R> CompletionStage<T>.thenOn(
+        executor: Executor,
+        taskTracker: CancellationSignal,
+        crossinline block: (T) -> List<R>,
+    ) =
+        this.thenApplyAsync(
+            { if (taskTracker.isCanceled) emptyList() else block.invoke(it) },
+            executor,
+        )
+
+    /** Binds the model while inflating items asynchronously */
+    private fun bindModelWithAsyncInflation(itemIdMap: WorkspaceData, isBindingSync: Boolean) {
+        val taskTracker = CancellationSignal()
+        // Cancel any previously running task and set the current as active task
+        activeBindTask.getAndSet(taskTracker).cancel()
+
+        val orderedScreenIds = itemIdMap.collectWorkspaceScreens()
+        val currentScreenIds = getPagesToBindSynchronously(orderedScreenIds)
+
+        // Separate the items that are on the current screen, and all the other remaining items
+        val (firstBindItems, lastBindItems) =
+            itemIdMap.partition(currentScreenContentFilter(currentScreenIds)::test).run {
+                kotlin.Pair(first, second.filter { it.container == CONTAINER_DESKTOP })
+            }
+
+        val inflater = launcher.itemInflater
+        CompletableFuture.completedFuture(null)
+            .thenOn(MAIN_EXECUTOR, taskTracker) {
+                // Tell the workspace that we're about to start binding items
+                clearPendingBinds()
+                startBinding()
+                bindScreens(orderedScreenIds)
+                emptyList<Void>()
+            }
+            .thenOn(if (isBindingSync) MAIN_EXECUTOR else UI_HELPER_EXECUTOR, taskTracker) {
+                // If we are binding synchronously, inflate the first items on main thread,
+                // otherwise on background thread
+                firstBindItems.map { Pair.create(it, inflater.inflateItem(it, null)) }
+            }
+            .thenOn(MAIN_EXECUTOR, taskTracker) { inflatedItems ->
+                // Bind items
+                launcher.bindInflatedItems(inflatedItems, null)
+                itemIdMap.filterIsInstance<PredictedContainerInfo>().forEach {
+                    launcher.bindPredictedContainerInfo(it)
+                }
+
+                // Initial bind complete
+                Trace.endAsyncSection(DISPLAY_WORKSPACE_TRACE_METHOD_NAME, SINGLE_TRACE_COOKIE)
+                synchronouslyBoundPages = currentScreenIds
+                pagesToBindSynchronously = IntSet()
+
+                // Log the total number of workspace items as soon as the first screen is shown as
+                // it accounts for time it took before the user can use their device
+                val totalWorkspaceItems = firstBindItems.size + lastBindItems.size
+                launcher.bindComplete(totalWorkspaceItems, isBindingSync)
+                emptyList<Void>()
+            }
+            .thenOn(UI_HELPER_EXECUTOR, taskTracker) {
+                // Inflate remaining items on background thread
+                lastBindItems.map { Pair.create(it, inflater.inflateItem(it, null)) }
+            }
+            .thenOn(MAIN_EXECUTOR, taskTracker) { inflatedItems ->
+                // Bind items
+                launcher.bindInflatedItems(inflatedItems, null)
+
+                finishBindingItems(currentScreenIds)
+                emptyList<Void>()
+            }
     }
 
     companion object {
