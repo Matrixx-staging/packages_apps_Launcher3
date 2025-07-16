@@ -809,18 +809,25 @@ public abstract class AbsSwipeUpHandler<
      * Determines whether to show or hide RecentsView. The window is always
      * synchronized with its corresponding TaskView in RecentsView, so if
      * RecentsView is shown, it will appear to be attached to the window.
+     * For 3 button mode navigation, update alpha of the running task to show desktop task
+     * background.
      *
-     * Note this method has no effect unless the navigation mode is NO_BUTTON.
-     * @param animate whether to animate when attaching RecentsView
-     * @param moveRunningTask whether to move running task to front when attaching
+     * @param animate                whether to animate when attaching RecentsView
+     * @param moveRunningTask        whether to move running task to front when attaching
      * @param updateRunningTaskAlpha Whether to update the running task's attached alpha
      */
     private void maybeUpdateRecentsAttachedState(
             boolean animate, boolean moveRunningTask, boolean updateRunningTaskAlpha) {
-        if ((!mDeviceState.isFullyGesturalNavMode() && !mGestureState.isTrackpadGesture())
-                || mRecentsView == null) {
+        if (mRecentsView == null) {
             return;
         }
+
+        boolean isGestureMode =
+                mDeviceState.isFullyGesturalNavMode() || mGestureState.isTrackpadGesture();
+        if (!isGestureMode && !updateRunningTaskAlpha) {
+            return;
+        }
+
         // looking at single target is fine here since either app of a split pair would
         // have their "isInRecents" field set? (that's what this is used for below)
         RemoteAnimationTarget runningTaskTarget = mRecentsAnimationTargets != null
@@ -839,12 +846,22 @@ public abstract class AbsSwipeUpHandler<
         } else {
             recentsAttachedToAppWindow = mHasMotionEverBeenPaused || mIsLikelyToStartNewTask;
         }
+
+        if (!isGestureMode) {
+            mAnimationFactory.setRecentsAttachedToAppWindow(
+                    /* attached= */ recentsAttachedToAppWindow,
+                    /* animate= */ false,
+                    /*updateRunningTaskAlpha= */ true);
+            return;
+        }
+
         if (moveRunningTask && !mAnimationFactory.hasRecentsEverAttachedToAppWindow()
                 && recentsAttachedToAppWindow) {
             // Only move running task if RecentsView has never been attached before, to avoid
             // TaskView jumping to new position as we move the tasks.
             mRecentsView.moveRunningTaskToExpectedPosition();
         }
+
         mAnimationFactory.setRecentsAttachedToAppWindow(
                 recentsAttachedToAppWindow, animate, updateRunningTaskAlpha);
 

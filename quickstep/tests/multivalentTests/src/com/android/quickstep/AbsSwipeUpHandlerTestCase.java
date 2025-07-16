@@ -83,6 +83,7 @@ import com.android.launcher3.util.SandboxApplication;
 import com.android.launcher3.util.SystemUiController;
 import com.android.quickstep.util.ContextInitListener;
 import com.android.quickstep.util.MotionPauseDetector;
+import com.android.quickstep.util.RecentsOrientedState;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
 import com.android.quickstep.views.TaskView;
@@ -201,6 +202,7 @@ public abstract class AbsSwipeUpHandlerTestCase<
     @Mock protected StateManager.AtomicAnimationFactory<STATE_TYPE> mAtomicAnimationFactory;
     @Mock protected TaskView mCurrentPageTaskView;
     @Mock protected TaskView mNextPageTaskView;
+    @Mock protected BaseContainerInterface.AnimationFactory mAnimationFactory;
 
     @Before
     public void setUpAnimationTargets() {
@@ -287,6 +289,8 @@ public abstract class AbsSwipeUpHandlerTestCase<
         when(recentsContainer.createAtomicAnimationFactory()).thenReturn(mAtomicAnimationFactory);
         when(mActivityInterface.createActivityInitListener(any()))
                 .thenReturn(mContextInitListener);
+        when(mActivityInterface.prepareRecentsUI(anyBoolean(), any()))
+                .thenReturn(mAnimationFactory);
         doReturn(recentsContainer).when(mActivityInterface).getCreatedContainer();
         doAnswer(answer -> {
             answer.<Runnable>getArgument(0).run();
@@ -625,6 +629,48 @@ public abstract class AbsSwipeUpHandlerTestCase<
         });
     }
 
+    @Test
+    public void test3ButtonMode_shouldUpdateBackgroundAlphaForRunningTask_UpdatesBackgroundAlpha() {
+        SWIPE_HANDLER swipeHandler = createSwipeHandler();
+        when(mDeviceState.isFullyGesturalNavMode()).thenReturn(false);
+        when(mGestureState.isTrackpadGesture()).thenReturn(false);
+        when(getRecentsView().getPagedViewOrientedState()).thenReturn(
+                new RecentsOrientedState(mContext, swipeHandler.mContainerInterface, (r) -> {
+                }));
+        when(getRecentsView().shouldUpdateRunningTaskAlpha()).thenReturn(true);
+        swipeHandler.onActivityInit(/*isHomeStarted= */ true);
+        swipeHandler.onGestureStarted(/*isLikelyToStartNewTask =*/ true);
+
+        onRecentsAnimationStart(swipeHandler);
+
+        verify(mAnimationFactory).setRecentsAttachedToAppWindow(
+                /* attached= */ true,
+                /* isTrackpadGesture= */ false,
+                /* updateBackgroundAlpha= */ true);
+        verify(getRecentsView(), never()).moveRunningTaskToExpectedPosition();
+    }
+
+    @Test
+    public void test3ButtonMode_runningTask_doesNotUpdateBackgroundAlpha() {
+        SWIPE_HANDLER swipeHandler = createSwipeHandler();
+        when(mDeviceState.isFullyGesturalNavMode()).thenReturn(false);
+        when(mGestureState.isTrackpadGesture()).thenReturn(false);
+        when(getRecentsView().getPagedViewOrientedState()).thenReturn(
+                new RecentsOrientedState(mContext, swipeHandler.mContainerInterface, (r) -> {
+                }));
+        when(getRecentsView().shouldUpdateRunningTaskAlpha()).thenReturn(false);
+        swipeHandler.onActivityInit(/*isHomeStarted= */ true);
+        swipeHandler.onGestureStarted(/*isLikelyToStartNewTask =*/ true);
+
+        onRecentsAnimationStart(swipeHandler);
+
+        verify(mAnimationFactory, never()).setRecentsAttachedToAppWindow(
+                /* attached= */ true,
+                /* isTrackpadGesture= */ false,
+                /* updateBackgroundAlpha= */ true);
+        verify(getRecentsView(), never()).moveRunningTaskToExpectedPosition();
+    }
+
     /**
      * Verifies that RecentsAnimationController#finish() is called, and captures and runs any
      * callback that was passed to it. This ensures that STATE_CURRENT_TASK_FINISHED is correctly
@@ -713,9 +759,9 @@ public abstract class AbsSwipeUpHandlerTestCase<
 
     protected TopTaskTracker.CachedTaskInfo getTaskInfo() {
         return new TopTaskTracker.CachedTaskInfo(
-                    Collections.singletonList(mRunningTaskInfo),
-                    mContext,
-                    mDisplayId,
-                    INACTIVE_DESK_ID);
+                Collections.singletonList(mRunningTaskInfo),
+                mContext,
+                mDisplayId,
+                INACTIVE_DESK_ID);
     }
 }
