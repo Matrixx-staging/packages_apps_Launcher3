@@ -396,6 +396,56 @@ class PersistentBubbleStashControllerTest {
         verify(bubbleBarViewController, never()).animateExpanded(any(), any())
     }
 
+    @Test
+    fun switchToOverview_inAppDisplayOverrideProgressIsReset() {
+        // Given we are on home and the in-app display override is not 0
+        getInstrumentation().runOnMainSync {
+            persistentTaskBarStashController.launcherState = BubbleLauncherState.HOME
+            persistentTaskBarStashController.inAppDisplayOverrideProgress = 0.5f
+        }
+
+        // When we switch to overview
+        getInstrumentation().runOnMainSync {
+            persistentTaskBarStashController.launcherState = BubbleLauncherState.OVERVIEW
+        }
+
+        // Then the in-app display override is 0
+        assertThat(persistentTaskBarStashController.inAppDisplayOverrideProgress).isEqualTo(0f)
+    }
+
+    @Test
+    fun switchFromInAppToHome_inAppDisplayOverrideProgressIsNotReset() {
+        // Given we are inside application (initial state) and the  display override is not 0
+        getInstrumentation().runOnMainSync {
+            persistentTaskBarStashController.inAppDisplayOverrideProgress = 0.5f
+        }
+
+        // When we switch to home
+        getInstrumentation().runOnMainSync {
+            persistentTaskBarStashController.launcherState = BubbleLauncherState.HOME
+        }
+
+        // Then the in-app display override is not reset
+        assertThat(persistentTaskBarStashController.inAppDisplayOverrideProgress).isEqualTo(0.5f)
+    }
+
+    @Test
+    fun switchFromHomeToInApp_inAppDisplayOverrideProgressIsNotReset() {
+        // Given we are on home and the in-app display override is not 0
+        getInstrumentation().runOnMainSync {
+            persistentTaskBarStashController.launcherState = BubbleLauncherState.HOME
+            persistentTaskBarStashController.inAppDisplayOverrideProgress = 0.5f
+        }
+
+        // When we switch to home
+        getInstrumentation().runOnMainSync {
+            persistentTaskBarStashController.launcherState = BubbleLauncherState.IN_APP
+        }
+
+        // Then the in-app display override is not reset
+        assertThat(persistentTaskBarStashController.inAppDisplayOverrideProgress).isEqualTo(0.5f)
+    }
+
     private fun advanceTimeBy(advanceMs: Long) {
         // Advance animator for on-device tests
         getInstrumentation().runOnMainSync { animatorTestRule.advanceTimeBy(advanceMs) }
