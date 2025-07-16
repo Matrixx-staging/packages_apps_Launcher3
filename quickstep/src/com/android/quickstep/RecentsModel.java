@@ -329,7 +329,16 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
     }
 
     @Override
+    public void onRecentTaskRemovedForAddTask(int taskId) {
+        removeTask(taskId);
+    }
+
+    @Override
     public void onTaskRemoved(int taskId) {
+        removeTask(taskId);
+    }
+
+    private void removeTask(int taskId) {
         Task.TaskKey stubKey = new Task.TaskKey(taskId, 0, new Intent(), null, 0, 0);
         mThumbnailCache.remove(stubKey);
         mIconCache.onTaskRemoved(stubKey);
