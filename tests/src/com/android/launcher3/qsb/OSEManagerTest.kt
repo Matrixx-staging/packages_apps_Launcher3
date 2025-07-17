@@ -57,6 +57,7 @@ import org.mockito.kotlin.argThat
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.reset
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -103,6 +104,8 @@ class OSEManagerTest {
             .whenever(res)
             .getStringArray(eq(R.array.supported_overlay_apps))
         listenableRefClosable = oseManager.oseInfo.forEach(UI_HELPER_EXECUTOR, mockCallback)
+        TestUtil.runOnExecutorSync(UI_HELPER_EXECUTOR) {}
+        reset(mockCallback)
         appInfoInstalled.isArchived = false
         appInfoInstalled.flags = ApplicationInfo.FLAG_INSTALLED
         launcherApps = context.spyService(LauncherApps::class.java)

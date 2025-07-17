@@ -66,6 +66,12 @@ class MutableListenableRef<T>(initValue: T) : MutableListenableStream<T>(), List
     override var value: T = initValue
         private set
 
+    override fun forEach(executor: Executor, callback: (T) -> Unit): SafeCloseable {
+        return super.forEach(executor, callback).also {
+            executor.execute { callback.invoke(value) }
+        }
+    }
+
     /** Updates the reference [value] and also dispatches it to the stream */
     override fun dispatchValue(newValue: T) {
         value = newValue
