@@ -550,6 +550,26 @@ class DragToBubbleControllerTest {
     }
 
     @Test
+    fun showShellBubbleBarDropTargetToNotNullLocation_setsBubbleBarIsShowingDropTargetToTrue() {
+        // When show null location
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            dragToBubbleController.showShellBubbleBarDropTargetAt(BubbleBarLocation.RIGHT)
+        }
+        // Then bubbleBarViewController isShowingDropTarget should change to true
+        verify(bubbleBarViewController).isShowingDropTarget = true
+    }
+
+    @Test
+    fun showShellBubbleBarDropTargetNullLocation_setsBubbleBarIsShowingDropTargetToFalse() {
+        // When show null location
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            dragToBubbleController.showShellBubbleBarDropTargetAt(null)
+        }
+        // Then bubbleBarViewController isShowingDropTarget should change to false
+        verify(bubbleBarViewController).isShowingDropTarget = false
+    }
+
+    @Test
     fun showShellBubbleBarDropTargetAt_consecutiveCallsSameLocation_noCallsToListener() {
         // Given
         prepareBubbleBarViewController(bubbleBarLocation = BubbleBarLocation.LEFT)
