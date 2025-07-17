@@ -32,7 +32,6 @@ import com.android.launcher3.statemanager.BaseState
 import com.android.launcher3.statemanager.StateManager.StateListener
 import com.android.launcher3.statemanager.StatefulContainer
 import com.android.launcher3.touch.SingleAxisSwipeDetector
-import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.MSDLPlayerWrapper
 import com.android.launcher3.util.TouchController
 import com.android.mechanics.spec.Breakpoint
@@ -47,13 +46,11 @@ import com.android.mechanics.spec.MotionSpec
 import com.android.mechanics.spring.SpringParameters
 import com.android.mechanics.view.DistanceGestureContext
 import com.android.mechanics.view.ViewMotionValue
-import com.android.quickstep.views.DesktopTaskView
 import com.android.quickstep.views.RecentsDismissUtils
 import com.android.quickstep.views.RecentsView
 import com.android.quickstep.views.RecentsView.RECENTS_SCALE_PROPERTY
 import com.android.quickstep.views.RecentsViewContainer
 import com.android.quickstep.views.TaskView
-import com.android.wm.shell.shared.desktopmode.DesktopState
 import com.google.android.msdl.data.model.MSDLToken
 import kotlin.math.abs
 import kotlin.math.ceil
@@ -101,8 +98,6 @@ CONTAINER : StatefulContainer<T> {
     private var canInterceptTouch = false
     private var isDismissing = false
     private var allowDetach = true
-    private val displayController = DisplayController.INSTANCE[container.asContext()]
-    private val desktopState = DesktopState.fromContext(container.asContext())
 
     init {
         container.getStateManager().addStateListener(stateListener)
@@ -177,15 +172,6 @@ CONTAINER : StatefulContainer<T> {
 
     override fun onControllerTouchEvent(ev: MotionEvent?): Boolean = detector.onTouchEvent(ev)
 
-    /** Returns true if it is desktop first and it is the last desktop. Otherwise, returns false. */
-    private fun isLastDesktopOnDesktopFirst(taskView: TaskView) =
-        desktopState.enableMultipleDesktops &&
-            taskView is DesktopTaskView &&
-            displayController
-                .getInfoForDisplay(container.asContext().displayId)
-                ?.isInDesktopFirstMode == true &&
-            recentsView.desktopTaskViewCount == 1
-
     private fun onActionDown(ev: MotionEvent): Boolean {
         if (!canInterceptTouch(ev)) {
             return false
@@ -239,9 +225,7 @@ CONTAINER : StatefulContainer<T> {
                 .toInt()
         verticalFactor = recentsView.pagedOrientationHandler.getTaskDismissVerticalDirection()
         taskBeingDragged.isBeingDraggedForDismissal = true
-        if (isLastDesktopOnDesktopFirst(taskBeingDragged)) {
-            allowDetach = false
-        }
+        allowDetach = recentsView.canRemoveTaskView(taskBeingDragged)
         detector.setDetectableScrollConditions(upDirection, /* ignoreSlop= */ false)
         return true
     }

@@ -42,6 +42,7 @@ import com.android.launcher3.Utilities.getPivotsForScalingRectToRect
 import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.statehandlers.DesktopVisibilityController.Companion.INACTIVE_DESK_ID
 import com.android.launcher3.statemanager.BaseState
+import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.IntArray
 import com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview
 import com.android.launcher3.util.OverviewReleaseFlags.enableOverviewIconMenu
@@ -85,6 +86,8 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
     }
 
     private val onDeskAddedListeners = CopyOnWriteArrayList<OnDeskAddedListener>()
+
+    private val displayController = DisplayController.INSTANCE[recentsView.context]
 
     var keyboardFocusTask: KeyboardFocusTask = KeyboardFocusTask.Unfocused
 
@@ -198,6 +201,24 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
     fun getFirstNonDesktopTaskView(): TaskView? = taskViews.firstOrNull { it !is DesktopTaskView }
 
     fun getLastDesktopTaskView(): TaskView? = taskViews.lastOrNull { it is DesktopTaskView }
+
+    /** Returns true if it is in desktop-first mode. Otherwise, returns false. */
+    private fun isInDesktopFirstMode() =
+        displayController
+            .getInfoForDisplay(recentsView.mContainer.displayId)
+            ?.isInDesktopFirstMode == true
+
+    /**
+     * Returns false if it is the last desktop on desktop-first when multi-desk enabled. Otherwise,
+     * returns true.
+     */
+    fun canRemoveTaskView(taskView: TaskView): Boolean {
+        if (!areMultiDesksFlagsEnabled() || !isInDesktopFirstMode()) {
+            return true
+        }
+
+        return taskView !is DesktopTaskView || getDesktopTaskViewCount() > 1
+    }
 
     /**
      * Returns the [TaskView] that should be the current page during task binding, in the following

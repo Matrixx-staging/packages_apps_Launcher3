@@ -550,6 +550,12 @@ public interface TaskShortcutFactory {
         @Override
         public List<SystemShortcut> getShortcuts(RecentsViewContainer container,
                 TaskContainer taskContainer) {
+            TaskView taskView = taskContainer.getTaskView();
+            RecentsView recentsView = taskView.getRecentsView();
+            if (recentsView != null && !recentsView.canRemoveTaskView(taskView)) {
+                return null;
+            }
+
             return Collections.singletonList(new RemoveTaskSystemShortcut(
                     R.drawable.ic_remove_task_option,
                     R.string.recent_task_option_remove_task, container, taskContainer));

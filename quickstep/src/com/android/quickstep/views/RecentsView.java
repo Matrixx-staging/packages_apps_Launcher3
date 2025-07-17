@@ -868,15 +868,6 @@ public abstract class RecentsView<
 
     protected final BlurUtils mBlurUtils = new BlurUtils(this);
 
-    @Nullable
-    public TaskView getFirstTaskView() {
-        return mUtils.getFirstTaskView();
-    }
-
-    public int getFirstTaskViewIndex() {
-        return indexOfChild(getFirstTaskView());
-    }
-
     public RecentsView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         setEnableFreeScroll(true);
@@ -2216,11 +2207,6 @@ public abstract class RecentsView<
     /** Counts {@link TaskView}s that are not {@link DesktopTaskView} instances. */
     public int getNonDesktopTaskViewCount() {
         return mUtils.getNonDesktopTaskViewCount();
-    }
-
-    /** Counts {@link TaskView}s that are {@link DesktopTaskView} instances. */
-    public int getDesktopTaskViewCount() {
-        return mUtils.getDesktopTaskViewCount();
     }
 
     /**
@@ -4782,6 +4768,23 @@ public abstract class RecentsView<
     @Nullable
     public TaskView getNextPageTaskView() {
         return getTaskViewAt(getNextPage());
+    }
+
+    @Nullable
+    public TaskView getFirstTaskView() {
+        return mUtils.getFirstTaskView();
+    }
+
+    public int getFirstTaskViewIndex() {
+        return indexOfChild(getFirstTaskView());
+    }
+
+    /**
+     * Returns false if it is the last desktop on desktop-first when multi-desk enabled. Otherwise,
+     * returns true.
+     */
+    public boolean canRemoveTaskView(TaskView taskView) {
+        return mUtils.canRemoveTaskView(taskView);
     }
 
     @Override
