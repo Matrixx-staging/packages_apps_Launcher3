@@ -332,7 +332,7 @@ interface ShapeDelegate {
 
     companion object {
         const val TAG = "IconShape"
-        private const val DEFAULT_PATH_SIZE_INT = 100
+        const val DEFAULT_PATH_SIZE_INT = 100
         const val DEFAULT_PATH_SIZE = DEFAULT_PATH_SIZE_INT.toFloat()
         private const val SPRING_STIFFNESS_SHAPE_POSITION = 380f
         private const val SPRING_DAMPING_SHAPE_POSITION = 0.8f

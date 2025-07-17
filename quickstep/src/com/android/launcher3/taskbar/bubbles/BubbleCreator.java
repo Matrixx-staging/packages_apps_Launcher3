@@ -32,15 +32,12 @@ import android.content.pm.PackageManager;
 import android.content.pm.ShortcutInfo;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.Matrix;
-import android.graphics.Path;
 import android.graphics.drawable.AdaptiveIconDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.InsetDrawable;
 import android.os.UserHandle;
 import android.util.Log;
-import android.util.PathParser;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -92,7 +89,6 @@ public class BubbleCreator {
         String appName;
         Bitmap badgeBitmap;
         Bitmap bubbleBitmap;
-        Path dotPath;
         int dotColor;
 
         boolean isImportantConvo = info.isImportantConversation();
@@ -142,20 +138,9 @@ public class BubbleCreator {
         BitmapInfo badgeBitmapInfo = mIconFactory.getBadgeBitmap(badgedIcon, isImportantConvo);
         badgeBitmap = badgeBitmapInfo.icon;
 
-        float[] bubbleBitmapScale = new float[1];
-        bubbleBitmap = mIconFactory.getBubbleBitmap(bubbleDrawable, bubbleBitmapScale);
+        bubbleBitmap = mIconFactory.getBubbleBitmap(bubbleDrawable);
 
-        // Dot color & placement
-        Path iconPath = PathParser.createPathFromPathData(
-                context.getResources().getString(
-                        com.android.internal.R.string.config_icon_mask));
-        Matrix matrix = new Matrix();
-        float scale = bubbleBitmapScale[0];
-        float radius = BubbleView.DEFAULT_PATH_SIZE / 2f;
-        matrix.setScale(scale /* x scale */, scale /* y scale */, radius /* pivot x */,
-                radius /* pivot y */);
-        iconPath.transform(matrix);
-        dotPath = iconPath;
+        // Dot color
         dotColor = ColorUtils.blendARGB(badgeBitmapInfo.color,
                 Color.WHITE, WHITE_SCRIM_ALPHA / 255f);
 
@@ -168,7 +153,7 @@ public class BubbleCreator {
                     R.layout.bubblebar_item_view, barView, false /* attachToRoot */);
 
             BubbleBarBubble bubble = new BubbleBarBubble(info, bubbleView,
-                    badgeBitmap, bubbleBitmap, dotColor, dotPath, appName, flyoutMessage);
+                    badgeBitmap, bubbleBitmap, dotColor, appName, flyoutMessage);
             bubbleView.setBubble(bubble);
             return bubble;
         } else {
@@ -177,7 +162,6 @@ public class BubbleCreator {
             existingBubble.setBadge(badgeBitmap);
             existingBubble.setIcon(bubbleBitmap);
             existingBubble.setDotColor(dotColor);
-            existingBubble.setDotPath(dotPath);
             existingBubble.setAppName(appName);
             existingBubble.setFlyoutMessage(flyoutMessage);
             return existingBubble;
