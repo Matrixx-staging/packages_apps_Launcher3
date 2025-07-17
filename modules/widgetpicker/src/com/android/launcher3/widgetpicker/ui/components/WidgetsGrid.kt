@@ -84,7 +84,10 @@ fun WidgetsGrid(
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier.padding(vertical = WidgetGridDimensions.gridVerticalPadding),
+        modifier =
+            modifier
+                .semantics { isTraversalGroup = true }
+                .padding(vertical = WidgetGridDimensions.gridVerticalPadding),
     ) {
         widgetSizeGroups.forEach { group ->
             WidgetsFlowRow(
@@ -182,7 +185,7 @@ private fun Previews(
     onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
     onAddButtonToggle: (WidgetId) -> Unit,
 ) {
-    widgets.forEachIndexed { index, widgetItem ->
+    widgets.forEach { widgetItem ->
         val id = widgetItem.id
 
         val widgetPreview: WidgetPreview =
@@ -194,7 +197,6 @@ private fun Previews(
             contentAlignment = Alignment.BottomCenter,
             modifier =
                 Modifier.fillMaxSize().clearAndSetSemantics {
-                    traversalIndex = index.toFloat()
                     testTag = buildWidgetPickerTestTag(WIDGET_PREVIEW_TEST_TAG)
                 },
         ) {
@@ -262,11 +264,12 @@ private fun WidgetsFlowRowLayout(
         val parentWidthPx = constraints.maxWidth
         val rowVerticalSpacingPx = rowVerticalSpacing.roundToPx()
         val cellHorizontalPaddingPx = cellHorizontalPadding.roundToPx()
-        val minItemWidthPx = if(widgetDetailsMeasurables.size > 1) {
-            minItemWidth.roundToPx()
-        } else {
-            parentWidthPx
-        }
+        val minItemWidthPx =
+            if (widgetDetailsMeasurables.size > 1) {
+                minItemWidth.roundToPx()
+            } else {
+                parentWidthPx
+            }
 
         val (possibleItemsPerRow, availableWidthPerItem) =
             calculateItemsPerRowAndMaxWidthPerItem(

@@ -37,6 +37,7 @@ import com.android.launcher3.LauncherSettings.Settings.LAYOUT_DIGEST_LABEL
 import com.android.launcher3.LauncherSettings.Settings.LAYOUT_DIGEST_TAG
 import com.android.launcher3.LauncherSettings.Settings.LAYOUT_PROVIDER_KEY
 import com.android.launcher3.LauncherSettings.Settings.createBlobProviderKey
+import com.android.launcher3.logging.FileLog
 import com.android.launcher3.model.data.AppPairInfo
 import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.model.data.ItemInfo
@@ -79,6 +80,7 @@ object LayoutImportExportHelper {
             }
 
             val layoutXml = builder.build()
+            FileLog.i(TAG, "Exporting Home Screen Layout as XML:\n$layoutXml")
             callback(layoutXml)
         }
     }
@@ -118,7 +120,9 @@ object LayoutImportExportHelper {
 
             session.commit(ORDERED_BG_EXECUTOR) {
                 Secure.putString(resolver, LAYOUT_PROVIDER_KEY, createBlobProviderKey(digest))
-                GridSizeUtil(context).parseAndSetGridSize(data.toString(StandardCharsets.UTF_8))
+                val xmlString = data.toString(StandardCharsets.UTF_8)
+                GridSizeUtil(context).parseAndSetGridSize(xmlString)
+                FileLog.i(TAG, "Importing XML as Home Screen Layout:\n$xmlString")
                 MODEL_EXECUTOR.submit {
                         try {
                             model.modelDbController.createEmptyDB()

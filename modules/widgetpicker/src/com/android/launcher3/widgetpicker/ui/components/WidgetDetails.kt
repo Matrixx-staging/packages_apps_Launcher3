@@ -37,6 +37,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
@@ -44,18 +46,27 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.Text
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.InputMode.Companion.Touch
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -120,11 +131,23 @@ fun WidgetDetails(
             Modifier.fillMaxSize()
         }
 
+    // When showing add button, there isn't anything shown in outer details, so keyboard users might
+    // be confused on what the outer click corresponds to; so we don't allow focus on this item.
+    // Touch users can still click it to toggle add button.
+    val detailsContainerFocusModifier = Modifier.focusProperties { canFocus = !showAddButton }
+
     Box(
         contentAlignment = Alignment.Center,
         modifier =
             modifier
                 .then(sizeModifier)
+                .borderOnFocus(
+                    color = WidgetPickerTheme.colors.focusOutline,
+                    cornerSize = WidgetDetailsDimensions.focusOutlineRadius,
+                    strokeWidth = WidgetDetailsDimensions.focusOutlineStrokeWidth,
+                    padding = WidgetDetailsDimensions.focusOutlinePadding,
+                )
+                .then(detailsContainerFocusModifier)
                 .clickable(
                     onClickLabel =
                         if (showAddButton) {
@@ -138,9 +161,14 @@ fun WidgetDetails(
                     haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                     onAddButtonToggle(widget.id)
                 }
+                .padding(horizontal = WidgetDetailsDimensions.horizontalPadding)
                 .padding(
-                    horizontal = WidgetDetailsDimensions.horizontalPadding,
-                    vertical = WidgetDetailsDimensions.verticalPadding,
+                    top =
+                        if (showAllDetails) {
+                            WidgetDetailsDimensions.multiLineDetailsTopPadding
+                        } else {
+                            0.dp
+                        }
                 ),
     ) {
         Column(
@@ -195,10 +223,25 @@ fun WidgetDetails(
 private fun AddButton(widget: PickableWidget, onClick: () -> Unit) {
     val accessibleDescription =
         stringResource(R.string.widget_tap_to_add_button_content_description, widget.label)
+    var hasTextOverflow by remember { mutableStateOf(false) }
+    val addButtonFocusRequester = remember { FocusRequester() }
+    val inputModeManager = LocalInputModeManager.current
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Button(
-            modifier = Modifier.minimumInteractiveComponentSize(),
+            modifier =
+                Modifier.focusRequester(addButtonFocusRequester)
+                    // Enable focus on non-touch e.g. keyboard interactions to show focus outline.
+                    .focusProperties { canFocus = inputModeManager.inputMode != Touch }
+                    .borderOnFocus(
+                        color = WidgetPickerTheme.colors.focusOutline,
+                        cornerSize = CornerSize(AddButtonDimensions.focusOutlineRadius),
+                        strokeWidth = AddButtonDimensions.focusOutlineStrokeWidth,
+                        padding = AddButtonDimensions.focusOutlinePadding,
+                    )
+                    .width(IntrinsicSize.Max)
+                    .defaultMinSize(minHeight = LocalMinimumInteractiveComponentSize.current),
+            shape = RoundedCornerShape(AddButtonDimensions.buttonRadius),
             contentPadding = AddButtonDimensions.paddingValues,
             elevation = null, // not needed, set to null to avoid extra work.
             colors =
@@ -213,11 +256,42 @@ private fun AddButton(widget: PickableWidget, onClick: () -> Unit) {
                 contentDescription = null, // decorative
             )
             Text(
-                modifier = Modifier.semantics { this.contentDescription = accessibleDescription },
                 text = stringResource(R.string.widget_tap_to_add_button_label),
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier =
+                    Modifier.padding(
+                            end =
+                                if (hasTextOverflow) {
+                                    0.dp
+                                } else {
+                                    AddButtonDimensions.textEndPadding
+                                }
+                        )
+                        .semantics { this.contentDescription = accessibleDescription }
+                        .layout { measurable, constraints ->
+                            val placeable = measurable.measure(constraints)
+                            // Don't show text is it leads to overflow
+                            if (hasTextOverflow) {
+                                layout(0, 0) {}
+                            } else {
+                                layout(placeable.width, placeable.height) {
+                                    placeable.placeRelative(0, 0)
+                                }
+                            }
+                        },
+                onTextLayout = { textLayoutResult: TextLayoutResult ->
+                    if (textLayoutResult.hasVisualOverflow != hasTextOverflow) {
+                        hasTextOverflow = textLayoutResult.hasVisualOverflow
+                    }
+                },
             )
         }
+    }
+
+    LaunchedEffect(Unit) {
+        // Request focus; if we are in non-touch mode, button will be focusable and get focus.
+        addButtonFocusRequester.requestFocus()
     }
 }
 
@@ -267,28 +341,43 @@ private fun WidgetDescription(description: CharSequence) {
 /** Span (X and Y) sizing info for the widget. */
 @Composable
 private fun WidgetSpanSizeLabel(spanX: Int, spanY: Int) {
+    val spanContentDescription =
+        stringResource(R.string.widget_span_dimensions_accessible_format, spanX, spanY)
+
     Text(
         text = stringResource(R.string.widget_span_dimensions_format, spanX, spanY),
         textAlign = TextAlign.Center,
         maxLines = 1,
         color = WidgetPickerTheme.colors.widgetSpanText,
         style = WidgetPickerTheme.typography.widgetSpanText,
+        modifier = Modifier.semantics { contentDescription = spanContentDescription },
     )
 }
 
 private object WidgetDetailsDimensions {
     val horizontalPadding: Dp = 4.dp
-    val verticalPadding: Dp = 12.dp
+    val multiLineDetailsTopPadding: Dp = 8.dp
     val appIconLabelSpacing = 8.dp
 
     val singleLineDetailsHeight = 72.dp
+
+    val focusOutlinePadding = 0.dp
+    val focusOutlineRadius = CornerSize(18.dp)
+    val focusOutlineStrokeWidth = 3.dp
 
     const val VISIBLE_ALPHA = 1f
     const val INVISIBLE_ALPHA = 0f
 }
 
 private object AddButtonDimensions {
-    val paddingValues = PaddingValues(start = 8.dp, top = 11.dp, end = 16.dp, bottom = 11.dp)
+    val paddingValues = PaddingValues(start = 8.dp, top = 11.dp, end = 8.dp, bottom = 11.dp)
+    // Padding when showing add icon and the text
+    val textEndPadding = 8.dp
+
+    val buttonRadius = 50.dp
+    val focusOutlinePadding = 2.dp
+    val focusOutlineRadius = buttonRadius
+    val focusOutlineStrokeWidth = 3.dp
 }
 
 private object AddButtonDefaults {

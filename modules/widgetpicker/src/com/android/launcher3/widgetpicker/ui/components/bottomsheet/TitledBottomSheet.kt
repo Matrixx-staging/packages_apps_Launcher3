@@ -51,6 +51,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
@@ -68,7 +69,8 @@ import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
  *
  * @param modifier modifier to be applies to the bottom sheet container.
  * @param title A top level title for the bottom sheet. If title is absent, top header isn't shown.
- * @param description an optional short (1-2 line) description that can be shown below the title.
+ * @param description an optional short (1-2 line - max 80 char) description that can be shown below
+ *   the title. At max font+display size it might overflow to 3 lines.
  * @param heightStyle indicates how much vertical space should the bottom sheet take; see
  *   [ModalBottomSheetHeightStyle].
  * @param showDragHandle whether to show drag handle; e.g. if the content doesn't need scrolling set
@@ -140,14 +142,16 @@ private fun Header(title: String, description: String?) {
         Text(
             maxLines = 1,
             text = title,
+            overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
             style = WidgetPickerTheme.typography.sheetTitle,
             color = WidgetPickerTheme.colors.sheetTitle,
         )
         description?.let {
             Text(
-                maxLines = 2,
                 text = it,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
                 style = WidgetPickerTheme.typography.sheetDescription,
                 color = WidgetPickerTheme.colors.sheetDescription,

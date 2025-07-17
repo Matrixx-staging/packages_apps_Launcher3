@@ -104,6 +104,7 @@
     <color name="blur_shade_panel_bg">#1AFFFFFF</color>
     <color name="work_turn_on_stroke">?android:attr/colorAccent</color>
 
+    <color name="widget_picker_focus_outline_color_light">@color/system_secondary_light</color>
     <color name="widget_picker_primary_surface_color_light">@color/system_surface_container_light</color>
     <color name="widget_picker_secondary_surface_color_light">#FAF9F8</color>
     <color name="widget_picker_title_color_light">@color/system_on_surface_light</color>
@@ -184,6 +185,7 @@
     <color name="widget_cell_title_color_light">@color/system_on_surface_light</color>
     <color name="widget_cell_subtitle_color_light">@color/system_on_surface_variant_light</color>
 
+    <color name="widget_picker_focus_outline_color_dark">@color/system_secondary_dark</color>
     <color name="widget_picker_primary_surface_color_dark">@color/system_surface_container_dark</color>
     <color name="widget_picker_secondary_surface_color_dark">#393939</color>
     <color name="widget_picker_title_color_dark">@color/system_on_surface_dark</color>

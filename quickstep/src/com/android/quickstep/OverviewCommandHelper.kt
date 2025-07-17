@@ -46,9 +46,8 @@ import com.android.launcher3.util.OverviewCommandHelperProtoLogProxy
 import com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview
 import com.android.launcher3.util.RunnableList
 import com.android.launcher3.util.coroutines.DispatcherProvider
-import com.android.launcher3.util.coroutines.ProductionDispatchers
-import com.android.quickstep.GestureState.displaySupportsHomeGesture
 import com.android.quickstep.GestureState.GestureEndTarget
+import com.android.quickstep.GestureState.displaySupportsHomeGesture
 import com.android.quickstep.OverviewCommandHelper.CommandInfo.CommandStatus
 import com.android.quickstep.OverviewCommandHelper.CommandType.HIDE_ALT_TAB
 import com.android.quickstep.OverviewCommandHelper.CommandType.HOME
@@ -429,13 +428,13 @@ constructor(
                     // Initiate a recents animation that is immediately rejected, which will
                     // provide visual feedback that home is not supported.
                     return startRecentsTransitionWithEndTarget(
-                            command,
-                            onCallbackResult,
-                            containerInterface,
-                            taskAnimationManager,
-                            GestureState.GestureEndTarget.REJECT_HOME,
-                            recentsView
-                        )
+                        command,
+                        onCallbackResult,
+                        containerInterface,
+                        taskAnimationManager,
+                        GestureState.GestureEndTarget.REJECT_HOME,
+                        recentsView,
+                    )
                 }
             }
 
@@ -481,7 +480,7 @@ constructor(
             containerInterface,
             taskAnimationManager,
             GestureState.GestureEndTarget.RECENTS,
-            recentsView
+            recentsView,
         )
     }
 
@@ -491,7 +490,7 @@ constructor(
         containerInterface: BaseContainerInterface<*, *>,
         taskAnimationManager: TaskAnimationManager,
         gestureEndTarget: GestureState.GestureEndTarget,
-        recentsView: RecentsView<*, *>?
+        recentsView: RecentsView<*, *>?,
     ): Boolean {
         val recentsViewContainer = containerInterface.getCreatedContainer()
         if (gestureEndTarget == GestureState.GestureEndTarget.RECENTS) {
@@ -554,7 +553,9 @@ constructor(
                         if (recentsViewContainer is RecentsWindowManager) {
                             recentsViewContainer.rootView?.let { view ->
                                 InteractionJankMonitorWrapper.begin(
-                                    view, Cuj.CUJ_LAUNCHER_QUICK_SWITCH)
+                                    view,
+                                    Cuj.CUJ_LAUNCHER_QUICK_SWITCH,
+                                )
                             }
                         }
 
@@ -680,12 +681,11 @@ constructor(
 
     private fun onRecentsViewFocusUpdated(command: CommandInfo) {
         val recentsView: RecentsView<*, *> = getVisibleRecentsView(command.displayId) ?: return
-        if (command.type != HIDE_ALT_TAB || keyboardFocusTask is KeyboardFocusTask.Unfocused) {
-            return
+        if (command.type == HIDE_ALT_TAB && keyboardFocusTask !is KeyboardFocusTask.Unfocused) {
+            recentsView.currentPage = recentsView.indexOfChild(recentsView.keyboardFocusTaskView)
+            keyboardFocusTask = KeyboardFocusTask.Unfocused
         }
-        recentsView.currentPage = recentsView.indexOfChild(recentsView.keyboardFocusTaskView)
         recentsView.setKeyboardFocusTask(KeyboardFocusTask.Unfocused)
-        keyboardFocusTask = KeyboardFocusTask.Unfocused
     }
 
     private fun View?.requestFocus(): Boolean {
