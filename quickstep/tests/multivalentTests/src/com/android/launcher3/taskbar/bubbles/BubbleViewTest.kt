@@ -26,6 +26,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import androidx.test.platform.app.InstrumentationRegistry
 import com.android.launcher3.R
+import com.android.launcher3.icons.BitmapInfo
 import com.android.wm.shell.shared.bubbles.BubbleInfo
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -78,7 +79,16 @@ class BubbleViewTest {
                     null,
                 )
             bubbleView = inflater.inflate(R.layout.bubblebar_item_view, null, false) as BubbleView
-            bubble = BubbleBarBubble(bubbleInfo, bubbleView, bitmap, bitmap, Color.WHITE, "", null)
+            bubble =
+                BubbleBarBubble(
+                    bubbleInfo,
+                    bubbleView,
+                    BitmapInfo.of(bitmap, Color.WHITE),
+                    bitmap,
+                    Color.WHITE,
+                    "",
+                    null,
+                )
             bubbleView.setBubble(bubble)
         }
         InstrumentationRegistry.getInstrumentation().waitForIdleSync()
