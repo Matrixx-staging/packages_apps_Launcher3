@@ -123,9 +123,11 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
     private ValueAnimator mReturnAnimator;
     private boolean mDisallowGlobalDrag;
     private boolean mDisallowLongClick;
-    private @Nullable DragToBubbleController mDragToBubbleController;
 
-    private @Nullable DragListener mUpdateIsTaskbarDraggingListener;
+    private TaskbarUiState mTaskbarUiState;
+
+    private boolean mIsTaskbarDragging;
+    private @Nullable DragToBubbleController mDragToBubbleController;
 
     public TaskbarDragController(BaseTaskbarContext activity) {
         super(activity);
@@ -142,24 +144,7 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
                             mDragToBubbleController = dragToBubbleController;
                             mDragToBubbleController.addBubbleBarDropTargets(this);
                         }));
-        if (refactorTaskbarUiState()) {
-            mUpdateIsTaskbarDraggingListener = new DragListener() {
-                @Override
-                public void onDragStart(DropTarget.DragObject dragObject, DragOptions options) {
-                    updateIsDragging();
-                }
-
-                @Override
-                public void onDragEnd() {
-                    updateIsDragging();
-                }
-
-                private void updateIsDragging() {
-                    taskbarUiState.setIsTaskbarDragging(isDragging());
-                }
-            };
-            addDragListener(mUpdateIsTaskbarDraggingListener);
-        }
+        mTaskbarUiState = taskbarUiState;
     }
 
     /** Called when the controller is destroyed. */
@@ -191,6 +176,14 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
                 shortcutView.getBubbleText(),
                 new ShortcutDragPreviewProvider(shortcutView.getIconView(), iconShift),
                 iconShift);
+    }
+
+    private void updateIsDragging() {
+        mIsTaskbarDragging = TaskbarDragController.super.isDragging()
+                || mIsSystemDragInProgress;
+        if (refactorTaskbarUiState()) {
+            mTaskbarUiState.setIsTaskbarDragging(mIsTaskbarDragging);
+        }
     }
 
     private boolean startDragOnLongClick(
@@ -368,6 +361,7 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
 
         handleMoveEvent(mLastTouch.x, mLastTouch.y);
 
+        updateIsDragging();
         return dragView;
     }
 
@@ -389,6 +383,7 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
     @Override
     protected void callOnDragStart() {
         super.callOnDragStart();
+        updateIsDragging();
         // TODO(297921594) clean it up when taskbar to desktop drag is implemented.
         // Pre-drag has ended, start the global system drag.
         if (mDisallowGlobalDrag
@@ -534,6 +529,7 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
 
     private void onSystemDragStarted(BubbleTextView btv) {
         mIsSystemDragInProgress = true;
+        updateIsDragging();
         mActivity.getDragLayer().setOnDragListener((view, dragEvent) -> {
             switch (dragEvent.getAction()) {
                 case DragEvent.ACTION_DRAG_STARTED:
@@ -541,6 +537,7 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
                     return true;
                 case DragEvent.ACTION_DRAG_ENDED:
                     mIsSystemDragInProgress = false;
+                    updateIsDragging();
                     if (dragEvent.getResult()) {
                         maybeOnDragEnd();
                     } else {
@@ -556,9 +553,14 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
         });
     }
 
+    /**
+     * {@link TaskbarDragController} will rely on {@link DragListener}'s callback to update
+     * {@link mIsTaskbarDragging} field. This ensures correctness during long press and
+     * drag settle animation.
+     */
     @Override
     public boolean isDragging() {
-        return super.isDragging() || mIsSystemDragInProgress;
+        return mIsTaskbarDragging;
     }
 
     /** {@code true} if the system is currently handling the drag. */
@@ -638,6 +640,7 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
             mReturnAnimator.start();
         }
         super.endDrag();
+        updateIsDragging();
     }
 
     @Override
