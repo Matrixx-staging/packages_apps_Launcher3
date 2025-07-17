@@ -652,7 +652,7 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
             if (v != null) {
                 if (pageToAnimate != p) {
                     page.removeView(v);
-                    addViewForRank(v, (WorkspaceItemInfo) v.getTag(), moveStart);
+                    addViewForRank(v, (ItemInfo) v.getTag(), moveStart);
                 } else {
                     // Do a fake animation before removing it.
                     final int newRank = moveStart;
@@ -665,7 +665,7 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
                             mPendingAnimations.remove(v);
                             v.setTranslationX(oldTranslateX);
                             ((CellLayout) v.getParent().getParent()).removeView(v);
-                            addViewForRank(v, (WorkspaceItemInfo) v.getTag(), newRank);
+                            addViewForRank(v, (ItemInfo) v.getTag(), newRank);
                         }
                     };
                     v.animate()
