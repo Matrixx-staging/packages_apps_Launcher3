@@ -505,8 +505,6 @@
     <string name="work_profile_toggle_label">Work profile</string>
     <!--- User onboarding title for work profile apps -->
     <string name="work_profile_edu_work_apps">Work apps are badged and visible to your IT admin</string>
-    <!-- Action label to finish work profile edu-->
-    <string name="work_profile_edu_accept">Got it</string>
     <!-- Info icon unicode for alpha scroller when work edu card is present -->
     <string name="work_profile_edu_section" translatable="false">\u24D8</string>
     <!-- Intent for work profiler scheduler -->
