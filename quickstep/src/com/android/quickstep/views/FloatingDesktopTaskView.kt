@@ -112,12 +112,17 @@ class FloatingDesktopTaskView(context: Context, attrs: AttributeSet?, defStyleAt
     }
 
     /** Animates the FloatingTaskThumbnailView to fade out and scale down. */
-    fun addClosingAnimation(launcher: QuickstepLauncher, animation: PendingAnimation) {
+    fun addClosingAnimation(
+        recentsViewContainer: RecentsViewContainer,
+        animation: PendingAnimation,
+    ) {
         // Use the Workspace pivot point, so the Desktop task view scales together with Workspace.
-        launcher.workspace.setPivotToScaleWithSelf(this)
+        if (recentsViewContainer is QuickstepLauncher) {
+            recentsViewContainer.workspace.setPivotToScaleWithSelf(this)
+        }
 
         val timings =
-            if (launcher.deviceProfile.deviceProperties.isTablet) {
+            if (recentsViewContainer.deviceProfile.deviceProperties.isTablet) {
                 SplitAnimationTimings.TABLET_OVERVIEW_TO_SPLIT
             } else {
                 SplitAnimationTimings.PHONE_OVERVIEW_TO_SPLIT
