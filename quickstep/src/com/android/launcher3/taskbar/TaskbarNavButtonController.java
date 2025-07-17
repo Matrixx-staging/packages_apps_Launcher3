@@ -43,7 +43,6 @@ import android.util.Log;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.inputmethod.Flags;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
@@ -223,14 +222,11 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
                 }
                 return true;
             case BUTTON_IME_SWITCH:
-                if (Flags.imeSwitcherRevamp()) {
-                    logEvent(LAUNCHER_TASKBAR_IME_SWITCHER_BUTTON_LONGPRESS);
-                    onImeSwitcherLongPress();
-                    view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS,
-                            HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
-                    return true;
-                }
-                return false;
+                logEvent(LAUNCHER_TASKBAR_IME_SWITCHER_BUTTON_LONGPRESS);
+                onImeSwitcherLongPress();
+                view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS,
+                        HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
+                return true;
             default:
                 return false;
         }
