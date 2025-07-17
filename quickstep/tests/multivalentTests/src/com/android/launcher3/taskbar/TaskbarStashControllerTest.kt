@@ -31,8 +31,7 @@ import com.android.launcher3.QuickstepTransitionManager.PINNED_TASKBAR_TRANSITIO
 import com.android.launcher3.R
 import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.taskbar.StashedHandleViewController.ALPHA_INDEX_STASHED
-import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_BUBBLES_ANIMATING
-import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_BUBBLES_EXPANDED
+import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_BUBBLES
 import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_EDU_OPEN
 import com.android.launcher3.taskbar.TaskbarControllerTestUtil.asProperty
 import com.android.launcher3.taskbar.TaskbarStashController.FLAG_IN_APP
@@ -839,7 +838,7 @@ class TaskbarStashControllerTest {
             animatorTestRule.advanceTimeBy(stashController.stashDuration)
 
             // suspend auto hide due to bubble bar and stash taskbar
-            autohideSuspendController.updateFlag(FLAG_AUTOHIDE_SUSPEND_BUBBLES_EXPANDED, true)
+            autohideSuspendController.updateFlag(FLAG_AUTOHIDE_SUSPEND_BUBBLES, true)
             stashController.updateAndAnimateTransientTaskbar(
                 /* stash= */ true,
                 /* shouldBubblesFollow= */ false,
@@ -857,7 +856,7 @@ class TaskbarStashControllerTest {
 
         // unsuspend auto hide and verify that the nav bar window is no longer forcibly shown
         getInstrumentation().runOnMainSync {
-            autohideSuspendController.updateFlag(FLAG_AUTOHIDE_SUSPEND_BUBBLES_EXPANDED, false)
+            autohideSuspendController.updateFlag(FLAG_AUTOHIDE_SUSPEND_BUBBLES, false)
         }
         verify(context.windowManagerSpy, atLeastOnce())
             .updateViewLayout(any(), wmLayoutParamsCaptor.capture())
@@ -887,7 +886,7 @@ class TaskbarStashControllerTest {
 
         // suspend auto hide and verify that the nav bar window is forcibly shown
         getInstrumentation().runOnMainSync {
-            autohideSuspendController.updateFlag(FLAG_AUTOHIDE_SUSPEND_BUBBLES_ANIMATING, true)
+            autohideSuspendController.updateFlag(FLAG_AUTOHIDE_SUSPEND_BUBBLES, true)
         }
         verify(context.windowManagerSpy, atLeastOnce())
             .updateViewLayout(any(), wmLayoutParamsCaptor.capture())
