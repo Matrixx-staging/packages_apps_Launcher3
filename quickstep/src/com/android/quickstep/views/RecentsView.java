@@ -3045,6 +3045,8 @@ public abstract class RecentsView<
                             runningTaskView.getGridTranslationY();
                 });
             }
+        } else {
+            setCurrentTask(-1);
         }
 
         mCurrentGestureEndTarget = null;
