@@ -83,7 +83,6 @@ class BubbleViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
                 context,
                 key = "key",
                 parent = null,
-                iconSize = 100,
                 iconColor = Color.LTGRAY,
                 suppressNotification = suppressNotification,
             )

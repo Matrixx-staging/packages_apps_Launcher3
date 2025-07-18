@@ -23,7 +23,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.AttributeSet;
@@ -79,9 +78,6 @@ public class BubbleView extends ConstraintLayout {
     @Nullable
     private Controller mController;
 
-    @Nullable
-    private BubbleBarBubbleIconsFactory mIconFactory = null;
-
     public BubbleView(Context context) {
         this(context, null);
     }
@@ -122,8 +118,6 @@ public class BubbleView extends ConstraintLayout {
         int updatedBubbleSize = Math.min(getWidth(), getHeight());
         if (updatedBubbleSize == mBubbleSize) return;
         mBubbleSize = updatedBubbleSize;
-        mIconFactory = new BubbleBarBubbleIconsFactory(mContext, mBubbleSize);
-        updateBubbleIcon();
         if (mBubble == null || mBubble instanceof BubbleBarOverflow) return;
         mDotRenderer = new DotRenderer(mBubbleSize);
     }
@@ -242,7 +236,7 @@ public class BubbleView extends ConstraintLayout {
         mIcon = bubble.getIcon();
         updateBubbleIcon();
         if (bubble.getInfo().showAppBadge()) {
-            mAppIcon.setImageBitmap(bubble.getBadge());
+            mAppIcon.setImageDrawable(bubble.getBadge().newIcon(getContext()));
         } else {
             mAppIcon.setVisibility(GONE);
         }
@@ -261,15 +255,7 @@ public class BubbleView extends ConstraintLayout {
     }
 
     private void updateBubbleIcon() {
-        Bitmap icon = null;
-        if (mIcon != null) {
-            icon = mIcon;
-            if (mIconFactory != null) {
-                BitmapDrawable iconDrawable = new BitmapDrawable(getResources(), icon);
-                icon = mIconFactory.createShadowedIconBitmap(iconDrawable, /* scale = */ 1f);
-            }
-        }
-        mBubbleIcon.setImageBitmap(icon);
+        mBubbleIcon.setImageBitmap(mIcon);
     }
 
     /**

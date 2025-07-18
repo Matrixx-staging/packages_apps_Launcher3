@@ -36,6 +36,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import androidx.test.platform.app.InstrumentationRegistry
 import com.android.launcher3.R
+import com.android.launcher3.icons.BitmapInfo
 import com.android.launcher3.taskbar.TaskbarInsetsController
 import com.android.launcher3.taskbar.bubbles.BubbleBarBubble
 import com.android.launcher3.taskbar.bubbles.BubbleBarOverflow
@@ -1581,7 +1582,7 @@ class BubbleBarViewAnimatorTest {
                 BubbleBarBubble(
                     bubbleInfo,
                     bubbleView,
-                    bitmap,
+                    BitmapInfo.of(bitmap, Color.WHITE),
                     bitmap,
                     Color.WHITE,
                     "",
