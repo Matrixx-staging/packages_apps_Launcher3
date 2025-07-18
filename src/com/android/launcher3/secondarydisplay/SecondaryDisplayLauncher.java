@@ -175,6 +175,7 @@ public class SecondaryDisplayLauncher extends BaseActivity
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        mSecondaryDisplayDelegate.onDestroy();
         mModel.removeCallbacks(this);
     }
 

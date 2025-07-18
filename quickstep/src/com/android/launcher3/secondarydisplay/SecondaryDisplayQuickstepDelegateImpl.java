@@ -48,6 +48,10 @@ public final class SecondaryDisplayQuickstepDelegateImpl extends SecondaryDispla
         mTISBindHelper = new TISBindHelper(mContext, v -> {});
     }
 
+    void onDestroy() {
+        mTISBindHelper.onDestroy();
+    }
+
     @Override
     void updateAppDivider() {
         mActivityContext.getAppsView().getFloatingHeaderView()
