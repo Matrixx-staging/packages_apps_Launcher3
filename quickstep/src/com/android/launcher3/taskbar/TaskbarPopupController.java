@@ -49,6 +49,7 @@ import com.android.launcher3.notification.NotificationListener;
 import com.android.launcher3.popup.PinToTaskbarShortcut;
 import com.android.launcher3.popup.PopupContainerWithArrow;
 import com.android.launcher3.popup.PopupDataProvider;
+import com.android.launcher3.popup.PopupItemDragHandler;
 import com.android.launcher3.popup.SystemShortcut;
 import com.android.launcher3.shortcuts.DeepShortcutView;
 import com.android.launcher3.splitscreen.SplitShortcut;
@@ -174,14 +175,15 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
         int deepShortcutCount = mPopupDataProvider.getShortcutCountForItem(itemInfo);
         // TODO(b/198438631): add support for INSTALL shortcut factory
         final ItemInfo finalInfo = itemInfo;
-        List<SystemShortcut> systemShortcuts = getSystemShortcuts()
+        List<SystemShortcut<BaseTaskbarContext>> systemShortcuts = getSystemShortcuts()
                 .map(s -> s.getShortcut(context, finalInfo, icon))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
         // TODO(b/375648361): Revisit to see if this can be implemented within getSystemShortcuts().
         if (canPinAppWithContextMenu(mContext)) {
-            SystemShortcut shortcut = createPinShortcut(context, itemInfo, icon);
+            SystemShortcut<BaseTaskbarContext> shortcut =
+                    createPinShortcut(context, itemInfo, icon);
             if (shortcut != null) {
                 systemShortcuts.add(0, shortcut);
             }
@@ -212,10 +214,10 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
     }
 
     // Create a Stream of all applicable system shortcuts
-    private Stream<SystemShortcut.Factory> getSystemShortcuts() {
+    private Stream<SystemShortcut.Factory<BaseTaskbarContext>> getSystemShortcuts() {
         // append split options to APP_INFO shortcut if not in Desktop Windowing mode, the order
         // here will reflect in the popup
-        ArrayList<SystemShortcut.Factory> shortcuts = new ArrayList<>();
+        ArrayList<SystemShortcut.Factory<BaseTaskbarContext>> shortcuts = new ArrayList<>();
         shortcuts.add(APP_INFO);
         if (!mControllers.taskbarDesktopModeController
                 .isInDesktopModeAndNotInOverview(mContext.getDisplayId())) {
@@ -236,8 +238,8 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
 
     @Nullable
     @VisibleForTesting
-    SystemShortcut createPinShortcut(BaseTaskbarContext target, ItemInfo itemInfo,
-            BubbleTextView originalView) {
+    SystemShortcut<BaseTaskbarContext> createPinShortcut(BaseTaskbarContext target,
+            ItemInfo itemInfo, BubbleTextView originalView) {
         // Predicted items use {@code HotseatPredictionController.PinPrediction} shortcut to pin.
         if (itemInfo.container == CONTAINER_HOTSEAT_PREDICTION) {
             return null;
@@ -275,7 +277,7 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
     }
 
     private class TaskbarPopupItemDragHandler implements
-            PopupContainerWithArrow.PopupItemDragHandler {
+            PopupItemDragHandler {
 
         protected final Point mIconLastTouchPos = new Point();
 
