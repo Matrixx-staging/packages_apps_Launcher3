@@ -53,17 +53,13 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         // We use INVALID_APPWIDGET_ID because appWidgetId is not tracked in OseWidgetView. Instead
         // it is managed by OseWidgetManager and QsbAppWidgetHost.
         closeActions.add(
-            oseWidgetManager.providerInfo.forEach(
-                MAIN_EXECUTOR,
-                { setAppWidget(INVALID_APPWIDGET_ID, it) },
-            )::close
+            oseWidgetManager.providerInfo.forEach(MAIN_EXECUTOR) {
+                setAppWidget(INVALID_APPWIDGET_ID, it)
+            }::close
         )
-        setAppWidget(INVALID_APPWIDGET_ID, oseWidgetManager.providerInfo.value)
-
         closeActions.add(
             oseWidgetManager.views.forEach(MAIN_EXECUTOR, { updateAppWidget(it) })::close
         )
-        updateAppWidget(oseWidgetManager.views.value)
     }
 
     override fun setPadding(left: Int, top: Int, right: Int, bottom: Int) {
