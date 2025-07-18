@@ -4584,7 +4584,8 @@ public abstract class RecentsView<
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (isHandlingTouch() || event.getAction() != KeyEvent.ACTION_DOWN) {
+        if (isHandlingTouch() || event.getAction() != KeyEvent.ACTION_DOWN
+                || getStateManager().isInTransition()) {
             return super.dispatchKeyEvent(event);
         }
 
@@ -4594,6 +4595,14 @@ public abstract class RecentsView<
 
         switch (event.getKeyCode()) {
             case KeyEvent.KEYCODE_TAB: {
+                // When alt + tabbing on phones (KQS will handle on large screens) go to the next
+                // task.
+                if (event.isAltPressed()) {
+                    return snapToPageRelative(event.isShiftPressed() ? -1 : 1, true /* cycle */,
+                            TaskGridNavHelper.TaskNavDirection.TAB);
+                }
+                // If not alt + tabbing, tab cycles through the available views in a single task
+                // e.g. chip menu.
                 View currentFocus = findFocus();
                 if (currentFocus == null) return super.dispatchKeyEvent(event);
 
