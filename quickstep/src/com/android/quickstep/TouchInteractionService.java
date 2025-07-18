@@ -578,6 +578,14 @@ public class TouchInteractionService extends Service {
         }
 
         /**
+         * Touches within this number of pixels from the bottom of the screen can get intercepted to
+         * handle gesture navigation. Passing a value less than 0 will revert to a default value.
+         */
+        public void setGesturalHeight(int gesturalHeight) {
+            executeForTouchInteractionService(tis -> tis.setGesturalHeight(gesturalHeight));
+        }
+
+        /**
          * Sets the task id where gestures should be blocked
          */
         public void setGestureBlockedTaskId(int taskId) {
@@ -1368,12 +1376,20 @@ public class TouchInteractionService extends Service {
             int newGesturalHeight = ResourceUtils.getNavbarSize(
                     ResourceUtils.NAVBAR_BOTTOM_GESTURE_SIZE,
                     getApplicationContext().getResources());
-            mDeviceStateRepository.forEach(/* createIfAbsent= */ true, deviceState ->
-                    deviceState.onOneHandedModeChanged(newGesturalHeight));
+            setGesturalHeight(newGesturalHeight);
             return;
         }
 
         ActivityPreloadUtil.preloadOverviewForTIS(this, false /* fromInit */);
+    }
+
+    /**
+     * Touches within this number of pixels from the bottom of the screen can get intercepted to
+     * handle gesture navigation. Passing a value less than 0 will revert to a default value.
+     */
+    public void setGesturalHeight(int newGesturalHeight) {
+        mDeviceStateRepository.forEach(/* createIfAbsent= */ true, deviceState ->
+                deviceState.setGesturalHeight(newGesturalHeight));
     }
 
     private static boolean isTablet(Configuration config) {

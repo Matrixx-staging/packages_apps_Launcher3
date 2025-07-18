@@ -29,6 +29,7 @@ import static com.android.launcher3.Utilities.mapRange;
 import static com.android.launcher3.Utilities.mapToRange;
 import static com.android.launcher3.taskbar.StashedHandleViewController.ALPHA_INDEX_ALL_SET_TRANSITION;
 import static com.android.quickstep.OverviewComponentObserver.startHomeIntentSafely;
+import static com.android.quickstep.RecentsAnimationDeviceState.RESET_TO_DEFAULT_GESTURAL_HEIGHT;
 import static com.android.quickstep.views.WallpaperScreenshotClipView.CLIP_ANIM_DURATION;
 
 import android.animation.Animator;
@@ -112,6 +113,8 @@ public class AllSetActivity extends Activity implements UIControllerChangeListen
     public static final float ALL_SET_SWIPE_THRESHOLD_FOR_WORKSPACE_ANIM = 0.95f;
     // The fade-out happens in the last 65% of the animation.
     private static final float CONTENT_FADE_OUT_START_PROGRESS = 0.35f;
+    // We allow the swipe up to start in the bottom third of the screen.
+    private static final float GESTURE_HEIGHT_RATIO_OF_WINDOW_HEIGHT = 0.33f;
 
     private static final String TAG = "AllSetActivity";
 
@@ -357,7 +360,7 @@ public class AllSetActivity extends Activity implements UIControllerChangeListen
         int height = getWindowManager().getCurrentWindowMetrics().getBounds().height();
 
         ValueAnimator transYAnimator = ValueAnimator.ofFloat(0, -height);
-        transYAnimator.setDuration(100);
+        transYAnimator.setDuration(CLIP_ANIM_DURATION);
         transYAnimator.setInterpolator(LINEAR);
         transYAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
@@ -373,7 +376,7 @@ public class AllSetActivity extends Activity implements UIControllerChangeListen
 
         ValueAnimator contentAlpha = ValueAnimator.ofFloat(1, 0);
         contentAlpha.setInterpolator(LINEAR);
-        contentAlpha.setDuration(100);
+        contentAlpha.setDuration(CLIP_ANIM_DURATION);
         contentAlpha.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
@@ -384,7 +387,7 @@ public class AllSetActivity extends Activity implements UIControllerChangeListen
         });
 
         ValueAnimator hintAndHandleAlpha = ValueAnimator.ofFloat(1, 0);
-        hintAndHandleAlpha.setDuration(10);
+        hintAndHandleAlpha.setDuration(CLIP_ANIM_DURATION / 10);
         hintAndHandleAlpha.setInterpolator(LINEAR);
         hintAndHandleAlpha.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
@@ -549,6 +552,10 @@ public class AllSetActivity extends Activity implements UIControllerChangeListen
         }
         if (mIsExpressiveThemeEnabledInSUW) {
             getWindow().setBackgroundBlurRadius(WALLPAPER_BLUR_RADIUS);
+            if (Flags.enableNewAllSetAnimation() && binder != null) {
+                int height = getWindowManager().getCurrentWindowMetrics().getBounds().height();
+                binder.setGesturalHeight((int) (height * GESTURE_HEIGHT_RATIO_OF_WINDOW_HEIGHT));
+            }
         }
         setUIControllerChangeListener(this);
     }
@@ -556,6 +563,10 @@ public class AllSetActivity extends Activity implements UIControllerChangeListen
     private void onTISConnected(TISBinder binder) {
         setSetupUIVisible(isResumed());
         binder.setSwipeUpProxy(isResumed() ? this::createSwipeUpProxy : null);
+        if (mIsExpressiveThemeEnabledInSUW && Flags.enableNewAllSetAnimation() && isResumed()) {
+            int height = getWindowManager().getCurrentWindowMetrics().getBounds().height();
+            binder.setGesturalHeight((int) (height * GESTURE_HEIGHT_RATIO_OF_WINDOW_HEIGHT));
+        }
 
         setUIControllerChangeListener(this);
         TaskbarManager taskbarManager = mTISBindHelper.getTaskbarManager();
@@ -609,6 +620,9 @@ public class AllSetActivity extends Activity implements UIControllerChangeListen
         if (binder != null) {
             setSetupUIVisible(false);
             binder.setSwipeUpProxy(null);
+            if (mIsExpressiveThemeEnabledInSUW && Flags.enableNewAllSetAnimation()) {
+                binder.setGesturalHeight(RESET_TO_DEFAULT_GESTURAL_HEIGHT);
+            }
         }
     }
 
