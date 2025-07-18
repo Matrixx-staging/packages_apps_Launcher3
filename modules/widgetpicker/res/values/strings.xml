@@ -15,6 +15,8 @@
   -->
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android" xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- Accessibility label for the "action" associated with closing the widget picker bottom sheet [CHAR_LIMIT=none] -->
+    <string name="widget_picker_collapse_sheet_label">Close sheet</string>
     <!-- Placeholder text shown when app name is not loaded yet to display in the widget picker [CHAR_LIMIT=25] -->
     <string name="widgets_list_header_app_name_fallback_label">App name</string>
     <!-- Label for showing the number of widgets an app has in the full widgets picker.

@@ -67,15 +67,19 @@ import kotlinx.coroutines.launch
  * @param onDismissSheet final callback invoked when the sheet has settled animating after a gesture
  *   that led to dismissing the sheet.
  * @param maxHeight max height available for the sheet
+ * @param enableNestedScrolling whether to support nested scrolling; can be set to false when using
+ *   accessibility services.
  */
 fun Modifier.dismissibleBottomSheet(
     sheetState: BottomSheetDismissState,
     onSheetOpen: () -> Unit,
     onDismissSheet: () -> Unit,
     maxHeight: Float,
+    enableNestedScrolling: Boolean = true,
 ): Modifier = composed {
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
+
     val flingBehavior =
         AnchoredDraggableDefaults.flingBehavior(
             state = sheetState.anchoredDraggableState,
@@ -97,6 +101,7 @@ fun Modifier.dismissibleBottomSheet(
                 BottomSheetNestedScrollConnection(
                     sheetState = sheetState,
                     flingBehavior = flingBehavior,
+                    enabled = enableNestedScrolling,
                 )
             )
 
