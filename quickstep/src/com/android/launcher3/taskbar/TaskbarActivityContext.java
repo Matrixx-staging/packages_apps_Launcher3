@@ -264,6 +264,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     private final LauncherPrefs mLauncherPrefs;
     private final int mPrimaryDisplayId;
     private final SystemUiProxy mSysUiProxy;
+    private final Context mWindowContext;
 
     private TaskbarFeatureEvaluator mTaskbarFeatureEvaluator;
 
@@ -286,6 +287,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         mNavigationBarPanelContext = navigationBarPanelContext;
         mSysUiProxy = sysUiProxy;
         mPrimaryDisplayId = primaryDisplayId;
+        mWindowContext = windowContext;
         applyDeviceProfile(launcherDp);
         final Resources resources = getResources();
         mTaskbarFeatureEvaluator = TaskbarFeatureEvaluator.getInstance(this);
@@ -345,12 +347,12 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                             this, mTaskbarUiState, bubbleBarView, bubbleBarContainer),
                     bubbleStashController,
                     bubbleHandleController,
-                    new BubbleDragController(this, mDragLayer, mTaskbarUiState),
+                    new BubbleDragController(this, mWindowContext, mDragLayer, mTaskbarUiState),
                     new BubbleDismissController(this, mDragLayer),
                     new BubbleBarPinController(this, bubbleBarContainer, this::getScreenSize),
                     new BubblePinController(this, bubbleBarContainer, this::getScreenSize),
                     bubbleBarSwipeController,
-                    new DragToBubbleController(this, bubbleBarContainer),
+                    new DragToBubbleController(mWindowContext, bubbleBarContainer),
                     new BubbleCreator(this)
             ));
         }
