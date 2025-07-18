@@ -187,8 +187,6 @@ public class BubbleBarInputConsumer implements InputConsumer {
             return false;
         }
         BubbleControllers controllers = tac.getBubbleControllers();
-        NavbarButtonsViewController navbarButtonsViewController =
-                tac.getNavBarButtonsViewController();
         if (controllers == null || !controllers.bubbleBarViewController.hasBubbles()) {
             return false;
         }
@@ -197,7 +195,11 @@ public class BubbleBarInputConsumer implements InputConsumer {
             return controllers.bubbleStashedHandleViewController.get().isEventOverHandle(ev);
         } else if (controllers.bubbleBarViewController.isBubbleBarVisible()) {
             if (Flags.bugRotationButtonCoverBubble()) {
-                return !navbarButtonsViewController.isEventOverAnyItem(ev)
+                NavbarButtonsViewController navbarButtonsViewController =
+                        tac.getNavBarButtonsViewController();
+                boolean isBlockedByRotationButton = navbarButtonsViewController != null
+                        && navbarButtonsViewController.isEventOverAnyItem(ev);
+                return !isBlockedByRotationButton
                         && controllers.bubbleBarViewController.isEventOverBubbleBar(ev);
             } else {
                 return controllers.bubbleBarViewController.isEventOverBubbleBar(ev);
