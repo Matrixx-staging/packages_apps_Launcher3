@@ -461,6 +461,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
      * A-Z apps list.
      *
      * @param animate Whether to animate the header during the reset (e.g. switching profile tabs).
+     *                Animate should only be {@code true} if AllApps is currently visible.
      */
     public void reset(boolean animate) {
         reset(animate, true);
@@ -470,6 +471,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
      * Resets the UI to be ready for fresh interactions in the future.
      *
      * @param animate Whether to animate the header during the reset (e.g. switching profile tabs).
+     *                Animate should only be {@code true} if AllApps is currently visible.
      * @param exitSearch Whether to force exit the search state and return to A-Z apps list.
      */
     public void reset(boolean animate, boolean exitSearch) {
@@ -494,6 +496,9 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         }
         if (isSearching()) {
             mWorkManager.reset();
+        }
+        if (mScrimView != null && !animate) {
+            mScrimView.setDrawingController(null);
         }
     }
 

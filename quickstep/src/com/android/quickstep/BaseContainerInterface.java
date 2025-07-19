@@ -49,6 +49,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 
+import com.android.launcher3.BuildConfig;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.R;
 import com.android.launcher3.statehandlers.DesktopVisibilityController;
@@ -256,14 +257,26 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
      */
     public boolean shouldCancelCurrentGesture(int displayId) {
         if (refactorTaskbarUiState()) {
-            CONTAINER_TYPE container = getCreatedContainer();
-            return container != null
-                    && TaskbarUiStateMonitor.INSTANCE.get(container.asContext())
-                            .getTaskbarUiState(displayId).isDraggingItemRef().getValue();
+            final boolean ret = newIsDraggingItem(displayId);
+            if (BuildConfig.IS_STUDIO_BUILD && ret != legacyIsDraggingItem()) {
+                throw new IllegalStateException("isDraggingItem() doesn't match");
+            }
+            return ret;
         } else {
-            TaskbarUIController uiController = getTaskbarController();
-            return uiController != null && uiController.isDraggingItem();
+            return legacyIsDraggingItem();
         }
+    }
+
+    private boolean legacyIsDraggingItem() {
+        TaskbarUIController uiController = getTaskbarController();
+        return uiController != null && uiController.isDraggingItem();
+    }
+
+    private boolean newIsDraggingItem(int displayId) {
+        CONTAINER_TYPE container = getCreatedContainer();
+        return container != null
+                && TaskbarUiStateMonitor.INSTANCE.get(container.asContext())
+                .getTaskbarUiState(displayId).isDraggingItemRef().getValue();
     }
 
     public void runOnInitBackgroundStateUI(Runnable callback) {

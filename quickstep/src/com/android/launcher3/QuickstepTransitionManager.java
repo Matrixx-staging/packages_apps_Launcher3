@@ -770,11 +770,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         appAnimator.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationStart(Animator animation) {
-                final boolean shouldShowEduOnAppLaunch = refactorTaskbarUiState()
-                        ? mLauncher.getTaskbarUiState().getShouldShowEduOnAppLaunchRef().getValue()
-                        : mLauncher.getTaskbarUIController() != null
-                                && mLauncher.getTaskbarUIController().shouldShowEduOnAppLaunch();
-                if (shouldShowEduOnAppLaunch) {
+                if (shouldShowEduOnAppLaunch()) {
                     // LAUNCHER_TASKBAR_EDUCATION_SHOWING is set to true here, when the education
                     // flow is about to start, to avoid a race condition with other components
                     // that would show something else to the user as soon as the app is opened.
@@ -793,6 +789,27 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                     taskbarController.showEduOnAppLaunch();
                 }
                 openingTargets.release();
+            }
+
+            private boolean shouldShowEduOnAppLaunch() {
+                if (refactorTaskbarUiState()) {
+                    final boolean ret = newShouldShowEduOnAppLaunch();
+                    if (BuildConfig.IS_STUDIO_BUILD && ret != legacyShouldShowEduOnAppLaunch()) {
+                        throw new IllegalStateException("shouldShowEduOnAppLaunch() doesn't match");
+                    }
+                    return ret;
+                } else {
+                    return legacyShouldShowEduOnAppLaunch();
+                }
+            }
+
+            private boolean legacyShouldShowEduOnAppLaunch() {
+                return mLauncher.getTaskbarUIController() != null
+                        && mLauncher.getTaskbarUIController().shouldShowEduOnAppLaunch();
+            }
+
+            private boolean newShouldShowEduOnAppLaunch() {
+                return mLauncher.getTaskbarUiState().getShouldShowEduOnAppLaunchRef().getValue();
             }
         });
 

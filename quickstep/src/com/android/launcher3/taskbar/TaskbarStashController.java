@@ -1563,6 +1563,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
 
             if (mIsStashed != isStashed || transitionTypeChanged) {
                 mIsStashed = isStashed;
+                onIsStashedChanged(mIsStashed);
                 mLastStartedTransitionType = animationType;
 
                 boolean shouldDelayBackground = hasAnyFlag(FLAG_DELAY_TASKBAR_BG_TAG);

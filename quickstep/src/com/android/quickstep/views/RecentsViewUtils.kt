@@ -133,7 +133,7 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
     }
 
     /** Counts [TaskView]s that are [DesktopTaskView] instances. */
-    private fun getDesktopTaskViewCount(): Int = taskViews.count { it is DesktopTaskView }
+    fun getDesktopTaskViewCount(): Int = taskViews.count { it is DesktopTaskView }
 
     /** Counts [TaskView]s that are not [DesktopTaskView] instances. */
     fun getNonDesktopTaskViewCount(): Int = taskViews.count { it !is DesktopTaskView }
@@ -760,12 +760,11 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
         when (val keyboardFocusTask = keyboardFocusTask) {
             is KeyboardFocusTask.Unfocused -> null
             is KeyboardFocusTask.CurrentPageTaskView -> recentsView.currentPageTaskView
-            is KeyboardFocusTask.TaskViewWithIds -> recentsView.getTaskViewByTaskIds(
-                keyboardFocusTask.taskIds.toIntArray())
+            is KeyboardFocusTask.TaskViewWithIds ->
+                recentsView.getTaskViewByTaskIds(keyboardFocusTask.taskIds.toIntArray())
         }
 
-    fun isKeyboardTaskFocusPending() =
-        keyboardFocusTask !is KeyboardFocusTask.Unfocused
+    fun isKeyboardTaskFocusPending() = keyboardFocusTask !is KeyboardFocusTask.Unfocused
 
     /**
      * Adds a listener to be notified when a new desk is added.
