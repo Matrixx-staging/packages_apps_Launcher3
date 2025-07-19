@@ -111,6 +111,8 @@
     <dimen name="task_dismiss_max_undershoot">25dp</dimen>
     <!--  How much a task should be dragged from the origin before it detaches (or reattaches).  -->
     <dimen name="task_dismiss_detach_threshold">72dp</dimen>
+    <!-- How much the last desk can be dragged for dismissal before it resists and falls back to its start position. -->
+    <dimen name="task_dismiss_max_attach_overshoot">120dp</dimen>
 
     <dimen name="task_icon_cache_default_icon_size">72dp</dimen>
     <item name="overview_modal_max_scale" format="float" type="dimen">1.1</item>
