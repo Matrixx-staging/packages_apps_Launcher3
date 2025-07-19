@@ -16,6 +16,9 @@
 
 package com.android.launcher3.popup
 
+import android.content.Context
+import com.android.launcher3.views.ActivityContext
+
 /** Enum for the type of poppable. Based on this we want to show different shortcuts */
 enum class PoppableType {
     APP,
@@ -25,13 +28,13 @@ enum class PoppableType {
 }
 
 /** Items for which we can trigger a popup menu would implement this interface. */
-interface Poppable {
+interface Poppable<T> where T : Context, T : ActivityContext {
 
     /** @return a controller to handle actions for the popup. */
-    fun getPopupController(): PopupController?
+    fun getPopupController(): PopupController<T>?
 
     /** Sets the popup controller to help us handle actions for the popup. */
-    fun setPopupController(popupController: PopupController)
+    fun setPopupController(popupController: PopupController<T>)
 
     /** @return the type of poppable that this item is. */
     fun getPoppableType(): PoppableType

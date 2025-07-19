@@ -499,7 +499,7 @@ public class LoaderTask implements Runnable {
                 return;
             }
 
-            mBgDataModel.stringCache.loadStrings(mContext);
+            mBgDataModel.updateStringCache(mContext);
             mBgDataModel.dataLoadComplete(
                     itemProcessor.finalizeData(mModelDelegate, mModel.getModelDbController()));
         }

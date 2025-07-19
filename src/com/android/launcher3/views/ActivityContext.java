@@ -56,6 +56,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.DefaultLifecycleObserver;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.savedstate.SavedStateRegistryOwner;
 
 import com.android.launcher3.BaseActivity;
@@ -89,6 +91,7 @@ import com.android.launcher3.util.LauncherBindableItemsContainer;
 import com.android.launcher3.util.PendingRequestArgs;
 import com.android.launcher3.util.Preconditions;
 import com.android.launcher3.util.RunnableList;
+import com.android.launcher3.util.SafeCloseable;
 import com.android.launcher3.util.SplitConfigurationOptions;
 import com.android.launcher3.util.SystemUiController;
 import com.android.launcher3.util.ViewCache;
@@ -246,7 +249,7 @@ public interface ActivityContext extends SavedStateRegistryOwner {
     /** Registered {@link OnDeviceProfileChangeListener} instances. */
     List<OnDeviceProfileChangeListener> getOnDeviceProfileChangeListeners();
 
-    /** Notifies listeners of a {@link deviceprofile} change. */
+    /** Notifies listeners of a {@link #getDeviceProfile} change. */
     default void dispatchDeviceProfileChanged() {
         DeviceProfile deviceProfile = getDeviceProfile();
         List<OnDeviceProfileChangeListener> listeners = getOnDeviceProfileChangeListeners();
@@ -255,12 +258,12 @@ public interface ActivityContext extends SavedStateRegistryOwner {
         }
     }
 
-    /** Register listener for {@link deviceprofile} changes. */
+    /** Register listener for {@link #getDeviceProfile} changes. */
     default void addOnDeviceProfileChangeListener(OnDeviceProfileChangeListener listener) {
         getOnDeviceProfileChangeListeners().add(listener);
     }
 
-    /** Unregister listener for {@link deviceprofile} changes. */
+    /** Unregister listener for {@link #getDeviceProfile} changes. */
     default void removeOnDeviceProfileChangeListener(OnDeviceProfileChangeListener listener) {
         getOnDeviceProfileChangeListeners().remove(listener);
     }
@@ -616,6 +619,16 @@ public interface ActivityContext extends SavedStateRegistryOwner {
     /** Returns the current ActivityContext as context */
     default Context asContext() {
         return (Context) this;
+    }
+
+    /** Closes the closeable when this context is destroyed */
+    default void closeOnDestroy(SafeCloseable closeable) {
+        MAIN_EXECUTOR.execute(() -> getLifecycle().addObserver(new DefaultLifecycleObserver() {
+            @Override
+            public void onDestroy(@NonNull LifecycleOwner owner) {
+                closeable.close();
+            }
+        }));
     }
 
     /**

@@ -61,7 +61,6 @@ import com.android.launcher3.deviceprofile.HotseatProfile;
 import com.android.launcher3.deviceprofile.OverviewProfile;
 import com.android.launcher3.deviceprofile.TaskbarProfile;
 import com.android.launcher3.deviceprofile.WorkspaceProfile;
-import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.icons.DotRenderer;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.responsive.CalculatedCellSpec;
@@ -86,16 +85,13 @@ import java.util.function.Consumer;
 @SuppressLint("NewApi")
 public class DeviceProfile {
 
-    private static final int DEFAULT_DOT_SIZE = 100;
-    private static final float MIN_FOLDER_TEXT_SIZE_SP = 16f;
     private static final float MIN_WIDGET_PADDING_DP = 6f;
 
     private static final float MAX_ASPECT_RATIO_FOR_ALTERNATE_EDIT_STATE = 1.5f;
 
     public static final PointF DEFAULT_SCALE = new PointF(1.0f, 1.0f);
     public static final ViewScaleProvider DEFAULT_PROVIDER = itemInfo -> DEFAULT_SCALE;
-    public static final Consumer<DeviceProfile> DEFAULT_DIMENSION_PROVIDER = dp -> {
-    };
+    public static final Consumer<DeviceProfile> DEFAULT_DIMENSION_PROVIDER = dp -> { };
 
     public final InvariantDeviceProfile inv;
     private final BottomSheetProfile mBottomSheetProfile;
@@ -255,7 +251,7 @@ public class DeviceProfile {
     }
 
     DeviceProfile(Context context, InvariantDeviceProfile inv, Info info,
-            WindowManagerProxy wmProxy, ThemeManager themeManager, WindowBounds windowBounds,
+            WindowManagerProxy wmProxy, WindowBounds windowBounds,
             SparseArray<DotRenderer> dotRendererCache, boolean isExternalDisplay,
             boolean transposeLayoutWithOrientation, boolean isMultiDisplay, boolean isGestureMode,
             @NonNull final ViewScaleProvider viewScaleProvider,
@@ -554,10 +550,10 @@ public class DeviceProfile {
         dimensionOverrideProvider.accept(this);
 
         // This is done last, after iconSizePx is calculated above.
-        mDotRendererWorkSpace = createDotRenderer(themeManager,
+        mDotRendererWorkSpace = createDotRenderer(
                 getWorkspaceIconProfile().getIconSizePx(), dotRendererCache);
-        mDotRendererAllApps = createDotRenderer(themeManager, getAllAppsProfile().getIconSizePx(),
-                dotRendererCache);
+        mDotRendererAllApps = createDotRenderer(
+                getAllAppsProfile().getIconSizePx(), dotRendererCache);
     }
 
     private boolean isLandscapeOrientation()  {
@@ -610,13 +606,10 @@ public class DeviceProfile {
     }
 
     private static DotRenderer createDotRenderer(
-            @NonNull ThemeManager themeManager, int size, @NonNull SparseArray<DotRenderer> cache) {
+            int size, @NonNull SparseArray<DotRenderer> cache) {
         DotRenderer renderer = cache.get(size);
         if (renderer == null) {
-            renderer = new DotRenderer(
-                    size,
-                    themeManager.getIconShape().getPath(DEFAULT_DOT_SIZE),
-                    DEFAULT_DOT_SIZE);
+            renderer = new DotRenderer(size);
             cache.put(size, renderer);
         }
         return renderer;
@@ -2048,7 +2041,6 @@ public class DeviceProfile {
         private final InvariantDeviceProfile mInv;
         private final Info mInfo;
         private final WindowManagerProxy mWMProxy;
-        private final ThemeManager mThemeManager;
 
         private WindowBounds mWindowBounds;
         private boolean mIsMultiDisplay;
@@ -2066,12 +2058,11 @@ public class DeviceProfile {
         private DisplayOptionSpec mDisplayOptionSpec;
 
         public Builder(Context context, InvariantDeviceProfile inv, Info info,
-                WindowManagerProxy wmProxy, ThemeManager themeManager) {
+                WindowManagerProxy wmProxy) {
             mContext = context;
             mInv = inv;
             mInfo = info;
             mWMProxy = wmProxy;
-            mThemeManager = themeManager;
             mIsTransientTaskbar = info.isTransientTaskbar();
         }
 
@@ -2173,7 +2164,7 @@ public class DeviceProfile {
                 mDisplayOptionSpec = createDefaultDisplayOptionSpec(mInfo, mWindowBounds,
                         mIsMultiDisplay, mInv);
             }
-            return new DeviceProfile(mContext, mInv, mInfo, mWMProxy, mThemeManager,
+            return new DeviceProfile(mContext, mInv, mInfo, mWMProxy,
                     mWindowBounds, mDotRendererCache, mIsExternalDisplay,
                     mTransposeLayoutWithOrientation, mIsMultiDisplay,
                     mIsGestureMode, mViewScaleProvider, mOverrideProvider, mIsTransientTaskbar,

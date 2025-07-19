@@ -302,8 +302,7 @@ public class QuickstepWidgetPickerActivity extends
             WidgetPickerConfig config = getWidgetPickerConfig();
             mModel.update(null);
 
-            StringCache stringCache = new StringCache();
-            stringCache.loadStrings(this);
+            StringCache stringCache = StringCache.fromContext(this);
 
             bindStringCache(stringCache);
             bindWidgets(mModel.getWidgetsByPackageItemForPicker());

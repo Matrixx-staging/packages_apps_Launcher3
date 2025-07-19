@@ -186,7 +186,8 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
             Intent().setPackage(context.packageName),
             PendingIntent.FLAG_MUTABLE or
                 PendingIntent.FLAG_ALLOW_UNSAFE_IMPLICIT_INTENT or
-                Intent.FILL_IN_COMPONENT,
+                Intent.FILL_IN_COMPONENT or
+                PendingIntent.FLAG_UPDATE_CURRENT,
             ActivityOptions.makeBasic()
                 .setPendingIntentCreatorBackgroundActivityStartMode(
                     ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED

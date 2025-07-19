@@ -16,23 +16,23 @@
 
 package com.android.launcher3.popup
 
+import android.content.Context
 import android.view.View
-import com.android.launcher3.LauncherSettings
+import com.android.launcher3.dragndrop.LauncherDragController
 import com.android.launcher3.model.data.ItemInfo
+import com.android.launcher3.views.ActivityContext
 
 /**
  * Controller interface for popups. It handles actions for the popups such as showing and dismissing
  * popups.
  */
-interface PopupController {
+interface PopupController<T> where T : Context, T : ActivityContext {
     /**
      * Shows the popup when called.
      *
-     * @param popupDataRepository is the repository which has all the data we need to show the
-     *   correct long press menu shortcuts.
      * @return Popup which handles drag related actions due to showing the popup.
      */
-    fun show(popupDataRepository: PopupDataRepository, view: View): Popup?
+    fun show(view: View): Popup
 
     /** Dismisses the popup when called. */
     fun dismiss()
@@ -46,19 +46,12 @@ interface PopupController {
          *   controller.
          * @return a new PopupController.
          */
-        fun createPopupController(itemInfo: ItemInfo): PopupController? {
-            when (itemInfo.itemType) {
-                LauncherSettings.Favorites.ITEM_TYPE_FOLDER ->
-                    return FolderPopupController(itemInfo)
-                LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET ->
-                    return WidgetPopupController(itemInfo)
-                LauncherSettings.Favorites.ITEM_TYPE_APPLICATION,
-                LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT ->
-                    return AppPopupController(itemInfo)
-                LauncherSettings.Favorites.ITEM_TYPE_APP_PAIR ->
-                    return AppPairPopupController(itemInfo)
-            }
-            return null
+        fun <T> createPopupController(
+            itemInfo: ItemInfo,
+            popupDataRepository: PopupDataRepository,
+            dragController: LauncherDragController,
+        ): PopupController<T> where T : Context, T : ActivityContext? {
+            return PopupControllerImpl(itemInfo, popupDataRepository, dragController)
         }
     }
 }

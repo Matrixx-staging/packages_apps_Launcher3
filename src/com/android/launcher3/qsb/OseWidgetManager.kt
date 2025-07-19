@@ -79,7 +79,6 @@ constructor(
         widgetHost.startListening()
 
         tracker.addCloseable(oseManager.oseInfo.forEach(executor, this::handleOseInfoUpdate))
-        executor.execute { handleOseInfoUpdate(oseManager.oseInfo.value) }
 
         val idpListener = OnIDPChangeListener { updateWidgetSizeAsync() }
         idp.addOnChangeListener(idpListener)

@@ -16,6 +16,7 @@
 package com.android.launcher3.taskbar.bubbles;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.view.MotionEvent;
@@ -99,14 +100,12 @@ public class BubbleDragController {
 
     private boolean mIsDragging;
 
-    public BubbleDragController(TaskbarActivityContext activity, FrameLayout dropTargetParent,
-            TaskbarUiState taskbarUiState) {
+    public BubbleDragController(TaskbarActivityContext activity, Context context,
+            FrameLayout dropTargetParent, TaskbarUiState taskbarUiState) {
         mActivity = activity;
         mTaskbarUiState = taskbarUiState;
-        WindowManager windowManager =
-                mActivity.getApplicationContext().getSystemService(WindowManager.class);
-        DeviceConfig deviceConfig =
-                DeviceConfig.create(mActivity.getApplicationContext(), windowManager);
+        WindowManager windowManager = context.getSystemService(WindowManager.class);
+        DeviceConfig deviceConfig = DeviceConfig.create(context, windowManager);
         SplitScreenModeChecker splitScreenModeChecker = new SplitScreenModeChecker() {
             @NonNull
             @Override
@@ -137,11 +136,11 @@ public class BubbleDragController {
                         return (int) -mBubbleBarViewController.getBubbleBarTranslationY().value;
                     }
                 };
-        mDragZoneFactory = new DragZoneFactory(mActivity.getApplicationContext(), deviceConfig,
+        mDragZoneFactory = new DragZoneFactory(context, deviceConfig,
                 splitScreenModeChecker, desktopWindowModeChecker, bubbleBarPropertiesProvider);
         mBubbleDragZoneChangedListener = new BubbleDragZoneChangedListener();
-        mDropTargetManager = new DropTargetManager(mActivity.getApplicationContext(),
-                dropTargetParent, mBubbleDragZoneChangedListener);
+        mDropTargetManager =
+            new DropTargetManager(context, dropTargetParent, mBubbleDragZoneChangedListener);
     }
 
     /**

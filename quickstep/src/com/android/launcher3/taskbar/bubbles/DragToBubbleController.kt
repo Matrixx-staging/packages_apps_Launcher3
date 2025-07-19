@@ -125,11 +125,10 @@ class DragToBubbleController(
         } else {
             shellDropTargetManager.onDragEnded()
         }
-        // TODO(b/411505605) remove once properly notified from shell
-        bubbleBarViewController.isShowingDropTarget = started
     }
 
     fun showShellBubbleBarDropTargetAt(location: BubbleBarLocation?) {
+        bubbleBarViewController.isShowingDropTarget = location != null
         if (location == null) {
             val leftDropRect = dragZoneFactory.getBubbleBarDropRect(isLeftSide = true)
             val rightDropRect = dragZoneFactory.getBubbleBarDropRect(isLeftSide = false)

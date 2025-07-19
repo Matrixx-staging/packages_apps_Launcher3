@@ -505,7 +505,7 @@ public class InvariantDeviceProfile {
     }
 
     DeviceProfile.Builder newDPBuilder(Context context, Info info) {
-        return new DeviceProfile.Builder(context, this, info, mWMProxy, mThemeManager);
+        return new DeviceProfile.Builder(context, this, info, mWMProxy);
     }
 
     public void addOnChangeListener(OnIDPChangeListener listener) {
