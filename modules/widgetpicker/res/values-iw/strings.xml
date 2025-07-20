@@ -28,9 +28,10 @@
     <string name="widget_tap_to_add_button_content_description" msgid="3591512565497536699">"הוספת הווידג\'ט <xliff:g id="WIDGET_NAME">%1$s</xliff:g>"</string>
     <string name="featured_widgets_tab_label" msgid="5911854248145111652">"מומלצים"</string>
     <string name="browse_widgets_tab_label" msgid="7179933202350730737">"עיון"</string>
-    <!-- no translation found for widgets_tab_accessibility_label (559010210491169400) -->
-    <skip />
+    <string name="widgets_tab_accessibility_label" msgid="559010210491169400">"‫<xliff:g id="TAB_NAME">%1$s</xliff:g> ווידג\'טים"</string>
     <string name="widget_picker_right_pane_accessibility_label" msgid="5095301787174820892">"ווידג\'טים של <xliff:g id="SELECTED_HEADER">%1$s</xliff:g> מימין, חיפוש ואפשרויות משמאל"</string>
+    <!-- no translation found for widget_picker_left_pane_accessibility_label (4719054594582596067) -->
+    <skip />
     <string name="widgets_search_bar_hint" msgid="5705758627532180867">"חיפוש"</string>
     <string name="widget_search_bar_clear_button_label" msgid="6120140737164336517">"מחיקה"</string>
     <string name="widget_search_bar_back_button_label" msgid="7028448831228587743">"חזרה"</string>

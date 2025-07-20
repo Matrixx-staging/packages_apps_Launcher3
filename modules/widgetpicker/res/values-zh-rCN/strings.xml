@@ -30,6 +30,8 @@
     <string name="browse_widgets_tab_label" msgid="7179933202350730737">"浏览"</string>
     <string name="widgets_tab_accessibility_label" msgid="559010210491169400">"“<xliff:g id="TAB_NAME">%1$s</xliff:g>”类微件"</string>
     <string name="widget_picker_right_pane_accessibility_label" msgid="5095301787174820892">"右侧是“<xliff:g id="SELECTED_HEADER">%1$s</xliff:g>”微件，左侧是搜索功能和选项"</string>
+    <!-- no translation found for widget_picker_left_pane_accessibility_label (4719054594582596067) -->
+    <skip />
     <string name="widgets_search_bar_hint" msgid="5705758627532180867">"搜索"</string>
     <string name="widget_search_bar_clear_button_label" msgid="6120140737164336517">"清除"</string>
     <string name="widget_search_bar_back_button_label" msgid="7028448831228587743">"返回"</string>
