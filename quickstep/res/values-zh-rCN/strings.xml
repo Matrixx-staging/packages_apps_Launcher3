@@ -96,12 +96,10 @@
     <string name="allset_navigation_settings" msgid="4713404605961476027"><annotation id="link">"系统导航设置"</annotation></string>
     <string name="allset_title_expressive" msgid="474399969304146994">"您的 <xliff:g id="DEVICE">%1$s</xliff:g>\n已设置完毕！"</string>
     <string name="allset_title_expressive_fallback" msgid="2829102990606405239">"您的设备\n已设置完毕！"</string>
-    <!-- no translation found for allset_title_expressive_fixed (3564219469262883526) -->
-    <skip />
+    <string name="allset_title_expressive_fixed" msgid="3564219469262883526">"设置完毕，开始使用吧！"</string>
     <string name="allset_subtitle_expressive" msgid="419688197551192358">"尽情享用新的<xliff:g id="DEVICE">%1$s</xliff:g>吧！"</string>
-    <!-- no translation found for allset_subtitle_expressive_gesture_navigation (8931442349501593934) -->
-    <skip />
-    <!-- no translation found for allset_subtitle_expressive_button_navigation (6968509640793602176) -->
+    <string name="allset_subtitle_expressive_gesture_navigation" msgid="8931442349501593934">"向上滑动即可开始使用您的<xliff:g id="DEVICE">%1$s</xliff:g>"</string>
+    <!-- no translation found for allset_subtitle_expressive_button_navigation (5219509605046028014) -->
     <skip />
     <string name="allset_navigation_settings_expressive" msgid="3745595273748356"><annotation id="link">"选择导航方式"</annotation></string>
     <string name="allset_hint_expressive" msgid="756856423510976261">"向上滑动"</string>
