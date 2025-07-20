@@ -97,7 +97,7 @@
     <string name="remove_drop_target_label" msgid="7812859488053230776">"Retirer"</string>
     <string name="uninstall_drop_target_label" msgid="4722034217958379417">"Désinstaller"</string>
     <string name="app_info_drop_target_label" msgid="692894985365717661">"Détails de l\'appli"</string>
-    <string name="install_private_system_shortcut_label" msgid="1616889277073184841">"Installer dans privé"</string>
+    <string name="install_private_system_shortcut_label" msgid="1616889277073184841">"Installer en privé"</string>
     <string name="uninstall_private_system_shortcut_label" msgid="8423460530441627982">"Désinstaller l\'appli"</string>
     <string name="install_drop_target_label" msgid="2539096853673231757">"Installer"</string>
     <string name="dismiss_prediction_label" msgid="3357562989568808658">"Ne pas suggérer d\'appli"</string>
@@ -201,7 +201,6 @@
     <string name="all_apps_work_tab_content_description" msgid="3835637212347968316">"Onglet Applis professionnelles"</string>
     <string name="work_profile_toggle_label" msgid="3081029915775481146">"Profil professionnel"</string>
     <string name="work_profile_edu_work_apps" msgid="7895468576497746520">"Les applis professionnelles sont indiquées par un badge et elles sont visibles pour votre administrateur informatique"</string>
-    <string name="work_profile_edu_accept" msgid="6069788082535149071">"OK"</string>
     <string name="work_apps_paused_title" msgid="3040901117349444598">"Les applis professionnelles sont interrompues"</string>
     <string name="work_apps_paused_info_body" msgid="1687828929959237477">"Vous ne recevrez pas de notifications de vos applis professionnelles"</string>
     <string name="work_apps_paused_body" msgid="261634750995824906">"Les applis professionnelles ne peuvent ni vous envoyer de notifications, ni utiliser la pile, ni accéder à votre position"</string>
