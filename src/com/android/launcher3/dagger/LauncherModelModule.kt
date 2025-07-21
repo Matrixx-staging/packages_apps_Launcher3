@@ -16,6 +16,7 @@
 
 package com.android.launcher3.dagger
 
+import com.android.launcher3.LifecycleTracker
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.popup.PopupDataRepository
 import com.android.launcher3.popup.PopupDataRepositoryImpl
@@ -29,4 +30,6 @@ abstract class LauncherModelModule {
     @Binds abstract fun bindPopupDataRepository(impl: PopupDataRepositoryImpl): PopupDataRepository
 
     @Multibinds @Named("MODEL_ITEMS") abstract fun extraModelItems(): Set<ItemInfo>
+
+    @Multibinds abstract fun lifecycleTrackers(): Set<LifecycleTracker>
 }
