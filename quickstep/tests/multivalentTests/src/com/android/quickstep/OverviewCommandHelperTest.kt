@@ -21,7 +21,6 @@ import android.platform.test.annotations.DisableFlags
 import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
 import android.view.Display.DEFAULT_DISPLAY
-import com.android.window.flags.Flags as WindowFlags
 import androidx.test.filters.SmallTest
 import com.android.app.displaylib.DisplayRepository
 import com.android.app.displaylib.fakes.FakePerDisplayRepository
@@ -39,10 +38,10 @@ import com.android.quickstep.OverviewCommandHelper.CommandInfo
 import com.android.quickstep.OverviewCommandHelper.CommandInfo.CommandStatus
 import com.android.quickstep.OverviewCommandHelper.CommandType
 import com.android.quickstep.OverviewCommandHelper.Companion.TOGGLE_PREVIOUS_TIMEOUT_MS
-import com.android.quickstep.RecentsAnimationCallbacks
 import com.android.quickstep.views.KeyboardFocusTask
 import com.android.quickstep.views.RecentsView
 import com.android.quickstep.views.TaskView
+import com.android.window.flags.Flags as WindowFlags
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -63,7 +62,6 @@ import org.mockito.Mockito.spy
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doAnswer
-import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -417,7 +415,6 @@ class OverviewCommandHelperTest {
     @Test
     fun recentViewVisible_noRunningTask_toggle_goToLastDesktopTaskView() =
         testScope.runTest {
-            val firstNonDesktopTaskView = mock<TaskView>()
             val lastDesktopTaskView = mock<TaskView>()
             val firstTaskView = mock<TaskView>()
             val previousTaskView = mock<TaskView>()
@@ -468,34 +465,23 @@ class OverviewCommandHelperTest {
     @EnableFlags(WindowFlags.FLAG_ENABLE_REJECT_HOME_TRANSITION)
     fun whenHomeCommandIsAdded_executeRejectHomeActionOnExternalDisplay() =
         testScope.runTest {
-            val swipeUpHandlerFactory: AbsSwipeUpHandler.Factory = mock()
-            val swipeUpHandler: AbsSwipeUpHandler<*, *, *> = mock()
-            val newGestureState: GestureState = mock()
-            whenever(touchInteractionService.getSwipeUpHandlerFactory(any()))
-                .thenReturn(swipeUpHandlerFactory)
-            whenever(swipeUpHandlerFactory.newHandler(any(), any())).thenReturn(swipeUpHandler)
-            whenever(swipeUpHandler.getLaunchIntent()).thenReturn(Intent())
-            whenever(touchInteractionService.createGestureState(any(), any(), any()))
-                .thenReturn(newGestureState)
-            whenever(taskAnimationManager.isRecentsAnimationRunning).thenReturn(false)
-            whenever(taskAnimationManager.startRecentsAnimation(any(), any(), any()))
-                .thenReturn(mock())
-
-            addCallbackDelay(100)
+            whenever(containerInterface.getVisibleRecentsView<RecentsView<*, *>>()).thenReturn(null)
+            val (swipeUpHandler, newGestureState) = setupGestureDependencies()
             val command = sut.addCommand(CommandType.HOME, EXTERNAL_DISPLAY_ID)!!
+
             runCurrent()
+            assertThat(command.status).isEqualTo(CommandStatus.PROCESSING)
             verify(touchInteractionService, never()).startActivity(any())
             verify(swipeUpHandler).onGestureStarted(any())
-            verify(newGestureState).setHandlingAtomicEvent(
-                GestureState.GestureEndTarget.REJECT_HOME)
-            assertThat(command.status).isEqualTo(CommandStatus.PROCESSING)
+            verify(newGestureState)
+                .setHandlingAtomicEvent(GestureState.GestureEndTarget.REJECT_HOME)
 
             // Make sure we can transition to completed state once we see an end callback.
             val gestureAnimationEndCallbackCaptor = argumentCaptor<Runnable>()
             verify(swipeUpHandler)
                 .setGestureAnimationEndCallback(gestureAnimationEndCallbackCaptor.capture())
             gestureAnimationEndCallbackCaptor.firstValue.run()
-            advanceTimeBy(200)
+            runCurrent()
             assertThat(command.status).isEqualTo(CommandStatus.COMPLETED)
         }
 
@@ -578,7 +564,7 @@ class OverviewCommandHelperTest {
             runCurrent()
             assertThat(command.status).isEqualTo(CommandStatus.PROCESSING)
             verify(taskbarUIController, never()).openQuickSwitchView()
-            verify(recentView).setKeyboardFocusTask(eq(KeyboardFocusTask.CurrentPageTaskView))
+            verify(recentView).setKeyboardFocusTask(KeyboardFocusTask.CurrentPageTaskView)
         }
 
     @Test
@@ -596,10 +582,43 @@ class OverviewCommandHelperTest {
     fun showWithFocusCommand_setsKeyboardFocusTaskToCurrentTask() =
         testScope.runTest {
             whenever(containerInterface.getVisibleRecentsView<RecentsView<*, *>>()).thenReturn(null)
-            sut.addCommand(CommandType.SHOW_WITH_FOCUS)!!
+            whenever(containerInterface.switchToRecentsIfVisible(any())).thenReturn(false)
+            val (swipeUpHandler, newGestureState) = setupGestureDependencies()
+            val command = sut.addCommand(CommandType.SHOW_WITH_FOCUS)!!
+
             runCurrent()
-            verify(recentView).setKeyboardFocusTask(eq(KeyboardFocusTask.CurrentPageTaskView))
+            assertThat(command.status).isEqualTo(CommandStatus.PROCESSING)
+            verify(swipeUpHandler).onGestureStarted(any())
+            verify(newGestureState).setHandlingAtomicEvent(GestureState.GestureEndTarget.RECENTS)
+            verify(recentView).setKeyboardFocusTask(KeyboardFocusTask.CurrentPageTaskView)
+
+            // Make sure we can transition to completed state once we see an end callback.
+            val gestureAnimationEndCallbackCaptor = argumentCaptor<Runnable>()
+            verify(swipeUpHandler)
+                .setGestureAnimationEndCallback(gestureAnimationEndCallbackCaptor.capture())
+            whenever(containerInterface.getVisibleRecentsView<RecentsView<*, *>>())
+                .thenReturn(recentView)
+            gestureAnimationEndCallbackCaptor.firstValue.run()
+
+            runCurrent()
+            assertThat(command.status).isEqualTo(CommandStatus.COMPLETED)
+            verify(recentView).setKeyboardFocusTask(KeyboardFocusTask.Unfocused)
         }
+
+    private fun setupGestureDependencies(): Pair<AbsSwipeUpHandler<*, *, *>, GestureState> {
+        val swipeUpHandlerFactory = mock<AbsSwipeUpHandler.Factory>()
+        val swipeUpHandler = mock<AbsSwipeUpHandler<*, *, *>>()
+        val newGestureState = mock<GestureState>()
+        whenever(touchInteractionService.getSwipeUpHandlerFactory(any()))
+            .thenReturn(swipeUpHandlerFactory)
+        whenever(swipeUpHandlerFactory.newHandler(any(), any())).thenReturn(swipeUpHandler)
+        whenever(swipeUpHandler.getLaunchIntent()).thenReturn(Intent())
+        whenever(touchInteractionService.createGestureState(any(), any(), any()))
+            .thenReturn(newGestureState)
+        whenever(taskAnimationManager.isRecentsAnimationRunning).thenReturn(false)
+        whenever(taskAnimationManager.startRecentsAnimation(any(), any(), any())).thenReturn(mock())
+        return Pair(swipeUpHandler, newGestureState)
+    }
 
     private companion object {
         const val QUEUE_TIMEOUT = 5001L
