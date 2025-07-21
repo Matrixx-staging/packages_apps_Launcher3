@@ -201,7 +201,6 @@
     <string name="all_apps_work_tab_content_description" msgid="3835637212347968316">"Fliken Jobbappar"</string>
     <string name="work_profile_toggle_label" msgid="3081029915775481146">"Jobbprofil"</string>
     <string name="work_profile_edu_work_apps" msgid="7895468576497746520">"Jobbappar är märkta och synliga för IT-administratören"</string>
-    <string name="work_profile_edu_accept" msgid="6069788082535149071">"OK"</string>
     <string name="work_apps_paused_title" msgid="3040901117349444598">"Jobbappar har pausats"</string>
     <string name="work_apps_paused_info_body" msgid="1687828929959237477">"Du får inga aviseringar från dina jobbappar"</string>
     <string name="work_apps_paused_body" msgid="261634750995824906">"Dina jobbappar kan inte skicka aviseringar, använda batteriet eller komma åt din plats"</string>

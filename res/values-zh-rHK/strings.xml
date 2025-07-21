@@ -201,7 +201,6 @@
     <string name="all_apps_work_tab_content_description" msgid="3835637212347968316">"工作應用程式分頁"</string>
     <string name="work_profile_toggle_label" msgid="3081029915775481146">"工作設定檔"</string>
     <string name="work_profile_edu_work_apps" msgid="7895468576497746520">"工作應用程式均加有標誌。你的 IT 管理員可以看到這些應用程式"</string>
-    <string name="work_profile_edu_accept" msgid="6069788082535149071">"知道了"</string>
     <string name="work_apps_paused_title" msgid="3040901117349444598">"已暫停工作應用程式"</string>
     <string name="work_apps_paused_info_body" msgid="1687828929959237477">"你不會收到工作應用程式的通知"</string>
     <string name="work_apps_paused_body" msgid="261634750995824906">"工作應用程式無法向你傳送通知、使用電池電量或存取你的位置"</string>

@@ -201,7 +201,6 @@
     <string name="all_apps_work_tab_content_description" msgid="3835637212347968316">"Zavihek z delovnimi aplikacijami"</string>
     <string name="work_profile_toggle_label" msgid="3081029915775481146">"Delovni profil"</string>
     <string name="work_profile_edu_work_apps" msgid="7895468576497746520">"Delovne aplikacije so označene z značko in vidne skrbniku za IT."</string>
-    <string name="work_profile_edu_accept" msgid="6069788082535149071">"Razumem"</string>
     <string name="work_apps_paused_title" msgid="3040901117349444598">"Delovne aplikacije so začasno zaustavljene"</string>
     <string name="work_apps_paused_info_body" msgid="1687828929959237477">"Obvestil iz delovnih aplikacij ne boste prejemali."</string>
     <string name="work_apps_paused_body" msgid="261634750995824906">"Delovne aplikacije ne smejo pošiljati obvestil, porabljati energije baterije ali dostopati do lokacije."</string>

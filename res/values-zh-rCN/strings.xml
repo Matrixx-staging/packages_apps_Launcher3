@@ -201,7 +201,6 @@
     <string name="all_apps_work_tab_content_description" msgid="3835637212347968316">"“工作应用”标签页"</string>
     <string name="work_profile_toggle_label" msgid="3081029915775481146">"工作资料"</string>
     <string name="work_profile_edu_work_apps" msgid="7895468576497746520">"工作应用都有相应的标志，且您的 IT 管理员可以看到它们"</string>
-    <string name="work_profile_edu_accept" msgid="6069788082535149071">"知道了"</string>
     <string name="work_apps_paused_title" msgid="3040901117349444598">"工作应用已暂停"</string>
     <string name="work_apps_paused_info_body" msgid="1687828929959237477">"您将不会收到来自工作应用的通知"</string>
     <string name="work_apps_paused_body" msgid="261634750995824906">"工作应用无法向您发送通知、不能耗用电池电量，也无法获取您的位置信息"</string>
