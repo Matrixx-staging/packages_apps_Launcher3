@@ -23,6 +23,7 @@ import androidx.annotation.VisibleForTesting
 import com.android.launcher3.BubbleTextView.RunningAppState
 import com.android.launcher3.Flags
 import com.android.launcher3.Flags.enableRecentsInTaskbar
+import com.android.launcher3.Flags.enableTaskbarRecentsThemedIcons
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.TaskItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
@@ -259,8 +260,11 @@ class TaskbarRecentAppsController(
                 )
         }
 
-        if (recentTasksLoaded) {
-            onRecentsOrHotseatChanged()
+        if (
+            recentTasksLoaded && !onRecentsOrHotseatChanged() && enableTaskbarRecentsThemedIcons()
+        ) {
+            // Icon theme or shape changes cause hotseat item updates, so refresh them.
+            fetchIcons()
         }
 
         return shownHotseatItems.toTypedArray()
@@ -326,26 +330,29 @@ class TaskbarRecentAppsController(
             } else {
                 computeShownRecentTasks()
             }
-        val shownTasksChanged = oldShownTasks != shownTasks
-        if (!shownTasksChanged) {
-            return shownTasksChanged
-        }
+        if (oldShownTasks == shownTasks) return false
         fetchIcons()
-        return shownTasksChanged
+        return true
     }
 
     private fun fetchIcons() {
         for (groupTask in shownTasks) {
-            for (task in groupTask.tasks) {
+            for ((i, task) in groupTask.tasks.withIndex()) {
                 val cancellableTask =
-                    recentsModel.iconCache.getIconInBackground(task) {
-                        icon,
-                        contentDescription,
-                        title ->
-                        task.icon = icon
-                        task.titleDescription = contentDescription
-                        task.title = title
-                        controllers.taskbarViewController.onTaskUpdated(task)
+                    if (enableTaskbarRecentsThemedIcons()) {
+                        recentsModel.iconCache.getBitmapInfoInBackground(task) { bi, d, t ->
+                            groupTask.bitmapInfos[i] = bi
+                            task.titleDescription = d
+                            task.title = t
+                            controllers.taskbarViewController.onTaskUpdated(task)
+                        }
+                    } else {
+                        recentsModel.iconCache.getIconInBackground(task) { ic, d, t ->
+                            task.icon = ic
+                            task.titleDescription = d
+                            task.title = t
+                            controllers.taskbarViewController.onTaskUpdated(task)
+                        }
                     }
                 if (cancellableTask != null) {
                     iconLoadRequests.add(cancellableTask)

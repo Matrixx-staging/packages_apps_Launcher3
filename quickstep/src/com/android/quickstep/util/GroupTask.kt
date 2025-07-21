@@ -15,9 +15,9 @@
  */
 package com.android.quickstep.util
 
+import com.android.launcher3.icons.BitmapInfo
 import com.android.launcher3.model.data.TaskItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
-import com.android.launcher3.util.SplitConfigurationOptions
 import com.android.quickstep.views.TaskViewType
 import com.android.systemui.shared.recents.model.Task
 import com.android.wm.shell.shared.split.SplitBounds
@@ -32,6 +32,9 @@ abstract class GroupTask(
     val displayId: Int,
     @JvmField val taskViewType: TaskViewType,
 ) {
+
+    /** Icons for each of the [tasks]. */
+    val bitmapInfos = MutableList<BitmapInfo?>(tasks.size) { null }
 
     fun containsTask(taskId: Int) = tasks.any { it.key.id == taskId }
 
