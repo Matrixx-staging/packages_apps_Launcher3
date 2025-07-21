@@ -28,6 +28,7 @@ import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.taskbar.bubbles.BubbleBarController.BubbleBarLocationListener
 import com.android.launcher3.taskbar.bubbles.BubbleBarLocationDropTarget.BubbleBarDropTargetController
 import com.android.quickstep.SystemUiProxy
+import com.android.wm.shell.shared.bubbles.BubbleAnythingFlagHelper
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation
 import com.android.wm.shell.shared.bubbles.ContextUtils.isRtl
 import com.android.wm.shell.shared.bubbles.DeviceConfig
@@ -85,6 +86,9 @@ class DragToBubbleController(
 
     /** Adds bubble bar locations drop zones to the drag controller. */
     fun addBubbleBarDropTargets(dragController: DragController<*>) {
+        if (!BubbleAnythingFlagHelper.enableCreateAnyBubble()) {
+            return
+        }
         dragController.addDragListener(this)
         dragController.addDropTarget(bubbleBarLeftDropTarget)
         dragController.addDropTarget(bubbleBarRightDropTarget)
@@ -120,6 +124,9 @@ class DragToBubbleController(
     }
 
     fun onShellDragStateChanged(started: Boolean) {
+        if (!BubbleAnythingFlagHelper.enableCreateAnyBubble()) {
+            return
+        }
         if (started) {
             onDragStarted(showDropTarget = false, shellDropTargetManager)
         } else {
