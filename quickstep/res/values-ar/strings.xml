@@ -96,12 +96,10 @@
     <string name="allset_navigation_settings" msgid="4713404605961476027"><annotation id="link">"إعدادات التنقّل داخل النظام"</annotation></string>
     <string name="allset_title_expressive" msgid="474399969304146994">"أصبح <xliff:g id="DEVICE">%1$s</xliff:g> \nجاهزًا"</string>
     <string name="allset_title_expressive_fallback" msgid="2829102990606405239">"أصبح الجهاز \nجاهزًا"</string>
-    <!-- no translation found for allset_title_expressive_fixed (3564219469262883526) -->
-    <skip />
+    <string name="allset_title_expressive_fixed" msgid="3564219469262883526">"يمكنك الآن بدء استخدام الجهاز"</string>
     <string name="allset_subtitle_expressive" msgid="419688197551192358">"أصبح <xliff:g id="DEVICE">%1$s</xliff:g> جاهزًا ويمكنك استخدامه"</string>
-    <!-- no translation found for allset_subtitle_expressive_gesture_navigation (8931442349501593934) -->
-    <skip />
-    <!-- no translation found for allset_subtitle_expressive_button_navigation (6968509640793602176) -->
+    <string name="allset_subtitle_expressive_gesture_navigation" msgid="8931442349501593934">"لبدء استخدام <xliff:g id="DEVICE">%1$s</xliff:g>، يُرجى التمرير سريعًا للأعلى"</string>
+    <!-- no translation found for allset_subtitle_expressive_button_navigation (5219509605046028014) -->
     <skip />
     <string name="allset_navigation_settings_expressive" msgid="3745595273748356"><annotation id="link">"اختيار طريقة التنقّل"</annotation></string>
     <string name="allset_hint_expressive" msgid="756856423510976261">"يمكنك التمرير سريعًا للأعلى"</string>

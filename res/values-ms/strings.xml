@@ -201,7 +201,6 @@
     <string name="all_apps_work_tab_content_description" msgid="3835637212347968316">"Tab apl kerja"</string>
     <string name="work_profile_toggle_label" msgid="3081029915775481146">"Profil kerja"</string>
     <string name="work_profile_edu_work_apps" msgid="7895468576497746520">"Apl kerja mempunyai lencana dan kelihatan kepada pentadbir IT anda"</string>
-    <string name="work_profile_edu_accept" msgid="6069788082535149071">"OK"</string>
     <string name="work_apps_paused_title" msgid="3040901117349444598">"Apl kerja dijeda"</string>
     <string name="work_apps_paused_info_body" msgid="1687828929959237477">"Anda tidak akan menerima pemberitahuan daripada apl kerja anda"</string>
     <string name="work_apps_paused_body" msgid="261634750995824906">"Apl kerja anda tidak boleh menghantar pemberitahuan kepada anda, menggunakan bateri anda atau mengakses lokasi anda"</string>

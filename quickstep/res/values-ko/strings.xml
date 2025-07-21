@@ -96,12 +96,10 @@
     <string name="allset_navigation_settings" msgid="4713404605961476027"><annotation id="link">"시스템 탐색 설정"</annotation></string>
     <string name="allset_title_expressive" msgid="474399969304146994">"<xliff:g id="DEVICE">%1$s</xliff:g> 기기가 \n준비되었습니다"</string>
     <string name="allset_title_expressive_fallback" msgid="2829102990606405239">"기기가 \n준비되었습니다"</string>
-    <!-- no translation found for allset_title_expressive_fixed (3564219469262883526) -->
-    <skip />
+    <string name="allset_title_expressive_fixed" msgid="3564219469262883526">"이제 시작할 준비가 되었습니다"</string>
     <string name="allset_subtitle_expressive" msgid="419688197551192358">"새로운 <xliff:g id="DEVICE">%1$s</xliff:g> 기기를 즐겨 보세요"</string>
-    <!-- no translation found for allset_subtitle_expressive_gesture_navigation (8931442349501593934) -->
-    <skip />
-    <!-- no translation found for allset_subtitle_expressive_button_navigation (6968509640793602176) -->
+    <string name="allset_subtitle_expressive_gesture_navigation" msgid="8931442349501593934">"<xliff:g id="DEVICE">%1$s</xliff:g> 기기를 시작하려면 위로 스와이프하세요"</string>
+    <!-- no translation found for allset_subtitle_expressive_button_navigation (5219509605046028014) -->
     <skip />
     <string name="allset_navigation_settings_expressive" msgid="3745595273748356"><annotation id="link">"탐색 방법 선택"</annotation></string>
     <string name="allset_hint_expressive" msgid="756856423510976261">"위로 스와이프"</string>

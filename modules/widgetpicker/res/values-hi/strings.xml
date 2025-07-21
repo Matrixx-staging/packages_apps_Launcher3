@@ -28,9 +28,9 @@
     <string name="widget_tap_to_add_button_content_description" msgid="3591512565497536699">"<xliff:g id="WIDGET_NAME">%1$s</xliff:g> विजेट जोड़ें"</string>
     <string name="featured_widgets_tab_label" msgid="5911854248145111652">"चुनिंदा"</string>
     <string name="browse_widgets_tab_label" msgid="7179933202350730737">"ब्राउज़ करें"</string>
-    <!-- no translation found for widgets_tab_accessibility_label (559010210491169400) -->
-    <skip />
+    <string name="widgets_tab_accessibility_label" msgid="559010210491169400">"<xliff:g id="TAB_NAME">%1$s</xliff:g> विजेट"</string>
     <string name="widget_picker_right_pane_accessibility_label" msgid="5095301787174820892">"<xliff:g id="SELECTED_HEADER">%1$s</xliff:g> के विजेट दाईं ओर, खोज का विजेट और अन्य विकल्प बाईं ओर मौजूद हैं"</string>
+    <string name="widget_picker_left_pane_accessibility_label" msgid="4719054594582596067">"Search और विजेट के विकल्प बाईं ओर और विजेट दाईं ओर मौजूद हैं"</string>
     <string name="widgets_search_bar_hint" msgid="5705758627532180867">"खोजें"</string>
     <string name="widget_search_bar_clear_button_label" msgid="6120140737164336517">"मिटाएं"</string>
     <string name="widget_search_bar_back_button_label" msgid="7028448831228587743">"वापस जाएं"</string>

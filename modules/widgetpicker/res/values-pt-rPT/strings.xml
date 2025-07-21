@@ -30,6 +30,7 @@
     <string name="browse_widgets_tab_label" msgid="7179933202350730737">"Procurar"</string>
     <string name="widgets_tab_accessibility_label" msgid="559010210491169400">"Widgets <xliff:g id="TAB_NAME">%1$s</xliff:g>"</string>
     <string name="widget_picker_right_pane_accessibility_label" msgid="5095301787174820892">"Widgets de <xliff:g id="SELECTED_HEADER">%1$s</xliff:g> à direita, pesquisa e opções à esquerda"</string>
+    <string name="widget_picker_left_pane_accessibility_label" msgid="4719054594582596067">"Opções de pesquisa e widgets à esquerda, widgets à direita"</string>
     <string name="widgets_search_bar_hint" msgid="5705758627532180867">"Pesquisar"</string>
     <string name="widget_search_bar_clear_button_label" msgid="6120140737164336517">"Limpar"</string>
     <string name="widget_search_bar_back_button_label" msgid="7028448831228587743">"Anterior"</string>

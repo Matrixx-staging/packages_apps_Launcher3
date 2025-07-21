@@ -96,13 +96,10 @@
     <string name="allset_navigation_settings" msgid="4713404605961476027"><annotation id="link">"സിസ്‌റ്റം നാവിഗേഷൻ ക്രമീകരണം"</annotation></string>
     <string name="allset_title_expressive" msgid="474399969304146994">"നിങ്ങളുടെ <xliff:g id="DEVICE">%1$s</xliff:g> \nതയ്യാറാണ്!"</string>
     <string name="allset_title_expressive_fallback" msgid="2829102990606405239">"നിങ്ങളുടെ ഉപകരണം \nതയ്യാറാണ്!"</string>
-    <!-- no translation found for allset_title_expressive_fixed (3564219469262883526) -->
-    <skip />
+    <string name="allset_title_expressive_fixed" msgid="3564219469262883526">"ഉപയോഗിക്കാൻ തയ്യാറാണ്!"</string>
     <string name="allset_subtitle_expressive" msgid="419688197551192358">"നിങ്ങളുടെ പുതിയ <xliff:g id="DEVICE">%1$s</xliff:g> ആസ്വദിക്കുക!"</string>
-    <!-- no translation found for allset_subtitle_expressive_gesture_navigation (8931442349501593934) -->
-    <skip />
-    <!-- no translation found for allset_subtitle_expressive_button_navigation (6968509640793602176) -->
-    <skip />
+    <string name="allset_subtitle_expressive_gesture_navigation" msgid="8931442349501593934">"നിങ്ങളുടെ <xliff:g id="DEVICE">%1$s</xliff:g> ഉപയോഗിച്ചു തുടങ്ങാൻ മുകളിലേക്ക് സ്വൈപ്പ് ചെയ്യുക"</string>
+    <string name="allset_subtitle_expressive_button_navigation" msgid="5219509605046028014">"നിങ്ങളുടെ <xliff:g id="DEVICE">%1$s</xliff:g> ഉപയോഗിച്ച് ആരംഭിക്കാൻ ടാപ്പ് ചെയ്യുക"</string>
     <string name="allset_navigation_settings_expressive" msgid="3745595273748356"><annotation id="link">"നാവിഗേറ്റ് ചെയ്യുന്നത് എങ്ങനെയെന്ന് അറിയുക"</annotation></string>
     <string name="allset_hint_expressive" msgid="756856423510976261">"മുകളിലേക്ക് സ്വൈപ്പ് ചെയ്യുക"</string>
     <string name="allset_button_hint_expressive" msgid="667643693410494225">"ഹോം ബട്ടൺ ടാപ്പ് ചെയ്യുക"</string>

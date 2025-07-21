@@ -201,7 +201,6 @@
     <string name="all_apps_work_tab_content_description" msgid="3835637212347968316">"Pestanya Aplicacions de treball"</string>
     <string name="work_profile_toggle_label" msgid="3081029915775481146">"Perfil de treball"</string>
     <string name="work_profile_edu_work_apps" msgid="7895468576497746520">"Les aplicacions de treball tenen una insígnia i el teu administrador de TI les pot veure"</string>
-    <string name="work_profile_edu_accept" msgid="6069788082535149071">"Entesos"</string>
     <string name="work_apps_paused_title" msgid="3040901117349444598">"Les aplicacions de treball estan en pausa"</string>
     <string name="work_apps_paused_info_body" msgid="1687828929959237477">"No rebràs cap notificació de les aplicacions de treball"</string>
     <string name="work_apps_paused_body" msgid="261634750995824906">"Les aplicacions de treball no poden enviar-te notificacions, consumir bateria ni accedir a la teva ubicació"</string>

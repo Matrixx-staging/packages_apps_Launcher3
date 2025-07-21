@@ -96,12 +96,10 @@
     <string name="allset_navigation_settings" msgid="4713404605961476027"><annotation id="link">"Նավիգացիայի համակարգային կարգավորումներ"</annotation></string>
     <string name="allset_title_expressive" msgid="474399969304146994">"Ձեր <xliff:g id="DEVICE">%1$s</xliff:g> սարքը \nպատրաստ է"</string>
     <string name="allset_title_expressive_fallback" msgid="2829102990606405239">"Ձեր սարքը \nպատրաստ է"</string>
-    <!-- no translation found for allset_title_expressive_fixed (3564219469262883526) -->
-    <skip />
+    <string name="allset_title_expressive_fixed" msgid="3564219469262883526">"Ամեն ինչ պատրաստ է"</string>
     <string name="allset_subtitle_expressive" msgid="419688197551192358">"Վայելեք ձեր նոր <xliff:g id="DEVICE">%1$s</xliff:g> սարքը։"</string>
-    <!-- no translation found for allset_subtitle_expressive_gesture_navigation (8931442349501593934) -->
-    <skip />
-    <!-- no translation found for allset_subtitle_expressive_button_navigation (6968509640793602176) -->
+    <string name="allset_subtitle_expressive_gesture_navigation" msgid="8931442349501593934">"Մատը սահեցրեք վերև՝ <xliff:g id="DEVICE">%1$s</xliff:g>ով աշխատանքը սկսելու համար"</string>
+    <!-- no translation found for allset_subtitle_expressive_button_navigation (5219509605046028014) -->
     <skip />
     <string name="allset_navigation_settings_expressive" msgid="3745595273748356"><annotation id="link">"Ընտրեք տեղաշարժման տեսակը"</annotation></string>
     <string name="allset_hint_expressive" msgid="756856423510976261">"Թերթեք վերև"</string>

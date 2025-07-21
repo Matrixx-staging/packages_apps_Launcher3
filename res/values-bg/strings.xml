@@ -201,7 +201,6 @@
     <string name="all_apps_work_tab_content_description" msgid="3835637212347968316">"Раздел „Служебни приложения“"</string>
     <string name="work_profile_toggle_label" msgid="3081029915775481146">"Служебен потребителски профил"</string>
     <string name="work_profile_edu_work_apps" msgid="7895468576497746520">"Служебните приложения са означени със значка и са видими за системния администратор"</string>
-    <string name="work_profile_edu_accept" msgid="6069788082535149071">"Разбрах"</string>
     <string name="work_apps_paused_title" msgid="3040901117349444598">"Служебните приложения са поставени на пауза"</string>
     <string name="work_apps_paused_info_body" msgid="1687828929959237477">"Няма да получавате известия от служебните си приложения"</string>
     <string name="work_apps_paused_body" msgid="261634750995824906">"Служебните ви приложения не могат да ви изпращат известия, да използват батерията или да осъществяват достъп до местоположението ви"</string>

@@ -117,7 +117,7 @@ constructor(
      * dropped.
      *
      * @param type The type of the command
-     * @param onDisplays The display to run the command on
+     * @param displayId The display to run the command on
      */
     @BinderThread
     @JvmOverloads
@@ -432,7 +432,7 @@ constructor(
                         onCallbackResult,
                         containerInterface,
                         taskAnimationManager,
-                        GestureState.GestureEndTarget.REJECT_HOME,
+                        GestureEndTarget.REJECT_HOME,
                         recentsView,
                     )
                 }
@@ -479,7 +479,7 @@ constructor(
             onCallbackResult,
             containerInterface,
             taskAnimationManager,
-            GestureState.GestureEndTarget.RECENTS,
+            GestureEndTarget.RECENTS,
             recentsView,
         )
     }
@@ -489,11 +489,11 @@ constructor(
         onCallbackResult: () -> Unit,
         containerInterface: BaseContainerInterface<*, *>,
         taskAnimationManager: TaskAnimationManager,
-        gestureEndTarget: GestureState.GestureEndTarget,
+        gestureEndTarget: GestureEndTarget,
         recentsView: RecentsView<*, *>?,
     ): Boolean {
         val recentsViewContainer = containerInterface.getCreatedContainer()
-        if (gestureEndTarget == GestureState.GestureEndTarget.RECENTS) {
+        if (gestureEndTarget == GestureEndTarget.RECENTS) {
             // If we get here then launcher is not the top visible task, so we should animate
             // that task.
             if (recentsViewContainer !is RecentsWindowManager) {
@@ -549,9 +549,9 @@ constructor(
                     transitionInfo: TransitionInfo?,
                 ) {
                     OverviewCommandHelperProtoLogProxy.logRecentsAnimStarted(command)
-                    if (gestureEndTarget == GestureState.GestureEndTarget.RECENTS) {
+                    if (gestureEndTarget == GestureEndTarget.RECENTS) {
                         if (recentsViewContainer is RecentsWindowManager) {
-                            recentsViewContainer.rootView?.let { view ->
+                            recentsViewContainer.rootView.let { view ->
                                 InteractionJankMonitorWrapper.begin(
                                     view,
                                     Cuj.CUJ_LAUNCHER_QUICK_SWITCH,
@@ -683,8 +683,8 @@ constructor(
         val recentsView: RecentsView<*, *> = getVisibleRecentsView(command.displayId) ?: return
         if (command.type == HIDE_ALT_TAB && keyboardFocusTask !is KeyboardFocusTask.Unfocused) {
             recentsView.currentPage = recentsView.indexOfChild(recentsView.keyboardFocusTaskView)
-            keyboardFocusTask = KeyboardFocusTask.Unfocused
         }
+        keyboardFocusTask = KeyboardFocusTask.Unfocused
         recentsView.setKeyboardFocusTask(KeyboardFocusTask.Unfocused)
     }
 

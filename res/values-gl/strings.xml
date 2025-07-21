@@ -66,7 +66,7 @@
     <string name="widgets_full_sheet_cancel_button_description" msgid="5766167035728653605">"Borrar texto da caixa de busca"</string>
     <string name="no_widgets_available" msgid="4337693382501046170">"Non hai widgets nin atallos dispoñibles"</string>
     <string name="no_search_results" msgid="3787956167293097509">"Non se atoparon widgets nin atallos"</string>
-    <string name="widgets_full_sheet_personal_tab" msgid="2743540105607120182">"Widgets persoais"</string>
+    <string name="widgets_full_sheet_personal_tab" msgid="2743540105607120182">"Persoal"</string>
     <string name="widgets_full_sheet_work_tab" msgid="3767150027110633765">"Widgets do traballo"</string>
     <string name="widget_category_conversations" msgid="8894438636213590446">"Conversas"</string>
     <string name="widget_category_note_taking" msgid="3469689394504266039">"Toma de notas"</string>
@@ -201,7 +201,6 @@
     <string name="all_apps_work_tab_content_description" msgid="3835637212347968316">"Pestana de aplicacións do traballo"</string>
     <string name="work_profile_toggle_label" msgid="3081029915775481146">"Perfil de traballo"</string>
     <string name="work_profile_edu_work_apps" msgid="7895468576497746520">"O administrador de TI pode ver as aplicacións do traballo e engadirlles indicadores"</string>
-    <string name="work_profile_edu_accept" msgid="6069788082535149071">"Entendido"</string>
     <string name="work_apps_paused_title" msgid="3040901117349444598">"Puxéronse en pausa as aplicacións do traballo"</string>
     <string name="work_apps_paused_info_body" msgid="1687828929959237477">"Non recibirás notificacións das aplicacións do traballo"</string>
     <string name="work_apps_paused_body" msgid="261634750995824906">"As aplicacións do traballo non poden enviarche notificacións, utilizar a batería nin acceder á túa localización"</string>
