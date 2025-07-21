@@ -15,6 +15,8 @@
  */
 package com.android.launcher3.allapps;
 
+import static android.view.View.GONE;
+
 import static com.android.launcher3.LauncherPrefs.WORK_EDU_STEP;
 import static com.android.launcher3.allapps.ActivityAllAppsContainerView.AdapterHolder.MAIN;
 import static com.android.launcher3.allapps.ActivityAllAppsContainerView.AdapterHolder.SEARCH;
@@ -143,7 +145,7 @@ public class WorkProfileManager extends UserProfileManager
             mAllApps.addView(mWorkUtilityView);
         }
         if (mAllApps.getCurrentPage() != WORK) {
-            mWorkUtilityView.animateVisibility(false);
+            mWorkUtilityView.setVisibility(GONE);
         }
         if (getAH() != null) {
             getAH().applyPadding();
