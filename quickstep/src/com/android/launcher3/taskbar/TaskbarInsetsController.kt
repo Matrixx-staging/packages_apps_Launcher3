@@ -336,9 +336,14 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
     fun updateInsetsTouchability(insetsInfo: ViewTreeObserver.InternalInsetsInfo) {
         insetsInfo.touchableRegion.setEmpty()
         val touchableInsets: Int
-        val bubbleBarVisible =
-            controllers.bubbleControllers.isPresent &&
-                controllers.bubbleControllers.get().bubbleBarViewController.isBubbleBarVisible()
+        val addBubbleBarBounds =
+            controllers.bubbleControllers
+                .map { controllers ->
+                    controllers.bubbleStashController.isBubbleBarVisible() &&
+                        !controllers.dragToBubbleController.isDragInProgress
+                }
+                .orElse(false)
+
         // Prevents the taskbar from taking touches and conflicting with setup wizard
         if (
             context.isPhoneButtonNavMode &&
@@ -368,7 +373,7 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
         } else if (
             controllers.taskbarViewController.areIconsVisible() ||
                 context.isNavBarKidsModeActive ||
-                bubbleBarVisible
+                addBubbleBarBounds
         ) {
             // Taskbar has some touchable elements, take over the full taskbar area
             if (controllers.uiController.isInOverviewUi && context.isTransientTaskbar) {
