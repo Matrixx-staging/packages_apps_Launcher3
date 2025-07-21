@@ -96,12 +96,10 @@
     <string name="allset_navigation_settings" msgid="4713404605961476027"><annotation id="link">"Opciones de navegación"</annotation></string>
     <string name="allset_title_expressive" msgid="474399969304146994">"¡Todo listo para \ntu <xliff:g id="DEVICE">%1$s</xliff:g>!"</string>
     <string name="allset_title_expressive_fallback" msgid="2829102990606405239">"¡Tu dispositivo está \nlisto!"</string>
-    <!-- no translation found for allset_title_expressive_fixed (3564219469262883526) -->
-    <skip />
+    <string name="allset_title_expressive_fixed" msgid="3564219469262883526">"¡Ya está todo listo!"</string>
     <string name="allset_subtitle_expressive" msgid="419688197551192358">"¡Disfruta de tu <xliff:g id="DEVICE">%1$s</xliff:g>!"</string>
-    <!-- no translation found for allset_subtitle_expressive_gesture_navigation (8931442349501593934) -->
-    <skip />
-    <!-- no translation found for allset_subtitle_expressive_button_navigation (6968509640793602176) -->
+    <string name="allset_subtitle_expressive_gesture_navigation" msgid="8931442349501593934">"Desliza hacia arriba para empezar a usar tu <xliff:g id="DEVICE">%1$s</xliff:g>"</string>
+    <!-- no translation found for allset_subtitle_expressive_button_navigation (5219509605046028014) -->
     <skip />
     <string name="allset_navigation_settings_expressive" msgid="3745595273748356"><annotation id="link">"Elige cómo navegar"</annotation></string>
     <string name="allset_hint_expressive" msgid="756856423510976261">"Deslizar hacia arriba"</string>

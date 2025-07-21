@@ -96,12 +96,10 @@
     <string name="allset_navigation_settings" msgid="4713404605961476027"><annotation id="link">"सिस्टम नेविगेशन से जुड़ी सेटिंग"</annotation></string>
     <string name="allset_title_expressive" msgid="474399969304146994">"आपका <xliff:g id="DEVICE">%1$s</xliff:g> \nतैयार है!"</string>
     <string name="allset_title_expressive_fallback" msgid="2829102990606405239">"आपका डिवाइस \nतैयार है!"</string>
-    <!-- no translation found for allset_title_expressive_fixed (3564219469262883526) -->
-    <skip />
+    <string name="allset_title_expressive_fixed" msgid="3564219469262883526">"अब इसका इस्तेमाल किया जा सकता है!"</string>
     <string name="allset_subtitle_expressive" msgid="419688197551192358">"अपने नए <xliff:g id="DEVICE">%1$s</xliff:g> का आनंद लें!"</string>
-    <!-- no translation found for allset_subtitle_expressive_gesture_navigation (8931442349501593934) -->
-    <skip />
-    <!-- no translation found for allset_subtitle_expressive_button_navigation (6968509640793602176) -->
+    <string name="allset_subtitle_expressive_gesture_navigation" msgid="8931442349501593934">"<xliff:g id="DEVICE">%1$s</xliff:g> का इस्तेमाल शुरू करने के लिए, ऊपर की ओर स्वाइप करें"</string>
+    <!-- no translation found for allset_subtitle_expressive_button_navigation (5219509605046028014) -->
     <skip />
     <string name="allset_navigation_settings_expressive" msgid="3745595273748356"><annotation id="link">"नेविगेट करने का तरीका चुनें"</annotation></string>
     <string name="allset_hint_expressive" msgid="756856423510976261">"ऊपर की ओर स्वाइप करें"</string>
