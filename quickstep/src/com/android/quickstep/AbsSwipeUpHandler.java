@@ -2127,8 +2127,9 @@ public abstract class AbsSwipeUpHandler<
                 final View taskView = runningTaskView;
                 runningTaskView = null;
                 if (mRecentsView != null) {
-                    mRecentsView.post(() -> {
-                        mRecentsView.resetTaskVisuals();
+                    final RECENTS_VIEW rv = mRecentsView;
+                    rv.post(() -> {
+                        rv.resetTaskVisuals();
                         if (taskView != null) {
                             taskView.setClickable(true);
                         }
