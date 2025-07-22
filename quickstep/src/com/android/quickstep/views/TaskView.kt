@@ -1771,10 +1771,11 @@ constructor(
             recentsView.snapToPage(recentsView.indexOfChild(this))
             return false
         }
-        val menuContainer = taskContainers.firstOrNull { it.iconView === iconView } ?: return false
+        val menuContainer = getContainerForIconView(iconView)
+
         container.statsLogManager
             .logger()
-            .withItemInfo(menuContainer.itemInfo)
+            .withItemInfo(menuContainer?.itemInfo ?: itemInfo)
             .log(LauncherEvent.LAUNCHER_TASK_ICON_TAP_OR_LONGPRESS)
         return showTaskMenuWithContainer(menuContainer)
     }
@@ -1793,17 +1794,26 @@ constructor(
         }
     }
 
-    private fun showTaskMenuWithContainer(menuContainer: TaskContainer): Boolean {
+    private fun showTaskMenuWithContainer(menuContainer: TaskContainer?): Boolean {
         val recentsView = recentsView ?: return false
         // Disable hover on all TaskView's whilst menu is showing.
         recentsView.setTaskBorderEnabled(false)
-        return if (enableOverviewIconMenu() && menuContainer.iconView is IconAppChipView) {
-            if (menuContainer.iconView.status == AppChipStatus.Expanded) {
+        val iconView = menuContainer?.iconView ?: getTaskIcons().elementAt(0).first
+
+        return if (enableOverviewIconMenu() && iconView is IconAppChipView) {
+            if (iconView.status == AppChipStatus.Expanded) {
                 closeTaskMenu()
             } else {
-                TaskMenuView.showForTask(menuContainer) { recentsView.setTaskBorderEnabled(true) }
+                val onShowAction = { recentsView.setTaskBorderEnabled(true) }
+                val taskTarget =
+                    if (menuContainer != null) {
+                        TaskMenuView.TaskTarget.FromTaskContainer(menuContainer)
+                    } else {
+                        TaskMenuView.TaskTarget.FromTaskView(this)
+                    }
+                TaskMenuView.showForTask(taskTarget, onShowAction)
             }
-        } else if (container.deviceProfile.getDeviceProperties().isTablet) {
+        } else if (container.deviceProfile.deviceProperties.isTablet && menuContainer != null) {
             val alignedOptionIndex =
                 if (
                     recentsView.isOnGridBottomRow(menuContainer.taskView) &&
@@ -1821,11 +1831,19 @@ constructor(
                 } else {
                     0
                 }
+
             TaskMenuViewWithArrow.showForTask(menuContainer, alignedOptionIndex) {
                 recentsView.setTaskBorderEnabled(true)
             }
         } else {
-            TaskMenuView.showForTask(menuContainer) { recentsView.setTaskBorderEnabled(true) }
+            val onShowAction = { recentsView.setTaskBorderEnabled(true) }
+            val taskTarget =
+                if (menuContainer != null) {
+                    TaskMenuView.TaskTarget.FromTaskContainer(menuContainer)
+                } else {
+                    TaskMenuView.TaskTarget.FromTaskView(this)
+                }
+            TaskMenuView.showForTask(taskTarget, onShowAction)
         }
     }
 
@@ -2136,6 +2154,9 @@ constructor(
             it.addChildForAccessibility(outChildren)
         }
     }
+
+    protected open fun getContainerForIconView(iconView: TaskViewIcon) =
+        taskContainers.firstOrNull { it.iconView === iconView }
 
     companion object {
         private const val TAG = "TaskView"
