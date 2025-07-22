@@ -516,8 +516,6 @@ public class LauncherBackAnimationController {
                     cornerRadius,
                     mBackInProgress /* fromPredictiveBack */);
         startTransitionAnimations(backAnim);
-        mLauncher.clearForceInvisibleFlag(INVISIBLE_ALL);
-        customizeStatusBarAppearance(true);
     }
 
     private void finishAnimation() {
@@ -585,6 +583,8 @@ public class LauncherBackAnimationController {
             }
         });
         mScrimAlphaAnimator.setDuration(SCRIM_FADE_DURATION).start();
+        mLauncher.clearForceInvisibleFlag(INVISIBLE_ALL);
+        customizeStatusBarAppearance(true);
         backAnim.start(mLauncher.getStateManager());
     }
 
