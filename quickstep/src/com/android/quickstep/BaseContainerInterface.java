@@ -325,7 +325,6 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
     public @Nullable View onSettledOnEndTarget(GestureState.GestureEndTarget endTarget) {
         TaskbarUIController taskbarUIController = getTaskbarController();
         if (taskbarUIController != null) {
-            taskbarUIController.setSystemGestureInProgress(false);
             return taskbarUIController.getRootView();
         }
         return null;
