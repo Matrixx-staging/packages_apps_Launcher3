@@ -729,6 +729,11 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             } else {
                 mTaskbarOverflowView.clearItems();
             }
+        } else if (mTaskbarOverflowView != null && !mPrevOverflowTasks.isEmpty()) {
+            // Handle the case when closing all the windows together such as "clear all"
+            // from overview.
+            removeView(mTaskbarOverflowView);
+            mTaskbarOverflowView.clearItems();
         }
 
         // An extra item needs to be added to overflow button to account for the space taken up by
