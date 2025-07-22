@@ -36,7 +36,7 @@ fun launcherWidgetPickerTextStyles(): WidgetPickerTextStyles {
         sheetDescription = textStyleFromResource(R.style.WidgetPickerDescription),
         expandableListHeaderTitle = widgetHeaderTitleStyle,
         expandableListHeaderSubTitle = widgetHeaderSubTitleStyle,
-        unSelectedListHeaderTitle = widgetHeaderSubTitleStyle,
+        unSelectedListHeaderTitle = widgetHeaderTitleStyle,
         selectedListHeaderTitle = textStyleFromResource(R.style.WidgetListHeader_Title_Selected),
         unSelectedListHeaderSubTitle = widgetHeaderSubTitleStyle,
         selectedListHeaderSubTitle =
