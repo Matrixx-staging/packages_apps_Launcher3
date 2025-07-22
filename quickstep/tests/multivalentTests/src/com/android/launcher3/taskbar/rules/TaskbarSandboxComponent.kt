@@ -36,6 +36,7 @@ import com.android.launcher3.dagger.LauncherModelModule
 import com.android.launcher3.dagger.StaticObjectModule
 import com.android.launcher3.dagger.WidgetModule
 import com.android.launcher3.dagger.WindowContext
+import com.android.launcher3.homescreenfiles.HomeScreenFilesModule
 import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.util.DaggerSingletonTracker
 import com.android.launcher3.util.DisplayController
@@ -92,6 +93,7 @@ interface TaskbarSandboxComponent : LauncherAppComponent {
             DesktopVisibilityControllerModule::class,
             NoOpWidgetPickerModule::class,
             LauncherModelModule::class,
+            HomeScreenFilesModule::class,
         ]
 )
 interface AllTaskbarSandboxModules

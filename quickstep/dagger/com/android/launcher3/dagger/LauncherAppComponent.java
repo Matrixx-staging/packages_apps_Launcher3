@@ -16,7 +16,7 @@
 
 package com.android.launcher3.dagger;
 
-
+import com.android.launcher3.homescreenfiles.HomeScreenFilesModule;
 import com.android.quickstep.dagger.QuickstepBaseAppComponent;
 
 import dagger.Component;
@@ -25,7 +25,10 @@ import dagger.Component;
  * Root component for Dagger injection for Launcher Quickstep.
  */
 @LauncherAppSingleton
-@Component(modules = LauncherAppModule.class)
+@Component(modules = {
+        LauncherAppModule.class,
+        HomeScreenFilesModule.class,
+})
 public interface LauncherAppComponent extends QuickstepBaseAppComponent {
     /** Builder for quickstep LauncherAppComponent. */
     @Component.Builder
