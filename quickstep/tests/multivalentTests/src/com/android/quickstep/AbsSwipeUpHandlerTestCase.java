@@ -580,6 +580,29 @@ public abstract class AbsSwipeUpHandlerTestCase<
     }
 
     @Test
+    public void testWindowAnimationToHome_afterContainerDestroyed_doesNotThrowException() {
+        SWIPE_HANDLER swipeHandler = createSwipeHandler();
+        ArgumentCaptor<Runnable> callbackCaptor = ArgumentCaptor.forClass(Runnable.class);
+
+        // Call onActivityInit to set RecentsView
+        swipeHandler.onActivityInit(/* isHomeStarted= */ false);
+
+        AnimationSuccessListener listener = swipeHandler.getWindowAnimationToHomeListener();
+
+        runOnMainSync(() -> {
+            listener.onAnimationStart(new AnimatorSet());
+            listener.onAnimationEnd(new AnimatorSet());
+
+            verify(getRecentsView()).post(callbackCaptor.capture());
+
+            // onContainerDestroyed to set RecentsView to null
+            onContainerDestroyed();
+
+            callbackCaptor.getValue().run();
+        });
+    }
+
+    @Test
     public void testWindowAnimationToHome_setsAndResetsTaskViewClickableState_whenCanceled() {
         SWIPE_HANDLER swipeHandler = createSwipeHandler();
         ArgumentCaptor<Runnable> callbackCaptor = ArgumentCaptor.forClass(Runnable.class);
@@ -733,6 +756,17 @@ public abstract class AbsSwipeUpHandlerTestCase<
             @NonNull RemoteAnimationTarget[] remoteAnimationTargets) {
         runOnMainSync(() -> absSwipeUpHandler.onTasksAppeared(
                 remoteAnimationTargets, /* transitionInfo= */ null));
+    }
+
+    private void onContainerDestroyed() {
+        RECENTS_CONTAINER container = getRecentsContainer();
+        ArgumentCaptor<Runnable> onContainerDestroyCallbackCaptor =
+                ArgumentCaptor.forClass(Runnable.class);
+
+        verify(container)
+                .addEventCallback(eq(EVENT_DESTROYED), onContainerDestroyCallbackCaptor.capture());
+
+        onContainerDestroyCallbackCaptor.getValue().run();
     }
 
     protected static void runOnMainSync(Runnable runnable) {
