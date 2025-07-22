@@ -63,7 +63,8 @@ public class WallpaperScreenshotClipView extends FrameLayout {
 
     private static final String TAG = "WSCV";
 
-    public static final int CLIP_ANIM_DURATION = 100;
+    // Arbitrarily large number to avoid rounding issues when tracking progress.
+    public static final int CLIP_ANIM_DURATION = 10000;
 
     private static final float MAX_SCALE_MULTIPLIER = 1.50f;
     private static final int COLOR_ALPHA_DURATION_MS = 25;
@@ -278,7 +279,13 @@ public class WallpaperScreenshotClipView extends FrameLayout {
             onEndRunnable.run();
             return;
         }
-        SurfaceControl wallpaperMirror = WindowManagerGlobal.getInstance().mirrorWallpaperSurface(
+        WindowManagerGlobal windowManagerGlobal = WindowManagerGlobal.getInstance();
+        if (windowManagerGlobal == null) {
+            Log.d(TAG, "setupWallpaperScreenshot return: windowManagerGlobal is null");
+            onEndRunnable.run();
+            return;
+        }
+        SurfaceControl wallpaperMirror = windowManagerGlobal.mirrorWallpaperSurface(
                 displayId);
         if (wallpaperMirror == null) {
             Log.d(TAG, "setupWallpaperScreenshot return: wallpaperMirror is null");

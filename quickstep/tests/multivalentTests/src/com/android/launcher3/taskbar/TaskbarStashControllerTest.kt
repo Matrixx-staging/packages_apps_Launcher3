@@ -735,28 +735,6 @@ class TaskbarStashControllerTest {
 
     @Test
     @TaskbarMode(PINNED)
-    fun testSetSystemGestureInProgress_whileImeShown_unstashesTaskbar() {
-        try {
-            activityContext.setImeDockedOverrideForTest(true)
-            getInstrumentation().runOnMainSync {
-                stashController.updateStateForSysuiFlags(SYSUI_STATE_IME_VISIBLE, true)
-                animatorTestRule.advanceTimeBy(0)
-            }
-
-            getInstrumentation().runOnMainSync {
-                stashController.setSystemGestureInProgress(true)
-                animatorTestRule.advanceTimeBy(
-                    TASKBAR_STASH_DURATION_FOR_IME + stashController.taskbarStashStartDelayForIme
-                )
-            }
-            assertThat(stashController.isStashed).isFalse()
-        } finally {
-            activityContext.setImeDockedOverrideForTest(null)
-        }
-    }
-
-    @Test
-    @TaskbarMode(PINNED)
     fun testSysuiStateImeShowingInApp_imeNotDocked_notStashedForIme() {
         try {
             activityContext.setImeDockedOverrideForTest(false)

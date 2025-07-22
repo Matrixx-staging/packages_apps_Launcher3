@@ -111,14 +111,6 @@ public class TaskbarUIController implements BubbleBarController.BubbleBarLocatio
     }
 
     /**
-     * Called when swiping from the bottom nav region in fully gestural mode.
-     * @param inProgress True if the animation started, false if we just settled on an end target.
-     */
-    public void setSystemGestureInProgress(boolean inProgress) {
-        mControllers.taskbarStashController.setSystemGestureInProgress(inProgress);
-    }
-
-    /**
      * Manually closes the overlay window.
      */
     public void hideOverlayWindow() {

@@ -173,7 +173,7 @@ public class ProgressDelegateInputConsumer implements InputConsumer,
             return true;
         }
         if (mDisplaySize.y > 0) {
-            float progress = displacement / -mDisplaySize.y;
+            float progress = Math.min(0, displacement) / -mDisplaySize.y;
             mProgress.updateValue(progress);
 
             if (mIsNewExpressiveThemeAnimation) {

@@ -185,8 +185,6 @@ public final class TestProtocol {
     public static final String REQUEST_INJECT_FAKE_TRACKPAD = "inject-fake-trackpad";
     public static final String REQUEST_EJECT_FAKE_TRACKPAD = "eject-fake-trackpad";
 
-    public static final String REQUEST_TASKBAR_PRIMARY_DISPLAY_ID = "taskbar-primary-display-id";
-
     public static final String REQUEST_DISMISS_MAGNETIC_DETACH_THRESHOLD =
             "dismiss-magnetic-detach-threshold";
 

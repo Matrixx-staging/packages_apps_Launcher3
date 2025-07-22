@@ -614,7 +614,9 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                 endCallback.executeAllAndDestroy()
             }
         }
-        if (enableMultipleDesktops(context) && desktopTask?.tasks?.isEmpty() == true) {
+        if (
+            enableMultipleDesktops(context) && desktopTask?.tasks?.none { !it.isMinimized } == true
+        ) {
             recentsView.switchToScreenshot {
                 recentsView.finishRecentsAnimation(
                     /* toHome= */ true,

@@ -290,7 +290,8 @@ public class RotationTouchHelper implements DisplayInfoChangeListener {
     }
 
     /**
-     * Sets the gestural height.
+     * Touches within this number of pixels from the bottom of the screen can get intercepted to
+     * handle gesture navigation. Passing a value less than 0 will revert to a default value.
      */
     void setGesturalHeight(int newGesturalHeight) {
         Info displayInfo = mDisplayController.getInfoForDisplay(mDisplayId);
