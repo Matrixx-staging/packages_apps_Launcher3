@@ -29,6 +29,8 @@ import com.android.launcher3.tapl.LaunchedAppState
 import com.android.launcher3.tapl.OverviewTask
 import com.android.launcher3.util.TestUtil
 import com.android.launcher3.util.ui.PortraitLandscapeRunner.PortraitLandscape
+import com.android.window.flags.Flags.FLAG_ENABLE_MULTIPLE_DESKTOPS_BACKEND
+import com.android.window.flags.Flags.FLAG_ENABLE_MULTIPLE_DESKTOPS_FRONTEND
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import java.util.function.Supplier
@@ -142,6 +144,17 @@ class TaplTestsOverviewDesktop : AbstractQuickStepTest() {
             .getTestActivityTask(TEST_ACTIVITIES)
             .open()
         TEST_ACTIVITIES.forEach { assertTestAppLaunched(it) }
+    }
+
+    @Test
+    @PortraitLandscape
+    @EnableFlags(FLAG_ENABLE_MULTIPLE_DESKTOPS_FRONTEND, FLAG_ENABLE_MULTIPLE_DESKTOPS_BACKEND)
+    fun testCreateMultiDesktopsViaAddDesktopButton() {
+        // Tap add desk button to create a desk.
+        val overview = mLauncher.workspace.switchToOverview().createDeskViaClickAddDesktopButton()
+
+        // Fling and tap add desk button again to create one more desk.
+        overview.createDeskViaClickAddDesktopButton()
     }
 
     @Test
