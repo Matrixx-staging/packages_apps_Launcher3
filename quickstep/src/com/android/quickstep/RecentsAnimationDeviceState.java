@@ -96,6 +96,8 @@ import java.io.PrintWriter;
  */
 public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, ExclusionListener {
 
+    public static final int RESET_TO_DEFAULT_GESTURAL_HEIGHT = -1;
+
     static final String SUPPORT_ONE_HANDED_MODE = "ro.support_one_handed_mode";
 
     // TODO: Move to quickstep contract
@@ -296,7 +298,11 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
         mExclusionListenerRegistered = false;
     }
 
-    public void onOneHandedModeChanged(int newGesturalHeight) {
+    /**
+     * Touches within this number of pixels from the bottom of the screen can get intercepted to
+     * handle gesture navigation. Passing a value less than 0 will revert to a default value.
+     */
+    public void setGesturalHeight(int newGesturalHeight) {
         mRotationTouchHelper.setGesturalHeight(newGesturalHeight);
     }
 
