@@ -51,7 +51,8 @@ public class TestWindowManagerProxy extends WindowManagerProxy {
      * DisplayController
      */
     public TestWindowManagerProxy(Context context) {
-        this(DeviceEmulationData.Companion.getCurrentDeviceData(context, new Info(context)));
+        this(DeviceEmulationData.Companion.getCurrentDeviceData(context, new Info(context,
+                new WindowManagerProxy())));
     }
 
     public TestWindowManagerProxy(DeviceEmulationData device) {
