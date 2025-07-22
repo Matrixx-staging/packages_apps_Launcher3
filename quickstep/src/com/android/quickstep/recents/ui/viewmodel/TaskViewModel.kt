@@ -115,11 +115,12 @@ class TaskViewModel(
     }
 
     fun isThumbnailValid(
-        thumbnail: ThumbnailData?, width: Int, height: Int,
+        thumbnail: ThumbnailData?,
+        width: Int,
+        height: Int,
         splitBounds: SplitBounds?,
-        stagePosition: Int
-    ): Boolean =
-        isThumbnailValidUseCase(thumbnail, width, height, splitBounds, stagePosition)
+        stagePosition: Int,
+    ): Boolean = isThumbnailValidUseCase(thumbnail, width, height, splitBounds, stagePosition)
 
     fun getThumbnailPosition(
         thumbnail: ThumbnailData?,
@@ -128,6 +129,7 @@ class TaskViewModel(
         isRtl: Boolean,
         splitBounds: SplitBounds?,
         splitPosition: Int,
+        densityDpi: Int,
     ): ThumbnailPosition =
         getThumbnailPositionUseCase(
             thumbnailData = thumbnail,
@@ -136,6 +138,7 @@ class TaskViewModel(
             isRtl = isRtl,
             splitBounds,
             splitPosition,
+            densityDpi,
         )
 
     private fun mapToTaskTile(
