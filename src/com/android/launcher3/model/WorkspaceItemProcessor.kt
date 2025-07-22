@@ -58,7 +58,7 @@ import com.android.launcher3.util.PackageManagerHelper
 import com.android.launcher3.util.PackageUserKey
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo
 import com.android.launcher3.widget.WidgetInflater
-import com.android.launcher3.widget.util.WidgetSizes
+import com.android.launcher3.widget.util.WidgetSizeHandler
 
 /**
  * This items is used by LoaderTask to process items that have been loaded from the Launcher's DB.
@@ -86,6 +86,7 @@ class WorkspaceItemProcessor(
     private val iconRequestInfos: MutableList<IconRequestInfo<WorkspaceItemInfo>>,
     private val unlockedUsers: LongSparseArray<Boolean>,
     private val allDeepShortcuts: MutableList<CacheableShortcutInfo>,
+    private val widgetSizeHandler: WidgetSizeHandler,
 ) {
 
     private val loadedItems = IntSparseArrayMap<ItemInfo>()
@@ -578,10 +579,8 @@ class WorkspaceItemProcessor(
                 iconCache.getTitleAndIconForApp(appWidgetInfo.pendingItemInfo, iconLookupFlag)
             }
             WidgetInflater.TYPE_REAL ->
-                WidgetSizes.updateWidgetSizeRangesAsync(
+                widgetSizeHandler.updateSizeRangesAsync(
                     appWidgetInfo.appWidgetId,
-                    lapi,
-                    context,
                     appWidgetInfo.spanX,
                     appWidgetInfo.spanY,
                 )
