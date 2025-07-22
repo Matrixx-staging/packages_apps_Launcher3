@@ -56,7 +56,7 @@ public class RecentsAnimationCallbacks implements
         com.android.systemui.shared.system.RecentsAnimationListener {
 
     private final Set<RecentsAnimationListener> mListeners = new ArraySet<>();
-    private final RecentsViewContainer mContainer;
+    private final boolean mIsContainerRecentsWindowManager;
 
     // TODO(141886704): Remove these references when they are no longer needed
     private RecentsAnimationController mController;
@@ -64,7 +64,7 @@ public class RecentsAnimationCallbacks implements
     private boolean mCancelled;
 
     public RecentsAnimationCallbacks(RecentsViewContainer container) {
-        mContainer = container;
+        mIsContainerRecentsWindowManager = container instanceof RecentsWindowManager;
     }
 
     @UiThread
@@ -105,8 +105,7 @@ public class RecentsAnimationCallbacks implements
         boolean isOpeningHome = Arrays.stream(appTargets).filter(app -> app.mode == MODE_OPENING
                         && app.windowConfiguration.getActivityType() == ACTIVITY_TYPE_HOME)
                 .count() > 0;
-        if (appCount == 0 && (!(mContainer instanceof RecentsWindowManager)
-                || isOpeningHome)) {
+        if (appCount == 0 && (!mIsContainerRecentsWindowManager || isOpeningHome)) {
             ActiveGestureProtoLogProxy.logOnRecentsAnimationStartCancelled();
             // Edge case, if there are no closing app targets, then Launcher has nothing to handle
             notifyAnimationCanceled();
