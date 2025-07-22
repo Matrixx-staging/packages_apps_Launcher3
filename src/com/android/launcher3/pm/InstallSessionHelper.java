@@ -225,8 +225,11 @@ public class InstallSessionHelper {
             // not already present. For general app installations however, we do support it.
             if (!Flags.enableSupportForArchiving() || !sessionInfo.isUnarchival()) {
                 FileLog.d(LOG, "Adding package name to install queue: "
-                        + sessionInfo.getAppPackageName());
-
+                        + sessionInfo.getAppPackageName()
+                        + "Package installer: "
+                        + sessionInfo.getInstallerPackageName()
+                        + "Session id: "
+                        + sessionInfo.getSessionId());
                 ItemInstallQueue.INSTANCE.get(mAppContext)
                         .queueItem(sessionInfo.getAppPackageName(), getUserHandle(sessionInfo));
             }

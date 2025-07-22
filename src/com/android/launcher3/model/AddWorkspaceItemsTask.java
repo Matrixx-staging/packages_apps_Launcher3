@@ -125,8 +125,8 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
             ModelWriter writer = taskController.getModelWriter();
             for (ItemInfo item : filteredItems) {
                 // Find appropriate space for the item.
-                int[] coords = mItemSpaceFinder.findSpaceForItem(
-                        workspaceScreens, addedWorkspaceScreensFinal, item.spanX, item.spanY);
+                int[] coords = mItemSpaceFinder.findSpaceForItem(workspaceScreens,
+                        addedWorkspaceScreensFinal, addedItemsFinal, item.spanX, item.spanY);
                 int screenId = coords[0];
 
                 ItemInfo itemInfo;

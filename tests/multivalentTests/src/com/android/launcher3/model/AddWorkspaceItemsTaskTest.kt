@@ -25,6 +25,7 @@ import com.android.launcher3.util.Executors
 import com.android.launcher3.util.IntArray
 import com.android.launcher3.util.TestUtil.runOnExecutorSync
 import com.google.common.truth.Truth.assertThat
+import java.util.ArrayList
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -62,7 +63,7 @@ class AddWorkspaceItemsTaskTest : AbstractWorkspaceModelTest() {
 
         assertThat(addedItems.size).isEqualTo(1)
         assertThat(addedItems.first().screenId).isEqualTo(1)
-        verifyItemSpaceFinderCall(nonEmptyScreenIds, numberOfExpectedCall = 1)
+        verifyItemSpaceFinderCall(nonEmptyScreenIds, numberOfExpectedCall = 1, addedItems)
     }
 
     @Test
@@ -75,7 +76,7 @@ class AddWorkspaceItemsTaskTest : AbstractWorkspaceModelTest() {
 
         assertThat(addedItems.size).isEqualTo(1)
         assertThat(addedItems.first().screenId).isEqualTo(1)
-        verifyItemSpaceFinderCall(nonEmptyScreenIds, numberOfExpectedCall = 1)
+        verifyItemSpaceFinderCall(nonEmptyScreenIds, numberOfExpectedCall = 1, addedItems)
     }
 
     @Test
@@ -101,7 +102,7 @@ class AddWorkspaceItemsTaskTest : AbstractWorkspaceModelTest() {
 
         assertThat(addedItems.size).isEqualTo(1)
         assertThat(addedItems.first().screenId).isEqualTo(2)
-        verifyItemSpaceFinderCall(nonEmptyScreenIds, numberOfExpectedCall = 1)
+        verifyItemSpaceFinderCall(nonEmptyScreenIds, numberOfExpectedCall = 1, addedItems)
     }
 
     @Test
@@ -123,26 +124,30 @@ class AddWorkspaceItemsTaskTest : AbstractWorkspaceModelTest() {
         // Items that are added to the second screen should be animated
         val itemsAddedToSecondScreen = addedItems.filter { it.screenId == 2 }
         assertThat(itemsAddedToSecondScreen.size).isEqualTo(2)
-        verifyItemSpaceFinderCall(nonEmptyScreenIds, numberOfExpectedCall = 3)
+        verifyItemSpaceFinderCall(nonEmptyScreenIds, numberOfExpectedCall = 3, addedItems)
     }
 
     /** Sets up the item space data that will be returned from WorkspaceItemSpaceFinder. */
     private fun givenNewItemSpaces(vararg newItemSpaces: NewItemSpace) {
         val spaceStack = newItemSpaces.toMutableList()
-        whenever(mWorkspaceItemSpaceFinder.findSpaceForItem(any(), any(), any(), any())).then {
-            spaceStack.removeFirst().toIntArray()
-        }
+        whenever(mWorkspaceItemSpaceFinder.findSpaceForItem(any(), any(), any(), any(), any()))
+            .then { spaceStack.removeFirst().toIntArray() }
     }
 
     /**
      * Verifies if WorkspaceItemSpaceFinder was called with proper arguments and how many times was
      * it called.
      */
-    private fun verifyItemSpaceFinderCall(nonEmptyScreenIds: List<Int>, numberOfExpectedCall: Int) {
+    private fun verifyItemSpaceFinderCall(
+        nonEmptyScreenIds: List<Int>,
+        numberOfExpectedCall: Int,
+        items: List<ItemInfo>,
+    ) {
         verify(mWorkspaceItemSpaceFinder, times(numberOfExpectedCall))
             .findSpaceForItem(
                 eq(IntArray.wrap(*nonEmptyScreenIds.toIntArray())),
                 eq(IntArray()),
+                eq(ArrayList(items)),
                 eq(1),
                 eq(1),
             )
