@@ -22,6 +22,7 @@
     android:contentDescription="@string/recent_task_desktop"
     android:defaultFocusHighlightEnabled="false"
     android:focusable="true"
+    android:clipChildren="false"
     launcher:focusBorderColor="@color/materialColorOutline"
     launcher:hoverBorderColor="@color/materialColorPrimary">
 
