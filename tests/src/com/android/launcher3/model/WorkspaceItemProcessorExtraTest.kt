@@ -34,6 +34,7 @@ import com.android.launcher3.LauncherSettings.Favorites
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPLICATION
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET
+import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
 import com.android.launcher3.icons.CacheableShortcutInfo
 import com.android.launcher3.icons.IconCache
 import com.android.launcher3.model.data.IconRequestInfo
@@ -54,7 +55,6 @@ import org.junit.runner.RunWith
 import org.mockito.Answers
 import org.mockito.ArgumentCaptor
 import org.mockito.Mock
-import org.mockito.Mockito.RETURNS_DEEP_STUBS
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
@@ -289,5 +289,6 @@ class WorkspaceItemProcessorExtraTest {
             idp = InvariantDeviceProfile.INSTANCE.get(context),
             iconCache = mockIconCache,
             isSafeMode = false,
+            widgetSizeHandler = context.appComponent.widgetSizeHandler,
         )
 }
