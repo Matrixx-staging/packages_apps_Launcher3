@@ -53,8 +53,8 @@ public class WorkspaceItemSpaceFinder {
      *
      * @return screenId and the coordinates for the item in an int array of size 3.
      */
-    public int[] findSpaceForItem(
-            IntArray workspaceScreens, IntArray addedWorkspaceScreensFinal, int spanX, int spanY) {
+    public int[] findSpaceForItem(IntArray workspaceScreens, IntArray addedWorkspaceScreensFinal,
+            ArrayList<ItemInfo> addItemsFinal, int spanX, int spanY) {
         LongSparseArray<ArrayList<ItemInfo>> screenItems = new LongSparseArray<>();
 
         // Use sBgItemsIdMap as all the items are already loaded.
@@ -68,6 +68,18 @@ public class WorkspaceItemSpaceFinder {
                     }
                     items.add(info);
                 }
+            }
+        }
+
+        // Add items that are due to be added to the database from AddWorkspaceItemsTask#execute.
+        for (ItemInfo info : addItemsFinal) {
+            if (info.container == LauncherSettings.Favorites.CONTAINER_DESKTOP) {
+                ArrayList<ItemInfo> items = screenItems.get(info.screenId);
+                if (items == null) {
+                    items = new ArrayList<>();
+                    screenItems.put(info.screenId, items);
+                }
+                items.add(info);
             }
         }
 
