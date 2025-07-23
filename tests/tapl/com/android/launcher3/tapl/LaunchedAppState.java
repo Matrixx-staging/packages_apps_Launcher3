@@ -86,7 +86,7 @@ public final class LaunchedAppState extends Background {
     public BaseOverview switchToOverview() {
         try (LauncherInstrumentation.Closable ignored = mLauncher.eventsCheck();
              LauncherInstrumentation.Closable ignored1 = mLauncher.addContextLayer(
-                     "want to switch from background to overview")) {
+                     "want to switch from LaunchedAppState to overview")) {
             verifyActiveContainer();
             goToOverviewUnchecked();
             return mLauncher.is3PLauncher()
