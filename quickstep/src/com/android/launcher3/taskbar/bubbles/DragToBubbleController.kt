@@ -69,6 +69,12 @@ class DragToBubbleController(
     private lateinit var systemUiProxy: SystemUiProxy
     private lateinit var bubbleBarViewController: BubbleBarViewController
     private val bubbleDropController: BubbleBarDropTargetController = createDropController()
+    private var isShellDragInProgress = false
+    private var isLauncherDragInProgress = false
+
+    /** The field value is true if the drag is in progress. */
+    val isDragInProgress: Boolean
+        get() = isLauncherDragInProgress || isShellDragInProgress
 
     fun init(
         bubbleBarViewController: BubbleBarViewController,
@@ -127,6 +133,7 @@ class DragToBubbleController(
         if (!BubbleAnythingFlagHelper.enableCreateAnyBubble()) {
             return
         }
+        isShellDragInProgress = started
         if (started) {
             onDragStarted(showDropTarget = false, shellDropTargetManager)
         } else {
@@ -151,6 +158,7 @@ class DragToBubbleController(
     }
 
     override fun onDragStart(dragObject: DragObject, options: DragOptions) {
+        isLauncherDragInProgress = true
         isItemDropHandled = false
         val isDropCanBeAccepted = canAcceptDrop(dragObject)
         bubbleBarLeftDropTarget.isDropCanBeAccepted = isDropCanBeAccepted
@@ -161,6 +169,7 @@ class DragToBubbleController(
     }
 
     override fun onDragEnd() {
+        isLauncherDragInProgress = false
         launcherDropTargetManager.onDragEnded()
     }
 

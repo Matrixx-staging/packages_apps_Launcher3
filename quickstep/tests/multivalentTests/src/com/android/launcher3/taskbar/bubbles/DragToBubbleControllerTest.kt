@@ -617,6 +617,58 @@ class DragToBubbleControllerTest {
         assertThat(newContainer.childCount).isEqualTo(DROP_VIEWS_COUNT_NO_BUBBLE_BAR)
     }
 
+    @Test
+    fun isDragInProgress_initially_returnsFalse() {
+        assertThat(dragToBubbleController.isDragInProgress).isFalse()
+    }
+
+    @Test
+    fun isDragInProgress_afterLauncherDragStart_returnsTrue() {
+        // When
+        dragToBubbleController.onDragStart(dragObject, DragOptions())
+
+        // Then
+        assertThat(dragToBubbleController.isDragInProgress).isTrue()
+    }
+
+    @Test
+    fun isDragInProgress_afterShellDragStart_returnsTrue() {
+        // When
+        dragToBubbleController.onShellDragStateChanged(true)
+
+        // Then
+        assertThat(dragToBubbleController.isDragInProgress).isTrue()
+    }
+
+    @Test
+    fun isDragInProgress_afterLauncherDragStartAndDragEnd_returnsFalse() {
+        // Given
+        dragToBubbleController.onDragStart(dragObject, DragOptions())
+
+        // When
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            dragToBubbleController.onDragEnd()
+        }
+
+        // Then
+        assertThat(dragToBubbleController.isDragInProgress).isFalse()
+    }
+
+    @Test
+    fun isDragInProgress_afterLauncherAndShellDragStartAndDragForShellEnd_returnsTrue() {
+        // Given
+        dragToBubbleController.onDragStart(dragObject, DragOptions())
+        dragToBubbleController.onShellDragStateChanged(true)
+
+        // When
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            dragToBubbleController.onShellDragStateChanged(false)
+        }
+
+        // Then
+        assertThat(dragToBubbleController.isDragInProgress).isTrue()
+    }
+
     private fun prepareBubbleBarViewController(
         hasBubbles: Boolean = false,
         bubbleBarLocation: BubbleBarLocation = BubbleBarLocation.RIGHT,

@@ -21,6 +21,7 @@ import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherModel
 import com.android.launcher3.model.data.AppInfo
+import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.util.GridOccupancy
 import com.android.launcher3.util.IntArray
@@ -49,6 +50,7 @@ abstract class AbstractWorkspaceModelTest {
     protected lateinit var mAppState: LauncherAppState
     protected lateinit var mExistingScreens: IntArray
     protected lateinit var mNewScreens: IntArray
+    protected lateinit var mAddedWorkspaceItems: ArrayList<ItemInfo>
     protected lateinit var mScreenOccupancy: IntSparseArrayMap<GridOccupancy>
 
     val model: LauncherModel
@@ -63,6 +65,7 @@ abstract class AbstractWorkspaceModelTest {
         mExistingScreens = IntArray()
         mScreenOccupancy = IntSparseArrayMap()
         mNewScreens = IntArray()
+        mAddedWorkspaceItems = ArrayList()
     }
 
     /** Sets up workspaces with the given screen IDs with some items and a 2x2 space. */

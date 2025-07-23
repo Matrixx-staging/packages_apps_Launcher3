@@ -16,10 +16,7 @@
 
 package com.android.launcher3.widgetpicker.ui.components
 
-import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Paint
 import android.platform.test.rule.DisableAnimationsRule
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -32,13 +29,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.android.launcher3.widgetpicker.goldenpathmanager.WidgetPickerGoldenPathManager
-import com.android.launcher3.widgetpicker.shared.model.AppIcon
 import com.android.launcher3.widgetpicker.shared.model.AppIconBadge
 import com.android.launcher3.widgetpicker.tests.R
-import com.android.launcher3.widgetpicker.ui.components.WidgetAppIconTest.Companion.BITMAP_SIZE
-import com.android.launcher3.widgetpicker.ui.components.WidgetAppIconTest.Companion.CIRCLE_CENTER
-import com.android.launcher3.widgetpicker.ui.components.WidgetAppIconTest.Companion.ROUND_RECT_RADIUS
 import com.android.launcher3.widgetpicker.ui.components.WidgetAppIconTest.Companion.TestBadge
+import com.android.launcher3.widgetpicker.ui.testdata.ScreenshotTestData.Companion.createBitmapIcon
 import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 import org.junit.Rule
 import org.junit.Test
@@ -89,35 +83,6 @@ class WidgetAppIconTest(emulationSpec: DeviceEmulationSpec) {
             tintColor = android.R.color.holo_blue_dark
         )
     }
-}
-
-private fun createBitmapIcon(color: Int, fullBleed: Boolean = true): AppIcon {
-    val bitmap: Bitmap = Bitmap.createBitmap(BITMAP_SIZE, BITMAP_SIZE, Bitmap.Config.ARGB_8888)
-    val canvas = Canvas(bitmap)
-
-    if (!fullBleed) {
-        val paint = Paint().apply {
-            isAntiAlias = true
-            setColor(color)
-            setShadowLayer(CIRCLE_CENTER, CIRCLE_CENTER, CIRCLE_CENTER, Color.WHITE)
-        }
-        canvas.drawRoundRect(
-            /*left=*/ 0f,
-            /*top=*/ 0f,
-            /*right=*/ BITMAP_SIZE.toFloat(),
-            /*bottom=*/ BITMAP_SIZE.toFloat(),
-            /*rx=*/ ROUND_RECT_RADIUS,
-            /*ry=*/ ROUND_RECT_RADIUS,
-            paint
-        )
-    } else {
-        canvas.drawColor(color)
-    }
-
-    return AppIcon.HighResBitmapIcon(
-        bitmap = bitmap,
-        isFullBleed = fullBleed
-    )
 }
 
 @Preview

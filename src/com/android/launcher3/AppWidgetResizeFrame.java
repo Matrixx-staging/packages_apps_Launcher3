@@ -48,7 +48,7 @@ import com.android.launcher3.views.ArrowTipView;
 import com.android.launcher3.widget.LauncherAppWidgetHostView;
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo;
 import com.android.launcher3.widget.PendingAppWidgetHostView;
-import com.android.launcher3.widget.util.WidgetSizes;
+import com.android.launcher3.widget.util.WidgetSizeHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -530,7 +530,7 @@ public class AppWidgetResizeFrame extends AbstractFloatingView implements View.O
             mRunningHInc += hSpanDelta;
 
             if (!onDismiss) {
-                WidgetSizes.updateWidgetSizeRanges(mWidgetView, mLauncher, spanX, spanY);
+                WidgetSizeHandler.updateSizeRanges(mWidgetView, spanX, spanY);
             }
         }
         mWidgetView.requestLayout();

@@ -2894,6 +2894,11 @@ public abstract class AbsSwipeUpHandler<
             TransformParams transformParams,
             TaskViewSimulator taskViewSimulator,
             float progress) {
+        // Do not fade out if the focus isn't changing to a different task.
+        if (mRecentsView != null && mRecentsView.getKeyboardFocusTaskView()
+                == mRecentsView.getCurrentPageTaskView()) {
+            return false;
+        }
         RemoteAnimationTargets targets = transformParams.getTargetSet();
         boolean fadeAppTargets = isKeyboardTaskFocusPending()
                 && targets != null
@@ -3049,9 +3054,8 @@ public abstract class AbsSwipeUpHandler<
                 .getTaskbarUiState(displayId);
 
         // Mimic TaskbarActivityContext.isTransientTaskbar
-        final DeviceProfile deviceProfile = mContainer.getDeviceProfile();
         final boolean isInPhoneMode = ENABLE_TASKBAR_NAVBAR_UNIFICATION
-                && deviceProfile.getDeviceProperties().isPhone() && !deviceProfile.isTaskbarPresent;
+                && mDp.getDeviceProperties().isPhone() && !mDp.isTaskbarPresent;
         if (DisplayController.isTransientTaskbar(mContext)
                 && taskbarUiState.isPrimaryDisplayRef().getValue() && !isInPhoneMode) {
             return true;

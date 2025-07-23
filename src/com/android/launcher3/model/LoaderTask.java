@@ -96,6 +96,7 @@ import com.android.launcher3.util.PackageManagerHelper;
 import com.android.launcher3.util.PackageUserKey;
 import com.android.launcher3.util.TraceHelper;
 import com.android.launcher3.widget.WidgetInflater;
+import com.android.launcher3.widget.util.WidgetSizeHandler;
 
 import dagger.assisted.Assisted;
 import dagger.assisted.AssistedFactory;
@@ -137,6 +138,7 @@ public class LoaderTask implements Runnable {
     private final LoaderCursorFactory mLoaderCursorFactory;
     private final LoaderParams mParams;
     private final Provider<Set<ItemInfo>> mExtraItemsProvider;
+    private final WidgetSizeHandler mWidgetSizeHandler;
 
     private final ModelDelegate mModelDelegate;
     private boolean mIsRestoreFromBackup;
@@ -185,6 +187,7 @@ public class LoaderTask implements Runnable {
             @Assisted UserManagerState userManagerState,
             Provider<LauncherRestoreEventLogger> restoreEventLoggerFactory,
             @Named("MODEL_ITEMS") Provider<Set<ItemInfo>> extraItemsProvider,
+            WidgetSizeHandler widgetSizeHandler,
             LoaderParams params) {
         mContext = context;
         mIDP = idp;
@@ -206,6 +209,7 @@ public class LoaderTask implements Runnable {
         mFolderNameProviderFactory = folderNameProviderFactory;
         mRestoreEventLoggerProvider = restoreEventLoggerFactory;
         mExtraItemsProvider = extraItemsProvider;
+        mWidgetSizeHandler = widgetSizeHandler;
         mParams = params;
     }
 
@@ -476,7 +480,8 @@ public class LoaderTask implements Runnable {
                         mUserCache, mUserManagerState, mLauncherApps, mPendingPackages,
                         mShortcutKeyToPinnedShortcuts, mContext, mIDP, mIconCache,
                         mIsSafeModeEnabled, installingPkgs, isSdCardReady, widgetInflater,
-                        mPmHelper, mWorkspaceIconRequestInfos, unlockedUsers, allDeepShortcuts);
+                        mPmHelper, mWorkspaceIconRequestInfos, unlockedUsers, allDeepShortcuts,
+                        mWidgetSizeHandler);
 
                 if (mStopped) {
                     Log.w(TAG, "loadWorkspaceImpl: Loader stopped, skipping item processing");

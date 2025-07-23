@@ -136,7 +136,7 @@ public abstract class AppIcon extends Launchable {
      * get the name of an app where the text of it is multiline.
      */
     @NonNull
-    String getAppName() {
+    public String getAppName() {
         return getObject().getContentDescription();
     }
 

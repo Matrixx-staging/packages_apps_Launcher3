@@ -192,6 +192,7 @@ class WorkspaceItemProcessorTest {
             iconCache = mockIconCache,
             idp = InvariantDeviceProfile.INSTANCE.get(mContext),
             isSafeMode = false,
+            widgetSizeHandler = mContext.appComponent.widgetSizeHandler,
         )
 
     @Test

@@ -86,6 +86,8 @@ dependencies {
     implementation(libs.dagger)
     kapt(libs.dagger.compiler)
     kapt(libs.dagger.android.processor)
+    kaptAndroidTest(libs.dagger.compiler)
+    kaptAndroidTest(libs.dagger.android.processor)
 
     // Compose UI dependencies
     implementation(libs.compose.ui)

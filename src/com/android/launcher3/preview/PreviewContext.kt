@@ -15,7 +15,6 @@
  */
 package com.android.launcher3.preview
 
-import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
 import android.text.TextUtils
 import com.android.launcher3.InvariantDeviceProfile
@@ -28,6 +27,7 @@ import com.android.launcher3.compose.core.widgetpicker.NoOpWidgetPickerModule
 import com.android.launcher3.concurrent.ExecutorsModule
 import com.android.launcher3.dagger.ApiWrapperModule
 import com.android.launcher3.dagger.AppModule
+import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
@@ -50,12 +50,15 @@ import com.android.launcher3.widget.LauncherWidgetHolder.WidgetHolderFactory
 import com.android.launcher3.widget.LocalColorExtractor
 import com.android.launcher3.widget.util.WidgetSizeHandler
 import com.android.systemui.shared.Flags
+import dagger.Binds
 import dagger.BindsInstance
 import dagger.Component
+import dagger.Module
 import java.io.File
 import java.util.Arrays
 import java.util.UUID
 import java.util.concurrent.Executor
+import javax.inject.Inject
 
 /**
  * Context used just for preview. It also provides a few objects (e.g. UserCache) just for preview
@@ -89,15 +92,13 @@ constructor(
             else selectionForWorkspaceScreen(workspacePageId)
 
         val builder = DaggerPreviewContext_PreviewAppComponent.builder().bindPrefs(prefs)
-        builder
-            .bindLoaderParams(
-                LoaderParams(
-                    workspaceSelection = selectionQuery,
-                    sanitizeData = false,
-                    loadNonWorkspaceItems = false,
-                )
+        builder.bindLoaderParams(
+            LoaderParams(
+                workspaceSelection = selectionQuery,
+                sanitizeData = false,
+                loadNonWorkspaceItems = false,
             )
-            .bindWidgetSizeHandler(NoOpWidgetSizeHandler(this))
+        )
 
         // Bind the LauncherApp's single QsbAppWidgetHost to PreviewComponent. This way same
         // AppWidgetHost is shared between the Preview and Launcher.
@@ -149,11 +150,13 @@ constructor(
     override fun getDatabasePath(name: String): File =
         if (mDbDir != null) File(mDbDir, name) else super.getDatabasePath(name)
 
-    private class NoOpWidgetSizeHandler(context: Context) : WidgetSizeHandler(context) {
+    class NoOpWidgetSizeHandler
+    @Inject
+    constructor(@ApplicationContext context: Context, idp: InvariantDeviceProfile) :
+        WidgetSizeHandler(context, idp) {
 
         override fun updateSizeRangesAsync(
             widgetId: Int,
-            info: AppWidgetProviderInfo,
             spanX: Int,
             spanY: Int,
             executor: Executor,
@@ -166,6 +169,12 @@ constructor(
         LauncherWidgetHolder(context, hostId) {
 
         override fun startListeningForSharedUpdate() = startListening()
+    }
+
+    @Module
+    abstract class PreviewModule {
+
+        @Binds abstract fun bindWidgetSizeHandler(handler: NoOpWidgetSizeHandler): WidgetSizeHandler
     }
 
     @LauncherAppSingleton // Exclude widget module since we bind widget holder separately
@@ -183,6 +192,7 @@ constructor(
                 LauncherExecutorsModule::class,
                 NoOpWidgetPickerModule::class,
                 LauncherModelModule::class,
+                PreviewModule::class,
             ]
     )
     interface PreviewAppComponent : LauncherAppComponent {
@@ -200,8 +210,6 @@ constructor(
             @BindsInstance fun bindWidgetsFactory(holderFactory: WidgetHolderFactory): Builder
 
             @BindsInstance fun bindLoaderParams(params: LoaderParams): Builder
-
-            @BindsInstance fun bindWidgetSizeHandler(handler: WidgetSizeHandler): Builder
 
             @BindsInstance fun bindQsbAppWidgetHost(host: QsbAppWidgetHost): Builder
 
