@@ -276,7 +276,8 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
         DeviceProfile grid = mContainer.getDeviceProfile();
         options.intrinsicIconScaleFactor = (float) grid.getAllAppsProfile().getIconSizePx()
                 / grid.getWorkspaceIconProfile().getIconSizePx();
-        options.preDragCondition = container.createPreDragCondition(false);
+        container.setUpdateIconUi(false);
+        options.preDragCondition = container.createPreDragCondition();
         if (options.preDragCondition == null) {
             options.preDragCondition = new DragOptions.PreDragCondition() {
                 private DragView<SecondaryDisplayLauncher> mDragView;
