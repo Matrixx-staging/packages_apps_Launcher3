@@ -21,10 +21,13 @@ import static android.window.DesktopModeFlags.ENABLE_TASKBAR_RECENTS_LAYOUT_TRAN
 
 import static com.android.launcher3.BubbleTextView.DISPLAY_TASKBAR;
 import static com.android.launcher3.Flags.enableCursorHoverStates;
+import static com.android.launcher3.Flags.enableLauncherIconShapes;
 import static com.android.launcher3.Flags.enableRecentsInTaskbar;
+import static com.android.launcher3.Flags.enableTaskbarRecentsThemedIcons;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APP_PAIR;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_FOLDER;
 import static com.android.launcher3.config.FeatureFlags.enableTaskbarPinning;
+import static com.android.launcher3.icons.BitmapInfo.FLAG_THEMED;
 import static com.android.launcher3.icons.IconNormalizer.ICON_VISIBLE_AREA_FACTOR;
 
 import android.content.Context;
@@ -56,6 +59,10 @@ import com.android.launcher3.apppairs.AppPairIcon;
 import com.android.launcher3.celllayout.CellInfo;
 import com.android.launcher3.folder.FolderIcon;
 import com.android.launcher3.folder.PreviewBackground;
+import com.android.launcher3.graphics.ThemeManager;
+import com.android.launcher3.icons.BitmapInfo;
+import com.android.launcher3.icons.BitmapInfo.DrawableCreationFlags;
+import com.android.launcher3.icons.IconShape;
 import com.android.launcher3.model.data.AppPairInfo;
 import com.android.launcher3.model.data.CollectionInfo;
 import com.android.launcher3.model.data.FolderInfo;
@@ -76,6 +83,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -840,10 +848,24 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         Task task = singleTask.getTask();
         // TODO(b/344038728): use FastBitmapDrawable instead of Drawable, to get disabled state
         //  while dragging.
-        Drawable taskIcon = task.icon;
-        if (taskIcon != null) {
-            taskIcon = taskIcon.getConstantState().newDrawable().mutate();
+        BitmapInfo bitmapInfo = groupTask.getBitmapInfos().get(0);
+        final Drawable taskIcon;
+        if (enableTaskbarRecentsThemedIcons()) {
+            ThemeManager themeManager = ThemeManager.INSTANCE.get(mActivityContext);
+            @DrawableCreationFlags int creationFlags =
+                    themeManager.isIconThemeEnabled() ? FLAG_THEMED : 0;
+            @Nullable IconShape iconShape =
+                    enableLauncherIconShapes() ? themeManager.getIconShapeData().getValue() : null;
+            taskIcon = Optional.ofNullable(bitmapInfo)
+                    .map(bi -> bi.newIcon(mActivityContext, creationFlags, iconShape))
+                    .orElse(null);
+        } else {
+            taskIcon = Optional.ofNullable(task.icon)
+                    .map(Drawable::getConstantState)
+                    .map(cs -> cs.newDrawable().mutate())
+                    .orElse(null);
         }
+
         btv.applyIconAndLabel(taskIcon, task.title, task.titleDescription);
         btv.setTag(singleTask);
     }
