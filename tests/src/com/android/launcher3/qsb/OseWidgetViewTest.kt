@@ -18,19 +18,26 @@ package com.android.launcher3.qsb
 
 import android.appwidget.AppWidgetManager.INVALID_APPWIDGET_ID
 import android.appwidget.AppWidgetProviderInfo
+import android.content.Context
 import android.widget.RemoteViews
-import androidx.test.core.app.ApplicationProvider.getApplicationContext
-import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.annotation.UiThreadTest
 import com.android.dx.mockito.inline.extended.ExtendedMockito.spyOn
-import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
+import com.android.launcher3.dagger.LauncherAppComponent
+import com.android.launcher3.dagger.LauncherAppModule
+import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.util.ActivityContextWrapper
-import com.android.launcher3.util.Executors.MAIN_EXECUTOR
+import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.MutableListenableRef
-import com.android.launcher3.util.TestUtil
+import com.android.launcher3.util.SandboxApplication
 import com.android.launcher3.util.ui.TestViewHelpers
+import dagger.BindsInstance
+import dagger.Component
 import kotlin.test.Test
 import org.junit.Before
+import org.junit.Rule
 import org.junit.runner.RunWith
+import org.mockito.Mock
+import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
@@ -38,11 +45,18 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-@RunWith(AndroidJUnit4::class)
+@UiThreadTest
+@RunWith(LauncherMultivalentJUnit::class)
 class OseWidgetViewTest {
+
+    @get:Rule val sandboxContext = SandboxApplication()
+    @get:Rule val mockitoRule = MockitoJUnit.rule()
+
+    @Mock lateinit var oseWidgetManager: OseWidgetManager
+
     private lateinit var mVut: OseWidgetView
-    private lateinit var oseWidgetManager: OseWidgetManager
-    private val context = ActivityContextWrapper(getApplicationContext())
+    private lateinit var context: Context
+
     private val widgetInfo = TestViewHelpers.findWidgetProvider(false)
     private val remoteView = RemoteViews(widgetInfo.provider.packageName, 0)
     private val mockProviderInfo = MutableListenableRef<AppWidgetProviderInfo>(widgetInfo)
@@ -50,12 +64,15 @@ class OseWidgetViewTest {
 
     @Before
     fun setUp() {
+        sandboxContext.initDaggerComponent(
+            DaggerOseWidgetViewTest_TestComponent.builder().bindOseWidgetManager(oseWidgetManager)
+        )
+        context = ActivityContextWrapper(sandboxContext)
         mVut = OseWidgetView(context)
         spyOn(mVut)
         spyOn(mVut.closeActions)
         doNothing().whenever(mVut).setAppWidget(any(), any())
-        oseWidgetManager = context.appComponent.oseWidgetManager
-        spyOn(oseWidgetManager)
+
         doReturn(mockProviderInfo).whenever(oseWidgetManager).providerInfo
         doReturn(mockRemoteViews).whenever(oseWidgetManager).views
     }
@@ -76,7 +93,6 @@ class OseWidgetViewTest {
 
         val newWidgetInfo = TestViewHelpers.findWidgetProvider(false)
         mockProviderInfo.dispatchValue(newWidgetInfo)
-        TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {}
 
         verify(mVut).setAppWidget(INVALID_APPWIDGET_ID, newWidgetInfo)
         verify(mVut, times(1)).updateAppWidget(remoteView)
@@ -90,7 +106,6 @@ class OseWidgetViewTest {
         val newWidgetInfo = TestViewHelpers.findWidgetProvider(false)
         val newRemoteView = RemoteViews(newWidgetInfo.provider.packageName, 0)
         mockRemoteViews.dispatchValue(newRemoteView)
-        TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {}
 
         verify(mVut, times(1)).setAppWidget(INVALID_APPWIDGET_ID, widgetInfo)
         verify(mVut).updateAppWidget(newRemoteView)
@@ -105,13 +120,11 @@ class OseWidgetViewTest {
 
         val newWidgetInfo = TestViewHelpers.findWidgetProvider(false)
         mockProviderInfo.dispatchValue(newWidgetInfo)
-        TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {}
         // setAppWidget is not called since view is detached even though providerInfo changes
         verify(mVut, times(1)).setAppWidget(any(), any())
 
         val anotherWidgetInfo = TestViewHelpers.findWidgetProvider(false)
         mockProviderInfo.dispatchValue(anotherWidgetInfo)
-        TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {}
         // setAppWidget is not called since view is detached even though providerInfo changes
         verify(mVut, times(1)).setAppWidget(any(), any())
     }
@@ -126,15 +139,25 @@ class OseWidgetViewTest {
         val newWidgetInfo = TestViewHelpers.findWidgetProvider(false)
         val newRemoteView = RemoteViews(newWidgetInfo.provider.packageName, 0)
         mockRemoteViews.dispatchValue(newRemoteView)
-        TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {}
         // updateAppWidget is not called since view is detached even though remoteView changes
         verify(mVut, times(1)).updateAppWidget(any())
 
         val anotherWidgetInfo = TestViewHelpers.findWidgetProvider(false)
         val anotherRemoteView = RemoteViews(anotherWidgetInfo.provider.packageName, 0)
         mockRemoteViews.dispatchValue(anotherRemoteView)
-        TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {}
         // updateAppWidget is not called since view is detached even though remoteView changes
         verify(mVut, times(1)).updateAppWidget(any())
+    }
+
+    @LauncherAppSingleton
+    @Component(modules = [LauncherAppModule::class])
+    interface TestComponent : LauncherAppComponent {
+
+        @Component.Builder
+        interface Builder : LauncherAppComponent.Builder {
+            @BindsInstance fun bindOseWidgetManager(manager: OseWidgetManager): Builder
+
+            override fun build(): TestComponent
+        }
     }
 }
