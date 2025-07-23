@@ -533,13 +533,6 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
     protected Animator getCloseAnimation() {
         AnimatorSet closeAnimation = new AnimatorSet();
 
-        setClipToOutline(true);
-
-        Animator outlineAnimation = mOutlineAnimationProgress.animateToValue(0f);
-        outlineAnimation.setDuration(OUTLINE_ANIMATION_DURATION_MS);
-        outlineAnimation.setInterpolator(CLOSE_OUTLINE_INTERPOLATOR);
-        closeAnimation.play(outlineAnimation);
-
         Animator alphaAnimation = ObjectAnimator.ofFloat(this, ALPHA, 1f, 0f);
         alphaAnimation.setStartDelay(ALPHA_ANIMATION_START_DELAY_MS);
         alphaAnimation.setDuration(ALPHA_ANIMATION_DURATION_MS);
