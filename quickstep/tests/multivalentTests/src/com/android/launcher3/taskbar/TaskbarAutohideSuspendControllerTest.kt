@@ -109,11 +109,15 @@ class TaskbarAutohideSuspendControllerTest {
     }
 
     @Test
-    fun isSuspended() {
-        autohideSuspendController.updateFlag(FLAG_AUTOHIDE_SUSPEND_BUBBLES, true)
+    fun isSuspended_withBubblesFlag_returnsCorrectValue() {
+        getInstrumentation().runOnMainSync {
+            autohideSuspendController.updateFlag(FLAG_AUTOHIDE_SUSPEND_BUBBLES, true)
+        }
         assertThat(autohideSuspendController.isSuspended).isTrue()
 
-        autohideSuspendController.updateFlag(FLAG_AUTOHIDE_SUSPEND_BUBBLES, false)
+        getInstrumentation().runOnMainSync {
+            autohideSuspendController.updateFlag(FLAG_AUTOHIDE_SUSPEND_BUBBLES, false)
+        }
         assertThat(autohideSuspendController.isSuspended).isFalse()
     }
 
