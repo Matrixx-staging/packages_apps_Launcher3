@@ -92,12 +92,13 @@ class WidgetPreviewContainerSizesTest {
                 Point(4, 1) to WidgetPreviewContainerSize(4, 1),
                 // 2x2
                 Point(2, 2) to WidgetPreviewContainerSize(2, 2),
+                Point(3, 2) to WidgetPreviewContainerSize(3, 2),
                 Point(3, 3) to WidgetPreviewContainerSize(2, 2),
-                Point(3, 2) to WidgetPreviewContainerSize(2, 2),
                 // 2x3
                 Point(2, 3) to WidgetPreviewContainerSize(2, 3),
-                Point(3, 4) to WidgetPreviewContainerSize(2, 3),
-                Point(3, 5) to WidgetPreviewContainerSize(2, 3),
+                // 3x2 would be closest.
+                Point(3, 4) to WidgetPreviewContainerSize(3, 2),
+                Point(3, 5) to WidgetPreviewContainerSize(3, 2),
                 // 4x2
                 Point(4, 2) to WidgetPreviewContainerSize(4, 2),
                 // 4x3
