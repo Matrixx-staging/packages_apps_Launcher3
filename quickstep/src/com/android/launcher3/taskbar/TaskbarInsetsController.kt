@@ -356,7 +356,7 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
             // Let touches pass through us.
             touchableInsets = TOUCHABLE_INSETS_REGION
             debugTouchableRegion.lastSetTouchableReason = UI_CONTROLLER_UNTOUCHABLE
-        } else if (controllers.taskbarDragController.isSystemDragInProgress) {
+        } else if (controllers.taskbarOverlayController.isAnySystemDragInProgress) {
             // Let touches pass through us.
             touchableInsets = TOUCHABLE_INSETS_REGION
             debugTouchableRegion.lastSetTouchableReason = SYSTEM_DRAG_IN_PROGRESS

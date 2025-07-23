@@ -299,6 +299,14 @@ public final class TaskbarOverlayController {
                 && CrossWindowBlurListeners.getInstance().isCrossWindowBlurEnabled();
     }
 
+    /** Returns {@code true} if overlay or Taskbar windows are handling a system drag. */
+    public boolean isAnySystemDragInProgress() {
+        boolean overlaySystemDragInProgress = mOverlayContext != null
+                && mOverlayContext.getDragController().isSystemDragInProgress();
+        return overlaySystemDragInProgress
+                || mTaskbarContext.getDragController().isSystemDragInProgress();
+    }
+
     /**
      * Proxy view connecting taskbar drag layer to the overlay window.
      *
