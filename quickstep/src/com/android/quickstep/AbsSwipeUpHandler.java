@@ -2894,6 +2894,11 @@ public abstract class AbsSwipeUpHandler<
             TransformParams transformParams,
             TaskViewSimulator taskViewSimulator,
             float progress) {
+        // Do not fade out if the focus isn't changing to a different task.
+        if (mRecentsView != null && mRecentsView.getKeyboardFocusTaskView()
+                == mRecentsView.getCurrentPageTaskView()) {
+            return false;
+        }
         RemoteAnimationTargets targets = transformParams.getTargetSet();
         boolean fadeAppTargets = isKeyboardTaskFocusPending()
                 && targets != null
