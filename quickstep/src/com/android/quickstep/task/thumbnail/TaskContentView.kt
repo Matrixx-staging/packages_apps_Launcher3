@@ -73,7 +73,8 @@ class TaskContentView @JvmOverloads constructor(context: Context, attrs: Attribu
         private set
 
     private var taskThumbnailView: TaskThumbnailView? = null
-    private var taskAppTimerToast: TextView? = null
+    var taskAppTimerToast: TextView? = null
+        private set
 
     private var timerTextHelper: TimerTextHelper? = null
     private var timerUiState: TaskAppTimerUiState = TaskAppTimerUiState.Uninitialized
