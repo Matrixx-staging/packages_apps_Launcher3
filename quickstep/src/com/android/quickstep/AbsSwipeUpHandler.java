@@ -3031,9 +3031,8 @@ public abstract class AbsSwipeUpHandler<
                 .getTaskbarUiState(displayId);
 
         // Mimic TaskbarActivityContext.isTransientTaskbar
-        final DeviceProfile deviceProfile = mContainer.getDeviceProfile();
         final boolean isInPhoneMode = ENABLE_TASKBAR_NAVBAR_UNIFICATION
-                && deviceProfile.getDeviceProperties().isPhone() && !deviceProfile.isTaskbarPresent;
+                && mDp.getDeviceProperties().isPhone() && !mDp.isTaskbarPresent;
         if (DisplayController.isTransientTaskbar(mContext)
                 && taskbarUiState.isPrimaryDisplayRef().getValue() && !isInPhoneMode) {
             return true;
