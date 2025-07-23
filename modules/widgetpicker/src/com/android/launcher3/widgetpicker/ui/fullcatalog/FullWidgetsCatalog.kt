@@ -19,7 +19,9 @@ package com.android.launcher3.widgetpicker.ui.fullcatalog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -28,6 +30,8 @@ import com.android.launcher3.widgetpicker.ui.LocalWidgetPickerCuiReporter
 import com.android.launcher3.widgetpicker.ui.WidgetPickerCui
 import com.android.launcher3.widgetpicker.ui.WidgetPickerCuiReporter
 import com.android.launcher3.widgetpicker.ui.WidgetPickerEventListeners
+import com.android.launcher3.widgetpicker.ui.components.accessibility.LocalAccessibilityState
+import com.android.launcher3.widgetpicker.ui.components.accessibility.produceAccessibilityState
 import com.android.launcher3.widgetpicker.ui.components.bottomsheet.ModalBottomSheetHeightStyle
 import com.android.launcher3.widgetpicker.ui.components.bottomsheet.TitledBottomSheet
 import com.android.launcher3.widgetpicker.ui.components.widgetPickerTestTag
@@ -52,6 +56,7 @@ class FullWidgetsCatalog
 constructor(private val viewModelFactory: FullWidgetsCatalogViewModel.Factory) {
     @Composable
     fun Content(eventListeners: WidgetPickerEventListeners, cuiReporter: WidgetPickerCuiReporter) {
+        val context = LocalContext.current
         val viewModel: FullWidgetsCatalogViewModel = rememberViewModel { viewModelFactory.create() }
 
         val density = LocalDensity.current
@@ -60,7 +65,12 @@ constructor(private val viewModelFactory: FullWidgetsCatalogViewModel.Factory) {
             with(density) { windowSize.height < compactHeightBreakpoint.roundToPx() }
         val isCompactWidth = with(density) { windowSize.width < compactWidthBreakpoint.roundToPx() }
 
-        CompositionLocalProvider(LocalWidgetPickerCuiReporter provides cuiReporter) {
+        val accessibilityState by produceAccessibilityState(context)
+
+        CompositionLocalProvider(
+            LocalWidgetPickerCuiReporter provides cuiReporter,
+            LocalAccessibilityState provides accessibilityState,
+        ) {
             FullWidgetsCatalogContent(
                 viewModel = viewModel,
                 isCompactHeight = isCompactHeight,

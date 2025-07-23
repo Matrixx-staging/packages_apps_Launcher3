@@ -48,6 +48,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -55,6 +58,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
+import com.android.launcher3.widgetpicker.R
+import com.android.launcher3.widgetpicker.ui.components.accessibility.LocalAccessibilityState
 import com.android.launcher3.widgetpicker.ui.components.bottomsheet.TitledBottomSheetDimens.contentWindowInsets
 import com.android.launcher3.widgetpicker.ui.components.bottomsheet.TitledBottomSheetDimens.headerBottomMargin
 import com.android.launcher3.widgetpicker.ui.components.bottomsheet.TitledBottomSheetDimens.sheetInnerHorizontalPadding
@@ -91,6 +96,8 @@ fun TitledBottomSheet(
     content: @Composable () -> Unit,
 ) {
     val density = LocalDensity.current
+    val accessibilityState = LocalAccessibilityState.current
+    val closeSheetLabel = stringResource(R.string.widget_picker_collapse_sheet_label)
 
     BoxWithConstraints(modifier = modifier.windowInsetsPadding(sheetWindowInsets)) {
         val animSpec: AnimationSpec<Float> = MaterialTheme.motionScheme.slowSpatialSpec()
@@ -100,13 +107,23 @@ fun TitledBottomSheet(
 
         Surface(
             modifier =
-                Modifier.semantics { isTraversalGroup = true }
+                Modifier.semantics {
+                        isTraversalGroup = true
+                        customActions =
+                            listOf(
+                                CustomAccessibilityAction(label = closeSheetLabel) {
+                                    onDismissSheet()
+                                    true
+                                }
+                            )
+                    }
                     .fillMaxSize()
                     .dismissibleBottomSheet(
                         sheetState = sheetState,
                         onSheetOpen = onSheetOpen,
                         onDismissSheet = onDismissSheet,
                         maxHeight = with(density) { maxHeight.toPx() },
+                        enableNestedScrolling = !accessibilityState.isEnabled,
                     ),
             color = WidgetPickerTheme.colors.sheetBackground,
             shape = sheetShape,
@@ -227,16 +244,16 @@ private object TitledBottomSheetDimens {
     val sheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
 
     val sheetWindowInsets: WindowInsets
-        @Composable get() = WindowInsets.statusBars.union(WindowInsets.displayCutout)
+        @Composable
+        get() =
+            WindowInsets.statusBars.union(
+                WindowInsets.displayCutout.only(
+                    sides = WindowInsetsSides.Horizontal + WindowInsetsSides.Top
+                )
+            )
 
     val contentWindowInsets: WindowInsets
         @Composable
         get() =
             WindowInsets.safeDrawing.only(sides = WindowInsetsSides.Bottom + WindowInsetsSides.Top)
-}
-
-/** Default values for the [TitledBottomSheet] component. */
-object TitledBottomSheetDefaults {
-    /** Max animation duration for the bottom sheet to fully expand. */
-    const val SLIDE_IN_ANIMATION_DURATION: Long = 400L
 }

@@ -169,6 +169,7 @@ android_library {
         "src/com/android/launcher3/widgetpicker/ui/components/bottomsheet/TitledBottomSheet.kt",
         "src/com/android/launcher3/widgetpicker/ui/components/Animations.kt",
         "src/com/android/launcher3/widgetpicker/ui/components/BorderOnFocus.kt",
+        "src/com/android/launcher3/widgetpicker/ui/components/accessibility/AccessibilityState.kt",
     ],
     static_libs: [
         "widget_picker_event_listeners",

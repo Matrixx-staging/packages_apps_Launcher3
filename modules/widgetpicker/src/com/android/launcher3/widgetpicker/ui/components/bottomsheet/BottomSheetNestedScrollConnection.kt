@@ -30,12 +30,15 @@ import androidx.compose.ui.unit.Velocity
 class BottomSheetNestedScrollConnection(
     private val sheetState: BottomSheetDismissState,
     private val flingBehavior: FlingBehavior,
+    private val enabled: Boolean,
 ) : NestedScrollConnection {
     private var sheetConsumedPreScrollDelta = 0f
     private var childConsumedAnyScroll = false
     private var acceptFling = false
 
     override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+        if (!enabled) return Offset.Zero
+
         val offset =
             when {
                 // If sheet was already moved beyond its resting state, take over the scroll
@@ -54,6 +57,8 @@ class BottomSheetNestedScrollConnection(
         available: Offset,
         source: NestedScrollSource,
     ): Offset {
+        if (!enabled) return Offset.Zero
+
         childConsumedAnyScroll = sheetConsumedPreScrollDelta != consumed.y
 
         return when {
@@ -68,8 +73,9 @@ class BottomSheetNestedScrollConnection(
 
         // Accept fling if we were already scrolling OR if child wasn't scrolling.
         acceptFling =
-            sheetConsumedPreScrollDelta != 0f ||
-                (availableVelocity != 0f && !childConsumedAnyScroll)
+            enabled &&
+                (sheetConsumedPreScrollDelta != 0f ||
+                    (availableVelocity != 0f && !childConsumedAnyScroll))
 
         return when {
             acceptFling -> {

@@ -102,6 +102,7 @@ filegroup {
         "multivalentTests/src/com/android/launcher3/widgetpicker/ui/fullcatalog/screens/search/SearchScreenTest.kt",
         "multivalentTests/src/com/android/launcher3/widgetpicker/ui/components/WidgetInteractionsTest.kt",
         "multivalentTests/src/com/android/launcher3/widgetpicker/ui/components/WidgetsListHeaderTest.kt",
+        "multivalentTests/src/com/android/launcher3/widgetpicker/ui/components/bottomsheet/TitledBottomSheetTest.kt",
     ],
 }
 
