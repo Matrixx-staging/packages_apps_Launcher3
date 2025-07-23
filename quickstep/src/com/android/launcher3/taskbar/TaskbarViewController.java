@@ -21,7 +21,6 @@ import static android.animation.LayoutTransition.CHANGE_DISAPPEARING;
 import static android.animation.LayoutTransition.DISAPPEARING;
 import static android.view.Display.DEFAULT_DISPLAY;
 import static android.window.DesktopModeFlags.ENABLE_TASKBAR_OVERFLOW;
-import static android.window.DesktopModeFlags.ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION;
 
 import static com.android.app.animation.Interpolators.EMPHASIZED;
 import static com.android.app.animation.Interpolators.FINAL_FRAME;
@@ -194,10 +193,6 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
 
     private final View.OnLayoutChangeListener mTaskbarViewLayoutChangeListener =
             (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
-                if (!ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION.isTrue()) {
-                    // update shiftX is handled with the animation at the end of the method
-                    updateTaskbarIconTranslationXForPinning(/* updateShiftXForBubbleBar = */ false);
-                }
                 if (mBubbleControllers == null) return;
                 mControllers.navbarButtonsViewController.onLayoutsUpdated();
                 adjustTaskbarXForBubbleBar();
@@ -1290,9 +1285,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     /** Called when there's a change in running apps to update the UI. */
     public void commitRunningAppsToUI() {
         mModelCallbacks.commitRunningAppsToUI();
-        if (ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION.isTrue()
-                && !mActivity.isTransientTaskbar()
-                && mTaskbarView.getLayoutTransition() == null) {
+        if (!mActivity.isTransientTaskbar() && mTaskbarView.getLayoutTransition() == null) {
             // Set up after the first commit so that the initial recents do not animate (janky).
             mTaskbarView.setLayoutTransition(createLayoutTransitionForRunningApps());
         }
