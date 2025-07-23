@@ -25,6 +25,7 @@ val HANDHELD_WIDGET_PREVIEW_SIZES: List<WidgetPreviewContainerSize> =
     listOf(
         WidgetPreviewContainerSize(spanX = 4, spanY = 3),
         WidgetPreviewContainerSize(spanX = 4, spanY = 2),
+        WidgetPreviewContainerSize(spanX = 3, spanY = 2),
         WidgetPreviewContainerSize(spanX = 2, spanY = 3),
         WidgetPreviewContainerSize(spanX = 2, spanY = 2),
         WidgetPreviewContainerSize(spanX = 4, spanY = 1),
