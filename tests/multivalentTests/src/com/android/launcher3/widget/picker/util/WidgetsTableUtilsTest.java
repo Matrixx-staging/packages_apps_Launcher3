@@ -37,6 +37,7 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.deviceprofile.AllAppsProfile;
+import com.android.launcher3.deviceprofile.WorkspaceProfile;
 import com.android.launcher3.icons.IconCache;
 import com.android.launcher3.icons.cache.BaseIconCache;
 import com.android.launcher3.icons.cache.CachedObject;
@@ -249,11 +250,10 @@ public final class WidgetsTableUtilsTest {
         AllAppsProfile testAllAppsProfile = Mockito.spy(mTestDeviceProfile.getAllAppsProfile());
         Mockito.doReturn(0).when(testAllAppsProfile).getIconSizePx();
 
-        doAnswer(i -> {
-            ((Point) i.getArgument(0)).set(CELL_SIZE, CELL_SIZE);
-            return null;
-        }).when(mTestDeviceProfile).getCellSize(any(Point.class));
-        when(mTestDeviceProfile.getCellSize()).thenReturn(new Point(CELL_SIZE, CELL_SIZE));
+        WorkspaceProfile workspaceProfile = Mockito.spy(dp.mWorkspaceProfile);
+        when(workspaceProfile.getCellSize()).thenReturn(new Point(CELL_SIZE, CELL_SIZE));
+        when(mTestDeviceProfile.getWorkspaceIconProfile()).thenReturn(workspaceProfile);
+
         mTestDeviceProfile.getWorkspaceIconProfile().getCellLayoutBorderSpacePx()
                 .set(SPACE_SIZE, SPACE_SIZE);
         mTestDeviceProfile.widgetPadding.setEmpty();

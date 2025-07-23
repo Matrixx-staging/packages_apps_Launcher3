@@ -32,6 +32,7 @@ import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.spy
 import org.mockito.kotlin.whenever
 
 @SmallTest
@@ -62,7 +63,9 @@ class WidgetDragScaleUtilsTest {
     fun getWidgetDragScalePx_largeDraggedView_downScaled() {
         val minSize =
             context.resources.getDimensionPixelSize(R.dimen.widget_drag_view_min_scale_down_size)
-        whenever(deviceProfile.cellSize).thenReturn(Point(minSize * 2, minSize * 2))
+
+        val workspaceProfile = spy(deviceProfile.mWorkspaceProfile)
+        whenever(workspaceProfile.cellSize).thenReturn(Point(minSize * 2, minSize * 2))
 
         itemInfo.spanX = 2
         itemInfo.spanY = 2
@@ -88,7 +91,8 @@ class WidgetDragScaleUtilsTest {
     fun getWidgetDragScalePx_draggedViewSameAsWidgetSize_downScaled() {
         val minSize =
             context.resources.getDimensionPixelSize(R.dimen.widget_drag_view_min_scale_down_size)
-        whenever(deviceProfile.cellSize).thenReturn(Point(minSize * 2, minSize * 2))
+        val workspaceProfile = spy(deviceProfile.mWorkspaceProfile)
+        whenever(workspaceProfile.cellSize).thenReturn(Point(minSize * 2, minSize * 2))
         itemInfo.spanX = 4
         itemInfo.spanY = 2
 
@@ -118,7 +122,8 @@ class WidgetDragScaleUtilsTest {
             context.resources.getDimensionPixelSize(R.dimen.widget_drag_view_min_scale_down_size)
         // Assume min size is greater than cell size, so that, we know the upscale of dragged view
         // is due to min size enforcement.
-        whenever(deviceProfile.cellSize).thenReturn(Point(minSizePx / 2, minSizePx / 2))
+        val workspaceProfile = spy(deviceProfile.mWorkspaceProfile)
+        whenever(workspaceProfile.cellSize).thenReturn(Point(minSizePx / 2, minSizePx / 2))
         itemInfo.spanX = 1
         itemInfo.spanY = 1
 
