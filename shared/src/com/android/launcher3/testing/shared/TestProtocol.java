@@ -194,6 +194,9 @@ public final class TestProtocol {
     public static final String REQUEST_TASKBAR_UNSTASHED_INPUT_AREA =
             "taskbar-unstashed-input-area";
 
+    public static final String REQUEST_IS_IN_DESKTOP_FIRST_MODE =
+            "display_is_in_desktop_first_mode";
+
     /** Logs {@link Log#d(String, String)} if {@link #sDebugTracing} is true. */
     public static void testLogD(String tag, String message) {
         if (!sDebugTracing) {

@@ -19,6 +19,7 @@ package com.android.launcher3.tapl;
 import static android.view.KeyEvent.KEYCODE_ESCAPE;
 
 import static com.android.launcher3.tapl.LauncherInstrumentation.TASKBAR_RES_ID;
+import static com.android.launcher3.tapl.LauncherInstrumentation.eventListToString;
 import static com.android.launcher3.tapl.LauncherInstrumentation.log;
 import static com.android.launcher3.tapl.OverviewTask.TASK_START_EVENT;
 import static com.android.launcher3.tapl.TestHelpers.getOverviewPackageName;
@@ -38,6 +39,7 @@ import androidx.test.uiautomator.UiObject2;
 import com.android.launcher3.tapl.Taskbar.TaskbarLocation;
 import com.android.launcher3.testing.shared.TestProtocol;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -167,20 +169,58 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
             final Runnable clickClearAll = () -> mLauncher.clickLauncherObject(
                     mLauncher.waitForObjectInContainer(verifyActiveContainer(),
                             clearAllSelector));
-            // When the recents window is enabled, there is no RecentsActivity to send
-            // LAUNCHER_ACTIVITY_STOPPED_MESSAGE in the 3P launcher case.
-            if (mLauncher.is3PLauncher() && !mLauncher.isRecentsWindowEnabled()) {
-                mLauncher.executeAndWaitForLauncherStop(
-                        clickClearAll,
+
+            if (mLauncher.isInDesktopFirstMode()) {
+                // In desktop-first mode clear-all does not go to a home
+                mLauncher.executeAndWaitForEvent(clickClearAll,
+                        event -> TestProtocol.DISMISS_ANIMATION_ENDS_MESSAGE
+                                .equals(event.getClassName().toString()),
+                        () -> "'Clear All' didn't complete",
                         "clicking 'Clear All'");
             } else {
-                mLauncher.runToState(
-                        clickClearAll,
-                        NORMAL_STATE_ORDINAL,
-                        "clicking 'Clear All'");
-            }
+                // When the recents window is enabled, there is no RecentsActivity to send
+                // LAUNCHER_ACTIVITY_STOPPED_MESSAGE in the 3P launcher case.
+                if (mLauncher.is3PLauncher() && !mLauncher.isRecentsWindowEnabled()) {
+                    mLauncher.executeAndWaitForLauncherStop(
+                            clickClearAll,
+                            "clicking 'Clear All'");
+                } else {
+                    boolean[] isNormalState = new boolean[]{false};
+                    boolean[] isDismissEnded = new boolean[]{false};
+                    final List<Integer> actualEvents = new ArrayList<>();
+                    mLauncher.executeAndWaitForEvent(
+                            clickClearAll,
+                            event -> {
+                                if (!isNormalState[0] && mLauncher.isSwitchToStateEvent(event,
+                                        NORMAL_STATE_ORDINAL, actualEvents)) {
+                                    isNormalState[0] = true;
+                                }
+                                if (!isDismissEnded[0]
+                                        && TestProtocol.DISMISS_ANIMATION_ENDS_MESSAGE.equals(
+                                        event.getClassName())) {
+                                    isDismissEnded[0] = true;
+                                }
 
-            mLauncher.waitUntilLauncherObjectGone(clearAllSelector);
+                                return isNormalState[0] && isDismissEnded[0];
+                            },
+                            () -> {
+                                StringBuilder failureMessage = new StringBuilder();
+                                if (!isNormalState[0]) {
+                                    failureMessage.append(
+                                            "Failed to receive event for state change to Normal. "
+                                                    + "Actual events: ").append(
+                                            eventListToString(actualEvents));
+                                }
+                                if (!isDismissEnded[0]) {
+                                    failureMessage.append(
+                                            "Failed to receive dismiss animation ends message.");
+                                }
+                                return failureMessage.toString();
+                            },
+                            "clicking 'Clear All'");
+                }
+                mLauncher.waitUntilLauncherObjectGone(clearAllSelector);
+            }
         }
     }
 

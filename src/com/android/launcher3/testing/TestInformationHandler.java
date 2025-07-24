@@ -231,12 +231,22 @@ public class TestInformationHandler {
                         ENABLE_TASKBAR_NAVBAR_UNIFICATION);
                 return response;
 
-            case TestProtocol.REQUEST_TASKBAR_SHOWN_ON_HOME:
+            case TestProtocol.REQUEST_TASKBAR_SHOWN_ON_HOME: {
                 DisplayController.Info displayInfo = DisplayController.INSTANCE.get(
                         mContext).getInfoForDisplay(Integer.parseInt(arg));
                 response.putBoolean(TEST_INFO_RESPONSE_FIELD,
                         displayInfo != null && displayInfo.showLockedTaskbarOnHome());
                 return response;
+            }
+
+            case TestProtocol.REQUEST_IS_IN_DESKTOP_FIRST_MODE: {
+                DisplayController.Info displayInfo = DisplayController.INSTANCE.get(
+                        mContext).getInfoForDisplay(Integer.parseInt(arg));
+                response.putBoolean(TEST_INFO_RESPONSE_FIELD,
+                        displayInfo != null && displayInfo.isInDesktopFirstMode());
+                return response;
+            }
+
             case TestProtocol.REQUEST_NUM_ALL_APPS_COLUMNS:
                 response.putInt(TestProtocol.TEST_INFO_RESPONSE_FIELD,
                         mDeviceProfile.numShownAllAppsColumns);
