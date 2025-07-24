@@ -23,7 +23,10 @@ import static com.android.launcher3.tapl.OverviewTask.OverviewTaskContainer.SPLI
 import static com.android.launcher3.tapl.TestHelpers.getOverviewPackageName;
 import static com.android.launcher3.testing.shared.TestProtocol.NORMAL_STATE_ORDINAL;
 
+import android.graphics.Point;
 import android.graphics.Rect;
+import android.os.SystemClock;
+import android.view.MotionEvent;
 
 import androidx.annotation.NonNull;
 import androidx.test.uiautomator.By;
@@ -44,6 +47,7 @@ public final class OverviewTask {
     private static final String DESKTOP_TASK_THUMBNAIL_VIEW_HEADER = "task_header_view";
     private static final String DESKTOP_TASK_THUMBNAIL_VIEW_HEADER_CLOSE_BUTTON =
             "header_close_button";
+
     static final Pattern TASK_START_EVENT = Pattern.compile("startActivityFromRecentsAsync");
     static final Pattern TASK_START_EVENT_DESKTOP = Pattern.compile("launchDesktopFromRecents");
     static final Pattern TASK_START_EVENT_LIVE_TILE = Pattern.compile(
@@ -317,18 +321,13 @@ public final class OverviewTask {
     }
 
     /**
-     * Closes the Task of [activityIndex] from the desktop task view tile.
+     * Closes the Task of [activityName] from the desktop task view tile.
      * Returns void here since after the close operation, we can either end up staying in overview,
      * or going to the home screen (if all tasks are closed).
-     * @param activityIndex activity index to be used to find the thumbnail.
+     * @param activityName activity name to be used to find the thumbnail.
      */
-    public void tapCloseDesktopThumbnailView(int activityIndex) {
+    public void tapCloseDesktopThumbnailView(String activityName) {
         mLauncher.assertTrue("Current task is not desktop task", isDesktop());
-        UiObject2 thumbnailViewHeader = findDesktopThumbnailViewHeader(activityIndex);
-        if (thumbnailViewHeader == null) {
-            mLauncher.fail("Could not find thumbnail header for activity index: " + activityIndex);
-            return;
-        }
 
         int thumbnailViewCount = getDesktopThumbnailViewCount();
         mLauncher.assertTrue("There should be at least one thumbnail view.",
@@ -337,6 +336,7 @@ public final class OverviewTask {
         try (LauncherInstrumentation.Closable e = mLauncher.eventsCheck();
              LauncherInstrumentation.Closable c = mLauncher.addContextLayer(
                      "wanted to tap the close button")) {
+            UiObject2 thumbnailViewHeader = getDesktopThumbnailViewHeader(activityName);
             final Runnable clickClose = () -> mLauncher.clickLauncherObject(
                     mLauncher.waitForObjectInContainer(
                             thumbnailViewHeader, DESKTOP_TASK_THUMBNAIL_VIEW_HEADER_CLOSE_BUTTON));
@@ -359,24 +359,78 @@ public final class OverviewTask {
         }
     }
 
-    /** Returns the thumbnail view header for [activityIndex]. Returns null if not found. */
-    private UiObject2 findDesktopThumbnailViewHeader(int activityIndex) {
-        if (!isDesktop()) {
-            return null;
-        }
+    /**
+     * Taps on the Task of [activityName] from the desktop task view tile.
+     * Returns the launched app state.
+     * @param activityName activity name to be used to find the thumbnail.
+     */
+    public LaunchedAppState tapOnDesktopThumbnailView(String activityName) {
+        mLauncher.assertTrue("Current task is not desktop task", isDesktop());
 
-        // 1. Find the specific thumbnail view for the activity within the DesktopTaskView.
-        //    We use the snapshotViewRes for the desktop container (`snapshot`) as the identifier
-        //    for individual thumbnail views within the desktop tile.
+        try (LauncherInstrumentation.Closable e = mLauncher.eventsCheck();
+             LauncherInstrumentation.Closable c = mLauncher.addContextLayer(
+                     "wanted to tap on the thumbnail view")) {
+            UiObject2 thumbnailView = getDesktopThumbnailView(activityName);
+            mLauncher.expectEvent(TestProtocol.SEQUENCE_MAIN, TASK_START_EVENT_DESKTOP);
+            mLauncher.executeAndWaitForLauncherStop(
+                    () -> mLauncher.clickLauncherObject(thumbnailView),
+                    "clicking on a desktop thumbnail view");
+            return new LaunchedAppState(mLauncher);
+        }
+    }
+
+    /**
+     * Taps on the empty space of the DesktopTaskView which activates the desktop.
+     */
+    public LaunchedAppState tapOnEmptySpaceInDesktopTaskView() {
+        try (LauncherInstrumentation.Closable e = mLauncher.eventsCheck();
+             LauncherInstrumentation.Closable c = mLauncher.addContextLayer(
+                     "wanted to tap on the empty space in the desktop task view")) {
+            mLauncher.assertTrue("This task must be a desktop task.", isDesktop());
+
+            final Rect taskViewBounds = mTask.getVisibleBounds();
+            // Start with a point in the bottom-right, just inside the container bounds. It should
+            // not collide with any UI elements.
+            final Point tapPoint = new Point(taskViewBounds.right - 1, taskViewBounds.bottom - 1);
+            final long downTime = SystemClock.uptimeMillis();
+            mLauncher.expectEvent(TestProtocol.SEQUENCE_MAIN, TASK_START_EVENT_DESKTOP);
+            mLauncher.sendPointer(downTime, downTime, MotionEvent.ACTION_DOWN, tapPoint,
+                    LauncherInstrumentation.GestureScope.DONT_EXPECT_PILFER);
+            mLauncher.sendPointer(downTime, downTime, MotionEvent.ACTION_UP, tapPoint,
+                    LauncherInstrumentation.GestureScope.DONT_EXPECT_PILFER);
+
+            return new LaunchedAppState(mLauncher);
+        }
+    }
+
+    /**
+     * Returns the thumbnail view for [activityName]. Fails the test if not found or if the
+     * current task is not a desktop task.
+     */
+    @NonNull
+    private UiObject2 getDesktopThumbnailView(String activityName) {
+        mLauncher.assertTrue("Current task is not a desktop task.", isDesktop());
+
+        // We use the snapshotViewRes for the desktop container (`snapshot`) as the identifier
+        // for individual thumbnail views within the desktop tile.
         String thumbnailSelector = ":id/" + DESKTOP.snapshotViewRes;
         UiObject2 activityThumbnail = mLauncher.waitForObjectBySelector(
                 By.res(getOverviewPackageName() + thumbnailSelector)
-                        .descContains("TestActivity" + activityIndex));
+                        .descContains(activityName));
+        return activityThumbnail;
+    }
 
-        if (activityThumbnail == null) {
-            mLauncher.fail("Could not find thumbnail for activity index: " + activityIndex);
-            return null;
-        }
+    /**
+     * Returns the thumbnail view header for [activityName]. Fails the test if not found or if the
+     * current task is not a desktop task.
+     */
+    @NonNull
+    private UiObject2 getDesktopThumbnailViewHeader(String activityName) {
+        mLauncher.assertTrue("Current task is not a desktop task.", isDesktop());
+
+        // 1. Find the specific thumbnail view for the activity within the DesktopTaskView.
+        // This call will fail the test if the thumbnail is not found.
+        UiObject2 activityThumbnail = getDesktopThumbnailView(activityName);
 
         // 2. Find its header. Note the TaskThumbnailView and its header TaskHeaderView are sibling
         // views. Find the header via their parent view.
