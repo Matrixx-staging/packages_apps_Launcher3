@@ -251,6 +251,7 @@ public class TaskbarControllers {
         // Notify that the ui controller has changed
         navbarButtonsViewController.onUiControllerChanged();
         taskbarViewController.onUiControllerChanged();
+        taskbarEduTooltipController.updateShouldShowEduOnAppLaunch();
     }
 
     @Nullable

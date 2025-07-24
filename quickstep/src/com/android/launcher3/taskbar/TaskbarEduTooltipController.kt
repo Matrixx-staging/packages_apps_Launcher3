@@ -125,7 +125,7 @@ constructor(
         }
         private set(step) {
             TASKBAR_EDU_TOOLTIP_STEP.set(step, activityContext)
-            onShouldShowEduOnAppLaunchChanged()
+            updateShouldShowEduOnAppLaunch()
         }
 
     private var tooltip: TaskbarEduTooltip? = null
@@ -133,12 +133,16 @@ constructor(
     fun init(controllers: TaskbarControllers, taskbarUiState: TaskbarUiState) {
         this.controllers = controllers
         this.taskbarUIState = taskbarUiState
-        onShouldShowEduOnAppLaunchChanged()
+        updateShouldShowEduOnAppLaunch()
         // We want to show the Search Edu right after pinning the taskbar, so we post it here
         activityContext.dragLayer.post { maybeShowSearchEdu() }
     }
 
-    fun onShouldShowEduOnAppLaunchChanged() {
+    /**
+     * Should be called whenever [TaskbarUIController], [DeviceProfile] or
+     * "taskbar_edu_tooltip_step" counter is changed.
+     */
+    fun updateShouldShowEduOnAppLaunch() {
         if (!refactorTaskbarUiState()) {
             return
         }

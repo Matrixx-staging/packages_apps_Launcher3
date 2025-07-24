@@ -24,7 +24,8 @@ import com.android.launcher3.util.MutableListenableRef
  *
  * Timings when each field is changed:
  * - [_hasBubblesRef]: when BubbleBarView's child bubble view count is changed between 0 vs non-zero
- * - [_shouldShowEduOnAppLaunchRef]: when DeviceProfile or tooltip steps is changed
+ * - [_shouldShowEduOnAppLaunchRef]: when DeviceProfile, TaskbarUIController or tooltip steps is
+ *   changed
  * - [_isDraggingItemRef]: when ether bubble or taskbar is dragging item
  * - [_isTaskbarStashedRef]: when [TaskbarStashController.mIsStashed] has changed
  * - [_isTaskbarAllAppsOpenRef]: when [TaskbarAllAppsController.isOpen] has changed
