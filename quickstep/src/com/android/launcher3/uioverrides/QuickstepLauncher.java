@@ -741,10 +741,9 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
     @Override
     protected void setTitle(@NonNull LauncherState state) {
-        if (state.hasFlag(FLAG_SKIP_STATE_ANNOUNCEMENT)) {
-            // Prevent accessibility title update announcement
-            getWindow().getAttributes().accessibilityTitle = getString(state.getTitle());
-        }
+        // Prevent accessibility title update announcement
+        getWindow().getAttributes().accessibilityTitle = state.hasFlag(FLAG_SKIP_STATE_ANNOUNCEMENT)
+                ? getString(state.getTitle()) : null;
         super.setTitle(state);
     }
 
