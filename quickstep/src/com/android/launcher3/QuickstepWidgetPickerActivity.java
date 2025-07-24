@@ -58,6 +58,8 @@ import com.android.launcher3.widget.picker.WidgetCategoryFilter;
 import com.android.launcher3.widget.picker.WidgetsFullSheet;
 import com.android.launcher3.widget.picker.model.WidgetPickerDataProvider;
 import com.android.launcher3.widgetpicker.WidgetPickerConfig;
+import com.android.quickstep.TouchInteractionService;
+import com.android.quickstep.util.TISBindHelper;
 import com.android.systemui.animation.back.FlingOnBackAnimationCallback;
 
 import java.util.ArrayList;
@@ -116,6 +118,7 @@ public class QuickstepWidgetPickerActivity extends
      */
     private static final String EXTRA_USER_ID_FILTER = "filtered_user_ids";
 
+    private TISBindHelper mTISBindHelper;
     private WidgetsModel mModel;
     private StringCache mStringCache;
     private WidgetPredictionsRequester mWidgetPredictionsRequester;
@@ -145,6 +148,8 @@ public class QuickstepWidgetPickerActivity extends
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        mTISBindHelper = new TISBindHelper(this, this::onTISConnected);
+
         setWidgetPickerConfig(parseIntentExtras());
         super.onCreate(savedInstanceState);
 
@@ -216,13 +221,18 @@ public class QuickstepWidgetPickerActivity extends
             filteredUsers = filteredUserIds.stream().map(UserHandle::of).toList();
         }
 
+        DeviceProfile deviceProfile = LauncherComponentProvider.get(this)
+                .getIDP()
+                .getDeviceProfile(this);
+
         return new WidgetPickerConfig(
                 /*uiSurface=*/ uiSurface,
                 /*title=*/ title,
                 /*description=*/ description,
                 /*categoryInclusionFilter=*/ inclusionFilter,
                 /*categoryExclusionFilter=*/ exclusionFilter,
-                /*filteredUsers=*/ filteredUsers);
+                /*filteredUsers=*/ filteredUsers,
+                /*handleSwipeUpGesture=*/ deviceProfile.getDeviceProperties().isGestureMode());
     }
 
     @NonNull
@@ -356,8 +366,34 @@ public class QuickstepWidgetPickerActivity extends
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        updateServiceState(true);
+    }
+
+    private void onTISConnected(TouchInteractionService.TISBinder binder) {
+        updateServiceState(isResumed());
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        updateServiceState(false);
+    }
+
+    private void updateServiceState(boolean isEnabled) {
+        TouchInteractionService.TISBinder binder = mTISBindHelper.getBinder();
+        if (binder != null) {
+            binder.setGestureBlockedTaskId(isEnabled ? getTaskId() : -1);
+        }
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
+        mTISBindHelper.onDestroy();
+        updateServiceState(false);
+
         if (!Flags.enableWidgetPickerRefactor() || !ComposeFacade.INSTANCE.isComposeAvailable()) {
             mWidgetPickerDataProvider.destroy();
             if (mWidgetPredictionsRequester != null) {

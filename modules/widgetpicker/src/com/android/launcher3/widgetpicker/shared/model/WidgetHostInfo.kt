@@ -28,12 +28,16 @@ import android.os.UserHandle
  * @param showDragShadow indicates whether to show drag shadow for the widgets when dragging them;
  *   can be set to false if host manages drag shadow on its own (e.g. home screen to animate the
  *   shadow with actual content)
+ * @param enableSwipeUpToDismiss indicates whether host wants to delegate the handling of swipe up
+ *   from bottom gesture to the picker UI. It is responsibility of activity to disable gesture nav
+ *   for this to be effective.
  */
 data class WidgetHostInfo(
     val title: String? = null,
     val description: String? = null,
     val constraints: List<HostConstraint> = emptyList(),
     val showDragShadow: Boolean = true,
+    val enableSwipeUpToDismiss: Boolean = false,
 )
 
 /** Various constraints for the widget host. */
