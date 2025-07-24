@@ -85,6 +85,7 @@ import com.android.launcher3.celllayout.CellLayoutLayoutParams;
 import com.android.launcher3.celllayout.CellPosMapper;
 import com.android.launcher3.celllayout.CellPosMapper.CellPos;
 import com.android.launcher3.config.FeatureFlags;
+import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.debug.TestEventEmitter;
 import com.android.launcher3.debug.TestEventEmitter.TestEvent;
 import com.android.launcher3.dragndrop.DragController;
@@ -109,6 +110,10 @@ import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.LauncherAppWidgetInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.pageindicators.PageIndicator;
+import com.android.launcher3.popup.Poppable;
+import com.android.launcher3.popup.Popup;
+import com.android.launcher3.popup.PopupController;
+import com.android.launcher3.popup.PopupDataRepository;
 import com.android.launcher3.statemanager.StateManager;
 import com.android.launcher3.statemanager.StateManager.StateHandler;
 import com.android.launcher3.statemanager.StateManager.StateListener;
@@ -1754,6 +1759,17 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             if (btv.isDisplaySearchResult()) {
                 dragOptions.preDragEndScale = (float) mAllAppsIconSize / btv.getIconSize();
             }
+        } else if (Flags.homeScreenEditImprovements() && child instanceof Poppable
+                && !dragOptions.isAccessibleDrag) {
+            PopupDataRepository popupDataRepository =
+                    LauncherComponentProvider.get(mLauncher).getPopupDataRepository();
+            PopupController<Launcher> popupController =
+                    PopupController.PopupControllerFactory.createPopupController(
+                            (ItemInfo) child.getTag(),
+                            popupDataRepository,
+                            mLauncher.getDragController());
+            Popup popup = popupController.show(child);
+            dragOptions.preDragCondition = popup.createPreDragCondition();
         }
 
         if (dragOptions.preDragCondition != null) {

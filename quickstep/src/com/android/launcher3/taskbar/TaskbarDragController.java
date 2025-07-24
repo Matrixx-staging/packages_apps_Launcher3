@@ -244,7 +244,8 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
             PopupContainerWithArrow<BaseTaskbarContext> popupContainer =
                     mControllers.taskbarPopupController.showForIcon(btv);
             if (popupContainer != null) {
-                dragOptions.preDragCondition = popupContainer.createPreDragCondition(false);
+                popupContainer.setUpdateIconUi(false);
+                dragOptions.preDragCondition = popupContainer.createPreDragCondition();
             }
         }
 
