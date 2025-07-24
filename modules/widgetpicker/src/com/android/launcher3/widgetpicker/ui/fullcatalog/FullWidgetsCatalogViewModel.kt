@@ -32,10 +32,12 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 /**
- * Top-level view model for the widget picker view that shows a full catalog of widgets available
- * on the device.
+ * Top-level view model for the widget picker view that shows a full catalog of widgets available on
+ * the device.
  */
-class FullWidgetsCatalogViewModel @AssistedInject constructor(
+class FullWidgetsCatalogViewModel
+@AssistedInject
+constructor(
     landingScreenViewModelFactory: LandingScreenViewModel.Factory,
     searchScreenViewModelFactory: SearchScreenViewModel.Factory,
     @WidgetPickerHostInfo private val hostInfo: WidgetHostInfo,
@@ -46,6 +48,7 @@ class FullWidgetsCatalogViewModel @AssistedInject constructor(
     val title: String? = hostInfo.title
     val description: String? = hostInfo.description
     val showDragShadow: Boolean = hostInfo.showDragShadow
+    val enableSwipeUpToClose: Boolean = hostInfo.enableSwipeUpToDismiss
     var activeScreen by mutableStateOf(Screen.LANDING)
         private set
 
@@ -70,6 +73,6 @@ class FullWidgetsCatalogViewModel @AssistedInject constructor(
 
     enum class Screen {
         LANDING,
-        SEARCH
+        SEARCH,
     }
 }

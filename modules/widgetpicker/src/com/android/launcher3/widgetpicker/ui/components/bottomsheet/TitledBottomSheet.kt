@@ -18,6 +18,7 @@ package com.android.launcher3.widgetpicker.ui.components.bottomsheet
 
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,7 @@ import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.only
@@ -43,10 +45,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
@@ -67,6 +74,8 @@ import com.android.launcher3.widgetpicker.ui.components.bottomsheet.TitledBottom
 import com.android.launcher3.widgetpicker.ui.components.bottomsheet.TitledBottomSheetDimens.sheetShape
 import com.android.launcher3.widgetpicker.ui.components.bottomsheet.TitledBottomSheetDimens.sheetWindowInsets
 import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
+import kotlin.math.abs
+import kotlinx.coroutines.launch
 
 /**
  * A bottom sheet with title and description on the top. Intended to serve as a common container
@@ -80,6 +89,9 @@ import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
  *   [ModalBottomSheetHeightStyle].
  * @param showDragHandle whether to show drag handle; e.g. if the content doesn't need scrolling set
  *   this to false.
+ * @param enableSwipeUpToDismiss whether to handle swipe up from bottom of sheet to close it.
+ *   Setting this to true doesn't exclude the gesture nav stealing the touches automatically, the
+ *   host need to ensure it has disabled gesture nav when passing true here.
  * @param onDismissSheet callback to be invoked when the bottom sheet is closed
  * @param content the content to be displayed below the [title] and [description]
  */
@@ -91,6 +103,7 @@ fun TitledBottomSheet(
     description: String?,
     heightStyle: ModalBottomSheetHeightStyle,
     showDragHandle: Boolean = true,
+    enableSwipeUpToDismiss: Boolean = false,
     onSheetOpen: () -> Unit,
     onDismissSheet: () -> Unit,
     content: @Composable () -> Unit,
@@ -147,7 +160,61 @@ fun TitledBottomSheet(
                 }
             },
         )
+
+        if (enableSwipeUpToDismiss) {
+            val scope = rememberCoroutineScope()
+
+            SwipeUpToDismissHandler(
+                modifier = Modifier.align(Alignment.BottomCenter),
+                contentHeight = maxHeight,
+                onProgress = { scope.launch { sheetState.backProgress.snapTo(it) } },
+                onCancel = { scope.launch { sheetState.settleProgress() } },
+                onClose = { scope.launch { sheetState.collapse() } },
+            )
+        }
     }
+}
+
+@Composable
+private fun SwipeUpToDismissHandler(
+    modifier: Modifier,
+    contentHeight: Dp,
+    onProgress: (Float) -> Unit,
+    onCancel: () -> Unit,
+    onClose: () -> Unit,
+) {
+    val density = LocalDensity.current
+
+    var currentDragDistanceY by remember { mutableFloatStateOf(0f) }
+    val targetDistanceY = remember { with(density) { contentHeight.toPx() / 2 } }
+    // Distance user should have swiped up when releasing the drag that should lead to closing the
+    // sheet.
+    val swipeUpDistanceToClosePx = remember {
+        with(density) { SwipeUpToDismissHandlerDimens.swipeUpDistanceToClose.toPx() }
+    }
+
+    Box(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(SwipeUpToDismissHandlerDimens.gestureBoxHeight)
+                .pointerInput(Unit) {
+                    detectDragGestures(
+                        onDragStart = { currentDragDistanceY = it.y },
+                        onDragCancel = { onCancel() },
+                        onDragEnd = {
+                            if (currentDragDistanceY < -swipeUpDistanceToClosePx) {
+                                onClose()
+                            } else {
+                                onCancel()
+                            }
+                        },
+                    ) { _, dragAmount ->
+                        currentDragDistanceY += dragAmount.y
+                        onProgress(abs(currentDragDistanceY / targetDistanceY).coerceIn(0f, 1f))
+                    }
+                }
+    )
 }
 
 @Composable
@@ -234,6 +301,11 @@ enum class ModalBottomSheetHeightStyle {
 private object DragHandleDimens {
     val dragHandleHeight = 4.dp
     val dragHandleWidth = 32.dp
+}
+
+private object SwipeUpToDismissHandlerDimens {
+    val gestureBoxHeight = 20.dp
+    val swipeUpDistanceToClose = 28.dp
 }
 
 private object TitledBottomSheetDimens {
