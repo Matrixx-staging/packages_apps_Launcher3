@@ -28,7 +28,6 @@ import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCH
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SPLIT_SELECTION_EXIT_INTERRUPTED;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_WORKSPACE_LONGPRESS;
 
-import android.content.Intent;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.view.GestureDetector;
@@ -113,15 +112,6 @@ public class WorkspaceTouchListener extends GestureDetector.SimpleOnGestureListe
                 // Mouse right button's ACTION_DOWN should immediately show menu
                 if (TouchUtil.isMouseRightClickDownOrMove(ev)) {
                     maybeShowMenu();
-                    return true;
-                }
-
-                // When home is shown behind tasks, then a touch on the workspace should go home.
-                if (mLauncher.shouldShowHomeBehindDesktop() && !mLauncher.isTopResumedActivity()) {
-                    Intent intent = new Intent(Intent.ACTION_MAIN)
-                            .addCategory(Intent.CATEGORY_HOME)
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    mLauncher.startActivity(intent);
                     return true;
                 }
             }
