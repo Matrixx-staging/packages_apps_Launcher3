@@ -66,16 +66,49 @@ class TaplTestsOverviewDesktop : AbstractQuickStepTest() {
         assertThat(desktopTaskView.getDesktopThumbnailViewCount()).isEqualTo(2)
 
         // Tap on the close button of [TEST_ACTIVITY_1]'s thumbnail view header.
-        desktopTaskView.tapCloseDesktopThumbnailView(TEST_ACTIVITY_1)
+        desktopTaskView.tapCloseDesktopThumbnailView("TestActivity$TEST_ACTIVITY_1")
         assertThat(desktopTaskView.getDesktopThumbnailViewCount()).isEqualTo(1)
 
         // Tap on the second close button. Since there will be no thumbnail windows and no other
         // task view tiles, Overview should have dismissed.
-        desktopTaskView.tapCloseDesktopThumbnailView(TEST_ACTIVITY_2)
+        desktopTaskView.tapCloseDesktopThumbnailView("TestActivity$TEST_ACTIVITY_2")
         assertTrue(
             "Launcher internal state is not Workspace",
             isInState(Supplier { LauncherState.NORMAL }),
         )
+    }
+
+    @EnableFlags(FLAG_ENABLE_DESKTOP_EXPLODED_VIEW)
+    @Test
+    fun testActivateIndividualTaskFromExplodedView() {
+        var desktopTaskView =
+            mLauncher.workspace
+                .switchToOverview()
+                // Move last launched TEST_ACTIVITY_2 into Desktop
+                .moveTaskToDesktop(TEST_ACTIVITY_2)
+                .switchToOverview()
+                // Scroll back to TEST_ACTIVITY_1, then move it into Desktop
+                .apply { flingForward() }
+                .moveTaskToDesktop(TEST_ACTIVITY_1)
+                .switchToOverview()
+                .currentTask
+
+        // There should be two desktop thumbnail views in Overview.
+        assertThat(desktopTaskView.getDesktopThumbnailViewCount()).isEqualTo(2)
+
+        // Tap on the thumbnail of [TEST_ACTIVITY_2] to activate its window.
+        desktopTaskView.tapOnDesktopThumbnailView("TestActivity$TEST_ACTIVITY_2")
+        TEST_ACTIVITIES.forEach { assertTestAppLaunched(it) }
+
+        // Tap on the thumbnail of [TEST_ACTIVITY_1] to activate its window.
+        desktopTaskView = mLauncher.goHome().switchToOverview().currentTask
+        desktopTaskView.tapOnDesktopThumbnailView("TestActivity$TEST_ACTIVITY_1")
+        TEST_ACTIVITIES.forEach { assertTestAppLaunched(it) }
+
+        // Tap on the empty space in overview should not bring back [TEST_ACTIVITY_2]
+        desktopTaskView = mLauncher.goHome().switchToOverview().currentTask
+        desktopTaskView.tapOnEmptySpaceInDesktopTaskView()
+        TEST_ACTIVITIES.forEach { assertTestAppLaunched(it) }
     }
 
     @Test

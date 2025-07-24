@@ -85,6 +85,34 @@ class TaplTestTaskbarIconDrag : AbstractQuickStepTest() {
         dismissExpandedBubbleBar()
     }
 
+    @Test
+    fun testAppIconDragOnOverviewFromTaskBarAllAppsToBubbleBar() {
+        val overview = mLauncher.workspace.switchToOverview()
+        // test right drop target
+        bubbleBar =
+            overview.taskbar!!
+                .openAllApps()
+                .getAppIcon(TEST_APP_NAME)
+                .dragToBubbleBarLocation(/* isBubbleBarLeftDropTarget= */ false)
+        // close expanded bubble
+        dismissExpandedBubbleBar()
+    }
+
+    @Test
+    fun testAppIconDragInRunningAppFromTaskBarAllAppsToBubbleBar() {
+        startAppFast(AbstractTaplTestsTaskbar.CALCULATOR_APP_PACKAGE)
+        val launchedAppState = mLauncher.launchedAppState
+        mLauncher.showTaskbarIfHidden()
+        // test left drop target
+        bubbleBar =
+            launchedAppState.taskbar
+                .openAllApps()
+                .getAppIcon(TEST_APP_NAME)
+                .dragToBubbleBarLocation(/* isBubbleBarLeftDropTarget= */ true)
+        // close expanded bubble
+        dismissExpandedBubbleBar()
+    }
+
     private fun dismissExpandedBubbleBar() {
         val bubbleBar = this.bubbleBar!!
         // close expanded bubble bar

@@ -207,6 +207,7 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
             btv.setIconDisabled(true);
             mControllers.taskbarAutohideSuspendController.updateFlag(
                     TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_DRAGGING, true);
+            mControllers.taskbarStashController.updateAndAnimateTransientTaskbar(false);
         });
         return true;
     }
@@ -504,7 +505,8 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
                 // Tell WM Shell to ignore drag events in the provided transient taskbar region.
                 TaskbarDragLayer dragLayer = mControllers.taskbarActivityContext.getDragLayer();
                 int[] locationOnScreen = dragLayer.getLocationOnScreen();
-                RectF disallowExternalDropRegion = new RectF(dragLayer.getLastDrawnTransientRect());
+                RectF disallowExternalDropRegion = new RectF(mControllers.taskbarViewController
+                        .getTransientTaskbarIconLayoutBoundsInParent());
                 disallowExternalDropRegion.offset(locationOnScreen[0], locationOnScreen[1]);
                 intent.putExtra(DragAndDropConstants.EXTRA_DISALLOW_HIT_REGION,
                         disallowExternalDropRegion);

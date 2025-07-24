@@ -72,8 +72,11 @@ constructor(
             transitionFinishedCallback.onTransitionFinished(/* wct= */ null, /* sct= */ null)
         }
         mainExecutor.execute {
-            runAnimators(info, safeTransitionFinishedCallback)
+            getLaunchChange(info)?.let { launchChange ->
+                transaction.reparent(launchChange.leash, info.rootLeash)
+            }
             transaction.apply()
+            runAnimators(info, safeTransitionFinishedCallback)
         }
     }
 
@@ -92,6 +95,11 @@ constructor(
         }
         animators.forEach { it.start() }
     }
+
+    private fun getLaunchChange(info: TransitionInfo): TransitionInfo.Change? =
+        info.changes.firstOrNull { change ->
+            change.mode in LAUNCH_CHANGE_MODES && change.taskInfo?.isFreeform == true
+        }
 
     companion object {
         const val TAG = "DesktopAppLaunchTransition"
