@@ -98,6 +98,20 @@ class QuickstepKeyGestureEventsHandlerTest {
     }
 
     @Test
+    @EnableFlags(Flags.FLAG_GRANT_MANAGE_KEY_GESTURES_TO_RECENTS)
+    fun registerAllAppsHandlerTwice_flagEnabled_registerWithExpectedKeyGestureEventsOnce() {
+        keyGestureEventsManager.registerAllAppsKeyGestureEvent(allAppsPendingIntent)
+        keyGestureEventsManager.registerAllAppsKeyGestureEvent(allAppsPendingIntent)
+
+        verify(inputManager)
+            .registerKeyGestureEventHandler(
+                keyGestureEventsCaptor.capture(),
+                eq(keyGestureEventsManager.allAppsKeyGestureEventHandler),
+            )
+        assertThat(keyGestureEventsCaptor.firstValue).containsExactly(KEY_GESTURE_TYPE_ALL_APPS)
+    }
+
+    @Test
     @DisableFlags(Flags.FLAG_GRANT_MANAGE_KEY_GESTURES_TO_RECENTS)
     fun registerAllAppsHandler_flagDisabled_noRegister() {
         keyGestureEventsManager.registerAllAppsKeyGestureEvent(allAppsPendingIntent)
@@ -118,6 +132,21 @@ class QuickstepKeyGestureEventsHandlerTest {
     @Test
     @EnableFlags(Flags.FLAG_GRANT_MANAGE_KEY_GESTURES_TO_RECENTS)
     fun registerOverviewHandler_flagEnabled_registerWithExpectedKeyGestureEvents() {
+        keyGestureEventsManager.registerOverviewKeyGestureEvent(fakeOverviewHandler)
+
+        verify(inputManager)
+            .registerKeyGestureEventHandler(
+                keyGestureEventsCaptor.capture(),
+                eq(keyGestureEventsManager.overviewKeyGestureEventHandler),
+            )
+        assertThat(keyGestureEventsCaptor.firstValue)
+            .containsExactly(KEY_GESTURE_TYPE_RECENT_APPS, KEY_GESTURE_TYPE_RECENT_APPS_SWITCHER)
+    }
+
+    @Test
+    @EnableFlags(Flags.FLAG_GRANT_MANAGE_KEY_GESTURES_TO_RECENTS)
+    fun registerOverviewHandlerTwice_flagEnabled_registerWithExpectedKeyGestureEventsOnce() {
+        keyGestureEventsManager.registerOverviewKeyGestureEvent(fakeOverviewHandler)
         keyGestureEventsManager.registerOverviewKeyGestureEvent(fakeOverviewHandler)
 
         verify(inputManager)
