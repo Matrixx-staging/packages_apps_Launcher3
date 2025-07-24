@@ -17,6 +17,8 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- no translation found for widget_picker_collapse_sheet_label (5179800676332357316) -->
+    <skip />
     <string name="widgets_list_header_app_name_fallback_label" msgid="5151621916941957989">"ਐਪ ਦਾ ਨਾਮ"</string>
     <string name="widgets_list_header_widgets_count_label" msgid="578128450351893001">"{count,plural, =1{# ਵਿਜੇਟ}one{# ਵਿਜੇਟ}other{# ਵਿਜੇਟ}}"</string>
     <string name="widget_span_dimensions_format" msgid="4325492869474815131">"%1$d × %2$d"</string>
@@ -30,8 +32,7 @@
     <string name="browse_widgets_tab_label" msgid="7179933202350730737">"ਬ੍ਰਾਊਜ਼ ਕਰੋ"</string>
     <string name="widgets_tab_accessibility_label" msgid="559010210491169400">"<xliff:g id="TAB_NAME">%1$s</xliff:g> ਵਿਜੇਟ"</string>
     <string name="widget_picker_right_pane_accessibility_label" msgid="5095301787174820892">"<xliff:g id="SELECTED_HEADER">%1$s</xliff:g> ਵਿਜੇਟ ਸੱਜੇ ਪਾਸੇ ਹਨ, ਖੋਜ ਵਿਜੇਟ ਅਤੇ ਹੋਰ ਵਿਕਲਪ ਖੱਬੇ ਪਾਸੇ ਹਨ"</string>
-    <!-- no translation found for widget_picker_left_pane_accessibility_label (4719054594582596067) -->
-    <skip />
+    <string name="widget_picker_left_pane_accessibility_label" msgid="4719054594582596067">"Search ਅਤੇ ਵਿਜੇਟ ਦੇ ਵਿਕਲਪ ਖੱਬੇ ਪਾਸੇ ਅਤੇ ਵਿਜੇਟ ਦੇ ਸੱਜੇ ਪਾਸੇ ਮੌਜੂਦ ਹਨ"</string>
     <string name="widgets_search_bar_hint" msgid="5705758627532180867">"ਖੋਜੋ"</string>
     <string name="widget_search_bar_clear_button_label" msgid="6120140737164336517">"ਕਲੀਅਰ ਕਰੋ"</string>
     <string name="widget_search_bar_back_button_label" msgid="7028448831228587743">"ਪਿੱਛੇ"</string>
