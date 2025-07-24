@@ -137,21 +137,28 @@ public class LauncherPreviewRenderer extends BaseContext
 
         CellLayout firstScreen = mRootView.findViewById(R.id.workspace);
         firstScreen.setPadding(
-                mDp.workspacePadding.left + mDp.cellLayoutPaddingPx.left,
-                mDp.workspacePadding.top + mDp.cellLayoutPaddingPx.top,
+                mDp.getWorkspaceIconProfile().getWorkspacePadding().left
+                        + mDp.getWorkspaceIconProfile().getCellLayoutPaddingPx().left,
+                mDp.getWorkspaceIconProfile().getWorkspacePadding().top
+                        + mDp.getWorkspaceIconProfile().getCellLayoutPaddingPx().top,
                 mDp.getDeviceProperties().isTwoPanels() ? (
                         mDp.getWorkspaceIconProfile().getCellLayoutBorderSpacePx().x / 2)
-                        : (mDp.workspacePadding.right + mDp.cellLayoutPaddingPx.right),
-                mDp.workspacePadding.bottom + mDp.cellLayoutPaddingPx.bottom
+                        : (mDp.getWorkspaceIconProfile().getWorkspacePadding().right
+                                + mDp.getWorkspaceIconProfile().getCellLayoutPaddingPx().right),
+                mDp.getWorkspaceIconProfile().getWorkspacePadding().bottom
+                        + mDp.getWorkspaceIconProfile().getCellLayoutPaddingPx().bottom
         );
 
         if (mDp.getDeviceProperties().isTwoPanels()) {
             CellLayout rightPanel = mRootView.findViewById(R.id.workspace_right);
             rightPanel.setPadding(
                     mDp.getWorkspaceIconProfile().getCellLayoutBorderSpacePx().x / 2,
-                    mDp.workspacePadding.top + mDp.cellLayoutPaddingPx.top,
-                    mDp.workspacePadding.right + mDp.cellLayoutPaddingPx.right,
-                    mDp.workspacePadding.bottom + mDp.cellLayoutPaddingPx.bottom
+                    mDp.getWorkspaceIconProfile().getWorkspacePadding().top
+                            + mDp.getWorkspaceIconProfile().getCellLayoutPaddingPx().top,
+                    mDp.getWorkspaceIconProfile().getWorkspacePadding().right
+                            + mDp.getWorkspaceIconProfile().getCellLayoutPaddingPx().right,
+                    mDp.getWorkspaceIconProfile().getWorkspacePadding().bottom
+                            + mDp.getWorkspaceIconProfile().getCellLayoutPaddingPx().bottom
             );
 
             int closestEvenPageId = workspaceScreenId - (workspaceScreenId % 2);

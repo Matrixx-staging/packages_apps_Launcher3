@@ -19,6 +19,7 @@ package com.android.launcher3.deviceprofile
 import android.content.Context
 import android.content.res.Resources
 import android.graphics.Point
+import android.graphics.Rect
 import android.util.DisplayMetrics
 import com.android.launcher3.DevicePaddings
 import com.android.launcher3.InvariantDeviceProfile
@@ -59,6 +60,9 @@ data class WorkspaceProfile(
     val workspaceTopPadding: Int,
     val workspaceBottomPadding: Int,
     val workspaceCellPaddingXPx: Int,
+    val edgeMarginPx: Int,
+    val cellLayoutPaddingPx: Rect,
+    val workspacePadding: Rect,
 
     // Visualization
     val gridVisualizationPaddingX: Int,
@@ -104,16 +108,191 @@ data class WorkspaceProfile(
         "This classes should be treated as immutable, in order to change it we" +
             "should use a factory and create a new one."
     )
+    fun recalculateWorkspacePadding(
+        isVerticalLayout: Boolean,
+        isSeascape: Boolean,
+        isFixedLandscape: Boolean,
+        isScalableGrid: Boolean,
+        hotseatProfile: HotseatProfile,
+        hotseatBarSizePx: Int,
+        insets: Rect,
+        deviceProperties: DeviceProperties,
+        res: Resources,
+        hotseatBarBottomSpacePx: Int,
+        hotseatQsbSpace: Int,
+    ): WorkspaceProfile {
+        val noInsetWorkspacePadding =
+            WorkspaceProfileNonResponsiveFactory.createWorkspacePadding(
+                isVerticalLayout = isVerticalLayout,
+                isSeascape = isSeascape,
+                isFixedLandscape = isFixedLandscape,
+                isScalableGrid = isScalableGrid,
+                hotseatProfile = hotseatProfile,
+                insets = insets,
+                desiredWorkspaceHorizontalMarginPx = desiredWorkspaceHorizontalMarginPx,
+                edgeMarginPx = edgeMarginPx,
+                workspacePageIndicatorHeight = workspacePageIndicatorHeight,
+                workspacePageIndicatorOverlapWorkspace = workspacePageIndicatorOverlapWorkspace,
+                workspaceTopPadding = workspaceTopPadding,
+                workspaceBottomPadding = workspaceBottomPadding,
+                hotseatBarBottomSpacePx = hotseatBarBottomSpacePx,
+                hotseatQsbSpace = hotseatQsbSpace,
+                iconSize = iconSizePx,
+            )
+        val cellLayoutPadding =
+            when {
+                deviceProperties.isTwoPanels -> cellLayoutBorderSpacePx.x / 2
+                else -> res.getDimensionPixelSize(R.dimen.cell_layout_padding)
+            }
+        val (workspacePadding, cellLayoutPaddingPx) =
+            insetPadding(
+                noInsetWorkspacePadding,
+                Rect(cellLayoutPadding, cellLayoutPadding, cellLayoutPadding, cellLayoutPadding),
+            )
+        return copy(workspacePadding = workspacePadding, cellLayoutPaddingPx = cellLayoutPaddingPx)
+    }
+
+    // TODO(b/430382569)
+    @Deprecated(
+        "This classes should be treated as immutable, in order to change it we" +
+            "should use a factory and create a new one."
+    )
     fun changeIconSize(iconSizePx: Int): WorkspaceProfile {
         return copy(iconSizePx = iconSizePx)
     }
 
     companion object Factory {
 
+        fun insetPadding(paddings: Rect, insetsArgs: Rect): Pair<Rect, Rect> {
+            val insets =
+                Rect(
+                    min(insetsArgs.left, paddings.left),
+                    min(insetsArgs.top, paddings.top),
+                    min(insetsArgs.right, paddings.right),
+                    min(insetsArgs.bottom, paddings.bottom),
+                )
+            return Pair(
+                Rect(
+                    paddings.left - insets.left,
+                    paddings.top - insets.top,
+                    paddings.right - insets.right,
+                    paddings.bottom - insets.bottom,
+                ),
+                insets,
+            )
+        }
+
+        fun calculateHotseatBarSizePx(
+            iconSizePx: Int,
+            isVerticalLayout: Boolean,
+            hotseatProfile: HotseatProfile,
+            hotseatBarBottomSpacePx: Int,
+            hotseatQsbSpace: Int,
+            isQsbInline: Boolean,
+        ): Int {
+            return when {
+                isVerticalLayout -> {
+                    (iconSizePx +
+                        hotseatProfile.barEdgePaddingPx +
+                        hotseatProfile.barWorkspaceSpacePx)
+                }
+                isQsbInline -> {
+                    (max(iconSizePx, hotseatProfile.qsbVisualHeight) + hotseatBarBottomSpacePx)
+                }
+                else -> {
+                    (iconSizePx +
+                        hotseatQsbSpace +
+                        hotseatProfile.qsbVisualHeight +
+                        hotseatBarBottomSpacePx)
+                }
+            }
+        }
+
+        private fun createWorkspacePadding(
+            isVerticalLayout: Boolean,
+            isSeascape: Boolean,
+            isFixedLandscape: Boolean,
+            isQsbInline: Boolean,
+            isScalableGrid: Boolean,
+            responsiveWorkspaceWidthSpec: CalculatedResponsiveSpec,
+            responsiveWorkspaceHeightSpec: CalculatedResponsiveSpec,
+            desiredWorkspaceHorizontalMarginPx: Int,
+            workspaceTopPadding: Int,
+            workspaceBottomPadding: Int,
+            insets: Rect,
+            edgeMarginPx: Int,
+            hotseatProfile: HotseatProfile,
+            hotseatBarBottomSpacePx: Int,
+            hotseatQsbSpace: Int,
+            iconSize: Int,
+        ): Rect {
+            // TODO : This is to update updateHotseatSizes, we need a better way to do
+            // this
+
+            val hotseatBarSizePx =
+                calculateHotseatBarSizePx(
+                    iconSizePx = iconSize,
+                    isVerticalLayout = isVerticalLayout,
+                    hotseatProfile = hotseatProfile,
+                    hotseatBarBottomSpacePx = hotseatBarBottomSpacePx,
+                    hotseatQsbSpace = hotseatQsbSpace,
+                    isQsbInline = isQsbInline,
+                )
+
+            when {
+                isVerticalLayout -> {
+                    val endMargin = hotseatBarSizePx + responsiveWorkspaceWidthSpec.endPaddingPx
+                    return Rect(
+                        /* left */
+                        if (isSeascape) endMargin else responsiveWorkspaceWidthSpec.startPaddingPx,
+                        /* top */
+                        responsiveWorkspaceHeightSpec.startPaddingPx,
+                        /* right */
+                        if (isSeascape) responsiveWorkspaceWidthSpec.startPaddingPx else endMargin,
+                        /* bottom */
+                        max(0, (responsiveWorkspaceHeightSpec.endPaddingPx - insets.bottom)),
+                    )
+                }
+
+                else -> {
+                    // Pad the bottom of the workspace with hotseat bar
+                    // and leave a bit of space in case a widget go all the way down
+                    val padding =
+                        Rect(
+                            /* left */ desiredWorkspaceHorizontalMarginPx,
+                            /* top */ (workspaceTopPadding +
+                                (if (isScalableGrid) 0 else edgeMarginPx)),
+                            /* right */ desiredWorkspaceHorizontalMarginPx,
+                            /* bottom */ (hotseatBarSizePx + workspaceBottomPadding - insets.bottom),
+                        )
+
+                    // In fixed Landscape we don't need padding on the side next to the cutout
+                    // because
+                    // the cutout is already adding padding to all of Launcher, we only need on the
+                    // other
+                    // side
+                    if (isFixedLandscape) {
+                        return Rect(
+                            if (isSeascape) padding.left else 0,
+                            padding.top,
+                            if (isSeascape) 0 else padding.right,
+                            padding.bottom,
+                        )
+                    }
+                    return padding
+                }
+            }
+        }
+
         fun createWorkspaceProfileResponsiveGrid(
             res: Resources,
+            inv: InvariantDeviceProfile,
+            deviceProperties: DeviceProperties,
             iconSizeSteps: IconSizeSteps,
             isVerticalLayout: Boolean,
+            isScalableGrid: Boolean,
+            isSeascape: Boolean,
+            isQsbInline: Boolean,
             responsiveWorkspaceWidthSpec: CalculatedResponsiveSpec,
             responsiveWorkspaceHeightSpec: CalculatedResponsiveSpec,
             responsiveWorkspaceCellSpec: CalculatedCellSpec,
@@ -121,6 +300,10 @@ data class WorkspaceProfile(
             cellLayoutBorderSpacePx: Point,
             cellSize: Point,
             cellScaleToFit: Float,
+            insets: Rect,
+            hotseatProfile: HotseatProfile,
+            hotseatBarBottomSpacePx: Int,
+            hotseatQsbSpace: Int,
         ): WorkspaceProfile {
             val iconDrawablePaddingOriginalPx = responsiveWorkspaceCellSpec.iconDrawablePadding
             var iconTextSizePx = responsiveWorkspaceCellSpec.iconTextSize
@@ -165,6 +348,40 @@ data class WorkspaceProfile(
                     max(0, (cellHeightPx - cellContentHeight)) / 2
                 }
 
+            val edgeMarginPx = res.getDimensionPixelSize(R.dimen.dynamic_grid_edge_margin)
+
+            val cellLayoutPadding =
+                if (deviceProperties.isTwoPanels) cellLayoutBorderSpacePx.x / 2
+                else res.getDimensionPixelSize(R.dimen.cell_layout_padding)
+
+            val workspaceTopPadding = responsiveWorkspaceHeightSpec.startPaddingPx
+            val workspaceBottomPadding = responsiveWorkspaceHeightSpec.endPaddingPx
+            val desiredWorkspaceHorizontalMarginPx = responsiveWorkspaceWidthSpec.startPaddingPx
+            val noInsetWorkspacePadding =
+                createWorkspacePadding(
+                    isVerticalLayout = isVerticalLayout,
+                    isSeascape = isSeascape,
+                    isFixedLandscape = inv.isFixedLandscape,
+                    isScalableGrid = isScalableGrid,
+                    responsiveWorkspaceWidthSpec = responsiveWorkspaceWidthSpec,
+                    responsiveWorkspaceHeightSpec = responsiveWorkspaceHeightSpec,
+                    desiredWorkspaceHorizontalMarginPx = desiredWorkspaceHorizontalMarginPx,
+                    workspaceTopPadding = workspaceTopPadding,
+                    workspaceBottomPadding = workspaceBottomPadding,
+                    insets = insets,
+                    edgeMarginPx = edgeMarginPx,
+                    hotseatProfile = hotseatProfile,
+                    hotseatBarBottomSpacePx = hotseatBarBottomSpacePx,
+                    iconSize = iconSizePx,
+                    hotseatQsbSpace = hotseatQsbSpace,
+                    isQsbInline = isQsbInline,
+                )
+
+            val (workspacePadding, cellLayoutPaddingPx) =
+                insetPadding(
+                    noInsetWorkspacePadding,
+                    Rect(cellLayoutPadding, cellLayoutPadding, cellLayoutPadding, cellLayoutPadding),
+                )
             return WorkspaceProfile(
                 // Workspace icons
                 iconScale = iconScale,
@@ -175,7 +392,7 @@ data class WorkspaceProfile(
                 cellWidthPx = cellWidthPx,
                 cellHeightPx = cellHeightPx,
                 cellLayoutBorderSpacePx = cellLayoutBorderSpacePx,
-                desiredWorkspaceHorizontalMarginPx = responsiveWorkspaceWidthSpec.startPaddingPx,
+                desiredWorkspaceHorizontalMarginPx = desiredWorkspaceHorizontalMarginPx,
                 cellYPaddingPx = cellYPaddingPx,
                 maxIconTextLineCount = maxIconTextLineCount,
                 iconCenterVertically = isVerticalLayout,
@@ -197,9 +414,12 @@ data class WorkspaceProfile(
                     ),
                 workspaceCellPaddingXPx =
                     res.getDimensionPixelSize(R.dimen.dynamic_grid_cell_padding_x),
-                workspaceTopPadding = responsiveWorkspaceHeightSpec.startPaddingPx,
-                workspaceBottomPadding = responsiveWorkspaceHeightSpec.endPaddingPx,
+                workspaceTopPadding = workspaceTopPadding,
+                workspaceBottomPadding = workspaceBottomPadding,
                 maxEmptySpace = 0,
+                workspacePadding = workspacePadding,
+                cellLayoutPaddingPx = cellLayoutPaddingPx,
+                edgeMarginPx = edgeMarginPx,
             )
         }
 
@@ -213,6 +433,7 @@ data class WorkspaceProfile(
             isVerticalLayout: Boolean,
             isResponsiveGrid: Boolean,
             isScalableGrid: Boolean,
+            isQsbInline: Boolean,
             mResponsiveWorkspaceWidthSpec: CalculatedResponsiveSpec?,
             mResponsiveWorkspaceHeightSpec: CalculatedResponsiveSpec?,
             mResponsiveWorkspaceCellSpec: CalculatedCellSpec?,
@@ -222,6 +443,12 @@ data class WorkspaceProfile(
             panelCount: Int,
             cellLayoutBorderSpacePx: Point,
             iconSizePx: Int,
+            insets: Rect,
+            isFirstPass: Boolean,
+            isSeascape: Boolean,
+            hotseatProfile: HotseatProfile,
+            hotseatBarBottomSpacePx: Int,
+            hotseatQsbSpace: Int,
         ): WorkspaceProfile {
             // Icon scale should never exceed 1, otherwise pixellation may occur.
             val iconScale = min(1f, scale)
@@ -234,6 +461,7 @@ data class WorkspaceProfile(
                     mResponsiveWorkspaceCellSpec != null) ->
                     createWorkspaceProfileResponsiveGrid(
                         res = res,
+                        inv = inv,
                         iconSizeSteps = iconSizeSteps,
                         isVerticalLayout = isVerticalLayout,
                         responsiveWorkspaceWidthSpec = mResponsiveWorkspaceWidthSpec,
@@ -243,6 +471,14 @@ data class WorkspaceProfile(
                         cellLayoutBorderSpacePx = cellLayoutBorderSpacePx,
                         cellSize = cellSize,
                         cellScaleToFit = cellScaleToFit,
+                        deviceProperties = deviceProperties,
+                        isScalableGrid = isScalableGrid,
+                        insets = insets,
+                        isSeascape = isSeascape,
+                        hotseatProfile = hotseatProfile,
+                        hotseatBarBottomSpacePx = hotseatBarBottomSpacePx,
+                        hotseatQsbSpace = hotseatQsbSpace,
+                        isQsbInline = isQsbInline,
                     )
 
                 else ->
@@ -260,6 +496,12 @@ data class WorkspaceProfile(
                         cellLayoutBorderSpacePx = cellLayoutBorderSpacePx,
                         iconSizePx = iconSizePx,
                         context = context,
+                        isFirstPass = isFirstPass,
+                        insets = insets,
+                        isSeascape = isSeascape,
+                        hotseatProfile = hotseatProfile,
+                        hotseatBarBottomSpacePx = hotseatBarBottomSpacePx,
+                        hotseatQsbSpace = hotseatQsbSpace,
                     )
             }
         }

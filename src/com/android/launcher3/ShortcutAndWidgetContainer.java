@@ -186,7 +186,7 @@ public class ShortcutAndWidgetContainer extends ViewGroup implements FolderIcon.
                     ? 0
                     : mContainerType == WORKSPACE
                             ? dp.mWorkspaceProfile.getWorkspaceCellPaddingXPx()
-                            : (int) (dp.edgeMarginPx / 2f);
+                            : (int) (dp.mWorkspaceProfile.getEdgeMarginPx() / 2f);
             child.setPadding(cellPaddingX, cellPaddingY, cellPaddingX, 0);
         }
         int childWidthMeasureSpec = MeasureSpec.makeMeasureSpec(lp.width, MeasureSpec.EXACTLY);
