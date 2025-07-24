@@ -97,6 +97,7 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Flags;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.LauncherSettings.Favorites;
+import com.android.launcher3.LifecycleTracker;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.allapps.ActivityAllAppsContainerView;
@@ -104,6 +105,7 @@ import com.android.launcher3.anim.AnimatorListeners;
 import com.android.launcher3.anim.AnimatorPlaybackController;
 import com.android.launcher3.apppairs.AppPairIcon;
 import com.android.launcher3.config.FeatureFlags;
+import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.desktop.DesktopAppLaunchTransition;
 import com.android.launcher3.desktop.DesktopAppLaunchTransition.AppLaunchType;
 import com.android.launcher3.folder.Folder;
@@ -1119,6 +1121,10 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         if (!enableTaskbarNoRecreate() && !ENABLE_TASKBAR_NAVBAR_UNIFICATION) {
             mWindowManager.removeViewImmediate(mDragLayer);
             mAddedWindow = false;
+        }
+
+        for (LifecycleTracker tracker: LauncherComponentProvider.get(this).getLifecycleTrackers()) {
+            tracker.trackLifecycleOnDestroy(this);
         }
     }
 
