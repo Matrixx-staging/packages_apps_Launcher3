@@ -99,8 +99,7 @@
     <string name="allset_title_expressive_fixed" msgid="3564219469262883526">"ଆପଣ ବ୍ୟବହାର କରିବାକୁ ପ୍ରସ୍ତୁତ!"</string>
     <string name="allset_subtitle_expressive" msgid="419688197551192358">"ଆପଣଙ୍କ ନୂଆ <xliff:g id="DEVICE">%1$s</xliff:g>ର ମଜା ନିଅନ୍ତୁ!"</string>
     <string name="allset_subtitle_expressive_gesture_navigation" msgid="8931442349501593934">"ଆପଣଙ୍କ <xliff:g id="DEVICE">%1$s</xliff:g> ସହ ଆରମ୍ଭ କରିବାକୁ ଉପରକୁ ସ୍ୱାଇପ କରନ୍ତୁ"</string>
-    <!-- no translation found for allset_subtitle_expressive_button_navigation (5219509605046028014) -->
-    <skip />
+    <string name="allset_subtitle_expressive_button_navigation" msgid="5219509605046028014">"ଆପଣଙ୍କ <xliff:g id="DEVICE">%1$s</xliff:g>ରେ ଆରମ୍ଭ କରିବାକୁ ଟାପ କରନ୍ତୁ"</string>
     <string name="allset_navigation_settings_expressive" msgid="3745595273748356"><annotation id="link">"କିପରି ନାଭିଗେଟ କରିବେ ତାହା ବାଛନ୍ତୁ"</annotation></string>
     <string name="allset_hint_expressive" msgid="756856423510976261">"ଉପରକୁ ସ୍ୱାଇପ କରନ୍ତୁ"</string>
     <string name="allset_button_hint_expressive" msgid="667643693410494225">"ହୋମ ବଟନରେ ଟାପ କରନ୍ତୁ"</string>

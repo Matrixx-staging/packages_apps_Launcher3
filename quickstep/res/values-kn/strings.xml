@@ -99,8 +99,7 @@
     <string name="allset_title_expressive_fixed" msgid="3564219469262883526">"ನೀವು ರೋಲ್ ಮಾಡಲು ಸಿದ್ಧರಿದ್ದೀರಿ!"</string>
     <string name="allset_subtitle_expressive" msgid="419688197551192358">"ನಿಮ್ಮ ಹೊಸ <xliff:g id="DEVICE">%1$s</xliff:g> ಅನ್ನು ಆನಂದಿಸಿ!"</string>
     <string name="allset_subtitle_expressive_gesture_navigation" msgid="8931442349501593934">"<xliff:g id="DEVICE">%1$s</xliff:g> ಮೂಲಕ ಪ್ರಾರಂಭಿಸಲು ಮೇಲಕ್ಕೆ ಸ್ವೈಪ್ ಮಾಡಿ"</string>
-    <!-- no translation found for allset_subtitle_expressive_button_navigation (5219509605046028014) -->
-    <skip />
+    <string name="allset_subtitle_expressive_button_navigation" msgid="5219509605046028014">"ನಿಮ್ಮ <xliff:g id="DEVICE">%1$s</xliff:g> ನ ಬಳಕೆಯನ್ನು ಪ್ರಾರಂಭಿಸಲು ಟ್ಯಾಪ್ ಮಾಡಿ"</string>
     <string name="allset_navigation_settings_expressive" msgid="3745595273748356"><annotation id="link">"ನ್ಯಾವಿಗೇಟ್ ಮಾಡುವುದು ಹೇಗೆ ಎಂಬುದನ್ನು ಆಯ್ಕೆಮಾಡಿ"</annotation></string>
     <string name="allset_hint_expressive" msgid="756856423510976261">"ಮೇಲಕ್ಕೆ ಸ್ವೈಪ್ ಮಾಡಿ"</string>
     <string name="allset_button_hint_expressive" msgid="667643693410494225">"ಮುಖಪುಟ ಬಟನ್ ಟ್ಯಾಪ್ ಮಾಡಿ"</string>
