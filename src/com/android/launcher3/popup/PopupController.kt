@@ -19,7 +19,6 @@ package com.android.launcher3.popup
 import android.content.Context
 import android.view.View
 import com.android.launcher3.dragndrop.LauncherDragController
-import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.views.ActivityContext
 
 /**
@@ -32,7 +31,7 @@ interface PopupController<T> where T : Context, T : ActivityContext {
      *
      * @return Popup which handles drag related actions due to showing the popup.
      */
-    fun show(view: View): Popup
+    fun show(view: View): Popup?
 
     /** Dismisses the popup when called. */
     fun dismiss()
@@ -42,16 +41,26 @@ interface PopupController<T> where T : Context, T : ActivityContext {
         /**
          * Creates a popup controller.
          *
-         * @param itemInfo is the item info for the popup controller for which we create the popup
-         *   controller.
+         * @param popupDataRepository has the popup data for each item.
+         * @param dragController handles drag actions.
          * @return a new PopupController.
          */
         fun <T> createPopupController(
-            itemInfo: ItemInfo,
             popupDataRepository: PopupDataRepository,
             dragController: LauncherDragController,
         ): PopupController<T> where T : Context, T : ActivityContext? {
-            return PopupControllerImpl(itemInfo, popupDataRepository, dragController)
+            return PopupControllerForHomeScreenItems(popupDataRepository, dragController)
+        }
+
+        /**
+         * Creates a popup controller.
+         *
+         * @return a new PopupController.
+         */
+        fun <T> createPopupController(): PopupController<T> where
+        T : Context,
+        T : ActivityContext? {
+            return PopupControllerForAppIcon()
         }
     }
 }

@@ -187,11 +187,13 @@ public class LauncherAccessibilityDelegate extends BaseAccessibilityDelegate<Lau
             // Shortcuts / Notifications / Actions pop-up menu, and not start a drag as the
             // standard long press path does.
             if (host instanceof BubbleTextView) {
-                dragCondition = ((BubbleTextView) host).startLongPressAction();
+                dragCondition = ((BubbleTextView) host)
+                        .startLongPressAction(mContext.getPopupControllerForAppIcons());
             } else if (host instanceof BubbleTextHolder) {
                 BubbleTextHolder holder = (BubbleTextHolder) host;
                 dragCondition = holder.getBubbleText() == null ? null
-                        : holder.getBubbleText().startLongPressAction();
+                        : holder.getBubbleText()
+                                .startLongPressAction(mContext.getPopupControllerForAppIcons());
             }
             return dragCondition != null;
         } else if (action == MOVE) {
@@ -225,7 +227,10 @@ public class LauncherAccessibilityDelegate extends BaseAccessibilityDelegate<Lau
             BubbleTextView btv = host instanceof BubbleTextView ? (BubbleTextView) host
                     : (host instanceof BubbleTextHolder
                             ? ((BubbleTextHolder) host).getBubbleText() : null);
-            return btv != null && PopupContainerWithArrow.showForIcon(btv) != null;
+
+            return btv != null
+                    && mContext.getPopupControllerForAppIcons()
+                    .show(btv) != null;
         } else if (action == CLOSE) {
             if (host instanceof AppWidgetResizeFrame) {
                 AbstractFloatingView.closeOpenViews(mContext, /* animate= */ false,

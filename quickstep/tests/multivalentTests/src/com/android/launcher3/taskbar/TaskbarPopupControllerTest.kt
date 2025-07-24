@@ -103,7 +103,7 @@ class TaskbarPopupControllerTest {
     @Test
     fun showForIcon_hotseatItem() {
         assertThat(hasPopupMenu()).isFalse()
-        runOnMainSync { popupController.showForIcon(hotseatIcon) }
+        runOnMainSync { popupController.show(hotseatIcon) }
         assertThat(hasPopupMenu()).isTrue()
     }
 
@@ -112,7 +112,7 @@ class TaskbarPopupControllerTest {
     fun showForIcon_recentTask() {
         whenever(desktopVisibilityController.isInDesktopMode(context.displayId)).thenReturn(true)
         assertThat(hasPopupMenu()).isFalse()
-        runOnMainSync { popupController.showForIcon(recentTaskIcon) }
+        runOnMainSync { popupController.show(recentTaskIcon) }
         assertThat(hasPopupMenu()).isTrue()
     }
 

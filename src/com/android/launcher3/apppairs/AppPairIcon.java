@@ -290,17 +290,6 @@ public class AppPairIcon extends FrameLayout implements DraggableView, Reorderab
                 .start();
     }
 
-    @Nullable
-    @Override
-    public PopupController getPopupController() {
-        return mPopupController;
-    }
-
-    @Override
-    public void setPopupController(@NonNull PopupController popupController) {
-        mPopupController = popupController;
-    }
-
     @NonNull
     @Override
     public PoppableType getPoppableType() {
