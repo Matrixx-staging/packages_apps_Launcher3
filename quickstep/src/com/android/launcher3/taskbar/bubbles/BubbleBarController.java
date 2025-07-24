@@ -48,6 +48,7 @@ import com.android.wm.shell.shared.bubbles.BubbleBarUpdate;
 import com.android.wm.shell.shared.bubbles.BubbleInfo;
 import com.android.wm.shell.shared.bubbles.RemovedBubble;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -64,7 +65,7 @@ import java.util.concurrent.Executors;
  *
  * <p>For details around the behavior of the bubble bar, see {@link BubbleBarView}.
  */
-public class BubbleBarController extends IBubblesListener.Stub {
+public class BubbleBarController {
 
     private static final String TAG = "BubbleBarController";
     private static final boolean DEBUG = false;
@@ -113,6 +114,7 @@ public class BubbleBarController extends IBubblesListener.Stub {
     private static final Executor BUBBLE_STATE_EXECUTOR = Executors.newSingleThreadExecutor(
             new SimpleThreadFactory("BubbleStateUpdates-", THREAD_PRIORITY_BACKGROUND));
     private final SystemUiProxy mSystemUiProxy;
+    private final BubbleBarListener mListener;
 
     private BubbleBarItem mSelectedBubble;
 
@@ -174,6 +176,7 @@ public class BubbleBarController extends IBubblesListener.Stub {
         mContext = context;
         mBarView = bubbleView; // Need the view for inflating bubble views.
 
+        mListener = new BubbleBarListener(this);
         mSystemUiProxy = SystemUiProxy.INSTANCE.get(context);
     }
 
@@ -226,7 +229,7 @@ public class BubbleBarController extends IBubblesListener.Stub {
             mBubbleBarLocationListener.onBubbleBarLocationUpdated(
                     mBubbleBarViewController.getBubbleBarLocation());
             if (sBubbleBarEnabled) {
-                mSystemUiProxy.setBubblesListener(this);
+                mSystemUiProxy.setBubblesListener(mListener);
                 mSystemUiProxy.setHasBubbleBar(true);
             }
         });
@@ -267,8 +270,7 @@ public class BubbleBarController extends IBubblesListener.Stub {
     //
 
     @BinderThread
-    @Override
-    public void onBubbleStateChange(Bundle bundle) {
+    private void onBubbleStateChange(Bundle bundle) {
         bundle.setClassLoader(BubbleBarUpdate.class.getClassLoader());
         BubbleBarUpdate update = bundle.getParcelable("update", BubbleBarUpdate.class);
         BubbleBarViewUpdate viewUpdate = new BubbleBarViewUpdate(update);
@@ -630,7 +632,6 @@ public class BubbleBarController extends IBubblesListener.Stub {
         mBubbleBarLocationListener.onBubbleBarLocationUpdated(location);
     }
 
-    @Override
     public void animateBubbleBarLocation(BubbleBarLocation bubbleBarLocation) {
         //TODO(b/411505605) need to add arg whether bubble bar should be set to showing drop target
         MAIN_EXECUTOR.execute(
@@ -641,14 +642,12 @@ public class BubbleBarController extends IBubblesListener.Stub {
     }
 
     //TODO(b/411505605) remove this code
-    @Override
-    public void showBubbleBarPillowAt(@Nullable BubbleBarLocation location) {
+    private void showBubbleBarPillowAt(@Nullable BubbleBarLocation location) {
         MAIN_EXECUTOR.execute(
                 () -> mDragToBubbleController.showShellBubbleBarDropTargetAt(location));
     }
 
-    @Override
-    public void showBubbleBarDropTargetAt(@Nullable BubbleBarLocation location) {
+    private void showBubbleBarDropTargetAt(@Nullable BubbleBarLocation location) {
         MAIN_EXECUTOR.execute(() -> mBubbleBarViewController.showBubbleBarDropTargetAt(location));
     }
 
@@ -689,5 +688,47 @@ public class BubbleBarController extends IBubblesListener.Stub {
 
         /** Called when {@link BubbleBarLocation} is updated permanently. */
         void onBubbleBarLocationUpdated(BubbleBarLocation location);
+    }
+
+    private static class BubbleBarListener extends IBubblesListener.Stub {
+
+        private final WeakReference<BubbleBarController> mController;
+
+        BubbleBarListener(BubbleBarController controller) {
+            mController = new WeakReference<>(controller);
+        }
+
+        @BinderThread
+        @Override
+        public void onBubbleStateChange(Bundle bundle) {
+            BubbleBarController controller = mController.get();
+            if (controller != null) {
+                controller.onBubbleStateChange(bundle);
+            }
+        }
+
+        @Override
+        public void animateBubbleBarLocation(BubbleBarLocation bubbleBarLocation) {
+            BubbleBarController controller = mController.get();
+            if (controller != null) {
+                controller.animateBubbleBarLocation(bubbleBarLocation);
+            }
+        }
+
+        @Override
+        public void showBubbleBarPillowAt(@Nullable BubbleBarLocation location) {
+            BubbleBarController controller = mController.get();
+            if (controller != null) {
+                controller.showBubbleBarPillowAt(location);
+            }
+        }
+
+        @Override
+        public void showBubbleBarDropTargetAt(@Nullable BubbleBarLocation location) {
+            BubbleBarController controller = mController.get();
+            if (controller != null) {
+                controller.showBubbleBarDropTargetAt(location);
+            }
+        }
     }
 }
