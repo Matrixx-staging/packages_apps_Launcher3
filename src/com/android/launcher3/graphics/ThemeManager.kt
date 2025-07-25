@@ -18,6 +18,9 @@ package com.android.launcher3.graphics
 
 import android.content.Context
 import android.content.res.Resources
+import android.graphics.Color
+import android.graphics.drawable.AdaptiveIconDrawable
+import android.graphics.drawable.ColorDrawable
 import com.android.launcher3.EncryptionType
 import com.android.launcher3.Item
 import com.android.launcher3.LauncherPrefChangeListener
@@ -207,6 +210,8 @@ constructor(
         @JvmField val THEMED_ICONS = backedUpItem(KEY_THEMED_ICONS, false, EncryptionType.ENCRYPTED)
         @JvmField val PREF_ICON_SHAPE = backedUpItem(KEY_ICON_SHAPE, "", EncryptionType.ENCRYPTED)
 
+        @JvmField val DEFAULT_SHAPE_DELEGATE = pickBestShape(shapeStr = "")
+
         private const val ACTION_OVERLAY_CHANGED = "android.intent.action.OVERLAY_CHANGED"
         private val CONFIG_ICON_MASK_RES_ID: Int =
             Resources.getSystem().getIdentifier("config_icon_mask", "string", "android")
@@ -216,5 +221,6 @@ constructor(
 
         private fun ShapeDelegate.createIconShape(size: Int) =
             generateIconShape(size, getPath(size.toFloat()))
+
     }
 }
