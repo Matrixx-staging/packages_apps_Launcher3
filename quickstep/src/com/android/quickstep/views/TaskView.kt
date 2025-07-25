@@ -21,6 +21,7 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.IdRes
 import android.app.ActivityOptions
+import android.app.ActivityTaskManager.INVALID_TASK_ID
 import android.app.WindowConfiguration.WINDOWING_MODE_FULLSCREEN
 import android.content.Context
 import android.graphics.Canvas
@@ -1559,6 +1560,7 @@ constructor(
                 recentsView,
                 recentsView.depthController,
                 /* transitionInfo= */ null,
+                /* appearedTaskId= */ INVALID_TASK_ID,
             )
             addListener(
                 object : AnimatorListenerAdapter() {
