@@ -533,7 +533,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                 Settings.Secure.getUriFor(Settings.Secure.NAV_BAR_KIDS_MODE), 0);
         mIsNavBarForceVisible = mIsNavBarKidsMode;
         if (mControllers != null) {
-            mControllers.taskbarEduTooltipController.onShouldShowEduOnAppLaunchChanged();
+            mControllers.taskbarEduTooltipController.updateShouldShowEduOnAppLaunch();
         }
     }
 
