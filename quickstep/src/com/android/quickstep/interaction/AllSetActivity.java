@@ -329,6 +329,9 @@ public class AllSetActivity extends Activity implements UIControllerChangeListen
             observer.addOnWindowVisibilityChangeListener(new OnWindowVisibilityChangeListener() {
                 @Override
                 public void onWindowVisibilityChanged(int visibility) {
+                    if (visibility != VISIBLE) {
+                        return;
+                    }
                     mWallpaperClipPath.getViewTreeObserver()
                             .removeOnWindowVisibilityChangeListener(this);
                     tryCaptureWallpaperScreenshot();
