@@ -42,6 +42,7 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.annotation.IntDef
 import androidx.annotation.VisibleForTesting
+import androidx.core.animation.doOnCancel
 import androidx.core.view.isGone
 import androidx.core.view.isInvisible
 import androidx.core.view.updateLayoutParams
@@ -88,13 +89,18 @@ import com.android.quickstep.orientation.RecentsPagedOrientationHandler
 import com.android.quickstep.recents.di.RecentsDependencies
 import com.android.quickstep.recents.di.get
 import com.android.quickstep.recents.domain.usecase.ThumbnailPosition
+import com.android.quickstep.recents.ui.mapper.TaskUiStateMapper
 import com.android.quickstep.recents.ui.viewmodel.TaskData
 import com.android.quickstep.recents.ui.viewmodel.TaskTileUiState
 import com.android.quickstep.recents.ui.viewmodel.TaskViewModel
+import com.android.quickstep.task.TaskDismissButtonState
 import com.android.quickstep.task.thumbnail.TaskContentView
 import com.android.quickstep.util.ActiveGestureErrorDetector
 import com.android.quickstep.util.ActiveGestureLog
 import com.android.quickstep.util.BorderAnimator
+import com.android.quickstep.util.BorderAnimator.Companion.DEFAULT_APPEARANCE_ANIMATION_DURATION_MS
+import com.android.quickstep.util.BorderAnimator.Companion.DEFAULT_DISAPPEARANCE_ANIMATION_DURATION_MS
+import com.android.quickstep.util.BorderAnimator.Companion.DEFAULT_INTERPOLATOR
 import com.android.quickstep.util.BorderAnimator.Companion.createSimpleBorderAnimator
 import com.android.quickstep.util.GroupTask
 import com.android.quickstep.util.RecentsOrientedState
@@ -566,6 +572,9 @@ constructor(
     private val dispatcherProvider: DispatcherProvider = RecentsDependencies.get(context)
     private val coroutineScope: CoroutineScope = RecentsDependencies.get(context)
     private val coroutineJobs = mutableListOf<Job>()
+    private var taskDismissButton: FrameLayout? = null
+    private var taskDismissButtonAnimator: ObjectAnimator? = null
+    private var taskDismissButtonEnabled: Boolean = false
 
     /**
      * Returns a sequence of [Pair]s, where each pair contains a [TaskViewIcon] and its
@@ -625,14 +634,64 @@ constructor(
                 MotionEvent.ACTION_HOVER_ENTER -> {
                     getThumbnailBounds(thumbnailBounds)
                     hoverBorderVisible = event.isWithinThumbnailBounds()
+                    showTaskDismissButton()
                 }
                 MotionEvent.ACTION_HOVER_MOVE ->
                     hoverBorderVisible = event.isWithinThumbnailBounds()
-                MotionEvent.ACTION_HOVER_EXIT -> hoverBorderVisible = false
+                MotionEvent.ACTION_HOVER_EXIT -> {
+                    hoverBorderVisible = false
+                    if (taskDismissButton?.isHovered == false) {
+                        hideTaskDismissButton()
+                    }
+                }
                 else -> {}
             }
         }
         return super.onHoverEvent(event)
+    }
+
+    private fun showTaskDismissButton() {
+        if (!taskDismissButtonEnabled) return
+
+        val taskDismissButton = taskDismissButton ?: return
+
+        if (taskDismissButtonAnimator?.isRunning == true) {
+            taskDismissButtonAnimator?.cancel()
+        }
+
+        if (taskDismissButton.alpha == 1f) {
+            return
+        }
+
+        taskDismissButtonAnimator =
+            ObjectAnimator.ofFloat(taskDismissButton, View.ALPHA, 1f).apply {
+                duration = DEFAULT_APPEARANCE_ANIMATION_DURATION_MS
+                interpolator = DEFAULT_INTERPOLATOR
+                doOnCancel { taskDismissButton.alpha = 0f }
+                start()
+            }
+    }
+
+    private fun hideTaskDismissButton() {
+        if (!taskDismissButtonEnabled) return
+
+        val taskDismissButton = taskDismissButton ?: return
+
+        if (taskDismissButtonAnimator?.isRunning == true) {
+            taskDismissButtonAnimator?.cancel()
+        }
+
+        if (taskDismissButton.alpha == 0f) {
+            return
+        }
+
+        taskDismissButtonAnimator =
+            ObjectAnimator.ofFloat(taskDismissButton, View.ALPHA, 0f).apply {
+                duration = DEFAULT_DISAPPEARANCE_ANIMATION_DURATION_MS
+                interpolator = DEFAULT_INTERPOLATOR
+                doOnCancel { taskDismissButton.alpha = 0f }
+                start()
+            }
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
@@ -732,6 +791,16 @@ constructor(
         if (enableOverviewIconMenu()) {
             getTaskIcons().forEach { (icon, _) -> (icon as IconAppChipView).reset() }
         }
+        recycleTaskDismissButton()
+    }
+
+    private fun recycleTaskDismissButton() {
+        if (taskDismissButtonAnimator?.isRunning == true) {
+            taskDismissButtonAnimator?.cancel()
+        }
+        taskDismissButtonEnabled = false
+        taskDismissButton?.setOnClickListener(null)
+        taskDismissButton?.alpha = 0f
     }
 
     // TODO: Clip-out the icon region from the thumbnail, since they are overlapping.
@@ -811,6 +880,7 @@ constructor(
     override fun onFinishInflate() {
         super.onFinishInflate()
         inflateViewStubs()
+        taskDismissButton = findViewById(R.id.task_dismiss_button)
     }
 
     protected open fun inflateViewStubs() {
@@ -917,8 +987,36 @@ constructor(
                         container.digitalWellBeingToast.initialize()
                     }
                 }
+
+                val dismissTaskViewOnClick: (View) -> Unit = {
+                    recentsView?.dismissTaskView(
+                        container.taskView,
+                        /* animateTaskView = */ true,
+                        /* removeTask= */ true,
+                    )
+                }
+                setTaskDismissButtonState(
+                    TaskUiStateMapper.toTaskDismissButtonState(
+                        (type == TaskViewType.DESKTOP),
+                        (type == TaskViewType.GROUPED),
+                        dismissTaskViewOnClick,
+                    )
+                )
             }
         }
+
+    private fun setTaskDismissButtonState(state: TaskDismissButtonState) {
+        when (state) {
+            is TaskDismissButtonState.Enabled -> {
+                taskDismissButtonEnabled = true
+                taskDismissButton?.setOnClickListener(state.clickCloseListener)
+            }
+            is TaskDismissButtonState.Disabled -> {
+                taskDismissButtonEnabled = false
+                taskDismissButton?.setOnClickListener(null)
+            }
+        }
+    }
 
     private fun updateThumbnailValidity(container: TaskContainer) {
         container.isThumbnailValid =

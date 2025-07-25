@@ -65,8 +65,8 @@ private constructor(
 
     companion object {
         const val DEFAULT_BORDER_COLOR = Color.WHITE
-        private const val DEFAULT_APPEARANCE_ANIMATION_DURATION_MS = 300L
-        private const val DEFAULT_DISAPPEARANCE_ANIMATION_DURATION_MS = 133L
+        const val DEFAULT_APPEARANCE_ANIMATION_DURATION_MS = 300L
+        const val DEFAULT_DISAPPEARANCE_ANIMATION_DURATION_MS = 133L
         val DEFAULT_INTERPOLATOR = Interpolators.EMPHASIZED_DECELERATE
 
         /** Property used to animate the border color change in `setBorderColor()`. */
