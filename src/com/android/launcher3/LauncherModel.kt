@@ -19,7 +19,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ShortcutInfo
 import android.os.UserHandle
-import android.util.Log
 import androidx.annotation.WorkerThread
 import com.android.launcher3.celllayout.CellPosMapper
 import com.android.launcher3.dagger.ApplicationContext
@@ -410,10 +409,6 @@ constructor(
                 // Loader has not yet run.
                 return@execute
             }
-            Log.d(
-                "b/416740929",
-                "LauncherModel.enqueueModelUpdateTask: mModelDestroyed=$mModelDestroyed",
-            )
             task.execute(taskControllerProvider.get(), mBgDataModel, mBgAllAppsList)
         }
     }
