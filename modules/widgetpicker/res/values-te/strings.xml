@@ -17,6 +17,8 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- no translation found for widget_picker_collapse_sheet_label (5179800676332357316) -->
+    <skip />
     <string name="widgets_list_header_app_name_fallback_label" msgid="5151621916941957989">"యాప్ పేరు"</string>
     <string name="widgets_list_header_widgets_count_label" msgid="578128450351893001">"{count,plural, =1{# విడ్జెట్}other{# విడ్జెట్‌లు}}"</string>
     <string name="widget_span_dimensions_format" msgid="4325492869474815131">"%1$d × %2$d"</string>
@@ -30,8 +32,7 @@
     <string name="browse_widgets_tab_label" msgid="7179933202350730737">"బ్రౌజ్ చేయండి"</string>
     <string name="widgets_tab_accessibility_label" msgid="559010210491169400">"<xliff:g id="TAB_NAME">%1$s</xliff:g> విడ్జెట్‌లు"</string>
     <string name="widget_picker_right_pane_accessibility_label" msgid="5095301787174820892">"కుడి వైపున <xliff:g id="SELECTED_HEADER">%1$s</xliff:g> విడ్జెట్‌లు, ఎడమ వైపున సెర్చ్, ఇతర ఆప్షన్‌లు"</string>
-    <!-- no translation found for widget_picker_left_pane_accessibility_label (4719054594582596067) -->
-    <skip />
+    <string name="widget_picker_left_pane_accessibility_label" msgid="4719054594582596067">"సెర్చ్, విడ్జెట్ ఆప్షన్‌లు ఎడమ వైపున, విడ్జెట్‌లు కుడి వైపున"</string>
     <string name="widgets_search_bar_hint" msgid="5705758627532180867">"సెర్చ్ చేయండి"</string>
     <string name="widget_search_bar_clear_button_label" msgid="6120140737164336517">"క్లియర్ చేయండి"</string>
     <string name="widget_search_bar_back_button_label" msgid="7028448831228587743">"వెనుకకు"</string>
