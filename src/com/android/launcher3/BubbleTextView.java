@@ -1499,8 +1499,8 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
      * Starts a long press action and returns the corresponding pre-drag condition
      */
     public PreDragCondition startLongPressAction() {
-        PopupContainerWithArrow popup = PopupContainerWithArrow.showForIcon(this);
-        return popup != null ? popup.createPreDragCondition(true) : null;
+        PopupContainerWithArrow<Launcher> popup = PopupContainerWithArrow.showForIcon(this);
+        return popup != null ? popup.createPreDragCondition() : null;
     }
 
     /**

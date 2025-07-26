@@ -51,6 +51,26 @@
         android:layout_height="wrap_content"
         android:layout_width="wrap_content" />
 
+    <!-- Wrapper for the task dismiss button to increase the clickable area. -->
+    <FrameLayout
+        android:id="@+id/task_dismiss_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:padding="4dp"
+        android:layout_margin="4dp"
+        android:alpha="0">
+        <ImageButton
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_circle_dismiss"
+            android:background="@drawable/circle_dismiss_background"
+            android:backgroundTint="@color/materialColorPrimary"
+            android:duplicateParentState="true"
+            android:clickable="false"
+            android:contentDescription="@string/recent_task_option_remove_task" />
+    </FrameLayout>
+
     <ViewStub
         android:id="@+id/digital_wellbeing_toast"
         android:inflatedId="@id/digital_wellbeing_toast"

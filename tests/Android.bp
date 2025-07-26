@@ -149,6 +149,9 @@ android_test {
     data: [":Launcher3"],
     plugins: ["dagger2-compiler"],
     test_suites: ["general-tests"],
+    lint: {
+        baseline_filename: "lint-baseline.xml",
+    },
 }
 
 filegroup {

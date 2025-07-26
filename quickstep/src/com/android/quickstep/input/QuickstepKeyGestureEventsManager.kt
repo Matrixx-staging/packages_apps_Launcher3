@@ -114,39 +114,65 @@ class QuickstepKeyGestureEventsManager(private val context: Context) {
             }
         }
 
-    /** Registers the all apps key gesture events. */
+    /**
+     * Registers the all apps key gesture events.
+     *
+     * Subsequent registrations are ignored until [unregisterAllAppsKeyGestureEvent] is called.
+     */
     fun registerAllAppsKeyGestureEvent(allAppsPendingIntent: PendingIntent) {
         if (isManageKeyGesturesGrantedToRecents()) {
-            this.allAppsPendingIntent = allAppsPendingIntent
-            inputManager.registerKeyGestureEventHandler(
-                listOf(KEY_GESTURE_TYPE_ALL_APPS),
-                allAppsKeyGestureEventHandler,
-            )
+            synchronized(this) {
+                if (this.allAppsPendingIntent != null) {
+                    Log.w(TAG, "All apps key gesture has already been registered. Ignored.")
+                    return
+                }
+                this.allAppsPendingIntent = allAppsPendingIntent
+                inputManager.registerKeyGestureEventHandler(
+                    listOf(KEY_GESTURE_TYPE_ALL_APPS),
+                    allAppsKeyGestureEventHandler,
+                )
+            }
         }
     }
 
     /** Unregisters the all apps key gesture events. */
     fun unregisterAllAppsKeyGestureEvent() {
         if (isManageKeyGesturesGrantedToRecents()) {
-            inputManager.unregisterKeyGestureEventHandler(allAppsKeyGestureEventHandler)
+            synchronized(this) {
+                inputManager.unregisterKeyGestureEventHandler(allAppsKeyGestureEventHandler)
+                this.allAppsPendingIntent = null
+            }
         }
     }
 
-    /** Registers the overview key gesture events. */
+    /**
+     * Registers the overview key gesture events.
+     *
+     * Subsequent registrations are ignored until [unregisterOverviewKeyGestureEvent] is called.
+     */
     fun registerOverviewKeyGestureEvent(overviewGestureHandler: OverviewGestureHandler) {
         if (isManageKeyGesturesGrantedToRecents()) {
-            this.overviewGestureHandler = overviewGestureHandler
-            inputManager.registerKeyGestureEventHandler(
-                listOf(KEY_GESTURE_TYPE_RECENT_APPS, KEY_GESTURE_TYPE_RECENT_APPS_SWITCHER),
-                overviewKeyGestureEventHandler,
-            )
+            synchronized(this) {
+                if (this.overviewGestureHandler != null) {
+                    Log.w(TAG, "Overview key gesture has already been registered. Ignored.")
+                    return
+                }
+                this.overviewGestureHandler = overviewGestureHandler
+                inputManager.registerKeyGestureEventHandler(
+                    listOf(KEY_GESTURE_TYPE_RECENT_APPS, KEY_GESTURE_TYPE_RECENT_APPS_SWITCHER),
+                    overviewKeyGestureEventHandler,
+                )
+            }
         }
     }
 
     /** Unregisters the overview key gesture events. */
     fun unregisterOverviewKeyGestureEvent() {
         if (isManageKeyGesturesGrantedToRecents()) {
-            inputManager.unregisterKeyGestureEventHandler(overviewKeyGestureEventHandler)
+            synchronized(this) {
+                inputManager.unregisterKeyGestureEventHandler(overviewKeyGestureEventHandler)
+                this.overviewGestureHandler = null
+            }
         }
     }
 

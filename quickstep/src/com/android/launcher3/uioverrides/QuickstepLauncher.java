@@ -581,6 +581,10 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         if (!mDeviceProfile.getDeviceProperties().isTablet() || mSplitSelectStateController.isSplitSelectActive()) {
             return Collections.emptyList();
         }
+        if (getDisplayId() != DEFAULT_DISPLAY
+                && !DesktopExperienceFlags.ENABLE_NON_DEFAULT_DISPLAY_SPLIT_BUGFIX.isTrue()) {
+            return Collections.emptyList();
+        }
         RecentsView recentsView = getOverviewPanel();
         // TODO(b/266482558): Pull it out of PagedOrentationHandler for split from workspace.
         List<SplitPositionOption> positions =

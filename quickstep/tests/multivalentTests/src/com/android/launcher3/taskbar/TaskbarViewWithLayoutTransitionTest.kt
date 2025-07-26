@@ -293,6 +293,17 @@ class TaskbarViewWithLayoutTransitionTest {
     }
 
     @Test
+    fun testUpdateItems_clearAllRecentsAfterOverflow_recentsEmpty() {
+        val recentsSize = maxShownRecents + 2
+        runOnMainSync {
+            taskbarView.updateItems(emptyArray(), createRecents(recentsSize))
+            taskbarView.updateItems(emptyArray(), emptyList())
+        }
+
+        assertThat(taskbarView).hasIconTypes(ALL_APPS)
+    }
+
+    @Test
     @ForceRtl
     fun testUpdateItems_rtl_moreThanMaxRecents_overflowShownAfterRecents() {
         val recentsSize = maxShownRecents + 2

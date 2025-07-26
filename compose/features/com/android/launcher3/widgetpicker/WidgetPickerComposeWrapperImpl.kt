@@ -47,10 +47,10 @@ import com.android.launcher3.widgetpicker.theme.LauncherWidgetPickerTheme
 import com.android.launcher3.widgetpicker.ui.WidgetInteractionInfo
 import com.android.launcher3.widgetpicker.ui.WidgetInteractionSource
 import com.android.launcher3.widgetpicker.ui.WidgetPickerEventListeners
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Provider
 import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.launch
 
 /**
  * An helper that bootstraps widget picker UI (from [WidgetPickerComponent]) in to
@@ -119,6 +119,7 @@ constructor(
                         description = widgetPickerConfig.description,
                         constraints = widgetPickerConfig.asHostConstraints(),
                         showDragShadow = !widgetPickerConfig.isForHomeScreen,
+                        enableSwipeUpToDismiss = widgetPickerConfig.enableSwipeUpToDismiss,
                     ),
                 backgroundContext = backgroundContext,
             )

@@ -21,12 +21,15 @@ import static com.android.app.animation.Interpolators.LINEAR;
 import static com.android.launcher3.Utilities.getFullDrawable;
 import static com.android.launcher3.Utilities.mapToRange;
 import static com.android.launcher3.graphics.PreloadIconDelegate.newPendingIcon;
+import static com.android.launcher3.icons.BitmapInfo.FLAG_CUSTOM_SHAPE;
+import static com.android.launcher3.icons.BitmapInfo.FLAG_FULL_BLEED;
 import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
 import static com.android.launcher3.views.FloatingIconViewCompanion.setPropertiesVisible;
 
 import android.animation.Animator;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.AdaptiveIconDrawable;
@@ -56,6 +59,7 @@ import com.android.launcher3.folder.FolderIcon;
 import com.android.launcher3.graphics.PreloadIconDelegate;
 import com.android.launcher3.icons.FastBitmapDrawable;
 import com.android.launcher3.icons.IconNormalizer;
+import com.android.launcher3.icons.IconShape;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.popup.SystemShortcut;
@@ -360,12 +364,12 @@ public class FloatingIconView extends FrameLayout implements
      */
     @UiThread
     private void setIcon(@Nullable Drawable drawable, @Nullable Drawable badge,
-            @Nullable Supplier<Drawable> btvIcon, int iconOffset) {
+            @Nullable Supplier<Drawable> btvIcon, int iconOffset, boolean usingCustomShape) {
         final DeviceProfile dp = mLauncher.getDeviceProfile();
         final InsettableFrameLayout.LayoutParams lp =
                 (InsettableFrameLayout.LayoutParams) getLayoutParams();
         mBadge = badge;
-        mClipIconView.setIcon(drawable, iconOffset, lp, mIsOpening, dp);
+        mClipIconView.setIcon(drawable, iconOffset, lp, mIsOpening, usingCustomShape, dp);
         if (drawable instanceof AdaptiveIconDrawable) {
             final int originalHeight = lp.height;
             final int originalWidth = lp.width;
@@ -431,7 +435,8 @@ public class FloatingIconView extends FrameLayout implements
         synchronized (mIconLoadResult) {
             if (mIconLoadResult.isIconLoaded) {
                 setIcon(mIconLoadResult.drawable, mIconLoadResult.badge,
-                        mIconLoadResult.btvDrawable, mIconLoadResult.iconOffset);
+                        mIconLoadResult.btvDrawable, mIconLoadResult.iconOffset,
+                        mIconLoadResult.usingCustomShape);
                 setVisibility(VISIBLE);
                 updateViewsVisibility(false  /* isVisible */);
             } else {
@@ -441,7 +446,8 @@ public class FloatingIconView extends FrameLayout implements
                     }
 
                     setIcon(mIconLoadResult.drawable, mIconLoadResult.badge,
-                            mIconLoadResult.btvDrawable, mIconLoadResult.iconOffset);
+                            mIconLoadResult.btvDrawable, mIconLoadResult.iconOffset,
+                            mIconLoadResult.usingCustomShape);
 
                     setVisibility(VISIBLE);
                     updateViewsVisibility(false  /* isVisible */);
@@ -575,7 +581,14 @@ public class FloatingIconView extends FrameLayout implements
             btvDrawableSupplier = null;
         }
 
-        IconLoadResult result = new IconLoadResult(info, btvIcon != null && btvIcon.isThemed());
+        boolean isThemed = false;
+        boolean usingCustomShape = false;
+        if (btvIcon != null) {
+            isThemed = btvIcon.isThemed();
+            usingCustomShape = (btvIcon.creationFlags & FLAG_CUSTOM_SHAPE) != 0;
+        }
+
+        IconLoadResult result = new IconLoadResult(info, isThemed, usingCustomShape);
         result.btvDrawable = btvDrawableSupplier;
 
         final long fetchIconId = sFetchIconId++;
@@ -723,6 +736,7 @@ public class FloatingIconView extends FrameLayout implements
     private static class IconLoadResult {
         final ItemInfo itemInfo;
         final boolean isThemed;
+        final boolean usingCustomShape;
         Supplier<Drawable> btvDrawable;
         Drawable drawable;
         Drawable badge;
@@ -730,9 +744,10 @@ public class FloatingIconView extends FrameLayout implements
         Runnable onIconLoaded;
         boolean isIconLoaded;
 
-        IconLoadResult(ItemInfo itemInfo, boolean isThemed) {
+        IconLoadResult(ItemInfo itemInfo, boolean isThemed, boolean usingCustomShape) {
             this.itemInfo = itemInfo;
             this.isThemed = isThemed;
+            this.usingCustomShape = usingCustomShape;
         }
     }
 }

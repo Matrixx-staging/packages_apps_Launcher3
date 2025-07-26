@@ -62,9 +62,10 @@ import kotlin.math.max
 class PopupContainerWithArrow<T>
 @JvmOverloads
 constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 0) :
-    ArrowPopup<T>(context, attrs, defStyleAttr), DragSource, DragController.DragListener where
-T : Context?,
-T : ActivityContext? {
+    ArrowPopup<T>(context, attrs, defStyleAttr),
+    DragSource,
+    DragController.DragListener,
+    Popup where T : Context?, T : ActivityContext? {
     private val deepShortcuts: MutableList<DeepShortcutView> = ArrayList()
     private val interceptTouchDown = PointF()
     private val startDragThreshold =
@@ -82,9 +83,12 @@ T : ActivityContext? {
     private var accessibilityDelegate: LauncherAccessibilityDelegate? = null
     private var currentHeight = 0f
 
+    var updateIconUi = true
+
     var originalIcon: BubbleTextView? = null
         private set
 
+    var originalView: View? = null
     var systemShortcutContainer: ViewGroup? = null
         private set
 
@@ -185,6 +189,7 @@ T : ActivityContext? {
         systemShortcuts: List<SystemShortcut<*>>,
     ) {
         this.originalIcon = originalIcon
+        originalView = originalIcon
         containerWidth = resources.getDimensionPixelSize(R.dimen.bg_popup_item_width)
 
         if (deepShortcutCount > 0) {
@@ -398,12 +403,12 @@ T : ActivityContext? {
     }
 
     override fun getTargetObjectLocation(outPos: Rect) {
-        popupContainer.getDescendantRectRelativeToSelf(originalIcon, outPos)
-        outPos.top += originalIcon?.paddingTop ?: 0
-        outPos.left += originalIcon?.paddingLeft ?: 0
-        outPos.right -= originalIcon?.paddingRight ?: 0
+        popupContainer.getDescendantRectRelativeToSelf(originalView, outPos)
+        outPos.top += originalView?.paddingTop ?: 0
+        outPos.left += originalView?.paddingLeft ?: 0
+        outPos.right -= originalView?.paddingRight ?: 0
         outPos.bottom =
-            outPos.top + (originalIcon?.icon?.bounds?.height() ?: originalIcon?.height ?: 0)
+            outPos.top + (originalIcon?.icon?.bounds?.height() ?: originalView?.height ?: 0)
     }
 
     private fun updateHiddenShortcuts() {
@@ -464,7 +469,7 @@ T : ActivityContext? {
      * Current behavior:
      * - Start the drag if the touch passes a certain distance from the original touch down.
      */
-    fun createPreDragCondition(updateIconUi: Boolean): PreDragCondition {
+    override fun createPreDragCondition(): PreDragCondition {
         return object : PreDragCondition {
             override fun shouldStartDrag(distanceDragged: Double): Boolean {
                 return distanceDragged > startDragThreshold

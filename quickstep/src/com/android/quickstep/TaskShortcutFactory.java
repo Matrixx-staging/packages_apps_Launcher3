@@ -18,6 +18,7 @@ package com.android.quickstep;
 
 import static android.app.WindowConfiguration.WINDOWING_MODE_FREEFORM;
 import static android.content.Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS;
+import static android.view.Display.DEFAULT_DISPLAY;
 
 import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 import static com.android.launcher3.Flags.enableRefactorTaskThumbnail;
@@ -37,6 +38,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowManagerGlobal;
+import android.window.DesktopExperienceFlags;
 import android.window.SplashScreen;
 
 import androidx.annotation.Nullable;
@@ -343,6 +345,11 @@ public interface TaskShortcutFactory {
                     (intentFlags & FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS) != 0;
 
             if (notEnoughTasksToSplit || isTaskSplitNotSupported) {
+                return null;
+            }
+
+            if (container.asContext().getDisplayId() != DEFAULT_DISPLAY
+                    && !DesktopExperienceFlags.ENABLE_NON_DEFAULT_DISPLAY_SPLIT_BUGFIX.isTrue()) {
                 return null;
             }
 

@@ -22,6 +22,7 @@ import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.runtime.Stable
+import com.android.launcher3.widgetpicker.ui.components.bottomsheet.BottomSheetDismissDimensions.SETTLE_ANIMATION_SPEC
 
 /**
  * A state holding information necessary to perform drag / predictive back gestures on sheet to
@@ -31,7 +32,7 @@ import androidx.compose.runtime.Stable
  */
 @Stable
 class BottomSheetDismissState(private val expandCollapseAnimationSpec: AnimationSpec<Float>) {
-    val predictiveBackProgress = Animatable(0f)
+    val backProgress = Animatable(0f)
     val anchoredDraggableState = AnchoredDraggableState(initialValue = SheetPositionValue.COLLAPSED)
 
     fun updateAnchors(sheetHeightPx: Float) {
@@ -57,6 +58,11 @@ class BottomSheetDismissState(private val expandCollapseAnimationSpec: Animation
             targetValue = SheetPositionValue.COLLAPSED,
             animationSpec = expandCollapseAnimationSpec,
         )
+    }
+
+    /** Animates and settles the back progress to open position. */
+    suspend fun settleProgress() {
+        backProgress.animateTo(targetValue = 0f, animationSpec = SETTLE_ANIMATION_SPEC)
     }
 }
 

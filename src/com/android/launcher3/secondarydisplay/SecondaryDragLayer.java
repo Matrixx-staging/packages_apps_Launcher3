@@ -137,9 +137,11 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
             if (child == mAppsView) {
                 int horizontalPadding = (2 * grid.getWorkspaceIconProfile()
                         .getDesiredWorkspaceHorizontalMarginPx())
-                        + grid.cellLayoutPaddingPx.left + grid.cellLayoutPaddingPx.right;
+                        + grid.mWorkspaceProfile.getCellLayoutPaddingPx().left
+                        + grid.mWorkspaceProfile.getCellLayoutPaddingPx().right;
                 int verticalPadding =
-                        grid.cellLayoutPaddingPx.top + grid.cellLayoutPaddingPx.bottom;
+                        grid.mWorkspaceProfile.getCellLayoutPaddingPx().top
+                                + grid.mWorkspaceProfile.getCellLayoutPaddingPx().bottom;
 
                 int maxWidth =
                         grid.getAllAppsProfile().getCellWidthPx() * grid.numShownAllAppsColumns
@@ -160,7 +162,8 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
                 mAllAppsButton.measure(appsButtonSpec, appsButtonSpec);
             } else if (child == mWorkspace) {
                 measureChildWithMargins(mWorkspace, widthMeasureSpec, 0, heightMeasureSpec,
-                        grid.getWorkspaceIconProfile().getIconSizePx() + grid.edgeMarginPx);
+                        grid.getWorkspaceIconProfile().getIconSizePx()
+                                + grid.mWorkspaceProfile.getEdgeMarginPx());
             } else {
                 measureChildWithMargins(child, widthMeasureSpec, 0, heightMeasureSpec, 0);
             }
@@ -276,7 +279,8 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
         DeviceProfile grid = mContainer.getDeviceProfile();
         options.intrinsicIconScaleFactor = (float) grid.getAllAppsProfile().getIconSizePx()
                 / grid.getWorkspaceIconProfile().getIconSizePx();
-        options.preDragCondition = container.createPreDragCondition(false);
+        container.setUpdateIconUi(false);
+        options.preDragCondition = container.createPreDragCondition();
         if (options.preDragCondition == null) {
             options.preDragCondition = new DragOptions.PreDragCondition() {
                 private DragView<SecondaryDisplayLauncher> mDragView;

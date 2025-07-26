@@ -151,7 +151,7 @@ fun Modifier.dismissibleBottomSheet(
             // Gesture start
             progress.collect { backEvent ->
                 val currentProgress = backEvent.progress
-                scope.launch { sheetState.predictiveBackProgress.snapTo(currentProgress) }
+                scope.launch { sheetState.backProgress.snapTo(currentProgress) }
             }
 
             // Gesture completed, let's settle
@@ -162,12 +162,7 @@ fun Modifier.dismissibleBottomSheet(
                 .invokeOnCompletion { onDismissSheet() }
         } catch (e: CancellationException) {
             // Cancel gesture
-            scope.launch {
-                sheetState.predictiveBackProgress.animateTo(
-                    targetValue = 0f,
-                    animationSpec = SETTLE_ANIMATION_SPEC,
-                )
-            }
+            scope.launch { sheetState.settleProgress() }
         }
     }
 
@@ -175,8 +170,8 @@ fun Modifier.dismissibleBottomSheet(
         val sheetOffset = sheetState.anchoredDraggableState.requireOffset()
 
         if (maxHeight != 0f) {
-            scaleX = calculatePredictiveBackScaleX(sheetState.predictiveBackProgress.value)
-            scaleY = calculatePredictiveBackScaleY(sheetState.predictiveBackProgress.value)
+            scaleX = calculatePredictiveBackScaleX(sheetState.backProgress.value)
+            scaleY = calculatePredictiveBackScaleY(sheetState.backProgress.value)
             transformOrigin =
                 TransformOrigin(
                     pivotFractionX = 0.5f,
@@ -192,7 +187,7 @@ fun Modifier.dismissibleBottomSheet(
  */
 fun Modifier.dismissableBottomSheetContent(sheetState: BottomSheetDismissState): Modifier {
     return this.graphicsLayer {
-        val progress = sheetState.predictiveBackProgress.value
+        val progress = sheetState.backProgress.value
         val predictiveBackScaleX = calculatePredictiveBackScaleX(progress)
         val predictiveBackScaleY = calculatePredictiveBackScaleY(progress)
 
@@ -238,7 +233,7 @@ private fun calculateContentPredictiveBackScaleY(sheetScaleX: Float, sheetScaleY
         VISIBLE_PREDICTIVE_BACK_SCALE
     }
 
-private object BottomSheetDismissDimensions {
+internal object BottomSheetDismissDimensions {
     val sheetPositionalThreshold = 56.dp
 
     val predictiveBackMaxScaleXDistance = 48.dp
@@ -248,7 +243,7 @@ private object BottomSheetDismissDimensions {
 
     // Scale that essentially makes content disappear
     const val NOT_VISIBLE_PREDICTIVE_BACK_SCALE = 0f
-    const val DEFAULT_PREDICTIVE_BACK_SCALE = 1f
+    private const val DEFAULT_PREDICTIVE_BACK_SCALE = 1f
     const val VISIBLE_PREDICTIVE_BACK_SCALE = DEFAULT_PREDICTIVE_BACK_SCALE
 
     fun Float.isInvalidSize() = this.isNaN() || this == 0f
