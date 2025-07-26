@@ -42,6 +42,7 @@ import static com.android.launcher3.util.MultiPropertyFactory.MULTI_PROPERTY_VAL
 import static com.android.quickstep.BaseContainerInterface.getTaskDimension;
 import static com.android.quickstep.util.AnimUtils.clampToDuration;
 import static com.android.wm.shell.shared.TransitionUtil.TYPE_SPLIT_SCREEN_DIM_LAYER;
+import static com.android.wm.shell.shared.split.SplitScreenConstants.DEFAULT_OFFSCREEN_DIM;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -762,15 +763,23 @@ public final class TaskViewUtils {
             return null;
         }
 
+        // Since dim layers need to animate to a different alpha, we separate them out here.
+        List<SurfaceControl> dividerSurfaces = new ArrayList<>();
+        List<SurfaceControl> dimLayerSurfaces = new ArrayList<>();
+        // For convenience, we also keep a pointer to all the divider + dim layer leashes together.
         List<SurfaceControl> auxiliarySurfaces = new ArrayList<>();
         for (RemoteAnimationTarget target : nonApps) {
             final SurfaceControl leash = target.leash;
-            if ((target.windowType == TYPE_DOCK_DIVIDER
-                    || target.windowType == TYPE_SPLIT_SCREEN_DIM_LAYER)
-                    && leash != null && leash.isValid()) {
+            if (leash != null && leash.isValid()) {
+                if (target.windowType == TYPE_DOCK_DIVIDER) {
+                    dividerSurfaces.add(leash);
+                } else if (target.windowType == TYPE_SPLIT_SCREEN_DIM_LAYER) {
+                    dimLayerSurfaces.add(leash);
+                }
                 auxiliarySurfaces.add(leash);
             }
         }
+
         if (auxiliarySurfaces.isEmpty()) {
             return null;
         }
@@ -789,9 +798,14 @@ public final class TaskViewUtils {
         ValueAnimator dockFadeAnimator = ValueAnimator.ofFloat(0f, 1f);
         dockFadeAnimator.addUpdateListener(valueAnimator -> {
             float progress = valueAnimator.getAnimatedFraction();
-            for (SurfaceControl leash : auxiliarySurfaces) {
+            for (SurfaceControl leash : dividerSurfaces) {
                 if (leash != null && leash.isValid()) {
                     t.setAlpha(leash, shown ? progress : 1 - progress);
+                }
+            }
+            for (SurfaceControl leash : dimLayerSurfaces) {
+                if (leash != null && leash.isValid()) {
+                    t.setAlpha(leash, (shown ? progress : 1 - progress) * DEFAULT_OFFSCREEN_DIM);
                 }
             }
             t.apply();
