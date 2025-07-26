@@ -99,8 +99,7 @@
     <string name="allset_title_expressive_fixed" msgid="3564219469262883526">"Та ашиглаж эхлэхэд бэлэн!"</string>
     <string name="allset_subtitle_expressive" msgid="419688197551192358">"Өөрийн шинэ <xliff:g id="DEVICE">%1$s</xliff:g>-г таалан ашиглаарай!"</string>
     <string name="allset_subtitle_expressive_gesture_navigation" msgid="8931442349501593934">"Өөрийн <xliff:g id="DEVICE">%1$s</xliff:g>-г ашиглаж эхлэхийн тулд дээш шударна уу"</string>
-    <!-- no translation found for allset_subtitle_expressive_button_navigation (5219509605046028014) -->
-    <skip />
+    <string name="allset_subtitle_expressive_button_navigation" msgid="5219509605046028014">"Өөрийн <xliff:g id="DEVICE">%1$s</xliff:g>-г эхлүүлэхийн тулд товшино уу"</string>
     <string name="allset_navigation_settings_expressive" msgid="3745595273748356"><annotation id="link">"Хэрхэн шилжихийг сонгох"</annotation></string>
     <string name="allset_hint_expressive" msgid="756856423510976261">"Дээш шудрах"</string>
     <string name="allset_button_hint_expressive" msgid="667643693410494225">"Нүүр хуудасны товчин дээр товшино уу"</string>

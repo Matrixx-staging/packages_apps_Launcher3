@@ -99,8 +99,7 @@
     <string name="allset_title_expressive_fixed" msgid="3564219469262883526">"Vous êtes prêt à vous lancer !"</string>
     <string name="allset_subtitle_expressive" msgid="419688197551192358">"Profitez de votre nouveau <xliff:g id="DEVICE">%1$s</xliff:g> !"</string>
     <string name="allset_subtitle_expressive_gesture_navigation" msgid="8931442349501593934">"Balayez l\'écran vers le haut pour commencer à utiliser votre <xliff:g id="DEVICE">%1$s</xliff:g>"</string>
-    <!-- no translation found for allset_subtitle_expressive_button_navigation (5219509605046028014) -->
-    <skip />
+    <string name="allset_subtitle_expressive_button_navigation" msgid="5219509605046028014">"Appuyez pour commencer à utiliser votre <xliff:g id="DEVICE">%1$s</xliff:g>"</string>
     <string name="allset_navigation_settings_expressive" msgid="3745595273748356"><annotation id="link">"Choisissez un mode de navigation"</annotation></string>
     <string name="allset_hint_expressive" msgid="756856423510976261">"Balayer l\'écran vers le haut"</string>
     <string name="allset_button_hint_expressive" msgid="667643693410494225">"Appuyer sur le bouton d\'accueil"</string>

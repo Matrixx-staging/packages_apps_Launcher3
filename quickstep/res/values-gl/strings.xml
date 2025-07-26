@@ -99,8 +99,7 @@
     <string name="allset_title_expressive_fixed" msgid="3564219469262883526">"Xa está todo a punto!"</string>
     <string name="allset_subtitle_expressive" msgid="419688197551192358">"Desfruta do teu novo dispositivo (<xliff:g id="DEVICE">%1$s</xliff:g>)!"</string>
     <string name="allset_subtitle_expressive_gesture_navigation" msgid="8931442349501593934">"Pasa o dedo cara arriba para comezar a usar o teu dispositivo (<xliff:g id="DEVICE">%1$s</xliff:g>)"</string>
-    <!-- no translation found for allset_subtitle_expressive_button_navigation (5219509605046028014) -->
-    <skip />
+    <string name="allset_subtitle_expressive_button_navigation" msgid="5219509605046028014">"Toca para dar os primeiros pasos co teu dispositivo (<xliff:g id="DEVICE">%1$s</xliff:g>)"</string>
     <string name="allset_navigation_settings_expressive" msgid="3745595273748356"><annotation id="link">"Escolle como navegar"</annotation></string>
     <string name="allset_hint_expressive" msgid="756856423510976261">"Pasa o dedo cara arriba"</string>
     <string name="allset_button_hint_expressive" msgid="667643693410494225">"Toca o botón de inicio"</string>

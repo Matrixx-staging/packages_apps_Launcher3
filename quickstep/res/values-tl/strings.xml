@@ -99,8 +99,7 @@
     <string name="allset_title_expressive_fixed" msgid="3564219469262883526">"Handa ka nang magsimula!"</string>
     <string name="allset_subtitle_expressive" msgid="419688197551192358">"I-enjoy ang iyong bagong <xliff:g id="DEVICE">%1$s</xliff:g>!"</string>
     <string name="allset_subtitle_expressive_gesture_navigation" msgid="8931442349501593934">"Mag-swipe pataas para makapagsimula sa iyong <xliff:g id="DEVICE">%1$s</xliff:g>"</string>
-    <!-- no translation found for allset_subtitle_expressive_button_navigation (5219509605046028014) -->
-    <skip />
+    <string name="allset_subtitle_expressive_button_navigation" msgid="5219509605046028014">"Mag-tap para magsimula sa iyong <xliff:g id="DEVICE">%1$s</xliff:g>"</string>
     <string name="allset_navigation_settings_expressive" msgid="3745595273748356"><annotation id="link">"Piliin kung paano mag-navigate"</annotation></string>
     <string name="allset_hint_expressive" msgid="756856423510976261">"Mag-swipe pataas"</string>
     <string name="allset_button_hint_expressive" msgid="667643693410494225">"I-tap ang button ng home"</string>

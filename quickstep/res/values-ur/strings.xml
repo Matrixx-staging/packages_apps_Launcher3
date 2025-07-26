@@ -99,8 +99,7 @@
     <string name="allset_title_expressive_fixed" msgid="3564219469262883526">"آپ رول کرنے کے لئے تیار ہیں!"</string>
     <string name="allset_subtitle_expressive" msgid="419688197551192358">"اپنے نئے <xliff:g id="DEVICE">%1$s</xliff:g> کا لطف اٹھائیں!"</string>
     <string name="allset_subtitle_expressive_gesture_navigation" msgid="8931442349501593934">"اپنے <xliff:g id="DEVICE">%1$s</xliff:g> کے ساتھ شروع کرنے کے لیے سوائپ کریں"</string>
-    <!-- no translation found for allset_subtitle_expressive_button_navigation (5219509605046028014) -->
-    <skip />
+    <string name="allset_subtitle_expressive_button_navigation" msgid="5219509605046028014">"اپنے <xliff:g id="DEVICE">%1$s</xliff:g> کے ساتھ شروع کرنے کے لیے تھپتھپائیں"</string>
     <string name="allset_navigation_settings_expressive" msgid="3745595273748356">"‫"<annotation id="link">"نیویگیٹ کرنے کا طریقہ منتخب کریں"</annotation></string>
     <string name="allset_hint_expressive" msgid="756856423510976261">"اوپر کی طرف سوائپ کریں"</string>
     <string name="allset_button_hint_expressive" msgid="667643693410494225">"ہوم بٹن پر تھپتھپائیں"</string>
