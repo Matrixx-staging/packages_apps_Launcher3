@@ -47,7 +47,9 @@ import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.notification.NotificationListener;
 import com.android.launcher3.popup.PinToTaskbarShortcut;
+import com.android.launcher3.popup.Popup;
 import com.android.launcher3.popup.PopupContainerWithArrow;
+import com.android.launcher3.popup.PopupController;
 import com.android.launcher3.popup.PopupDataProvider;
 import com.android.launcher3.popup.PopupItemDragHandler;
 import com.android.launcher3.popup.SystemShortcut;
@@ -77,7 +79,8 @@ import java.util.stream.Stream;
  * Implements interfaces required to show and allow interacting with a PopupContainerWithArrow.
  * Controls the long-press menu on Taskbar and AllApps icons.
  */
-public class TaskbarPopupController implements TaskbarControllers.LoggableTaskbarController {
+public class TaskbarPopupController implements TaskbarControllers.LoggableTaskbarController,
+        PopupController {
 
     private static final SystemShortcut.Factory<BaseTaskbarContext>
             APP_INFO = SystemShortcut.AppInfo::new;
@@ -139,74 +142,6 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
 
     public void setAllowInitialSplitSelection(boolean allowInitialSplitSelection) {
         mAllowInitialSplitSelection = allowInitialSplitSelection;
-    }
-
-    /**
-     * Shows the notifications and deep shortcuts associated with a Taskbar {@param icon}.
-     * @return the container if shown or null.
-     */
-    public PopupContainerWithArrow<BaseTaskbarContext> showForIcon(BubbleTextView icon) {
-        BaseTaskbarContext context = ActivityContext.lookupContext(icon.getContext());
-        if (PopupContainerWithArrow.getOpen(context) != null) {
-            // There is already an items container open, so don't open this one.
-            icon.clearFocus();
-            return null;
-        }
-
-        ItemInfo itemInfo = null;
-        if (icon.getTag() instanceof ItemInfo item && ShortcutUtil.supportsShortcuts(item)) {
-            itemInfo = item;
-        } else if (canPinAppWithContextMenu(mContext)
-                && icon.getTag() instanceof SingleTask task) {
-            Task.TaskKey key = task.getTask().getKey();
-            AppInfo appInfo = getApp(
-                    new ComponentKey(key.getComponent(), UserHandle.of(key.userId)));
-            if (appInfo != null) {
-                WorkspaceItemInfo wif = appInfo.makeWorkspaceItem(icon.getContext());
-                itemInfo = SingleTask.Companion.createTaskItemInfo(task, wif);
-            }
-        }
-
-        if (itemInfo == null) {
-            return null;
-        }
-
-        PopupContainerWithArrow<BaseTaskbarContext> container;
-        int deepShortcutCount = mPopupDataProvider.getShortcutCountForItem(itemInfo);
-        // TODO(b/198438631): add support for INSTALL shortcut factory
-        final ItemInfo finalInfo = itemInfo;
-        List<SystemShortcut<BaseTaskbarContext>> systemShortcuts = getSystemShortcuts()
-                .map(s -> s.getShortcut(context, finalInfo, icon))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-        // TODO(b/375648361): Revisit to see if this can be implemented within getSystemShortcuts().
-        if (canPinAppWithContextMenu(mContext)) {
-            SystemShortcut<BaseTaskbarContext> shortcut =
-                    createPinShortcut(context, itemInfo, icon);
-            if (shortcut != null) {
-                systemShortcuts.add(0, shortcut);
-            }
-        }
-
-        container = (PopupContainerWithArrow) context.getLayoutInflater().inflate(
-                R.layout.popup_container, context.getDragLayer(), false);
-        container.populateAndShowRows(icon, itemInfo, deepShortcutCount, systemShortcuts);
-
-        // TODO (b/198438631): configure for taskbar/context
-        container.setPopupItemDragHandler(new TaskbarPopupItemDragHandler());
-        context.getDragController().addDragListener(container);
-        container.requestFocus();
-
-        // Make focusable to receive back events
-        context.onPopupVisibilityChanged(true);
-        container.addOnCloseCallback(() -> {
-            context.getDragLayer().post(() -> context.onPopupVisibilityChanged(false));
-            mIsPopupOpened = false;
-        });
-        mIsPopupOpened = true;
-
-        return container;
     }
 
     public boolean isPopupOpened() {
@@ -274,6 +209,78 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
         pw.println(prefix + "TaskbarPopupController:");
 
         mPopupDataProvider.dump(prefix + "\t", pw);
+    }
+
+    @Nullable
+    @Override
+    public Popup show(@NonNull View view) {
+        BubbleTextView icon = (BubbleTextView) view;
+        BaseTaskbarContext context = ActivityContext.lookupContext(icon.getContext());
+        if (PopupContainerWithArrow.getOpen(context) != null) {
+            // There is already an items container open, so don't open this one.
+            icon.clearFocus();
+            return null;
+        }
+
+        ItemInfo itemInfo = null;
+        if (icon.getTag() instanceof ItemInfo item && ShortcutUtil.supportsShortcuts(item)) {
+            itemInfo = item;
+        } else if (canPinAppWithContextMenu(mContext)
+                && icon.getTag() instanceof SingleTask task) {
+            Task.TaskKey key = task.getTask().getKey();
+            AppInfo appInfo = getApp(
+                    new ComponentKey(key.getComponent(), UserHandle.of(key.userId)));
+            if (appInfo != null) {
+                WorkspaceItemInfo wif = appInfo.makeWorkspaceItem(icon.getContext());
+                itemInfo = SingleTask.Companion.createTaskItemInfo(task, wif);
+            }
+        }
+
+        if (itemInfo == null) {
+            return null;
+        }
+
+        PopupContainerWithArrow<BaseTaskbarContext> container;
+        int deepShortcutCount = mPopupDataProvider.getShortcutCountForItem(itemInfo);
+        // TODO(b/198438631): add support for INSTALL shortcut factory
+        final ItemInfo finalInfo = itemInfo;
+        List<SystemShortcut<BaseTaskbarContext>> systemShortcuts = getSystemShortcuts()
+                .map(s -> s.getShortcut(context, finalInfo, icon))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        // TODO(b/375648361): Revisit to see if this can be implemented within getSystemShortcuts().
+        if (canPinAppWithContextMenu(mContext)) {
+            SystemShortcut<BaseTaskbarContext> shortcut =
+                    createPinShortcut(context, itemInfo, icon);
+            if (shortcut != null) {
+                systemShortcuts.add(0, shortcut);
+            }
+        }
+
+        container = (PopupContainerWithArrow) context.getLayoutInflater().inflate(
+                R.layout.popup_container, context.getDragLayer(), false);
+        container.populateAndShowRows(icon, itemInfo, deepShortcutCount, systemShortcuts);
+
+        // TODO (b/198438631): configure for taskbar/context
+        container.setPopupItemDragHandler(new TaskbarPopupItemDragHandler());
+        context.getDragController().addDragListener(container);
+        container.requestFocus();
+
+        // Make focusable to receive back events
+        context.onPopupVisibilityChanged(true);
+        container.addOnCloseCallback(() -> {
+            context.getDragLayer().post(() -> context.onPopupVisibilityChanged(false));
+            mIsPopupOpened = false;
+        });
+        mIsPopupOpened = true;
+
+        return container;
+    }
+
+    @Override
+    public void dismiss() {
+
     }
 
     private class TaskbarPopupItemDragHandler implements

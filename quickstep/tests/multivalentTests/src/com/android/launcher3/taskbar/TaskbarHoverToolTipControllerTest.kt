@@ -141,7 +141,7 @@ class TaskbarHoverToolTipControllerTest {
     @Test
     fun onHover_hoverEnterPopupOpen_noToolTip() {
         runOnMainSync {
-            popupController.showForIcon(iconView)
+            popupController.show(iconView)
             iconView.dispatchGenericMotionEvent(HOVER_ENTER)
         }
         assertThat(isHoverToolTipOpen).isFalse()

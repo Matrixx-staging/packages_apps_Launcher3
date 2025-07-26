@@ -99,8 +99,7 @@
     <string name="allset_title_expressive_fixed" msgid="3564219469262883526">"Pripravljeni ste!"</string>
     <string name="allset_subtitle_expressive" msgid="419688197551192358">"Uživajte v novi napravi <xliff:g id="DEVICE">%1$s</xliff:g>"</string>
     <string name="allset_subtitle_expressive_gesture_navigation" msgid="8931442349501593934">"Povlecite navzgor, če želite začeti uporabljati napravo: <xliff:g id="DEVICE">%1$s</xliff:g>"</string>
-    <!-- no translation found for allset_subtitle_expressive_button_navigation (5219509605046028014) -->
-    <skip />
+    <string name="allset_subtitle_expressive_button_navigation" msgid="5219509605046028014">"Dotaknite se, če želite začeti uporabljati napravo: <xliff:g id="DEVICE">%1$s</xliff:g>"</string>
     <string name="allset_navigation_settings_expressive" msgid="3745595273748356"><annotation id="link">"Izbira načina pomikanja"</annotation></string>
     <string name="allset_hint_expressive" msgid="756856423510976261">"Povlecite navzgor"</string>
     <string name="allset_button_hint_expressive" msgid="667643693410494225">"Dotaknite se gumba za začetni zaslon"</string>

@@ -17,6 +17,8 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- no translation found for widget_picker_collapse_sheet_label (5179800676332357316) -->
+    <skip />
     <string name="widgets_list_header_app_name_fallback_label" msgid="5151621916941957989">"Jina la programu"</string>
     <string name="widgets_list_header_widgets_count_label" msgid="578128450351893001">"{count,plural, =1{Wijeti #}other{Wijeti #}}"</string>
     <string name="widget_span_dimensions_format" msgid="4325492869474815131">"%1$d × %2$d"</string>
@@ -30,8 +32,7 @@
     <string name="browse_widgets_tab_label" msgid="7179933202350730737">"Vinjari"</string>
     <string name="widgets_tab_accessibility_label" msgid="559010210491169400">"Wijeti za <xliff:g id="TAB_NAME">%1$s</xliff:g>"</string>
     <string name="widget_picker_right_pane_accessibility_label" msgid="5095301787174820892">"Wijeti za <xliff:g id="SELECTED_HEADER">%1$s</xliff:g> ziko upande wa kulia, utafutaji na chaguo ziko upande wa kushoto"</string>
-    <!-- no translation found for widget_picker_left_pane_accessibility_label (4719054594582596067) -->
-    <skip />
+    <string name="widget_picker_left_pane_accessibility_label" msgid="4719054594582596067">"Upau wa kutafutia na chaguo za wijeti ziko upande wa kushoto, wijeti ziko upande wa kulia"</string>
     <string name="widgets_search_bar_hint" msgid="5705758627532180867">"Tafuta"</string>
     <string name="widget_search_bar_clear_button_label" msgid="6120140737164336517">"Futa"</string>
     <string name="widget_search_bar_back_button_label" msgid="7028448831228587743">"Rudi nyuma"</string>

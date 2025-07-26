@@ -99,8 +99,7 @@
     <string name="allset_title_expressive_fixed" msgid="3564219469262883526">"तपाईं अब यो डिभाइस प्रयोग गर्न थाल्न सक्नुहुन्छ!"</string>
     <string name="allset_subtitle_expressive" msgid="419688197551192358">"आफ्नो नयाँ <xliff:g id="DEVICE">%1$s</xliff:g> को मजा लिनुहोस्!"</string>
     <string name="allset_subtitle_expressive_gesture_navigation" msgid="8931442349501593934">"आफ्नो <xliff:g id="DEVICE">%1$s</xliff:g> सेटअप गर्ने प्रक्रिया सुरु गर्न माथितिर स्वाइप गर्नुहोस्"</string>
-    <!-- no translation found for allset_subtitle_expressive_button_navigation (5219509605046028014) -->
-    <skip />
+    <string name="allset_subtitle_expressive_button_navigation" msgid="5219509605046028014">"आफ्नो <xliff:g id="DEVICE">%1$s</xliff:g> प्रयोग गर्न थाल्न ट्याप गर्नुहोस्"</string>
     <string name="allset_navigation_settings_expressive" msgid="3745595273748356"><annotation id="link">"नेभिगेट गर्ने तरिका छनौट गर्नुहोस्"</annotation></string>
     <string name="allset_hint_expressive" msgid="756856423510976261">"माथितिर स्वाइप गर्नुहोस्"</string>
     <string name="allset_button_hint_expressive" msgid="667643693410494225">"होम बटनमा ट्याप गर्नुहोस्"</string>

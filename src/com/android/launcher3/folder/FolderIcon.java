@@ -794,17 +794,6 @@ public class FolderIcon extends FrameLayout implements FloatingIconViewCompanion
         }
     }
 
-    @Nullable
-    @Override
-    public PopupController getPopupController() {
-        return mPopupController;
-    }
-
-    @Override
-    public void setPopupController(@NonNull PopupController popupController) {
-        mPopupController = popupController;
-    }
-
     @NonNull
     @Override
     public PoppableType getPoppableType() {

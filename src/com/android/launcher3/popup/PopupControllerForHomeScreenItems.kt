@@ -25,12 +25,17 @@ import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.shortcuts.DeepShortcutView
 import com.android.launcher3.views.ActivityContext
 
-class PopupControllerImpl<T>(
-    private val itemInfo: ItemInfo,
+/**
+ * Controller for home screen items: folders, app pairs, and widgets. This controller does not
+ * handle apps or app shortcuts. This controller handles actions for the popups such as showing and
+ * dismissing them.
+ */
+class PopupControllerForHomeScreenItems<T>(
     private val popupDataRepository: PopupDataRepository,
     private val dragController: LauncherDragController,
 ) : PopupController<T> where T : Context, T : ActivityContext {
     override fun show(view: View): Popup {
+        val itemInfo = view.tag as ItemInfo
         val activityContext: ActivityContext = ActivityContext.lookupContext<T>(view.context)
         val popup: PopupContainerWithArrow<T> =
             activityContext

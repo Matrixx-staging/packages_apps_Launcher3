@@ -2278,7 +2278,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
 
     public void showPopupMenuForIcon(BubbleTextView btv) {
         setTaskbarWindowFullscreen(true);
-        btv.post(() -> mControllers.taskbarPopupController.showForIcon(btv));
+        btv.post(() -> mControllers.taskbarPopupController.show(btv));
     }
 
     public void launchKeyboardFocusedTask() {
