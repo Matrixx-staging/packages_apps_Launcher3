@@ -200,6 +200,7 @@ import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.notification.NotificationListener;
 import com.android.launcher3.pm.PinRequestHelper;
 import com.android.launcher3.popup.ArrowPopup;
+import com.android.launcher3.popup.PopupController;
 import com.android.launcher3.popup.PopupDataProvider;
 import com.android.launcher3.popup.SystemShortcut;
 import com.android.launcher3.statemanager.StateManager;
@@ -360,6 +361,9 @@ public class Launcher extends StatefulActivity<LauncherState>
 
     private PopupDataProvider mPopupDataProvider;
 
+    private PopupController<Launcher> mPopupControllerForHomeScreenItems;
+    private PopupController<Launcher> mPopupControllerForAppIcons;
+
     private WidgetPickerDataProvider mWidgetPickerDataProvider;
 
     // We only want to get the SharedPreferences once since it does an FS stat each time we get
@@ -459,6 +463,12 @@ public class Launcher extends StatefulActivity<LauncherState>
             mStateManager);
 
         mPopupDataProvider = new PopupDataProvider(this);
+        mPopupControllerForHomeScreenItems =
+                PopupController.PopupControllerFactory.createPopupController(
+                        LauncherComponentProvider.get(this).getPopupDataRepository(),
+                        getDragController());
+        mPopupControllerForAppIcons = PopupController.PopupControllerFactory
+                .createPopupController();
         mWidgetPickerDataProvider = new WidgetPickerDataProvider();
         PillColorProvider.getInstance(mWorkspace.getContext()).registerObserver();
 
@@ -2758,6 +2768,14 @@ public class Launcher extends StatefulActivity<LauncherState>
     @Override
     public PopupDataProvider getPopupDataProvider() {
         return mPopupDataProvider;
+    }
+
+    public PopupController<Launcher> getPopupControllerForHomeScreenItems() {
+        return mPopupControllerForHomeScreenItems;
+    }
+
+    public PopupController<Launcher> getPopupControllerForAppIcons() {
+        return mPopupControllerForAppIcons;
     }
 
     @NonNull
