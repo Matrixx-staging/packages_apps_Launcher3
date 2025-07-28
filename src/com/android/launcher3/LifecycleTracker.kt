@@ -20,5 +20,5 @@ import com.android.launcher3.util.BaseContext
 
 /** Tracks [BaseContext]'s lifecycle to detect memory leaks. */
 interface LifecycleTracker {
-    fun trackLifecycleOnDestroy(baseContext: BaseContext)
+    fun trackLifecycleOnDestroy(baseContext: BaseContext, delayMs: Long)
 }
