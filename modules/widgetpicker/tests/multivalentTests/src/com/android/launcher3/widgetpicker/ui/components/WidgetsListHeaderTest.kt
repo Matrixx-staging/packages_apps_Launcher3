@@ -134,6 +134,39 @@ class WidgetsListHeaderTest {
         }
 
     @Test
+    fun initiallyExpanded_showsContentAndHasCollapseAction() =
+        testScope.runTest {
+            composeTestRule.setContent {
+                var expanded by remember { mutableStateOf(true) }
+
+                WidgetListHeaderTestContent(expanded = expanded, onClick = { expanded = !expanded })
+            }
+
+            composeTestRule.waitForIdle()
+
+            // Initially expanded, content should be visible.
+            composeTestRule.onNode(hasText(EXPANDED_CONTENT_TEXT)).assertExists()
+
+            // Should have collapse action.
+            composeTestRule
+                .onNode(hasText(TITLE))
+                .assertExists()
+                .assert(hasText(SUB_TITLE))
+                .assertHasClickAction()
+                .assert(
+                    SemanticsMatcher("check collapse semantics action") {
+                        it.config.getOrNull(SemanticsActions.Collapse) != null
+                    }
+                )
+                .performSemanticsAction(SemanticsActions.Collapse)
+
+            composeTestRule.waitForIdle()
+
+            // Collapsed, content should be gone.
+            composeTestRule.onNode(hasText(EXPANDED_CONTENT_TEXT)).assertDoesNotExist()
+        }
+
+    @Test
     fun expand_reportsCuiEventsForExpandAnimation() =
         testScope.runTest {
             composeTestRule.setContent {
