@@ -23,7 +23,9 @@ import com.android.launcher3.util.MutableListenableRef
  * Taskbar's UI thread is responsible to update below fields whenever any field is changed.
  *
  * Timings when each field is changed:
- * - [_hasBubblesRef]: when BubbleBarView's child bubble view count is changed between 0 vs non-zero
+ * - [_hasBubblesRef]: when BubbleBarView's child bubble view count is changed between 0 vs
+ *   non-zero. Should be reset to false if we don't show bubble bar view and BubbleBarViewController
+ *   is not even created.
  * - [_shouldShowEduOnAppLaunchRef]: when DeviceProfile, TaskbarUIController or tooltip steps is
  *   changed
  * - [_isDraggingItemRef]: when ether bubble or taskbar is dragging item
