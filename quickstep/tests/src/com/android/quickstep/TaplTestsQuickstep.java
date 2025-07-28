@@ -361,11 +361,13 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
         // Debug if we need to goHome to prevent wrong previous state b/315525621
         mLauncher.goHome();
         mLauncher.getWorkspace().switchToAllApps().pressBackToWorkspace();
-        waitForState("Launcher internal state didn't switch to Home", LauncherState.NORMAL);
+        waitForLauncherCondition("Launcher internal state didn't switch to Home", launcher ->
+                launcher.getStateManager().getCurrentStableState() == LauncherState.NORMAL);
 
         startAppFast(CALCULATOR_APP_PACKAGE);
         mLauncher.getLaunchedAppState().pressBackToWorkspace();
-        waitForState("Launcher internal state didn't switch to Home", LauncherState.NORMAL);
+        waitForLauncherCondition("Launcher internal state didn't switch to Home", launcher ->
+                launcher.getStateManager().getCurrentStableState() == LauncherState.NORMAL);
     }
 
     @Test
@@ -645,11 +647,6 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
     private void assertIsInState(
             @NonNull String failureMessage, @NonNull LauncherState expectedState) {
         assertTrue(failureMessage, isInState(() -> expectedState));
-    }
-
-    private void waitForState(
-            @NonNull String failureMessage, @NonNull LauncherState expectedState) {
-        waitForState(failureMessage, () -> expectedState);
     }
 
     private void expectLaunchedAppState() {
