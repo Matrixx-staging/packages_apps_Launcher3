@@ -221,7 +221,7 @@ constructor(
         object : FlingOnBackAnimationCallback() {
             override fun onBackInvokedCompat() {
                 stateManager.state.onBackInvoked(this@RecentsWindowManager)
-                TestLogging.recordEvent(SEQUENCE_MAIN, "onBackInvokedCompat")
+                TestLogging.recordEvent(SEQUENCE_MAIN, "onBackInvoked")
             }
 
             override fun onBackStartedCompat(backEvent: BackEvent) {
@@ -359,17 +359,17 @@ constructor(
                             onBackInvokedCallback
                         }
                     )
+
+                recentsWindowTracker.handleCreate(this)
+                onViewCreated()
             }
             systemUiController = SystemUiController(windowView)
         }
         windowRootView.visibility = View.VISIBLE
 
-        recentsWindowTracker.handleCreate(this)
-
         this.callbacks = callbacks
         callbacks?.addListener(recentsAnimationListener)
         screenOnTracker.addListener(screenChangedListener)
-        onViewCreated()
     }
 
     override fun startHome() {
@@ -411,6 +411,7 @@ constructor(
         RecentsWindowProtoLogProxy.logCleanup(isShowing())
         if (isShowing()) {
             AbstractFloatingView.closeAllOpenViews(this, /* animate= */ false)
+            recentsView?.viewRootImpl?.touchModeChanged(true)
             windowRootView.visibility = View.GONE
         }
         stateManager.moveToRestState()
