@@ -27,6 +27,7 @@ import com.android.quickstep.views.RecentsViewContainer
 import com.android.quickstep.views.TaskContainer
 import com.android.window.flags.Flags
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus
+import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource
 
 /** A menu item that allows the user to move the current app into external display. */
 class ExternalDisplaySystemShortcut(
@@ -45,7 +46,10 @@ class ExternalDisplaySystemShortcut(
     override fun onClick(view: View) {
         dismissTaskMenuView()
         val recentsView = mTarget.getOverviewPanel<RecentsView<*, *>>()
-        recentsView.moveTaskToExternalDisplay(taskContainer) {
+        recentsView.moveTaskToExternalDisplay(
+            taskContainer,
+            DesktopModeTransitionSource.OVERVIEW_TASK_MENU,
+        ) {
             mTarget.statsLogManager
                 .logger()
                 .withItemInfo(taskContainer.itemInfo)

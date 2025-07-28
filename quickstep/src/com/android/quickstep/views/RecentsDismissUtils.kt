@@ -45,6 +45,7 @@ import com.android.quickstep.views.RecentsViewUtils.OnDeskAddedListener
 import com.android.quickstep.views.TaskView.Companion.GRID_END_TRANSLATION_X
 import com.android.systemui.shared.system.ActivityManagerWrapper
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper
+import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource
 import com.google.android.msdl.data.model.MSDLToken
 import com.google.common.util.concurrent.ListeningExecutorService
 import dagger.assisted.Assisted
@@ -356,7 +357,7 @@ constructor(
                             }
                         mUtils.addOnDeskAddedListener(launchNewDeskListener)
                     }
-                    systemUiProxy.removeAllDesks()
+                    systemUiProxy.removeAllDesks(DesktopModeTransitionSource.RECENTS)
 
                     // Remove all the task views now
                     finishRecentsAnimation(/* toHome */ true, /* shouldPip */ false) {
