@@ -325,6 +325,10 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
                     .getTaskbarProfile()
                     .getStashedTaskbarHeight();
         }
+
+        if (refactorTaskbarUiState()) {
+            mActivity.getTaskbarUiState().setIsTaskbarStashed(mIsStashed);
+        }
     }
 
     /**
