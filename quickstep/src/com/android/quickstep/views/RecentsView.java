@@ -692,9 +692,20 @@ public abstract class RecentsView<
         }
 
         @Override
+        public void onTaskDisplayChanged(int taskId, int newDisplayId) {
+            Log.d(TAG, "onTaskDisplayChanged: " + taskId + ", new displayId = " + newDisplayId);
+            if (!mHandleTaskStackChanges) {
+                return;
+            }
+            if (newDisplayId != mContainer.getDisplayId()) {
+                dismissTask(taskId, /*animate=*/ true, /*removeTask=*/ false);
+            }
+        }
+
+        @Override
         public void onActivityRestartAttempt(ActivityManager.RunningTaskInfo task,
                 boolean homeTaskVisible, boolean clearedTask, boolean wasVisible) {
-            if (enableCreateAnyBubble() && task.isAppBubble) {
+            if (enableCreateAnyBubble() && task.isAppBubble && mHandleTaskStackChanges) {
                 // Remove task from recents if it moved to a bubble, but keep it running
                 dismissTask(task.taskId, /* animate= */ true, /* removeTask= */ false);
             }
