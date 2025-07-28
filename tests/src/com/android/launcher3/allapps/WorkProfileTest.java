@@ -39,7 +39,6 @@ import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.R;
 import com.android.launcher3.util.BaseLauncherActivityTest;
 import com.android.launcher3.util.TestUtil;
-import com.android.launcher3.util.rule.ScreenRecordRule;
 import com.android.launcher3.util.rule.TestStabilityRule;
 import com.android.launcher3.util.rule.TestStabilityRule.Stability;
 
@@ -57,9 +56,6 @@ public class WorkProfileTest extends BaseLauncherActivityTest<Launcher> {
 
     private static final int WORK_PAGE = ActivityAllAppsContainerView.AdapterHolder.WORK;
     public static final int WAIT_TIME_MS = 30000;
-
-    @Rule
-    public ScreenRecordRule mScreenRecordRule = new ScreenRecordRule();
     @Rule
     public TestStabilityRule mTestStabilityRule = new TestStabilityRule();
 
@@ -108,7 +104,6 @@ public class WorkProfileTest extends BaseLauncherActivityTest<Launcher> {
     }
 
     @Test
-    @com.android.launcher3.util.rule.ScreenRecordRule.ScreenRecord // b/325383911
     public void workTabExists() {
         assumeTrue(mWorkProfileSetupSuccessful);
         waitForWorkTabSetup();
