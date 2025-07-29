@@ -1064,6 +1064,7 @@ constructor(
                     isLayoutRtl,
                     (this as? GroupedTaskView)?.splitBoundsConfig,
                     splitPosition,
+                    context.resources.displayMetrics.densityDpi,
                 )
             container.updateThumbnailMatrix(thumbnailPosition.matrix)
             return thumbnailPosition

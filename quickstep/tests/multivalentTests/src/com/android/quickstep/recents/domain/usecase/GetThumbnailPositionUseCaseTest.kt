@@ -69,6 +69,7 @@ class GetThumbnailPositionUseCaseTest {
                 isRtl = true,
                 splitBounds = null,
                 splitPosition = 0,
+                densityDpi = DEFAULT_DISPLAY_DENSITY,
             )
         assertThat(result).isEqualTo(expectedResult)
     }
@@ -84,6 +85,7 @@ class GetThumbnailPositionUseCaseTest {
                 isRtl = true,
                 splitBounds = null,
                 splitPosition = 0,
+                densityDpi = DEFAULT_DISPLAY_DENSITY,
             )
         assertThat(result).isEqualTo(expectedResult)
     }
@@ -114,6 +116,7 @@ class GetThumbnailPositionUseCaseTest {
                 isRtl,
                 splitBounds = null,
                 splitPosition = 0,
+                densityDpi = DEFAULT_DISPLAY_DENSITY,
             )
         val expectedResult = ThumbnailPosition(MATRIX, isRotated)
         assertThat(result).isEqualTo(expectedResult)
@@ -127,6 +130,7 @@ class GetThumbnailPositionUseCaseTest {
                 isLargeScreen,
                 activityRotation,
                 isRtl,
+                DEFAULT_DISPLAY_DENSITY,
             )
     }
 
@@ -149,6 +153,7 @@ class GetThumbnailPositionUseCaseTest {
             /* isRtl= */ true,
             splitBounds = null,
             splitPosition = 0,
+            densityDpi = DEFAULT_DISPLAY_DENSITY,
         )
         sut.invoke(
             THUMBNAIL_DATA,
@@ -157,6 +162,7 @@ class GetThumbnailPositionUseCaseTest {
             /* isRtl= */ false,
             splitBounds = null,
             splitPosition = 0,
+            densityDpi = DEFAULT_DISPLAY_DENSITY,
         )
 
         // Each invocation of use case should use a fresh position helper acquired by the factory.
@@ -178,6 +184,7 @@ class GetThumbnailPositionUseCaseTest {
                 /* isRtl= */ true,
                 splitBounds,
                 splitPosition,
+                DEFAULT_DISPLAY_DENSITY,
             )
         val expectedResult = ThumbnailPosition(MATRIX, isRotated)
         assertThat(result).isEqualTo(expectedResult)
@@ -192,6 +199,7 @@ class GetThumbnailPositionUseCaseTest {
                 false,
                 0,
                 true,
+                DEFAULT_DISPLAY_DENSITY,
             )
     }
 
@@ -213,5 +221,7 @@ class GetThumbnailPositionUseCaseTest {
                         whenever(height).thenReturn(THUMBNAIL_HEIGHT)
                     }
             )
+
+        const val DEFAULT_DISPLAY_DENSITY = 320
     }
 }
