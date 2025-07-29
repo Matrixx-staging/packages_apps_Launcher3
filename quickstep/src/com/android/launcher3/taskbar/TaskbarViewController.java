@@ -1081,7 +1081,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
             View child = parent.getChildAt(i);
             boolean isAllAppsButton = child == mTaskbarView.getAllAppsButtonContainer();
             boolean isTaskbarDividerView = child == mTaskbarView.getTaskbarDividerViewContainer();
-            boolean isTaskbarOverflowView = child == mTaskbarView.getTaskbarOverflowView();
+            boolean isTaskbarOverflowView = child == mTaskbarView.getTaskbarRecentsOverflowView();
             boolean isRecentTask = child.getTag() instanceof GroupTask;
             // TODO(b/343522351): show recents on the home screen.
             final boolean isRecentsInHotseat = false;

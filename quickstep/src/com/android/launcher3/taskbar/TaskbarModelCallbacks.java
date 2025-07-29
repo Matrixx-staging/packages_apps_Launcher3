@@ -165,8 +165,8 @@ public class TaskbarModelCallbacks implements
     }
 
     private void commitItemsToUI() {
-        ItemInfo[] hotseatItemInfos =
-                new ItemInfo[mContext.getDeviceProfile().numShownHotseatIcons];
+        int taskbarSize = mContext.getTaskbarSpecsEvaluator().getMaxPinnableCount();
+        ItemInfo[] hotseatItemInfos = new ItemInfo[taskbarSize];
         int predictionSize = mPredictedItems.size();
         int predictionNextIndex = 0;
 

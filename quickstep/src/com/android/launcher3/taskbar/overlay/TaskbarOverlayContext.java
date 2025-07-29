@@ -38,6 +38,7 @@ import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.taskbar.allapps.TaskbarAllAppsContainerView;
 import com.android.launcher3.taskbar.allapps.TaskbarSearchSessionController;
 import com.android.launcher3.taskbar.bubbles.DragToBubbleController;
+import com.android.launcher3.taskbar.customization.TaskbarSpecsEvaluator;
 import com.android.launcher3.util.NavigationMode;
 import com.android.launcher3.util.SplitConfigurationOptions.SplitSelectSource;
 
@@ -103,6 +104,10 @@ public class TaskbarOverlayContext extends BaseTaskbarContext {
 
     public TaskbarOverlayController getOverlayController() {
         return mOverlayController;
+    }
+
+    public TaskbarSpecsEvaluator getSpecsEvaluator() {
+        return mTaskbarContext.getTaskbarSpecsEvaluator();
     }
 
     /** Returns {@code true} if overlay or Taskbar windows are handling a system drag. */

@@ -21,6 +21,7 @@ import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
 import static com.android.launcher3.model.data.AppInfo.COMPONENT_KEY_COMPARATOR;
 import static com.android.launcher3.model.data.AppInfo.PACKAGE_KEY_COMPARATOR;
 import static com.android.launcher3.util.SplitConfigurationOptions.getLogEventForPosition;
+import static com.android.window.flags.Flags.enableOverflowButtonForTaskbarPinnedItems;
 
 import android.content.Intent;
 import android.content.pm.LauncherApps;
@@ -196,7 +197,7 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
         }
 
         if (mTaskbarInfoList.size()
-                < mContext.getTaskbarSpecsEvaluator().getNumShownHotseatIcons()) {
+                < mContext.getTaskbarSpecsEvaluator().getMaxPinnableCount()) {
             return new PinToTaskbarShortcut<>(target, itemInfo, originalView, true,
                     mTaskbarInfoList);
         }
@@ -425,6 +426,14 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
     protected static boolean canPinAppWithContextMenu(TaskbarActivityContext context) {
         return DesktopExperienceFlags.ENABLE_PINNING_APP_WITH_CONTEXT_MENU.isTrue()
                 && context.isTaskbarShowingDesktopTasks();
+    }
+
+    /**
+     * @return whether the taskbar can have the overflow icon to accommodate pinned apps that
+     * can't fit in taskbar.
+     */
+    public static boolean canPinAppsOverflow() {
+        return enableOverflowButtonForTaskbarPinnedItems();
     }
 
     /**
