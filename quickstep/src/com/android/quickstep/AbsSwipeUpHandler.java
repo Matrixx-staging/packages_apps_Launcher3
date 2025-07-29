@@ -31,7 +31,6 @@ import static com.android.launcher3.BaseActivity.EVENT_DESTROYED;
 import static com.android.launcher3.BaseActivity.EVENT_STARTED;
 import static com.android.launcher3.BaseActivity.INVISIBLE_BY_STATE_HANDLER;
 import static com.android.launcher3.BaseActivity.STATE_HANDLER_INVISIBILITY_FLAGS;
-import static com.android.launcher3.Flags.enableGestureNavHorizontalTouchSlop;
 import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.Flags.msdlFeedback;
 import static com.android.launcher3.Flags.refactorTaskbarUiState;
@@ -1424,8 +1423,7 @@ public abstract class AbsSwipeUpHandler<
 
         // Fully gestural mode.
         final boolean isFlingX = Math.abs(velocity.x) > mContext.getResources()
-                .getDimension(R.dimen.quickstep_fling_threshold_speed)
-                && (!enableGestureNavHorizontalTouchSlop() || horizontalTouchSlopPassed);
+                .getDimension(R.dimen.quickstep_fling_threshold_speed) && horizontalTouchSlopPassed;
         if (isScrollingToNewTask && isFlingX) {
             // Flinging towards new task takes precedence over mIsMotionPaused (which only
             // checks y-velocity).
