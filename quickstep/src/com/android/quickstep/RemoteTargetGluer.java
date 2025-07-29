@@ -310,10 +310,6 @@ public class RemoteTargetGluer {
         }
     }
 
-    private Rect getStartBounds(RemoteAnimationTarget target) {
-        return target.startBounds == null ? target.screenSpaceBounds : target.startBounds;
-    }
-
     /**
      * Ensures that we aren't excluding ancillary targets such as home/recents
      *
