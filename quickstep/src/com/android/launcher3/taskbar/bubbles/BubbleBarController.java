@@ -633,18 +633,11 @@ public class BubbleBarController {
     }
 
     public void animateBubbleBarLocation(BubbleBarLocation bubbleBarLocation) {
-        //TODO(b/411505605) need to add arg whether bubble bar should be set to showing drop target
         MAIN_EXECUTOR.execute(
                 () -> {
                     mBubbleBarViewController.animateBubbleBarLocation(bubbleBarLocation);
                     mBubbleBarLocationListener.onBubbleBarLocationAnimated(bubbleBarLocation);
                 });
-    }
-
-    //TODO(b/411505605) remove this code
-    private void showBubbleBarPillowAt(@Nullable BubbleBarLocation location) {
-        MAIN_EXECUTOR.execute(
-                () -> mDragToBubbleController.showShellBubbleBarDropTargetAt(location));
     }
 
     private void showBubbleBarDropTargetAt(@Nullable BubbleBarLocation location) {
@@ -712,14 +705,6 @@ public class BubbleBarController {
             BubbleBarController controller = mController.get();
             if (controller != null) {
                 controller.animateBubbleBarLocation(bubbleBarLocation);
-            }
-        }
-
-        @Override
-        public void showBubbleBarPillowAt(@Nullable BubbleBarLocation location) {
-            BubbleBarController controller = mController.get();
-            if (controller != null) {
-                controller.showBubbleBarPillowAt(location);
             }
         }
 
