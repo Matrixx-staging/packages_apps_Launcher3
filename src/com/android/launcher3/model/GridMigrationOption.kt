@@ -53,7 +53,9 @@ sealed class GridMigrationOption(val columns: Int, val rows: Int) {
                 FourByFive,
                 FourBySix,
                 FiveByFive,
-                FiveBySix -> validDestinationsForPhone
+                FiveBySix,
+                EightByThree,
+                SevenByThree -> validDestinationsForPhone
                 SixByFive -> validDestinationsForTablet
             }
 
@@ -80,6 +82,10 @@ sealed class GridMigrationOption(val columns: Int, val rows: Int) {
 
     data object SixByFive : GridMigrationOption(columns = 6, rows = 5)
 
+    data object EightByThree : GridMigrationOption(columns = 8, rows = 3)
+
+    data object SevenByThree : GridMigrationOption(columns = 7, rows = 3)
+
     companion object {
         /**
          * Factory method that creates an instance of GridMigrationOption if valid.
@@ -87,36 +93,19 @@ sealed class GridMigrationOption(val columns: Int, val rows: Int) {
          * @param columns is the number of columns of the grid.
          * @param rows is the number of rows of the grid.
          */
-        fun from(columns: Int, rows: Int): GridMigrationOption? {
+        fun from(columns: Int, rows: Int): GridMigrationOption? =
             when {
-                columns == 2 && rows == 2 -> {
-                    return TwoByTwo
-                }
-                columns == 3 && rows == 3 -> {
-                    return ThreeByThree
-                }
-                columns == 4 && rows == 4 -> {
-                    return FourByFour
-                }
-                columns == 4 && rows == 5 -> {
-                    return FourByFive
-                }
-                columns == 4 && rows == 6 -> {
-                    return FourBySix
-                }
-                columns == 5 && rows == 5 -> {
-                    return FiveByFive
-                }
-                columns == 5 && rows == 6 -> {
-                    return FiveBySix
-                }
-                columns == 6 && rows == 5 -> {
-                    return SixByFive
-                }
-                else -> {
-                    return null
-                }
+                columns == 2 && rows == 2 -> TwoByTwo
+                columns == 3 && rows == 3 -> ThreeByThree
+                columns == 4 && rows == 4 -> FourByFour
+                columns == 4 && rows == 5 -> FourByFive
+                columns == 4 && rows == 6 -> FourBySix
+                columns == 5 && rows == 5 -> FiveByFive
+                columns == 5 && rows == 6 -> FiveBySix
+                columns == 6 && rows == 5 -> SixByFive
+                columns == 8 && rows == 3 -> EightByThree
+                columns == 7 && rows == 3 -> SevenByThree
+                else -> null
             }
-        }
     }
 }
