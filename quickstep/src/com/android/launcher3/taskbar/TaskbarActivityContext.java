@@ -1140,8 +1140,11 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             mAddedWindow = false;
         }
 
+        // Since TaskbarDragLayer is removed from view hierarchy AFTER onDestroy() and it holds ref
+        // to TaskbarActivityContext, we add 1s delay to check leaks in order to avoid false
+        // positive leak alarms.
         for (LifecycleTracker tracker: LauncherComponentProvider.get(this).getLifecycleTrackers()) {
-            tracker.trackLifecycleOnDestroy(this);
+            tracker.trackLifecycleOnDestroy(this, 1000L);
         }
     }
 
