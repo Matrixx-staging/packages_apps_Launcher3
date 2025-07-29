@@ -5079,7 +5079,7 @@ public abstract class RecentsView<
         // Whether the task should be shifted to start direction (i.e. left edge for portrait, top
         // edge for landscape/seascape).
         boolean isStartShift;
-        if (midpointIndex > -1) {
+        if (midpointIndex > -1 && midpointIndex < getChildCount()) {
             // When there is a midpoint reference task, adjacent tasks have less distance to travel
             // to reach offscreen. Offset the task position to the task's starting point, and offset
             // by current page's scroll diff.
