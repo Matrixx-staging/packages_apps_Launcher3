@@ -198,10 +198,22 @@ class TaskUiStateMapperTest {
     }
 
     @Test
-    fun taskData_thumbnailIsNull_returns_BackgroundOnly() {
+    fun taskData_thumbnailDataIsNull_returns_BackgroundOnly() {
         val result =
             TaskUiStateMapper.toTaskThumbnailUiState(
                 taskData = TASK_DATA.copy(thumbnailData = null)
+            )
+
+        val expected = TaskThumbnailUiState.BackgroundOnly(TASK_BACKGROUND_COLOR)
+        assertThat(result).isEqualTo(expected)
+    }
+
+    @Test
+    fun taskData_thumbnailIsNull_returns_BackgroundOnly() {
+        val result =
+            TaskUiStateMapper.toTaskThumbnailUiState(
+                taskData =
+                    TASK_DATA.copy(thumbnailData = TASK_THUMBNAIL_DATA.copy(thumbnail = null))
             )
 
         val expected = TaskThumbnailUiState.BackgroundOnly(TASK_BACKGROUND_COLOR)
