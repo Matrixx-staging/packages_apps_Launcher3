@@ -898,6 +898,8 @@ public class SplitSelectStateController {
         public void enterSplitSelect(ActivityManager.RunningTaskInfo taskInfo,
                 int splitPosition, Rect taskBounds, boolean startRecents,
                 @Nullable WindowContainerTransaction withRecentsWct) {
+            Log.v(TAG, "enterSplitSelect, startRecents=" + startRecents);
+
             mTaskInfo = taskInfo;
             PackageManager pm = mLauncher.getApplicationContext().getPackageManager();
             IconProvider provider = new IconProvider(mLauncher.getApplicationContext());
@@ -995,8 +997,12 @@ public class SplitSelectStateController {
                         if (targets == null) {
                             return;
                         }
+
                         SurfaceTransaction transaction = new SurfaceTransaction();
-                        hideFreeformTargets(transaction, targets.apps);
+                        // Hide all app targets, to allow Launcher to use views to animate the apps
+                        for (RemoteAnimationTarget target : targets.apps) {
+                            transaction.getTransaction().hide(target.leash);
+                        }
                         showHomeTarget(transaction, targets);
                         mSurfaceApplier.scheduleApply(transaction);
                     }
@@ -1100,21 +1106,7 @@ public class SplitSelectStateController {
                         .findAny()
                         .orElse(null);
                 if (homeTarget == null) return;
-                transaction.getTransaction().show(homeTarget.leash);
-            }
-
-            private void hideFreeformTargets(
-                    SurfaceTransaction transaction, RemoteAnimationTarget[] appTargets) {
-                List<RemoteAnimationTarget> freeformTargets = Arrays.stream(appTargets)
-                        .filter(target ->
-                                target.taskInfo != null && target.taskInfo.isFreeform())
-                        .toList();
-                if (freeformTargets.isEmpty()) {
-                    return;
-                }
-                for (RemoteAnimationTarget target : freeformTargets) {
-                    transaction.getTransaction().hide(target.leash);
-                }
+                transaction.getTransaction().setAlpha(homeTarget.leash, 1f);
             }
         }
     }
