@@ -240,6 +240,14 @@ public class TestInformationHandler {
                 return response;
             }
 
+            case TestProtocol.REQUEST_SHOULD_SHOW_HOME_BEHIND_DESKTOP: {
+                final Bundle bundle = getLauncherUIProperty(Bundle::putBoolean,
+                        launcher -> launcher.shouldShowHomeBehindDesktop());
+                if (bundle != null) return bundle;
+                response.putBoolean(TestProtocol.TEST_INFO_RESPONSE_FIELD, false);
+                return response;
+            }
+
             case TestProtocol.REQUEST_IS_IN_DESKTOP_FIRST_MODE: {
                 DisplayController.Info displayInfo = DisplayController.INSTANCE.get(
                         mContext).getInfoForDisplay(Integer.parseInt(arg));
