@@ -297,6 +297,7 @@ constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int = 0) :
         get() = taskContainer.iconView.asView()
 
     private fun animateOpenOrClosed(closing: Boolean, animated: Boolean = true) {
+        if (!iconView.isAttachedToWindow) return
         openCloseAnimator?.let { if (it.isRunning) it.cancel() }
         // If we're opening, we just start from the beginning as a new `TaskMenuView` is
         // created
