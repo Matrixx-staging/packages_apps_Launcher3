@@ -68,44 +68,32 @@ object TaskUiStateMapper {
         }
 
     /**
-     * Converts a [TaskData] object into a [TaskThumbnailUiState] for display in the UI.
-     *
-     * This function handles different types of [TaskData] and determines the appropriate UI state
-     * based on the data and provided flags.
+     * Converts a [TaskData] object into the appropriate [TaskThumbnailUiState] for the UI.
      *
      * @param taskData The [TaskData] to convert. Can be null or a specific subclass.
-     * @param isLiveTile A flag indicating whether the task data represents live tile.
      * @return A [TaskThumbnailUiState] representing the UI state for the given task data.
      */
     fun toTaskThumbnailUiState(taskData: TaskData?): TaskThumbnailUiState =
         when {
             taskData !is TaskData.Data -> Uninitialized
             taskData.isLiveTile -> LiveTile
-            isBackgroundOnly(taskData) ->
+            taskData.isLocked || taskData.thumbnailData?.thumbnail == null ->
                 BackgroundOnly(taskData.backgroundColor).also {
                     Log.d(
                         "b/417220811",
                         "Task id: ${taskData.taskId}, thumbnailData: ${taskData.thumbnailData}, isLocked: ${taskData.isLocked}",
                     )
                 }
-            isSnapshotSplash(taskData) ->
+            else ->
                 SnapshotSplash(
                     Snapshot(
-                        taskData.thumbnailData?.thumbnail!!,
+                        taskData.thumbnailData.thumbnail!!,
                         taskData.thumbnailData.rotation,
                         taskData.backgroundColor,
                     ),
                     taskData.icon,
                 )
-
-            else -> Uninitialized
         }
-
-    private fun isBackgroundOnly(taskData: TaskData.Data) =
-        taskData.isLocked || taskData.thumbnailData == null
-
-    private fun isSnapshotSplash(taskData: TaskData.Data) =
-        taskData.thumbnailData?.thumbnail != null && !taskData.isLocked
 
     /**
      * Converts a [TaskData] object into a [TaskAppTimerUiState] for displaying an app timer toast

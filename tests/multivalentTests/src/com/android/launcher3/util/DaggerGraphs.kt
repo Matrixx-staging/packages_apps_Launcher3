@@ -28,6 +28,7 @@ import com.android.launcher3.dagger.PerDisplayModule
 import com.android.launcher3.dagger.StaticObjectModule
 import com.android.launcher3.dagger.WidgetModule
 import com.android.launcher3.dagger.WindowManagerProxyModule
+import com.android.launcher3.homescreenfiles.HomeScreenFilesNoOpModule
 import com.android.launcher3.util.dagger.LauncherExecutorsModule
 import dagger.Binds
 import dagger.Module
@@ -51,6 +52,7 @@ abstract class FakePrefsModule {
             LauncherExecutorsModule::class,
             NoOpWidgetPickerModule::class,
             LauncherModelModule::class,
+            HomeScreenFilesNoOpModule::class,
         ]
 )
 class CommonModulesForTest

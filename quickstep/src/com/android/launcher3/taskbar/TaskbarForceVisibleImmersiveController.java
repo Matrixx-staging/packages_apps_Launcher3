@@ -83,6 +83,11 @@ public class TaskbarForceVisibleImmersiveController implements TouchController {
         mControllers = controllers;
     }
 
+    /** Returns whether we are in immersive mode. */
+    public boolean isImmersiveMode() {
+        return mIsImmersiveMode;
+    }
+
     /** Update values tracked via sysui flags. */
     public void updateSysuiFlags(@SystemUiStateFlags long sysuiFlags) {
         if (mContext.isPhoneMode()) {

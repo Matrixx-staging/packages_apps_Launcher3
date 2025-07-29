@@ -37,6 +37,7 @@ class GetThumbnailPositionUseCase(
         isRtl: Boolean,
         splitBounds: SplitBounds?,
         splitPosition: Int,
+        densityDpi: Int,
     ): ThumbnailPosition {
         val thumbnail =
             thumbnailData?.thumbnail ?: return ThumbnailPosition(Matrix.IDENTITY_MATRIX, false)
@@ -51,6 +52,7 @@ class GetThumbnailPositionUseCase(
             deviceProfileRepository.getRecentsDeviceProfile().isLargeScreen,
             rotationStateRepository.getRecentsRotationState().activityRotation,
             isRtl,
+            densityDpi,
         )
         return ThumbnailPosition(
             matrix = previewPositionHelper.matrix,

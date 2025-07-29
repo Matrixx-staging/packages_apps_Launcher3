@@ -460,7 +460,9 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
             boolean isRtlEnabled = !mIsRecentsRtl;
             mPositionHelper.updateThumbnailMatrix(
                     mThumbnailPosition, mThumbnailData, mTaskRect.width(), mTaskRect.height(),
-                    mDp.getDeviceProperties().isTablet(), mOrientationState.getRecentsActivityRotation(), isRtlEnabled);
+                    mDp.getDeviceProperties().isTablet(),
+                    mOrientationState.getRecentsActivityRotation(), isRtlEnabled,
+                    mContext.getResources().getDisplayMetrics().densityDpi);
             mPositionHelper.getMatrix().invert(mInversePositionMatrix);
             if (DEBUG) {
                 Log.d(TAG, " taskRect: " + mTaskRect);

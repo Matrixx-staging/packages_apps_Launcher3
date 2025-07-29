@@ -49,6 +49,7 @@ import com.android.systemui.shared.recents.model.Task
 import com.android.systemui.shared.recents.model.Task.TaskKey
 import com.android.window.flags.Flags
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus
+import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource
 import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Before
@@ -228,8 +229,8 @@ class ExternalDisplaySystemShortcutTest {
         whenever(launcher.statsLogManager).thenReturn(statsLogManager)
         whenever(statsLogManager.logger()).thenReturn(statsLogger)
         whenever(statsLogger.withItemInfo(any())).thenReturn(statsLogger)
-        whenever(recentsView.moveTaskToExternalDisplay(any(), any())).thenAnswer {
-            val successCallback = it.getArgument<Runnable>(1)
+        whenever(recentsView.moveTaskToExternalDisplay(any(), any(), any())).thenAnswer {
+            val successCallback = it.getArgument<Runnable>(2)
             successCallback.run()
         }
         val taskViewItemInfo = mock<TaskViewItemInfo>()
@@ -246,7 +247,12 @@ class ExternalDisplaySystemShortcutTest {
         val allTypesExceptRebindSafe =
             AbstractFloatingView.TYPE_ALL and AbstractFloatingView.TYPE_REBIND_SAFE.inv()
         verify(abstractFloatingViewHelper).closeOpenViews(launcher, true, allTypesExceptRebindSafe)
-        verify(recentsView).moveTaskToExternalDisplay(eq(taskContainer), any())
+        verify(recentsView)
+            .moveTaskToExternalDisplay(
+                eq(taskContainer),
+                eq(DesktopModeTransitionSource.OVERVIEW_TASK_MENU),
+                any(),
+            )
         verify(statsLogger).withItemInfo(taskViewItemInfo)
         verify(statsLogger).log(LauncherEvent.LAUNCHER_SYSTEM_SHORTCUT_EXTERNAL_DISPLAY_TAP)
     }

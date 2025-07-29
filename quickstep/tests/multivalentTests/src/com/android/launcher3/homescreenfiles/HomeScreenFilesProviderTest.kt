@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 
-package com.android.launcher3
+package com.android.launcher3.homescreenfiles
 
-import com.android.launcher3.util.BaseContext
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import org.junit.runner.RunWith
 
-/** Tracks [BaseContext]'s lifecycle to detect memory leaks. */
-interface LifecycleTracker {
-    fun trackLifecycleOnDestroy(baseContext: BaseContext, delayMs: Long)
+@RunWith(AndroidJUnit4::class)
+class HomeScreenFilesProviderTest {
+    private val provider: HomeScreenFilesProvider = HomeScreenFilesMediaStoreProvider()
+
+    @Test
+    fun createsHomeScreenFilesProviderInstance() {
+        assertTrue(provider is HomeScreenFilesMediaStoreProvider)
+    }
 }

@@ -133,32 +133,35 @@ class ValidGridMigrationUnitTest {
                 {},
             )
 
-        Favorites.addTableToDb(dbHelper.writableDatabase, userSerial, false, srcGrid.tableName)
+        dbHelper.writableDatabase.use { writableDb ->
+            Favorites.addTableToDb(writableDb, userSerial, false, srcGrid.tableName)
 
-        addItemsToDb(dbHelper.writableDatabase, srcGrid)
-        addItemsToDb(dbHelper.writableDatabase, dstGrid)
+            addItemsToDb(writableDb, srcGrid)
+            addItemsToDb(writableDb, dstGrid)
 
-        LauncherDbUtils.SQLiteTransaction(dbHelper.writableDatabase).use {
-            val gridSizeMigrationLogic = context.appComponent.createNewGridSizeMigrationLogic()
-            val idsInUse = mutableListOf<Int>()
-            gridSizeMigrationLogic.migrateHotseat(
-                srcGrid.size.x,
-                dstGrid.size.x,
-                GridSizeMigrationDBController.DbReader(it.db, srcGrid.tableName, context),
-                GridSizeMigrationDBController.DbReader(it.db, dstGrid.tableName, context),
-                dbHelper,
-                idsInUse,
-            )
-            gridSizeMigrationLogic.migrateWorkspace(
-                GridSizeMigrationDBController.DbReader(it.db, srcGrid.tableName, context),
-                GridSizeMigrationDBController.DbReader(it.db, dstGrid.tableName, context),
-                dbHelper,
-                dstGrid.size,
-                idsInUse,
-            )
-            it.commit()
+            LauncherDbUtils.SQLiteTransaction(writableDb).use { transaction ->
+                val gridSizeMigrationLogic = context.appComponent.createNewGridSizeMigrationLogic()
+                val idsInUse = mutableListOf<Int>()
+                gridSizeMigrationLogic.migrateHotseat(
+                    srcGrid.size.x,
+                    dstGrid.size.x,
+                    GridSizeMigrationDBController.DbReader(writableDb, srcGrid.tableName, context),
+                    GridSizeMigrationDBController.DbReader(writableDb, dstGrid.tableName, context),
+                    dbHelper,
+                    idsInUse,
+                )
+                gridSizeMigrationLogic.migrateWorkspace(
+                    GridSizeMigrationDBController.DbReader(writableDb, srcGrid.tableName, context),
+                    GridSizeMigrationDBController.DbReader(writableDb, dstGrid.tableName, context),
+                    dbHelper,
+                    dstGrid.size,
+                    idsInUse,
+                )
+                transaction.commit()
+            }
         }
-        return readDb(dstGrid.tableName, dbHelper.readableDatabase)
+
+        return dbHelper.readableDatabase.use { readDb(dstGrid.tableName, it) }
     }
 
     @Test

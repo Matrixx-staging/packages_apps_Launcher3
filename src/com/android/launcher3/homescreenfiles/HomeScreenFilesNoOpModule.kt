@@ -14,11 +14,18 @@
  * limitations under the License.
  */
 
-package com.android.launcher3
+package com.android.launcher3.homescreenfiles
 
-import com.android.launcher3.util.BaseContext
+import com.android.launcher3.dagger.LauncherAppSingleton
+import dagger.Module
+import dagger.Provides
 
-/** Tracks [BaseContext]'s lifecycle to detect memory leaks. */
-interface LifecycleTracker {
-    fun trackLifecycleOnDestroy(baseContext: BaseContext, delayMs: Long)
+/** A dagger module responsible for managing files on the home screen. */
+@Module
+object HomeScreenFilesNoOpModule {
+    @Provides
+    @LauncherAppSingleton
+    fun provideHomeScreenFilesProvider(): HomeScreenFilesProvider {
+        return HomeScreenFilesNoOpProvider()
+    }
 }

@@ -16,13 +16,18 @@
 
 package com.android.launcher3.dagger;
 
+import com.android.launcher3.homescreenfiles.HomeScreenFilesNoOpModule;
+
 import dagger.Component;
 
 /**
  * Root component for Dagger injection for Launcher AOSP.
  */
 @LauncherAppSingleton
-@Component(modules = LauncherAppModule.class)
+@Component(modules = {
+        LauncherAppModule.class,
+        HomeScreenFilesNoOpModule.class,
+})
 public interface LauncherAppComponent extends LauncherBaseAppComponent {
     /** Builder for aosp LauncherAppComponent. */
     @Component.Builder

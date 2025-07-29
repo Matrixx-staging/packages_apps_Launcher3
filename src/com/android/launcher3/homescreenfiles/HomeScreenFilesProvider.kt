@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.launcher3
+package com.android.launcher3.homescreenfiles
 
-import com.android.launcher3.util.BaseContext
-
-/** Tracks [BaseContext]'s lifecycle to detect memory leaks. */
-interface LifecycleTracker {
-    fun trackLifecycleOnDestroy(baseContext: BaseContext, delayMs: Long)
-}
+/** An interface for managing file items to be shown on the home screen. */
+interface HomeScreenFilesProvider {}

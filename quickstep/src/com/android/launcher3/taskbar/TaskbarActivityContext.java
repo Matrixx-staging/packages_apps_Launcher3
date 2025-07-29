@@ -188,6 +188,7 @@ import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags;
 import com.android.systemui.unfold.updates.RotationChangeProvider;
 import com.android.systemui.unfold.util.ScopedUnfoldTransitionProgressProvider;
+import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource;
 import com.android.wm.shell.shared.desktopmode.DesktopTaskToFrontReason;
 
 import java.io.PrintWriter;
@@ -1139,8 +1140,11 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             mAddedWindow = false;
         }
 
+        // Since TaskbarDragLayer is removed from view hierarchy AFTER onDestroy() and it holds ref
+        // to TaskbarActivityContext, we add 1s delay to check leaks in order to avoid false
+        // positive leak alarms.
         for (LifecycleTracker tracker: LauncherComponentProvider.get(this).getLifecycleTrackers()) {
-            tracker.trackLifecycleOnDestroy(this);
+            tracker.trackLifecycleOnDestroy(this, 1000L);
         }
     }
 
@@ -1521,19 +1525,12 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         notifyUpdateLayoutParams();
     }
 
-    /**
-     * Applies forcibly show flag to taskbar window iff transient taskbar is unstashed.
-     */
+    /** Applies forcibly show flag to taskbar window iff transient taskbar is unstashed. */
     public void applyForciblyShownFlagWhileTransientTaskbarUnstashed(boolean shouldForceShow) {
         if (!isTransientTaskbar() || isPhoneMode()) {
             return;
         }
-        if (shouldForceShow) {
-            mWindowLayoutParams.forciblyShownTypes |= WindowInsets.Type.navigationBars();
-        } else {
-            mWindowLayoutParams.forciblyShownTypes &= ~WindowInsets.Type.navigationBars();
-        }
-        notifyUpdateLayoutParams();
+        applyForciblyShownFlag(shouldForceShow);
     }
 
     /**
@@ -1549,6 +1546,23 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
      */
     public void applyForciblyShownFlagForBubblesInPersistentTaskbar(boolean shouldForceShow) {
         if (isTransientTaskbar()) {
+            return;
+        }
+        applyForciblyShownFlag(shouldForceShow);
+    }
+
+    /**
+     * Applies the forcibly shown flag to the task bar window.
+     *
+     * <p>Note that this may result in a binder call and a layout pass. If we are not in immersive
+     * mode, then the taskbar window is already visible, so requests to force show it are ignored to
+     * avoid unnecessary binder calls.
+     */
+    private void applyForciblyShownFlag(boolean shouldForceShow) {
+        final boolean isImmersiveMode =
+                mControllers.taskbarForceVisibleImmersiveController.isImmersiveMode();
+        if (shouldForceShow && !isImmersiveMode) {
+            // no need to force show the taskbar window if we're not in immersive mode
             return;
         }
         if (shouldForceShow) {
@@ -1635,7 +1649,8 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                             Cuj.CUJ_DESKTOP_MODE_APP_LAUNCH_FROM_ICON)
                             : null;
             Runnable launchTask = () -> handleGroupTaskLaunch(singleTask, remoteTransition,
-                    isTaskbarShowingDesktopTasks(), DesktopTaskToFrontReason.TASKBAR_TAP, view);
+                    isTaskbarShowingDesktopTasks(), DesktopTaskToFrontReason.TASKBAR_TAP, view,
+                    DesktopModeTransitionSource.TASKBAR);
             if (!runAfterLaunchingDesktopTaskIfInOverview(recents, launchTask)) {
                 launchTask.run();
             }
@@ -1782,11 +1797,12 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             @Nullable RemoteTransition remoteTransition,
             boolean onDesktop,
             DesktopTaskToFrontReason toFrontReason,
-            View startingView) {
+            View startingView,
+            DesktopModeTransitionSource transitionSource) {
         if (task instanceof DesktopTask) {
             UI_HELPER_EXECUTOR.execute(
                     () -> SystemUiProxy.INSTANCE.get(this).showDesktopApps(getDisplayId(),
-                            remoteTransition));
+                            remoteTransition, /* taskIdReorderToFront */ null, transitionSource));
             return;
         }
 

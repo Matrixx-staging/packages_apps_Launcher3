@@ -1154,12 +1154,16 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
         }
 
     /** Calls shell to remove the desk whose ID is `deskId`. */
-    fun removeDesk(deskId: Int) =
-        executeWithErrorLog({ "Failed call removeDesk" }) { desktopMode?.removeDesk(deskId) }
+    fun removeDesk(deskId: Int, transitionSource: DesktopModeTransitionSource) =
+        executeWithErrorLog({ "Failed call removeDesk" }) {
+            desktopMode?.removeDesk(deskId, transitionSource)
+        }
 
     /** Calls shell to remove all the available desks on all displays. */
-    fun removeAllDesks() =
-        executeWithErrorLog({ "Failed call removeAllDesks" }) { desktopMode?.removeAllDesks() }
+    fun removeAllDesks(transitionSource: DesktopModeTransitionSource) =
+        executeWithErrorLog({ "Failed call removeAllDesks" }) {
+            desktopMode?.removeAllDesks(transitionSource)
+        }
 
     /**
      * Call shell to show all apps active on the desktop and bring [taskIdToReorderToFront] to front
@@ -1171,12 +1175,14 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
         displayId: Int,
         transition: RemoteTransition? = null,
         taskIdToReorderToFront: Int? = null,
+        transitionSource: DesktopModeTransitionSource,
     ) =
         executeWithErrorLog({ "Failed call showDesktopApps" }) {
             desktopMode?.showDesktopApps(
                 displayId,
                 transition,
                 taskIdToReorderToFront ?: INVALID_TASK_ID,
+                transitionSource,
             )
         }
 
@@ -1236,15 +1242,15 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
         }
 
     /** Call shell to remove the desktop that is on given `displayId` */
-    fun removeDefaultDeskInDisplay(displayId: Int) =
+    fun removeDefaultDeskInDisplay(displayId: Int, transitionSource: DesktopModeTransitionSource) =
         executeWithErrorLog({ "Failed call removeDefaultDeskInDisplay" }) {
-            desktopMode?.removeDefaultDeskInDisplay(displayId)
+            desktopMode?.removeDefaultDeskInDisplay(displayId, transitionSource)
         }
 
     /** Call shell to move a task with given `taskId` to external display. */
-    fun moveToExternalDisplay(taskId: Int) =
+    fun moveToExternalDisplay(taskId: Int, transitionSource: DesktopModeTransitionSource) =
         executeWithErrorLog({ "Failed call moveToExternalDisplay" }) {
-            desktopMode?.moveToExternalDisplay(taskId)
+            desktopMode?.moveToExternalDisplay(taskId, transitionSource)
         }
 
     //
