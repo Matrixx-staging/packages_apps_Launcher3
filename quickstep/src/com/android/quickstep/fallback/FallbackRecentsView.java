@@ -332,6 +332,11 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
 
     @Override
     public boolean canLaunchFullscreenTask() {
+        // On external displays, the container is RecentsWindowManager and its state can be stale.
+        // Query `isSplitSelectionActive` directly for the current split selection status.
+        if (mContainer instanceof RecentsWindowManager) {
+            return !isSplitSelectionActive();
+        }
         return !mContainer.isInState(OVERVIEW_SPLIT_SELECT);
     }
 }
