@@ -52,6 +52,7 @@ import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.util.AnimUtils;
 import com.android.quickstep.util.SplitSelectStateController;
 import com.android.wm.shell.shared.GroupedTaskInfo;
+import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource;
 
 import kotlin.Unit;
 
@@ -289,7 +290,9 @@ public class LauncherRecentsView extends RecentsView<QuickstepLauncher, Launcher
         }
         super.onGestureAnimationEnd();
         if (showDesktopApps) {
-            SystemUiProxy.INSTANCE.get(mContainer).showDesktopApps(mContainer.getDisplayId());
+            SystemUiProxy.INSTANCE.get(mContainer).showDesktopApps(mContainer.getDisplayId(),
+                    /* transition */ null, /* taskIdToReorderToFront */ null,
+                    DesktopModeTransitionSource.RECENTS);
         }
     }
 }

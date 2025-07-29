@@ -188,6 +188,7 @@ import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags;
 import com.android.systemui.unfold.updates.RotationChangeProvider;
 import com.android.systemui.unfold.util.ScopedUnfoldTransitionProgressProvider;
+import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource;
 import com.android.wm.shell.shared.desktopmode.DesktopTaskToFrontReason;
 
 import java.io.PrintWriter;
@@ -1635,7 +1636,8 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                             Cuj.CUJ_DESKTOP_MODE_APP_LAUNCH_FROM_ICON)
                             : null;
             Runnable launchTask = () -> handleGroupTaskLaunch(singleTask, remoteTransition,
-                    isTaskbarShowingDesktopTasks(), DesktopTaskToFrontReason.TASKBAR_TAP, view);
+                    isTaskbarShowingDesktopTasks(), DesktopTaskToFrontReason.TASKBAR_TAP, view,
+                    DesktopModeTransitionSource.TASKBAR);
             if (!runAfterLaunchingDesktopTaskIfInOverview(recents, launchTask)) {
                 launchTask.run();
             }
@@ -1782,11 +1784,12 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             @Nullable RemoteTransition remoteTransition,
             boolean onDesktop,
             DesktopTaskToFrontReason toFrontReason,
-            View startingView) {
+            View startingView,
+            DesktopModeTransitionSource transitionSource) {
         if (task instanceof DesktopTask) {
             UI_HELPER_EXECUTOR.execute(
                     () -> SystemUiProxy.INSTANCE.get(this).showDesktopApps(getDisplayId(),
-                            remoteTransition));
+                            remoteTransition, /* taskIdReorderToFront */ null, transitionSource));
             return;
         }
 

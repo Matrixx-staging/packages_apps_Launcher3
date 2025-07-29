@@ -77,6 +77,7 @@ class DesktopRecentsTransitionController(
                 desktopTaskView.displayId,
                 transition,
                 taskIdToReorderToFront,
+                DesktopModeTransitionSource.RECENTS,
             )
         }
     }
@@ -96,8 +97,8 @@ class DesktopRecentsTransitionController(
     }
 
     /** Move task to external display from recents view */
-    fun moveToExternalDisplay(taskId: Int) {
-        systemUiProxy.moveToExternalDisplay(taskId)
+    fun moveToExternalDisplay(taskId: Int, transitionSource: DesktopModeTransitionSource) {
+        systemUiProxy.moveToExternalDisplay(taskId, transitionSource)
     }
 
     private class RemoteDesktopLaunchTransitionRunner(

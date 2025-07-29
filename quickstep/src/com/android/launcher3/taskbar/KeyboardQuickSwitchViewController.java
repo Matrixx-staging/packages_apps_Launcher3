@@ -274,7 +274,9 @@ public class KeyboardQuickSwitchViewController {
                     systemUiProxy
                             .showDesktopApps(
                                     mKeyboardQuickSwitchView.getDisplay().getDisplayId(),
-                                    slideInTransition));
+                                    slideInTransition,
+                                    /* taskIdReorderToFront */ null,
+                                    DesktopModeTransitionSource.KEYBOARD_SHORTCUT));
             return null;
         }
         // Even with a valid index, this can be null if the user tries to quick switch before the
@@ -308,7 +310,8 @@ public class KeyboardQuickSwitchViewController {
                 remoteTransition,
                 mOnDesktop,
                 DesktopTaskToFrontReason.ALT_TAB,
-                mKeyboardQuickSwitchView.getTaskAt(index));
+                mKeyboardQuickSwitchView.getTaskAt(index),
+                DesktopModeTransitionSource.KEYBOARD_SHORTCUT);
         return null;
     }
 

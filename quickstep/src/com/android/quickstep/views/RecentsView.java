@@ -4390,13 +4390,15 @@ public abstract class RecentsView<
                                 if (areMultiDesksFlagsEnabled()) {
                                     SystemUiProxy.INSTANCE
                                             .get(getContext())
-                                            .removeDesk(desktopTask.getDeskId());
+                                            .removeDesk(desktopTask.getDeskId(),
+                                                    DesktopModeTransitionSource.RECENTS);
                                 } else if (DesktopModeFlags
                                         .ENABLE_DESKTOP_WINDOWING_BACK_NAVIGATION.isTrue()) {
                                     SystemUiProxy.INSTANCE
                                             .get(getContext())
                                             .removeDefaultDeskInDisplay(
-                                                    mContainer.getDisplay().getDisplayId());
+                                                    mContainer.getDisplay().getDisplayId(),
+                                                    DesktopModeTransitionSource.RECENTS);
                                 }
                             } else {
                                 for (Task task : groupTask.getTasks()) {
@@ -4428,7 +4430,8 @@ public abstract class RecentsView<
                 // and closing all tasks on a desk doesn't always necessarily mean that the desk
                 // will be removed. So, there are no guarantees that the below call to
                 // `ActivityManagerWrapper::removeAllRecentTasks()` will be enough.
-                SystemUiProxy.INSTANCE.get(getContext()).removeAllDesks();
+                SystemUiProxy.INSTANCE.get(getContext()).removeAllDesks(
+                        DesktopModeTransitionSource.RECENTS);
 
                 // Remove all the task views now
                 finishRecentsAnimation(true /* toHome */, false /* shouldPip */, () -> {
@@ -6974,19 +6977,24 @@ public abstract class RecentsView<
     /**
      * Move the provided task into external display and invoke {@code successCallback} if succeeded.
      */
-    public void moveTaskToExternalDisplay(TaskContainer taskContainer, Runnable successCallback) {
+    public void moveTaskToExternalDisplay(TaskContainer taskContainer,
+            DesktopModeTransitionSource transitionSource, Runnable successCallback) {
         if (!DesktopModeStatus.canEnterDesktopMode(mContext)) {
             return;
         }
         switchToScreenshot(() -> finishRecentsAnimation(/* toHome= */true, /* shouldPip= */false,
-                () -> moveTaskToDesktopInternal(taskContainer, successCallback)));
+                () -> moveTaskToExternalDisplayInternal(taskContainer, successCallback,
+                        transitionSource)));
     }
 
-    private void moveTaskToDesktopInternal(TaskContainer taskContainer, Runnable successCallback) {
+    private void moveTaskToExternalDisplayInternal(TaskContainer taskContainer,
+            Runnable successCallback,
+            DesktopModeTransitionSource transitionSource) {
         if (mDesktopRecentsTransitionController == null) {
             return;
         }
-        mDesktopRecentsTransitionController.moveToExternalDisplay(taskContainer.getTask().key.id);
+        mDesktopRecentsTransitionController.moveToExternalDisplay(taskContainer.getTask().key.id,
+                transitionSource);
         dismissTaskView(taskContainer.getTaskView(), /*animate*/true, /*removeTask*/false);
         successCallback.run();
     }
