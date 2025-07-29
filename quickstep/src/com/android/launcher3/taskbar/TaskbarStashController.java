@@ -704,6 +704,9 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
     public void updateAndAnimatePinnedTaskbar(boolean isStashed) {
         boolean shouldApplyState = false;
         if (hasAnyFlag(FLAG_STASHED_IN_APP_AUTO) != isStashed) {
+            mControllers.bubbleControllers
+                    .map(c -> c.bubbleStashController)
+                    .ifPresent(bSC -> bSC.setStashedInPersistentTaskBar(isStashed));
             updateStateForFlag(FLAG_STASHED_IN_APP_AUTO, isStashed);
             shouldApplyState = true;
         }
@@ -1461,7 +1464,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
 
     private static String getStateString(long flags) {
         StringJoiner sj = new StringJoiner("|");
-        appendFlag(sj, flags, FLAGS_IN_APP, "FLAG_IN_APP");
+        appendFlag(sj, flags, FLAG_IN_APP, "FLAG_IN_APP");
         appendFlag(sj, flags, FLAG_STASHED_IN_APP_SYSUI, "FLAG_STASHED_IN_APP_SYSUI");
         appendFlag(sj, flags, FLAG_STASHED_IN_APP_SETUP, "FLAG_STASHED_IN_APP_SETUP");
         appendFlag(sj, flags, FLAG_STASHED_IME, "FLAG_STASHED_IN_APP_IME");
@@ -1472,6 +1475,11 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
         appendFlag(sj, flags, FLAG_STASHED_SYSUI, "FLAG_STASHED_SYSUI");
         appendFlag(sj, flags, FLAG_STASHED_DEVICE_LOCKED, "FLAG_STASHED_DEVICE_LOCKED");
         appendFlag(sj, flags, FLAG_IN_OVERVIEW, "FLAG_IN_OVERVIEW");
+        appendFlag(sj, flags, FLAG_DELAY_TASKBAR_BG_TAG, "FLAG_DELAY_TASKBAR_BG_TAG");
+        appendFlag(sj, flags, FLAG_STASHED_FOR_BUBBLES, "FLAG_STASHED_FOR_BUBBLES");
+        appendFlag(sj, flags, FLAG_TASKBAR_HIDDEN, "FLAG_TASKBAR_HIDDEN");
+        appendFlag(sj, flags, FLAG_STASHED_BUBBLE_BAR_ON_PHONE, "FLAG_STASHED_BUBBLE_BAR_ON_PHONE");
+        appendFlag(sj, flags, FLAG_IGNORE_IN_APP, "FLAG_IGNORE_IN_APP");
         return sj.toString();
     }
 
