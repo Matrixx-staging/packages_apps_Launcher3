@@ -26,7 +26,6 @@ import static android.window.DesktopModeFlags.ENABLE_TASKBAR_RECENTS_LAYOUT_TRAN
 import static com.android.app.animation.Interpolators.EMPHASIZED;
 import static com.android.app.animation.Interpolators.FINAL_FRAME;
 import static com.android.app.animation.Interpolators.LINEAR;
-import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.LauncherAnimUtils.SCALE_PROPERTY;
 import static com.android.launcher3.LauncherAnimUtils.VIEW_ALPHA;
 import static com.android.launcher3.LauncherAnimUtils.VIEW_TRANSLATE_X;
@@ -1065,17 +1064,12 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
                         && mIsStashed) {
                     // Prevent All Apps icon from appearing when going from hotseat to nav handle.
                     setter.setViewAlpha(child, 0, Interpolators.clampToProgress(LINEAR, 0f, 0f));
-                } else if (enableScalingRevealHomeAnimation()) {
+                } else {
                     // Tighten clamp so that these icons do not linger as the spring settles.
                     setter.setViewAlpha(child, 0,
                             isToHome
                                     ? Interpolators.clampToProgress(LINEAR, 0f, 0.07f)
                                     : Interpolators.clampToProgress(LINEAR, 0.93f, 1f));
-                } else {
-                    setter.setViewAlpha(child, 0,
-                            isToHome
-                                    ? Interpolators.clampToProgress(LINEAR, 0f, 0.17f)
-                                    : Interpolators.clampToProgress(LINEAR, 0.72f, 0.84f));
                 }
             } else if (((!isRtl && mTaskbarView.getChildCount() - i <= ignoreCount)
                     || (isRtl && i < ignoreCount))

@@ -22,7 +22,6 @@ import static com.android.app.animation.Interpolators.FINAL_FRAME;
 import static com.android.app.animation.Interpolators.INSTANT;
 import static com.android.app.animation.Interpolators.LINEAR;
 import static com.android.internal.jank.InteractionJankMonitor.Configuration;
-import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.Flags.refactorTaskbarUiState;
 import static com.android.launcher3.Flags.syncAppLaunchWithTaskbarStash;
 import static com.android.launcher3.QuickstepTransitionManager.PINNED_TASKBAR_TRANSITION_DURATION;
@@ -380,7 +379,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
 
         // Hide the background while stashed so it doesn't show on fast swipes home
         boolean shouldHideTaskbarBackground = mActivity.isPhoneMode() ||
-                (enableScalingRevealHomeAnimation() && isTransientTaskbar && isStashed());
+                (isTransientTaskbar && isStashed());
 
         mTaskbarBackgroundAlphaForStash.setValue(shouldHideTaskbarBackground ? 0 : 1);
 
@@ -957,9 +956,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
                 backgroundAndHandleAlphaDuration, LINEAR);
 
 
-        if (enableScalingRevealHomeAnimation()
-                && !isStashed
-                && shouldDelayBackground) {
+        if (!isStashed && shouldDelayBackground) {
             play(as, getTaskbarBackgroundAnimatorWhenNotGoingHome(duration),
                     0, 0, LINEAR);
             as.addListener(AnimatorListeners.forEndCallback(

@@ -31,7 +31,6 @@ import static com.android.launcher3.BaseActivity.EVENT_DESTROYED;
 import static com.android.launcher3.BaseActivity.EVENT_STARTED;
 import static com.android.launcher3.BaseActivity.INVISIBLE_BY_STATE_HANDLER;
 import static com.android.launcher3.BaseActivity.STATE_HANDLER_INVISIBILITY_FLAGS;
-import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.Flags.msdlFeedback;
 import static com.android.launcher3.Flags.refactorTaskbarUiState;
 import static com.android.launcher3.PagedView.INVALID_PAGE;
@@ -1476,9 +1475,7 @@ public abstract class AbsSwipeUpHandler<
         mGestureState.setEndTarget(endTarget, false /* isAtomic */);
         mAnimationFactory.setEndTarget(endTarget);
 
-        if (enableScalingRevealHomeAnimation()
-                && mIsTransientTaskbar
-                && mContainerInterface.getTaskbarController() != null) {
+        if (mIsTransientTaskbar && mContainerInterface.getTaskbarController() != null) {
             mContainerInterface.getTaskbarController()
                     .setUserIsNotGoingHome(endTarget != HOME);
         }

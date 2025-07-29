@@ -18,7 +18,6 @@ package com.android.launcher3.taskbar;
 import static com.android.app.animation.Interpolators.EMPHASIZED;
 import static com.android.app.animation.Interpolators.FINAL_FRAME;
 import static com.android.app.animation.Interpolators.INSTANT;
-import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.Hotseat.ALPHA_CHANNEL_TASKBAR_ALIGNMENT;
 import static com.android.launcher3.Hotseat.ALPHA_CHANNEL_TASKBAR_STASH;
 import static com.android.launcher3.LauncherState.HOTSEAT_ICONS;
@@ -781,8 +780,7 @@ public class TaskbarLauncherStateController {
         }
 
         Interpolator interpolator =
-                enableScalingRevealHomeAnimation() && isTransient
-                        ? ScalingWorkspaceRevealAnim.SCALE_INTERPOLATOR : EMPHASIZED;
+                isTransient ? ScalingWorkspaceRevealAnim.SCALE_INTERPOLATOR : EMPHASIZED;
 
         animatorSet.setInterpolator(interpolator);
 
