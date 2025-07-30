@@ -30,6 +30,7 @@ import com.android.quickstep.recents.data.TaskVisualsChangedDelegateImpl
 import com.android.quickstep.recents.data.TasksRepository
 import com.android.quickstep.recents.data.UserLockedRepository
 import com.android.quickstep.recents.data.UserLockedStateRepository
+import com.android.quickstep.recents.domain.usecase.GetObscuredDesktopTaskIdsUseCase
 import com.android.quickstep.recents.domain.usecase.GetRemainingAppTimerDurationUseCase
 import com.android.quickstep.recents.domain.usecase.GetSysUiStatusNavFlagsUseCase
 import com.android.quickstep.recents.domain.usecase.GetTaskUseCase
@@ -223,6 +224,7 @@ private constructor(appContext: Context, dispatcherProvider: DispatcherProvider)
                         previewPositionHelperFactory = PreviewPositionHelperFactory(),
                     )
                 OrganizeDesktopTasksUseCase::class.java -> OrganizeDesktopTasksUseCase()
+                GetObscuredDesktopTaskIdsUseCase::class.java -> GetObscuredDesktopTaskIdsUseCase()
                 DesktopTileBackgroundDataSource::class.java ->
                     DesktopTileBackgroundDataSource(
                         WindowManagerGlobal.getWindowManagerService(),
