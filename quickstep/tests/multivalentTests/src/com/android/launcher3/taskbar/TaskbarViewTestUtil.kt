@@ -35,6 +35,7 @@ import com.android.launcher3.taskbar.TaskbarIconType.OVERFLOW
 import com.android.launcher3.taskbar.TaskbarIconType.RECENT
 import com.android.quickstep.util.GroupTask
 import com.android.quickstep.util.SingleTask
+import com.android.quickstep.util.SplitTask
 import com.android.systemui.shared.recents.model.Task
 import com.android.systemui.shared.recents.model.Task.TaskKey
 import com.google.common.truth.FailureMetadata
@@ -110,20 +111,24 @@ object TaskbarViewTestUtil {
         return List(size) { createRecentTask(it) }
     }
 
-    fun createRecentTask(id: Int = 0): GroupTask {
-        return SingleTask(
-            Task().apply {
-                key =
-                    TaskKey(
-                        id,
-                        5,
-                        testIntent(id),
-                        testComponent(id),
-                        Process.myUserHandle().identifier,
-                        System.currentTimeMillis(),
-                    )
-            }
-        )
+    fun createRecentTask(id: Int = 0): GroupTask = SingleTask(createTask(id))
+
+    fun createSplitTask(id: Int = 0): SplitTask =
+        SplitTask(createTask(id), createTask(id + 1), splitBounds = null)
+
+    private fun createTask(id: Int): Task {
+        return Task().apply {
+            title = "Task$id"
+            key =
+                TaskKey(
+                    id,
+                    5,
+                    testIntent(id),
+                    testComponent(id),
+                    Process.myUserHandle().identifier,
+                    System.currentTimeMillis(),
+                )
+        }
     }
 }
 

@@ -78,6 +78,7 @@ import com.android.launcher3.anim.AnimatorPlaybackController;
 import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.anim.RevealOutlineAnimation;
 import com.android.launcher3.anim.RoundedRectRevealOutlineProvider;
+import com.android.launcher3.apppairs.AppPairIcon;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.deviceprofile.TaskbarProfile;
 import com.android.launcher3.model.ModelWriter;
@@ -97,6 +98,7 @@ import com.android.launcher3.util.SandboxContext;
 import com.android.launcher3.views.IconButtonView;
 import com.android.quickstep.util.GroupTask;
 import com.android.quickstep.util.SingleTask;
+import com.android.quickstep.util.SplitTask;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation;
 
@@ -1398,6 +1400,10 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
                 if (groupTask.containsTask(task.key.id)) {
                     mTaskbarView.applyGroupTaskToBubbleTextView(btv, groupTask);
                 }
+            } else if (view instanceof AppPairIcon appPairIcon
+                    && view.getTag() instanceof SplitTask st
+                    && st.containsTask(task.key.id)) {
+                appPairIcon.updateInfo(st.toAppPairInfo());
             } else if (view instanceof TaskbarOverflowView overflowButton) {
                 overflowButton.updateTaskIsShown(task);
             }

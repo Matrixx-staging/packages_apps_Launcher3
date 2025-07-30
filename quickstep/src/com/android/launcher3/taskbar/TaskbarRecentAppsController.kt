@@ -24,6 +24,7 @@ import com.android.launcher3.BubbleTextView.RunningAppState
 import com.android.launcher3.Flags
 import com.android.launcher3.Flags.enableRecentsInTaskbar
 import com.android.launcher3.Flags.enableTaskbarRecentsThemedIcons
+import com.android.launcher3.model.data.AppPairInfo
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.TaskItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
@@ -35,6 +36,7 @@ import com.android.quickstep.RecentsModel
 import com.android.quickstep.util.DesktopTask
 import com.android.quickstep.util.GroupTask
 import com.android.quickstep.util.SingleTask
+import com.android.quickstep.util.SplitTask
 import com.android.systemui.shared.recents.model.Task
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus
 import java.io.PrintWriter
@@ -466,7 +468,15 @@ class TaskbarRecentAppsController(
                         shownHotseatItems.none {
                             groupTask.containsPackage(it.targetPackage, it.user.identifier)
                         }
-
+                    is SplitTask ->
+                        shownHotseatItems.filterIsInstance<AppPairInfo>().none {
+                            val firstPackage = it.getFirstApp().targetPackage
+                            val secondPackage = it.getSecondApp().targetPackage
+                            val userId = it.user.identifier
+                            // Dedupe even if the app order is swapped.
+                            groupTask.containsPackage(firstPackage, userId) &&
+                                groupTask.containsPackage(secondPackage, userId)
+                        }
                     else -> true
                 }
             }

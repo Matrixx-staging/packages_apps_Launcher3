@@ -19,7 +19,9 @@ package com.android.launcher3.taskbar
 import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
 import android.view.View
+import androidx.core.view.children
 import com.android.launcher3.R
+import com.android.launcher3.apppairs.AppPairIcon
 import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.taskbar.TaskbarControllerTestUtil.runOnMainSync
 import com.android.launcher3.taskbar.TaskbarIconType.ALL_APPS
@@ -30,8 +32,10 @@ import com.android.launcher3.taskbar.TaskbarIconType.RECENT
 import com.android.launcher3.taskbar.TaskbarViewTestUtil.assertThat
 import com.android.launcher3.taskbar.TaskbarViewTestUtil.createHotseatItems
 import com.android.launcher3.taskbar.TaskbarViewTestUtil.createRecents
+import com.android.launcher3.taskbar.TaskbarViewTestUtil.createSplitTask
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.ForceRtl
+import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.InjectController
 import com.android.launcher3.taskbar.rules.TaskbarWindowSandboxContext
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.LauncherMultivalentJUnit.EmulatedDevices
@@ -52,6 +56,7 @@ class TaskbarViewTest {
     @get:Rule(order = 1) val context = TaskbarWindowSandboxContext.create()
     @get:Rule(order = 2) val taskbarUnitTestRule = TaskbarUnitTestRule(this, context)
 
+    @InjectController lateinit var viewController: TaskbarViewController
     private lateinit var taskbarView: TaskbarView
 
     private val iconViews: Array<View>
@@ -457,6 +462,64 @@ class TaskbarViewTest {
                 startIndex = 0,
                 expectedIds = ((recentsSize - expectedNumRecents)..<recentsSize).toList().reversed(),
             )
+    }
+
+    @Test
+    fun testUpdateItems_splitTask_addsAppPairIconToTaskbar() {
+        runOnMainSync { taskbarView.updateItems(emptyArray(), listOf(createSplitTask())) }
+        val icon = taskbarView.children.last()
+        Truth.assertThat(icon).isInstanceOf(AppPairIcon::class.java)
+    }
+
+    @Test
+    fun testUpdateItems_withExistingSplitTask_appPairIconIsSameInstance() {
+        val splitTask = createSplitTask()
+        runOnMainSync { taskbarView.updateItems(emptyArray(), listOf(splitTask)) }
+        val appPairIcon1 = taskbarView.children.last()
+
+        runOnMainSync { taskbarView.updateItems(emptyArray(), listOf(splitTask)) }
+        val appPairIcon2 = taskbarView.children.last()
+
+        Truth.assertThat(appPairIcon1).isSameInstanceAs(appPairIcon2)
+    }
+
+    @Test
+    fun testUpdateItems_splitTaskReplaced_appPairIconReplaced() {
+        runOnMainSync { taskbarView.updateItems(emptyArray(), listOf(createSplitTask(0))) }
+        val appPairIcon1 = taskbarView.children.last()
+
+        runOnMainSync { taskbarView.updateItems(emptyArray(), listOf(createSplitTask(1))) }
+        val appPairIcon2 = taskbarView.children.last()
+
+        Truth.assertThat(appPairIcon1).isNotSameInstanceAs(appPairIcon2)
+        Truth.assertThat(appPairIcon1.parent).isNull()
+    }
+
+    @Test
+    fun testOnTaskUpdated_splitTask_bottomRightTaskTitleChanged_updatesTitle() {
+        val splitTask = createSplitTask()
+        val expectedTitle1 =
+            context.getString(
+                R.string.app_pair_default_title,
+                splitTask.topLeftTask.title,
+                splitTask.bottomRightTask.title,
+            )
+        runOnMainSync { taskbarView.updateItems(emptyArray(), listOf(splitTask)) }
+
+        val icon = taskbarView.children.last() as AppPairIcon
+        Truth.assertThat(icon.titleTextView.text).isEqualTo(expectedTitle1)
+
+        val newTitle = "Task1b"
+        splitTask.bottomRightTask.title = newTitle
+        val expectedTitle2 =
+            context.getString(
+                R.string.app_pair_default_title,
+                splitTask.topLeftTask.title,
+                newTitle,
+            )
+
+        runOnMainSync { viewController.onTaskUpdated(splitTask.bottomRightTask) }
+        Truth.assertThat(icon.titleTextView.text).isEqualTo(expectedTitle2)
     }
 
     /** Returns the number of expected recents outside of the overflow based on [hotseatSize]. */

@@ -154,6 +154,13 @@ public class AppPairIcon extends FrameLayout implements DraggableView, Reorderab
         return icon;
     }
 
+    /** Updates icon based on new info. */
+    public void updateInfo(AppPairInfo info) {
+        mInfo = info;
+        mIconGraphic.init(this, mContainer);
+        updateTitleAndA11yTitle();
+    }
+
     /**
      * Updates the title and a11y title of the app pair. Called on creation and when packages
      * change, to reflect app name changes or user language changes.
