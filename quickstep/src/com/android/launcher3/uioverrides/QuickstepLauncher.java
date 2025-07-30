@@ -49,7 +49,7 @@ import static com.android.launcher3.compat.AccessibilityManagerCompat.sendCustom
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_APP_LAUNCH_TAP;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SPLIT_SELECTION_EXIT_HOME;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SPLIT_SELECTION_EXIT_INTERRUPTED;
-import static com.android.launcher3.popup.PinToTaskbarShortcut.PIN_ITEM_FROM_LAUNCHER;
+import static com.android.launcher3.taskbar.PinToTaskbarShortcut.PIN_ITEM_FROM_LAUNCHER;
 import static com.android.launcher3.popup.QuickstepSystemShortcut.getSplitSelectShortcutByPosition;
 import static com.android.launcher3.popup.SystemShortcut.APP_INFO;
 import static com.android.launcher3.popup.SystemShortcut.BUBBLE_SHORTCUT;
@@ -641,9 +641,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         }
     }
 
-    @Override
     public void onItemPinnedFromContextMenu() {
-        super.onItemPinnedFromContextMenu();
         mHotseatPredictionController.onItemPinnedFromContextMenu();
     }
 

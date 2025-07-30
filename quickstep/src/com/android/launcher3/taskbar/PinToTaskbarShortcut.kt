@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package com.android.launcher3.popup
+package com.android.launcher3.taskbar
 
 import android.content.Context
 import android.util.SparseArray
 import android.view.View
 import androidx.annotation.VisibleForTesting
 import com.android.launcher3.DeviceProfile
-import com.android.launcher3.Launcher
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
 import com.android.launcher3.R
-import com.android.launcher3.Workspace.mapOverCellLayouts
 import com.android.launcher3.model.BgDataModel
 import com.android.launcher3.model.ModelWriter
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
+import com.android.launcher3.popup.SystemShortcut
 import com.android.launcher3.popup.SystemShortcut.Factory
+import com.android.launcher3.uioverrides.QuickstepLauncher
 import com.android.launcher3.views.ActivityContext
 
 /**
@@ -95,10 +95,10 @@ constructor(
         val dp: DeviceProfile = mTarget.deviceProfile
         var targetIdx = -1
 
-        // Reorder the hotseat only if we can't find a space that is to the right of all other
+        // Reorder the taskbar only if we can't find a space that is to the right of all other
         // items.
         if (mPinnedInfoList[dp.numShownHotseatIcons - 1] != null) {
-            compactHotseatItems(writer)
+            compactTaskbarItems(writer)
         }
 
         // Find the first available space that has larger index than all other items.
@@ -117,11 +117,11 @@ constructor(
     }
 
     /**
-     * Moves all the hotseat items to the front so that spaces that don't have a pinned item will be
-     * at the end of the hotseat. This can ensure that the newly pinned app will be appended to the
-     * end of the hotseat/taskbar.
+     * Moves all the taskbar items to the front so that spaces that don't have a pinned item will be
+     * at the end of the taskbar. This can ensure that the newly pinned app will be appended to the
+     * end of the taskbar.
      */
-    private fun compactHotseatItems(writer: ModelWriter) {
+    private fun compactTaskbarItems(writer: ModelWriter) {
         if (mIsPin && mPinnedInfoList.size() > 0) {
             val dp: DeviceProfile = mTarget!!.deviceProfile
             val nonNullItems = mutableListOf<ItemInfo>()
@@ -171,50 +171,45 @@ constructor(
 
     companion object {
         @JvmField
-        val PIN_ITEM_FROM_LAUNCHER: Factory<Launcher> = Factory { context, itemInfo, originalView ->
-            if (context !is Launcher) {
+        val PIN_ITEM_FROM_LAUNCHER: Factory<QuickstepLauncher> =
+            Factory { context, itemInfo, originalView ->
+                val taskbarInfoList =
+                    context.taskbarUIController
+                        ?.mControllers
+                        ?.taskbarPopupController
+                        ?.taskbarInfoList ?: return@Factory null
+
+                var isPinnedInTaskbar = false
+                for (i in 0 until taskbarInfoList.size()) {
+                    if (taskbarInfoList.valueAt(i)?.componentKey == itemInfo?.componentKey) {
+                        isPinnedInTaskbar = true
+                        break
+                    }
+                }
+
+                if (isPinnedInTaskbar) {
+                    // As the item is already pinned, return a shortcut to UNPIN it.
+                    return@Factory PinToTaskbarShortcut<QuickstepLauncher>(
+                        context,
+                        itemInfo,
+                        originalView,
+                        false,
+                        taskbarInfoList,
+                    )
+                }
+
+                if (taskbarInfoList.size() < context.deviceProfile.numShownHotseatIcons) {
+                    return@Factory PinToTaskbarShortcut<QuickstepLauncher>(
+                        context,
+                        itemInfo,
+                        originalView,
+                        true,
+                        taskbarInfoList,
+                        context::onItemPinnedFromContextMenu,
+                    )
+                }
+
                 return@Factory null
             }
-
-            val hotseat = context.hotseat
-            val hotseatInfosList = SparseArray<ItemInfo?>()
-
-            val isPinnedInHotseat =
-                mapOverCellLayouts(arrayOf(hotseat)) { info, _ ->
-                    info?.componentKey == itemInfo?.componentKey
-                } != null
-
-            mapOverCellLayouts(arrayOf(hotseat)) { info, _ ->
-                if (info != null && !info.isPredictedItem) {
-                    // In hotseat, the screenId is often used as the rank or position.
-                    hotseatInfosList.put(info.screenId, info)
-                }
-                false // Return false to continue iterating through all items
-            }
-
-            if (isPinnedInHotseat) {
-                // As the item is already pinned, return a shortcut to UNPIN it.
-                return@Factory PinToTaskbarShortcut<Launcher>(
-                    context,
-                    itemInfo,
-                    originalView,
-                    false,
-                    hotseatInfosList,
-                )
-            }
-
-            if (hotseatInfosList.size() < context.deviceProfile.numShownHotseatIcons) {
-                return@Factory PinToTaskbarShortcut<Launcher>(
-                    context,
-                    itemInfo,
-                    originalView,
-                    true,
-                    hotseatInfosList,
-                    context::onItemPinnedFromContextMenu,
-                )
-            }
-
-            return@Factory null
-        }
     }
 }

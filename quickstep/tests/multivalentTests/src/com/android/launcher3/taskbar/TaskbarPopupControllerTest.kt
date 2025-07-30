@@ -30,7 +30,6 @@ import com.android.launcher3.R
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
-import com.android.launcher3.popup.PinToTaskbarShortcut
 import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.taskbar.TaskbarControllerTestUtil.runOnMainSync
 import com.android.launcher3.taskbar.TaskbarViewTestUtil.createHotseatWorkspaceItem
@@ -85,7 +84,7 @@ class TaskbarPopupControllerTest {
                 .map { item -> AppInfo(item.targetComponent, item.title, item.user, item.intent) }
                 .toTypedArray()
         )
-        popupController.setHotseatInfosList(SparseArray())
+        popupController.setTaskbarInfoList(SparseArray())
         val recentItems = createRecents(2)
         runOnMainSync {
             taskbarView.updateItems(hotseatItems, recentItems)
@@ -141,7 +140,7 @@ class TaskbarPopupControllerTest {
             )
 
         hotseatItems.put(0, pinnedItemInHotseat)
-        popupController.setHotseatInfosList(hotseatItems)
+        popupController.setTaskbarInfoList(hotseatItems)
         val allAppsAppIcon = Mockito.mock(BubbleTextView::class.java)
 
         val shortcut =
