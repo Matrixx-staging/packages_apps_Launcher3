@@ -27,6 +27,10 @@ import static com.android.launcher3.Flags.enableGrowthNudge;
 import static com.android.launcher3.Flags.enableTaskbarForDirectBoot;
 import static com.android.launcher3.Flags.enableTaskbarUiThread;
 import static com.android.launcher3.Flags.enableUnfoldStateAnimation;
+import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING;
+import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING_DESKTOP_MODE_KEY;
+import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING_IN_DESKTOP_MODE;
+import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING_KEY;
 import static com.android.launcher3.config.FeatureFlags.ENABLE_TASKBAR_NAVBAR_UNIFICATION;
 import static com.android.launcher3.config.FeatureFlags.enableTaskbarNoRecreate;
 import static com.android.launcher3.taskbar.growth.GrowthConstants.BROADCAST_SHOW_NUDGE;
@@ -82,6 +86,8 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherAppState;
+import com.android.launcher3.LauncherPrefChangeListener;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.anim.AnimatorListeners;
 import com.android.launcher3.anim.AnimatorPlaybackController;
 import com.android.launcher3.statehandlers.DesktopVisibilityController;
@@ -94,6 +100,7 @@ import com.android.launcher3.util.LockedUserState;
 import com.android.launcher3.util.LooperExecutor;
 import com.android.launcher3.util.SettingsCache;
 import com.android.launcher3.util.SimpleBroadcastReceiver;
+import com.android.launcher3.util.window.WindowManagerProxy;
 import com.android.quickstep.AllAppsActionManager;
 import com.android.quickstep.BaseContainerInterface;
 import com.android.quickstep.OverviewComponentObserver;
@@ -203,17 +210,40 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
      */
     private final Map<Integer, TaskbarSharedState> mTaskbarSharedStates = new ConcurrentHashMap<>();
 
+    private final LauncherPrefChangeListener mTaskbarPinningPreferenceChangeListener =
+            new LauncherPrefChangeListener() {
+                @Override
+                public void onPrefChanged(String key) {
+                    boolean isTaskbarPinningChanged = TASKBAR_PINNING_KEY.equals(key);
+                    boolean isTaskbarPinningDesktopModeChanged =
+                            TASKBAR_PINNING_DESKTOP_MODE_KEY.equals(key);
+                    if (isTaskbarPinningChanged || isTaskbarPinningDesktopModeChanged) {
+                        recreateTaskbars();
+                    }
+                }
+            };
+
+    private final WindowManagerProxy.DesktopVisibilityListener mDesktopVisibilityListener =
+            new WindowManagerProxy.DesktopVisibilityListener() {
+
+                @Override
+                public void onActiveDeskChanged(int displayId, int newActiveDesk,
+                        int oldActiveDesk) {
+                    // Only Handles Special Exit Cases for Desktop Mode Taskbar Recreation.
+                    TaskbarActivityContext taskbarActivityContext = getCurrentActivityContext();
+                    if (taskbarActivityContext != null
+                            && !taskbarActivityContext.showLockedTaskbarOnHome()
+                            && !taskbarActivityContext.showDesktopTaskbarForFreeformDisplay()) {
+                        recreateTaskbarForDisplay(displayId, 0);
+                    }
+                }
+            };
+
     /**
      * We use WindowManager's ComponentCallbacks() for internal UI changes (similar to an Activity)
      * which comes via a different channel
      */
     private final RecreationListener mRecreationListener = new RecreationListener();
-
-    // Currently, there is a duplicative call to recreate taskbars when user enter/exit Desktop
-    // Mode upon getting transition callback from shell side. So, we make sure that if taskbar is
-    // already in recreate process due to transition callback, don't recreate for
-    // DisplayInfoChangeListener.
-    private boolean mShouldIgnoreNextDesktopModeChangeFromDisplayControllerForPrimary = false;
 
     /** Not {@code null} if direct boot support is enabled and not {@link #mUserUnlocked} yet. */
     private @Nullable TaskbarBootAppContext mBootAppContext;
@@ -242,29 +272,14 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
                 recreateTaskbarForDisplay(displayIdToUpdate, /* duration= */ 0);
             };
 
-            if ((flags & (CHANGE_DENSITY | CHANGE_NAVIGATION_MODE | CHANGE_DESKTOP_MODE
-                    | CHANGE_TASKBAR_PINNING | CHANGE_SHOW_LOCKED_TASKBAR)) != 0) {
+            if ((flags & (CHANGE_DENSITY | CHANGE_NAVIGATION_MODE
+                    | CHANGE_SHOW_LOCKED_TASKBAR)) != 0) {
 
-                TaskbarActivityContext taskbarActivityContext = getTaskbarForDisplay(displayId);
                 if ((flags & CHANGE_SHOW_LOCKED_TASKBAR) != 0) {
                     debugTaskbarManager("onDisplayInfoChanged: show locked taskbar changed!",
                             displayId);
-                    updateExternalDpAndRecreateTaskbar.accept(displayId);
-                } else if ((flags & CHANGE_DESKTOP_MODE) != 0) {
-                    if (displayId == mPrimaryDisplayId
-                            && mShouldIgnoreNextDesktopModeChangeFromDisplayControllerForPrimary) {
-                        mShouldIgnoreNextDesktopModeChangeFromDisplayControllerForPrimary = false;
-                        return;
-                    }
-                    // Only Handles Special Exit Cases for Desktop Mode Taskbar Recreation.
-                    if (((flags & CHANGE_TASKBAR_PINNING) != 0) || (taskbarActivityContext != null
-                            && !taskbarActivityContext.showLockedTaskbarOnHome()
-                            && !taskbarActivityContext.showDesktopTaskbarForFreeformDisplay())) {
-                        updateExternalDpAndRecreateTaskbar.accept(displayId);
-                    }
-                } else {
-                    updateExternalDpAndRecreateTaskbar.accept(displayId);
                 }
+                updateExternalDpAndRecreateTaskbar.accept(displayId);
             }
         }
     }
@@ -288,7 +303,6 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
                     if (taskbarActivityContext != null
                             && !taskbarActivityContext.isInOverview()
                             && !taskbarActivityContext.showDesktopTaskbarForFreeformDisplay()) {
-                        mShouldIgnoreNextDesktopModeChangeFromDisplayControllerForPrimary = true;
                         AnimatorSet animatorSet = taskbarActivityContext.onDestroyAnimation(
                                 TASKBAR_DESTROY_DURATION);
                         animatorSet.addListener(AnimatorListeners.forEndCallback(
@@ -302,7 +316,6 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
                     TaskbarActivityContext taskbarActivityContext = getCurrentActivityContext();
                     if (taskbarActivityContext != null
                             && !taskbarActivityContext.showDesktopTaskbarForFreeformDisplay()) {
-                        mShouldIgnoreNextDesktopModeChangeFromDisplayControllerForPrimary = true;
                         AnimatorSet animatorSet = taskbarActivityContext.onDestroyAnimation(
                                 TASKBAR_DESTROY_DURATION);
                         animatorSet.addListener(AnimatorListeners.forEndCallback(
@@ -394,6 +407,9 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
         mBaseContext = context;
         mBaseWindowManager = mBaseContext.getSystemService(WindowManager.class);
         mPrimaryDisplayId = mBaseContext.getDisplayId();
+        attachPinningSharedPreferenceChangeListener(context);
+        DesktopVisibilityController.INSTANCE.get(mBaseContext).registerDesktopVisibilityListener(
+                mDesktopVisibilityListener);
         mAllAppsActionManager = allAppsActionManager;
         mNavCallbacks = navCallbacks;
         mDisplaysWithDecorationsRepositoryCompat = displaysWithDecorationsRepositoryCompat;
@@ -717,6 +733,14 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
             recreateTaskbarForDisplay(displayId, 0);
         }
     }
+
+    private void attachPinningSharedPreferenceChangeListener(Context context) {
+        LauncherPrefs.get(context).addListener(
+                mTaskbarPinningPreferenceChangeListener,
+                TASKBAR_PINNING,
+                TASKBAR_PINNING_IN_DESKTOP_MODE);
+    }
+
 
     /**
      * This method is called multiple times (ex. initial init, then when user unlocks) in which case
@@ -1117,6 +1141,13 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
         DesktopVisibilityController.INSTANCE.get(
                 mPrimaryWindowContext).unregisterTaskbarDesktopModeListener(
                 mTaskbarDesktopModeListener);
+        DesktopVisibilityController.INSTANCE.get(
+                mBaseContext).unregisterDesktopVisibilityListener(mDesktopVisibilityListener);
+        LauncherPrefs.get(mBaseContext).removeListener(
+                mTaskbarPinningPreferenceChangeListener,
+                TASKBAR_PINNING,
+                TASKBAR_PINNING_IN_DESKTOP_MODE);
+
         removeActivityCallbacksAndListeners();
         destroySharedStateForAllDisplays();
         if (mGrowthBroadcastReceiver != null) {

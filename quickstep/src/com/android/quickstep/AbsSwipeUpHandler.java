@@ -135,6 +135,7 @@ import com.android.launcher3.taskbar.TaskbarThresholdUtils;
 import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.taskbar.TaskbarUiState;
 import com.android.launcher3.taskbar.TaskbarUiStateMonitor;
+import com.android.launcher3.taskbar.customization.TaskbarFeatureEvaluator;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.MSDLPlayerWrapper;
@@ -438,8 +439,8 @@ public abstract class AbsSwipeUpHandler<
                 .getOrientationState().getLauncherDeviceProfile(gestureState.getDisplayId()));
         initStateCallbacks();
 
-        mIsTransientTaskbar = mDp.isTaskbarPresent
-                && DisplayController.isTransientTaskbar(context);
+        mIsTransientTaskbar = mDp.isTaskbarPresent && TaskbarFeatureEvaluator.INSTANCE.get(
+                context).isTransient();
         mTaskbarAlreadyOpen = !isTaskbarStashed(context);
         mIsTaskbarAllAppsOpen = isTaskbarAllAppsOpen(context);
         mTaskbarAppWindowThreshold =
@@ -1519,7 +1520,7 @@ public abstract class AbsSwipeUpHandler<
             mInputConsumerProxy.enable();
         }
         if (endTarget == HOME) {
-            boolean isPinnedTaskbar = DisplayController.isPinnedTaskbar(mContext);
+            boolean isPinnedTaskbar = !mIsTransientTaskbar;
             boolean isThreeButton = DisplayController.getNavigationMode(mContext)
                     == NavigationMode.THREE_BUTTONS;
             boolean isNotInDesktop =  !DisplayController.isInDesktopMode(mContext);
@@ -3054,7 +3055,7 @@ public abstract class AbsSwipeUpHandler<
         // Mimic TaskbarActivityContext.isTransientTaskbar
         final boolean isInPhoneMode = ENABLE_TASKBAR_NAVBAR_UNIFICATION
                 && mDp.getDeviceProperties().isPhone() && !mDp.isTaskbarPresent;
-        if (DisplayController.isTransientTaskbar(mContext)
+        if (mIsTransientTaskbar
                 && taskbarUiState.isPrimaryDisplayRef().getValue() && !isInPhoneMode) {
             return true;
         }

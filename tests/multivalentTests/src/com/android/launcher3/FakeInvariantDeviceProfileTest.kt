@@ -80,7 +80,6 @@ abstract class FakeInvariantDeviceProfileTest {
             isGestureMode,
             DEFAULT_PROVIDER,
             DEFAULT_DIMENSION_PROVIDER,
-            isTransientTaskbar,
             createDefaultDisplayOptionSpec(
                 info,
                 windowBounds,

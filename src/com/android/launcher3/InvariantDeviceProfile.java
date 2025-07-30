@@ -74,6 +74,7 @@ import com.android.launcher3.util.DisplayController.Info;
 import com.android.launcher3.util.Partner;
 import com.android.launcher3.util.ResourceHelper;
 import com.android.launcher3.util.SimpleBroadcastReceiver;
+import com.android.launcher3.util.TaskbarModeUtil;
 import com.android.launcher3.util.WindowBounds;
 import com.android.launcher3.util.window.CachedDisplayInfo;
 import com.android.launcher3.util.window.WindowManagerProxy;
@@ -266,6 +267,8 @@ public class InvariantDeviceProfile {
 
     private final List<OnIDPChangeListener> mChangeListeners = new CopyOnWriteArrayList<>();
 
+    public TaskbarModeUtil taskbarModeUtil;
+
     @Inject
     InvariantDeviceProfile(
             @ApplicationContext Context context,
@@ -273,9 +276,11 @@ public class InvariantDeviceProfile {
             DisplayController dc,
             WindowManagerProxy wmProxy,
             ThemeManager themeManager,
-            DaggerSingletonTracker lifeCycle) {
+            DaggerSingletonTracker lifeCycle,
+            TaskbarModeUtil taskbarModeUtil) {
         mDisplayController = dc;
         mWMProxy = wmProxy;
+        this.taskbarModeUtil = taskbarModeUtil;
         mPrefs = prefs;
         mThemeManager = themeManager;
 

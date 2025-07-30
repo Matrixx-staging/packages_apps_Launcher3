@@ -37,6 +37,7 @@ import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.popup.SystemShortcut;
 import com.android.launcher3.taskbar.bubbles.BubbleBarController;
+import com.android.launcher3.taskbar.customization.TaskbarFeatureEvaluator;
 import com.android.launcher3.util.SplitConfigurationOptions;
 import com.android.quickstep.GestureState;
 import com.android.quickstep.RecentsAnimationCallbacks;
@@ -164,6 +165,10 @@ public class TaskbarUIController implements BubbleBarController.BubbleBarLocatio
      */
     public boolean shouldAllowTaskbarToAutoStash() {
         return mControllers.taskbarActivityContext.shouldAllowTaskbarToAutoStash();
+    }
+
+    public TaskbarFeatureEvaluator getTaskbarFeatureEvaluator() {
+        return mControllers.taskbarActivityContext.getTaskbarFeatureEvaluator();
     }
 
     /**

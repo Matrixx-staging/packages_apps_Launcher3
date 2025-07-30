@@ -52,7 +52,11 @@ class TaskbarSpecsEvaluator(
     fun getIconSizeByGrid(columns: Int, rows: Int): TaskbarIconSize {
         return if (taskbarFeatureEvaluator.isTransient) {
             TaskbarIconSpecs.transientTaskbarIconSizeByGridSize.getOrDefault(
-                TransientTaskbarIconSizeKey(columns, rows, taskbarFeatureEvaluator.isLandscape),
+                TransientTaskbarIconSizeKey(
+                    columns,
+                    rows,
+                    taskbarActivityContext.deviceProfile.deviceProperties.isLandscape,
+                ),
                 TaskbarIconSpecs.defaultTransientIconSize,
             )
         } else {

@@ -26,6 +26,7 @@ import android.view.DisplayInfo;
 import android.view.WindowInsets;
 
 import com.android.launcher3.util.DisplayController.Info;
+import com.android.launcher3.util.NavigationMode;
 import com.android.launcher3.util.SandboxApplication;
 import com.android.launcher3.util.WindowBounds;
 import com.android.launcher3.util.launcheremulator.models.DeviceEmulationData;
@@ -43,6 +44,9 @@ public class TestWindowManagerProxy extends WindowManagerProxy {
     private DeviceEmulationData mDevice;
 
     private boolean mIsInDesktopMode;
+
+    private NavigationMode mNavigationMode;
+
 
     /**
      * Constructor to be used when initiating using xml overrides.
@@ -122,6 +126,18 @@ public class TestWindowManagerProxy extends WindowManagerProxy {
 
     protected CachedDisplayInfo getSecondaryDisplayInfo(int rotation) {
         return mDevice.secondDisplay.toCachedDisplayInfo(rotation);
+    }
+
+    @Override
+    public NavigationMode getNavigationMode(Context context) {
+        if (mNavigationMode == null) {
+            return super.getNavigationMode(context);
+        }
+        return mNavigationMode;
+    }
+
+    public void setNavigationMode(NavigationMode navigationMode) {
+        mNavigationMode = navigationMode;
     }
 
     /**

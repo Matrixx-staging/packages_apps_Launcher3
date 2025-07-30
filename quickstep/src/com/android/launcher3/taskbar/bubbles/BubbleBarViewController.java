@@ -42,10 +42,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.app.animation.Interpolators;
-import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.R;
 import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.anim.RoundedRectRevealOutlineProvider;
+import com.android.launcher3.deviceprofile.TaskbarProfile;
 import com.android.launcher3.taskbar.TaskbarActivityContext;
 import com.android.launcher3.taskbar.TaskbarAutohideSuspendController;
 import com.android.launcher3.taskbar.TaskbarControllers;
@@ -835,7 +835,7 @@ public class BubbleBarViewController {
     private int getDistanceBetweenTransientTaskbarAndBubbleBar(BubbleBarLocation location,
             Rect taskbarViewBounds) {
         Resources res = mActivity.getResources();
-        DeviceProfile transientDp = mActivity.getTransientTaskbarDeviceProfile();
+        TaskbarProfile transientDp = mActivity.getTransientTaskbarProfile();
         int transientIconSize = getBubbleBarIconSizeFromDeviceProfile(res, transientDp);
         int transientPadding = getBubbleBarPaddingFromDeviceProfile(res, transientDp);
         int transientWidthWithMargin = (int) (mBarView.getCollapsedWidthForIconSizeAndPadding(
@@ -874,17 +874,19 @@ public class BubbleBarViewController {
     }
 
     private int getBubbleBarIconSizeFromDeviceProfile(Resources res) {
-        return getBubbleBarIconSizeFromDeviceProfile(res, mActivity.getDeviceProfile());
+        return getBubbleBarIconSizeFromDeviceProfile(res,
+                mActivity.getDeviceProfile().getTaskbarProfile());
     }
 
-    private int getBubbleBarIconSizeFromDeviceProfile(Resources res, DeviceProfile deviceProfile) {
+    private static int getBubbleBarIconSizeFromDeviceProfile(Resources res,
+            TaskbarProfile deviceProfile) {
         DisplayMetrics dm = res.getDisplayMetrics();
         float smallIconSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
                 APP_ICON_SMALL_DP, dm);
         float mediumIconSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
                 APP_ICON_MEDIUM_DP, dm);
         float smallMediumThreshold = (smallIconSize + mediumIconSize) / 2f;
-        int taskbarIconSize = deviceProfile.getTaskbarProfile().getIconSize();
+        int taskbarIconSize = deviceProfile.getIconSize();
         return taskbarIconSize <= smallMediumThreshold
                 ? res.getDimensionPixelSize(R.dimen.bubblebar_icon_size_small) :
                 res.getDimensionPixelSize(R.dimen.bubblebar_icon_size);
@@ -892,17 +894,19 @@ public class BubbleBarViewController {
     }
 
     private int getBubbleBarPaddingFromDeviceProfile(Resources res) {
-        return getBubbleBarPaddingFromDeviceProfile(res, mActivity.getDeviceProfile());
+        return getBubbleBarPaddingFromDeviceProfile(res,
+                mActivity.getDeviceProfile().getTaskbarProfile());
     }
 
-    private int getBubbleBarPaddingFromDeviceProfile(Resources res, DeviceProfile deviceProfile) {
+    private static int getBubbleBarPaddingFromDeviceProfile(Resources res,
+            TaskbarProfile deviceProfile) {
         DisplayMetrics dm = res.getDisplayMetrics();
         float mediumIconSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
                 APP_ICON_MEDIUM_DP, dm);
         float largeIconSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
                 APP_ICON_LARGE_DP, dm);
         float mediumLargeThreshold = (mediumIconSize + largeIconSize) / 2f;
-        return deviceProfile.getTaskbarProfile().getIconSize() >= mediumLargeThreshold
+        return deviceProfile.getIconSize() >= mediumLargeThreshold
                 ? res.getDimensionPixelSize(R.dimen.bubblebar_icon_spacing_large) :
                 res.getDimensionPixelSize(R.dimen.bubblebar_icon_spacing);
     }
@@ -956,14 +960,14 @@ public class BubbleBarViewController {
         int persistentIconSize = res.getDimensionPixelSize(
                 R.dimen.bubblebar_icon_size_persistent_taskbar);
         int transientIconSize = getBubbleBarIconSizeFromDeviceProfile(res,
-                mActivity.getTransientTaskbarDeviceProfile());
+                mActivity.getTransientTaskbarProfile());
         float pinningIconSize = mapRange(pinningProgress, transientIconSize, persistentIconSize);
 
         // determine bubble bar padding for pinning
         int persistentPadding = res.getDimensionPixelSize(
                 R.dimen.bubblebar_icon_spacing_persistent_taskbar);
         int transientPadding = getBubbleBarPaddingFromDeviceProfile(res,
-                mActivity.getTransientTaskbarDeviceProfile());
+                mActivity.getTransientTaskbarProfile());
         float pinningPadding = mapRange(pinningProgress, transientPadding, persistentPadding);
         mBarView.setIconSizeAndPaddingForPinning(pinningIconSize, pinningPadding);
     }
@@ -980,10 +984,10 @@ public class BubbleBarViewController {
                 .getDimensionPixelSize(R.dimen.bubblebar_icon_spacing_persistent_taskbar);
         int persistentBubbleBarSize = persistentBubbleSize + persistentSpacingSize * 2;
         int persistentTaskbarHeight =
-                activity.getPersistentTaskbarDeviceProfile().getTaskbarProfile().getHeight();
+                activity.getPersistentTaskbarProfile().getHeight();
         int persistentBubbleBarY = (persistentTaskbarHeight - persistentBubbleBarSize) / 2;
         int transientBubbleBarY =
-                activity.getTransientTaskbarDeviceProfile().getTaskbarProfile().getBottomMargin();
+                activity.getTransientTaskbarProfile().getBottomMargin();
         return transientBubbleBarY - persistentBubbleBarY;
     }
 
