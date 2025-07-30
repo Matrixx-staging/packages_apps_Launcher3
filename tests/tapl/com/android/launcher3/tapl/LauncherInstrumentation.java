@@ -2701,6 +2701,15 @@ public final class LauncherInstrumentation {
     }
 
     /**
+     * Set the upper limit for max number of icons in the taskbar. Setting `maxIconsLimit` to -1
+     * resets previously set limitation.
+     */
+    public void limitMaxNumberOfTaskbarIcons(int maxIconsLimit) {
+        getTestInfo(TestProtocol.REQUEST_LIMIT_MAX_TASKBAR_ICON_NUMBER,
+                String.valueOf(maxIconsLimit)).getInt(TEST_INFO_RESPONSE_FIELD);
+    }
+
+    /**
      * Recreates the taskbar (outside of tests this is done for certain configuration changes).
      * The expected behavior is that the taskbar retains its current state after being recreated.
      * For example, if taskbar is currently stashed, it should still be stashed after recreating.

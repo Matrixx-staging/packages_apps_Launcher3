@@ -2363,6 +2363,14 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         return mControllers.stashedHandleViewController.getStashedHandleHintScale().value;
     }
 
+    /**
+     * Sets the upper limit for max number of icons in the taskbar.
+     */
+    @VisibleForTesting
+    public void limitMaxTaskbarIconsNum(int maxIconNumLimit) {
+        mControllers.taskbarViewController.limitMaxTaskbarIconsNum(maxIconNumLimit);
+    }
+
     /** Closes the KeyboardQuickSwitchView without an animation if open. */
     public void closeKeyboardQuickSwitchView() {
         mControllers.keyboardQuickSwitchController.closeQuickSwitchView(false);
