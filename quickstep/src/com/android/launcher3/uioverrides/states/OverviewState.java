@@ -157,7 +157,7 @@ public class OverviewState extends LauncherState {
     }
 
     @Override
-    public boolean isTaskbarAlignedWithHotseat(Launcher launcher) {
+    public boolean isTaskbarAlignedWithHotseat() {
         return false;
     }
 

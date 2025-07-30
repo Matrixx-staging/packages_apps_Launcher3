@@ -902,7 +902,7 @@ public class TaskbarLauncherStateController {
             return false;
         }
 
-        return mLauncherState.isTaskbarAlignedWithHotseat(mLauncher);
+        return mLauncherState.isTaskbarAlignedWithHotseat();
     }
 
     /**

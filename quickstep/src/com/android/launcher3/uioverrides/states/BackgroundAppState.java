@@ -119,11 +119,6 @@ public class BackgroundAppState extends OverviewState {
     }
 
     @Override
-    public boolean isTaskbarAlignedWithHotseat(Launcher launcher) {
-        return false;
-    }
-
-    @Override
     public boolean disallowTaskbarGlobalDrag() {
         // Enable global drag in overview
         return false;
