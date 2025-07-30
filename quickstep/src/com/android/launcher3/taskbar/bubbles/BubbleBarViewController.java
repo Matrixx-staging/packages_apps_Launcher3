@@ -147,7 +147,6 @@ public class BubbleBarViewController {
     private BubbleBarViewAnimator mBubbleBarViewAnimator;
     private final FrameLayout mBubbleBarContainer;
     private BubbleBarFlyoutController mBubbleBarFlyoutController;
-    private BubbleBarPinController mBubbleBarPinController;
     private DragToBubbleController mDragToBubbleController;
     private TaskbarSharedState mTaskbarSharedState;
     private final TimeSource mTimeSource = System::currentTimeMillis;
@@ -196,7 +195,6 @@ public class BubbleBarViewController {
         mBubbleStashController = bubbleControllers.bubbleStashController;
         mBubbleBarController = bubbleControllers.bubbleBarController;
         mBubbleDragController = bubbleControllers.bubbleDragController;
-        mBubbleBarPinController = bubbleControllers.bubbleBarPinController;
         mDragToBubbleController = bubbleControllers.dragToBubbleController;
         mTaskbarStashController = controllers.taskbarStashController;
         mTaskbarInsetsController = controllers.taskbarInsetsController;
@@ -1161,10 +1159,6 @@ public class BubbleBarViewController {
         boolean isInApp = mTaskbarStashController.isInApp();
         // if this is the first bubble, animate to the initial state.
         if (mBarView.getBubbleChildCount() == 1 && !isUpdate) {
-            // If a drop target is visible and the first bubble is added, hide the empty drop target
-            if (mBarView.isShowingDropTarget()) {
-                mBubbleBarPinController.hideDropTarget();
-            }
             mBubbleBarViewAnimator.animateToInitialState(bubble, isInApp, isExpanding,
                     mBarView.isShowingDropTarget());
             return;
