@@ -1654,7 +1654,6 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
 
         mControllers.keyboardQuickSwitchController.closeQuickSwitchView(false);
 
-        // TODO: b/316004172: Handle `DesktopTask`.
         if (tag instanceof SingleTask singleTask) {
             RemoteTransition remoteTransition =
                     (isTaskbarShowingDesktopTasks() && canUnminimizeDesktopTask(
