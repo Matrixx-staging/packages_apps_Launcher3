@@ -30,7 +30,6 @@ import android.view.MotionEvent;
 
 import androidx.annotation.Nullable;
 
-import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.anim.AnimatorPlaybackController;
 import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.desktop.DesktopRecentsTransitionController;
@@ -87,12 +86,6 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
         }
         setOverviewStateEnabled(true);
         setOverlayEnabled(true);
-    }
-
-    @Override
-    protected void handleStartHome(boolean animated) {
-        mContainer.startHome();
-        AbstractFloatingView.closeAllOpenViews(mContainer, mContainer.isStarted());
     }
 
     @Override
@@ -247,7 +240,7 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
 
     @Override
     public void onStateTransitionStart(RecentsState toState) {
-        setOverviewStateEnabled(true);
+        setOverviewStateEnabled(toState.isRecentsViewVisible());
         if (enableGridOnlyOverview()) {
             if (toState.displayOverviewTasksAsGrid(mContainer.getDeviceProfile())) {
                 setOverviewGridEnabled(true);

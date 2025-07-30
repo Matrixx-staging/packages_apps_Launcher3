@@ -2738,15 +2738,23 @@ public abstract class RecentsView<
     }
 
     public void startHome() {
-        startHome(mContainer.isStarted());
+        startHome(mContainer.isStarted(), /* onHomeAnimationComplete= */ null);
     }
 
-    public void startHome(boolean animated) {
-        if (!canStartHomeSafely()) return;
-        handleStartHome(animated);
+    public void startHome(@Nullable Runnable onHomeAnimationComplete) {
+        startHome(mContainer.isStarted(), onHomeAnimationComplete);
     }
 
-    protected abstract void handleStartHome(boolean animated);
+    public void startHome(boolean animated, @Nullable Runnable onHomeAnimationComplete) {
+        if (!canStartHomeSafely()) {
+            if (onHomeAnimationComplete != null) {
+                onHomeAnimationComplete.run();
+            }
+            return;
+        }
+        mContainer.startHome(animated, onHomeAnimationComplete);
+        AbstractFloatingView.closeAllOpenViews(mContainer, mContainer.isStarted());
+    }
 
     /** Returns whether user can start home based on state in {@link OverviewCommandHelper}. */
     protected abstract boolean canStartHomeSafely();

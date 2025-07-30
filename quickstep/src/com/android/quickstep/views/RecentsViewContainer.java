@@ -142,11 +142,9 @@ public interface RecentsViewContainer extends ActivityContext {
     boolean isRecentsViewVisible();
 
     /**
-     * Begins transition to start home through container
+     * Begins transition to start home through container.
      */
-    default void startHome(){
-        // no op
-    }
+    void startHome(boolean animated, @Nullable Runnable onHomeAnimationComplete);
 
     /**
      * Checks container to see if we can start home transition safely

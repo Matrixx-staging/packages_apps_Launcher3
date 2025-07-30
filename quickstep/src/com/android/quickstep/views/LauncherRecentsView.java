@@ -19,11 +19,9 @@ import static android.app.ActivityTaskManager.INVALID_TASK_ID;
 
 import static com.android.launcher3.LauncherState.ADD_DESK_BUTTON;
 import static com.android.launcher3.LauncherState.CLEAR_ALL_BUTTON;
-import static com.android.launcher3.LauncherState.NORMAL;
 import static com.android.launcher3.LauncherState.OVERVIEW;
 import static com.android.launcher3.LauncherState.OVERVIEW_MODAL_TASK;
 import static com.android.launcher3.LauncherState.OVERVIEW_SPLIT_SELECT;
-import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SPLIT_SELECTION_EXIT_HOME;
 import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 
 import android.annotation.TargetApi;
@@ -34,7 +32,6 @@ import android.view.MotionEvent;
 
 import androidx.annotation.Nullable;
 
-import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.desktop.DesktopRecentsTransitionController;
@@ -49,7 +46,6 @@ import com.android.launcher3.util.SplitConfigurationOptions;
 import com.android.launcher3.util.SplitConfigurationOptions.SplitSelectSource;
 import com.android.quickstep.GestureState;
 import com.android.quickstep.SystemUiProxy;
-import com.android.quickstep.util.AnimUtils;
 import com.android.quickstep.util.SplitSelectStateController;
 import com.android.wm.shell.shared.GroupedTaskInfo;
 import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource;
@@ -82,20 +78,6 @@ public class LauncherRecentsView extends RecentsView<QuickstepLauncher, Launcher
             @Nullable DesktopRecentsTransitionController desktopRecentsTransitionController) {
         super.init(actionsView, splitPlaceholderView, desktopRecentsTransitionController);
         setContentAlpha(0);
-    }
-
-    @Override
-    protected void handleStartHome(boolean animated) {
-        StateManager stateManager = getStateManager();
-        animated &= stateManager.shouldAnimateStateChange();
-        if (mSplitSelectStateController.isSplitSelectActive()) {
-            AnimUtils.goToNormalStateWithSplitDismissal(stateManager, mContainer,
-                    LAUNCHER_SPLIT_SELECTION_EXIT_HOME,
-                    mSplitSelectStateController.getSplitAnimationController());
-        } else {
-            stateManager.goToState(NORMAL, animated);
-        }
-        AbstractFloatingView.closeAllOpenViews(mContainer, animated);
     }
 
     @Override

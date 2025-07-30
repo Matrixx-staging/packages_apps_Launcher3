@@ -1668,7 +1668,7 @@ constructor(
                     // covers launcher and also any state transition animation also gets
                     // clobbered by QuickstepTransitionManager.createWallpaperOpenAnimations
                     // when launcher shows again
-                    it.startHome(false /* animated */)
+                    it.startHome(false /* animated */, null /* onHomeAnimationComplete */)
                     // LauncherTaskbarUIController depends on the launcher state when
                     // checking whether to handle resume, but that can come in before
                     // startHome() changes the state, so force-refresh here to ensure the

@@ -45,6 +45,7 @@ import static com.android.launcher3.LauncherState.OVERVIEW;
 import static com.android.launcher3.LauncherState.OVERVIEW_MODAL_TASK;
 import static com.android.launcher3.LauncherState.OVERVIEW_SPLIT_SELECT;
 import static com.android.launcher3.Utilities.isRtl;
+import static com.android.launcher3.anim.AnimatorListeners.forEndCallback;
 import static com.android.launcher3.compat.AccessibilityManagerCompat.sendCustomAccessibilityEvent;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_APP_LAUNCH_TAP;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SPLIT_SELECTION_EXIT_HOME;
@@ -146,6 +147,7 @@ import com.android.launcher3.popup.SystemShortcut;
 import com.android.launcher3.proxy.ProxyActivityStarter;
 import com.android.launcher3.statehandlers.DepthController;
 import com.android.launcher3.statehandlers.DesktopVisibilityController;
+import com.android.launcher3.statemanager.StateManager;
 import com.android.launcher3.statemanager.StateManager.AtomicAnimationFactory;
 import com.android.launcher3.statemanager.StateManager.StateHandler;
 import com.android.launcher3.taskbar.LauncherTaskbarUIController;
@@ -197,6 +199,7 @@ import com.android.quickstep.TouchInteractionService.TISBinder;
 import com.android.quickstep.fallback.RecentsState;
 import com.android.quickstep.fallback.RecentsStateUtilsKt;
 import com.android.quickstep.util.ActiveGestureProtoLogProxy;
+import com.android.quickstep.util.AnimUtils;
 import com.android.quickstep.util.AsyncClockEventDelegate;
 import com.android.quickstep.util.LauncherUnfoldAnimationController;
 import com.android.quickstep.util.QuickstepOnboardingPrefs;
@@ -1522,6 +1525,22 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
                         mTaskbarUIController.showEduOnAppLaunch();
                     }
                 });
+    }
+
+    @Override
+    public void startHome(boolean animated, @Nullable Runnable onHomeAnimationComplete) {
+        StateManager stateManager = getStateManager();
+        animated &= stateManager.shouldAnimateStateChange();
+        if (mSplitSelectStateController.isSplitSelectActive()) {
+            AnimUtils.goToNormalStateWithSplitDismissal(stateManager, this,
+                    LAUNCHER_SPLIT_SELECTION_EXIT_HOME,
+                    mSplitSelectStateController.getSplitAnimationController(),
+                    onHomeAnimationComplete);
+        } else {
+            stateManager.goToState(NORMAL, animated,
+                    onHomeAnimationComplete != null ? forEndCallback(onHomeAnimationComplete)
+                            : null);
+        }
     }
 
     public boolean canStartHomeSafely() {

@@ -478,41 +478,47 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
         getStateManager().getState().onBackInvoked(this);
     }
 
-    public void startHome() {
+    @Override
+    public void startHome(boolean animated, @Nullable Runnable onHomeAnimationComplete) {
         RecentsView recentsView = getOverviewPanel();
         recentsView.switchToScreenshot(() -> recentsView.finishRecentsAnimation(true,
-                this::startHomeInternal));
+                () -> startHomeInternal(onHomeAnimationComplete)));
     }
 
-    private void startHomeInternal() {
+    private void startHomeInternal(@Nullable Runnable onHomeAnimationComplete) {
+        RemoteAnimationFactory animationToHomeFactory =
+                (transit, appTargets, wallpaperTargets, nonAppTargets, result) -> {
+                    AnimatorPlaybackController controller =
+                            getStateManager().createAnimationToNewWorkspace(
+                                    RecentsState.BG_LAUNCHER, HOME_APPEAR_DURATION);
+                    controller.dispatchOnStart();
+
+                    RemoteAnimationTargets targets = new RemoteAnimationTargets(
+                            appTargets, wallpaperTargets, nonAppTargets, MODE_OPENING);
+                    for (RemoteAnimationTarget app : targets.apps) {
+                        new Transaction().setAlpha(app.leash, 1).apply();
+                    }
+                    AnimatorSet anim = new AnimatorSet();
+                    anim.play(controller.getAnimationPlayer());
+                    anim.setDuration(HOME_APPEAR_DURATION);
+                    result.setAnimation(anim, RecentsActivity.this,
+                            () -> {
+                                getStateManager().goToState(RecentsState.HOME, false);
+                                if (onHomeAnimationComplete != null) {
+                                    onHomeAnimationComplete.run();
+                                }
+                            },
+                            true /* skipFirstFrame */);
+                };
+
         LauncherAnimationRunner runner = new LauncherAnimationRunner(
-                getMainThreadHandler(), mAnimationToHomeFactory, true);
+                getMainThreadHandler(), animationToHomeFactory, true);
         ActivityOptions options = ActivityOptions.makeRemoteAnimation(
                 new RemoteAnimationAdapter(runner, HOME_APPEAR_DURATION, 0),
                 new RemoteTransition(runner.toRemoteTransition(), getIApplicationThread(),
                         "StartHomeFromRecents"));
         startHomeIntentSafely(this, options.toBundle(), TAG, getDisplayId());
     }
-
-    private final RemoteAnimationFactory mAnimationToHomeFactory =
-            (transit, appTargets, wallpaperTargets, nonAppTargets, result) -> {
-                AnimatorPlaybackController controller =
-                        getStateManager().createAnimationToNewWorkspace(
-                                RecentsState.BG_LAUNCHER, HOME_APPEAR_DURATION);
-                controller.dispatchOnStart();
-
-                RemoteAnimationTargets targets = new RemoteAnimationTargets(
-                        appTargets, wallpaperTargets, nonAppTargets, MODE_OPENING);
-                for (RemoteAnimationTarget app : targets.apps) {
-                    new Transaction().setAlpha(app.leash, 1).apply();
-                }
-                AnimatorSet anim = new AnimatorSet();
-                anim.play(controller.getAnimationPlayer());
-                anim.setDuration(HOME_APPEAR_DURATION);
-                result.setAnimation(anim, RecentsActivity.this,
-                        () -> getStateManager().goToState(RecentsState.HOME, false),
-                        true /* skipFirstFrame */);
-            };
 
     @Override
     public void collectStateHandlers(List<StateHandler<RecentsState>> out) {
