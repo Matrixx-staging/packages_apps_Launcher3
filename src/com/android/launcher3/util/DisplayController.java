@@ -23,11 +23,7 @@ import static com.android.launcher3.InvariantDeviceProfile.TYPE_DESKTOP;
 import static com.android.launcher3.InvariantDeviceProfile.TYPE_MULTI_DISPLAY;
 import static com.android.launcher3.InvariantDeviceProfile.TYPE_PHONE;
 import static com.android.launcher3.InvariantDeviceProfile.TYPE_TABLET;
-import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING;
-import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING_IN_DESKTOP_MODE;
-import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING_KEY;
 import static com.android.launcher3.Utilities.dpiFromPx;
-import static com.android.launcher3.config.FeatureFlags.enableTaskbarPinning;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.FlagDebugUtils.appendFlag;
 import static com.android.launcher3.util.window.WindowManagerProxy.MIN_TABLET_WIDTH;
@@ -55,10 +51,8 @@ import androidx.annotation.UiThread;
 import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.InvariantDeviceProfile.DeviceType;
-import com.android.launcher3.LauncherPrefChangeListener;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.R;
-import com.android.launcher3.Utilities;
 import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.dagger.LauncherAppComponent;
 import com.android.launcher3.dagger.LauncherAppSingleton;
@@ -89,8 +83,6 @@ public class DisplayController {
 
     private static final String TAG = "DisplayController";
     private static final boolean DEBUG = false;
-    private static boolean sTaskbarModePreferenceStatusForTests = false;
-    private static boolean sTransientTaskbarStatusForTests = true;
 
     // TODO(b/254119092) remove all logs with this tag
     public static final String TASKBAR_NOT_DESTROYED_TAG = "b/254119092";
@@ -143,22 +135,6 @@ public class DisplayController {
 
         mIsDesktopFormFactor = enableScalabilityForDesktopExperience()
                 && mAppContext.getResources().getBoolean(R.bool.desktop_form_factor);
-
-        if (enableTaskbarPinning()) {
-            LauncherPrefChangeListener prefListener = key -> {
-                Info info = getInfo();
-                boolean isTaskbarPinningChanged = TASKBAR_PINNING_KEY.equals(key)
-                        && info.mIsTaskbarPinned != prefs.get(TASKBAR_PINNING);
-                if (isTaskbarPinningChanged) {
-                    notifyConfigChange(DEFAULT_DISPLAY);
-                }
-            };
-
-            prefs.addListener(prefListener, TASKBAR_PINNING);
-            prefs.addListener(prefListener, TASKBAR_PINNING_IN_DESKTOP_MODE);
-            lifecycle.addCloseable(() -> prefs.removeListener(
-                        prefListener, TASKBAR_PINNING, TASKBAR_PINNING_IN_DESKTOP_MODE));
-        }
 
         DisplayManager displayManager = context.getSystemService(DisplayManager.class);
         Display defaultDisplay = displayManager.getDisplay(DEFAULT_DISPLAY);
@@ -214,38 +190,6 @@ public class DisplayController {
      */
     public static NavigationMode getNavigationMode(Context context) {
         return getInfo(context).getNavigationMode();
-    }
-
-    /**
-     * Returns whether taskbar is transient or persistent.
-     *
-     * @return {@code true} if transient, {@code false} if persistent.
-     */
-    public static boolean isTransientTaskbar(Context context) {
-        return getInfo(context).isTransientTaskbar();
-    }
-
-    /**
-     * Enables transient taskbar status for tests.
-     */
-    @VisibleForTesting
-    public static void enableTransientTaskbarForTests(boolean enable) {
-        sTransientTaskbarStatusForTests = enable;
-    }
-
-    /**
-     * Enables respecting taskbar mode preference during test.
-     */
-    @VisibleForTesting
-    public static void enableTaskbarModePreferenceForTests(boolean enable) {
-        sTaskbarModePreferenceStatusForTests = enable;
-    }
-
-    /**
-     * Returns whether the taskbar is pinned in gesture navigation mode.
-     */
-    public static boolean isPinnedTaskbar(Context context) {
-        return getInfo(context).isPinnedTaskbar();
     }
 
     /**
@@ -415,10 +359,6 @@ public class DisplayController {
             FileLog.w(TAG,
                     "(CHANGE_SUPPORTED_BOUNDS) perDisplayBounds: " + newInfo.mPerDisplayBounds);
         }
-        if ((newInfo.mIsTaskbarPinned != oldInfo.mIsTaskbarPinned)
-                || newInfo.isPinnedTaskbar() != oldInfo.isPinnedTaskbar()) {
-            change |= CHANGE_TASKBAR_PINNING;
-        }
         if (newInfo.mIsInDesktopMode != oldInfo.mIsInDesktopMode) {
             change |= CHANGE_DESKTOP_MODE;
         }
@@ -523,8 +463,6 @@ public class DisplayController {
         private final ArrayMap<CachedDisplayInfo, List<WindowBounds>> mPerDisplayBounds =
                 new ArrayMap<>();
 
-        private final boolean mIsTaskbarPinned;
-
         private final boolean mIsInDesktopMode;
         private final boolean mIsInDesktopFirstMode;
 
@@ -602,7 +540,6 @@ public class DisplayController {
                 Log.d(TAG, "perDisplayBounds: " + mPerDisplayBounds);
             }
 
-            mIsTaskbarPinned = LauncherPrefs.get(displayInfoContext).get(TASKBAR_PINNING);
             mIsInDesktopMode = wmProxy.isInDesktopMode(DEFAULT_DISPLAY);
             mIsInDesktopFirstMode = wmProxy.isDisplayDesktopFirst(displayInfoContext);
             mShowLockedTaskbarOnHome = wmProxy.showLockedTaskbarOnHome(displayInfoContext);
@@ -610,51 +547,6 @@ public class DisplayController {
                     displayInfoContext);
             mIsHomeVisible = wmProxy.isHomeVisible();
             mIsDesktopFormFactor = isDesktopFormFactor;
-        }
-
-        /**
-         * Returns whether taskbar is transient.
-         */
-        public boolean isTransientTaskbar() {
-            if (navigationMode != NavigationMode.NO_BUTTON) {
-                return false;
-            }
-
-            if (!enableTaskbarPinning()) {
-                return true;
-            }
-
-            // If "freeform" display taskbar is enabled, ensure the taskbar is pinned.
-            if (mShowDesktopTaskbarForFreeformDisplay) {
-                return false;
-            }
-
-            // If Launcher is visible on the freeform display, ensure the taskbar is pinned.
-            if (mShowLockedTaskbarOnHome && mIsHomeVisible) {
-                return false;
-            }
-
-            if (Utilities.isRunningInTestHarness() && !sTaskbarModePreferenceStatusForTests) {
-                // TODO(b/258604917): Once ENABLE_TASKBAR_PINNING is enabled, remove usage of
-                //  sTransientTaskbarStatusForTests and update test to directly
-                //  toggle shared preference to switch transient taskbar on/off.
-                return sTransientTaskbarStatusForTests;
-            }
-
-            // TODO(b/430318143): Move this before checking for test harness taskbar once perf
-            //  regressions caused by using pinned taskbar in desktop mode have been investigated.
-            if (mIsInDesktopMode) {
-                return false;
-            }
-
-            return !mIsTaskbarPinned;
-        }
-
-        /**
-         * Returns whether the taskbar is pinned in gesture navigation mode.
-         */
-        public boolean isPinnedTaskbar() {
-            return navigationMode == NavigationMode.NO_BUTTON && !isTransientTaskbar();
         }
 
         /**
@@ -739,6 +631,10 @@ public class DisplayController {
             return mShowLockedTaskbarOnHome;
         }
 
+        public boolean isHomeVisible() {
+            return mIsHomeVisible;
+        }
+
         /**
          * Returns whether the taskbar should be pinned, and showing desktop tasks, because the
          * display is a "freeform" display.
@@ -784,14 +680,12 @@ public class DisplayController {
             pw.println("  fontScale=" + info.fontScale);
             pw.println("  densityDpi=" + info.densityDpi);
             pw.println("  navigationMode=" + info.getNavigationMode().name());
-            pw.println("  isTaskbarPinned=" + info.mIsTaskbarPinned);
             pw.println("  isInDesktopMode=" + info.mIsInDesktopMode);
             pw.println("  isInDesktopFirstMode=" + info.isInDesktopFirstMode());
             pw.println("  showLockedTaskbarOnHome=" + info.showLockedTaskbarOnHome());
             pw.println("  currentSize=" + info.currentSize);
             info.mPerDisplayBounds.forEach((key, value) -> pw.println(
                     "  perDisplayBounds - " + key + ": " + value));
-            pw.println("  isTransientTaskbar=" + info.isTransientTaskbar());
         }
     }
 

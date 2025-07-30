@@ -57,6 +57,7 @@ import com.android.launcher3.taskbar.bubbles.BubblePinController;
 import com.android.launcher3.taskbar.bubbles.BubbleStashedHandleViewController;
 import com.android.launcher3.taskbar.bubbles.DragToBubbleController;
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController;
+import com.android.launcher3.taskbar.customization.TaskbarFeatureEvaluator;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.LockedUserState;
 import com.android.launcher3.util.SandboxApplication;
@@ -113,6 +114,7 @@ public class InputConsumerUtilsTest {
     @NonNull private Function<GestureState, AnimatedFloat> mSwipeUpProxyProvider = (state) -> null;
 
     @NonNull @Mock private TaskbarActivityContext mTaskbarActivityContext;
+    @NonNull @Mock private TaskbarFeatureEvaluator mTaskbarFeatureEvaluator;
     @NonNull @Mock private OverviewComponentObserver mOverviewComponentObserver;
     @NonNull @Mock private RecentsAnimationDeviceState mDeviceState;
     @NonNull @Mock private RotationTouchHelper mRotationTouchHelper;
@@ -358,6 +360,9 @@ public class InputConsumerUtilsTest {
         DeviceProfile deviceProfile = new DeviceProfile();
         deviceProfile.isTaskbarPresent = true;
         when(mTaskbarActivityContext.getDeviceProfile()).thenReturn(deviceProfile);
+        when(mTaskbarActivityContext.getTaskbarFeatureEvaluator())
+                .thenReturn(mTaskbarFeatureEvaluator);
+        when(mTaskbarFeatureEvaluator.isTransient()).thenReturn(true);
 
         assertCorrectInputConsumer(
                 this::createInputConsumer,

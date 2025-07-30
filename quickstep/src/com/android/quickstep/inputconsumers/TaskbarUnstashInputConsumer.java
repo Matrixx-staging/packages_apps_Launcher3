@@ -48,7 +48,6 @@ import com.android.launcher3.taskbar.TaskbarActivityContext;
 import com.android.launcher3.taskbar.TaskbarThresholdUtils;
 import com.android.launcher3.taskbar.TaskbarTranslationController.TransitionCallback;
 import com.android.launcher3.touch.OverScroll;
-import com.android.launcher3.util.DisplayController;
 import com.android.quickstep.GestureState;
 import com.android.quickstep.InputConsumer;
 import com.android.quickstep.OverviewCommandHelper;
@@ -106,7 +105,7 @@ public class TaskbarUnstashInputConsumer extends DelegateInputConsumer {
             GestureState gestureState) {
         super(gestureState.getDisplayId(), delegate, inputMonitor);
         mTaskbarActivityContext = taskbarActivityContext;
-        mIsTransientTaskbar = DisplayController.isTransientTaskbar(context);
+        mIsTransientTaskbar = taskbarActivityContext.getTaskbarFeatureEvaluator().isTransient();
         mOverviewCommandHelper = overviewCommandHelper;
         mDisplayManager = context.getSystemService(DisplayManager.class);
         mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();

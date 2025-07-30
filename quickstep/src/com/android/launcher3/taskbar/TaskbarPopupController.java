@@ -46,7 +46,6 @@ import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.notification.NotificationListener;
-import com.android.launcher3.popup.PinToTaskbarShortcut;
 import com.android.launcher3.popup.Popup;
 import com.android.launcher3.popup.PopupContainerWithArrow;
 import com.android.launcher3.popup.PopupController;
@@ -96,7 +95,7 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
     private boolean mAllowInitialSplitSelection;
     private AppInfo[] mAppInfosList = AppInfo.EMPTY_ARRAY;
     // Saves the ItemInfos in the hotseat without the predicted items.
-    private SparseArray<ItemInfo> mHotseatInfosList;
+    private SparseArray<ItemInfo> mTaskbarInfoList;
     private ManageWindowsTaskbarShortcut<BaseTaskbarContext> mManageWindowsTaskbarShortcut;
     // Whether the popup is currently open. This is reset to false when the close animation is
     // complete.
@@ -181,24 +180,24 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
         }
         if (itemInfo.container == CONTAINER_HOTSEAT) {
             return new PinToTaskbarShortcut<>(target, itemInfo, originalView, false,
-                    mHotseatInfosList);
+                    mTaskbarInfoList);
         }
 
         if (itemInfo.isInAllApps()) {
             // If the target ItemInfo is already pinned on taskbar. Show the unpin option instead.
-            for (int i = 0; i < mHotseatInfosList.size(); i++) {
-                if (Objects.equals(mHotseatInfosList.valueAt(i).getComponentKey(),
+            for (int i = 0; i < mTaskbarInfoList.size(); i++) {
+                if (Objects.equals(mTaskbarInfoList.valueAt(i).getComponentKey(),
                         itemInfo.getComponentKey())) {
                     return new PinToTaskbarShortcut<>(target, itemInfo, originalView, false,
-                            mHotseatInfosList);
+                            mTaskbarInfoList);
                 }
             }
         }
 
-        if (mHotseatInfosList.size()
+        if (mTaskbarInfoList.size()
                 < mContext.getTaskbarSpecsEvaluator().getNumShownHotseatIcons()) {
             return new PinToTaskbarShortcut<>(target, itemInfo, originalView, true,
-                    mHotseatInfosList);
+                    mTaskbarInfoList);
         }
 
         return null;
@@ -365,8 +364,12 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
         return index < 0 ? null : mAppInfosList[index];
     }
 
-    public void setHotseatInfosList(SparseArray<ItemInfo> info) {
-        mHotseatInfosList = info;
+    public void setTaskbarInfoList(SparseArray<ItemInfo> info) {
+        mTaskbarInfoList = info;
+    }
+
+    public SparseArray<ItemInfo> getTaskbarInfoList() {
+        return mTaskbarInfoList.clone();
     }
 
     /**

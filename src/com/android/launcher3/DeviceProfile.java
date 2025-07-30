@@ -95,6 +95,7 @@ public class DeviceProfile {
 
     public final InvariantDeviceProfile inv;
     private final BottomSheetProfile mBottomSheetProfile;
+
     private final DisplayOptionSpec mDisplayOptionSpec;
     private final Info mInfo;
     private final DisplayMetrics mMetrics;
@@ -250,7 +251,7 @@ public class DeviceProfile {
             boolean transposeLayoutWithOrientation, boolean isMultiDisplay, boolean isGestureMode,
             @NonNull final ViewScaleProvider viewScaleProvider,
             @NonNull final Consumer<DeviceProfile> dimensionOverrideProvider,
-            boolean isTransientTaskbar, DisplayOptionSpec displayOptionSpec) {
+            DisplayOptionSpec displayOptionSpec) {
 
         this.inv = inv;
 
@@ -300,7 +301,7 @@ public class DeviceProfile {
 
         mTaskbarProfile = TaskbarProfile.Factory.createTaskbarProfile(
                 res,
-                isTransientTaskbar,
+                inv.taskbarModeUtil.isTransient(),
                 isTaskbarPresent,
                 mMetrics,
                 displayOptionSpec,
@@ -562,6 +563,10 @@ public class DeviceProfile {
         return inv.isFixedLandscape
                 || isVerticalBarLayout()
                 || (mDeviceProperties.isTablet() && mDeviceProperties.isLandscape());
+    }
+
+    public DisplayOptionSpec getDisplayOptionSpec() {
+        return mDisplayOptionSpec;
     }
 
     public DeviceProperties getDeviceProperties() {
@@ -2044,7 +2049,6 @@ public class DeviceProfile {
 
         private Consumer<DeviceProfile> mOverrideProvider;
 
-        private boolean mIsTransientTaskbar;
         private DisplayOptionSpec mDisplayOptionSpec;
 
         public Builder(Context context, InvariantDeviceProfile inv, Info info,
@@ -2053,7 +2057,6 @@ public class DeviceProfile {
             mInv = inv;
             mInfo = info;
             mWMProxy = wmProxy;
-            mIsTransientTaskbar = info.isTransientTaskbar();
         }
 
         public Builder setExternalDisplay(boolean isExternalDisplay) {
@@ -2105,16 +2108,6 @@ public class DeviceProfile {
         }
 
         /**
-         * Set the isTransientTaskbar for the builder
-         *
-         * @return This Builder
-         */
-        public Builder setIsTransientTaskbar(boolean isTransientTaskbar) {
-            mIsTransientTaskbar = isTransientTaskbar;
-            return this;
-        }
-
-        /**
          * Set the displayOptionSpec for the builder for secondary displays
          *
          * @return This Builder
@@ -2157,7 +2150,7 @@ public class DeviceProfile {
             return new DeviceProfile(mContext, mInv, mInfo, mWMProxy,
                     mWindowBounds, mDotRendererCache, mIsExternalDisplay,
                     mTransposeLayoutWithOrientation, mIsMultiDisplay,
-                    mIsGestureMode, mViewScaleProvider, mOverrideProvider, mIsTransientTaskbar,
+                    mIsGestureMode, mViewScaleProvider, mOverrideProvider,
                     mDisplayOptionSpec);
         }
 

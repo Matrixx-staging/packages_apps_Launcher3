@@ -31,7 +31,6 @@ import static com.android.launcher3.BaseActivity.EVENT_DESTROYED;
 import static com.android.launcher3.BaseActivity.EVENT_STARTED;
 import static com.android.launcher3.BaseActivity.INVISIBLE_BY_STATE_HANDLER;
 import static com.android.launcher3.BaseActivity.STATE_HANDLER_INVISIBILITY_FLAGS;
-import static com.android.launcher3.Flags.enableGestureNavHorizontalTouchSlop;
 import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.Flags.msdlFeedback;
 import static com.android.launcher3.Flags.refactorTaskbarUiState;
@@ -136,6 +135,7 @@ import com.android.launcher3.taskbar.TaskbarThresholdUtils;
 import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.taskbar.TaskbarUiState;
 import com.android.launcher3.taskbar.TaskbarUiStateMonitor;
+import com.android.launcher3.taskbar.customization.TaskbarFeatureEvaluator;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.MSDLPlayerWrapper;
@@ -439,8 +439,8 @@ public abstract class AbsSwipeUpHandler<
                 .getOrientationState().getLauncherDeviceProfile(gestureState.getDisplayId()));
         initStateCallbacks();
 
-        mIsTransientTaskbar = mDp.isTaskbarPresent
-                && DisplayController.isTransientTaskbar(context);
+        mIsTransientTaskbar = mDp.isTaskbarPresent && TaskbarFeatureEvaluator.INSTANCE.get(
+                context).isTransient();
         mTaskbarAlreadyOpen = !isTaskbarStashed(context);
         mIsTaskbarAllAppsOpen = isTaskbarAllAppsOpen(context);
         mTaskbarAppWindowThreshold =
@@ -1424,8 +1424,7 @@ public abstract class AbsSwipeUpHandler<
 
         // Fully gestural mode.
         final boolean isFlingX = Math.abs(velocity.x) > mContext.getResources()
-                .getDimension(R.dimen.quickstep_fling_threshold_speed)
-                && (!enableGestureNavHorizontalTouchSlop() || horizontalTouchSlopPassed);
+                .getDimension(R.dimen.quickstep_fling_threshold_speed) && horizontalTouchSlopPassed;
         if (isScrollingToNewTask && isFlingX) {
             // Flinging towards new task takes precedence over mIsMotionPaused (which only
             // checks y-velocity).
@@ -1521,7 +1520,7 @@ public abstract class AbsSwipeUpHandler<
             mInputConsumerProxy.enable();
         }
         if (endTarget == HOME) {
-            boolean isPinnedTaskbar = DisplayController.isPinnedTaskbar(mContext);
+            boolean isPinnedTaskbar = !mIsTransientTaskbar;
             boolean isThreeButton = DisplayController.getNavigationMode(mContext)
                     == NavigationMode.THREE_BUTTONS;
             boolean isNotInDesktop =  !DisplayController.isInDesktopMode(mContext);
@@ -3056,7 +3055,7 @@ public abstract class AbsSwipeUpHandler<
         // Mimic TaskbarActivityContext.isTransientTaskbar
         final boolean isInPhoneMode = ENABLE_TASKBAR_NAVBAR_UNIFICATION
                 && mDp.getDeviceProperties().isPhone() && !mDp.isTaskbarPresent;
-        if (DisplayController.isTransientTaskbar(mContext)
+        if (mIsTransientTaskbar
                 && taskbarUiState.isPrimaryDisplayRef().getValue() && !isInPhoneMode) {
             return true;
         }

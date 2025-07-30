@@ -12,12 +12,12 @@ import android.view.WindowInsets;
 
 import androidx.annotation.Nullable;
 
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.R;
 import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.taskbar.TaskbarActivityContext;
 import com.android.launcher3.testing.TestInformationHandler;
 import com.android.launcher3.testing.shared.TestProtocol;
-import com.android.launcher3.util.DisplayController;
 import com.android.quickstep.util.GroupTask;
 import com.android.quickstep.util.LayoutUtils;
 import com.android.quickstep.util.TISBindHelper;
@@ -41,19 +41,17 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
     private final RecentsModel mRecentsModel;
     private final SystemUiProxy mSystemUiProxy;
     private final  OverviewComponentObserver mOverviewComponentObserver;
-    private final  DisplayController mDisplayController;
 
 
     @Inject
     public QuickstepTestInformationHandler(@ApplicationContext Context context,
             RecentsModel recentsModel,
-            SystemUiProxy systemUiProxy, OverviewComponentObserver overviewComponentObserver,
-            DisplayController displayController) {
+            SystemUiProxy systemUiProxy,
+            OverviewComponentObserver overviewComponentObserver) {
         mContext = context;
         mRecentsModel = recentsModel;
         mSystemUiProxy = systemUiProxy;
         mOverviewComponentObserver = overviewComponentObserver;
-        mDisplayController = displayController;
     }
 
     @Override
@@ -260,6 +258,12 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
                                 R.dimen.taskbar_unstash_input_area));
                 return response;
             }
+            case TestProtocol.REQUEST_IS_TRANSIENT_TASKBAR:
+                return getTISBinderUIProperty(Bundle::putBoolean, tisBinder ->
+                        tisBinder.getTaskbarManager()
+                                .getCurrentActivityContext()
+                                .getTaskbarFeatureEvaluator().isTransient());
+
         }
 
         return super.call(method, arg, extras);
@@ -300,7 +304,7 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
     }
 
     private void enableTransientTaskbar(boolean enable) {
-        mDisplayController.enableTransientTaskbarForTests(enable);
+        LauncherPrefs.get(mContext).put(LauncherPrefs.TASKBAR_PINNING, !enable);
     }
 
     /**

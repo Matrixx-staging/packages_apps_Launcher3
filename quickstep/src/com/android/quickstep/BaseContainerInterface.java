@@ -58,6 +58,7 @@ import com.android.launcher3.statemanager.StatefulContainer;
 import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.taskbar.TaskbarUiStateMonitor;
 import com.android.launcher3.util.DisplayController;
+import com.android.launcher3.util.TaskbarModeUtil;
 import com.android.launcher3.util.WindowBounds;
 import com.android.launcher3.views.ScrimColors;
 import com.android.launcher3.views.ScrimColorsEvaluator;
@@ -458,7 +459,8 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
     public static void getTaskDimension(Context context, DeviceProfile dp, PointF out) {
         out.x = dp.getDeviceProperties().getWidthPx();
         out.y = dp.getDeviceProperties().getHeightPx();
-        if (dp.getDeviceProperties().isTablet() && !DisplayController.isTransientTaskbar(context)) {
+        if (dp.getDeviceProperties().isTablet()
+                && !TaskbarModeUtil.INSTANCE.get(context).isTransient()) {
             out.y -= dp.getTaskbarProfile().getHeight();
         }
     }

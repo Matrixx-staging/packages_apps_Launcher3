@@ -57,7 +57,6 @@ import static com.android.launcher3.LauncherState.OVERVIEW;
 import static com.android.launcher3.Utilities.mapBoundToRange;
 import static com.android.launcher3.config.FeatureFlags.SEPARATE_RECENTS_ACTIVITY;
 import static com.android.launcher3.testing.shared.TestProtocol.WALLPAPER_OPEN_ANIMATION_FINISHED_MESSAGE;
-import static com.android.launcher3.util.DisplayController.isTransientTaskbar;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.MultiPropertyFactory.MULTI_PROPERTY_VALUE;
 import static com.android.launcher3.util.window.RefreshRateTracker.getSingleFrameMs;
@@ -691,7 +690,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 && mDeviceProfile.isTaskbarPresent
                 && mDeviceProfile.isTaskbarPresentInApps
                 && target != null && !target.willShowImeOnTarget
-                && !isTransientTaskbar(mLauncher);
+                && !isTransientTaskbar();
     }
 
     /**
@@ -719,7 +718,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
 
         RectF launcherIconBounds = new RectF();
         FloatingIconView floatingView = getFloatingIconView(mLauncher, v,
-                (mLauncher.getTaskbarUIController() == null || !isTransientTaskbar(mLauncher))
+                (mLauncher.getTaskbarUIController() == null || !isTransientTaskbar())
                         ? null
                         : mLauncher.getTaskbarUIController().findMatchingView(v),
                 null /* fadeOutView */, !appTargetsAreTranslucent, launcherIconBounds,
@@ -1016,6 +1015,10 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
             animatorSet.playTogether(appAnimator, getBackgroundAnimator());
         }
         return animatorSet;
+    }
+
+    private boolean isTransientTaskbar() {
+        return mLauncher.getTaskbarUIController().getTaskbarFeatureEvaluator().isTransient();
     }
 
     private Animator getOpeningWindowAnimatorsForWidget(LauncherAppWidgetHostView v,

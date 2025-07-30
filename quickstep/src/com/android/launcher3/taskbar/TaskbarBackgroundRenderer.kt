@@ -39,10 +39,8 @@ class TaskbarBackgroundRenderer(private val context: TaskbarActivityContext) {
 
     private val isInSetup: Boolean = !context.isUserSetupComplete
 
-    private val maxTransientTaskbarHeight =
-        context.transientTaskbarDeviceProfile.taskbarProfile.height.toFloat()
-    private val maxPersistentTaskbarHeight =
-        context.persistentTaskbarDeviceProfile.taskbarProfile.height.toFloat()
+    private val maxTransientTaskbarHeight = context.transientTaskbarProfile.height.toFloat()
+    private val maxPersistentTaskbarHeight = context.persistentTaskbarProfile.height.toFloat()
     var backgroundProgress =
         if (context.isTransientTaskbar) {
             PINNING_TRANSIENT

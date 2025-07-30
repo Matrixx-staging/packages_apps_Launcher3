@@ -54,6 +54,7 @@ import com.android.launcher3.util.PackageManagerHelper;
 import com.android.launcher3.util.PluginManagerWrapper;
 import com.android.launcher3.util.ScreenOnTracker;
 import com.android.launcher3.util.SettingsCache;
+import com.android.launcher3.util.TaskbarModeUtil;
 import com.android.launcher3.util.VibratorWrapper;
 import com.android.launcher3.util.WallpaperColorHints;
 import com.android.launcher3.util.window.RefreshRateTracker;
@@ -115,6 +116,7 @@ public interface LauncherBaseAppComponent {
     OseWidgetManager getOseWidgetManager();
     QsbAppWidgetHost getQsbAppWidgetHost();
     TestInformationHandler getTestInformationHandler();
+    TaskbarModeUtil getTaskbarModeUtil();
 
     @VisibleForTesting
     GridSizeMigrationLogic createNewGridSizeMigrationLogic();

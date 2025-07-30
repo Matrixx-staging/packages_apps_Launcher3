@@ -21,7 +21,6 @@ import static android.animation.LayoutTransition.CHANGE_DISAPPEARING;
 import static android.animation.LayoutTransition.DISAPPEARING;
 import static android.view.Display.DEFAULT_DISPLAY;
 import static android.window.DesktopModeFlags.ENABLE_TASKBAR_OVERFLOW;
-import static android.window.DesktopModeFlags.ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION;
 
 import static com.android.app.animation.Interpolators.EMPHASIZED;
 import static com.android.app.animation.Interpolators.FINAL_FRAME;
@@ -80,6 +79,7 @@ import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.anim.RevealOutlineAnimation;
 import com.android.launcher3.anim.RoundedRectRevealOutlineProvider;
 import com.android.launcher3.config.FeatureFlags;
+import com.android.launcher3.deviceprofile.TaskbarProfile;
 import com.android.launcher3.model.ModelWriter;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.TaskItemInfo;
@@ -194,10 +194,6 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
 
     private final View.OnLayoutChangeListener mTaskbarViewLayoutChangeListener =
             (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
-                if (!ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION.isTrue()) {
-                    // update shiftX is handled with the animation at the end of the method
-                    updateTaskbarIconTranslationXForPinning(/* updateShiftXForBubbleBar = */ false);
-                }
                 if (mBubbleControllers == null) return;
                 mControllers.navbarButtonsViewController.onLayoutsUpdated();
                 adjustTaskbarXForBubbleBar();
@@ -218,8 +214,8 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
 
     private final boolean mIsRtl;
 
-    private final DeviceProfile mTransientTaskbarDp;
-    private final DeviceProfile mPersistentTaskbarDp;
+    private final TaskbarProfile mTransientTaskbarProfile;
+    private final TaskbarProfile mPersistentTaskbarProfile;
 
     private final int mTransientIconSize;
     private final int mPersistentIconSize;
@@ -230,10 +226,11 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
 
     public TaskbarViewController(TaskbarActivityContext activity, TaskbarView taskbarView) {
         mActivity = activity;
-        mTransientTaskbarDp = mActivity.getTransientTaskbarDeviceProfile();
-        mPersistentTaskbarDp = mActivity.getPersistentTaskbarDeviceProfile();
-        mTransientIconSize = mTransientTaskbarDp.getTaskbarProfile().getIconSize();
-        mPersistentIconSize = mPersistentTaskbarDp.getTaskbarProfile().getIconSize();
+        mTransientTaskbarProfile = mActivity.getTransientTaskbarProfile();
+        mPersistentTaskbarProfile = mActivity.getPersistentTaskbarProfile();
+
+        mTransientIconSize = mTransientTaskbarProfile.getIconSize();
+        mPersistentIconSize = mPersistentTaskbarProfile.getIconSize();
         mTaskbarView = taskbarView;
         mTaskbarIconAlpha = new MultiValueAlpha(mTaskbarView, NUM_ALPHA_CHANNELS);
         mTaskbarIconAlpha.setUpdateVisibility(true);
@@ -687,20 +684,19 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
         // aligning the icon bound to be at bottom of current taskbar view and then
         // finally placing the icon in the middle of new taskbar background height.
         if (mControllers.getSharedState().startTaskbarVariantIsTransient) {
-            float transY =
-                    mTransientTaskbarDp.getTaskbarProfile().getBottomMargin() + (
-                            mTransientTaskbarDp.getTaskbarProfile().getHeight()
-                            - mTaskbarView.getTransientTaskbarIconLayoutBounds().bottom)
-                            - (mPersistentTaskbarDp.getTaskbarProfile().getHeight()
-                                    - mTransientTaskbarDp.getTaskbarProfile().getIconSize()) / 2f;
+            float transY = mTransientTaskbarProfile.getBottomMargin()
+                    + (mTransientTaskbarProfile.getHeight()
+                        - mTaskbarView.getTransientTaskbarIconLayoutBounds().bottom)
+                            - (mPersistentTaskbarProfile.getHeight()
+                            - mTransientTaskbarProfile.getIconSize()) / 2f;
             taskbarIconTranslationYForPinningValue = mapRange(scale, 0f, transY);
         } else {
-            float transY =
-                    -mTransientTaskbarDp.getTaskbarProfile().getBottomMargin() + (
-                            mPersistentTaskbarDp.getTaskbarProfile().getHeight()
-                            - mTaskbarView.getTransientTaskbarIconLayoutBounds().bottom)
-                            - (mTransientTaskbarDp.getTaskbarProfile().getHeight()
-                                    - mTransientTaskbarDp.getTaskbarProfile().getIconSize()) / 2f;
+            float transY = -mTransientTaskbarProfile.getBottomMargin()
+                    + (mPersistentTaskbarProfile.getHeight()
+                        - mTaskbarView.getTransientTaskbarIconLayoutBounds().bottom)
+                            - (mTransientTaskbarProfile.getHeight()
+                            - mTransientTaskbarProfile.getIconSize())
+                            / 2f;
             taskbarIconTranslationYForPinningValue = mapRange(scale, transY, 0f);
         }
         return taskbarIconTranslationYForPinningValue;
@@ -1027,8 +1023,8 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
                 anim.getAnimatedFraction() > 0 ? expandedHeight : collapsedHeight));
 
         mTaskbarBottomMargin = isTransientTaskbar
-                ? mTransientTaskbarDp.getTaskbarProfile().getBottomMargin()
-                : mPersistentTaskbarDp.getTaskbarProfile().getBottomMargin();
+                ? mTransientTaskbarProfile.getBottomMargin()
+                : mPersistentTaskbarProfile.getBottomMargin();
 
         int firstRecentTaskIndex = -1;
         int hotseatNavBarTranslationX = 0;
@@ -1290,9 +1286,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     /** Called when there's a change in running apps to update the UI. */
     public void commitRunningAppsToUI() {
         mModelCallbacks.commitRunningAppsToUI();
-        if (ENABLE_TASKBAR_RECENTS_LAYOUT_TRANSITION.isTrue()
-                && !mActivity.isTransientTaskbar()
-                && mTaskbarView.getLayoutTransition() == null) {
+        if (!mActivity.isTransientTaskbar() && mTaskbarView.getLayoutTransition() == null) {
             // Set up after the first commit so that the initial recents do not animate (janky).
             mTaskbarView.setLayoutTransition(createLayoutTransitionForRunningApps());
         }

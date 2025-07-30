@@ -27,7 +27,7 @@ import android.util.Log;
 
 import com.android.launcher3.tapl.LauncherInstrumentation;
 import com.android.launcher3.tapl.TestHelpers;
-import com.android.launcher3.util.DisplayController;
+import com.android.launcher3.util.TaskbarModeUtil;
 import com.android.launcher3.util.rule.FailureWatcher;
 import com.android.launcher3.util.ui.AbstractLauncherUiTest;
 
@@ -111,7 +111,7 @@ public class TaskbarModeSwitchRule implements TestRule {
     }
 
     private static boolean isTaskbarTransientMode(Context context) {
-        return DisplayController.isTransientTaskbar(context);
+        return TaskbarModeUtil.INSTANCE.get(context).isTransient();
     }
 
     public static void setTaskbarMode(LauncherInstrumentation launcher,

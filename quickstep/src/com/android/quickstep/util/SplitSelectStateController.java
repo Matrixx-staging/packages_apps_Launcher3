@@ -17,6 +17,7 @@
 package com.android.quickstep.util;
 
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_HOME;
+import static android.view.Display.DEFAULT_DISPLAY;
 
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_DESKTOP_MODE_SPLIT_LEFT_TOP;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_DESKTOP_MODE_SPLIT_RIGHT_BOTTOM;
@@ -107,6 +108,7 @@ import com.android.quickstep.views.GroupedTaskView;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
 import com.android.quickstep.views.SplitInstructionsView;
+import com.android.quickstep.window.RecentsWindowManager;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
 import com.android.systemui.shared.system.QuickStepContract;
@@ -177,6 +179,8 @@ public class SplitSelectStateController {
     private Pair<InstanceId, com.android.launcher3.logging.InstanceId> mSessionInstanceIds;
 
     private boolean mIsDestroyed = false;
+
+    private RecentsWindowManager mRecentsWindowManager;
 
     private final BackPressHandler mSplitBackHandler = new BackPressHandler() {
         @Override
@@ -601,10 +605,11 @@ public class SplitSelectStateController {
     }
 
     /**
-     * Init {@code SplitFromDesktopController}
+     * Init {@code SplitFromDesktopController} from {@link QuickstepLauncher} or from
+     * {@link RecentsWindowManager}
      */
-    public void initSplitFromDesktopController(QuickstepLauncher launcher) {
-        initSplitFromDesktopController(new SplitFromDesktopController(launcher));
+    public void initSplitFromDesktopController(RecentsViewContainer recentsViewContainer) {
+        initSplitFromDesktopController(new SplitFromDesktopController(recentsViewContainer));
     }
 
     @VisibleForTesting
@@ -863,7 +868,8 @@ public class SplitSelectStateController {
         private static final String TAG = "SplitFromDesktopController";
         private static final boolean isBugfixFlagEnabled =
                 DesktopExperienceFlags.ENABLE_DESKTOP_SPLITSCREEN_TRANSITION_BUGFIX.isTrue();
-
+        private static final boolean SPLIT_SELECT_ON_EXTERNAL_DISPLAY_ENABLED =
+                DesktopExperienceFlags.ENABLE_NON_DEFAULT_DISPLAY_SPLIT_BUGFIX.isTrue();
         private final QuickstepLauncher mLauncher;
         private final OverviewComponentObserver mOverviewComponentObserver;
         private final int mSplitPlaceholderSize;
@@ -879,7 +885,9 @@ public class SplitSelectStateController {
             mContainer = recentsViewContainer;
             if (recentsViewContainer instanceof QuickstepLauncher) {
                 mLauncher = (QuickstepLauncher) recentsViewContainer;
+                mRecentsWindowManager = null;
             } else {
+                mRecentsWindowManager = (RecentsWindowManager) recentsViewContainer;
                 mLauncher = null;
             }
             mContext = mContainer.asContext();
@@ -912,6 +920,8 @@ public class SplitSelectStateController {
             mTaskInfo = taskInfo;
             PackageManager pm = mContext.getPackageManager();
             IconProvider provider = new IconProvider(mContext);
+            int displayId = ExternalDisplaysKt.getSafeDisplayId(taskInfo);
+
             try {
                 mAppIcon = provider.getIcon(pm.getActivityInfo(mTaskInfo.baseActivity,
                      PackageManager.ComponentInfoFlags.of(0)));
@@ -948,19 +958,31 @@ public class SplitSelectStateController {
                                     false /* sendUserLeaveHint */));
                     }
                 });
+
+                Intent intent = (SPLIT_SELECT_ON_EXTERNAL_DISPLAY_ENABLED
+                        && displayId != DEFAULT_DISPLAY)
+                        ? mOverviewComponentObserver.getHomeIntent(displayId)
+                        : mOverviewComponentObserver.getOverviewIntent();
+
                 UI_HELPER_EXECUTOR.execute(() -> {
                     // Transition from app to enter stage split in launcher with recents animation
                     final ActivityOptions options = ActivityOptions.makeBasic();
                     options.setPendingIntentBackgroundActivityStartMode(
                             ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_ALWAYS);
                     options.setTransientLaunch();
+                    options.setLaunchDisplayId(displayId);
                     SystemUiProxy.INSTANCE.get(mContext)
                             .startRecentsTransition(
-                                    mOverviewComponentObserver.getOverviewIntent(), options,
+                                    intent, options,
                                     callbacks, false /* useSyntheticRecentsTransition */,
                                     withRecentsWct,
-                                    ExternalDisplaysKt.getSafeDisplayId(taskInfo));
+                                    displayId);
                 });
+
+                if (SPLIT_SELECT_ON_EXTERNAL_DISPLAY_ENABLED && displayId != DEFAULT_DISPLAY) {
+                    mRecentsWindowManager.showRecentsWindow(callbacks);
+                }
+
             } else {
                 animation.start(/* targets= */null, updateTaskbarRunnable);
             }
