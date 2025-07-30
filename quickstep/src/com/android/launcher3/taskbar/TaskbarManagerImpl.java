@@ -27,12 +27,13 @@ import static com.android.launcher3.Flags.enableGrowthNudge;
 import static com.android.launcher3.Flags.enableTaskbarForDirectBoot;
 import static com.android.launcher3.Flags.enableTaskbarUiThread;
 import static com.android.launcher3.Flags.enableUnfoldStateAnimation;
-import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING;
 import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING_DESKTOP_MODE_KEY;
-import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING_IN_DESKTOP_MODE;
 import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING_KEY;
+import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING;
+import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING_IN_DESKTOP_MODE;
 import static com.android.launcher3.config.FeatureFlags.ENABLE_TASKBAR_NAVBAR_UNIFICATION;
 import static com.android.launcher3.config.FeatureFlags.enableTaskbarNoRecreate;
+import static com.android.launcher3.statehandlers.DesktopVisibilityController.INACTIVE_DESK_ID;
 import static com.android.launcher3.taskbar.growth.GrowthConstants.BROADCAST_SHOW_NUDGE;
 import static com.android.launcher3.taskbar.growth.GrowthConstants.GROWTH_NUDGE_PERMISSION;
 import static com.android.launcher3.util.DisplayController.CHANGE_DENSITY;
@@ -88,6 +89,7 @@ import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherPrefChangeListener;
 import com.android.launcher3.LauncherPrefs;
+import com.android.launcher3.R;
 import com.android.launcher3.anim.AnimatorListeners;
 import com.android.launcher3.anim.AnimatorPlaybackController;
 import com.android.launcher3.statehandlers.DesktopVisibilityController;
@@ -233,8 +235,16 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
                     TaskbarActivityContext taskbarActivityContext = getCurrentActivityContext();
                     if (taskbarActivityContext != null
                             && !taskbarActivityContext.showLockedTaskbarOnHome()
-                            && !taskbarActivityContext.showDesktopTaskbarForFreeformDisplay()) {
-                        recreateTaskbarForDisplay(displayId, 0);
+                            && !taskbarActivityContext.showDesktopTaskbarForFreeformDisplay()
+                            && (newActiveDesk == INACTIVE_DESK_ID
+                                || oldActiveDesk == INACTIVE_DESK_ID)) {
+                        int recreateDuration = taskbarActivityContext.getResources().getInteger(
+                                R.integer.to_desktop_animation_duration_ms);
+                        AnimatorSet animatorSet = taskbarActivityContext.onDestroyAnimation(
+                                TASKBAR_DESTROY_DURATION);
+                        animatorSet.addListener(AnimatorListeners.forEndCallback(
+                                () -> recreateTaskbarForDisplay(displayId, recreateDuration)));
+                        animatorSet.start();
                     }
                 }
             };
