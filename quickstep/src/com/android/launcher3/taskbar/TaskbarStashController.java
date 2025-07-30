@@ -326,9 +326,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
                     .getStashedTaskbarHeight();
         }
 
-        if (refactorTaskbarUiState()) {
-            mActivity.getTaskbarUiState().setIsTaskbarStashed(mIsStashed);
-        }
+        updateIsTaskbarStashed(mIsStashed);
     }
 
     /**
@@ -1132,6 +1130,10 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
                     isStashed && supportsVisualStashing());
             mControllers.taskbarInsetsController.onTaskbarOrBubblebarWindowHeightOrInsetsChanged();
         });
+        updateIsTaskbarStashed(isStashed);
+    }
+
+    private void updateIsTaskbarStashed(boolean isStashed) {
         if (refactorTaskbarUiState()) {
             mActivity.getTaskbarUiState().setIsTaskbarStashed(isStashed);
         }
@@ -1560,7 +1562,9 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
 
             if (mIsStashed != isStashed || transitionTypeChanged) {
                 mIsStashed = isStashed;
-                onIsStashedChanged(mIsStashed);
+                // We will let animation created from createAnimToIsStashed() below to run expensive
+                // onIsStashedChanged(). For now just update TaskbarUiState#isTaskbarStashed().
+                updateIsTaskbarStashed(mIsStashed);
                 mLastStartedTransitionType = animationType;
 
                 boolean shouldDelayBackground = hasAnyFlag(FLAG_DELAY_TASKBAR_BG_TAG);
