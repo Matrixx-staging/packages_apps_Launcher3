@@ -261,6 +261,10 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
             DisplayController.INSTANCE.get(mLauncher).notifyConfigChange();
         }
 
+        if (android.view.accessibility.Flags.launcherAppDisplayProgressUpdateOnVisibilityChange()) {
+            onInAppDisplayProgressChanged();
+        }
+
         onLauncherVisibilityChanged(isVisible, false /* fromInit */);
     }
 
