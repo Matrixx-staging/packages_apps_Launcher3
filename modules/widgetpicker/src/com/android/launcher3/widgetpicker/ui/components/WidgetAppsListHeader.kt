@@ -23,7 +23,9 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -38,11 +40,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -88,6 +94,7 @@ fun ExpandableListHeader(
     val haptic = LocalHapticFeedback.current
     val cuiReporter = LocalWidgetPickerCuiReporter.current
     val localView = LocalView.current
+    var isFocused by remember { mutableStateOf(false) }
 
     val finalModifier =
         modifier
@@ -114,7 +121,11 @@ fun ExpandableListHeader(
     Column(modifier = finalModifier) {
         WidgetAppHeader(
             modifier =
-                Modifier.clickable {
+                Modifier.onFocusChanged { isFocused = it.isFocused }
+                    .clickable(
+                        interactionSource = null,
+                        indication = if (isFocused) null else LocalIndication.current,
+                    ) {
                         haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                         onClick()
                     }
@@ -136,6 +147,7 @@ fun ExpandableListHeader(
             subTitle = subTitle,
             headerTextStyle = ExpandedListHeaderDefaults.headerTextStyle,
             trailingButton = { ExpandCollapseIndicator(expanded) },
+            isFocused = isFocused,
         )
         AnimatedVisibility(
             visibleState = expandedState,
@@ -172,9 +184,12 @@ fun SelectableListHeader(
     onSelect: () -> Unit,
     shape: RoundedCornerShape,
 ) {
+    var isFocused by remember { mutableStateOf(false) }
+
     WidgetAppHeader(
         modifier =
             modifier
+                .onFocusChanged { isFocused = it.isFocused }
                 .semantics(mergeDescendants = true) { this.selected = selected }
                 .clip(shape = shape)
                 .background(
@@ -185,7 +200,10 @@ fun SelectableListHeader(
                             WidgetPickerTheme.colors.unselectedListHeaderBackground
                         }
                 )
-                .clickable {
+                .clickable(
+                    interactionSource = null,
+                    indication = if (isFocused) null else LocalIndication.current,
+                ) {
                     // It is fine for clickable to do nothing if its already selected.
                     // If we had removed clickable when someone selects a header, the keyboard
                     // navigation will go back to top on selection of an item instead of retaining
@@ -203,6 +221,7 @@ fun SelectableListHeader(
             } else {
                 SelectableListHeaderDefaults.unSelectedHeaderTextStyle
             },
+        isFocused = isFocused,
     )
 }
 
@@ -258,11 +277,22 @@ private fun WidgetAppHeader(
     subTitle: String,
     headerTextStyle: HeaderTextStyle,
     trailingButton: (@Composable () -> Unit)? = null,
+    isFocused: Boolean = false,
 ) {
+    val focusBorderModifier =
+        if (isFocused) {
+            modifier.border(
+                width = ListHeaderDimensions.focusOutlineStrokeWidth,
+                color = WidgetPickerTheme.colors.focusOutline,
+                shape = RoundedCornerShape(ListHeaderDimensions.focusOutlineRadius),
+            )
+        } else modifier
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier =
             modifier
+                .then(focusBorderModifier)
                 .height(height = ListHeaderDimensions.headerHeight)
                 .padding(horizontal = ListHeaderDimensions.headerHorizontalPadding),
     ) {
@@ -308,6 +338,9 @@ private object ListHeaderDimensions {
     val headerHeight = 80.dp
     val headerHorizontalPadding = 16.dp
     val centerTextHorizontalPadding = 16.dp
+
+    val focusOutlineRadius = 360.dp
+    val focusOutlineStrokeWidth = 3.dp
 }
 
 private object ExpandedListHeaderDefaults {
