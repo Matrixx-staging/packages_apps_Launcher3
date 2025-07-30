@@ -574,6 +574,9 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
 
     @VisibleForTesting
     private void maybeOnDragEnd() {
+        // maybeOnDragEnd() is called after callOnDragEnd() and endDrag() where isDragging() can
+        // change, we should update mIsTaskbarDragging before checking the value.
+        updateIsDragging();
         if (!isDragging()) {
             ((BubbleTextView) mDragObject.originalView).setIconDisabled(false);
             mControllers.taskbarAutohideSuspendController.updateFlag(
