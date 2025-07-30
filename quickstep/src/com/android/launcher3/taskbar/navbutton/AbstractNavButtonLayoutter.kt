@@ -19,6 +19,7 @@ package com.android.launcher3.taskbar.navbutton
 import android.content.res.Resources
 import android.graphics.drawable.RotateDrawable
 import android.net.Uri
+import android.provider.Settings
 import android.provider.Settings.Secure.NAVIGATIONBAR_KEY_ORDER
 import android.view.Gravity
 import android.view.ViewGroup
@@ -57,7 +58,6 @@ abstract class AbstractNavButtonLayoutter(
 ) : NavButtonLayoutter {
 
     open val orientation: Int = LinearLayout.HORIZONTAL
-    private val orderUri: Uri = android.provider.Settings.Secure.getUriFor(NAVIGATIONBAR_KEY_ORDER)
 
     init {
         // setup back button drawable
@@ -128,7 +128,8 @@ abstract class AbstractNavButtonLayoutter(
     open fun shouldFlipButtonOrder(): Boolean {
         val isFlipEnabledBySetting =
             android.view.accessibility.Flags.navbarFlipOrderOption() &&
-                SettingsCache.INSTANCE.get(navButtonContainer.context).getValue(orderUri)
+                SettingsCache.INSTANCE.get(navButtonContainer.context)
+                    .getValue(NAVBAR_KEY_ORDER_URI)
 
         return Utilities.isRtl(resources) xor isFlipEnabledBySetting
     }
@@ -154,5 +155,9 @@ abstract class AbstractNavButtonLayoutter(
             navButtonContainer.addView(homeButton)
             navButtonContainer.addView(recentsButton)
         }
+    }
+
+    companion object {
+        val NAVBAR_KEY_ORDER_URI: Uri = Settings.Secure.getUriFor(NAVIGATIONBAR_KEY_ORDER)
     }
 }

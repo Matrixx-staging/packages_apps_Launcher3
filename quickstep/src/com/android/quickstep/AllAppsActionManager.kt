@@ -75,7 +75,7 @@ class AllAppsActionManager(
         }
 
     private var isUserSetupComplete =
-        SettingsCache.INSTANCE[context].getValue(USER_SETUP_COMPLETE_URI, 0)
+        SettingsCache.INSTANCE[context].getValue(USER_SETUP_COMPLETE_URI)
         set(value) {
             field = value
             updateSystemAction()

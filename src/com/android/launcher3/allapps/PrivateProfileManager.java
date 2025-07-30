@@ -214,7 +214,7 @@ public class PrivateProfileManager extends UserProfileManager {
     /** Whether private profile should be hidden on Launcher. */
     public boolean isPrivateSpaceHidden() {
         return getCurrentState() == STATE_DISABLED && SettingsCache.INSTANCE
-                    .get(mAllApps.getContext()).getValue(PRIVATE_SPACE_HIDE_WHEN_LOCKED_URI, 0);
+                .get(mAllApps.getContext()).getValue(PRIVATE_SPACE_HIDE_WHEN_LOCKED_URI);
     }
 
     BitmapInfo preparePSBitmapInfo() {

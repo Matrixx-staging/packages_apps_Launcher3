@@ -33,6 +33,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.RippleDrawable;
 import android.os.SystemProperties;
 import android.provider.Settings;
+import android.provider.Settings.Secure;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -403,7 +404,7 @@ abstract class TutorialController implements BackGestureAttemptCallback,
         mFeedbackSubtitleView.setText(subtitleResId);
 
         boolean isUserSetupComplete = SettingsCache.INSTANCE.get(mContext).getValue(
-                Settings.Secure.getUriFor(Settings.Secure.USER_SETUP_COMPLETE), 0);
+                Settings.Secure.getUriFor(Secure.USER_SETUP_COMPLETE));
         boolean userSetupNotCompleteAndExpressiveThemeEnabled =
                 !isUserSetupComplete && mIsExpressiveThemeEnabledInSUW;
         boolean userSetupCompleteAndNewFontsEnabled = isUserSetupComplete && Flags.enableGsf();

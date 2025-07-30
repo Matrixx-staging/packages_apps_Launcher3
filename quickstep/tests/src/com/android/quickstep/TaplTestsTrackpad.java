@@ -29,11 +29,13 @@ import androidx.test.runner.AndroidJUnit4;
 
 import com.android.launcher3.tapl.LauncherInstrumentation.TrackpadGestureType;
 import com.android.launcher3.tapl.Workspace;
+import com.android.launcher3.util.rule.ShellCommandRule;
 import com.android.launcher3.util.ui.PortraitLandscapeRunner.PortraitLandscape;
 import com.android.quickstep.NavigationModeSwitchRule.NavigationModeSwitch;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -43,6 +45,10 @@ public class TaplTestsTrackpad extends AbstractQuickStepTest {
 
     private static final String READ_DEVICE_CONFIG_PERMISSION =
             "android.permission.READ_DEVICE_CONFIG";
+
+    @Rule public ShellCommandRule settingsRule = new ShellCommandRule(
+            "settings put system touchpad_natural_scrolling 1",
+            "settings put system touchpad_natural_scrolling 0");
 
     @Before
     public void setup() {

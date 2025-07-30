@@ -72,6 +72,7 @@ import android.os.IRemoteCallback;
 import android.os.Process;
 import android.os.Trace;
 import android.provider.Settings;
+import android.provider.Settings.Secure;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Surface;
@@ -535,10 +536,8 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         mNavMode = getNavigationMode();
 
         SettingsCache settingsCache = SettingsCache.INSTANCE.get(this);
-        mIsUserSetupComplete = settingsCache.getValue(
-                Settings.Secure.getUriFor(Settings.Secure.USER_SETUP_COMPLETE), 0);
-        mIsNavBarKidsMode = settingsCache.getValue(
-                Settings.Secure.getUriFor(Settings.Secure.NAV_BAR_KIDS_MODE), 0);
+        mIsUserSetupComplete = settingsCache.getValue(Secure.getUriFor(Secure.USER_SETUP_COMPLETE));
+        mIsNavBarKidsMode = settingsCache.getValue(Secure.getUriFor(Secure.NAV_BAR_KIDS_MODE));
         mIsNavBarForceVisible = mIsNavBarKidsMode;
         if (mControllers != null) {
             mControllers.taskbarEduTooltipController.updateShouldShowEduOnAppLaunch();
