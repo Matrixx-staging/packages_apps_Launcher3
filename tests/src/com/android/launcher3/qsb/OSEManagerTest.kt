@@ -46,12 +46,13 @@ import kotlin.test.assertTrue
 import org.junit.After
 import org.junit.Assert.assertNull
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.argumentCaptor
@@ -68,6 +69,8 @@ import org.mockito.kotlin.whenever
 @SmallTest
 @RunWith(AndroidJUnit4::class)
 class OSEManagerTest {
+
+    @get:Rule val mockitoRule = MockitoJUnit.rule()
 
     val context = spy(SandboxApplication())
     private val settingsObserver: SecureStringObserver = mock()
@@ -95,7 +98,6 @@ class OSEManagerTest {
 
     @Before
     fun setUp() {
-        MockitoAnnotations.initMocks(this)
         doReturn(res).whenever(context).resources
         searchManager = context.spyService(SearchManager::class.java)
         doReturn(BING_PKG).whenever(componentName).packageName

@@ -50,13 +50,14 @@ import com.android.launcher3.util.UserIconInfo
 import com.android.launcher3.widget.WidgetInflater
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Answers
 import org.mockito.ArgumentCaptor
 import org.mockito.Mock
 import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
@@ -78,6 +79,7 @@ class WorkspaceItemProcessorExtraTest {
     @Mock private lateinit var mockUserCache: UserCache
     @Mock private lateinit var mockUserManagerState: UserManagerState
     @Mock private lateinit var mockWidgetInflater: WidgetInflater
+    @get:Rule val mockitoRule = MockitoJUnit.rule()
 
     private var intent: Intent = Intent()
     private var mUserHandle: UserHandle = UserHandle(0)
@@ -93,8 +95,6 @@ class WorkspaceItemProcessorExtraTest {
 
     @Before
     fun setup() {
-        MockitoAnnotations.initMocks(this)
-
         mUserHandle = UserHandle(0)
         mComponentName = ComponentName("package", "class")
         mUnlockedUsersArray = LongSparseArray<Boolean>(1).apply { put(101, true) }
