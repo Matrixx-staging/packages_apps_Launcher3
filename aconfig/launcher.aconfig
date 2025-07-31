@@ -620,3 +620,10 @@ flag {
     description: "Enables file and folder items on the home screen"
     bug: "375644352"
 }
+
+flag {
+    name: "enable_system_drag"
+    namespace: "launcher"
+    description: "Enables system-level drag-and-drop"
+    bug: "402183121"
+}
