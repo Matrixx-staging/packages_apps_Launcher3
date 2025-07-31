@@ -35,6 +35,7 @@ import com.android.launcher3.dagger.LauncherConcurrencyModule
 import com.android.launcher3.dagger.LauncherModelModule
 import com.android.launcher3.dagger.SettingsModule
 import com.android.launcher3.dagger.StaticObjectModule
+import com.android.launcher3.dagger.SystemDragModule
 import com.android.launcher3.dagger.WidgetModule
 import com.android.launcher3.dagger.WindowContext
 import com.android.launcher3.homescreenfiles.HomeScreenFilesModule
@@ -98,6 +99,7 @@ interface TaskbarSandboxComponent : LauncherAppComponent {
             LauncherModelModule::class,
             HomeScreenFilesModule::class,
             SettingsModule::class,
+            SystemDragModule::class,
         ]
 )
 interface AllTaskbarSandboxModules
