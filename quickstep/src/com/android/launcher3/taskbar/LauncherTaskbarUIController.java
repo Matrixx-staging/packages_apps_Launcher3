@@ -31,6 +31,7 @@ import static com.android.quickstep.interaction.AllSetActivity.ALL_SET_SWIPE_THR
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
+import android.content.Context;
 import android.os.SystemProperties;
 import android.window.RemoteTransition;
 
@@ -47,6 +48,7 @@ import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.logging.InstanceId;
 import com.android.launcher3.logging.InstanceIdSequence;
 import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.taskbar.bubbles.BubbleBarController;
 import com.android.launcher3.taskbar.bubbles.BubbleControllers;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
@@ -539,9 +541,12 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
 
     @Override
     protected void toggleAllApps(boolean focusSearch) {
-        boolean canToggleHomeAllApps = mLauncher.isResumed()
+        final Context context = mControllers.taskbarActivityContext;
+        final boolean areDesktopTasksVisible = DesktopVisibilityController.INSTANCE.get(context)
+                .isInDesktopModeAndNotInOverview(context.getDisplayId());
+        final boolean canToggleHomeAllApps = mLauncher.isResumed()
                 && !mTaskbarLauncherStateController.isInOverviewUi()
-                && !mLauncher.areDesktopTasksVisible();
+                && !areDesktopTasksVisible;
         if (canToggleHomeAllApps) {
             mLauncher.toggleAllApps(focusSearch);
             return;
