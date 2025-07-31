@@ -262,6 +262,22 @@ public class WallpaperScreenshotClipView extends FrameLayout {
     }
 
     /**
+     * Checks if the SurfaceControl is invalid (or null) and releases it if so.
+     *
+     * @return true if the control was invalid, false otherwise.
+     */
+    private boolean releaseIfInvalid(SurfaceControl control) {
+        if (control == null) {
+            return true;
+        }
+        if (!control.isValid()) {
+            control.release();
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Captures a screenshot of the wallpaper.
      */
     public void tryCaptureWallpaperScreenshot(Window window, int displayId, View rootView,
@@ -285,21 +301,30 @@ public class WallpaperScreenshotClipView extends FrameLayout {
             onEndRunnable.run();
             return;
         }
-        SurfaceControl wallpaperMirror = windowManagerGlobal.mirrorWallpaperSurface(
-                displayId);
-        if (wallpaperMirror == null) {
-            Log.d(TAG, "setupWallpaperScreenshot return: wallpaperMirror is null");
+        SurfaceControl rootSurfaceControl = rootView.getViewRootImpl().getSurfaceControl();
+        if (rootSurfaceControl == null) { // We do not release if invalid.
+            Log.d(TAG, "setupWallpaperScreenshot return: rootSurfaceControl is null");
             onEndRunnable.run();
             return;
         }
-        Rect captureBounds = new Rect();
-        captureBounds.set(0, 0, mWindowWidth, mWindowHeight);
-        // Mirror wallpaper surfaces under new control for screenshotting.
-        window.setBackgroundBlurRadius(0);
+        SurfaceControl wallpaperMirror = windowManagerGlobal.mirrorWallpaperSurface(
+                displayId);
+        if (releaseIfInvalid(wallpaperMirror)) {
+            Log.d(TAG, "setupWallpaperScreenshot return: wallpaperMirror=" + wallpaperMirror);
+            onEndRunnable.run();
+            return;
+        }
 
-        SurfaceControl rootSurfaceControl =
-                rootView.getViewRootImpl().getSurfaceControl();
+        // It's important to set blur to 0 before trying to mirror the surface.
+        window.setBackgroundBlurRadius(0);
         SurfaceControl allSetMirror = SurfaceControl.mirrorSurface(rootSurfaceControl);
+
+        if (releaseIfInvalid(allSetMirror)) {
+            Log.d(TAG, "setupWallpaperScreenshot return: allSetMirror=" + allSetMirror);
+            onEndRunnable.run();
+            wallpaperMirror.release();
+            return;
+        }
 
         SurfaceControl rootControl = new SurfaceControl.Builder()
                 .setName("Wallpaper Screenshot Clip View")
@@ -309,7 +334,8 @@ public class WallpaperScreenshotClipView extends FrameLayout {
                 .setLayer(wallpaperMirror, -1)
                 .reparent(allSetMirror, rootControl)
                 .setLayer(allSetMirror, 0);
-
+        Rect captureBounds = new Rect();
+        captureBounds.set(0, 0, mWindowWidth, mWindowHeight);
         mCaptureTask = new CancellableTask<>(
                 () -> {
                     transaction.apply(true);
