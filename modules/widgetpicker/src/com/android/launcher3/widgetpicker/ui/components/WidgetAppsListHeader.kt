@@ -172,13 +172,6 @@ fun SelectableListHeader(
     onSelect: () -> Unit,
     shape: RoundedCornerShape,
 ) {
-    val clickModifier =
-        if (!selected) {
-            Modifier.clickable { onSelect() }
-        } else {
-            Modifier
-        }
-
     WidgetAppHeader(
         modifier =
             modifier
@@ -192,7 +185,15 @@ fun SelectableListHeader(
                             WidgetPickerTheme.colors.unselectedListHeaderBackground
                         }
                 )
-                .then(clickModifier),
+                .clickable {
+                    // It is fine for clickable to do nothing if its already selected.
+                    // If we had removed clickable when someone selects a header, the keyboard
+                    // navigation will go back to top on selection of an item instead of retaining
+                    // focus. b/434746613
+                    if (!selected) {
+                        onSelect()
+                    }
+                },
         leadingIcon = { leadingAppIcon() },
         title = title,
         subTitle = subTitle,
