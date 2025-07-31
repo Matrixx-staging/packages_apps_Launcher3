@@ -88,7 +88,6 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
-import android.view.inputmethod.Flags;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -330,10 +329,8 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         mIsImeRenderingNavButtons = mContext.imeDrawsImeNavBar();
         if (!mIsImeRenderingNavButtons) {
             // IME switcher
-            final int switcherResId = Flags.imeSwitcherRevamp()
-                    ? com.android.internal.R.drawable.ic_ime_switcher_new
-                    : R.drawable.ic_ime_switcher;
-            mImeSwitcherButton = addButton(switcherResId, BUTTON_IME_SWITCH,
+            mImeSwitcherButton = addButton(com.android.internal.R.drawable.ic_ime_switcher_new,
+                    BUTTON_IME_SWITCH,
                     isThreeButtonNav ? mStartContextualContainer : mEndContextualContainer,
                     mControllers.navButtonController, R.id.ime_switcher);
             // A11y and IME Switcher buttons overlap on phone mode, show only a11y if both visible.
