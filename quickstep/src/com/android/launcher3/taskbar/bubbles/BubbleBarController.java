@@ -25,7 +25,9 @@ import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_Q
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_STATUS_BAR_KEYGUARD_SHOWING;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_STATUS_BAR_KEYGUARD_SHOWING_OCCLUDED;
 
+import android.annotation.AnyThread;
 import android.annotation.BinderThread;
+import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.content.Context;
 import android.graphics.Point;
@@ -48,7 +50,6 @@ import com.android.wm.shell.shared.bubbles.BubbleBarUpdate;
 import com.android.wm.shell.shared.bubbles.BubbleInfo;
 import com.android.wm.shell.shared.bubbles.RemovedBubble;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -181,6 +182,7 @@ public class BubbleBarController {
     }
 
     public void onDestroy() {
+        mListener.clear();
         mSystemUiProxy.setBubblesListener(null);
         // Saves bubble bar state
         mSharedState.bubbleBarExpanded = mBubbleBarViewController.isExpanded();
@@ -683,18 +685,26 @@ public class BubbleBarController {
         void onBubbleBarLocationUpdated(BubbleBarLocation location);
     }
 
+    /**
+     * {@link IBubblesListener.Stub} that wraps {@link BubbleBarController} as host obj and
+     * allow clearing it so that:
+     * 1. Launcher process doesn't accumulate expensive {@link #mContext} objects which cannot be
+     * GCed until remote process runs GC to clear the binder objects. This will reduce the high
+     * water mark memory usage for client process.
+     * 2. Leak canary doesn't raise false positive alarms.
+     */
     private static class BubbleBarListener extends IBubblesListener.Stub {
 
-        private final WeakReference<BubbleBarController> mController;
+        private @Nullable BubbleBarController mController;
 
-        BubbleBarListener(BubbleBarController controller) {
-            mController = new WeakReference<>(controller);
+        BubbleBarListener(@NonNull BubbleBarController controller) {
+            mController = controller;
         }
 
         @BinderThread
         @Override
         public void onBubbleStateChange(Bundle bundle) {
-            BubbleBarController controller = mController.get();
+            BubbleBarController controller = mController;
             if (controller != null) {
                 controller.onBubbleStateChange(bundle);
             }
@@ -702,7 +712,7 @@ public class BubbleBarController {
 
         @Override
         public void animateBubbleBarLocation(BubbleBarLocation bubbleBarLocation) {
-            BubbleBarController controller = mController.get();
+            BubbleBarController controller = mController;
             if (controller != null) {
                 controller.animateBubbleBarLocation(bubbleBarLocation);
             }
@@ -710,10 +720,20 @@ public class BubbleBarController {
 
         @Override
         public void showBubbleBarDropTargetAt(@Nullable BubbleBarLocation location) {
-            BubbleBarController controller = mController.get();
+            BubbleBarController controller = mController;
             if (controller != null) {
                 controller.showBubbleBarDropTargetAt(location);
             }
+        }
+
+        /**
+         * Since the lifecycle of this binder obj depends on remote process's GC, calling this
+         * method will allow Launcher process GC {@link mController} earlier, and also avoid false
+         * positive leak signal from leak canary.
+         */
+        @AnyThread
+        private void clear() {
+            mController = null;
         }
     }
 }
