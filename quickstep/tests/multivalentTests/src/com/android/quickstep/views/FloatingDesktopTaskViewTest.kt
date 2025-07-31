@@ -55,8 +55,7 @@ class FloatingDesktopTaskViewTest {
     @Before
     fun setUp() {
         uiContext = ActivityContextWrapper(context)
-        deviceProfile =
-            InvariantDeviceProfile.INSTANCE[context].getDeviceProfile(context).copy(context)
+        deviceProfile = InvariantDeviceProfile.INSTANCE[context].getDeviceProfile(context).copy()
         `when`(launcher.workspace).thenReturn(workspace)
         `when`(launcher.dragLayer).thenReturn(dragLayer)
         `when`(launcher.deviceProfile).thenReturn(deviceProfile)

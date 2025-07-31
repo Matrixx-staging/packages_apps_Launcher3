@@ -99,7 +99,7 @@ class WidgetsPredictionsRequesterTest {
                 }
             }
         testInvariantProfile = LauncherAppState.getIDP(context)
-        deviceProfile = testInvariantProfile.getDeviceProfile(context).copy(context)
+        deviceProfile = testInvariantProfile.getDeviceProfile(context).copy()
 
         widget1aInfo =
             createAppWidgetProviderInfo(

@@ -74,7 +74,7 @@ class GridSizeUtil(private val context: Context) {
                     .minByOrNull { it.numRows + it.numColumns }
                     ?: gridOptions.minBy { abs(it.numRows - rows) + abs(it.numColumns - columns) }
 
-            idp.setCurrentGrid(context, closestMatch.name)
+            idp.setCurrentGrid(closestMatch.name)
         } catch (e: XmlPullParserException) {
             Log.w(TAG, "failed to parse or set xml for grid row and column counts", e)
         }

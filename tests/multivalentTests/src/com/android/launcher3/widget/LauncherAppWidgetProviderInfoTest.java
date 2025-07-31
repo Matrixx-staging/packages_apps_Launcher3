@@ -250,7 +250,7 @@ public final class LauncherAppWidgetProviderInfoTest {
     private InvariantDeviceProfile createIDP() {
         InvariantDeviceProfile idp = InvariantDeviceProfile.INSTANCE.get(mContext);
 
-        DeviceProfile dp = idp.getDeviceProfile(mContext).copy(mContext);
+        DeviceProfile dp = idp.getDeviceProfile(mContext).copy();
         DeviceProfile profile = Mockito.spy(dp);
         doAnswer(i -> {
             ((Point) i.getArgument(0)).set(CELL_SIZE, CELL_SIZE);

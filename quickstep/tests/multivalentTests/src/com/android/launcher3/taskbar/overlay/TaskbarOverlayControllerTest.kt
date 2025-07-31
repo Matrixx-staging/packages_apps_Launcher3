@@ -188,10 +188,7 @@ class TaskbarOverlayControllerTest {
 
         runOnMainSync {
             overlayController.updateLauncherDeviceProfile(
-                overlayController.launcherDeviceProfile
-                    .toBuilder(context)
-                    .setGestureMode(false)
-                    .build()
+                overlayController.launcherDeviceProfile.toBuilder().setGestureMode(false).build()
             )
         }
 
@@ -207,10 +204,7 @@ class TaskbarOverlayControllerTest {
 
         runOnMainSync {
             overlayController.updateLauncherDeviceProfile(
-                overlayController.launcherDeviceProfile
-                    .toBuilder(context)
-                    .setGestureMode(false)
-                    .build()
+                overlayController.launcherDeviceProfile.toBuilder().setGestureMode(false).build()
             )
         }
 

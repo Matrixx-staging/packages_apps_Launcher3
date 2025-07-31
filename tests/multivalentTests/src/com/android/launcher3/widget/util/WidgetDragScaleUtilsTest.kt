@@ -48,7 +48,7 @@ class WidgetDragScaleUtilsTest {
         itemInfo = ItemInfo()
 
         deviceProfile =
-            Mockito.spy(LauncherAppState.getIDP(context).getDeviceProfile(context).copy(context))
+            Mockito.spy(LauncherAppState.getIDP(context).getDeviceProfile(context).copy())
 
         doReturn(0.8f).whenever(deviceProfile).getWorkspaceSpringLoadScale(any(Context::class.java))
         deviceProfile.workspaceIconProfile =

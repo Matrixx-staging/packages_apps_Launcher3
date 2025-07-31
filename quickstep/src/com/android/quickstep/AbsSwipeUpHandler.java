@@ -1100,7 +1100,7 @@ public abstract class AbsSwipeUpHandler<
             RecentsOrientedState orientationState = mRemoteTargetHandles[0].getTaskViewSimulator()
                     .getOrientationState();
             DeviceProfile dp = orientationState.getLauncherDeviceProfile(
-                    mGestureState.getDisplayId()).copy(mContext);
+                    mGestureState.getDisplayId()).copy();
             dp.updateInsets(targets.homeContentInsets);
             initTransitionEndpoints(dp);
         }

@@ -245,7 +245,7 @@ public class DeviceProfile {
         mAllAppsProfile = new AllAppsProfile(new Point(0, 0), 0, 0, 0f, 0, 0, 0);
     }
 
-    DeviceProfile(Context context, InvariantDeviceProfile inv, Info info,
+    DeviceProfile(InvariantDeviceProfile inv, Info info,
             WindowManagerProxy wmProxy, WindowBounds windowBounds,
             SparseArray<DotRenderer> dotRendererCache, boolean isExternalDisplay,
             boolean transposeLayoutWithOrientation, boolean isMultiDisplay, boolean isGestureMode,
@@ -285,7 +285,7 @@ public class DeviceProfile {
                         && wmProxy.isTaskbarDrawnInProcess();
 
         // Some more constants.
-        context = getContext(context, info, isLandscapeOrientation()
+        Context context = getContext(info, isLandscapeOrientation()
                         ? Configuration.ORIENTATION_LANDSCAPE
                         : Configuration.ORIENTATION_PORTRAIT,
                 windowBounds);
@@ -805,7 +805,8 @@ public class DeviceProfile {
         return mHotseatWidthPx;
     }
 
-    public Builder toBuilder(Context context) {
+    /** Creates a builder with the current properties filled in */
+    public Builder toBuilder() {
         WindowBounds bounds = createWindowBounds(mDeviceProperties);
         bounds.bounds.offsetTo(mDeviceProperties.getWindowX(), mDeviceProperties.getWindowY());
         bounds.insets.set(mInsets);
@@ -814,7 +815,7 @@ public class DeviceProfile {
         dotRendererCache.put(getWorkspaceIconProfile().getIconSizePx(), mDotRendererWorkSpace);
         dotRendererCache.put(getAllAppsProfile().getIconSizePx(), mDotRendererAllApps);
 
-        return inv.newDPBuilder(context, mInfo)
+        return inv.newDPBuilder(mInfo)
                 .setWindowBounds(bounds)
                 .setIsMultiDisplay(mDeviceProperties.isMultiDisplay())
                 .setExternalDisplay(mDeviceProperties.isExternalDisplay())
@@ -823,8 +824,9 @@ public class DeviceProfile {
                 .setDisplayOptionSpec(mDisplayOptionSpec);
     }
 
-    public DeviceProfile copy(Context context) {
-        return toBuilder(context).build();
+    /** Creates a copy of the current device profile */
+    public DeviceProfile copy() {
+        return toBuilder().build();
     }
 
     /**
@@ -1947,12 +1949,12 @@ public class DeviceProfile {
                 + "rotationHint:" + mDeviceProperties.getRotationHint();
     }
 
-    private static Context getContext(Context c, Info info, int orientation, WindowBounds bounds) {
-        Configuration config = new Configuration(c.getResources().getConfiguration());
+    private static Context getContext(Info info, int orientation, WindowBounds bounds) {
+        Configuration config = new Configuration(info.context.getResources().getConfiguration());
         config.orientation = orientation;
         config.densityDpi = info.getDensityDpi();
         config.smallestScreenWidthDp = (int) info.smallestSizeDp(bounds);
-        return c.createConfigurationContext(config);
+        return info.context.createConfigurationContext(config);
     }
 
     /**
@@ -2032,7 +2034,6 @@ public class DeviceProfile {
     }
 
     public static class Builder {
-        private final Context mContext;
         private final InvariantDeviceProfile mInv;
         private final Info mInfo;
         private final WindowManagerProxy mWMProxy;
@@ -2051,9 +2052,7 @@ public class DeviceProfile {
 
         private DisplayOptionSpec mDisplayOptionSpec;
 
-        public Builder(Context context, InvariantDeviceProfile inv, Info info,
-                WindowManagerProxy wmProxy) {
-            mContext = context;
+        public Builder(InvariantDeviceProfile inv, Info info, WindowManagerProxy wmProxy) {
             mInv = inv;
             mInfo = info;
             mWMProxy = wmProxy;
@@ -2113,8 +2112,7 @@ public class DeviceProfile {
          * @return This Builder
          */
         public Builder setSecondaryDisplayOptionSpec() {
-            mDisplayOptionSpec = createDisplayOptionSpec(mContext, mInfo,
-                    mWindowBounds.isLandscape());
+            mDisplayOptionSpec = createDisplayOptionSpec(mInfo, mWindowBounds.isLandscape());
             return this;
         }
 
@@ -2147,7 +2145,7 @@ public class DeviceProfile {
                 mDisplayOptionSpec = createDefaultDisplayOptionSpec(mInfo, mWindowBounds,
                         mIsMultiDisplay, mInv);
             }
-            return new DeviceProfile(mContext, mInv, mInfo, mWMProxy,
+            return new DeviceProfile(mInv, mInfo, mWMProxy,
                     mWindowBounds, mDotRendererCache, mIsExternalDisplay,
                     mTransposeLayoutWithOrientation, mIsMultiDisplay,
                     mIsGestureMode, mViewScaleProvider, mOverrideProvider,

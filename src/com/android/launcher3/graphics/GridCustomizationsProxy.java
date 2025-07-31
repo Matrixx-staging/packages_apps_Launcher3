@@ -291,7 +291,7 @@ public class GridCustomizationsProxy implements ProxyProvider {
                 if (match == null) {
                     return 0;
                 }
-                mIdp.setCurrentGrid(mContext, gridName);
+                mIdp.setCurrentGrid(gridName);
 
                 LauncherModel launcherModel = LauncherAppState.getInstance(mContext).getModel();
                 if (Flags.newCustomizationPickerUi() && launcherModel.isActive()) {

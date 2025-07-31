@@ -443,6 +443,9 @@ public class DisplayController {
 
     public static class Info {
 
+        // Display context
+        public final Context context;
+
         // Cached property
         public final CachedDisplayInfo normalizedDisplayInfo;
         public final int rotation;
@@ -488,6 +491,8 @@ public class DisplayController {
                 WindowManagerProxy wmProxy,
                 Map<CachedDisplayInfo, List<WindowBounds>> perDisplayBoundsCache,
                 int defaultDensityDpi) {
+            this.context = displayInfoContext;
+
             CachedDisplayInfo displayInfo = wmProxy.getDisplayInfo(displayInfoContext);
             normalizedDisplayInfo = displayInfo.normalize(wmProxy);
             rotation = displayInfo.rotation;
