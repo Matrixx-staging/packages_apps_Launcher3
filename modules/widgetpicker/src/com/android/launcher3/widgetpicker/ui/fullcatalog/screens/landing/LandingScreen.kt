@@ -149,6 +149,7 @@ private fun LandingScreen(
                 searchBar = searchBarContent,
                 featuredWidgets = featuredWidgetsContent,
                 featuredWidgetsCount = featuredWidgetsState.widgetsCount,
+                featuredShortcutsCount = featuredWidgetsState.shortcutsCount,
                 widgetAppIconsState = widgetAppIconsState,
                 browseWidgetsState = browseWidgetsState,
                 personalWidgetPreviewsState = personalWidgetPreviewsState,

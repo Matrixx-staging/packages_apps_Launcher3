@@ -95,9 +95,7 @@ fun ExpandableListHeader(
             .background(color = WidgetPickerTheme.colors.expandableListItemsBackground)
 
     val expandedState = remember { MutableTransitionState(expanded) }
-    LaunchedEffect(expanded) {
-        expandedState.targetState = expanded
-    }
+    LaunchedEffect(expanded) { expandedState.targetState = expanded }
     LaunchedEffect(Unit) {
         snapshotFlow { Pair(expandedState.currentState, expandedState.targetState) }
             .collect {
@@ -212,7 +210,8 @@ fun SelectableListHeader(
  *
  * @param modifier modifier for top level composable of the suggestions header.
  * @param selected if the header is currently selected.
- * @param count number of suggested widgets.
+ * @param widgetsCount number of suggested widgets.
+ * @param shortcutsCount number of suggested shortcuts (if supported).
  * @param onSelect action to perform when user selects the header.
  * @param shape shape for the header e.g. depending on position in the list, a different corner.
  */
@@ -220,7 +219,8 @@ fun SelectableListHeader(
 fun SelectableSuggestionsHeader(
     modifier: Modifier,
     selected: Boolean,
-    count: Int,
+    widgetsCount: Int,
+    shortcutsCount: Int,
     onSelect: () -> Unit,
     shape: RoundedCornerShape,
 ) {
@@ -229,7 +229,7 @@ fun SelectableSuggestionsHeader(
         selected = selected,
         shape = shape,
         title = stringResource(R.string.featured_widgets_tab_label),
-        subTitle = widgetsCountString(count),
+        subTitle = widgetsCountString(widgets = widgetsCount, shortcuts = shortcutsCount),
         leadingAppIcon = {
             Icon(
                 imageVector = Icons.Filled.Star,

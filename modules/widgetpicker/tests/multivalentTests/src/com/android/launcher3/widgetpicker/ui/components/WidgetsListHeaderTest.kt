@@ -21,6 +21,7 @@ import android.platform.test.rule.DeviceProduct
 import android.platform.test.rule.LimitDevicesRule
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,8 +38,11 @@ import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onChildAt
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.unit.dp
@@ -164,6 +168,30 @@ class WidgetsListHeaderTest {
 
             // Collapsed, content should be gone.
             composeTestRule.onNode(hasText(EXPANDED_CONTENT_TEXT)).assertDoesNotExist()
+        }
+
+    @Test
+    fun widgetCountString_returnsCorrectWidgetsCount() =
+        testScope.runTest {
+            composeTestRule.setContent {
+                Column {
+                    Text(widgetsCountString(widgets = 10, shortcuts = 0))
+                    Text(widgetsCountString(widgets = 1, shortcuts = 0))
+                    Text(widgetsCountString(widgets = 0, shortcuts = 10))
+                    Text(widgetsCountString(widgets = 0, shortcuts = 1))
+                    Text(widgetsCountString(widgets = 1, shortcuts = 1))
+                    Text(widgetsCountString(widgets = 10, shortcuts = 10))
+                }
+            }
+
+            composeTestRule.waitForIdle()
+            val root = composeTestRule.onRoot()
+            root.onChildAt(0).assertTextEquals("10 widgets")
+            root.onChildAt(1).assertTextEquals("1 widget")
+            root.onChildAt(2).assertTextEquals("10 shortcuts")
+            root.onChildAt(3).assertTextEquals("1 shortcut")
+            root.onChildAt(4).assertTextEquals("1 widget, 1 shortcut")
+            root.onChildAt(5).assertTextEquals("10 widgets, 10 shortcuts")
         }
 
     @Test
