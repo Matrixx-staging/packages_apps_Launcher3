@@ -218,6 +218,8 @@ class TaskbarRecentAppsController(
             shownTasks = previousShownTasks
             fetchIcons()
         }
+        orderedRunningTaskIds =
+            controllers.sharedState?.recentOrderedRunningTaskIds?.filterNotNull() ?: emptyList()
         if (canShowRunningApps || canShowRecentApps) {
             recentsModel.registerRecentTasksChangedListener(recentTasksChangedListener)
             controllers.runAfterInit { reloadRecentTasksIfNeeded() }
@@ -228,6 +230,10 @@ class TaskbarRecentAppsController(
         controllers.sharedState?.recentTasksBeforeTaskbarRecreate?.clear()
         if (shownTasks.isNotEmpty()) {
             controllers.sharedState?.recentTasksBeforeTaskbarRecreate?.addAll(shownTasks)
+        }
+        controllers.sharedState?.recentOrderedRunningTaskIds?.clear()
+        if (orderedRunningTaskIds.isNotEmpty()) {
+            controllers.sharedState?.recentOrderedRunningTaskIds?.addAll(orderedRunningTaskIds)
         }
         recentsModel.unregisterRecentTasksChangedListener(recentTasksChangedListener)
         iconLoadRequests.forEach { it.cancel() }
