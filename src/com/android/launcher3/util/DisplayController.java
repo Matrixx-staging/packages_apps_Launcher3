@@ -193,13 +193,6 @@ public class DisplayController {
     }
 
     /**
-     * Returns whether the taskbar is pinned in gesture navigation mode.
-     */
-    public static boolean isInDesktopMode(Context context) {
-        return getInfo(context).isInDesktopMode();
-    }
-
-    /**
      * Returns whether the display is in desktop-first mode.
      */
     public static boolean isInDesktopFirstMode(Context context) {
@@ -359,9 +352,6 @@ public class DisplayController {
             FileLog.w(TAG,
                     "(CHANGE_SUPPORTED_BOUNDS) perDisplayBounds: " + newInfo.mPerDisplayBounds);
         }
-        if (newInfo.mIsInDesktopMode != oldInfo.mIsInDesktopMode) {
-            change |= CHANGE_DESKTOP_MODE;
-        }
         if (newInfo.mShowLockedTaskbarOnHome != oldInfo.mShowLockedTaskbarOnHome) {
             change |= CHANGE_SHOW_LOCKED_TASKBAR;
         }
@@ -463,7 +453,6 @@ public class DisplayController {
         private final ArrayMap<CachedDisplayInfo, List<WindowBounds>> mPerDisplayBounds =
                 new ArrayMap<>();
 
-        private final boolean mIsInDesktopMode;
         private final boolean mIsInDesktopFirstMode;
 
         private final boolean mShowLockedTaskbarOnHome;
@@ -540,20 +529,12 @@ public class DisplayController {
                 Log.d(TAG, "perDisplayBounds: " + mPerDisplayBounds);
             }
 
-            mIsInDesktopMode = wmProxy.isInDesktopMode(DEFAULT_DISPLAY);
             mIsInDesktopFirstMode = wmProxy.isDisplayDesktopFirst(displayInfoContext);
             mShowLockedTaskbarOnHome = wmProxy.showLockedTaskbarOnHome(displayInfoContext);
             mShowDesktopTaskbarForFreeformDisplay = wmProxy.showDesktopTaskbarForFreeformDisplay(
                     displayInfoContext);
             mIsHomeVisible = wmProxy.isHomeVisible();
             mIsDesktopFormFactor = isDesktopFormFactor;
-        }
-
-        /**
-         * Returns whether the taskbar is in desktop mode.
-         */
-        public boolean isInDesktopMode() {
-            return mIsInDesktopMode;
         }
 
         /**
@@ -680,7 +661,6 @@ public class DisplayController {
             pw.println("  fontScale=" + info.fontScale);
             pw.println("  densityDpi=" + info.densityDpi);
             pw.println("  navigationMode=" + info.getNavigationMode().name());
-            pw.println("  isInDesktopMode=" + info.mIsInDesktopMode);
             pw.println("  isInDesktopFirstMode=" + info.isInDesktopFirstMode());
             pw.println("  showLockedTaskbarOnHome=" + info.showLockedTaskbarOnHome());
             pw.println("  currentSize=" + info.currentSize);

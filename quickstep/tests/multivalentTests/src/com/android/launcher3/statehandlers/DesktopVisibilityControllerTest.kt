@@ -24,7 +24,6 @@ import androidx.test.filters.SmallTest
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import com.android.launcher3.LauncherState
 import com.android.launcher3.util.DaggerSingletonTracker
-import com.android.launcher3.util.DisplayController
 import com.android.quickstep.SystemUiProxy
 import com.android.window.flags.Flags.FLAG_ENABLE_MULTIPLE_DESKTOPS_BACKEND
 import com.android.window.flags.Flags.FLAG_ENABLE_MULTIPLE_DESKTOPS_FRONTEND
@@ -54,7 +53,6 @@ class DesktopVisibilityControllerTest {
     private val context = mock<Context>()
     private val systemUiProxy = mock<SystemUiProxy>()
     private val lifeCycleTracker = mock<DaggerSingletonTracker>()
-    private val displayController = mock<DisplayController>()
     private lateinit var desktopVisibilityController: DesktopVisibilityController
     private val listenerCaptor = nullableArgumentCaptor<IDesktopTaskListener>()
 
@@ -63,12 +61,7 @@ class DesktopVisibilityControllerTest {
         whenever(context.resources).thenReturn(mock())
         whenever(DesktopModeStatus.enableMultipleDesktops(context)).thenReturn(true)
         desktopVisibilityController =
-            DesktopVisibilityController(
-                context,
-                systemUiProxy,
-                lifeCycleTracker,
-                { displayController },
-            )
+            DesktopVisibilityController(context, systemUiProxy, lifeCycleTracker)
         verify(systemUiProxy).setDesktopTaskListener(listenerCaptor.capture())
     }
 

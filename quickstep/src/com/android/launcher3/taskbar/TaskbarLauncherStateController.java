@@ -1075,9 +1075,16 @@ public class TaskbarLauncherStateController {
         /*
          * Hide Launcher Hotseat icons when Taskbar icons have opacity. Both icon sets
          * should not be visible at the same time.
+         *
+         * Checking if isLauncherAnimationRunning running is crucial as user can now swipe to home
+         * from desktop mode.
+         *
+         * Taskbar recreation can be anytime now so we don't want to start transient taskbar
+         * animation while user was swiping home from pinned taskbar of desktop mode.
          */
         float targetAlpha = hotseatVisible ? 1 : 0;
-        if (mControllers.taskbarActivityContext.isTransientTaskbar()
+        if ((mControllers.taskbarActivityContext.isTransientTaskbar()
+                && !mControllers.taskbarDesktopModeController.isLauncherAnimationRunning())
                 || mControllers.taskbarActivityContext.showLockedTaskbarOnHome()
                 || mControllers.taskbarActivityContext.showDesktopTaskbarForFreeformDisplay()) {
             mLauncher.getHotseat().setIconsAlpha(targetAlpha, alphaChannel);

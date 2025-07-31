@@ -56,7 +56,6 @@ import com.android.quickstep.window.RecentsWindowManager
 import dagger.Binds
 import dagger.BindsInstance
 import dagger.Component
-import dagger.Lazy
 import dagger.Module
 import dagger.Provides
 import javax.inject.Inject
@@ -217,11 +216,8 @@ object DesktopVisibilityControllerModule {
         @ApplicationContext context: Context,
         systemUiProxy: SystemUiProxy,
         lifecycleTracker: DaggerSingletonTracker,
-        displayController: Lazy<DisplayController>,
     ): DesktopVisibilityController {
-        return spy(
-            DesktopVisibilityController(context, systemUiProxy, lifecycleTracker, displayController)
-        )
+        return spy(DesktopVisibilityController(context, systemUiProxy, lifecycleTracker))
     }
 }
 
