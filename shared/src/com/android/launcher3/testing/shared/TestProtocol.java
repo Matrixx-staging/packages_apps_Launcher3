@@ -106,6 +106,7 @@ public final class TestProtocol {
     public static final String REQUEST_APP_LIST_FREEZE_FLAGS = "app-list-freeze-flags";
     public static final String REQUEST_APPS_LIST_SCROLL_Y = "apps-list-scroll-y";
     public static final String REQUEST_TASKBAR_APPS_LIST_SCROLL_Y = "taskbar-apps-list-scroll-y";
+    public static final String REQUEST_LIMIT_MAX_TASKBAR_ICON_NUMBER = "limit-max-taskbar-icon-num";
     public static final String REQUEST_WIDGETS_SCROLL_Y = "widgets-scroll-y";
     public static final String REQUEST_TARGET_INSETS = "target-insets";
     public static final String REQUEST_WINDOW_INSETS = "window-insets";

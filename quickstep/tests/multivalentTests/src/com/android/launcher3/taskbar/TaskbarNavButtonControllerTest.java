@@ -35,7 +35,6 @@ import android.platform.test.flag.junit.CheckFlagsRule;
 import android.platform.test.flag.junit.DeviceFlagsValueProvider;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.inputmethod.Flags;
 
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
@@ -148,13 +147,8 @@ public class TaskbarNavButtonControllerTest {
         mNavButtonController.onButtonLongClick(BUTTON_IME_SWITCH, mockView);
         verify(mockStatsLogger, never()).log(LAUNCHER_TASKBAR_IME_SWITCHER_BUTTON_TAP);
         verify(mockSystemUiProxy, never()).onImeSwitcherPressed();
-        if (Flags.imeSwitcherRevamp()) {
-            verify(mockStatsLogger, times(1)).log(LAUNCHER_TASKBAR_IME_SWITCHER_BUTTON_LONGPRESS);
-            verify(mockSystemUiProxy, times(1)).onImeSwitcherLongPress();
-        } else {
-            verify(mockStatsLogger, never()).log(LAUNCHER_TASKBAR_IME_SWITCHER_BUTTON_LONGPRESS);
-            verify(mockSystemUiProxy, never()).onImeSwitcherLongPress();
-        }
+        verify(mockStatsLogger, times(1)).log(LAUNCHER_TASKBAR_IME_SWITCHER_BUTTON_LONGPRESS);
+        verify(mockSystemUiProxy, times(1)).onImeSwitcherLongPress();
     }
 
     @Test

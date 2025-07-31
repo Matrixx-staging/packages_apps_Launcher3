@@ -286,7 +286,7 @@ public abstract class LauncherState implements BaseState<LauncherState> {
     }
 
     /** Returns whether taskbar is aligned with the hotseat vs position inside apps */
-    public boolean isTaskbarAlignedWithHotseat(Launcher launcher) {
+    public boolean isTaskbarAlignedWithHotseat() {
         return true;
     }
 

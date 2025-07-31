@@ -145,4 +145,6 @@ public class TaskbarSharedState {
     public boolean showCornerRadiusInDesktopMode = false;
 
     public List<GroupTask> recentTasksBeforeTaskbarRecreate = new ArrayList<>();
+
+    public final List<Integer> recentOrderedRunningTaskIds = new ArrayList<>();
 }

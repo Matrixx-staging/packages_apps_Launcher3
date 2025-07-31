@@ -17,6 +17,7 @@ package com.android.launcher3.tapl;
 
 import static android.view.KeyEvent.KEYCODE_META_RIGHT;
 
+import static com.android.launcher3.tapl.LauncherInstrumentation.KEYBOARD_QUICK_SWITCH_RES_ID;
 import static com.android.launcher3.tapl.LauncherInstrumentation.TASKBAR_RES_ID;
 
 import android.graphics.Point;
@@ -154,6 +155,41 @@ public final class Taskbar {
                     getAllAppsButtonSelector()));
 
             return mLauncher.getAllApps();
+        }
+    }
+
+    /**
+     * Opens taskbar overflow UI by clicking the taskbar overflow icon, and then opens a task in
+     * overflow UI at the provided index.
+     * Assumes that taskbar is currently visible, and in overflow (i.e. that the taskbar overflow
+     * icon is shown).
+     */
+    public LaunchedAppState launchTaskFromTaskbarOverflowByRecencyIndex(int index) {
+        try (LauncherInstrumentation.Closable c = mLauncher.addContextLayer(
+                "Click on taskbar overflow button");
+             LauncherInstrumentation.Closable e = mLauncher.eventsCheck()) {
+            UiObject2 taskbarOverflowButton = mLauncher.waitForSystemLauncherObject(
+                    "taskbar_overflow_view");
+            mLauncher.clickLauncherObject(taskbarOverflowButton);
+
+            UiObject2 kqs = mLauncher.waitForSystemLauncherObject(KEYBOARD_QUICK_SWITCH_RES_ID);
+
+            List<UiObject2> overflownApps =
+                    mLauncher.waitForObjectsInContainer(kqs,
+                            mLauncher.getLauncherObjectSelector("thumbnail_1"));
+            mLauncher.assertTrue("Task index out of bounds " + overflownApps.size() + " " + index,
+                    overflownApps.size() > index);
+            UiObject2 task = overflownApps.get(overflownApps.size() - 1 - index);
+
+            if (mLauncher.isLauncherActivityStarted()) {
+                mLauncher.executeAndWaitForLauncherStop(() -> mLauncher.clickLauncherObject(task),
+                        "clicking a task in overflow");
+            } else {
+                mLauncher.clickLauncherObject(task);
+            }
+
+            mLauncher.waitUntilLauncherObjectGone(KEYBOARD_QUICK_SWITCH_RES_ID);
+            return new LaunchedAppState(mLauncher);
         }
     }
 

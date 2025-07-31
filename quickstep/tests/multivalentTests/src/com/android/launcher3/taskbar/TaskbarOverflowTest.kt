@@ -515,6 +515,21 @@ class TaskbarOverflowTest {
 
     @Test
     @TaskbarMode(PINNED)
+    fun testLimitMaxTaskbarIcons() {
+        val maxNumIconViews = maxNumberOfTaskbarIcons
+        createDesktopTask(5)
+
+        runOnMainSync { taskbarUnitTestRule.activityContext.limitMaxTaskbarIconsNum(4) }
+        assertThat(maxNumberOfTaskbarIcons).isAtMost(4)
+        assertThat(currentNumberOfTaskbarIcons).isAtMost(4)
+
+        runOnMainSync { taskbarUnitTestRule.activityContext.limitMaxTaskbarIconsNum(-1) }
+        assertThat(maxNumberOfTaskbarIcons).isEqualTo(maxNumIconViews)
+        assertThat(currentNumberOfTaskbarIcons).isGreaterThan(4)
+    }
+
+    @Test
+    @TaskbarMode(PINNED)
     fun testFullscreenTasksNotShownInKQS() {
         val maxNumIconViews = maxNumberOfTaskbarIcons
         // Assume there are at least all apps and divider icon, as they would appear once running

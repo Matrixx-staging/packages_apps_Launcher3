@@ -240,27 +240,22 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
     }
 
     /**
-     * Sets the targets which the simulator will control
-     */
-    public void setPreview(RemoteAnimationTarget runningTarget) {
-        setPreviewBounds(
-                runningTarget.startBounds == null
-                        ? runningTarget.screenSpaceBounds : runningTarget.startBounds,
-                runningTarget.contentInsets);
-    }
-
-    /**
      * Sets the targets which the simulator will control specifically for targets to animate when
      * in split screen
      *
      * @param splitInfo set to {@code null} when not in staged split mode
      */
     public void setPreview(RemoteAnimationTarget runningTarget, SplitBounds splitInfo) {
-        setPreview(runningTarget);
         mSplitBounds = splitInfo;
         if (mSplitBounds == null) {
+            setPreviewBounds(
+                    runningTarget.startBounds != null
+                            ? runningTarget.startBounds : runningTarget.screenSpaceBounds,
+                    runningTarget.contentInsets);
             mSplitPosition = SPLIT_POSITION_UNDEFINED;
         } else {
+            // Always use the end bounds for split as we may be reparenting the task from fullscreen
+            setPreviewBounds(runningTarget.screenSpaceBounds, runningTarget.contentInsets);
             mSplitPosition = runningTarget.taskId == splitInfo.leftTopTaskId
                     ? SPLIT_POSITION_TOP_OR_LEFT : SPLIT_POSITION_BOTTOM_OR_RIGHT;
             if (enableFlexibleTwoAppSplit()) {

@@ -55,11 +55,6 @@ public class QuickSwitchState extends BackgroundAppState {
     }
 
     @Override
-    public boolean isTaskbarAlignedWithHotseat(Launcher launcher) {
-        return false;
-    }
-
-    @Override
     public boolean detachDesktopCarousel() {
         return true;
     }

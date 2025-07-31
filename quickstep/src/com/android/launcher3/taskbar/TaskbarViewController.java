@@ -257,9 +257,19 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
             MultiPropertyFactory<View>.MultiProperty multiProperty =
                     mTaskbarIconAlpha.get(ALPHA_INDEX_RECREATE);
             multiProperty.setValue(0f);
-            Animator animator = multiProperty.animateToValue(1f);
-            animator.setInterpolator(EMPHASIZED);
-            startAnimation.play(animator);
+            Animator iconAlphaAnimator = multiProperty.animateToValue(1f);
+            iconAlphaAnimator.setInterpolator(EMPHASIZED);
+            startAnimation.play(iconAlphaAnimator);
+            if (mActivity.getTaskbarFeatureEvaluator().isPersistent()) {
+                mTaskbarIconTranslationYForHome.value = (float) mActivity
+                        .getDeviceProfile()
+                        .getTaskbarProfile()
+                        .getHeight();
+                Animator iconYTranslationAnimator =
+                        mTaskbarIconTranslationYForHome.animateToValue(0);
+                iconYTranslationAnimator.setInterpolator(EMPHASIZED);
+                startAnimation.play(iconYTranslationAnimator);
+            }
         }
 
         mTaskbarView.init(TaskbarViewCallbacksFactory.newInstance(mActivity).create(
@@ -455,6 +465,14 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
      */
     public void addOneTimePreDrawListener(@NonNull Runnable listener) {
         OneShotPreDrawListener.add(mTaskbarView, listener);
+    }
+
+    @VisibleForTesting
+    void limitMaxTaskbarIconsNum(int maxIconNumLimit) {
+        mTaskbarView.limitMaxNumIconViewsForTest(maxIconNumLimit);
+        if (mTaskbarView.updateMaxNumIcons()) {
+            commitRunningAppsToUI();
+        }
     }
 
     @VisibleForTesting

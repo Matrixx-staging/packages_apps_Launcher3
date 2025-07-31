@@ -121,6 +121,8 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     // Only non-null when device supports having a Taskbar Overflow button.
     @Nullable private TaskbarOverflowView mTaskbarOverflowView;
 
+    private int mMaxNumIconsLimitForTest = -1;
+
     private int mNextViewIndex;
 
     public int getIgnoreTaskbarIconCount() {
@@ -218,6 +220,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             mTaskbarOverflowView = TaskbarOverflowView.inflateIcon(
                     R.layout.taskbar_overflow_view, this,
                     mIconTouchSize, mItemPadding);
+            mTaskbarOverflowView.setId(R.id.taskbar_overflow_view);
         }
 
         // TODO: Disable touch events on QSB otherwise it can crash.
@@ -265,7 +268,9 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                         forceTransientTaskbarSize || mActivityContext.isTransientTaskbar()));
         ++additionalIcons;
 
-        return Math.floorDiv(availableWidth, iconSize) + additionalIcons;
+        int maxIcons = Math.floorDiv(availableWidth, iconSize) + additionalIcons;
+        return Math.min(maxIcons,
+                mMaxNumIconsLimitForTest > 0 ? mMaxNumIconsLimitForTest : maxIcons);
     }
 
     /**
@@ -1110,6 +1115,10 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
      */
     int getMaxNumIconViews() {
         return mMaxNumIcons;
+    }
+
+    void limitMaxNumIconViewsForTest(int maxNumIconLimit) {
+        mMaxNumIconsLimitForTest = maxNumIconLimit;
     }
 
     /**
