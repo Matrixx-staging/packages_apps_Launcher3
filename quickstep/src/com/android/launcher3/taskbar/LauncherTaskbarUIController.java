@@ -296,7 +296,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
         // "background") to avoid premature animations.
         LauncherState state = mTaskbarLauncherStateController.getLauncherState();
         boolean nonInteractiveState = state.hasFlag(FLAG_NON_INTERACTIVE)
-                && !state.isTaskbarAlignedWithHotseat(mLauncher);
+                && !state.isTaskbarAlignedWithHotseat();
         if (isVisible && (nonInteractiveState || mSkipLauncherVisibilityChange)) {
             return null;
         }
