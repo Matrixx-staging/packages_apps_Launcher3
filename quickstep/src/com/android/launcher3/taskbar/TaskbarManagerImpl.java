@@ -40,6 +40,7 @@ import static com.android.launcher3.util.DisplayController.CHANGE_DESKTOP_MODE;
 import static com.android.launcher3.util.DisplayController.CHANGE_NAVIGATION_MODE;
 import static com.android.launcher3.util.DisplayController.CHANGE_SHOW_LOCKED_TASKBAR;
 import static com.android.launcher3.util.DisplayController.CHANGE_TASKBAR_PINNING;
+import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 import static com.android.launcher3.util.FlagDebugUtils.formatFlagChange;
 import static com.android.quickstep.util.SystemActionConstants.ACTION_SHOW_TASKBAR;
@@ -95,6 +96,7 @@ import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.statemanager.StatefulActivity;
 import com.android.launcher3.taskbar.TaskbarNavButtonController.TaskbarNavButtonCallbacks;
 import com.android.launcher3.taskbar.unfold.NonDestroyableScopedUnfoldTransitionProgressProvider;
+import com.android.launcher3.LauncherInteractor;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.LockedUserState;
@@ -716,7 +718,10 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
             // primary display ID and only one of them is primary at a given time, the other one is
             // inactive or has limited functionality (has different display ID in that case).
             return new LauncherTaskbarUIController(
-                    quickstepLauncher, quickstepLauncher.launcherUiState);
+                    new LauncherInteractor(quickstepLauncher,
+                            enableTaskbarUiThread()? MAIN_EXECUTOR : Runnable::run),
+                    quickstepLauncher.launcherUiState,
+                    SystemUiProxy.INSTANCE.get(quickstepLauncher).getHomeVisibilityState());
         }
         // If a 3P Launcher is default, always use FallbackTaskbarUIController regardless of
         // whether the recents container is RecentsActivity or RecentsWindowManager.
