@@ -17,13 +17,17 @@
 package com.android.launcher3.dagger
 
 import android.annotation.ElapsedRealtimeLong
+import android.content.Context
+import android.net.Uri
 import android.os.SystemClock
+import com.android.internal.R
 import com.android.launcher3.backuprestore.LauncherRestoreEventLogger
 import com.android.launcher3.icons.LauncherIconProvider
 import com.android.launcher3.icons.LauncherIconProviderImpl
 import com.android.launcher3.logging.StatsLogManager.StatsLogManagerFactory
 import com.android.launcher3.secondarydisplay.SecondaryDisplayDelegate
 import com.android.launcher3.secondarydisplay.SecondaryDisplayQuickstepDelegateImpl
+import com.android.launcher3.taskbar.navbutton.AbstractNavButtonLayoutter.Companion.NAVBAR_KEY_ORDER_URI
 import com.android.launcher3.uioverrides.QuickstepWidgetHolder.QuickstepWidgetHolderFactory
 import com.android.launcher3.uioverrides.SystemApiWrapper
 import com.android.launcher3.uioverrides.plugins.PluginManagerWrapperImpl
@@ -37,12 +41,16 @@ import com.android.quickstep.InstantAppResolverImpl
 import com.android.quickstep.LauncherRestoreEventLoggerImpl
 import com.android.quickstep.logging.StatsLogCompatManager.StatsLogCompatManagerFactory
 import com.android.quickstep.util.ChoreographerFrameRateTracker
+import com.android.quickstep.util.ContextualSearchStateManager
 import com.android.quickstep.util.GestureExclusionManager
 import com.android.quickstep.util.SystemWindowManagerProxy
 import com.android.systemui.shared.system.ActivityManagerWrapper
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
+import dagger.multibindings.ElementsIntoSet
+import dagger.multibindings.IntoSet
+import javax.inject.Named
 
 private object Modules {}
 
@@ -112,4 +120,17 @@ object StaticObjectModule {
     @JvmStatic
     @ElapsedRealtimeLong
     fun provideElapsedRealTime(): () -> Long = SystemClock::elapsedRealtime
+
+    @Provides
+    @ElementsIntoSet
+    @Named("SETTINGS_ENABLED_BY_DEFAULT")
+    fun provideSearchEntryPointsDefault(@ApplicationContext ctx: Context): Set<Uri> =
+        if (ctx.resources.getBoolean(R.bool.config_searchAllEntrypointsEnabledDefault)) {
+            setOf(ContextualSearchStateManager.SEARCH_ALL_ENTRYPOINTS_ENABLED_URI)
+        } else emptySet()
+
+    @Provides
+    @IntoSet
+    @Named("SETTINGS_ENABLED_BY_DEFAULT")
+    fun provideNavBarKeyOrderDefaults(): Uri = NAVBAR_KEY_ORDER_URI
 }

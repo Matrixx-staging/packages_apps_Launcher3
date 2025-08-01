@@ -71,7 +71,7 @@ public class ContextualSearchStateManager  {
 
     private static final String TAG = "ContextualSearchStMgr";
     private static final int MAX_DEBUG_EVENT_SIZE = 20;
-    private static final Uri SEARCH_ALL_ENTRYPOINTS_ENABLED_URI =
+    public static final Uri SEARCH_ALL_ENTRYPOINTS_ENABLED_URI =
             Settings.Secure.getUriFor(Settings.Secure.SEARCH_ALL_ENTRYPOINTS_ENABLED);
 
     private final Runnable mSysUiStateChangeListener = this::updateOverridesToSysUi;

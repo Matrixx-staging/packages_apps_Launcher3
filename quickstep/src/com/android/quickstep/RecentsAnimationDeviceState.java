@@ -196,7 +196,7 @@ public class RecentsAnimationDeviceState implements DisplayInfoChangeListener, E
                 () -> settingsCache.unregister(swipeBottomNotificationUri, onChangeListener));
 
         Uri setupCompleteUri = Settings.Secure.getUriFor(Settings.Secure.USER_SETUP_COMPLETE);
-        mIsUserSetupComplete = settingsCache.getValue(setupCompleteUri, 0);
+        mIsUserSetupComplete = settingsCache.getValue(setupCompleteUri);
         if (!mIsUserSetupComplete) {
             SettingsCache.OnChangeListener userSetupChangeListener = e -> mIsUserSetupComplete = e;
             settingsCache.register(setupCompleteUri, userSetupChangeListener);

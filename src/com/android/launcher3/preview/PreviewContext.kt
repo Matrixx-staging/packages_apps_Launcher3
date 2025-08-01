@@ -35,6 +35,7 @@ import com.android.launcher3.dagger.LauncherConcurrencyModule
 import com.android.launcher3.dagger.LauncherModelModule
 import com.android.launcher3.dagger.PerDisplayModule
 import com.android.launcher3.dagger.PluginManagerWrapperModule
+import com.android.launcher3.dagger.SettingsModule
 import com.android.launcher3.dagger.StaticObjectModule
 import com.android.launcher3.dagger.WindowManagerProxyModule
 import com.android.launcher3.homescreenfiles.HomeScreenFilesNoOpModule
@@ -195,6 +196,7 @@ constructor(
                 LauncherModelModule::class,
                 PreviewModule::class,
                 HomeScreenFilesNoOpModule::class,
+                SettingsModule::class,
             ]
     )
     interface PreviewAppComponent : LauncherAppComponent {

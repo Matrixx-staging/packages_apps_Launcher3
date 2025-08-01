@@ -55,7 +55,7 @@ class VibratorWrapperTest {
     fun setup() {
         MockitoAnnotations.initMocks(this)
         vibrator = context.spyService(Vibrator::class.java)
-        `when`(settingsCache.getValue(HAPTIC_FEEDBACK_URI, 0)).thenReturn(true)
+        `when`(settingsCache.getValue(HAPTIC_FEEDBACK_URI)).thenReturn(true)
         `when`(vibrator.hasVibrator()).thenReturn(true)
         `when`(vibrator.areAllPrimitivesSupported(PRIMITIVE_TICK)).thenReturn(true)
         `when`(vibrator.areAllPrimitivesSupported(PRIMITIVE_LOW_TICK)).thenReturn(true)
