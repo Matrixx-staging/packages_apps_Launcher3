@@ -97,7 +97,6 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Flags;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.LauncherSettings.Favorites;
-import com.android.launcher3.LifecycleTracker;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.allapps.ActivityAllAppsContainerView;
@@ -105,7 +104,6 @@ import com.android.launcher3.anim.AnimatorListeners;
 import com.android.launcher3.anim.AnimatorPlaybackController;
 import com.android.launcher3.apppairs.AppPairIcon;
 import com.android.launcher3.config.FeatureFlags;
-import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.desktop.DesktopAppLaunchTransition;
 import com.android.launcher3.desktop.DesktopAppLaunchTransition.AppLaunchType;
 import com.android.launcher3.deviceprofile.TaskbarProfile;
@@ -1134,7 +1132,9 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     /**
      * Called when this instance of taskbar is no longer needed
      */
+    @Override
     public void onDestroy() {
+        super.onDestroy();
         onViewDestroyed();
         removeTaskbarSnapshot();
         mIsDestroyed = true;
@@ -1143,13 +1143,6 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         if (!enableTaskbarNoRecreate() && !ENABLE_TASKBAR_NAVBAR_UNIFICATION) {
             mWindowManager.removeViewImmediate(mDragLayer);
             mAddedWindow = false;
-        }
-
-        // Since TaskbarDragLayer is removed from view hierarchy AFTER onDestroy() and it holds ref
-        // to TaskbarActivityContext, we add 1s delay to check leaks in order to avoid false
-        // positive leak alarms.
-        for (LifecycleTracker tracker: LauncherComponentProvider.get(this).getLifecycleTrackers()) {
-            tracker.trackLifecycleOnDestroy(this, 1000L);
         }
     }
 
