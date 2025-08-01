@@ -64,6 +64,9 @@ class DesktopAppLaunchAnimatorHelperTest {
 
     @Before
     fun setUp() {
+        whenever(context.resources).thenReturn(resources)
+        whenever(resources.getDimensionPixelSize(any())).thenReturn(42)
+
         helper =
             DesktopAppLaunchAnimatorHelper(
                 context = context,
@@ -79,7 +82,6 @@ class DesktopAppLaunchAnimatorHelperTest {
         whenever(transaction.setAlpha(any(), any())).thenReturn(transaction)
         whenever(transaction.setFrameTimeline(any())).thenReturn(transaction)
 
-        whenever(context.resources).thenReturn(resources)
         whenever(resources.displayMetrics).thenReturn(DisplayMetrics())
         whenever(context.mainThreadHandler).thenReturn(MAIN_EXECUTOR.handler)
     }
@@ -187,30 +189,32 @@ class DesktopAppLaunchAnimatorHelperTest {
 
     @Test
     @EnableFlags(Flags.FLAG_ENABLE_DESKTOP_TRAMPOLINE_CLOSE_ANIMATION_BUGFIX)
-    fun trampolineTransition_flagEnabled_hitDesktopWindowLimit_returnsLaunchMinimizeCloseAnimator() = runOnUiThread {
-        val transitionInfo = createTransitionInfo(
-            listOf(OPEN_CHANGE, MINIMIZE_CHANGE, CLOSE_CHANGE))
+    fun trampolineTransition_flagEnabled_hitDesktopWindowLimit_returnsLaunchMinimizeCloseAnimator() =
+        runOnUiThread {
+            val transitionInfo =
+                createTransitionInfo(listOf(OPEN_CHANGE, MINIMIZE_CHANGE, CLOSE_CHANGE))
 
-        val actual = helper.createAnimators(transitionInfo, finishCallback = {})
+            val actual = helper.createAnimators(transitionInfo, finishCallback = {})
 
-        assertThat(actual).hasSize(3)
-        assertTrampolineLaunchAnimator(actual[0])
-        assertMinimizeAnimator(actual[1])
-        assertCloseAnimator(actual[2])
-    }
+            assertThat(actual).hasSize(3)
+            assertTrampolineLaunchAnimator(actual[0])
+            assertMinimizeAnimator(actual[1])
+            assertCloseAnimator(actual[2])
+        }
 
     @Test
     @DisableFlags(Flags.FLAG_ENABLE_DESKTOP_TRAMPOLINE_CLOSE_ANIMATION_BUGFIX)
-    fun trampolineTransition_flagDisabled_hitDesktopWindowLimit_returnsLaunchMinimizeAnimator() = runOnUiThread {
-        val transitionInfo = createTransitionInfo(
-            listOf(OPEN_CHANGE, MINIMIZE_CHANGE, CLOSE_CHANGE))
+    fun trampolineTransition_flagDisabled_hitDesktopWindowLimit_returnsLaunchMinimizeAnimator() =
+        runOnUiThread {
+            val transitionInfo =
+                createTransitionInfo(listOf(OPEN_CHANGE, MINIMIZE_CHANGE, CLOSE_CHANGE))
 
-        val actual = helper.createAnimators(transitionInfo, finishCallback = {})
+            val actual = helper.createAnimators(transitionInfo, finishCallback = {})
 
-        assertThat(actual).hasSize(2)
-        assertLaunchAnimator(actual[0])
-        assertMinimizeAnimator(actual[1])
-    }
+            assertThat(actual).hasSize(2)
+            assertLaunchAnimator(actual[0])
+            assertMinimizeAnimator(actual[1])
+        }
 
     private fun assertLaunchAnimator(animator: Animator) {
         assertThat(animator).isInstanceOf(AnimatorSet::class.java)
