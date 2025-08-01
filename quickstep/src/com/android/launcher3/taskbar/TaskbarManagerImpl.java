@@ -718,7 +718,8 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
             // is only applicable for primary displays. In case of foldables both displays have
             // primary display ID and only one of them is primary at a given time, the other one is
             // inactive or has limited functionality (has different display ID in that case).
-            return new LauncherTaskbarUIController(quickstepLauncher);
+            return new LauncherTaskbarUIController(
+                    quickstepLauncher, quickstepLauncher.launcherUiState);
         }
         // If a 3P Launcher is default, always use FallbackTaskbarUIController regardless of
         // whether the recents container is RecentsActivity or RecentsWindowManager.

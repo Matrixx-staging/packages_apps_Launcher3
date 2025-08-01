@@ -15,6 +15,7 @@
  */
 package com.android.launcher3.taskbar;
 
+import static com.android.launcher3.Flags.refactorTaskbarUiState;
 import static com.android.launcher3.Flags.syncAppLaunchWithTaskbarStash;
 import static com.android.launcher3.QuickstepTransitionManager.TASKBAR_TO_APP_DURATION;
 import static com.android.launcher3.QuickstepTransitionManager.TRANSIENT_TASKBAR_TRANSITION_DURATION;
@@ -31,6 +32,7 @@ import static com.android.quickstep.interaction.AllSetActivity.ALL_SET_SWIPE_THR
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
+import android.content.Context;
 import android.os.SystemProperties;
 import android.window.RemoteTransition;
 
@@ -38,15 +40,18 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.app.animation.Interpolators;
+import com.android.launcher3.BuildConfig;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Flags;
 import com.android.launcher3.Hotseat;
 import com.android.launcher3.LauncherState;
+import com.android.launcher3.LauncherUiState;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.logging.InstanceId;
 import com.android.launcher3.logging.InstanceIdSequence;
 import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.taskbar.bubbles.BubbleBarController;
 import com.android.launcher3.taskbar.bubbles.BubbleControllers;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
@@ -95,6 +100,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
             this::onLauncherPauseProgressUpdate);
 
     private final QuickstepLauncher mLauncher;
+    private final LauncherUiState mLauncherUiState;
     private final HomeVisibilityState mHomeState;
 
     private final DeviceProfile.OnDeviceProfileChangeListener mOnDeviceProfileChangeListener =
@@ -114,8 +120,10 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
     // When overview-in-a-window is enabled, that window is the container, else it is mLauncher.
     private RecentsViewContainer mRecentsViewContainer;
 
-    public LauncherTaskbarUIController(QuickstepLauncher launcher) {
+    public LauncherTaskbarUIController(
+            QuickstepLauncher launcher, LauncherUiState launcherUiState) {
         mLauncher = launcher;
+        mLauncherUiState = launcherUiState;
         mHomeState =  SystemUiProxy.INSTANCE.get(mLauncher).getHomeVisibilityState();
     }
 
@@ -142,7 +150,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
         mHomeState.addListener(mVisibilityChangeListener);
         onLauncherVisibilityChanged(mHomeState.isHomeVisible(), true /* fromInit */);
 
-        onStashedInAppChanged(mLauncher.getDeviceProfile());
+        onStashedInAppChanged(getDeviceProfile());
         mLauncher.addOnDeviceProfileChangeListener(mOnDeviceProfileChangeListener);
 
         // Restore the in-app display progress from before Taskbar was recreated.
@@ -153,6 +161,18 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
         prevProgresses = Arrays.copyOf(prevProgresses, prevProgresses.length);
         for (int i = 0; i < prevProgresses.length; i++) {
             mTaskbarInAppDisplayProgressMultiProp.get(i).setValue(prevProgresses[i]);
+        }
+    }
+
+    private DeviceProfile getDeviceProfile() {
+        if (refactorTaskbarUiState()) {
+            DeviceProfile ret = mLauncherUiState.getDeviceProfileRef().getValue();
+            if (BuildConfig.IS_STUDIO_BUILD && ret != mLauncher.getDeviceProfile()) {
+                throw new IllegalStateException("getDeviceProfile() doesn't match");
+            }
+            return ret;
+        } else {
+            return mLauncher.getDeviceProfile();
         }
     }
 
@@ -386,7 +406,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
 
     @Override
     protected void onStashedInAppChanged() {
-        onStashedInAppChanged(mLauncher.getDeviceProfile());
+        onStashedInAppChanged(getDeviceProfile());
     }
 
     private void onStashedInAppChanged(DeviceProfile deviceProfile) {
@@ -464,7 +484,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
                 // the TaskbarViewController handle it.
                 mControllers.navbarButtonsViewController
                         .getTaskbarNavButtonTranslationYForInAppDisplay()
-                        .updateValue(mLauncher.getDeviceProfile().getTaskbarOffsetY()
+                        .updateValue(getDeviceProfile().getTaskbarOffsetY()
                                 * mTaskbarInAppDisplayProgress.value);
                 mControllers.navbarButtonsViewController
                         .getOnTaskbarBackgroundNavButtonColorOverride().updateValue(progress);
@@ -539,14 +559,29 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
 
     @Override
     protected void toggleAllApps(boolean focusSearch) {
-        boolean canToggleHomeAllApps = mLauncher.isResumed()
+        final Context context = mControllers.taskbarActivityContext;
+        final boolean areDesktopTasksVisible = DesktopVisibilityController.INSTANCE.get(context)
+                .isInDesktopModeAndNotInOverview(context.getDisplayId());
+        final boolean canToggleHomeAllApps = isLauncherResumed()
                 && !mTaskbarLauncherStateController.isInOverviewUi()
-                && !mLauncher.areDesktopTasksVisible();
+                && !areDesktopTasksVisible;
         if (canToggleHomeAllApps) {
             mLauncher.toggleAllApps(focusSearch);
             return;
         }
         super.toggleAllApps(focusSearch);
+    }
+
+    private boolean isLauncherResumed() {
+        if (refactorTaskbarUiState()) {
+            boolean ret = mLauncherUiState.isResumedRef().getValue();
+            if (BuildConfig.IS_STUDIO_BUILD && ret != mLauncher.isResumed()) {
+                throw new IllegalStateException("Launcher.isResumed() doesn't match");
+            }
+            return ret;
+        } else {
+            return mLauncher.isResumed();
+        }
     }
 
     @Override
