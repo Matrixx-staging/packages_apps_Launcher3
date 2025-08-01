@@ -17,8 +17,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <!-- no translation found for widget_picker_collapse_sheet_label (5179800676332357316) -->
-    <skip />
+    <string name="widget_picker_collapse_sheet_label" msgid="5179800676332357316">"சீட்டை மூடும்"</string>
     <string name="widgets_list_header_app_name_fallback_label" msgid="5151621916941957989">"ஆப்ஸின் பெயர்"</string>
     <string name="widgets_list_header_widgets_count_label" msgid="578128450351893001">"{count,plural, =1{# விட்ஜெட்}other{# விட்ஜெட்கள்}}"</string>
     <string name="widget_span_dimensions_format" msgid="4325492869474815131">"%1$d × %2$d"</string>
