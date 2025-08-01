@@ -27,11 +27,12 @@ import com.android.launcher3.util.ActivityContextWrapper
 import kotlin.math.min
 import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
 
 @SmallTest
 @RunWith(AndroidJUnit4::class)
@@ -40,6 +41,7 @@ class FolderAccessibilityHelperTest {
     // Context
     private lateinit var mContext: Context
     // Mocks
+    @get:Rule val mockitoRule = MockitoJUnit.rule()
     @Mock private lateinit var mockParent: FolderPagedView
     @Mock private lateinit var mockLayout: CellLayout
 
@@ -52,7 +54,6 @@ class FolderAccessibilityHelperTest {
 
     @Before
     fun setUp() {
-        MockitoAnnotations.initMocks(this)
         mContext = ActivityContextWrapper(getApplicationContext())
         `when`(mockLayout.parent).thenReturn(mockParent)
         `when`(mockLayout.context).thenReturn(mContext)
