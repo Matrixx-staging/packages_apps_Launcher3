@@ -70,7 +70,6 @@ public final class WidgetsTableUtilsTest {
     private static final int NUM_OF_ROWS = 5;
 
     @Rule public SandboxApplication app = new SandboxApplication();
-
     @Mock
     private IconCache mIconCache;
 

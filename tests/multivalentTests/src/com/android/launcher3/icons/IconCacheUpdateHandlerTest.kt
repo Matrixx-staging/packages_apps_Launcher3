@@ -33,12 +33,14 @@ import com.google.common.truth.Truth.assertThat
 import java.util.concurrent.FutureTask
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
 import org.mockito.Captor
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
@@ -53,6 +55,7 @@ import org.mockito.kotlin.whenever
 @RunWith(AndroidJUnit4::class)
 class IconCacheUpdateHandlerTest {
 
+    @get:Rule val mockitoRule = MockitoJUnit.rule()
     @Mock private lateinit var iconProvider: IconProvider
     @Mock private lateinit var baseIconCache: BaseIconCache
     @Mock private lateinit var cacheDb: SQLiteCacheHelper

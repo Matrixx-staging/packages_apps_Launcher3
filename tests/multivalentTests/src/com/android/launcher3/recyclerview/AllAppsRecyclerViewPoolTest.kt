@@ -28,6 +28,7 @@ import com.android.launcher3.util.Executors
 import com.android.launcher3.views.ActivityContext
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.any
@@ -37,7 +38,7 @@ import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
 
 @SmallTest
 @RunWith(AndroidJUnit4::class)
@@ -50,9 +51,10 @@ class AllAppsRecyclerViewPoolTest<T> where T : Context, T : ActivityContext {
     @Mock private lateinit var itemView: View
     @Mock private lateinit var layoutManager: LayoutManager
 
+    @get:Rule val mockitoRule = MockitoJUnit.rule()
+
     @Before
     fun setUp() {
-        MockitoAnnotations.initMocks(this)
         underTest = spy(AllAppsRecyclerViewPool())
         adapter =
             object : RecyclerView.Adapter<ViewHolder>() {

@@ -59,7 +59,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.any
 import org.mockito.kotlin.same
 import org.mockito.kotlin.verify
@@ -71,6 +71,7 @@ import org.mockito.kotlin.verifyNoMoreInteractions
 class ItemInflaterTest {
 
     @get:Rule val grantWidgetRule = ShellCommandRule.grantWidgetBind()
+    @get:Rule val mockitoRule = MockitoJUnit.rule()
 
     private val clickListener = OnClickListener {}
     private val focusListener = OnFocusChangeListener { _, _ -> }
@@ -85,7 +86,6 @@ class ItemInflaterTest {
 
     @Before
     fun setUp() {
-        MockitoAnnotations.initMocks(this)
         testContext = InstrumentationRegistry.getInstrumentation().context
 
         uiContext =
