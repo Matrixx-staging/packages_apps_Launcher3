@@ -27,6 +27,7 @@ import android.content.Intent;
 import android.content.pm.ResolveInfo;
 
 import com.android.launcher3.BuildConfig;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.util.PluginManagerWrapper;
@@ -53,9 +54,9 @@ public class PluginManagerWrapperImpl extends PluginManagerWrapper {
     private final PluginEnablerImpl mPluginEnabler;
 
     @Inject
-    public PluginManagerWrapperImpl(@ApplicationContext Context c) {
+    public PluginManagerWrapperImpl(@ApplicationContext Context c, LauncherPrefs launcherPrefs) {
         mContext = c;
-        mPluginEnabler = new PluginEnablerImpl(c);
+        mPluginEnabler = new PluginEnablerImpl(launcherPrefs);
         List<String> privilegedPlugins = Collections.emptyList();
         PluginInstance.Factory instanceFactory = new PluginInstance.Factory(
                 getClass().getClassLoader(), new PluginInstance.InstanceFactory<>(),
