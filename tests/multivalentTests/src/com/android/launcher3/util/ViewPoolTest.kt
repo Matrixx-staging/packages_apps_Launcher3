@@ -24,6 +24,7 @@ import androidx.test.annotation.UiThreadTest
 import androidx.test.filters.SmallTest
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.eq
@@ -31,7 +32,7 @@ import org.mockito.Mock
 import org.mockito.Mockito.same
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.any
 import org.mockito.kotlin.verifyNoMoreInteractions
 
@@ -40,6 +41,7 @@ import org.mockito.kotlin.verifyNoMoreInteractions
 @UiThreadTest
 class ViewPoolTest {
 
+    @get:Rule val mockitoRule = MockitoJUnit.rule()
     @Mock private lateinit var viewParent: ViewGroup
     @Mock private lateinit var view: ReusableView
     @Mock private lateinit var inflater: LayoutInflater
@@ -48,7 +50,6 @@ class ViewPoolTest {
 
     @Before
     fun setup() {
-        MockitoAnnotations.initMocks(this)
         `when`(inflater.cloneInContext(any())).thenReturn(inflater)
         underTest = ViewPool(inflater, viewParent, LAYOUT_ID, 10, 0)
     }

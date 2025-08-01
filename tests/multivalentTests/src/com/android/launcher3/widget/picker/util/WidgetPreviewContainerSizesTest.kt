@@ -33,10 +33,11 @@ import com.android.launcher3.util.WidgetUtils.createAppWidgetProviderInfo
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo
 import com.google.common.truth.Truth.assertWithMessage
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
 
 @SmallTest
 @RunWith(AndroidJUnit4::class)
@@ -47,10 +48,10 @@ class WidgetPreviewContainerSizesTest {
     private lateinit var widgetItemInvariantProfile: InvariantDeviceProfile
 
     @Mock private lateinit var iconCache: IconCache
+    @get:Rule val mockitoRule = MockitoJUnit.rule()
 
     @Before
     fun setUp() {
-        MockitoAnnotations.initMocks(this)
         context = ActivityContextWrapper(ApplicationProvider.getApplicationContext())
         testInvariantProfile = LauncherAppState.getIDP(context)
         widgetItemInvariantProfile =
