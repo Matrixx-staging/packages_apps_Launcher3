@@ -131,7 +131,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
     protected void init(TaskbarControllers taskbarControllers) {
         super.init(taskbarControllers);
 
-        mTaskbarLauncherStateController.init(mControllers, mLauncher,
+        mTaskbarLauncherStateController.init(mControllers, mLauncher, mLauncherUiState,
                 mControllers.getSharedState().sysuiStateFlags);
         final TaskbarActivityContext taskbarContext = mControllers.taskbarActivityContext;
         int displayId = taskbarContext.getDisplayId();
@@ -578,9 +578,9 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
 
     private boolean isLauncherResumed() {
         if (refactorTaskbarUiState()) {
-            boolean ret = mLauncherUiState.isResumedRef().getValue();
+            final boolean ret = mLauncherUiState.isResumed();
             if (BuildConfig.IS_STUDIO_BUILD && ret != mLauncher.isResumed()) {
-                throw new IllegalStateException("Launcher.isResumed() doesn't match");
+                throw new IllegalStateException("hasBeenResumed doesn't match");
             }
             return ret;
         } else {

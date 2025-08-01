@@ -1198,10 +1198,6 @@ public class Launcher extends StatefulActivity<LauncherState>
         TraceHelper.INSTANCE.beginSection(ON_RESUME_EVT);
         super.onResume();
 
-        if (refactorTaskbarUiState()) {
-            launcherUiState.setIsResumes(true);
-        }
-
         if (mDeferOverlayCallbacks) {
             scheduleDeferredCheck();
         } else {
@@ -1218,9 +1214,6 @@ public class Launcher extends StatefulActivity<LauncherState>
         ItemInstallQueue.INSTANCE.get(this).pauseModelPush(FLAG_ACTIVITY_PAUSED);
 
         super.onPause();
-        if (refactorTaskbarUiState()) {
-            launcherUiState.setIsResumes(false);
-        }
         mDragController.cancelDrag();
         mLastTouchUpTime = -1;
         mDropTargetBar.animateToVisibility(false);

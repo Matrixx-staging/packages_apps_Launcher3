@@ -281,7 +281,7 @@ public abstract class LauncherState implements BaseState<LauncherState> {
      * 1) replace hotseat or taskbar icons with a handle in gesture navigation mode or
      * 2) fade out the hotseat or taskbar icons in 3-button navigation mode.
      */
-    public boolean isTaskbarStashed(Launcher launcher) {
+    public boolean isTaskbarStashed(Launcher launcher, LauncherUiState launcherUiState) {
         return false;
     }
 

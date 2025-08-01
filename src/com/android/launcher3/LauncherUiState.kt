@@ -21,18 +21,19 @@ import com.android.launcher3.util.MutableListenableRef
 /** Expose Launcher Ui State to Taskbar. */
 class LauncherUiState {
 
-    private val _isResumedRef = MutableListenableRef(false)
     private val _deviceProfileRef = MutableListenableRef<DeviceProfile?>(null)
+    private val _activityFlagsRef = MutableListenableRef(0)
 
-    val isResumedRef = _isResumedRef.asListenable()
     val deviceProfileRef = _deviceProfileRef.asListenable()
-
-    fun setIsResumes(isResumed: Boolean) {
-        _isResumedRef.diffAndDispatch(isResumed)
-    }
+    val isResumed: Boolean
+        get() = (_activityFlagsRef.value and BaseActivity.ACTIVITY_STATE_RESUMED) != 0
 
     fun setDeviceProfile(deviceProfile: DeviceProfile) {
         _deviceProfileRef.diffAndDispatch(deviceProfile)
+    }
+
+    fun setActivityFlag(flags: Int) {
+        _activityFlagsRef.diffAndDispatch(flags)
     }
 
     private fun <T> MutableListenableRef<T>.diffAndDispatch(newValue: T) {

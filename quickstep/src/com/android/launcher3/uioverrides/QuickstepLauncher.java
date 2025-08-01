@@ -473,6 +473,9 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
                 | ACTIVITY_STATE_USER_ACTIVE | ACTIVITY_STATE_TRANSITION_ACTIVE)) != 0) {
             onStateOrResumeChanging((getActivityFlags() & ACTIVITY_STATE_TRANSITION_ACTIVE) == 0);
         }
+        if (refactorTaskbarUiState()) {
+            launcherUiState.setActivityFlag(getActivityFlags());
+        }
     }
 
     @Override
