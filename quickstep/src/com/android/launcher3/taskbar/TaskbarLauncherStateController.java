@@ -617,10 +617,10 @@ public class TaskbarLauncherStateController {
                 animatorSet.addListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
-                        // If the taskbar is no longer hidden when the animation ends (e.g. quick
-                        // power button double tap), then we should no longer stash the taskbar.
+                        // If we're awake when the animation ends (e.g. quick power button double
+                        // tap), then we should no longer stash the taskbar.
                         if (BubbleAnythingFlagHelper.enableCreateAnyBubble()
-                                && !hasAnyFlag(FLAG_TASKBAR_HIDDEN)) {
+                                && hasAnyFlag(FLAG_AWAKE)) {
                             if (DEBUG) {
                                 Log.d(TAG, "Skip stashing taskbar, it's visible again.");
                             }
