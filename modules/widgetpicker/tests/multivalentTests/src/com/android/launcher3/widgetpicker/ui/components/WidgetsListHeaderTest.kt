@@ -21,6 +21,8 @@ import android.platform.test.rule.DeviceProduct
 import android.platform.test.rule.LimitDevicesRule
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,8 +39,13 @@ import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onChildAt
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.unit.dp
@@ -82,7 +89,10 @@ class WidgetsListHeaderTest {
             composeTestRule.setContent {
                 var expanded by remember { mutableStateOf(false) }
 
-                WidgetListHeaderTestContent(expanded = expanded, onClick = { expanded = !expanded })
+                ExpandableWidgetListHeaderTestContent(
+                    expanded = expanded,
+                    onClick = { expanded = !expanded },
+                )
             }
 
             composeTestRule.waitForIdle()
@@ -139,7 +149,10 @@ class WidgetsListHeaderTest {
             composeTestRule.setContent {
                 var expanded by remember { mutableStateOf(true) }
 
-                WidgetListHeaderTestContent(expanded = expanded, onClick = { expanded = !expanded })
+                ExpandableWidgetListHeaderTestContent(
+                    expanded = expanded,
+                    onClick = { expanded = !expanded },
+                )
             }
 
             composeTestRule.waitForIdle()
@@ -167,12 +180,36 @@ class WidgetsListHeaderTest {
         }
 
     @Test
+    fun widgetCountString_returnsCorrectWidgetsCount() =
+        testScope.runTest {
+            composeTestRule.setContent {
+                Column {
+                    Text(widgetsCountString(widgets = 10, shortcuts = 0))
+                    Text(widgetsCountString(widgets = 1, shortcuts = 0))
+                    Text(widgetsCountString(widgets = 0, shortcuts = 10))
+                    Text(widgetsCountString(widgets = 0, shortcuts = 1))
+                    Text(widgetsCountString(widgets = 1, shortcuts = 1))
+                    Text(widgetsCountString(widgets = 10, shortcuts = 10))
+                }
+            }
+
+            composeTestRule.waitForIdle()
+            val root = composeTestRule.onRoot()
+            root.onChildAt(0).assertTextEquals("10 widgets")
+            root.onChildAt(1).assertTextEquals("1 widget")
+            root.onChildAt(2).assertTextEquals("10 shortcuts")
+            root.onChildAt(3).assertTextEquals("1 shortcut")
+            root.onChildAt(4).assertTextEquals("1 widget, 1 shortcut")
+            root.onChildAt(5).assertTextEquals("10 widgets, 10 shortcuts")
+        }
+
+    @Test
     fun expand_reportsCuiEventsForExpandAnimation() =
         testScope.runTest {
             composeTestRule.setContent {
                 var expanded by remember { mutableStateOf(false) }
                 CompositionLocalProvider(LocalWidgetPickerCuiReporter provides cuiReporterMock) {
-                    WidgetListHeaderTestContent(
+                    ExpandableWidgetListHeaderTestContent(
                         expanded = expanded,
                         onClick = { expanded = !expanded },
                     )
@@ -194,8 +231,57 @@ class WidgetsListHeaderTest {
                 .report(eq(WidgetPickerCui.WIDGET_APP_EXPAND_END), any())
         }
 
+    @Test
+    fun selectableHeader_canSelectAndRemainsSelected() {
+        testScope.runTest {
+            composeTestRule.setContent {
+                var selected by remember { mutableStateOf(false) }
+
+                SelectableWidgetListHeaderTestContent(
+                    selected = selected,
+                    onSelect = { selected = true },
+                )
+            }
+
+            composeTestRule.waitForIdle()
+            composeTestRule.onNode(hasText(SELECTED_CONTENT_TEXT)).assertDoesNotExist()
+
+            // not selected; is clickable; and click!
+            composeTestRule
+                .onNode(hasText(TITLE))
+                .assertExists()
+                .assert(hasText(SUB_TITLE))
+                .assertIsNotSelected()
+                .assertHasClickAction()
+                .performClick()
+
+            composeTestRule.waitForIdle()
+            // shows selected content
+            composeTestRule.onNode(hasText(SELECTED_CONTENT_TEXT)).assertExists()
+            // Now selected and is still clickable; click again!
+            composeTestRule
+                .onNode(hasText(TITLE))
+                .assertExists()
+                .assert(hasText(SUB_TITLE))
+                .assertIsSelected()
+                .assertHasClickAction()
+                .performClick()
+
+            composeTestRule.waitForIdle()
+            // This time on click nothing changes (i.e. this was an idempotent click)
+            composeTestRule.onNode(hasText(SELECTED_CONTENT_TEXT)).assertExists()
+            // still selected and clickable.
+            composeTestRule
+                .onNode(hasText(TITLE))
+                .assertExists()
+                .assert(hasText(SUB_TITLE))
+                .assertIsSelected()
+                .assertHasClickAction()
+        }
+    }
+
     @Composable
-    private fun WidgetListHeaderTestContent(expanded: Boolean, onClick: () -> Unit) {
+    private fun ExpandableWidgetListHeaderTestContent(expanded: Boolean, onClick: () -> Unit) {
         WidgetPickerTheme {
             ExpandableListHeader(
                 modifier = Modifier.fillMaxWidth(),
@@ -214,9 +300,30 @@ class WidgetsListHeaderTest {
         }
     }
 
+    @Composable
+    private fun SelectableWidgetListHeaderTestContent(selected: Boolean, onSelect: () -> Unit) {
+        WidgetPickerTheme {
+            Row(modifier = Modifier.fillMaxWidth()) {
+                SelectableListHeader(
+                    modifier = Modifier.weight(1f),
+                    selected = selected,
+                    leadingAppIcon = {},
+                    title = TITLE,
+                    subTitle = SUB_TITLE,
+                    onSelect = onSelect,
+                    shape = RoundedCornerShape(28.dp),
+                )
+                if (selected) {
+                    Box(modifier = Modifier.wrapContentWidth()) { Text(SELECTED_CONTENT_TEXT) }
+                }
+            }
+        }
+    }
+
     companion object {
         private const val TITLE = "Title"
         private const val SUB_TITLE = "SubTitle"
         private const val EXPANDED_CONTENT_TEXT = "Expanded test content"
+        private const val SELECTED_CONTENT_TEXT = "Selected test content"
     }
 }

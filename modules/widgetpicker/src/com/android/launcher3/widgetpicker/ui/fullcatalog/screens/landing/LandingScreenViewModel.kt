@@ -31,6 +31,8 @@ import com.android.launcher3.widgetpicker.shared.model.WidgetId
 import com.android.launcher3.widgetpicker.shared.model.WidgetPreview
 import com.android.launcher3.widgetpicker.shared.model.WidgetUserProfile
 import com.android.launcher3.widgetpicker.shared.model.WidgetUserProfileType
+import com.android.launcher3.widgetpicker.shared.model.isAppWidget
+import com.android.launcher3.widgetpicker.shared.model.isShortcut
 import com.android.launcher3.widgetpicker.ui.ViewModel
 import com.android.launcher3.widgetpicker.ui.model.DisplayableWidgetApp
 import com.android.launcher3.widgetpicker.ui.model.DisplayableWidgetApp.Companion.getWidgetIdsForApp
@@ -197,18 +199,20 @@ constructor(
         widgetsInteractor.getFeaturedWidgets().collect { result ->
             val widgetsState =
                 FeaturedWidgetsState(
-                    result
-                        .groupBy {
-                            Pair(it.sizeInfo.containerWidthPx, it.sizeInfo.containerHeightPx)
-                        }
-                        .map { (containerSize, value) ->
-                            WidgetSizeGroup(
-                                previewContainerWidthPx = containerSize.first,
-                                previewContainerHeightPx = containerSize.second,
-                                widgets = value,
-                            )
-                        },
-                    result.size,
+                    sizeGroups =
+                        result
+                            .groupBy {
+                                Pair(it.sizeInfo.containerWidthPx, it.sizeInfo.containerHeightPx)
+                            }
+                            .map { (containerSize, value) ->
+                                WidgetSizeGroup(
+                                    previewContainerWidthPx = containerSize.first,
+                                    previewContainerHeightPx = containerSize.second,
+                                    widgets = value,
+                                )
+                            },
+                    widgetsCount = result.count { it.widgetInfo.isAppWidget() },
+                    shortcutsCount = result.count { it.widgetInfo.isShortcut() },
                 )
 
             val previewsState =
@@ -319,12 +323,15 @@ sealed class BrowseWidgetsState {
  *   manner in the featured section.
  * @param widgetsCount total count of widgets in the size groups (pre-computed so UI doesn't need to
  *   count).
+ * @param shortcutsCount total count of shortcuts in the size groups (pre-computed so UI doesn't
+ *   need to count).
  */
 @Stable
 @Immutable
 data class FeaturedWidgetsState(
     val sizeGroups: List<WidgetSizeGroup> = emptyList(),
     val widgetsCount: Int = 0,
+    val shortcutsCount: Int = 0,
 )
 
 /**

@@ -84,6 +84,7 @@ fun LandingScreenTwoPane(
     searchBar: @Composable () -> Unit,
     featuredWidgets: @Composable () -> Unit,
     featuredWidgetsCount: Int,
+    featuredShortcutsCount: Int,
     widgetAppIconsState: AppIconsState,
     browseWidgetsState: BrowseWidgetsState.Data,
     personalWidgetPreviewsState: PreviewsState,
@@ -120,6 +121,7 @@ fun LandingScreenTwoPane(
                 LeftPaneContent(
                     isFeaturedSectionSelected = isFeaturedSectionShowing,
                     featuredWidgetsCount = featuredWidgetsCount,
+                    featuredShortcutsCount = featuredShortcutsCount,
                     pagerState = pagerState,
                     hasWorkProfile = hasWorkProfile,
                     browseWidgetsState = browseWidgetsState,
@@ -287,6 +289,7 @@ private fun LeftPaneContent(
     isFeaturedSectionSelected: Boolean,
     onFeaturedHeaderClick: () -> Unit,
     featuredWidgetsCount: Int,
+    featuredShortcutsCount: Int,
     pagerState: PagerState,
     hasWorkProfile: Boolean,
     browseWidgetsState: BrowseWidgetsState.Data,
@@ -308,7 +311,8 @@ private fun LeftPaneContent(
             SelectableSuggestionsHeader(
                 selected = isFeaturedSectionSelected,
                 onSelect = onFeaturedHeaderClick,
-                count = featuredWidgetsCount,
+                widgetsCount = featuredWidgetsCount,
+                shortcutsCount = featuredShortcutsCount,
                 shape = contentShape,
                 modifier =
                     Modifier.fillMaxWidth().widgetPickerTestTag(FEATURED_WIDGETS_HEADER_TEST_TAG),

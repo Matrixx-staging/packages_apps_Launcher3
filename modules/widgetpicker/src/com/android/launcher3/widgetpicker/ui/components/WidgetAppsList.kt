@@ -229,7 +229,7 @@ private fun DisplayableWidgetApp.widgetHeaderTitle(): String {
 @Composable
 private fun DisplayableWidgetApp.widgetHeaderDescription(style: AppHeaderDescriptionStyle): String {
     return when (style) {
-        AppHeaderDescriptionStyle.WIDGETS_COUNT -> widgetsCountString(widgetsCount)
+        AppHeaderDescriptionStyle.WIDGETS_COUNT -> widgetsCountString(widgetsCount, shortcutsCount)
 
         AppHeaderDescriptionStyle.COMBINED_WIDGETS_TITLE ->
             widgetSizeGroups.flatMap { it.widgets }.map { it.label }.joinToString { it }

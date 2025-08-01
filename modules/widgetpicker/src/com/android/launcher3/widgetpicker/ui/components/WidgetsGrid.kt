@@ -241,6 +241,7 @@ private fun Details(
             modifier =
                 Modifier.semantics(mergeDescendants = true) {
                     traversalIndex = index.toFloat()
+                    isTraversalGroup = true
                     testTag = buildWidgetPickerTestTag(WIDGET_DETAILS_TEST_TAG)
                 },
         )
