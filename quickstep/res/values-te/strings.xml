@@ -140,7 +140,7 @@
     <string name="taskbar_button_ime_switcher" msgid="1730244360907588541">"IME స్విచ్చర్"</string>
     <string name="taskbar_button_recents" msgid="7273376136216613134">"ఇటీవలివి"</string>
     <string name="taskbar_button_notifications" msgid="7471740351507357318">"నోటిఫికేషన్‌లు"</string>
-    <string name="taskbar_button_quick_settings" msgid="227662894293189391">"క్విక్ సెట్టింగ్‌లు"</string>
+    <string name="taskbar_button_quick_settings" msgid="227662894293189391">"క్విక్ సెట్టింగ్స్"</string>
     <string name="taskbar_a11y_title" msgid="6432169809852243110">"టాస్క్‌బార్"</string>
     <string name="taskbar_a11y_shown_title" msgid="6842833581088937713">"టాస్క్‌బార్ చూపబడింది"</string>
     <string name="taskbar_a11y_shown_with_bubbles_left_title" msgid="4242431789851790046">"టాస్క్‌బార్, బబుల్స్ ఎడమవైపున చూపబడ్డాయి"</string>
