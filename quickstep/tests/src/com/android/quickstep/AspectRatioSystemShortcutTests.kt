@@ -240,7 +240,7 @@ class AspectRatioSystemShortcutTests {
         val screenBounds = WindowBounds(widthPx, heightPx, widthPx, heightPx, Surface.ROTATION_0)
         val deviceProfile =
             InvariantDeviceProfile.INSTANCE[context].getDeviceProfile(context)
-                .toBuilder(context)
+                .toBuilder()
                 .setWindowBounds(screenBounds)
                 .build()
         whenever(launcher.getDeviceProfile()).thenReturn(deviceProfile)

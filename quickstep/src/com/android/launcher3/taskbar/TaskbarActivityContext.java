@@ -507,7 +507,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             // Update icon size
             deviceProfile.updateIconSize(1f, this);
         };
-        mDeviceProfile = originDeviceProfile.toBuilder(this)
+        mDeviceProfile = originDeviceProfile.toBuilder()
                 .withDimensionsOverride(overrideProvider).build();
 
         if (isTransientTaskbar()) {

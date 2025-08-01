@@ -244,7 +244,7 @@ public final class WidgetsTableUtilsTest {
 
     private void initDP() {
         DeviceProfile dp = LauncherAppState.getIDP(mContext)
-                .getDeviceProfile(mContext).copy(mContext);
+                .getDeviceProfile(mContext).copy();
         mTestDeviceProfile = Mockito.spy(dp);
         AllAppsProfile testAllAppsProfile = Mockito.spy(mTestDeviceProfile.getAllAppsProfile());
         Mockito.doReturn(0).when(testAllAppsProfile).getIconSizePx();
