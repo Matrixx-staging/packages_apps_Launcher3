@@ -30,7 +30,6 @@ import com.android.launcher3.tapl.HomeAppIcon;
 import com.android.launcher3.tapl.Workspace;
 import com.android.launcher3.util.LauncherLayoutBuilder;
 import com.android.launcher3.util.TestUtil;
-import com.android.launcher3.util.rule.ScreenRecordRule.ScreenRecord;
 import com.android.launcher3.util.ui.AbstractLauncherUiTest;
 
 import org.junit.After;
@@ -63,7 +62,6 @@ public class TaplWorkspaceTest extends AbstractLauncherUiTest<Launcher, View> {
      * move between workspaces. After, make sure we can launch an app from the Workspace.
      * @throws Exception if we can't set the defaults icons that will appear at the beginning.
      */
-    @ScreenRecord // b/331261431
     @Test
     public void testWorkspace() throws Exception {
         // Set workspace  that includes the chrome Activity app icon on the hotseat.
