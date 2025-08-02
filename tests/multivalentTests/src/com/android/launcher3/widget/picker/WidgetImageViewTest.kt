@@ -26,11 +26,12 @@ import com.android.launcher3.util.ActivityContextWrapper
 import com.android.launcher3.widget.WidgetImageView
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.spy
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.whenever
 
 @MediumTest
@@ -40,11 +41,10 @@ class WidgetImageViewTest {
     private lateinit var widgetImageView: WidgetImageView
 
     @Mock private lateinit var testDrawable: Drawable
+    @get:Rule val mockitoRule = MockitoJUnit.rule()
 
     @Before
     fun setUp() {
-        MockitoAnnotations.initMocks(this)
-
         context = ActivityContextWrapper(ApplicationProvider.getApplicationContext())
         widgetImageView = spy(WidgetImageView(context))
     }

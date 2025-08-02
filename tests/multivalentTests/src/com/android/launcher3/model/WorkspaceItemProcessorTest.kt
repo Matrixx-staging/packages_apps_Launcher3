@@ -71,7 +71,7 @@ import org.mockito.Mockito.RETURNS_DEEP_STUBS
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
@@ -83,6 +83,7 @@ import org.mockito.kotlin.whenever
 @RunWith(AndroidJUnit4::class)
 class WorkspaceItemProcessorTest {
 
+    @get:Rule val mockitoRule = MockitoJUnit.rule()
     @get:Rule val setFlagsRule: SetFlagsRule = SetFlagsRule()
     @get:Rule val mContext = SandboxApplication()
 
@@ -110,7 +111,6 @@ class WorkspaceItemProcessorTest {
 
     @Before
     fun setup() {
-        MockitoAnnotations.initMocks(this)
         mLauncherApps =
             mContext.spyService(LauncherApps::class.java).apply {
                 doReturn(true).whenever(this).isPackageEnabled("package", mUserHandle)

@@ -28,6 +28,7 @@ import com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR
 import com.google.common.truth.Truth.assertThat
 import java.util.function.Consumer
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
@@ -35,7 +36,7 @@ import org.mockito.ArgumentMatchers.eq
 import org.mockito.ArgumentMatchers.same
 import org.mockito.Captor
 import org.mockito.Mock
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.verify
 
 @SmallTest
@@ -49,9 +50,10 @@ class SimpleBroadcastReceiverTest {
     @Mock private lateinit var completionRunnable: Runnable
     @Captor private lateinit var intentFilterCaptor: ArgumentCaptor<IntentFilter>
 
+    @get:Rule val mockitoRule = MockitoJUnit.rule()
+
     @Before
     fun setUp() {
-        MockitoAnnotations.initMocks(this)
         underTest = SimpleBroadcastReceiver(context, UI_HELPER_EXECUTOR, intentConsumer)
         if (Looper.getMainLooper() == null) {
             Looper.prepareMainLooper()

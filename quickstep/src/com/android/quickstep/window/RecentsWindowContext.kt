@@ -20,13 +20,13 @@ import android.content.Context
 import android.graphics.PixelFormat
 import android.view.Display
 import android.view.KeyEvent
-import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
 import android.view.WindowManager.LayoutParams.PRIVATE_FLAG_CONSUME_IME_INSETS
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.util.BaseContext
+import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.Themes
 
 /**
@@ -40,19 +40,30 @@ abstract class RecentsWindowContext(windowContext: Context, wallpaperColorHints:
         base = windowContext,
         themeResId = Themes.getActivityThemeRes(windowContext, wallpaperColorHints),
         destroyOnDetach = false,
-    ) {
+    ),
+    DisplayController.DisplayInfoChangeListener {
 
     private var deviceProfile: DeviceProfile? = null
 
     private val windowTitle: String = "RecentsWindow"
 
-    protected var windowLayoutParams: WindowManager.LayoutParams? =
-        createDefaultWindowLayoutParams(
+    protected fun getWindowLayoutParams(): WindowManager.LayoutParams {
+        return createDefaultWindowLayoutParams(
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             windowTitle,
         )
+    }
 
     open fun onRootViewDispatchKeyEvent(event: KeyEvent?): Boolean = false
+
+    init {
+        DisplayController.INSTANCE.get(this).addChangeListener(this)
+    }
+
+    override fun destroy() {
+        super.destroy()
+        DisplayController.INSTANCE.get(this).removeChangeListener(this)
+    }
 
     fun initDeviceProfile() {
         deviceProfile =
@@ -78,19 +89,16 @@ abstract class RecentsWindowContext(windowContext: Context, wallpaperColorHints:
         type: Int,
         title: String,
     ): WindowManager.LayoutParams {
+        val width = getDeviceProfile().deviceProperties.widthPx
+        val height = getDeviceProfile().deviceProperties.heightPx
+
         var windowFlags =
             (WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
                 WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED)
 
         val windowLayoutParams =
-            WindowManager.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                type,
-                windowFlags,
-                PixelFormat.TRANSLUCENT,
-            )
+            WindowManager.LayoutParams(width, height, type, windowFlags, PixelFormat.TRANSLUCENT)
 
         windowLayoutParams.title = title
         windowLayoutParams.fitInsetsTypes = 0

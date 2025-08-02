@@ -33,7 +33,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.whenever
@@ -42,6 +42,7 @@ import org.mockito.kotlin.whenever
 @RunWith(AndroidJUnit4::class)
 @RequiresFlagsEnabled(FLAG_ENABLE_GENERATED_PREVIEWS)
 class GeneratedPreviewTest {
+    @get:Rule val mockitoRule = MockitoJUnit.rule()
     @get:Rule val checkFlagsRule: CheckFlagsRule = DeviceFlagsValueProvider.createCheckFlagsRule()
     private val providerName =
         ComponentName(
@@ -65,7 +66,6 @@ class GeneratedPreviewTest {
 
     @Before
     fun setup() {
-        MockitoAnnotations.initMocks(this)
         generatedPreview = RemoteViews(context.packageName, generatedPreviewLayout)
         uiContext =
             ActivityContextWrapper(ContextThemeWrapper(context, R.style.WidgetContainerTheme))

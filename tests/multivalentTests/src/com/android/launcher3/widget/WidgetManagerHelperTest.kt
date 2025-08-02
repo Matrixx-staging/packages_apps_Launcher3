@@ -28,12 +28,13 @@ import com.android.launcher3.util.ActivityContextWrapper
 import com.android.launcher3.util.PackageUserKey
 import com.google.common.truth.Truth
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.whenever
 
 @SmallTest
@@ -50,13 +51,13 @@ class WidgetManagerHelperTest {
                 mock(ActivityInfo::class.java).apply { applicationInfo = context.applicationInfo }
         }
 
+    @get:Rule val mockitoRule = MockitoJUnit.rule()
     @Mock private lateinit var appWidgetManager: AppWidgetManager
 
     private lateinit var underTest: WidgetManagerHelper
 
     @Before
     fun setup() {
-        MockitoAnnotations.initMocks(this)
         underTest = WidgetManagerHelper(context, appWidgetManager)
     }
 
@@ -71,7 +72,7 @@ class WidgetManagerHelperTest {
         whenever(
                 appWidgetManager.getInstalledProvidersForPackage(
                     packageUserKey.mPackageName,
-                    packageUserKey.mUser
+                    packageUserKey.mUser,
                 )
             )
             .thenReturn(desiredResult)
@@ -100,7 +101,7 @@ class WidgetManagerHelperTest {
         val info =
             underTest.getLauncherAppWidgetInfo(
                 1,
-                InstrumentationRegistry.getInstrumentation().componentName
+                InstrumentationRegistry.getInstrumentation().componentName,
             )
         Truth.assertThat(info).isNull()
     }

@@ -25,17 +25,19 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.verifyNoMoreInteractions
 
 @SmallTest
 @RunWith(AndroidJUnit4::class)
 class ScreenOnTrackerTest {
 
+    @get:Rule val mockitoRule = MockitoJUnit.rule()
     @Mock private lateinit var receiver: SimpleBroadcastReceiver
     @Mock private lateinit var context: Context
     @Mock private lateinit var listener: ScreenOnTracker.ScreenOnListener
@@ -45,7 +47,6 @@ class ScreenOnTrackerTest {
 
     @Before
     fun setup() {
-        MockitoAnnotations.initMocks(this)
         underTest = ScreenOnTracker(context, receiver, tracker)
     }
 

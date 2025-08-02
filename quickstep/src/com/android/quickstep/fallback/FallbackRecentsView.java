@@ -303,7 +303,7 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
         }
 
         // disabling this so app icons aren't drawn on top of recent tasks.
-        if (isOverlayEnabled && !(mContainer instanceof RecentsWindowManager)) {
+        if (isOverlayEnabled) {
             mBlurUtils.setDrawLiveTileBelowRecents(true);
         }
     }

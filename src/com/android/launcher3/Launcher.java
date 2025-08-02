@@ -2493,6 +2493,9 @@ public class Launcher extends StatefulActivity<LauncherState>
         mOverlayManager.dump(prefix, writer);
         ACTIVITY_TRACKER.dump(prefix, writer);
         LauncherComponentProvider.get(this).getDumpManager().dump(prefix, writer, args);
+
+        // Dump the SystemUIController
+        getSystemUiController().dump(writer);
     }
 
     /**
