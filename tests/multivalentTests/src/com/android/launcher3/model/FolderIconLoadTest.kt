@@ -187,6 +187,6 @@ class FolderIconLoadTest {
 
     /** Recreate DeviceProfiles after changing InvariantDeviceProfile */
     private fun recreateSupportedDeviceProfiles() {
-        getIdp().supportedProfiles = getIdp().supportedProfiles.map { it.copy(context) }
+        getIdp().supportedProfiles = getIdp().supportedProfiles.map { it.copy() }
     }
 }

@@ -48,6 +48,7 @@ import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.anim.SpringAnimationBuilder;
 import com.android.launcher3.celllayout.CellLayoutLayoutParams;
 import com.android.launcher3.statehandlers.DepthController;
+import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.states.StateAnimationConfig;
 import com.android.launcher3.taskbar.customization.TaskbarFeatureEvaluator;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
@@ -86,7 +87,8 @@ public class StaggeredWorkspaceAnim {
         boolean isPersistentTaskbarAndNotInDesktopMode =
                 (!TaskbarFeatureEvaluator.INSTANCE.get(launcher).isTransient()
                         || DisplayController.getNavigationMode(launcher) == THREE_BUTTONS)
-                        && !DisplayController.isInDesktopMode(launcher);
+                        && !DesktopVisibilityController.INSTANCE.get(launcher)
+                        .isInDesktopMode(launcher.getDisplayId());
         mTaskbarDurationInMs = QuickstepTransitionManager.getTaskbarToHomeDuration(
                 isPersistentTaskbarAndNotInDesktopMode);
         prepareToAnimate(launcher, animateOverviewScrim);

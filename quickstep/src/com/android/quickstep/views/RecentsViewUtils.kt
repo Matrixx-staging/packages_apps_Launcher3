@@ -63,7 +63,6 @@ import com.android.systemui.shared.recents.model.Task
 import com.android.systemui.shared.recents.model.ThumbnailData
 import com.android.wm.shell.shared.GroupedTaskInfo
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus.enableMultipleDesktops
-import java.util.concurrent.CopyOnWriteArrayList
 import java.util.function.BiConsumer
 import kotlin.math.min
 import kotlin.reflect.KMutableProperty1
@@ -74,18 +73,6 @@ import kotlin.reflect.KMutableProperty1
  */
 class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisibilityListener {
     val taskViews = TaskViewsIterable(recentsView)
-
-    /** Callback to be invoked when a new desk is added. */
-    interface OnDeskAddedListener {
-        /**
-         * Called when a new desk is added.
-         *
-         * @param desktopTaskView The [DesktopTaskView] of the new desk.
-         */
-        fun onDeskAdded(desktopTaskView: DesktopTaskView)
-    }
-
-    private val onDeskAddedListeners = CopyOnWriteArrayList<OnDeskAddedListener>()
 
     private val displayController = DisplayController.INSTANCE[recentsView.context]
 
@@ -203,7 +190,7 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
     fun getLastDesktopTaskView(): TaskView? = taskViews.lastOrNull { it is DesktopTaskView }
 
     /** Returns true if it is in desktop-first mode. Otherwise, returns false. */
-    private fun isInDesktopFirstMode() =
+    fun isInDesktopFirstMode() =
         displayController
             .getInfoForDisplay(recentsView.mContainer.displayId)
             ?.isInDesktopFirstMode == true
@@ -383,8 +370,6 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
 
             // Set Current Page based on the stored View.
             currentPageChild?.let { setCurrentPage(indexOfChild(it)) }
-
-            onDeskAddedListeners.forEach { it.onDeskAdded(desktopTaskView) }
         }
     }
 
@@ -786,24 +771,6 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
         }
 
     fun isKeyboardTaskFocusPending() = keyboardFocusTask !is KeyboardFocusTask.Unfocused
-
-    /**
-     * Adds a listener to be notified when a new desk is added.
-     *
-     * @param onDeskAddedListener The listener to add.
-     */
-    fun addOnDeskAddedListener(onDeskAddedListener: OnDeskAddedListener) {
-        onDeskAddedListeners += onDeskAddedListener
-    }
-
-    /**
-     * Removes a listener that was previously added to be notified when a new desk is added.
-     *
-     * @param onDeskAddedListener The listener to remove.
-     */
-    fun removeOnDeskAddedListener(onDeskAddedListener: OnDeskAddedListener) {
-        onDeskAddedListeners -= onDeskAddedListener
-    }
 
     fun getAlternatePageWithSameScroll(page: Int): Int {
         val pageScroll = recentsView.getScrollForPage(page)

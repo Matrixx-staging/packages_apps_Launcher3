@@ -50,8 +50,7 @@ class QuickstepKeyGestureEventsManager(private val context: Context) {
     private val inputManager = requireNotNull(context.getSystemService(InputManager::class.java))
     private var allAppsPendingIntent: PendingIntent? = null
     private var overviewGestureHandler: OverviewGestureHandler? = null
-    private var isUserSetupCompleted: Boolean =
-        settingsCache.getValue(USER_SETUP_COMPLETE_URI, /* defaultValue= */ 0)
+    private var isUserSetupCompleted: Boolean = settingsCache.getValue(USER_SETUP_COMPLETE_URI)
 
     init {
         settingsCache.register(USER_SETUP_COMPLETE_URI, onUserSetupCompleteListener)

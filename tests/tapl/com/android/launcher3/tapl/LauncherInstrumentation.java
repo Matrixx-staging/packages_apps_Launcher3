@@ -449,6 +449,12 @@ public final class LauncherInstrumentation {
                 TestProtocol.TEST_INFO_RESPONSE_FIELD);
     }
 
+    public boolean isInDesktopFirstMode() {
+        return getTestInfo(TestProtocol.REQUEST_IS_IN_DESKTOP_FIRST_MODE,
+                String.valueOf(mDisplayId)).getBoolean(
+                TestProtocol.TEST_INFO_RESPONSE_FIELD);
+    }
+
     public boolean isTablet() {
         return getTestInfo(TestProtocol.REQUEST_IS_TABLET)
                 .getBoolean(TestProtocol.TEST_INFO_RESPONSE_FIELD);

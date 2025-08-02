@@ -25,6 +25,15 @@
         =1 {# widget}
         other {# widgets}
     }</string>
+    <!-- Label for showing the number of shortcuts an app has in the full widgets picker.
+    [CHAR_LIMIT=25] -->
+    <string name="widgets_list_header_shortcuts_count_label">{count, plural,
+        =1 {# shortcut}
+        other {# shortcuts}
+    }</string>
+    <!-- Label for showing the number of widgets and shortcuts an app has in the full widgets
+     picker. [CHAR_LIMIT=25] -->
+    <string name="widgets_list_header_widgets_and_shortcuts_count_label"><xliff:g example="5 widgets" id="widgets_count">%1$s</xliff:g>, <xliff:g example="1 shortcut" id="shortcuts_count">%2$s</xliff:g></string>
 
     <!-- The format string for the cell dimensions of a widget in the widget picker e.g. 2x2 -->
     <!-- There is a special version of this format string for Farsi (%1$dx%2$d) -->

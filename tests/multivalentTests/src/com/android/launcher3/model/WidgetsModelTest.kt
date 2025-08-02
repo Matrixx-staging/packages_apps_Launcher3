@@ -86,7 +86,7 @@ class WidgetsModelTest {
                 }
 
                 override fun getDeviceProfile(): DeviceProfile {
-                    return idp.getDeviceProfile(applicationContext).copy(applicationContext)
+                    return idp.getDeviceProfile(applicationContext).copy()
                 }
             }
 

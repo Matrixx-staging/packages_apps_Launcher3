@@ -33,6 +33,7 @@ import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.dagger.LauncherConcurrencyModule
 import com.android.launcher3.dagger.LauncherModelModule
+import com.android.launcher3.dagger.SettingsModule
 import com.android.launcher3.dagger.StaticObjectModule
 import com.android.launcher3.dagger.WidgetModule
 import com.android.launcher3.dagger.WindowContext
@@ -56,7 +57,6 @@ import com.android.quickstep.window.RecentsWindowManager
 import dagger.Binds
 import dagger.BindsInstance
 import dagger.Component
-import dagger.Lazy
 import dagger.Module
 import dagger.Provides
 import javax.inject.Inject
@@ -97,6 +97,7 @@ interface TaskbarSandboxComponent : LauncherAppComponent {
             NoOpWidgetPickerModule::class,
             LauncherModelModule::class,
             HomeScreenFilesModule::class,
+            SettingsModule::class,
         ]
 )
 interface AllTaskbarSandboxModules
@@ -217,11 +218,8 @@ object DesktopVisibilityControllerModule {
         @ApplicationContext context: Context,
         systemUiProxy: SystemUiProxy,
         lifecycleTracker: DaggerSingletonTracker,
-        displayController: Lazy<DisplayController>,
     ): DesktopVisibilityController {
-        return spy(
-            DesktopVisibilityController(context, systemUiProxy, lifecycleTracker, displayController)
-        )
+        return spy(DesktopVisibilityController(context, systemUiProxy, lifecycleTracker))
     }
 }
 

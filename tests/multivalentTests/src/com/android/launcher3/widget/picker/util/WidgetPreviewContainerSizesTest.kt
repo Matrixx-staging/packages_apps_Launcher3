@@ -58,7 +58,7 @@ class WidgetPreviewContainerSizesTest {
                 numRows = TEST_GRID_SIZE
                 numColumns = TEST_GRID_SIZE
             }
-        deviceProfile = testInvariantProfile.getDeviceProfile(context).copy(context)
+        deviceProfile = testInvariantProfile.getDeviceProfile(context).copy()
     }
 
     @Test

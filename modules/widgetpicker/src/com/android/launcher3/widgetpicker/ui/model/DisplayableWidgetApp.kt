@@ -20,6 +20,8 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import com.android.launcher3.widgetpicker.shared.model.WidgetApp
 import com.android.launcher3.widgetpicker.shared.model.WidgetAppId
+import com.android.launcher3.widgetpicker.shared.model.isAppWidget
+import com.android.launcher3.widgetpicker.shared.model.isShortcut
 
 /**
  * Information about the widget app transformed for displaying as a expandable section in UI.
@@ -28,6 +30,7 @@ import com.android.launcher3.widgetpicker.shared.model.WidgetAppId
  * @param title title for the widget
  * @param widgetSizeGroups groups of similar sized widgets that can be displayed together
  * @param widgetsCount total number of widgets in the app
+ * @param shortcutsCount total number of shortcuts in the app
  */
 @Stable
 @Immutable
@@ -36,31 +39,36 @@ data class DisplayableWidgetApp(
     val title: CharSequence?,
     val widgetSizeGroups: List<WidgetSizeGroup>,
     val widgetsCount: Int,
+    val shortcutsCount: Int,
 ) {
     companion object {
         /**
-         * Helper function to create a [DisplayableWidgetApp] from a [WidgetApp].
-         * Converts the list of widgets in the app to a list of [WidgetSizeGroup]s.
+         * Helper function to create a [DisplayableWidgetApp] from a [WidgetApp]. Converts the list
+         * of widgets in the app to a list of [WidgetSizeGroup]s.
          */
         fun fromWidgetApp(widgetApp: WidgetApp): DisplayableWidgetApp =
             DisplayableWidgetApp(
                 id = widgetApp.id,
                 title = widgetApp.title,
-                widgetSizeGroups = widgetApp.widgets.groupBy {
-                    Pair(it.sizeInfo.containerWidthPx, it.sizeInfo.containerHeightPx)
-                }.map { (containerSize, value) ->
-                    WidgetSizeGroup(
-                        previewContainerWidthPx = containerSize.first,
-                        previewContainerHeightPx = containerSize.second,
-                        widgets = value
-                    )
-                },
-                widgetsCount = widgetApp.widgets.size,
+                widgetSizeGroups =
+                    widgetApp.widgets
+                        .groupBy {
+                            Pair(it.sizeInfo.containerWidthPx, it.sizeInfo.containerHeightPx)
+                        }
+                        .map { (containerSize, value) ->
+                            WidgetSizeGroup(
+                                previewContainerWidthPx = containerSize.first,
+                                previewContainerHeightPx = containerSize.second,
+                                widgets = value,
+                            )
+                        },
+                widgetsCount = widgetApp.widgets.count { it.widgetInfo.isAppWidget() },
+                shortcutsCount = widgetApp.widgets.count { it.widgetInfo.isShortcut() },
             )
 
         fun List<DisplayableWidgetApp>.getWidgetIdsForApp(appId: WidgetAppId) =
-            find { it.id == appId }?.widgetSizeGroups?.flatMap { group ->
-                group.widgets.map { it.id }
-            } ?: listOf()
+            find { it.id == appId }
+                ?.widgetSizeGroups
+                ?.flatMap { group -> group.widgets.map { it.id } } ?: listOf()
     }
 }

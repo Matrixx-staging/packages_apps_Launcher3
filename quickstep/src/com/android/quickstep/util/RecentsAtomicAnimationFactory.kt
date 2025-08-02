@@ -42,6 +42,7 @@ import com.android.launcher3.LauncherState.OVERVIEW
 import com.android.launcher3.LauncherState.OVERVIEW_SPLIT_SELECT
 import com.android.launcher3.QuickstepTransitionManager
 import com.android.launcher3.anim.SpringAnimationBuilder
+import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.statemanager.BaseState
 import com.android.launcher3.statemanager.StateManager.AtomicAnimationFactory
 import com.android.launcher3.statemanager.StatefulContainer
@@ -125,7 +126,9 @@ CONTAINER : StatefulContainer<STATE_TYPE> {
         // We sync the scrim fade with the taskbar animation duration to avoid any flickers for
         // taskbar icons disappearing before hotseat icons show up.
         val isPersistentTaskbarAndNotInDesktopMode =
-            (isThreeButton || isPinnedTaskbar) && !DisplayController.isInDesktopMode(container)
+            (isThreeButton || isPinnedTaskbar) &&
+                !DesktopVisibilityController.INSTANCE.get(container)
+                    .isInDesktopMode(container.displayId)
         val scrimUpperBoundFromSplit =
             (QuickstepTransitionManager.getTaskbarToHomeDuration(
                     isPersistentTaskbarAndNotInDesktopMode

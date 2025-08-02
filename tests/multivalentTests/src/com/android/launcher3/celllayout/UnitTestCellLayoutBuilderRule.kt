@@ -95,7 +95,7 @@ class UnitTestCellLayoutBuilderRule : TestWatcher() {
 
     private fun getDeviceProfile(): DeviceProfile =
         InvariantDeviceProfile.INSTANCE[applicationContext].getDeviceProfile(applicationContext)
-            .copy(applicationContext)
+            .copy()
 
     private fun getWrappedContext(context: Context, dp: DeviceProfile): Context {
         return object : ActivityContextWrapper(context) {

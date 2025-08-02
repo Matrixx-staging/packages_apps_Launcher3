@@ -216,7 +216,7 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
 
         // In case we are reusing IDP, create a copy so that we don't conflict with Launcher
         // activity.
-        return dp.copy(this);
+        return dp.copy();
     }
 
     @Override

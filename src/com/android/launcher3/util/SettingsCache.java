@@ -36,11 +36,13 @@ import com.android.launcher3.dagger.LauncherBaseAppComponent;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 /**
  * ContentObserver over Settings keys that also has a caching layer.
@@ -48,8 +50,7 @@ import javax.inject.Inject;
  * {@link #unregister(Uri, OnChangeListener)} methods.
  *
  * This can be used as a normal cache without any listeners as well via the
- * {@link #getValue(Uri, int)} and {@link #onChange)} to update (and subsequently call
- * get)
+ * {@link #getValue} and {@link #onChange(boolean, Uri)} to update (and subsequently call get)
  *
  * The cache will be invalidated/updated through the normal
  * {@link ContentObserver#onChange(boolean)} calls
@@ -90,6 +91,7 @@ public class SettingsCache extends ContentObserver {
     private final Map<Uri, Boolean> mKeyCache = new ConcurrentHashMap<>();
     private final Map<Uri, CopyOnWriteArrayList<OnChangeListener>> mListenerMap =
             new ConcurrentHashMap<>();
+    private final Set<Uri> mUrisEnabledByDefault;
     protected final ContentResolver mResolver;
 
     /**
@@ -99,9 +101,12 @@ public class SettingsCache extends ContentObserver {
             new DaggerSingletonObject<>(LauncherBaseAppComponent::getSettingsCache);
 
     @Inject
-    SettingsCache(@ApplicationContext Context context, DaggerSingletonTracker tracker) {
+    SettingsCache(@ApplicationContext Context context,
+            @Named("SETTINGS_ENABLED_BY_DEFAULT") Set<Uri> urisEnabledByDefault,
+            DaggerSingletonTracker tracker) {
         super(new Handler(Looper.getMainLooper()));
         mResolver = context.getContentResolver();
+        mUrisEnabledByDefault = urisEnabledByDefault;
         tracker.addCloseable(() ->
                 UI_HELPER_EXECUTOR.execute(() -> mResolver.unregisterContentObserver(this)));
     }
@@ -110,7 +115,7 @@ public class SettingsCache extends ContentObserver {
     public void onChange(boolean selfChange, Uri uri) {
         // We use default of 1, but if we're getting an onChange call, can assume a non-default
         // value will exist
-        boolean newVal = updateValue(uri, 1 /* Effectively Unused */);
+        boolean newVal = updateValue(uri);
         List<OnChangeListener> listeners = mListenerMap.get(uri);
         if (listeners == null) {
             return;
@@ -123,21 +128,13 @@ public class SettingsCache extends ContentObserver {
 
     /**
      * Returns the value for this classes key from the cache. If not in cache, will call
-     * {@link #updateValue(Uri, int)} to fetch.
+     * {@link #updateValue(Uri)} to fetch.
      */
     public boolean getValue(Uri keySetting) {
-        return getValue(keySetting, 1);
-    }
-
-    /**
-     * Returns the value for this classes key from the cache. If not in cache, will call
-     * {@link #updateValue(Uri, int)} to fetch.
-     */
-    public boolean getValue(Uri keySetting, int defaultValue) {
         if (mKeyCache.containsKey(keySetting)) {
             return mKeyCache.get(keySetting);
         } else {
-            return updateValue(keySetting, defaultValue);
+            return updateValue(keySetting);
         }
     }
 
@@ -154,9 +151,10 @@ public class SettingsCache extends ContentObserver {
         mListenerMap.computeIfAbsent(uri, mListenerMapper).add(changeListener);
     }
 
-    private boolean updateValue(Uri keyUri, int defaultValue) {
+    private boolean updateValue(Uri keyUri) {
         String key = keyUri.getLastPathSegment();
         boolean newVal;
+        int defaultValue = mUrisEnabledByDefault.contains(keyUri) ? 1 : 0;
         if (keyUri.toString().startsWith(SYSTEM_URI_PREFIX)) {
             newVal = Settings.System.getInt(mResolver, key, defaultValue) == 1;
         } else if (keyUri.toString().startsWith(GLOBAL_URI_PREFIX)) {

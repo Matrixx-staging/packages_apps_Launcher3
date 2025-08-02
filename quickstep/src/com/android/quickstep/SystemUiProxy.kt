@@ -174,27 +174,31 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
     // TODO(141886704): Find a way to remove this
     @SystemUiStateFlags var lastSystemUiStateFlags: Long = 0
 
+    private val pendingIntentCache = mutableMapOf<Int, PendingIntent>()
+
     /**
      * This returns a pending intent that is used to start recents via Shell (which is a different
      * process). It is bare-bones, so it's expected that the component and options will be provided
      * via fill-in intent.
      */
     private fun getRecentsPendingIntent(displayId: Int) =
-        PendingIntent.getActivity(
-            context,
-            0,
-            Intent().setPackage(context.packageName),
-            PendingIntent.FLAG_MUTABLE or
-                PendingIntent.FLAG_ALLOW_UNSAFE_IMPLICIT_INTENT or
-                Intent.FILL_IN_COMPONENT or
-                PendingIntent.FLAG_UPDATE_CURRENT,
-            ActivityOptions.makeBasic()
-                .setPendingIntentCreatorBackgroundActivityStartMode(
-                    ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
-                )
-                .setLaunchDisplayId(displayId)
-                .toBundle(),
-        )
+        pendingIntentCache.computeIfAbsent(displayId) {
+            PendingIntent.getActivity(
+                context,
+                0,
+                Intent().setPackage(context.packageName),
+                PendingIntent.FLAG_MUTABLE or
+                    PendingIntent.FLAG_ALLOW_UNSAFE_IMPLICIT_INTENT or
+                    Intent.FILL_IN_COMPONENT or
+                    PendingIntent.FLAG_CANCEL_CURRENT,
+                ActivityOptions.makeBasic()
+                    .setPendingIntentCreatorBackgroundActivityStartMode(
+                        ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
+                    )
+                    .setLaunchDisplayId(displayId)
+                    .toBundle(),
+            )
+        }
 
     val unfoldTransitionProvider: ProxyUnfoldTransitionProvider? =
         if ((Flags.enableUnfoldStateAnimation() && ResourceUnfoldTransitionConfig().isEnabled))

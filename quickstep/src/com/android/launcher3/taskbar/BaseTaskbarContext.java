@@ -22,6 +22,8 @@ import android.graphics.Point;
 import android.os.UserHandle;
 import android.view.LayoutInflater;
 
+import com.android.launcher3.LifecycleTracker;
+import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.popup.SystemShortcut;
 import com.android.launcher3.util.BaseContext;
 import com.android.launcher3.util.NavigationMode;
@@ -115,6 +117,15 @@ public abstract class BaseTaskbarContext extends BaseContext
     @Override
     public final LayoutInflater getLayoutInflater() {
         return mLayoutInflater;
+    }
+
+    public void onDestroy() {
+        // Since TaskbarDragLayer is removed from view hierarchy AFTER onDestroy() and it holds ref
+        // to TaskbarActivityContext, we add 1s delay to check leaks in order to avoid false
+        // positive leak alarms.
+        for (LifecycleTracker tracker: LauncherComponentProvider.get(this).getLifecycleTrackers()) {
+            tracker.trackLifecycleOnDestroy(this, 1000L);
+        }
     }
 
     @Override

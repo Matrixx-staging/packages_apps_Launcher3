@@ -28,6 +28,7 @@ import static com.android.launcher3.AbstractFloatingView.TYPE_WIDGETS_FULL_SHEET
 import static com.android.launcher3.AbstractFloatingView.getTopOpenViewWithType;
 import static com.android.launcher3.Flags.allAppsBlur;
 import static com.android.launcher3.Flags.enableLongPressRemoveShortcut;
+import static com.android.launcher3.Flags.refactorTaskbarUiState;
 import static com.android.launcher3.LauncherAnimUtils.HOTSEAT_SCALE_PROPERTY_FACTORY;
 import static com.android.launcher3.LauncherAnimUtils.SCALE_INDEX_WIDGET_TRANSITION;
 import static com.android.launcher3.LauncherAnimUtils.SPRING_LOADED_EXIT_DELAY;
@@ -315,6 +316,8 @@ public class Launcher extends StatefulActivity<LauncherState>
             HOTSEAT_SCALE_PROPERTY_FACTORY.get(SCALE_INDEX_WIDGET_TRANSITION);
 
     private final ModelCallbacks mModelCallbacks = createModelCallbacks();
+
+    public final LauncherUiState launcherUiState = new LauncherUiState();
 
     private final KeyboardShortcutsDelegate mKeyboardShortcutsDelegate =
             new KeyboardShortcutsDelegate(this);
@@ -717,6 +720,9 @@ public class Launcher extends StatefulActivity<LauncherState>
         }
 
         mDeviceProfile = deviceProfile;
+        if (refactorTaskbarUiState()) {
+            launcherUiState.setDeviceProfile(deviceProfile);
+        }
 
         if (FOLDABLE_SINGLE_PAGE.get() && mDeviceProfile.getDeviceProperties().isTwoPanels()) {
             mCellPosMapper = new TwoPanelCellPosMapper(mDeviceProfile.inv.numColumns);
@@ -1192,6 +1198,10 @@ public class Launcher extends StatefulActivity<LauncherState>
         TraceHelper.INSTANCE.beginSection(ON_RESUME_EVT);
         super.onResume();
 
+        if (refactorTaskbarUiState()) {
+            launcherUiState.setIsResumes(true);
+        }
+
         if (mDeferOverlayCallbacks) {
             scheduleDeferredCheck();
         } else {
@@ -1208,6 +1218,9 @@ public class Launcher extends StatefulActivity<LauncherState>
         ItemInstallQueue.INSTANCE.get(this).pauseModelPush(FLAG_ACTIVITY_PAUSED);
 
         super.onPause();
+        if (refactorTaskbarUiState()) {
+            launcherUiState.setIsResumes(false);
+        }
         mDragController.cancelDrag();
         mLastTouchUpTime = -1;
         mDropTargetBar.animateToVisibility(false);

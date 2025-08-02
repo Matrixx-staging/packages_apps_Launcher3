@@ -295,8 +295,7 @@ public class RecentsOrientedState implements LauncherPrefChangeListener {
     }
 
     private void updateAutoRotateSetting() {
-        setFlag(FLAG_SYSTEM_ROTATION_ALLOWED,
-                mSettingsCache.getValue(ROTATION_SETTING_URI, 1));
+        setFlag(FLAG_SYSTEM_ROTATION_ALLOWED, mSettingsCache.getValue(ROTATION_SETTING_URI));
     }
 
     private void updateFixedLandscapeSetting() {

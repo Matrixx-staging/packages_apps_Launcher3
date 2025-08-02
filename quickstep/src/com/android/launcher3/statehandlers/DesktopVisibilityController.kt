@@ -24,14 +24,12 @@ import android.view.Display.DEFAULT_DISPLAY
 import androidx.core.util.set
 import com.android.internal.util.LatencyTracker
 import com.android.launcher3.LauncherState
-import com.android.launcher3.R
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.statemanager.BaseState
 import com.android.launcher3.util.DaggerSingletonObject
 import com.android.launcher3.util.DaggerSingletonTracker
-import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.window.WindowManagerProxy.DesktopVisibilityListener
 import com.android.quickstep.SystemUiProxy
@@ -40,7 +38,6 @@ import com.android.wm.shell.desktopmode.DisplayDeskState
 import com.android.wm.shell.desktopmode.IDesktopTaskListener.Stub
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus.enableMultipleDesktops
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus.useRoundedCorners
-import dagger.Lazy
 import java.io.PrintWriter
 import java.lang.ref.WeakReference
 import javax.inject.Inject
@@ -56,7 +53,6 @@ constructor(
     @ApplicationContext private val context: Context,
     systemUiProxy: SystemUiProxy,
     lifecycleTracker: DaggerSingletonTracker,
-    private val displayController: Lazy<DisplayController>,
 ) {
     /**
      * Tracks the desks configurations on each display.
@@ -91,9 +87,6 @@ constructor(
 
     // This simply indicates that user is currently in desktop mode or not.
     @Deprecated("Does not work with multi-desks") private var isInDesktopModeDeprecated = false
-
-    // to track if any pending notification to be done.
-    var isNotifyingDesktopVisibilityPending = SparseBooleanArray()
 
     // to let launcher hold off on notifying desktop visibility listeners.
     var launcherAnimationRunning = false
@@ -130,24 +123,6 @@ constructor(
                 }
                 if (visibleDesktopTasksCountDeprecated == 1 && visibleTasksCount == 0) {
                     isInDesktopModeDeprecated = false
-                }
-                val wasVisible = field > 0
-                val isVisible = visibleTasksCount > 0
-                val wereDesktopTasksVisibleBefore =
-                    areDesktopTasksVisibleAndNotInOverview(DEFAULT_DISPLAY)
-                field = visibleTasksCount
-                val areDesktopTasksVisibleNow =
-                    areDesktopTasksVisibleAndNotInOverview(DEFAULT_DISPLAY)
-
-                if (
-                    wereDesktopTasksVisibleBefore != areDesktopTasksVisibleNow ||
-                        wasVisible != isVisible
-                ) {
-                    if (!launcherAnimationRunning) {
-                        displayController.get().notifyConfigChange(DEFAULT_DISPLAY)
-                    } else {
-                        isNotifyingDesktopVisibilityPending[DEFAULT_DISPLAY] = true
-                    }
                 }
             }
         }
@@ -252,10 +227,6 @@ constructor(
      */
     fun onLauncherAnimationFromDesktopEnd(displayId: Int) {
         launcherAnimationRunning = false
-        if (isNotifyingDesktopVisibilityPending[displayId]) {
-            isNotifyingDesktopVisibilityPending[displayId] = false
-            displayController.get().notifyConfigChange(displayId)
-        }
     }
 
     fun onLauncherStateChanged(displayId: Int, state: RecentsState) {
@@ -293,12 +264,7 @@ constructor(
             )
         }
         if (overviewStateEnabled != inOverviewState) {
-            val wereDesktopTasksVisibleBefore = areDesktopTasksVisibleAndNotInOverview(displayId)
             inOverviewStateMap[displayId] = overviewStateEnabled
-            val areDesktopTasksVisibleNow = areDesktopTasksVisibleAndNotInOverview(displayId)
-            if (wereDesktopTasksVisibleBefore != areDesktopTasksVisibleNow) {
-                displayController.get().notifyConfigChange(displayId)
-            }
         }
     }
 
@@ -332,7 +298,6 @@ constructor(
         for (listener in taskbarDesktopModeListeners) {
             listener.onEnterDesktopMode(duration)
         }
-        displayController.get().notifyConfigChange(displayId)
     }
 
     private fun notifyTaskbarDesktopModeListenersForExit(displayId: Int, duration: Int) {
@@ -342,7 +307,6 @@ constructor(
         for (listener in taskbarDesktopModeListeners) {
             listener.onExitDesktopMode(duration)
         }
-        displayController.get().notifyConfigChange(displayId)
     }
 
     private fun notifyOnDeskAdded(displayId: Int, deskId: Int) {
@@ -472,22 +436,6 @@ constructor(
         if (newActiveDesk != oldActiveDesk) {
             notifyOnActiveDeskChanged(displayId, newActiveDesk, oldActiveDesk)
         }
-
-        if (
-            (newActiveDesk == INACTIVE_DESK_ID || oldActiveDesk == INACTIVE_DESK_ID) &&
-                !launcherAnimationRunning
-        ) {
-            val duration = context.resources.getInteger(R.integer.to_desktop_animation_duration_ms)
-            if (oldActiveDesk == INACTIVE_DESK_ID && newActiveDesk != INACTIVE_DESK_ID) {
-                notifyTaskbarDesktopModeListenersForEntry(displayId, duration)
-            } else if (newActiveDesk == INACTIVE_DESK_ID && oldActiveDesk != INACTIVE_DESK_ID) {
-                notifyTaskbarDesktopModeListenersForExit(displayId, duration)
-            } else {
-                // do nothing because user switch between two desktop.
-            }
-        } else {
-            isNotifyingDesktopVisibilityPending[displayId] = true
-        }
     }
 
     fun dumpLogs(prefix: String, pw: PrintWriter) {
@@ -496,9 +444,6 @@ constructor(
         pw.println("$prefix\tdesktopVisibilityListeners=$desktopVisibilityListeners")
         pw.println("$prefix\tvisibleDesktopTasksCount=$visibleDesktopTasksCountDeprecated")
         pw.println("$prefix\tinOverviewState=$inOverviewStateMap")
-        pw.println(
-            "$prefix\tisNotifyingDesktopVisibilityPending=$isNotifyingDesktopVisibilityPending"
-        )
         pw.println("$prefix\tdesktopTaskListener=$desktopTaskListener")
         pw.println("$prefix\tcontext=$context")
     }

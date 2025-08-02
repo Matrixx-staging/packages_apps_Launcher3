@@ -82,7 +82,9 @@ public class TaskbarOverlayContext extends BaseTaskbarContext {
     }
 
     /** Called when the controller is destroyed. */
+    @Override
     public void onDestroy() {
+        super.onDestroy();
         mDragController.onDestroy();
     }
 

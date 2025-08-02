@@ -37,7 +37,7 @@ public class ActivityContextWrapper extends BaseContext {
 
     public ActivityContextWrapper(Context base, int theme) {
         super(base, theme);
-        mProfile = InvariantDeviceProfile.INSTANCE.get(base).getDeviceProfile(base).copy(base);
+        mProfile = InvariantDeviceProfile.INSTANCE.get(base).getDeviceProfile(base).copy();
         mMyDragLayer = new MyDragLayer(this);
         Executors.MAIN_EXECUTOR.execute(this::onViewCreated);
     }

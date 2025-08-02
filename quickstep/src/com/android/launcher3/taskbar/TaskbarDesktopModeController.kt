@@ -30,17 +30,10 @@ class TaskbarDesktopModeController(
 ) : TaskbarDesktopModeListener {
 
     private val displayInfoChangeListener =
-        DisplayController.DisplayInfoChangeListener { context, _, _ ->
+        DisplayController.DisplayInfoChangeListener { _, _, _ ->
             // DisplayInfoChangeListener is called on main thread, we should switch to taskbar's UI
             // thread to update UI state.
-            TASKBAR_UI_THREAD.execute {
-                taskbarUiState.setShowDesktopTaskbarForFreeformDisplay(
-                    DisplayController.showDesktopTaskbarForFreeformDisplay(context)
-                )
-                taskbarUiState.setShowLockedTaskbarOnHome(
-                    DisplayController.showLockedTaskbarOnHome(context)
-                )
-            }
+            TASKBAR_UI_THREAD.execute { updateTaskbarUiState() }
         }
 
     private lateinit var taskbarControllers: TaskbarControllers
@@ -62,6 +55,7 @@ class TaskbarDesktopModeController(
         if (refactorTaskbarUiState()) {
             DisplayController.INSTANCE.get(taskbarActivityContext)
                 .addChangeListener(displayInfoChangeListener)
+            updateTaskbarUiState()
         }
     }
 
@@ -102,5 +96,14 @@ class TaskbarDesktopModeController(
             DisplayController.INSTANCE.get(taskbarActivityContext)
                 .removeChangeListener(displayInfoChangeListener)
         }
+    }
+
+    private fun updateTaskbarUiState() {
+        taskbarUiState.setShowDesktopTaskbarForFreeformDisplay(
+            DisplayController.showDesktopTaskbarForFreeformDisplay(taskbarActivityContext)
+        )
+        taskbarUiState.setShowLockedTaskbarOnHome(
+            DisplayController.showLockedTaskbarOnHome(taskbarActivityContext)
+        )
     }
 }

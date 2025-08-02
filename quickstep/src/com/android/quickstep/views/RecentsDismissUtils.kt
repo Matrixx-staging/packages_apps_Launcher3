@@ -36,12 +36,8 @@ import com.android.launcher3.util.MSDLPlayerWrapper
 import com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview
 import com.android.launcher3.views.ActivityContext
 import com.android.quickstep.SystemUiProxy
-import com.android.quickstep.util.DesksUtils.Companion.areMultiDesksFlagsEnabled
 import com.android.quickstep.util.TaskGridNavHelper
-import com.android.quickstep.util.isDefaultDisplay
-import com.android.quickstep.util.isExternalDisplay
 import com.android.quickstep.views.RecentsView.RECENTS_SCALE_PROPERTY
-import com.android.quickstep.views.RecentsViewUtils.OnDeskAddedListener
 import com.android.quickstep.views.TaskView.Companion.GRID_END_TRANSLATION_X
 import com.android.systemui.shared.system.ActivityManagerWrapper
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper
@@ -339,34 +335,17 @@ constructor(
                     // tasks), and closing all tasks on a desk doesn't always necessarily mean that
                     // the desk will be removed. So, there are no guarantees that the below call to
                     // `ActivityManagerWrapper::removeAllRecentTasks()` will be enough.
-                    val switchToNewDesk =
-                        areMultiDesksFlagsEnabled() && context.displayId.isExternalDisplay
-                    if (switchToNewDesk) {
-                        val launchNewDeskListener =
-                            object : OnDeskAddedListener {
-                                override fun onDeskAdded(desktopTaskView: DesktopTaskView) {
-                                    desktopTaskView.launchWithAnimation()?.apply {
-                                        add {
-                                            InteractionJankMonitorWrapper.end(
-                                                Cuj.CUJ_LAUNCHER_OVERVIEW_CLEAR_ALL
-                                            )
-                                        }
-                                    }
-                                    recentsView.mUtils.removeOnDeskAddedListener(this)
-                                }
-                            }
-                        mUtils.addOnDeskAddedListener(launchNewDeskListener)
-                    }
                     systemUiProxy.removeAllDesks(DesktopModeTransitionSource.RECENTS)
 
                     // Remove all the task views now
                     finishRecentsAnimation(/* toHome */ true, /* shouldPip */ false) {
                         uiHelperExecutor.execute { activityManagerWrapper.removeAllRecentTasks() }
                         removeAllTaskViews()
-                        if (!switchToNewDesk) {
+                        if (!mUtils.isInDesktopFirstMode()) {
                             startHome()
-                            InteractionJankMonitorWrapper.end(Cuj.CUJ_LAUNCHER_OVERVIEW_CLEAR_ALL)
                         }
+                        onDismissAnimationEnds()
+                        InteractionJankMonitorWrapper.end(Cuj.CUJ_LAUNCHER_OVERVIEW_CLEAR_ALL)
                     }
                 }
             }
@@ -968,17 +947,9 @@ constructor(
 
                 // Denote if any task has been dismissed for grid rebalancing.
                 mAnyTaskHasBeenDismissed = true
-                val switchToNewDesk: Boolean
                 if (shouldRemoveTask && dismissedTaskView != null) {
-                    switchToNewDesk =
-                        areMultiDesksFlagsEnabled() &&
-                            context.displayId.isExternalDisplay &&
-                            taskViewCount == 1 &&
-                            contains(dismissedTaskView)
                     // Cache group task before removing.
-                    handleGroupTaskRemoval(dismissedTaskView, switchToNewDesk)
-                } else {
-                    switchToNewDesk = false
+                    handleGroupTaskRemoval(dismissedTaskView)
                 }
 
                 // Get page to snap to before removing dismissed task.
@@ -1004,7 +975,7 @@ constructor(
                 // Update the UI after removal and snap to page.
                 updateUiAfterTaskRemoval(dismissedTaskView, pageToSnapTo)
 
-                if (!dismissingForSplitSelection && !switchToNewDesk) {
+                if (!dismissingForSplitSelection) {
                     InteractionJankMonitorWrapper.end(Cuj.CUJ_LAUNCHER_OVERVIEW_TASK_DISMISS)
                 }
             }
@@ -1023,27 +994,9 @@ constructor(
      * removeViewInLayout called on the dismissed task. It might happen before
      * removeGroupTaskInternal which runs on a helper thread.
      */
-    private fun handleGroupTaskRemoval(dismissedTaskView: TaskView, switchToNewDesk: Boolean) {
+    private fun handleGroupTaskRemoval(dismissedTaskView: TaskView) {
         with(recentsView) {
             val groupTask = dismissedTaskView.groupTask ?: return
-            // For the multi desk case, the launcher should switch to the new desk once the
-            // last task of the previous desk is removed.
-            if (switchToNewDesk) {
-                val launchNewDeskListener =
-                    object : OnDeskAddedListener {
-                        override fun onDeskAdded(desktopTaskView: DesktopTaskView) {
-                            desktopTaskView.launchWithAnimation()?.apply {
-                                add {
-                                    InteractionJankMonitorWrapper.end(
-                                        Cuj.CUJ_LAUNCHER_OVERVIEW_TASK_DISMISS
-                                    )
-                                }
-                            }
-                            recentsView.mUtils.removeOnDeskAddedListener(this)
-                        }
-                    }
-                mUtils.addOnDeskAddedListener(launchNewDeskListener)
-            }
             if (dismissedTaskView.isRunningTask) {
                 finishRecentsAnimation(/* toHome */ true, /* shouldPip */ false) {
                     removeGroupTaskInternal(groupTask)
@@ -1168,7 +1121,7 @@ constructor(
                     if (dismissedTaskView === homeTaskView) {
                         updateEmptyMessage()
                     } else {
-                        if (!areMultiDesksFlagsEnabled() || context.displayId.isDefaultDisplay) {
+                        if (!mUtils.isInDesktopFirstMode()) {
                             startHome()
                         }
                     }

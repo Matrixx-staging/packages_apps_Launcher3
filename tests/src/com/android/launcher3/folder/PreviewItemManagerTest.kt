@@ -68,7 +68,7 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runner.RunWith
 import org.junit.runners.model.Statement
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
@@ -83,6 +83,7 @@ class PreviewItemManagerTest {
 
     @get:Rule val context = SandboxApplication().withModelDependency()
     @get:Rule val theseStateRule = ThemeStateRule()
+    @get:Rule val mockitoRule = MockitoJUnit.rule()
 
     private lateinit var previewItemManager: PreviewItemManager
     private lateinit var folderItems: ArrayList<WorkspaceItemInfo>
@@ -91,7 +92,6 @@ class PreviewItemManagerTest {
 
     @Before
     fun setup() {
-        MockitoAnnotations.initMocks(this)
         context.initDaggerComponent(DaggerPreviewItemManagerTestComponent.builder())
         theseStateRule.themeState?.let {
             LauncherPrefs.get(context).putSync(ThemeManager.THEMED_ICONS.to(it))
