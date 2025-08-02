@@ -930,7 +930,18 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
      */
     fun getHomeTaskOverlayContainer(): SurfaceControl? {
         executeWithErrorLog({ "Failed call getHomeTaskOverlayContainer" }) {
-            return shellTransitions?.homeTaskOverlayContainer
+            return shellTransitions?.getHomeTaskOverlayContainer()
+        }
+        return null
+    }
+
+    /**
+     * Returns a surface which can be used to attach overlays to home task or null if the task
+     * doesn't exist or sysui is not connected
+     */
+    fun getOverviewOverlayContainer(displayId: Int): SurfaceControl? {
+        executeWithErrorLog({ "Failed call getOverviewOverlayContainer" }) {
+            return shellTransitions?.getOverviewOverlayContainer(displayId)
         }
         return null
     }

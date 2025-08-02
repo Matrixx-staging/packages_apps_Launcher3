@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,6 +23,8 @@ import android.content.Context
 import android.content.LocusId
 import android.content.res.Configuration
 import android.os.Bundle
+import android.os.IBinder
+import android.util.Log
 import android.view.Display.DEFAULT_DISPLAY
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -30,12 +32,14 @@ import android.view.MotionEvent
 import android.view.RemoteAnimationAdapter
 import android.view.RemoteAnimationTarget
 import android.view.SurfaceControl
+import android.view.SurfaceControl.Transaction
+import android.view.SurfaceControlViewHost
 import android.view.View
-import android.view.WindowManager
 import android.window.BackEvent
 import android.window.DesktopExperienceFlags
 import android.window.OnBackInvokedCallback
 import android.window.RemoteTransition
+import androidx.annotation.UiThread
 import androidx.core.view.isVisible
 import com.android.app.displaylib.PerDisplayInstanceProviderWithTeardown
 import com.android.app.displaylib.PerDisplayRepository
@@ -148,12 +152,13 @@ constructor(
     }
 
     protected var recentsView: FallbackRecentsView<RecentsWindowManager>? = null
-    private val windowManager: WindowManager = getSystemService(WindowManager::class.java)!!
+    private var surfaceControlViewHost: SurfaceControlViewHost? = null
     private var layoutInflater: LayoutInflater = LayoutInflater.from(this).cloneInContext(this)
     private var stateManager: StateManager<RecentsState, RecentsWindowManager> =
         StateManager<RecentsState, RecentsWindowManager>(this, BG_LAUNCHER)
     private var systemUiController: SystemUiController? = null
 
+    private var overviewOverlay: SurfaceControl? = null
     private var dragLayer: RecentsDragLayer<RecentsWindowManager>? = null
     private var windowRootView = RecentsWindowRootView(this)
     private var windowView: View? = null
@@ -198,7 +203,7 @@ constructor(
                     RemoteAnimationTarget.MODE_OPENING,
                 )
             for (app in targets.apps) {
-                SurfaceControl.Transaction().setAlpha(app.leash, 1f).apply()
+                Transaction().setAlpha(app.leash, 1f).apply()
             }
             val anim = AnimatorSet()
             anim.play(controller.animationPlayer)
@@ -237,7 +242,7 @@ constructor(
             override fun onBackCancelledCompat() {}
         }
 
-    private val homeVisibilityState = SystemUiProxy.INSTANCE.get(this).homeVisibilityState
+    private val homeVisibilityState = systemUiProxy.homeVisibilityState
     private val homeVisibilityListener =
         object : HomeVisibilityState.VisibilityChangeListener {
             override fun onHomeVisibilityChanged(isVisible: Boolean) {
@@ -283,6 +288,15 @@ constructor(
         dispatchDeviceProfileChanged()
     }
 
+    override fun onDisplayInfoChanged(
+        context: Context?,
+        info: DisplayController.Info?,
+        flags: Int,
+    ) {
+        initDeviceProfile()
+        surfaceControlViewHost?.relayout(getWindowLayoutParams())
+    }
+
     override fun destroy() {
         super.destroy()
         fallbackWindowInterface.setRecentsWindowManager(null)
@@ -290,8 +304,9 @@ constructor(
         Executors.MAIN_EXECUTOR.execute {
             onViewDestroyed()
             hideRecentsWindow()
-            if (windowRootView.parent != null) {
-                windowManager.removeViewImmediate(windowRootView)
+            if (windowView?.parent != null) {
+                surfaceControlViewHost?.release()
+                surfaceControlViewHost = null
             }
             windowView
                 ?.findOnBackInvokedDispatcher()
@@ -308,9 +323,19 @@ constructor(
             }
             recentsWindowTracker.onContextDestroyed(this)
             recentsView?.destroy()
+            recentsView = null
+            windowView = null
         }
     }
 
+    fun getOverviewOverlay(): SurfaceControl? {
+        if (overviewOverlay == null) {
+            overviewOverlay = systemUiProxy.getOverviewOverlayContainer(displayId)
+        }
+        return overviewOverlay
+    }
+
+    @UiThread
     fun showRecentsWindow(callbacks: RecentsAnimationCallbacks? = null) {
         RecentsWindowProtoLogProxy.logStartRecentsWindow(isShowing(), windowView == null)
         if (isShowing()) {
@@ -318,9 +343,8 @@ constructor(
         }
         theme.applyStyle(overviewBlurStyleResId, true)
         if (windowView == null) {
-            windowView =
-                layoutInflater.inflate(R.layout.fallback_recents_activity, windowRootView, false)
-            windowView?.let {
+            windowView = layoutInflater.inflate(R.layout.fallback_recents_activity, null)
+            windowView?.let { it ->
                 actionsView = it.findViewById(R.id.overview_actions_view)
                 recentsView =
                     it.findViewById<FallbackRecentsView<RecentsWindowManager>?>(R.id.overview_panel)
@@ -350,8 +374,20 @@ constructor(
                         View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
                         View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
 
-                windowManager.addView(windowRootView, windowLayoutParams)
+                surfaceControlViewHost = SurfaceControlViewHost(this, display, null as IBinder?)
                 windowRootView.addView(it)
+                surfaceControlViewHost?.let { scvh ->
+                    scvh.setView(windowRootView, getWindowLayoutParams())
+                    scvh.surfacePackage?.let { surfacePackage ->
+                        Transaction()
+                            .reparent(surfacePackage.surfaceControl, getOverviewOverlay())
+                            .show(surfacePackage.surfaceControl)
+                            .apply(true)
+                    }
+                        ?: run {
+                            Log.e(TAG, "SurfaceControlViewHost.SurfacePackage is null", Exception())
+                        }
+                }
 
                 it.findOnBackInvokedDispatcher()
                     ?.registerSystemOnBackInvokedCallback(
