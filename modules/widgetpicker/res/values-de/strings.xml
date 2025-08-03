@@ -17,10 +17,13 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <!-- no translation found for widget_picker_collapse_sheet_label (5179800676332357316) -->
-    <skip />
+    <string name="widget_picker_collapse_sheet_label" msgid="5179800676332357316">"Tabelle schließen"</string>
     <string name="widgets_list_header_app_name_fallback_label" msgid="5151621916941957989">"App-Name"</string>
     <string name="widgets_list_header_widgets_count_label" msgid="578128450351893001">"{count,plural, =1{# Widget}other{# Widgets}}"</string>
+    <!-- no translation found for widgets_list_header_shortcuts_count_label (9168853338469361424) -->
+    <skip />
+    <!-- no translation found for widgets_list_header_widgets_and_shortcuts_count_label (3942871723001789249) -->
+    <skip />
     <string name="widget_span_dimensions_format" msgid="4325492869474815131">"%1$d × %2$d"</string>
     <string name="widget_span_dimensions_accessible_format" msgid="6976586776463259811">"%1$d breit und %2$d hoch"</string>
     <string name="widget_details_accessibility_label" msgid="4525863892199168041">"Widget „<xliff:g id="WIDGET_NAME">%1$s</xliff:g>“, %2$d breit und %3$d hoch"</string>
