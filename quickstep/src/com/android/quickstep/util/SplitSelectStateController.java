@@ -78,6 +78,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
 import com.android.internal.logging.InstanceId;
+import com.android.launcher3.LauncherUiState;
 import com.android.launcher3.R;
 import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.apppairs.AppPairIcon;
@@ -466,12 +467,12 @@ public class SplitSelectStateController {
 
         SplitSelectDataHolder.SplitLaunchData launchData =
                 mSplitSelectDataHolder.getSplitLaunchData();
-        int firstTaskId = launchData.getInitialTaskId();
-        int secondTaskId = launchData.getSecondTaskId();
+        int firstTaskId = launchData.getInitialTask().getTaskId();
+        int secondTaskId = launchData.getSecondTask().getTaskId();
         ShortcutInfo firstShortcut = launchData.getInitialShortcut();
         ShortcutInfo secondShortcut = launchData.getSecondShortcut();
-        PendingIntent firstPI = launchData.getInitialPendingIntent();
-        PendingIntent secondPI = launchData.getSecondPendingIntent();
+        PendingIntent firstPI = launchData.getInitialTask().getPendingIntent();
+        PendingIntent secondPI = launchData.getSecondTask().getPendingIntent();
         Intent widgetIntent = launchData.getWidgetSecondIntent();
         int firstUserId = launchData.getInitialUserId();
         int secondUserId = launchData.getSecondUserId();
@@ -577,9 +578,9 @@ public class SplitSelectStateController {
         final ActivityOptions options1 = ActivityOptions.makeBasic();
         SplitSelectDataHolder.SplitLaunchData launchData =
                 mSplitSelectDataHolder.getFullscreenLaunchData();
-        int firstTaskId = launchData.getInitialTaskId();
-        int secondTaskId = launchData.getSecondTaskId();
-        PendingIntent firstPI = launchData.getInitialPendingIntent();
+        int firstTaskId = launchData.getInitialTask().getTaskId();
+        int secondTaskId = launchData.getSecondTask().getTaskId();
+        PendingIntent firstPI = launchData.getInitialTask().getPendingIntent();
         int firstUserId = launchData.getInitialUserId();
         int initialStagePosition = launchData.getInitialStagePosition();
         ShortcutInfo initialShortcut = launchData.getInitialShortcut();
@@ -610,6 +611,10 @@ public class SplitSelectStateController {
      */
     public void initSplitFromDesktopController(RecentsViewContainer recentsViewContainer) {
         initSplitFromDesktopController(new SplitFromDesktopController(recentsViewContainer));
+    }
+
+    public void setLauncherUiState(LauncherUiState launcherUiState) {
+        mSplitSelectDataHolder.setLauncherUiState(launcherUiState);
     }
 
     @VisibleForTesting

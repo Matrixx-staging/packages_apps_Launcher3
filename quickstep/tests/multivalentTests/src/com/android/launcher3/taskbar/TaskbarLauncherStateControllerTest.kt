@@ -134,7 +134,10 @@ class TaskbarLauncherStateControllerTest {
                 on { stateManager } doReturn launcherStateManager
             }
         val launcherUiState =
-            mock<LauncherUiState> { on { deviceProfileRef } doReturn MutableListenableRef(dp) }
+            mock<LauncherUiState> {
+                on { deviceProfileRef } doReturn MutableListenableRef(dp)
+                on { isSplitSelectActiveRef } doReturn MutableListenableRef(false)
+            }
         val controllers = taskbarUnitTestRule.activityContext.controllers
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             taskbarLauncherStateController.init(

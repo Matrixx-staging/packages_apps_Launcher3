@@ -23,10 +23,17 @@ class LauncherUiState {
 
     private val _deviceProfileRef = MutableListenableRef<DeviceProfile?>(null)
     private val _activityFlagsRef = MutableListenableRef(0)
+    private val _isSplitSelectActiveRef = MutableListenableRef(false)
 
     val deviceProfileRef = _deviceProfileRef.asListenable()
+    val isSplitSelectActiveRef = _isSplitSelectActiveRef.asListenable()
+
     val isResumed: Boolean
         get() = (_activityFlagsRef.value and BaseActivity.ACTIVITY_STATE_RESUMED) != 0
+
+    // Split select state
+    private var _initialTask = SplitSelectTask()
+    private var _secondTask = SplitSelectTask()
 
     fun setDeviceProfile(deviceProfile: DeviceProfile) {
         _deviceProfileRef.diffAndDispatch(deviceProfile)
@@ -34,6 +41,22 @@ class LauncherUiState {
 
     fun setActivityFlag(flags: Int) {
         _activityFlagsRef.diffAndDispatch(flags)
+    }
+
+    fun setSplitSelectInitialTask(initialTask: SplitSelectTask) {
+        _initialTask = initialTask
+        updateIsSplitSelectActiveRef()
+    }
+
+    fun setSplitSelectSecondTask(secondTask: SplitSelectTask) {
+        _secondTask = secondTask
+        updateIsSplitSelectActiveRef()
+    }
+
+    private fun updateIsSplitSelectActiveRef() {
+        _isSplitSelectActiveRef.diffAndDispatch(
+            _initialTask.isIntentSet && !_secondTask.isIntentSet
+        )
     }
 
     private fun <T> MutableListenableRef<T>.diffAndDispatch(newValue: T) {
