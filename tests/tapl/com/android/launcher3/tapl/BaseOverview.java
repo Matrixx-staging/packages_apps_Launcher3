@@ -18,8 +18,10 @@ package com.android.launcher3.tapl;
 
 import static android.view.KeyEvent.KEYCODE_ESCAPE;
 
+import static com.android.launcher3.tapl.LauncherInstrumentation.DEFAULT_POLL_INTERVAL;
 import static com.android.launcher3.tapl.LauncherInstrumentation.TASKBAR_RES_ID;
 import static com.android.launcher3.tapl.LauncherInstrumentation.eventListToString;
+import static com.android.launcher3.tapl.LauncherInstrumentation.WAIT_TIME_MS;
 import static com.android.launcher3.tapl.LauncherInstrumentation.log;
 import static com.android.launcher3.tapl.OverviewTask.TASK_START_EVENT;
 import static com.android.launcher3.tapl.TestHelpers.getOverviewPackageName;
@@ -76,6 +78,7 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
         super(launcher);
         verifyActiveContainer();
         verifyActionsViewVisibility();
+        verifyAddDesktopButtonVisibility();
         if (launchedFromApp) {
             mLiveTileTask = getCurrentTaskUnchecked();
         } else {
@@ -140,16 +143,22 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
         }
     }
 
+    /**
+     * Flings to the 1st (right-most) task in Overview.
+     */
     private OverviewTask flingToFirstTask() {
-        OverviewTask currentTask = getCurrentTask();
-
-        while (mLauncher.getRealDisplaySize().x - currentTask.getUiObject().getVisibleBounds().right
-                <= mLauncher.getOverviewPageSpacing()) {
+        UiObject2 rightMostTask = getRightMostTaskOnScreen();
+        while (rightMostTask != null && !isFirstTask(rightMostTask)) {
             flingBackwardImpl();
-            currentTask = getCurrentTask();
+            rightMostTask = getRightMostTaskOnScreen();
         }
+        mLauncher.assertNotNull("Unable to find the rightmost task", rightMostTask);
+        return new OverviewTask(mLauncher, rightMostTask, this);
+    }
 
-        return currentTask;
+    private boolean isFirstTask(@NonNull UiObject2 task) {
+        return mLauncher.getRealDisplaySize().x - task.getVisibleBounds().right
+                > mLauncher.getOverviewPageSpacing();
     }
 
     /**
@@ -377,6 +386,23 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
     }
 
     /**
+     * Gets the top-right most task on screen.
+     */
+    @Nullable
+    private UiObject2 getRightMostTaskOnScreen() {
+        final List<UiObject2> taskViews = getTasks();
+        if (taskViews.isEmpty()) {
+            return null;
+        }
+
+        // The most top-right task.
+        return Collections.max(taskViews,
+                Comparator.comparingInt((UiObject2 t) -> t.getVisibleCenter().x)
+                        .thenComparing(Comparator.comparing(
+                                (UiObject2 t) -> t.getVisibleCenter().y).reversed()));
+    }
+
+    /**
      * Returns an overview task that contains the specified test activity in its thumbnails.
      *
      * @param activityIndex index of TestActivity to match against
@@ -463,6 +489,37 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
     public boolean isClearAllVisible() {
         return verifyActiveContainer().hasObject(
                 mLauncher.getOverviewObjectSelector("clear_all"));
+    }
+
+    /**
+     * Clicks the 'Add desktop' button to create a new empty desk.
+     */
+    public BaseOverview createDeskViaClickAddDesktopButton() {
+        try (LauncherInstrumentation.Closable e = mLauncher.eventsCheck();
+             LauncherInstrumentation.Closable c = mLauncher.addContextLayer(
+                     "want to click add desktop button")) {
+            flingToFirstTask();
+            try (LauncherInstrumentation.Closable c1 = mLauncher.addContextLayer(
+                    "scrolled to add desktop button")) {
+                int desktopTasksCount = getDesktopTasksCount();
+                mLauncher.clickLauncherObject(mLauncher
+                        .waitForOverviewObject("add_desktop_button"));
+                mLauncher.assertTrue("Failed to verify the num of desks, expected num is: "
+                        + (desktopTasksCount + 1) + ", but get: " + getDesktopTasksCount(),
+                        mLauncher.waitAndGet(() -> getDesktopTasksCount() == desktopTasksCount + 1,
+                        WAIT_TIME_MS, DEFAULT_POLL_INTERVAL));
+                return new BaseOverview(mLauncher);
+            }
+        }
+    }
+
+    /**
+     * Returns the number of desktops in Overview.
+     */
+    private int getDesktopTasksCount() {
+        return (int) getTasks().stream()
+                .filter(task -> OverviewTask.getType(task) == OverviewTask.TaskViewType.DESKTOP)
+                .count();
     }
 
     /**
@@ -590,6 +647,33 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
             } else {
                 mLauncher.waitUntilOverviewObjectGone("action_buttons");
                 mLauncher.waitUntilOverviewObjectGone("action_save_app_pair");
+            }
+        }
+    }
+
+    protected boolean isAddDesktopButtonExpected() {
+        UiObject2 rightMostTask = getRightMostTaskOnScreen();
+        return mLauncher.areMultiDesksFlagsEnabled() && rightMostTask != null
+                && isFirstTask(rightMostTask);
+    }
+
+    /**
+     * Verifies that the 'Add desktop' button is visible if it is expected.
+     */
+    private void verifyAddDesktopButtonVisibility() {
+        if (mLauncher.isInDesktopFirstMode()) {
+            return;
+        }
+
+        final boolean expected = isAddDesktopButtonExpected();
+        try (LauncherInstrumentation.Closable c = mLauncher.addContextLayer(
+                "want to assert add desktop button visibility="
+                        + expected
+        )) {
+            if (expected) {
+                mLauncher.waitForOverviewObject("add_desktop_button");
+            } else {
+                mLauncher.waitUntilOverviewObjectGone("add_desktop_button");
             }
         }
     }
