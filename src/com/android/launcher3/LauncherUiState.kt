@@ -24,12 +24,14 @@ class LauncherUiState {
     private val _deviceProfileRef = MutableListenableRef<DeviceProfile?>(null)
     private val _activityFlagsRef = MutableListenableRef(0)
     private val _isSplitSelectActiveRef = MutableListenableRef(false)
+    private val _isOverlayShown = MutableListenableRef(false)
 
     val deviceProfileRef = _deviceProfileRef.asListenable()
     val isSplitSelectActiveRef = _isSplitSelectActiveRef.asListenable()
 
     val isResumed: Boolean
         get() = (_activityFlagsRef.value and BaseActivity.ACTIVITY_STATE_RESUMED) != 0
+    val isOverlayShownRef = _isOverlayShown.asListenable()
 
     // Split select state
     private var _initialTask = SplitSelectTask()
@@ -51,6 +53,10 @@ class LauncherUiState {
     fun setSplitSelectSecondTask(secondTask: SplitSelectTask) {
         _secondTask = secondTask
         updateIsSplitSelectActiveRef()
+    }
+
+    fun setIsOverlayShown(isOverlayShown: Boolean) {
+        _isOverlayShown.diffAndDispatch(isOverlayShown)
     }
 
     private fun updateIsSplitSelectActiveRef() {

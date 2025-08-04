@@ -958,8 +958,7 @@ public class TaskbarLauncherStateController {
      * Returns if the current Launcher state has hotseat on top of other elemnets.
      */
     public boolean isInHotseatOnTopStates() {
-        return mLauncherState != LauncherState.ALL_APPS
-                && !mLauncher.getWorkspace().isOverlayShown();
+        return mLauncherState != LauncherState.ALL_APPS && !isOverlayShown();
     }
 
     boolean isInOverviewUi() {
@@ -1294,6 +1293,22 @@ public class TaskbarLauncherStateController {
         } else {
             return mLauncher.getDeviceProfile();
         }
+    }
+
+    private boolean isOverlayShown() {
+        if (refactorTaskbarUiState()) {
+            final boolean ret = mLauncherUiState.isOverlayShownRef().getValue();
+            if (BuildConfig.IS_STUDIO_BUILD && ret != legacyIsOverlayShown()) {
+                throw new IllegalStateException("isOverlayShown doesn't match");
+            }
+            return ret;
+        } else {
+            return legacyIsOverlayShown();
+        }
+    }
+
+    private boolean legacyIsOverlayShown() {
+        return mLauncher.getWorkspace().isOverlayShown();
     }
 
     private static String getStateString(int flags) {
