@@ -15,7 +15,6 @@
 package com.android.launcher3.uioverrides.plugins;
 
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.android.launcher3.LauncherPrefs;
@@ -27,8 +26,8 @@ public class PluginEnablerImpl implements PluginEnabler {
 
     final private SharedPreferences mSharedPrefs;
 
-    public PluginEnablerImpl(Context context) {
-        mSharedPrefs = LauncherPrefs.getDevicePrefs(context);
+    public PluginEnablerImpl(LauncherPrefs launcherPrefs) {
+        mSharedPrefs = launcherPrefs.getDevicePrefs();
     }
 
     @Override

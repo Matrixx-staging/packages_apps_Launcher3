@@ -16,8 +16,6 @@
 
 package com.android.quickstep.logging;
 
-import static com.android.launcher3.LauncherPrefs.getDevicePrefs;
-import static com.android.launcher3.LauncherPrefs.getPrefs;
 import static com.android.launcher3.graphics.ThemeManager.PREF_ICON_SHAPE;
 import static com.android.launcher3.graphics.ThemeManager.THEMED_ICONS;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_HOME_SCREEN_SUGGESTIONS_DISABLED;
@@ -96,6 +94,7 @@ public class SettingsChangeLogger implements
     private final Context mContext;
     private final ArrayMap<String, LoggablePref> mLoggablePrefs;
     private final StatsLogManager mStatsLogManager;
+    private final LauncherPrefs mLauncherPrefs;
 
     @NonNull
     private NavigationMode mNavMode;
@@ -108,8 +107,10 @@ public class SettingsChangeLogger implements
             DaggerSingletonTracker tracker,
             DisplayController displayController,
             SettingsCache settingsCache,
+            LauncherPrefs launcherPrefs,
             StatsLogManager.StatsLogManagerFactory factory) {
         mContext = context;
+        mLauncherPrefs = launcherPrefs;
         mStatsLogManager = factory.create(context);
         mLoggablePrefs = loadPrefKeys(context);
 
@@ -117,11 +118,11 @@ public class SettingsChangeLogger implements
         mNavMode = displayController.getInfo().getNavigationMode();
         tracker.addCloseable(() -> displayController.removeChangeListener(this));
 
-        getPrefs(context).registerOnSharedPreferenceChangeListener(this);
-        getDevicePrefs(context).registerOnSharedPreferenceChangeListener(this);
+        mLauncherPrefs.getBackedUpPrefs().registerOnSharedPreferenceChangeListener(this);
+        mLauncherPrefs.getDevicePrefs().registerOnSharedPreferenceChangeListener(this);
         tracker.addCloseable(() -> {
-            getPrefs(mContext).unregisterOnSharedPreferenceChangeListener(this);
-            getDevicePrefs(mContext).unregisterOnSharedPreferenceChangeListener(this);
+            mLauncherPrefs.getBackedUpPrefs().unregisterOnSharedPreferenceChangeListener(this);
+            mLauncherPrefs.getDevicePrefs().unregisterOnSharedPreferenceChangeListener(this);
         });
 
         settingsCache.register(NOTIFICATION_BADGING_URI, mListener);
@@ -220,7 +221,7 @@ public class SettingsChangeLogger implements
         Optional.ofNullable(new DeviceGridState(mContext).getWorkspaceSizeEvent()).ifPresent(
                 logger::log);
 
-        SharedPreferences prefs = getPrefs(mContext);
+        SharedPreferences prefs = mLauncherPrefs.getBackedUpPrefs();
         logger.log(LauncherPrefs.get(mContext).get(THEMED_ICONS)
                 ? LAUNCHER_THEMED_ICON_ENABLED
                 : LAUNCHER_THEMED_ICON_DISABLED);
