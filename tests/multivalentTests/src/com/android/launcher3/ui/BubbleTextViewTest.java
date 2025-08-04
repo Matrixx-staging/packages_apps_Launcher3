@@ -77,7 +77,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 /**
  * Unit tests for testing modifyTitleToSupportMultiLine() in BubbleTextView.java
@@ -120,6 +121,8 @@ public class BubbleTextViewTest {
 
     @Rule public SandboxApplication mModelContext = new SandboxApplication();
 
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     private BubbleTextView mBubbleTextView;
     private ItemInfoWithIcon mItemInfoWithIcon;
     private Context mContext;
@@ -128,7 +131,6 @@ public class BubbleTextViewTest {
 
     @Before
     public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
         Utilities.enableRunningInTestHarnessForTests();
         LauncherPrefs.get(mModelContext).put(ENABLE_TWOLINE_ALLAPPS_TOGGLE, true);
 

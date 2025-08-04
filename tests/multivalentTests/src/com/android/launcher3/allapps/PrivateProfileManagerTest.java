@@ -58,7 +58,8 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -77,6 +78,8 @@ public class PrivateProfileManagerTest {
             new UserIconInfo(PRIVATE_HANDLE, UserIconInfo.TYPE_PRIVATE);
 
     private PrivateProfileManager mPrivateProfileManager;
+
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
     @Mock
     private ActivityAllAppsContainerView mAllApps;
     @Mock
@@ -100,7 +103,6 @@ public class PrivateProfileManagerTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
         when(mUserCache.getUserProfiles())
                 .thenReturn(Arrays.asList(MAIN_HANDLE, PRIVATE_HANDLE));
         when(mUserCache.getUserInfo(Process.myUserHandle())).thenReturn(MAIN_ICON_INFO);

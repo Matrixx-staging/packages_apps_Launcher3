@@ -57,7 +57,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,6 +74,8 @@ public final class WidgetsListHeaderViewHolderBinderTest {
     private WidgetsListHeaderViewHolderBinder mViewHolderBinder;
     private InvariantDeviceProfile mTestProfile;
 
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     @Mock
     private IconCache mIconCache;
     @Mock
@@ -80,7 +83,6 @@ public final class WidgetsListHeaderViewHolderBinderTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
 
         mContext = new ActivityContextWrapper(new ContextThemeWrapper(
                 app, R.style.WidgetContainerTheme));

@@ -30,18 +30,22 @@ import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.util.ActivityContextWrapper;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 @RunWith(AndroidJUnit4.class)
 public class PrivateSpaceSettingsButtonTest {
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private PrivateSpaceSettingsButton mVut;
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
         Context context = new ActivityContextWrapper(getApplicationContext());
         mVut = new PrivateSpaceSettingsButton(context);
     }

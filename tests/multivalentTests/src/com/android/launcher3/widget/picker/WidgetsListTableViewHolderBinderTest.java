@@ -62,7 +62,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,6 +79,8 @@ public final class WidgetsListTableViewHolderBinderTest {
     private WidgetsListTableViewHolderBinder mViewHolderBinder;
     private InvariantDeviceProfile mTestProfile;
 
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     @Mock
     private OnLongClickListener mOnLongClickListener;
     @Mock
@@ -87,7 +90,6 @@ public final class WidgetsListTableViewHolderBinderTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
         mContext = new ActivityContextWrapper(app);
         mTestProfile = InvariantDeviceProfile.INSTANCE.get(app);
         mTestProfile.numRows = 5;

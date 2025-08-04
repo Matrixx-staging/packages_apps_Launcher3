@@ -43,11 +43,13 @@ import com.android.launcher3.icons.FastBitmapDrawableDelegate.SimpleDelegateFact
 import com.android.launcher3.util.LauncherMultivalentJUnit;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 /**
  * Tests for FastBitmapDrawable.
@@ -58,6 +60,9 @@ import org.mockito.Spy;
 public class FastBitmapDrawableTest {
     private static final float EPSILON = 0.00001f;
 
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     @Spy
     FastBitmapDrawable mFastBitmapDrawable =
             spy(new FastBitmapDrawable(Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)));
@@ -65,7 +70,6 @@ public class FastBitmapDrawableTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
         when(mFastBitmapDrawable.isVisible()).thenReturn(true);
         mFastBitmapDrawable.isPressed = false;
         mFastBitmapDrawable.isHovered = false;

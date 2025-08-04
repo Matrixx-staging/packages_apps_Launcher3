@@ -50,7 +50,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.util.Arrays;
 import java.util.List;
@@ -71,6 +72,8 @@ public class AlphabeticalAppsListTest {
     private static final int PRIVATE_SPACE_SYS_APP_SEPARATOR_ITEM_COUNT = 1;
 
     private AlphabeticalAppsList<?> mAlphabeticalAppsList;
+
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
     @Mock
     private AllAppsStore<?> mAllAppsStore;
     @Mock
@@ -83,7 +86,6 @@ public class AlphabeticalAppsListTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
         mContext = new ActivityContextWrapper(getApplicationContext());
         when(mPrivateProfileManager.getItemInfoMatcher()).thenReturn(info ->
                 info != null && info.user.equals(PRIVATE_HANDLE));

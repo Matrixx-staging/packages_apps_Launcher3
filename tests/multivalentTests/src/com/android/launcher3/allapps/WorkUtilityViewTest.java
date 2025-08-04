@@ -43,7 +43,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 @SmallTest
 @RunWith(AndroidJUnit4.class)
@@ -53,11 +54,12 @@ public class WorkUtilityViewTest {
     public final SetFlagsRule mSetFlagsRule =
             new SetFlagsRule(SetFlagsRule.DefaultInitValueType.DEVICE_DEFAULT);
 
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     private WorkUtilityView mVut;
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
         Context context = new ActivityContextWrapper(getApplicationContext(),
                 com.android.launcher3.R.style.DynamicColorsBaseLauncherTheme);
         mVut = (WorkUtilityView) ViewGroup.inflate(context,
