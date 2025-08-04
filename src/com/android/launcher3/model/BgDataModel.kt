@@ -67,7 +67,7 @@ class BgDataModel
 constructor(
     /** Entire list of widgets. */
     @JvmField val widgetsModel: WidgetsModel,
-    homeDataProvider: Provider<HomeScreenRepository?>,
+    private val repo: Provider<HomeScreenRepository>,
     dumpManager: DumpManager,
     lifeCycle: DaggerSingletonTracker,
 ) : LauncherDumpable {
@@ -91,8 +91,6 @@ constructor(
     /** Cache for strings used in launcher */
     var stringCache = StringCache.EMPTY
         private set
-
-    private val repo = if (Flags.modelRepository()) homeDataProvider.get() else null
 
     /** Id when the model was last bound */
     @JvmField var lastBindId: Int = 0
@@ -160,8 +158,8 @@ constructor(
     }
 
     private fun updateHomeRepository() {
-        if (Flags.modelRepository() && repo != null) {
-            repo.dispatchChange(mutableWorkspaceData.copy())
+        if (Flags.modelRepository()) {
+            repo.get().dispatchWorkspaceDataChange(mutableWorkspaceData.copy())
         }
     }
 
@@ -213,6 +211,11 @@ constructor(
     /** Reloads the [stringCache] */
     fun updateStringCache(context: Context) {
         stringCache = StringCache.fromContext(context)
+        if (Flags.modelRepository()) repo.get().dispatchStringCacheChange(stringCache)
+    }
+
+    fun notifyWidgetsUpdate(allWidgets: List<WidgetsListBaseEntry>) {
+        if (Flags.modelRepository()) repo.get().dispatchWidgetsChange(allWidgets)
     }
 
     /**
@@ -339,6 +342,10 @@ constructor(
                 }
                 .groupingBy { ComponentKey(it.activity, it.userHandle) }
                 .eachCount()
+
+        if (Flags.modelRepository()) {
+            repo.get().dispatchShortcutsCountChange(deepShortcutMap.toMap())
+        }
     }
 
     /**

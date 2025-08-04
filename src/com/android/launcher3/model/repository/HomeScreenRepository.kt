@@ -18,9 +18,12 @@ package com.android.launcher3.model.repository
 
 import android.util.SparseArray
 import com.android.launcher3.dagger.LauncherAppSingleton
+import com.android.launcher3.model.StringCache
 import com.android.launcher3.model.data.WorkspaceData
 import com.android.launcher3.model.data.WorkspaceData.ImmutableWorkspaceData
+import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.MutableListenableRef
+import com.android.launcher3.widget.model.WidgetsListBaseEntry
 import javax.inject.Inject
 
 /**
@@ -32,14 +35,41 @@ import javax.inject.Inject
 @LauncherAppSingleton
 class HomeScreenRepository @Inject constructor() {
 
-    private val mutableStateRef: MutableListenableRef<WorkspaceData> =
+    private val _workspaceState: MutableListenableRef<WorkspaceData> =
         MutableListenableRef(ImmutableWorkspaceData(0, 0, emptyList(), SparseArray()))
 
     /** Represents the current home screen data model */
-    val workspaceStateRef = mutableStateRef.asListenable()
+    val workspaceState = _workspaceState.asListenable()
 
-    /** sets a new value to [workspaceStateRef] */
-    fun dispatchChange(workspaceData: WorkspaceData) {
-        mutableStateRef.dispatchValue(workspaceData)
+    private val _deepShortcutMap = MutableListenableRef(mapOf<ComponentKey, Int>())
+    /** Map of componentKey to the number of associated deep shortcuts */
+    val deepShortcutMap = _deepShortcutMap.asListenable()
+
+    /** TODO Change this to a map of counts once widget picker migration is complete */
+    private val _allWidgets =
+        MutableListenableRef(listOf<@JvmSuppressWildcards WidgetsListBaseEntry>())
+    /** List of all widgets on device */
+    val allWidgets = _allWidgets.asListenable()
+
+    private val _stringCache = MutableListenableRef(StringCache.EMPTY)
+    /** Cache for strings used in launcher */
+    val stringCache = _stringCache.asListenable()
+
+    /** sets a new value to [workspaceState] */
+    fun dispatchWorkspaceDataChange(workspaceData: WorkspaceData) {
+        _workspaceState.dispatchValue(workspaceData)
+    }
+
+    /** Sets a new value to [deepShortcutMap] */
+    fun dispatchShortcutsCountChange(deepShortcutMap: Map<ComponentKey, Int>) {
+        _deepShortcutMap.dispatchValue(deepShortcutMap)
+    }
+
+    fun dispatchWidgetsChange(widgets: List<WidgetsListBaseEntry>) {
+        _allWidgets.dispatchValue(widgets)
+    }
+
+    fun dispatchStringCacheChange(stringCache: StringCache) {
+        _stringCache.dispatchValue(stringCache)
     }
 }

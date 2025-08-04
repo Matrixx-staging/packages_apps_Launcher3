@@ -78,6 +78,7 @@ constructor(
         val allWidgets =
             WidgetsListBaseEntriesBuilder(context)
                 .build(dataModel.widgetsModel.widgetsByPackageItemForPicker)
+        dataModel.notifyWidgetsUpdate(allWidgets)
         scheduleCallbackTask { it.bindAllWidgets(allWidgets) }
     }
 

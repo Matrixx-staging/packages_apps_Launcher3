@@ -147,6 +147,7 @@ public class BaseLauncherBinder {
         }
         List<WidgetsListBaseEntry> widgets = new WidgetsListBaseEntriesBuilder(mContext)
                 .build(mBgDataModel.widgetsModel.getWidgetsByPackageItemForPicker());
+        mBgDataModel.notifyWidgetsUpdate(widgets);
         executeCallbacksTask(c -> c.bindAllWidgets(widgets), mUiExecutor);
     }
 
