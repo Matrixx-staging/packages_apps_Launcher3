@@ -329,7 +329,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         mIsImeRenderingNavButtons = mContext.imeDrawsImeNavBar();
         if (!mIsImeRenderingNavButtons) {
             // IME switcher
-            mImeSwitcherButton = addButton(com.android.internal.R.drawable.ic_ime_switcher_new,
+            mImeSwitcherButton = addButton(com.android.internal.R.drawable.ic_ime_switcher,
                     BUTTON_IME_SWITCH,
                     isThreeButtonNav ? mStartContextualContainer : mEndContextualContainer,
                     mControllers.navButtonController, R.id.ime_switcher);
