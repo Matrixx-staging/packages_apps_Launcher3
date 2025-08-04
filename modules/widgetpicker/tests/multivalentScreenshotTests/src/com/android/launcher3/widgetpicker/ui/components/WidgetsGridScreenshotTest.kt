@@ -37,7 +37,6 @@ import com.android.launcher3.widgetpicker.shared.model.WidgetPreview
 import com.android.launcher3.widgetpicker.ui.WidgetInteractionSource
 import com.android.launcher3.widgetpicker.ui.model.WidgetSizeGroup
 import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith

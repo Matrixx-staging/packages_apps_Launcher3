@@ -182,7 +182,8 @@ private fun WidgetDetailsTestContent(showAddButton: Boolean, cellWidth: Int) {
         showAddButton = showAddButton,
         widgetInteractionSource = WidgetInteractionSource.FEATURED,
         onWidgetAddClick = { Log.i(TAG, "Add button click") },
-        onAddButtonToggle = {},
+        onClick = {},
+        onHoverChange = {},
         modifier =
             Modifier.width(cellWidthDp).semantics(mergeDescendants = true) { traversalIndex = 0f },
     )
