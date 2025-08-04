@@ -116,7 +116,7 @@ public class PackageUpdatedTask implements ModelUpdateTask {
         final HashSet<ComponentName> removedComponents = new HashSet<>();
         final HashMap<String, List<LauncherActivityInfo>> activitiesLists = new HashMap<>();
         if (DEBUG) {
-            Log.d(TAG, "Package updated: mOp=" + getOpString()
+            Log.i(TAG, "Package updated: mOp=" + getOpString()
                     + " packages=" + Arrays.toString(packages)
                     + ", user=" + mUser);
         }
@@ -126,7 +126,7 @@ public class PackageUpdatedTask implements ModelUpdateTask {
                     iconCache.updateIconsForPkg(packages[i], mUser);
                     if (FeatureFlags.PROMISE_APPS_IN_ALL_APPS.get()) {
                         if (DEBUG) {
-                            Log.d(TAG, "OP_ADD: PROMISE_APPS_IN_ALL_APPS enabled:"
+                            Log.i(TAG, "OP_ADD: PROMISE_APPS_IN_ALL_APPS enabled:"
                                     + " removing promise icon apps from package=" + packages[i]);
                         }
                         appsList.removePackage(packages[i], mUser);
@@ -139,7 +139,7 @@ public class PackageUpdatedTask implements ModelUpdateTask {
             }
             case OP_UPDATE:
                 try (SafeCloseable t = appsList.trackRemoves(a -> {
-                    Log.d(TAG, "OP_UPDATE - AllAppsList.trackRemoves callback:"
+                    Log.i(TAG, "OP_UPDATE - AllAppsList.trackRemoves callback:"
                             + " removed component=" + a.componentName
                             + " id=" + a.id
                             + " Look for earlier AllAppsList logs to find more information.");
@@ -163,7 +163,7 @@ public class PackageUpdatedTask implements ModelUpdateTask {
             case OP_UNAVAILABLE:
                 for (int i = 0; i < packageCount; i++) {
                     if (DEBUG) {
-                        Log.d(TAG, getOpString() + ": removing package=" + packages[i]);
+                        Log.i(TAG, getOpString() + ": removing package=" + packages[i]);
                     }
                     appsList.removePackage(packages[i], mUser);
                 }
@@ -250,13 +250,13 @@ public class PackageUpdatedTask implements ModelUpdateTask {
                                 if (shortcut.isEmpty()) {
                                     isTargetValid = false;
                                     if (DEBUG) {
-                                        Log.d(TAG, "Shortcut not found for updated"
+                                        Log.i(TAG, "Shortcut not found for updated"
                                                 + " package=" + itemInfo.getTargetPackage()
                                                 + ", isArchived=" + itemInfo.isArchived());
                                     }
                                 } else {
                                     if (DEBUG) {
-                                        Log.d(TAG, "Found shortcut for updated"
+                                        Log.i(TAG, "Found shortcut for updated"
                                                 + " package=" + itemInfo.getTargetPackage()
                                                 + ", isTargetValid=" + isTargetValid
                                                 + ", isArchived=" + itemInfo.isArchived());
@@ -382,7 +382,7 @@ public class PackageUpdatedTask implements ModelUpdateTask {
             // Mark all packages in the broadcast to be removed
             Collections.addAll(removedPackages, packages);
             if (DEBUG) {
-                Log.d(TAG, "OP_REMOVE: removing packages=" + Arrays.toString(packages));
+                Log.i(TAG, "OP_REMOVE: removing packages=" + Arrays.toString(packages));
             }
 
             // No need to update the removedComponents as
@@ -393,7 +393,7 @@ public class PackageUpdatedTask implements ModelUpdateTask {
             for (int i = 0; i < packageCount; i++) {
                 if (!launcherApps.isPackageEnabled(packages[i], mUser)) {
                     if (DEBUG) {
-                        Log.d(TAG, "OP_UPDATE:"
+                        Log.i(TAG, "OP_UPDATE:"
                                 + " package " + packages[i] + " is disabled, removing package.");
                     }
                     removedPackages.add(packages[i]);
