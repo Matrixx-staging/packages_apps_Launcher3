@@ -18,7 +18,6 @@ package com.android.launcher3.util
 import android.content.Context
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.LauncherPrefs.Companion.TASKBAR_PINNING
-import com.android.launcher3.LauncherPrefs.Companion.TASKBAR_PINNING_IN_DESKTOP_MODE
 import com.android.launcher3.config.FeatureFlags.enableTaskbarPinning
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppComponent
@@ -66,7 +65,7 @@ constructor(
             if (
                 windowManagerProxy.isInDesktopMode(windowManagerProxy.getDisplay(context).displayId)
             ) {
-                launcherPrefs.get(TASKBAR_PINNING_IN_DESKTOP_MODE)
+                true
             } else {
                 launcherPrefs.get(TASKBAR_PINNING)
             }

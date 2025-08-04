@@ -27,7 +27,6 @@ import static com.android.launcher3.Flags.enableGrowthNudge;
 import static com.android.launcher3.Flags.enableTaskbarForDirectBoot;
 import static com.android.launcher3.Flags.enableTaskbarUiThread;
 import static com.android.launcher3.Flags.enableUnfoldStateAnimation;
-import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING_DESKTOP_MODE_KEY;
 import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING_KEY;
 import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING;
 import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING_IN_DESKTOP_MODE;
@@ -119,8 +118,6 @@ import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags;
 import com.android.systemui.unfold.UnfoldTransitionProgressProvider;
 import com.android.systemui.unfold.util.ScopedUnfoldTransitionProgressProvider;
 
-import kotlinx.coroutines.CoroutineDispatcher;
-
 import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
@@ -130,6 +127,8 @@ import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.function.IntConsumer;
+
+import kotlinx.coroutines.CoroutineDispatcher;
 
 /**
  * Class to manage taskbar lifecycle
@@ -217,9 +216,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
                 @Override
                 public void onPrefChanged(String key) {
                     boolean isTaskbarPinningChanged = TASKBAR_PINNING_KEY.equals(key);
-                    boolean isTaskbarPinningDesktopModeChanged =
-                            TASKBAR_PINNING_DESKTOP_MODE_KEY.equals(key);
-                    if (isTaskbarPinningChanged || isTaskbarPinningDesktopModeChanged) {
+                    if (isTaskbarPinningChanged) {
                         recreateTaskbars();
                     }
                 }
