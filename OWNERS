@@ -67,6 +67,9 @@ davidct@google.com
 iamiam@google.com
 jiuyu@google.com
 
+# Desktop Experiences team
+gsennton@google.com
+
 per-file FeatureFlags.java, globs = set noparent
 per-file FeatureFlags.java = sunnygoyal@google.com, winsonc@google.com, adamcohen@google.com, hyunyoungs@google.com, captaincole@google.com, abegovic@google.com
 
