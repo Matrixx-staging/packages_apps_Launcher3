@@ -25,6 +25,7 @@ import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.wm.shell.shared.bubbles.DeviceConfig;
+import com.android.wm.shell.shared.desktopmode.DesktopState;
 
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -271,7 +272,13 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
                         tisBinder.getTaskbarManager()
                                 .getCurrentActivityContext()
                                 .getTaskbarFeatureEvaluator().isTransient());
-
+            case TestProtocol.REQUEST_FLAG_ENABLE_MULTIPLE_DESKTOPS: {
+                response.putBoolean(TestProtocol.TEST_INFO_RESPONSE_FIELD,
+                        DesktopState.fromContext(mContext)
+                                .isMultipleDesktopFrontendEnabledOnDisplay(
+                                        Integer.parseInt(arg)));
+                return response;
+            }
         }
 
         return super.call(method, arg, extras);
