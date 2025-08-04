@@ -39,12 +39,8 @@ import com.android.launcher3.util.SafeCloseable
 import com.android.launcher3.util.SandboxApplication
 import com.android.launcher3.util.SecureStringObserver
 import com.android.launcher3.util.TestUtil
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import com.google.common.truth.Truth.assertThat
 import org.junit.After
-import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -129,7 +125,7 @@ class OSEManagerTest {
 
         TestUtil.runOnExecutorSync(UI_HELPER_EXECUTOR) { oseManager.reloadOse() }
 
-        assertEquals(BING_PKG, oseManager.oseInfo.value.pkg)
+        assertThat(oseManager.oseInfo.value.pkg).isEqualTo(BING_PKG)
         verifyNoInteractions(installSessionHelper)
     }
 
@@ -139,8 +135,8 @@ class OSEManagerTest {
 
         TestUtil.runOnExecutorSync(UI_HELPER_EXECUTOR) { oseManager.reloadOse() }
 
-        assertEquals(BING_PKG, oseManager.oseInfo.value.pkg)
-        assertNull(oseManager.oseInfo.value.overlayTarget)
+        assertThat(oseManager.oseInfo.value.pkg).isEqualTo(BING_PKG)
+        assertThat(oseManager.oseInfo.value.overlayTarget).isNull()
     }
 
     @Test
@@ -153,9 +149,9 @@ class OSEManagerTest {
 
         TestUtil.runOnExecutorSync(UI_HELPER_EXECUTOR) { oseManager.reloadOse() }
 
-        assertEquals(BING_PKG, oseManager.oseInfo.value.pkg)
-        assertNotNull(oseManager.oseInfo.value.overlayTarget)
-        assertEquals(DUCK_PKG, oseManager.oseInfo.value.overlayTarget?.packageName)
+        assertThat(oseManager.oseInfo.value.pkg).isEqualTo(BING_PKG)
+        assertThat(oseManager.oseInfo.value.overlayTarget).isNotNull()
+        assertThat(oseManager.oseInfo.value.overlayTarget?.packageName).isEqualTo(DUCK_PKG)
     }
 
     @Test
@@ -168,9 +164,9 @@ class OSEManagerTest {
 
         TestUtil.runOnExecutorSync(UI_HELPER_EXECUTOR) { oseManager.reloadOse() }
 
-        assertEquals(DUCK_PKG, oseManager.oseInfo.value.pkg)
-        assertNotNull(oseManager.oseInfo.value.overlayTarget)
-        assertEquals(DUCK_PKG, oseManager.oseInfo.value.overlayTarget?.packageName)
+        assertThat(oseManager.oseInfo.value.pkg).isEqualTo(DUCK_PKG)
+        assertThat(oseManager.oseInfo.value.overlayTarget).isNotNull()
+        assertThat(oseManager.oseInfo.value.overlayTarget?.packageName).isEqualTo(DUCK_PKG)
     }
 
     @Test
@@ -178,7 +174,7 @@ class OSEManagerTest {
         doReturn(BING_PKG).whenever(settingsObserver).getValue()
 
         TestUtil.runOnExecutorSync(UI_HELPER_EXECUTOR) { oseManager.reloadOse() }
-        assertEquals(BING_PKG, oseManager.oseInfo.value.pkg)
+        assertThat(oseManager.oseInfo.value.pkg).isEqualTo(BING_PKG)
         Mockito.verify(mockCallback, times(1)).invoke(any())
 
         // OSE Package unchanged.
@@ -189,14 +185,14 @@ class OSEManagerTest {
         doReturn(DUCK_PKG).whenever(settingsObserver).getValue()
         TestUtil.runOnExecutorSync(UI_HELPER_EXECUTOR) { oseManager.reloadOse() }
         Mockito.verify(mockCallback, times(2)).invoke(any())
-        assertEquals(DUCK_PKG, oseManager.oseInfo.value.pkg)
+        assertThat(oseManager.oseInfo.value.pkg).isEqualTo(DUCK_PKG)
     }
 
     @Test
     fun `OseInfo defaults to globalSearchPackage when ose package is not installed`() {
         doReturn(GOOGLE_PACKAGE).whenever(settingsObserver).getValue()
         TestUtil.runOnExecutorSync(UI_HELPER_EXECUTOR) { oseManager.reloadOse() }
-        assertEquals(GOOGLE_PACKAGE, oseManager.oseInfo.value.pkg)
+        assertThat(oseManager.oseInfo.value.pkg).isEqualTo(GOOGLE_PACKAGE)
         Mockito.verify(mockCallback, times(1)).invoke(any())
 
         val appInfoNotInstalled = ApplicationInfo()
@@ -209,7 +205,7 @@ class OSEManagerTest {
         TestUtil.runOnExecutorSync(UI_HELPER_EXECUTOR) { oseManager.reloadOse() }
 
         // OseInfo defaults to global search package
-        assertEquals(BING_PKG, oseManager.oseInfo.value.pkg)
+        assertThat(oseManager.oseInfo.value.pkg).isEqualTo(BING_PKG)
         Mockito.verify(mockCallback, times(2)).invoke(any())
     }
 
@@ -217,7 +213,7 @@ class OSEManagerTest {
     fun `OseInfo defaults to globalSearchPackage when ose package with no active install session`() {
         doReturn(GOOGLE_PACKAGE).whenever(settingsObserver).getValue()
         TestUtil.runOnExecutorSync(UI_HELPER_EXECUTOR) { oseManager.reloadOse() }
-        assertEquals(GOOGLE_PACKAGE, oseManager.oseInfo.value.pkg)
+        assertThat(oseManager.oseInfo.value.pkg).isEqualTo(GOOGLE_PACKAGE)
         Mockito.verify(mockCallback, times(1)).invoke(any())
 
         val appInfoNotInstalled = ApplicationInfo()
@@ -234,7 +230,7 @@ class OSEManagerTest {
         TestUtil.runOnExecutorSync(UI_HELPER_EXECUTOR) { oseManager.reloadOse() }
 
         // OseInfo defaults to global search package
-        assertEquals(BING_PKG, oseManager.oseInfo.value.pkg)
+        assertThat(oseManager.oseInfo.value.pkg).isEqualTo(BING_PKG)
         Mockito.verify(mockCallback, times(2)).invoke(any())
     }
 
@@ -256,8 +252,8 @@ class OSEManagerTest {
 
         verify(installSessionHelper).registerInstallTracker(any())
         // OseInfo set to OseSettingsValue since there is active session
-        assertEquals(DUCK_PKG, oseManager.oseInfo.value.pkg)
-        assertTrue { oseManager.oseInfo.value.installPending }
+        assertThat(oseManager.oseInfo.value.pkg).isEqualTo(DUCK_PKG)
+        assertThat(oseManager.oseInfo.value.installPending).isTrue()
     }
 
     @Test
@@ -288,8 +284,8 @@ class OSEManagerTest {
         UI_HELPER_EXECUTOR.submit {}.get()
         verify(installSessionTracker).close()
         // OseInfo changes after ose package is installed
-        assertEquals(DUCK_PKG, oseManager.oseInfo.value.pkg)
-        assertFalse { oseManager.oseInfo.value.installPending }
+        assertThat(oseManager.oseInfo.value.pkg).isEqualTo(DUCK_PKG)
+        assertThat(oseManager.oseInfo.value.installPending).isFalse()
         Mockito.verify(mockCallback, times(2)).invoke(any())
     }
 
@@ -310,7 +306,7 @@ class OSEManagerTest {
         TestUtil.runOnExecutorSync(UI_HELPER_EXECUTOR) { oseManager.reloadOse() }
 
         // OseInfo set to oseSettingsValue since there is active install session
-        assertEquals(DUCK_PKG, oseManager.oseInfo.value.pkg)
+        assertThat(oseManager.oseInfo.value.pkg).isEqualTo(DUCK_PKG)
         verify(installSessionHelper).registerInstallTracker(sessionTrackerCaptor.capture())
 
         // Session failed, so there is no active session.
@@ -325,8 +321,8 @@ class OSEManagerTest {
         verify(installSessionHelper, times(2)).registerInstallTracker(any())
         // ReloadOse is called and OseInfo fallback to defaultSearchPackage since OsePackage
         // installation failed
-        assertEquals(BING_PKG, oseManager.oseInfo.value.pkg)
-        assertFalse { oseManager.oseInfo.value.installPending }
+        assertThat(oseManager.oseInfo.value.pkg).isEqualTo(BING_PKG)
+        assertThat(oseManager.oseInfo.value.installPending).isFalse()
         // callback invoked
         Mockito.verify(mockCallback, times(2)).invoke(any())
     }
@@ -358,9 +354,10 @@ class OSEManagerTest {
         TestUtil.runOnExecutorSync(UI_HELPER_EXECUTOR) { oseManager.reloadOse() }
         UI_HELPER_EXECUTOR.submit {}.get()
         verify(installSessionHelper).registerInstallTracker(sessionTrackerCaptor.capture())
-        assertEquals(oseManager.oseInfo.value.pkg, sessionTrackerCaptor.firstValue.osePackage)
-        assertTrue { oseManager.oseInfo.value.installPending }
-        assertEquals(tracker1, oseManager.tracker)
+        assertThat(sessionTrackerCaptor.firstValue.osePackage)
+            .isEqualTo(oseManager.oseInfo.value.pkg)
+        assertThat(oseManager.oseInfo.value.installPending).isTrue()
+        assertThat(oseManager.tracker).isEqualTo(tracker1)
 
         // Change the OSE package and it has active install session
         doReturn(GOOGLE_PACKAGE).whenever(settingsObserver).getValue()
@@ -370,22 +367,24 @@ class OSEManagerTest {
         verify(tracker1).close()
         verify(installSessionHelper, times(2))
             .registerInstallTracker(sessionTrackerCaptor.capture())
-        assertEquals(oseManager.oseInfo.value.pkg, sessionTrackerCaptor.lastValue.osePackage)
-        assertTrue { oseManager.oseInfo.value.installPending }
-        assertEquals(tracker2, oseManager.tracker)
+        assertThat(sessionTrackerCaptor.lastValue.osePackage)
+            .isEqualTo(oseManager.oseInfo.value.pkg)
+        assertThat(oseManager.oseInfo.value.installPending).isTrue()
+        assertThat(oseManager.tracker).isEqualTo(tracker2)
 
         doReturn(tracker3).whenever(installSessionHelper).registerInstallTracker(any())
         // Change the OSE package and it has active install session
         doReturn(DUCK_PKG).whenever(settingsObserver).getValue()
-        assertEquals(tracker2, oseManager.tracker)
+        assertThat(oseManager.tracker).isEqualTo(tracker2)
         TestUtil.runOnExecutorSync(UI_HELPER_EXECUTOR) { oseManager.reloadOse() }
         UI_HELPER_EXECUTOR.submit {}.get()
         verify(tracker2).close()
         verify(installSessionHelper, times(3))
             .registerInstallTracker(sessionTrackerCaptor.capture())
-        assertEquals(oseManager.oseInfo.value.pkg, sessionTrackerCaptor.lastValue.osePackage)
-        assertTrue { oseManager.oseInfo.value.installPending }
-        assertEquals(tracker3, oseManager.tracker)
+        assertThat(sessionTrackerCaptor.lastValue.osePackage)
+            .isEqualTo(oseManager.oseInfo.value.pkg)
+        assertThat(oseManager.oseInfo.value.installPending).isTrue()
+        assertThat(oseManager.tracker).isEqualTo(tracker3)
     }
 
     private fun mockResolverInfo(pkg: String) =
