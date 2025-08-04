@@ -20,6 +20,10 @@
     <string name="widget_picker_collapse_sheet_label" msgid="5179800676332357316">"Vala ishidi"</string>
     <string name="widgets_list_header_app_name_fallback_label" msgid="5151621916941957989">"Igama le-app"</string>
     <string name="widgets_list_header_widgets_count_label" msgid="578128450351893001">"{count,plural, =1{Iwijethi e-#}one{Amawijethi angu-#}other{Amawijethi angu-#}}"</string>
+    <!-- no translation found for widgets_list_header_shortcuts_count_label (9168853338469361424) -->
+    <skip />
+    <!-- no translation found for widgets_list_header_widgets_and_shortcuts_count_label (3942871723001789249) -->
+    <skip />
     <string name="widget_span_dimensions_format" msgid="4325492869474815131">"%1$d × %2$d"</string>
     <string name="widget_span_dimensions_accessible_format" msgid="6976586776463259811">"Ububanzi obungu-%1$d ngokuphakama okungu-%2$d"</string>
     <string name="widget_details_accessibility_label" msgid="4525863892199168041">"Iwijethi ye-<xliff:g id="WIDGET_NAME">%1$s</xliff:g>, ububanzi obungu-%2$d ngokuphakama okungu-%3$d"</string>
