@@ -243,7 +243,7 @@ class TaskContainer(
 
     fun digitalWellBeingBannerHeight(): Int {
         if (enableRefactorTaskContentView() && enableRefactorDigitalWellbeingToast()) {
-            return (taskContentView as? TaskContentView)?.taskAppTimerToast?.height ?: 0
+            return (taskContentView as? TaskContentView)?.getTaskAppTimerToastHeight() ?: 0
         }
 
         if (digitalWellBeingToast?.isVisible == true) {
