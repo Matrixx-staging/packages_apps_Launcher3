@@ -41,6 +41,9 @@ import static com.android.launcher3.config.FeatureFlags.enableTaskbarPinning;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_FOLDER_OPEN;
 import static com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_DRAGGING;
 import static com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_FULLSCREEN;
+import static com.android.launcher3.taskbar.TaskbarDesktopExperienceFlags.enableAutoStashConnectedDisplayTaskbar;
+import static com.android.launcher3.taskbar.TaskbarStashController.FLAG_IN_SECONDARY_LAUNCHER_ON_CD;
+import static com.android.launcher3.taskbar.TaskbarStashController.FLAG_STASHED_IN_APP_AUTO;
 import static com.android.launcher3.taskbar.TaskbarStashController.SHOULD_BUBBLES_FOLLOW_DEFAULT_VALUE;
 import static com.android.launcher3.testing.shared.ResourceUtils.getBoolByName;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
@@ -1333,6 +1336,32 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
      */
     public void setAutohideSuspendFlag(@AutohideSuspendFlag int flag, boolean newValue) {
         mControllers.taskbarAutohideSuspendController.updateFlag(flag, newValue);
+    }
+
+    /**
+     * Updates and applies {@link TaskbarStashController#FLAG_IN_SECONDARY_LAUNCHER_ON_CD} to
+     * {@link TaskbarStashController} state flags.
+     */
+    public void updateStashControllerLauncherStateFlag(boolean enabled) {
+        if (isPrimaryDisplay() || !enableAutoStashConnectedDisplayTaskbar.isTrue()) {
+            return;
+        }
+
+        TaskbarStashController stashController = mControllers.taskbarStashController;
+        stashController.updateStateForFlag(FLAG_IN_SECONDARY_LAUNCHER_ON_CD, enabled);
+        if (!enabled) {
+            // When moving away from launcher, don't stash the taskbar right away, let it auto stash
+            // through timeout.
+            stashController.updateStateForFlag(FLAG_STASHED_IN_APP_AUTO, /* enabled= */ false);
+        }
+
+        // Un-stash taskbar if required.
+        if (enabled && isTaskbarStashed()) {
+            stashController.updateAndAnimatePinnedTaskbar(/* stash= */ false);
+        } else {
+            stashController.applyState();
+            stashController.updateTaskbarTimeout(/* isAutohideSuspended= */ false);
+        }
     }
 
     /**

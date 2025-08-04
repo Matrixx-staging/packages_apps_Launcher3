@@ -33,6 +33,7 @@ import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING_KEY;
 import static com.android.launcher3.config.FeatureFlags.ENABLE_TASKBAR_NAVBAR_UNIFICATION;
 import static com.android.launcher3.config.FeatureFlags.enableTaskbarNoRecreate;
 import static com.android.launcher3.statehandlers.DesktopVisibilityController.INACTIVE_DESK_ID;
+import static com.android.launcher3.taskbar.TaskbarDesktopExperienceFlags.enableAutoStashConnectedDisplayTaskbar;
 import static com.android.launcher3.taskbar.growth.GrowthConstants.BROADCAST_SHOW_NUDGE;
 import static com.android.launcher3.taskbar.growth.GrowthConstants.GROWTH_NUDGE_PERMISSION;
 import static com.android.launcher3.util.DisplayController.CHANGE_DENSITY;
@@ -228,22 +229,42 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
             new WindowManagerProxy.DesktopVisibilityListener() {
 
                 @Override
+                public void onListenerInitializedFromShell() {
+                    if (!enableAutoStashConnectedDisplayTaskbar.isTrue()) {
+                        return;
+                    }
+
+                    for (TaskbarActivityContext tac : mTaskbars.values()) {
+                        TaskbarControllers controllers = tac.getControllers();
+                        controllers.taskbarStashController.updateFlagForDesktopModeOnCD(
+                                /* fromInit= */ false);
+                    }
+                }
+
+                @Override
                 public void onActiveDeskChanged(int displayId, int newActiveDesk,
                         int oldActiveDesk) {
-                    // Only Handles Special Exit Cases for Desktop Mode Taskbar Recreation.
                     TaskbarActivityContext taskbarActivityContext = getTaskbarForDisplay(displayId);
-                    if (taskbarActivityContext != null
-                            && !taskbarActivityContext.showLockedTaskbarOnHome()
-                            && !taskbarActivityContext.showDesktopTaskbarForFreeformDisplay()
-                            && (newActiveDesk == INACTIVE_DESK_ID
-                                || oldActiveDesk == INACTIVE_DESK_ID)) {
-                        int recreateDuration = taskbarActivityContext.getResources().getInteger(
-                                R.integer.to_desktop_animation_duration_ms);
-                        AnimatorSet animatorSet = taskbarActivityContext.onDestroyAnimation(
-                                TASKBAR_DESTROY_DURATION);
-                        animatorSet.addListener(AnimatorListeners.forEndCallback(
-                                () -> recreateTaskbarForDisplay(displayId, recreateDuration)));
-                        animatorSet.start();
+                    if (taskbarActivityContext == null) {
+                        return;
+                    }
+
+                    if (newActiveDesk == INACTIVE_DESK_ID || oldActiveDesk == INACTIVE_DESK_ID) {
+                        TaskbarControllers controllers = taskbarActivityContext.getControllers();
+                        controllers.taskbarStashController.updateFlagForDesktopModeOnCD(
+                                /* fromInit= */ false);
+
+                        // Only Handles Special Exit Cases for Desktop Mode Taskbar Recreation.
+                        if (!taskbarActivityContext.showLockedTaskbarOnHome()
+                                && !taskbarActivityContext.showDesktopTaskbarForFreeformDisplay()) {
+                            int recreateDuration = taskbarActivityContext.getResources().getInteger(
+                                    R.integer.to_desktop_animation_duration_ms);
+                            AnimatorSet animatorSet = taskbarActivityContext.onDestroyAnimation(
+                                    TASKBAR_DESTROY_DURATION);
+                            animatorSet.addListener(AnimatorListeners.forEndCallback(
+                                    () -> recreateTaskbarForDisplay(displayId, recreateDuration)));
+                            animatorSet.start();
+                        }
                     }
                 }
             };

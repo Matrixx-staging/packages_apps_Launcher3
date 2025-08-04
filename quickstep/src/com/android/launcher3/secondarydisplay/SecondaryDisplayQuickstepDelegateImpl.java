@@ -15,9 +15,13 @@
  */
 package com.android.launcher3.secondarydisplay;
 
+import static androidx.lifecycle.Lifecycle.State.RESUMED;
+
+import static com.android.launcher3.taskbar.TaskbarDesktopExperienceFlags.enableAutoStashConnectedDisplayTaskbar;
 import static com.android.launcher3.util.OnboardingPrefs.ALL_APPS_VISITED_COUNT;
 
 import android.content.Context;
+import android.view.Display;
 import android.window.DesktopExperienceFlags;
 
 import com.android.launcher3.appprediction.AppsDividerView;
@@ -27,6 +31,7 @@ import com.android.launcher3.model.data.PredictedContainerInfo;
 import com.android.launcher3.taskbar.TaskbarActivityContext;
 import com.android.launcher3.taskbar.TaskbarManager;
 import com.android.launcher3.views.ActivityContext;
+import com.android.quickstep.TouchInteractionService.TISBinder;
 import com.android.quickstep.util.TISBindHelper;
 
 import javax.inject.Inject;
@@ -45,7 +50,7 @@ public final class SecondaryDisplayQuickstepDelegateImpl extends SecondaryDispla
     public SecondaryDisplayQuickstepDelegateImpl(ActivityContext activityContext) {
         mContext = activityContext.asContext();
         mActivityContext = activityContext;
-        mTISBindHelper = new TISBindHelper(mContext, v -> {});
+        mTISBindHelper = new TISBindHelper(mContext, this::onTISConnected);
     }
 
     void onDestroy() {
@@ -85,4 +90,28 @@ public final class SecondaryDisplayQuickstepDelegateImpl extends SecondaryDispla
         }
     }
 
+    @Override
+    void updateStashControllerStateFlags(int displayId, boolean isVisible) {
+        if (displayId == Display.DEFAULT_DISPLAY
+                || !enableAutoStashConnectedDisplayTaskbar.isTrue()) {
+            return;
+        }
+
+        TaskbarManager taskbarManager = mTISBindHelper.getTaskbarManager();
+        if (taskbarManager == null) {
+            return;
+        }
+        TaskbarActivityContext tac =
+                taskbarManager.getTaskbarForDisplay(displayId);
+        if (tac == null) {
+            return;
+        }
+        tac.updateStashControllerLauncherStateFlag(isVisible);
+    }
+
+    private void onTISConnected(TISBinder binder) {
+        boolean isVisible = mActivityContext.getLifecycle().getCurrentState().isAtLeast(RESUMED);
+        int displayId = mActivityContext.asContext().getDisplay().getDisplayId();
+        updateStashControllerStateFlags(displayId, isVisible);
+    }
 }

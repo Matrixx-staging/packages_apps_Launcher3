@@ -31,6 +31,7 @@ import static com.android.launcher3.LauncherPrefs.backedUpItem;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMotionEvent;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMultiFingerSwipe;
 import static com.android.launcher3.taskbar.TaskbarDesktopExperienceFlags.enableAltTabKqsOnConnectedDisplays;
+import static com.android.launcher3.taskbar.TaskbarDesktopExperienceFlags.enableAutoStashConnectedDisplayTaskbar;
 import static com.android.launcher3.util.DisplayController.CHANGE_NAVIGATION_MODE;
 import static com.android.launcher3.util.DisplayController.CHANGE_NIGHT_MODE;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
@@ -1071,13 +1072,21 @@ public class TouchInteractionService extends Service {
 
         NavigationMode currentNavMode = deviceState.getMode();
         NavigationMode gestureStartNavMode = mGestureStartNavMode.get(displayId);
+
+        // On CD, only consume input event if flag is on and taskbar is stashed.
+        TaskbarActivityContext tac = mTaskbarManager.getTaskbarForDisplay(displayId);
+        boolean shouldConnectedDisplayConsumeEvent =
+                displayId != DEFAULT_DISPLAY
+                && enableAutoStashConnectedDisplayTaskbar.isTrue()
+                && tac != null && tac.isTaskbarStashed();
         if (gestureStartNavMode != null && gestureStartNavMode != currentNavMode) {
             ActiveGestureProtoLogProxy.logOnInputEventNavModeSwitched(
                     displayId, gestureStartNavMode.name(), currentNavMode.name());
             event.setAction(ACTION_CANCEL);
         } else if (deviceState.isButtonNavMode()
                 && !deviceState.supportsAssistantGestureInButtonNav()
-                && !isTrackpadMotionEvent(event)) {
+                && !isTrackpadMotionEvent(event)
+                && !shouldConnectedDisplayConsumeEvent) {
             ActiveGestureProtoLogProxy.logOnInputEventThreeButtonNav(displayId);
             return;
         }
@@ -1122,7 +1131,6 @@ public class TouchInteractionService extends Service {
 
             boolean isOneHandedModeActive = deviceState.isOneHandedModeActive();
             boolean isInSwipeUpTouchRegion = rotationTouchHelper.isInSwipeUpTouchRegion(event);
-            TaskbarActivityContext tac = mTaskbarManager.getCurrentActivityContext();
             BubbleControllers bubbleControllers = tac != null ? tac.getBubbleControllers() : null;
             boolean isOnBubbles = bubbleControllers != null
                     && BubbleBarInputConsumer.isEventOnBubbles(tac, event);

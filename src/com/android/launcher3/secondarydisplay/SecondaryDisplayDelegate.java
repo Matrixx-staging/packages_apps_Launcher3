@@ -51,4 +51,7 @@ public class SecondaryDisplayDelegate {
 
     void onDestroy() {
     }
+
+    void updateStashControllerStateFlags(int displayId, boolean isVisible) {
+    }
 }

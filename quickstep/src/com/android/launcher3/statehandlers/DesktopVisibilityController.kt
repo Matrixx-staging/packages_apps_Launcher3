@@ -365,6 +365,18 @@ constructor(
         }
 
         this.canCreateDesks = canCreateDesks
+
+        notifyOnListenerInitializedFromShell()
+    }
+
+    private fun notifyOnListenerInitializedFromShell() {
+        if (DEBUG) {
+            Log.d(TAG, "notifyOnListenerInitializedFromShell")
+        }
+
+        for (listener in desktopVisibilityListeners) {
+            listener.onListenerInitializedFromShell()
+        }
     }
 
     private fun getDisplayDeskConfig(displayId: Int) = displaysDesksConfigsMap[displayId]

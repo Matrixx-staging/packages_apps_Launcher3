@@ -27,6 +27,7 @@ import android.content.Intent;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.view.Display;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewAnimationUtils;
@@ -48,6 +49,7 @@ import com.android.launcher3.LauncherModel;
 import com.android.launcher3.R;
 import com.android.launcher3.allapps.ActivityAllAppsContainerView;
 import com.android.launcher3.allapps.AllAppsStore;
+import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.deviceprofile.AllAppsProfile;
 import com.android.launcher3.dragndrop.DragController;
 import com.android.launcher3.dragndrop.DragOptions;
@@ -451,4 +453,14 @@ public class SecondaryDisplayLauncher extends BaseActivity
 
     @Override
     public void onDragEnd() { }
+
+    @Override
+    protected void onActivityFlagsChanged(int changeBits) {
+        super.onActivityFlagsChanged(changeBits);
+
+        int displayId = getDisplay().getDisplayId();
+        if (displayId != Display.DEFAULT_DISPLAY && (changeBits & ACTIVITY_STATE_RESUMED) != 0) {
+            mSecondaryDisplayDelegate.updateStashControllerStateFlags(displayId, hasBeenResumed());
+        }
+    }
 }
