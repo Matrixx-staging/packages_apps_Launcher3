@@ -35,9 +35,9 @@ import androidx.core.util.Supplier
 import com.android.app.animation.Interpolators
 import com.android.internal.jank.Cuj
 import com.android.internal.jank.InteractionJankMonitor
+import com.android.internal.policy.ScreenDecorationsUtils
 import com.android.launcher3.desktop.DesktopAppLaunchTransition.AppLaunchType
 import com.android.launcher3.desktop.DesktopAppLaunchTransition.Companion.LAUNCH_CHANGE_MODES
-import com.android.wm.shell.shared.R as SharedR
 import com.android.wm.shell.shared.animation.MinimizeAnimator
 import com.android.wm.shell.shared.animation.WindowAnimator
 
@@ -61,10 +61,6 @@ class DesktopAppLaunchAnimatorHelper(
 ) {
 
     private val interactionJankMonitor = InteractionJankMonitor.getInstance()
-    private val taskCornerRadiusInPx =
-        context.resources
-            .getDimensionPixelSize(SharedR.dimen.desktop_windowing_freeform_rounded_corner_radius)
-            .toFloat()
 
     fun createAnimators(info: TransitionInfo, finishCallback: (Animator) -> Unit): List<Animator> {
         val launchChange = getLaunchChange(info)
@@ -116,7 +112,7 @@ class DesktopAppLaunchAnimatorHelper(
     private fun getTrampolineCloseChange(info: TransitionInfo): Change? {
         if (
             info.changes.size < 2 ||
-                !DesktopModeFlags.ENABLE_DESKTOP_TRAMPOLINE_CLOSE_ANIMATION_BUGFIX.isTrue
+            !DesktopModeFlags.ENABLE_DESKTOP_TRAMPOLINE_CLOSE_ANIMATION_BUGFIX.isTrue
         ) {
             return null
         }
@@ -163,7 +159,10 @@ class DesktopAppLaunchAnimatorHelper(
             }
         val clipRect = Rect(change.endAbsBounds).apply { offsetTo(0, 0) }
         transaction.setCrop(change.leash, clipRect)
-        transaction.setCornerRadius(change.leash, taskCornerRadiusInPx)
+        transaction.setCornerRadius(
+            change.leash,
+            ScreenDecorationsUtils.getWindowCornerRadius(context),
+        )
         return AnimatorSet().apply {
             interactionJankMonitor.begin(change.leash, context, context.mainThreadHandler, cujType)
             if (isTrampoline) {
@@ -206,7 +205,11 @@ class DesktopAppLaunchAnimatorHelper(
             addUpdateListener { animation ->
                 transaction.setAlpha(change.leash, animation.animatedValue as Float).apply()
             }
-            addListener(onEnd = { animation -> onAnimFinish(animation) })
+            addListener(
+                onEnd = { animation ->
+                    onAnimFinish(animation)
+                }
+            )
         }
     }
 
