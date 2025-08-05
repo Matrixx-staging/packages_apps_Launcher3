@@ -32,6 +32,11 @@ import com.android.launcher3.Flags;
 public class StateManagerProtoLogProxy {
     private static final DesktopModeFlag ENABLE_STATE_MANAGER_PROTO_LOG =
             new DesktopModeFlag(Flags::enableStateManagerProtoLog, true);
+
+    public static boolean isLoggingToLogcat() {
+        return ENABLE_STATE_MANAGER_PROTO_LOG.isTrue() && LAUNCHER_STATE_MANAGER.isLogToLogcat();
+    }
+
     public static void logGoToState(
             @NonNull Object fromState, @NonNull Object toState, @NonNull String trace) {
         if (!ENABLE_STATE_MANAGER_PROTO_LOG.isTrue() || !isProtoLogInitialized()) return;
