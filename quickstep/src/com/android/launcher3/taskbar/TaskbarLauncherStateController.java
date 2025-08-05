@@ -813,15 +813,8 @@ public class TaskbarLauncherStateController {
                     ALPHA_CHANNEL_TASKBAR_ALIGNMENT);
         }
 
-        float targetTaskbarIconAlpha = showTaskbar ? 1f : 0f;
-        if (mTaskbarAlphaForHome.getValue() != targetTaskbarIconAlpha) {
-            animatorSet.play(mTaskbarAlphaForHome
-                    .animateToValue(targetTaskbarIconAlpha)
-                    .setDuration(duration));
-        }
-
         if ((taskbarBgOffset.value != taskbarBgOffsetEnd && !taskbarBgOffset.isAnimating())
-                || taskbarBgOffset.isAnimatingToValue(taskbarBgOffsetStart)) {
+                || !taskbarBgOffset.isAnimatingToValue(taskbarBgOffsetEnd)) {
             taskbarBgOffset.cancelAnimation();
             AnimatedFloat taskbarIconTranslationYForHome =
                     mControllers.taskbarViewController.mTaskbarIconTranslationYForHome;
