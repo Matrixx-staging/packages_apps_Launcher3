@@ -49,8 +49,8 @@ constructor(
 
     init {
         lifeCycle.addCloseable(
-            homeScreenRepository.workspaceStateRef.forEach(DATA_HELPER_EXECUTOR) {
-                aggregate(homeScreenRepository.workspaceStateRef.value)
+            homeScreenRepository.workspaceState.forEach(DATA_HELPER_EXECUTOR) {
+                aggregate(homeScreenRepository.workspaceState.value)
             }
         )
     }

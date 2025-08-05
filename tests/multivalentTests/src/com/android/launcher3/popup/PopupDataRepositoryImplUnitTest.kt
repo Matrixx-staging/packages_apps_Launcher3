@@ -54,7 +54,7 @@ class PopupDataRepositoryImplUnitTest {
         itemInfo.id = 1
         val data = WorkspaceData.MutableWorkspaceData()
         data.addItems(listOf(itemInfo), null)
-        homeScreenRepository.dispatchChange(data)
+        homeScreenRepository.dispatchWorkspaceDataChange(data)
         TestUtil.runOnExecutorSync(Executors.DATA_HELPER_EXECUTOR) {}
         val popupDataMap = popupDataRepository.getAllPopupData()
 
@@ -70,7 +70,7 @@ class PopupDataRepositoryImplUnitTest {
         itemInfo.id = 1
         val data = WorkspaceData.MutableWorkspaceData()
         data.addItems(listOf(itemInfo), null)
-        homeScreenRepository.dispatchChange(data)
+        homeScreenRepository.dispatchWorkspaceDataChange(data)
         TestUtil.runOnExecutorSync(Executors.DATA_HELPER_EXECUTOR) {}
         val popupDataMap = popupDataRepository.getAllPopupData()
 
@@ -87,7 +87,7 @@ class PopupDataRepositoryImplUnitTest {
         itemInfo.id = 1
         val data = WorkspaceData.MutableWorkspaceData()
         data.addItems(listOf(itemInfo), null)
-        homeScreenRepository.dispatchChange(data)
+        homeScreenRepository.dispatchWorkspaceDataChange(data)
         TestUtil.runOnExecutorSync(Executors.DATA_HELPER_EXECUTOR) {}
         val popupDataMap = popupDataRepository.getAllPopupData()
 
@@ -108,7 +108,7 @@ class PopupDataRepositoryImplUnitTest {
         widgetItemInfo.id = 2
         val data = WorkspaceData.MutableWorkspaceData()
         data.addItems(listOf(folderItemInfo, widgetItemInfo), null)
-        homeScreenRepository.dispatchChange(data)
+        homeScreenRepository.dispatchWorkspaceDataChange(data)
         TestUtil.runOnExecutorSync(Executors.DATA_HELPER_EXECUTOR) {}
         val popupDataMap = popupDataRepository.getAllPopupData()
 
@@ -130,7 +130,7 @@ class PopupDataRepositoryImplUnitTest {
         widgetItemInfo.itemType = ITEM_TYPE_APPWIDGET
         val data = WorkspaceData.MutableWorkspaceData()
         data.addItems(listOf(folderItemInfo, widgetItemInfo), null)
-        homeScreenRepository.dispatchChange(data)
+        homeScreenRepository.dispatchWorkspaceDataChange(data)
         TestUtil.runOnExecutorSync(Executors.DATA_HELPER_EXECUTOR) {}
         val popupDataStream = popupDataRepository.getPopupDataByItemInfo(ItemInfo())
 
@@ -150,7 +150,7 @@ class PopupDataRepositoryImplUnitTest {
         widgetItemInfo.itemType = ITEM_TYPE_APPWIDGET
         val data = WorkspaceData.MutableWorkspaceData()
         data.addItems(listOf(folderItemInfo, widgetItemInfo), null)
-        homeScreenRepository.dispatchChange(data)
+        homeScreenRepository.dispatchWorkspaceDataChange(data)
         TestUtil.runOnExecutorSync(Executors.DATA_HELPER_EXECUTOR) {}
         val popupDataStream = popupDataRepository.getPopupDataByItemInfo(folderItemInfo)
 
@@ -191,7 +191,7 @@ class PopupDataRepositoryImplUnitTest {
         folderItemInfo.itemType = ITEM_TYPE_FOLDER
         val data = WorkspaceData.MutableWorkspaceData()
         data.addItems(listOf(folderItemInfo), null)
-        homeScreenRepository.dispatchChange(data)
+        homeScreenRepository.dispatchWorkspaceDataChange(data)
         TestUtil.runOnExecutorSync(Executors.DATA_HELPER_EXECUTOR) {}
         val popupData = popupDataRepository.getPopupDataByItemInfo(folderItemInfo)
 
