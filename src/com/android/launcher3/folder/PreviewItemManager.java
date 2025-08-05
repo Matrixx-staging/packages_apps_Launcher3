@@ -37,6 +37,7 @@ import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.util.FloatProperty;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -62,6 +63,8 @@ import java.util.function.Predicate;
  * Manages the drawing and animations of {@link PreviewItemDrawingParams} for a {@link FolderIcon}.
  */
 public class PreviewItemManager {
+
+    private static final String TAG = "PreviewItemManager";
 
     private static final FloatProperty<PreviewItemManager> CURRENT_PAGE_ITEMS_TRANS_X =
             new FloatProperty<PreviewItemManager>("currentPageItemsTransX") {
@@ -444,6 +447,11 @@ public class PreviewItemManager {
 
     @VisibleForTesting
     public void setDrawable(PreviewItemDrawingParams p, ItemInfo item) {
+        setDrawableInternal(p, item, true /* loadHighResIcon */);
+    }
+
+    private void setDrawableInternal(
+            PreviewItemDrawingParams p, ItemInfo item, boolean loadHighResIcon) {
         if (item instanceof WorkspaceItemInfo wii) {
             if (wii.shouldShowPendingIcon()) {
                 p.drawable = newPendingIcon(wii, mContext, FLAG_THEMED);
@@ -466,13 +474,18 @@ public class PreviewItemManager {
         // Verify high res
         if (item instanceof ItemInfoWithIcon info
                 && info.getMatchingLookupFlag().isVisuallyLessThan(DESKTOP_ICON_FLAG)) {
-            LauncherAppState.getInstance(mContext).getIconCache().updateIconInBackground(
-                    newInfo -> {
-                        if (p.item == newInfo) {
-                            setDrawable(p, newInfo);
-                            mIcon.invalidate();
-                        }
-                    }, info, DESKTOP_ICON_FLAG);
+            if (loadHighResIcon) {
+                LauncherAppState.getInstance(mContext).getIconCache().updateIconInBackground(
+                        newInfo -> {
+                            if (p.item == newInfo) {
+                                setDrawableInternal(p, newInfo, false /* loadHighResIcon */);
+                                mIcon.invalidate();
+                            }
+                        }, info, DESKTOP_ICON_FLAG);
+            } else {
+                Log.d(TAG, "Skipping high res icon load with flags: " + info.getMatchingLookupFlag()
+                        + " for " + info);
+            }
         }
     }
 }
