@@ -22,7 +22,6 @@ import static android.view.Display.DEFAULT_DISPLAY;
 
 import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 import static com.android.launcher3.Flags.enableRefactorTaskThumbnail;
-import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SYSTEM_SHORTCUT_CLOSE_APP_TAP;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SYSTEM_SHORTCUT_FREE_FORM_TAP;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT;
 
@@ -296,29 +295,6 @@ public interface TaskShortcutFactory {
         }
     }
 
-    class RemoveTaskSystemShortcut extends SystemShortcut {
-        private final TaskContainer mTaskContainer;
-
-        public RemoveTaskSystemShortcut(int iconResId, int textResId,
-                RecentsViewContainer container, TaskContainer taskContainer) {
-            super(iconResId, textResId, container, taskContainer.getTaskView().getFirstItemInfo(),
-                    taskContainer.getTaskView());
-            mTaskContainer = taskContainer;
-        }
-
-        @Override
-        public void onClick(View view) {
-            TaskView taskView = mTaskContainer.getTaskView();
-            RecentsView<?, ?> recentsView = taskView.getRecentsView();
-            if (recentsView != null) {
-                dismissTaskMenuView();
-                recentsView.dismissTaskView(taskView, true, true);
-                mTarget.getStatsLogManager().logger().withItemInfo(mTaskContainer.getItemInfo())
-                        .log(LAUNCHER_SYSTEM_SHORTCUT_CLOSE_APP_TAP);
-            }
-        }
-    }
-
     /**
      * Does NOT add split options in the following scenarios:
      * * 1. Taskbar is not present AND aren't at least 2 tasks in overview to show split options for
@@ -550,32 +526,6 @@ public interface TaskShortcutFactory {
                     taskContainer.getOverlay().getModalStateSystemShortcut(
                             taskContainer.getItemInfo(), taskContainer.getTaskView());
             return createSingletonShortcutList(modalStateSystemShortcut);
-        }
-    };
-
-    TaskShortcutFactory REMOVE_TASK = new TaskShortcutFactory() {
-        @Override
-        public List<SystemShortcut> getShortcuts(RecentsViewContainer container,
-                TaskContainer taskContainer) {
-            TaskView taskView = taskContainer.getTaskView();
-            RecentsView recentsView = taskView.getRecentsView();
-            if (recentsView != null && !recentsView.canRemoveTaskView(taskView)) {
-                return null;
-            }
-
-            return Collections.singletonList(new RemoveTaskSystemShortcut(
-                    R.drawable.ic_remove_task_option,
-                    R.string.recent_task_option_remove_task, container, taskContainer));
-        }
-
-        @Override
-        public boolean showForGroupedTask() {
-            return true;
-        }
-
-        @Override
-        public boolean showForDesktopTask() {
-            return true;
         }
     };
 }
