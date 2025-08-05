@@ -488,12 +488,16 @@ class OverviewCommandHelperTest {
     @Test
     fun whenHomeCommandIsAddedAndRecentsIsVisible_executeHomeActionOnMainDisplay() =
         testScope.runTest {
+            val onHomeAnimationCompleteRunnableCaptor = argumentCaptor<Runnable>()
             whenever(containerInterface.getVisibleRecentsView<RecentsView<*, *>>())
                 .thenReturn(recentView)
             val command = sut.addCommand(CommandType.HOME)!!
             runCurrent()
-            verify(recentView).startHome()
+            verify(recentView).startHome(onHomeAnimationCompleteRunnableCaptor.capture())
 
+            assertThat(command.status).isEqualTo(CommandStatus.PROCESSING)
+            onHomeAnimationCompleteRunnableCaptor.firstValue.run()
+            runCurrent()
             assertThat(command.status).isEqualTo(CommandStatus.COMPLETED)
         }
 

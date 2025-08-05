@@ -185,40 +185,6 @@ constructor(
     private val eventCallbacks =
         listOf(RunnableList(), RunnableList(), RunnableList(), RunnableList())
 
-    private val animationToHomeFactory =
-        RemoteAnimationFactory {
-            _: Int,
-            appTargets: Array<RemoteAnimationTarget>?,
-            wallpaperTargets: Array<RemoteAnimationTarget>?,
-            nonAppTargets: Array<RemoteAnimationTarget>?,
-            result: LauncherAnimationRunner.AnimationResult? ->
-            val controller =
-                getStateManager().createAnimationToNewWorkspace(BG_LAUNCHER, HOME_APPEAR_DURATION)
-            controller.dispatchOnStart()
-            val targets =
-                RemoteAnimationTargets(
-                    appTargets,
-                    wallpaperTargets,
-                    nonAppTargets,
-                    RemoteAnimationTarget.MODE_OPENING,
-                )
-            for (app in targets.apps) {
-                Transaction().setAlpha(app.leash, 1f).apply()
-            }
-            val anim = AnimatorSet()
-            anim.play(controller.animationPlayer)
-            anim.setDuration(HOME_APPEAR_DURATION)
-            result!!.setAnimation(
-                anim,
-                this@RecentsWindowManager,
-                {
-                    getStateManager().goToState(BG_LAUNCHER, true)
-                    hideRecentsWindow()
-                },
-                true, /* skipFirstFrame */
-            )
-        }
-
     private val onBackInvokedCallback = OnBackInvokedCallback {
         stateManager.state.onBackInvoked(this@RecentsWindowManager)
         TestLogging.recordEvent(SEQUENCE_MAIN, "onBackInvoked")
@@ -417,26 +383,70 @@ constructor(
         screenOnTracker.addListener(screenChangedListener)
     }
 
-    override fun startHome() {
-        startHome(/* finishRecentsAnimation= */ true)
+    override fun startHome(animated: Boolean, onHomeAnimationComplete: Runnable?) {
+        startHomeWithRemoteAnimation(onHomeAnimationComplete = onHomeAnimationComplete)
     }
 
-    // This will exit to the corresponding home depending on the display.
-    fun startHome(finishRecentsAnimation: Boolean) {
-        val recentsView: RecentsView<*, *> = getOverviewPanel()
-
-        if (!finishRecentsAnimation) {
-            recentsView.switchToScreenshot /* onFinishRunnable= */ {}
-            startHomeInternal()
+    @JvmOverloads
+    fun startHomeWithRemoteAnimation(
+        finishRecentsAnimation: Boolean = true,
+        onHomeAnimationComplete: Runnable? = null,
+    ) {
+        val recentsView: RecentsView<*, *>? = getOverviewPanel()
+        if (recentsView == null) {
+            onHomeAnimationComplete?.run()
             return
         }
         recentsView.switchToScreenshot {
-            recentsView.finishRecentsAnimation(/* toHome= */ true) { startHomeInternal() }
+            if (finishRecentsAnimation) {
+                recentsView.finishRecentsAnimation(
+                    /* toHome= */ true,
+                    { startHomeWithRemoteAnimationInternal(onHomeAnimationComplete) },
+                )
+            } else {
+                startHomeWithRemoteAnimationInternal(onHomeAnimationComplete)
+            }
         }
     }
 
-    private fun startHomeInternal() {
+    private fun startHomeWithRemoteAnimationInternal(onHomeAnimationComplete: Runnable?) {
         val displayId = displayId
+        val animationToHomeFactory =
+            RemoteAnimationFactory {
+                _: Int,
+                appTargets: Array<RemoteAnimationTarget>?,
+                wallpaperTargets: Array<RemoteAnimationTarget>?,
+                nonAppTargets: Array<RemoteAnimationTarget>?,
+                result: LauncherAnimationRunner.AnimationResult? ->
+                result ?: return@RemoteAnimationFactory
+                val controller =
+                    getStateManager()
+                        .createAnimationToNewWorkspace(BG_LAUNCHER, HOME_APPEAR_DURATION)
+                controller.dispatchOnStart()
+                val targets =
+                    RemoteAnimationTargets(
+                        appTargets,
+                        wallpaperTargets,
+                        nonAppTargets,
+                        RemoteAnimationTarget.MODE_OPENING,
+                    )
+                targets.apps.forEach { Transaction().setAlpha(it.leash, 1f).apply() }
+                val anim =
+                    AnimatorSet().apply {
+                        play(controller.animationPlayer)
+                        duration = HOME_APPEAR_DURATION
+                    }
+                result.setAnimation(
+                    anim,
+                    this@RecentsWindowManager,
+                    {
+                        getStateManager().goToState(BG_LAUNCHER, true)
+                        hideRecentsWindow()
+                        onHomeAnimationComplete?.run()
+                    },
+                    true, /* skipFirstFrame */
+                )
+            }
         val runner = LauncherAnimationRunner(mainThreadHandler, animationToHomeFactory, true)
         val options =
             ActivityOptions.makeRemoteAnimation(
@@ -623,7 +633,7 @@ constructor(
     }
 
     override fun returnToHomescreen() {
-        startHome()
+        startHomeWithRemoteAnimation()
     }
 
     override fun isRecentsViewVisible(): Boolean {

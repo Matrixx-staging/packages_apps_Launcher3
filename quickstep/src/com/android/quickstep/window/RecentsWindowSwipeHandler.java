@@ -171,7 +171,7 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
         boolean fromHomeToHome = mRunningOverHome
                 && endTarget == GestureState.GestureEndTarget.HOME;
         if (fromHomeToHome) {
-            mRecentsWindowManager.startHome(/* finishRecentsAnimation= */ false);
+            mRecentsWindowManager.startHomeWithRemoteAnimation(/* finishRecentsAnimation= */ false);
         }
         super.animateGestureEnd(
                 startShift,
@@ -243,10 +243,8 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
         if (mAppCanEnterPip) {
             // Make sure Launcher is resumed after auto-enter-pip transition to actually trigger
             // the PiP task appearing.
-            recentsCallback = () -> {
-                callback.run();
-                mRecentsWindowManager.startHome();
-            };
+            recentsCallback = () -> mRecentsWindowManager.startHomeWithRemoteAnimation(
+                    /* finishRecentsAnimation= */ true, /* onHomeAnimationComplete= */ callback);
         } else {
             recentsCallback = callback;
         }
