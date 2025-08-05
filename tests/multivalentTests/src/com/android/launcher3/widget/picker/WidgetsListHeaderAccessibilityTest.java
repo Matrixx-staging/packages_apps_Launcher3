@@ -37,23 +37,26 @@ import com.android.launcher3.R;
 import com.android.launcher3.util.ActivityContextWrapper;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 @SmallTest
 @RunWith(AndroidJUnit4.class)
 public class WidgetsListHeaderAccessibilityTest {
     private Context mContext;
     private LayoutInflater mLayoutInflater;
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
     @Mock
     private View.OnClickListener mOnClickListener;
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
-
         mContext = new ActivityContextWrapper(getApplicationContext());
         mLayoutInflater = LayoutInflater.from(
                 new ContextThemeWrapper(mContext, R.style.WidgetContainerTheme));

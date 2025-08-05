@@ -90,7 +90,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Answers;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 @SmallTest
 @RunWith(LauncherMultivalentJUnit.class)
@@ -107,6 +108,8 @@ public class SystemShortcutTest {
     private WidgetPickerDataProvider mWidgetPickerDataProvider;
     private AppInfo mAppInfo;
 
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     @Mock UserCache mUserCache;
     @Mock UserIconInfo mUserIconInfo;
     @Mock LauncherActivityInfo mLauncherActivityInfo;
@@ -117,7 +120,6 @@ public class SystemShortcutTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
         mSandboxContext.initDaggerComponent(
                 DaggerSystemShortcutTest_TestComponent.builder().bindUserCache(mUserCache)
         );
