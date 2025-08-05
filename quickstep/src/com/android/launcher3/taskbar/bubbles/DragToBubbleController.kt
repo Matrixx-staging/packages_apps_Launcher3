@@ -178,7 +178,7 @@ class DragToBubbleController(
             LauncherIcon(
                 showDropTarget = showDropTarget,
                 bubbleBarHasBubbles = bubbleBarViewController.hasBubbles(),
-            ) {}
+            )
         val dragZones: List<DragZone> = dragZoneFactory.createSortedDragZones(launcherIcon)
         dropTargetManager.onDragStarted(launcherIcon, dragZones)
     }
