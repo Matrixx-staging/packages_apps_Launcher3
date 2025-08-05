@@ -18,7 +18,6 @@ package com.android.quickstep.util;
 import static android.os.Trace.TRACE_TAG_APP;
 
 import static com.android.launcher3.Flags.enableOverviewBackgroundWallpaperBlur;
-import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 
 import android.app.WallpaperManager;
 import android.graphics.RenderEffect;
@@ -29,7 +28,6 @@ import android.os.IBinder;
 import android.os.Trace;
 import android.util.FloatProperty;
 import android.util.Log;
-import android.view.AttachedSurfaceControl;
 import android.view.CrossWindowBlurListeners;
 import android.view.SurfaceControl;
 import android.view.View;
@@ -205,15 +203,7 @@ public class BaseDepthController {
         float depth = mDepth;
         IBinder windowToken = mLauncher.getRootView().getWindowToken();
         if (windowToken != null) {
-            if (enableScalingRevealHomeAnimation()) {
-                mWallpaperManager.setWallpaperZoomOut(windowToken, depth);
-            } else {
-                // The API's full zoom-out is three times larger than the zoom-out we apply
-                // to the
-                // icons. To keep the two consistent throughout the animation while keeping
-                // Launcher's concept of full depth unchanged, we divide the depth by 3 here.
-                mWallpaperManager.setWallpaperZoomOut(windowToken, depth / 3);
-            }
+            mWallpaperManager.setWallpaperZoomOut(windowToken, depth);
         }
 
         if (!BlurUtils.supportsBlursOnWindows()) {
@@ -233,12 +223,7 @@ public class BaseDepthController {
         boolean hasOpaqueBg = mLauncher.getScrimView().isFullyOpaque();
         boolean isSurfaceOpaque = !mHasContentBehindLauncher && hasOpaqueBg && !mPauseBlurs;
 
-        float blurAmount;
-        if (enableScalingRevealHomeAnimation()) {
-            blurAmount = mapDepthToBlur(depth);
-        } else {
-            blurAmount = depth;
-        }
+        float blurAmount = mapDepthToBlur(depth);
         SurfaceControl blurSurface =
                 enableOverviewBackgroundWallpaperBlur() && mBlurSurface != null ? mBlurSurface
                         : mBaseSurface;

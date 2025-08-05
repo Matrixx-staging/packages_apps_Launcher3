@@ -147,13 +147,6 @@ flag {
 }
 
 flag {
-    name: "enable_scaling_reveal_home_animation"
-    namespace: "launcher"
-    description: "Enables the Home gesture animation"
-    bug: "308801666"
-}
-
-flag {
     name: "enable_widget_tap_to_add"
     namespace: "launcher"
     description: "Enables an add button in the widget picker"

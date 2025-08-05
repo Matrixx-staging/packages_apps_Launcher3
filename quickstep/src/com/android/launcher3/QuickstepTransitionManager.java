@@ -46,7 +46,6 @@ import static com.android.launcher3.BaseActivity.INVISIBLE_ALL;
 import static com.android.launcher3.BaseActivity.INVISIBLE_BY_APP_TRANSITIONS;
 import static com.android.launcher3.BaseActivity.INVISIBLE_BY_PENDING_FLAGS;
 import static com.android.launcher3.BaseActivity.PENDING_INVISIBLE_BY_WALLPAPER_ANIMATION;
-import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.Flags.refactorTaskbarUiState;
 import static com.android.launcher3.Flags.syncAppLaunchWithTaskbarStash;
 import static com.android.launcher3.LauncherAnimUtils.SCALE_PROPERTY;
@@ -135,7 +134,6 @@ import com.android.launcher3.testing.shared.ResourceUtils;
 import com.android.launcher3.touch.PagedOrientationHandler;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.ActivityOptionsWrapper;
-import com.android.launcher3.util.DynamicResource;
 import com.android.launcher3.util.RunnableList;
 import com.android.launcher3.util.StableViewInfo;
 import com.android.launcher3.views.FloatingIconView;
@@ -152,7 +150,6 @@ import com.android.quickstep.util.RectFSpringAnim;
 import com.android.quickstep.util.RectFSpringAnim.DefaultSpringConfig;
 import com.android.quickstep.util.RectFSpringAnim.TaskbarHotseatSpringConfig;
 import com.android.quickstep.util.ScalingWorkspaceRevealAnim;
-import com.android.quickstep.util.StaggeredWorkspaceAnim;
 import com.android.quickstep.util.SurfaceTransaction;
 import com.android.quickstep.util.SurfaceTransaction.SurfaceProperties;
 import com.android.quickstep.util.SurfaceTransactionApplier;
@@ -369,7 +366,6 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         // app transition is created.
         LauncherTaskbarUIController taskbarController = mLauncher.getTaskbarUIController();
         if (syncAppLaunchWithTaskbarStash()
-                && enableScalingRevealHomeAnimation()
                 && mLauncher.getStateManager().getState() == NORMAL
                 && taskbarController != null) {
             taskbarController.setIgnoreInAppFlagForSync(true);
@@ -1751,33 +1747,19 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         boolean playWorkspaceReveal = true;
         boolean skipAllAppsScale = false;
         if (!playFallBackAnimation) {
-            PointF velocity;
-            if (enableScalingRevealHomeAnimation()) {
-                velocity = new PointF();
-            } else {
-                // Use a fixed velocity to start the animation.
-                float velocityPxPerS = DynamicResource.provider(mLauncher)
-                        .getDimension(R.dimen.unlock_staggered_velocity_dp_per_s);
-                velocity = new PointF(0, -velocityPxPerS);
-            }
             rectFSpringAnim = getClosingWindowAnimators(
-                    anim, appTargets, launcherView, velocity, startRect,
+                    anim, appTargets, launcherView, new PointF(), startRect,
                     startWindowCornerRadius);
             if (mLauncher.isInState(LauncherState.ALL_APPS)) {
                 // Skip scaling all apps, otherwise FloatingIconView will get wrong
                 // layout bounds.
                 skipAllAppsScale = true;
             } else {
-                if (enableScalingRevealHomeAnimation()) {
-                    anim.play(
-                            new ScalingWorkspaceRevealAnim(mLauncher, rectFSpringAnim,
-                                    rectFSpringAnim.getTargetRect(),
-                                    !fromPredictiveBack /* playAlphaReveal */,
-                                    true /* playBlur */).getAnimators());
-                } else {
-                    anim.play(new StaggeredWorkspaceAnim(mLauncher, velocity.y,
-                            true /* animateOverviewScrim */, launcherView).getAnimators());
-                }
+                anim.play(
+                        new ScalingWorkspaceRevealAnim(mLauncher, rectFSpringAnim,
+                                rectFSpringAnim.getTargetRect(),
+                                !fromPredictiveBack /* playAlphaReveal */,
+                                true /* playBlur */).getAnimators());
 
                 // We play StaggeredWorkspaceAnim as a part of the closing window animation.
                 playWorkspaceReveal = false;
@@ -1863,7 +1845,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
             boolean isPersistentTaskbarAndNotInDesktopMode) {
         if (isPersistentTaskbarAndNotInDesktopMode) {
             return PINNED_TASKBAR_TRANSITION_DURATION;
-        } else if (enableScalingRevealHomeAnimation() && !shouldOverrideToFastAnimation) {
+        } else if (!shouldOverrideToFastAnimation) {
             return TASKBAR_TO_HOME_DURATION_SLOW;
         } else {
             return TASKBAR_TO_HOME_DURATION_FAST;
@@ -1965,7 +1947,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
             }
 
             // Syncs the app launch animation and taskbar stash animation (if exists).
-            if (syncAppLaunchWithTaskbarStash() && enableScalingRevealHomeAnimation()) {
+            if (syncAppLaunchWithTaskbarStash()) {
                 LauncherTaskbarUIController taskbarController = mLauncher.getTaskbarUIController();
                 if (taskbarController != null) {
                     taskbarController.setIgnoreInAppFlagForSync(false);

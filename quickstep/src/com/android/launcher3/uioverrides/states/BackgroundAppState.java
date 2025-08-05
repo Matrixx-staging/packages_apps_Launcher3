@@ -15,7 +15,6 @@
  */
 package com.android.launcher3.uioverrides.states;
 
-import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_BACKGROUND;
 
 import android.content.Context;
@@ -104,10 +103,8 @@ public class BackgroundAppState extends OverviewState {
         if (Launcher.getLauncher(context).areDesktopTasksVisible()) {
             // Don't blur the background while desktop tasks are visible
             return BaseDepthController.DEPTH_0_PERCENT;
-        } else if (enableScalingRevealHomeAnimation()) {
-            return BaseDepthController.DEPTH_70_PERCENT;
         } else {
-            return 1f;
+            return BaseDepthController.DEPTH_70_PERCENT;
         }
     }
 

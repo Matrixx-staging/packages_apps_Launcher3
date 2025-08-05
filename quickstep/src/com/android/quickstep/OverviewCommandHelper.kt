@@ -296,8 +296,8 @@ constructor(
             }
             HOME -> {
                 if (displaySupportsHomeGesture(command.displayId)) {
-                    recentsView.startHome()
-                    true
+                    recentsView.startHome { onCallbackResult() }
+                    false
                 } else {
                     // TODO: b/378443899 - Add animation for reject home transition.
                     true

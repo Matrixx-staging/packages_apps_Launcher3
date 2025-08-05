@@ -63,10 +63,12 @@ import com.android.launcher3.util.ActivityContextWrapper;
 import com.android.launcher3.util.UserIconInfo;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -104,6 +106,9 @@ public class PrivateSpaceHeaderViewTest {
     private RelativeLayout mPsHeaderLayout;
     private AlphabeticalAppsList<?> mAlphabeticalAppsList;
     private PrivateProfileManager mPrivateProfileManager;
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
     @Mock
     private ActivityAllAppsContainerView mAllApps;
     @Mock
@@ -117,7 +122,6 @@ public class PrivateSpaceHeaderViewTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
         mContext = new ActivityContextWrapper(getApplicationContext(),
                 R.style.DynamicColorsBaseLauncherTheme);
         when(mAllApps.getContext()).thenReturn(mContext);

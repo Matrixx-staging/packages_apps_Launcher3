@@ -49,7 +49,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.util.Arrays;
 
@@ -58,6 +59,8 @@ import java.util.Arrays;
 public class ActivityAllAppsContainerViewTest {
 
     private static final UserHandle WORK_HANDLE = new UserHandle(13);
+
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
     @Mock
     private StatsLogManager mStatsLogManager;
     @Mock
@@ -73,7 +76,6 @@ public class ActivityAllAppsContainerViewTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
         mContext = new ActivityContextWrapper(getApplicationContext());
         mActivityAllAppsContainerView = new ActivityAllAppsContainerView(mContext);
         when(mUserCache.getUserProfiles())

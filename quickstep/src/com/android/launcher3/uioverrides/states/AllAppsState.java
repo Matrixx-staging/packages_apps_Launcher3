@@ -16,7 +16,6 @@
 package com.android.launcher3.uioverrides.states;
 
 import static com.android.app.animation.Interpolators.DECELERATE_2;
-import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_ALLAPPS;
 
 import android.content.Context;
@@ -140,14 +139,9 @@ public class AllAppsState extends LauncherState {
             return context.getDeviceProfile().getBottomSheetProfile().getBottomSheetDepth();
         } else {
             // The scrim fades in at approximately 50% of the swipe gesture.
-            if (enableScalingRevealHomeAnimation()) {
-                // This means that the depth should be twice of what we want, in order to fully zoom
-                // out during the visible portion of the animation.
-                return BaseDepthController.DEPTH_60_PERCENT;
-            } else {
-                // This means that the depth should be greater than 1, in order to fully zoom out.
-                return 2f;
-            }
+            // The depth should be twice of what we want, in order to fully zoom out during the
+            // visible portion of the animation.
+            return BaseDepthController.DEPTH_60_PERCENT;
         }
     }
 

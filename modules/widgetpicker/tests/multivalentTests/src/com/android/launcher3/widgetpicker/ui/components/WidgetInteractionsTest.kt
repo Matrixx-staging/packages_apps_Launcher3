@@ -40,14 +40,15 @@ import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performMouseInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.launcher3.widgetpicker.TestUtils
 import com.android.launcher3.widgetpicker.TestUtils.PERSONAL_TEST_APPS
-import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 import com.android.launcher3.widgetpicker.shared.model.isAppWidget
 import com.android.launcher3.widgetpicker.ui.WidgetInteractionInfo
 import com.android.launcher3.widgetpicker.ui.WidgetInteractionSource
 import com.android.launcher3.widgetpicker.ui.model.WidgetSizeGroup
+import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -86,7 +87,8 @@ class WidgetInteractionsTest {
         val widgetInfo = WIDGET_ONE.widgetInfo
         check(widgetInfo.isAppWidget())
         // widget interaction callback invoked and correct provider info returned.
-        composeTestRule.onNodeWithText(widgetInfo.appWidgetProviderInfo.provider.toString())
+        composeTestRule
+            .onNodeWithText(widgetInfo.appWidgetProviderInfo.provider.toString())
             .assertExists()
 
         // tap again on preview for widget 1
@@ -143,6 +145,131 @@ class WidgetInteractionsTest {
             .assertExists()
     }
 
+    @Test
+    fun hoverPreviewAndDetails_showsAddButton() {
+        composeTestRule.setContent { TapToAddTestComposable() }
+
+        composeTestRule.waitForIdle()
+
+        // Initially no add button
+        composeTestRule.onAllNodesWithText(ADD_BUTTON_TEXT).assertCountEquals(0)
+
+        // hover on preview for widget 1
+        composeTestRule
+            .onAllNodesWithTag(PREVIEW_TEST_TAG)
+            .assertCountEquals(2)
+            .onFirst()
+            .performMouseInput { enter(center) }
+
+        composeTestRule.waitForIdle()
+
+        // Widget 1 - Add button is shown and label text is not shown.
+        composeTestRule.onNodeWithText(WIDGET_ONE.label).isNotDisplayed()
+        composeTestRule.onAllNodesWithText(ADD_BUTTON_TEXT).assertCountEquals(1)
+        composeTestRule
+            .onNodeWithContentDescription(WIDGET_ONE_ADD_BUTTON_CONTENT_DESC)
+            .assertExists()
+
+        // un-hover on preview for widget 1
+        composeTestRule
+            .onAllNodesWithTag(PREVIEW_TEST_TAG)
+            .assertCountEquals(2)
+            .onFirst()
+            .performMouseInput { exit() }
+
+        composeTestRule.waitForIdle()
+
+        // No add button
+        composeTestRule.onAllNodesWithText(ADD_BUTTON_TEXT).assertCountEquals(0)
+
+        // hover on details for widget 1
+        composeTestRule
+            .onAllNodesWithTag(DETAILS_TEST_TAG)
+            .assertCountEquals(2)
+            .onFirst()
+            .performMouseInput { enter(center) }
+
+        composeTestRule.waitForIdle()
+
+        // Add button is shown for widget 1
+        composeTestRule.onAllNodesWithText(ADD_BUTTON_TEXT).assertCountEquals(1)
+        composeTestRule
+            .onNodeWithContentDescription(WIDGET_ONE_ADD_BUTTON_CONTENT_DESC)
+            .assertExists()
+
+        // un-hover on details for widget 1
+        composeTestRule
+            .onAllNodesWithTag(DETAILS_TEST_TAG)
+            .assertCountEquals(2)
+            .onFirst()
+            .performMouseInput { exit() }
+
+        composeTestRule.waitForIdle()
+
+        // No add button
+        composeTestRule.onAllNodesWithText(ADD_BUTTON_TEXT).assertCountEquals(0)
+    }
+
+    @Test
+    fun tapPreview_hoverPreviewOther_showsAddButtonsOnBoth() {
+        composeTestRule.setContent { TapToAddTestComposable() }
+
+        composeTestRule.waitForIdle()
+
+        // Initially no add button
+        composeTestRule.onAllNodesWithText(ADD_BUTTON_TEXT).assertCountEquals(0)
+
+        // tap on preview for widget 1
+        composeTestRule
+            .onAllNodesWithTag(PREVIEW_TEST_TAG)
+            .assertCountEquals(2)
+            .onFirst()
+            .performClick()
+
+        composeTestRule.waitForIdle()
+
+        // widget 1 - Add button is shown and label text is not shown.
+        composeTestRule.onNodeWithText(WIDGET_ONE.label).isNotDisplayed()
+        composeTestRule.onAllNodesWithText(ADD_BUTTON_TEXT).assertCountEquals(1)
+        composeTestRule
+            .onNodeWithContentDescription(WIDGET_ONE_ADD_BUTTON_CONTENT_DESC)
+            .assertExists()
+
+        // hover on preview for widget 2
+        composeTestRule
+            .onAllNodesWithTag(PREVIEW_TEST_TAG)
+            .assertCountEquals(2)
+            .onLast()
+            .performMouseInput { enter(center) }
+
+        composeTestRule.waitForIdle()
+
+        // Add buttons are shown for both widget 1 and 2. Label texts are not shown for both.
+        composeTestRule.onNodeWithText(WIDGET_ONE.label).isNotDisplayed()
+        composeTestRule.onNodeWithText(WIDGET_TWO.label).isNotDisplayed()
+        composeTestRule.onAllNodesWithText(ADD_BUTTON_TEXT).assertCountEquals(2)
+        composeTestRule
+            .onNodeWithContentDescription(WIDGET_ONE_ADD_BUTTON_CONTENT_DESC)
+            .assertExists()
+        composeTestRule
+            .onNodeWithContentDescription(WIDGET_TWO_ADD_BUTTON_CONTENT_DESC)
+            .assertExists()
+
+        // un-hover on preview for widget 2
+        composeTestRule
+            .onAllNodesWithTag(PREVIEW_TEST_TAG)
+            .assertCountEquals(2)
+            .onLast()
+            .performMouseInput { exit() }
+
+        composeTestRule.waitForIdle()
+
+        // Now, only widget 1 still shows Add button and no label. Widget 2 shows label text.
+        composeTestRule.onAllNodesWithText(ADD_BUTTON_TEXT).assertCountEquals(1)
+        composeTestRule.onNodeWithText(WIDGET_ONE.label).isNotDisplayed()
+        composeTestRule.onNodeWithText(WIDGET_TWO.label).isDisplayed()
+    }
+
     @Composable
     fun TapToAddTestComposable() {
         var provider by remember { mutableStateOf("invalid") }
@@ -161,7 +288,7 @@ class WidgetInteractionsTest {
                     onWidgetInteraction = { widgetInteractionInfo ->
                         if (
                             widgetInteractionInfo is WidgetInteractionInfo.WidgetAddInfo &&
-                            widgetInteractionInfo.source == WidgetInteractionSource.BROWSE
+                                widgetInteractionInfo.source == WidgetInteractionSource.BROWSE
                         ) {
                             val widgetInfo = widgetInteractionInfo.widgetInfo
                             check(widgetInfo.isAppWidget())
@@ -191,6 +318,7 @@ class WidgetInteractionsTest {
             )
 
         private val PREVIEW_TEST_TAG = buildWidgetPickerTestTag("widget_preview")
+        private val DETAILS_TEST_TAG = buildWidgetPickerTestTag("widget_details")
         private const val ADD_BUTTON_TEXT = "Add"
         private val WIDGET_ONE_ADD_BUTTON_CONTENT_DESC = "Add ${WIDGET_ONE.label} widget"
         private val WIDGET_TWO_ADD_BUTTON_CONTENT_DESC = "Add ${WIDGET_TWO.label} widget"

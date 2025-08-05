@@ -18,7 +18,6 @@ package com.android.quickstep;
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_HOME;
 import static android.view.Display.DEFAULT_DISPLAY;
 
-import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.NavigationMode.NO_BUTTON;
 import static com.android.quickstep.GestureState.GestureEndTarget.RECENTS;
@@ -349,7 +348,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
         // Notify taskbar that we should skip reacting to launcher visibility change to
         // avoid a jumping taskbar.
         TaskbarUIController taskbarUIController = containerInterface.getTaskbarController();
-        if (enableScalingRevealHomeAnimation() && taskbarUIController != null) {
+        if (taskbarUIController != null) {
             taskbarUIController.setSkipLauncherVisibilityChange(true);
 
             mCallbacks.addListener(new RecentsAnimationCallbacks.RecentsAnimationListener() {
