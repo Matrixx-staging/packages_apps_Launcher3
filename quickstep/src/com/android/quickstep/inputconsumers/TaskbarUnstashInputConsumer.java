@@ -21,7 +21,6 @@ import static android.view.RoundedCorner.POSITION_BOTTOM_LEFT;
 import static android.view.RoundedCorner.POSITION_BOTTOM_RIGHT;
 
 import static com.android.launcher3.Flags.enableCursorHoverStates;
-import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMotionEvent;
 import static com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_TOUCHING;
 import static com.android.systemui.shared.Flags.cursorHotCorner;
@@ -152,7 +151,7 @@ public class TaskbarUnstashInputConsumer extends DelegateInputConsumer {
 
     @Override
     public void onMotionEvent(MotionEvent ev) {
-        if (enableScalingRevealHomeAnimation() && mIsTransientTaskbar) {
+        if (mIsTransientTaskbar) {
             checkVelocityForTaskbarBackground(ev);
         }
         if (mState != STATE_ACTIVE) {
