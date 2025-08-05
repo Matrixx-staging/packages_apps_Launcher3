@@ -237,10 +237,101 @@ constructor(
         }
     }
 
+    private fun createWindowView() {
+        theme.applyStyle(overviewBlurStyleResId, true)
+        if (windowView != null) {
+            return
+        }
+
+        windowView = layoutInflater.inflate(R.layout.fallback_recents_activity, null)
+        windowView?.let { it ->
+            actionsView = it.findViewById(R.id.overview_actions_view)
+            recentsView =
+                it.findViewById<FallbackRecentsView<RecentsWindowManager>?>(R.id.overview_panel)
+                    ?.apply {
+                        init(
+                            actionsView,
+                            splitSelectStateController,
+                            DesktopRecentsTransitionController(
+                                stateManager,
+                                systemUiProxy,
+                                iApplicationThread,
+                                /* depthController= */ null,
+                            ),
+                        )
+                    }
+            actionsView?.apply {
+                updateDimension(getDeviceProfile(), recentsView?.lastComputedTaskSize)
+                updateVerticalMargin(DisplayController.getNavigationMode(this@RecentsWindowManager))
+            }
+            scrimView = it.findViewById(R.id.scrim_view)
+            dragLayer = it.findViewById(R.id.drag_layer)
+
+            it.systemUiVisibility =
+                (View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
+
+            surfaceControlViewHost = SurfaceControlViewHost(this, display, null as IBinder?)
+            windowRootView.addView(it)
+            surfaceControlViewHost?.let { scvh ->
+                scvh.setView(windowRootView, getWindowLayoutParams())
+                scvh.surfacePackage?.let { surfacePackage ->
+                    getOverviewOverlay()?.let { overviewOverlay ->
+                        Transaction()
+                            .reparent(surfacePackage.surfaceControl, overviewOverlay)
+                            .show(surfacePackage.surfaceControl)
+                            .apply(true)
+                    }
+                        ?: run {
+                            Log.e(
+                                TAG,
+                                "OverviewOverlay is null, can't reparent surface",
+                                Exception(),
+                            )
+                        }
+                }
+                    ?: run {
+                        Log.e(TAG, "SurfaceControlViewHost.SurfacePackage is null", Exception())
+                    }
+            }
+
+            it.findOnBackInvokedDispatcher()
+                ?.registerSystemOnBackInvokedCallback(
+                    if (enablePredictiveBackInOverview()) {
+                        onBackAnimationCallback
+                    } else {
+                        onBackInvokedCallback
+                    }
+                )
+
+            recentsWindowTracker.handleCreate(this)
+            onViewCreated()
+        }
+        systemUiController = SystemUiController(windowView)
+    }
+
     init {
         fallbackWindowInterface.setRecentsWindowManager(this)
         if (displayId == DEFAULT_DISPLAY) {
             homeVisibilityState.addListener(homeVisibilityListener)
+        }
+
+        // create window view so that recentsView and dragLayer can be used for split select
+        // animation in external displays.
+        createWindowView()
+
+        // Hide the views so it doesn't show up on the screen.
+        AbstractFloatingView.closeAllOpenViews(this, /* animate= */ false)
+        recentsView?.viewRootImpl?.touchModeChanged(true)
+        windowRootView.visibility = View.GONE
+
+        if (
+            DesktopExperienceFlags.ENABLE_NON_DEFAULT_DISPLAY_SPLIT_BUGFIX.isTrue &&
+                displayId != DEFAULT_DISPLAY &&
+                DesktopState.fromContext(this).canEnterDesktopModeOrShowAppHandle
+        ) {
+            splitSelectStateController.initSplitFromDesktopController(this)
         }
     }
 
@@ -307,75 +398,7 @@ constructor(
         if (isShowing()) {
             return
         }
-        theme.applyStyle(overviewBlurStyleResId, true)
-        if (windowView == null) {
-            windowView = layoutInflater.inflate(R.layout.fallback_recents_activity, null)
-            windowView?.let { it ->
-                actionsView = it.findViewById(R.id.overview_actions_view)
-                recentsView =
-                    it.findViewById<FallbackRecentsView<RecentsWindowManager>?>(R.id.overview_panel)
-                        ?.apply {
-                            init(
-                                actionsView,
-                                splitSelectStateController,
-                                DesktopRecentsTransitionController(
-                                    stateManager,
-                                    systemUiProxy,
-                                    iApplicationThread,
-                                    /* depthController= */ null,
-                                ),
-                            )
-                        }
-                actionsView?.apply {
-                    updateDimension(getDeviceProfile(), recentsView?.lastComputedTaskSize)
-                    updateVerticalMargin(
-                        DisplayController.getNavigationMode(this@RecentsWindowManager)
-                    )
-                }
-                scrimView = it.findViewById(R.id.scrim_view)
-                dragLayer = it.findViewById(R.id.drag_layer)
 
-                it.systemUiVisibility =
-                    (View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                        View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                        View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
-
-                surfaceControlViewHost = SurfaceControlViewHost(this, display, null as IBinder?)
-                windowRootView.addView(it)
-                surfaceControlViewHost?.let { scvh ->
-                    scvh.setView(windowRootView, getWindowLayoutParams())
-                    scvh.surfacePackage?.let { surfacePackage ->
-                        Transaction()
-                            .reparent(surfacePackage.surfaceControl, getOverviewOverlay())
-                            .show(surfacePackage.surfaceControl)
-                            .apply(true)
-                    }
-                        ?: run {
-                            Log.e(TAG, "SurfaceControlViewHost.SurfacePackage is null", Exception())
-                        }
-                }
-
-                it.findOnBackInvokedDispatcher()
-                    ?.registerSystemOnBackInvokedCallback(
-                        if (enablePredictiveBackInOverview()) {
-                            onBackAnimationCallback
-                        } else {
-                            onBackInvokedCallback
-                        }
-                    )
-
-                recentsWindowTracker.handleCreate(this)
-                onViewCreated()
-            }
-            systemUiController = SystemUiController(windowView)
-            if (
-                DesktopExperienceFlags.ENABLE_NON_DEFAULT_DISPLAY_SPLIT_BUGFIX.isTrue &&
-                    displayId != DEFAULT_DISPLAY &&
-                    DesktopState.fromContext(this).canEnterDesktopModeOrShowAppHandle
-            ) {
-                splitSelectStateController.initSplitFromDesktopController(this)
-            }
-        }
         windowRootView.visibility = View.VISIBLE
 
         this.callbacks = callbacks
