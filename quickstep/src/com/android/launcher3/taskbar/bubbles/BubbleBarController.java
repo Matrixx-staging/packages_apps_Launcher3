@@ -123,8 +123,6 @@ public class BubbleBarController {
     private BubbleBarViewController mBubbleBarViewController;
     private BubbleStashController mBubbleStashController;
     private Optional<BubbleStashedHandleViewController> mBubbleStashedHandleViewController;
-    private BubblePinController mBubblePinController;
-    private DragToBubbleController mDragToBubbleController;
     private BubbleCreator mBubbleCreator;
     private BubbleBarLocationListener mBubbleBarLocationListener;
 
@@ -213,9 +211,7 @@ public class BubbleBarController {
         mBubbleBarViewController = bubbleControllers.bubbleBarViewController;
         mBubbleStashController = bubbleControllers.bubbleStashController;
         mBubbleStashedHandleViewController = bubbleControllers.bubbleStashedHandleViewController;
-        mBubblePinController = bubbleControllers.bubblePinController;
         mBubbleCreator = bubbleControllers.bubbleCreator;
-        mDragToBubbleController = bubbleControllers.dragToBubbleController;
         mBubbleBarLocationListener = bubbleBarLocationListener;
 
         bubbleControllers.runAfterInit(() -> {
@@ -563,9 +559,6 @@ public class BubbleBarController {
             if (update.bubbleBarLocation != mBubbleBarViewController.getBubbleBarLocation()) {
                 updateBubbleBarLocationInternal(update.bubbleBarLocation);
             }
-        }
-        if (update.expandedViewDropTargetSize != null) {
-            mBubblePinController.setDropTargetSize(update.expandedViewDropTargetSize);
         }
     }
 

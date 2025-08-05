@@ -42,8 +42,6 @@ public class BubbleControllers {
     public final Optional<BubbleStashedHandleViewController> bubbleStashedHandleViewController;
     public final BubbleDragController bubbleDragController;
     public final BubbleDismissController bubbleDismissController;
-    public final BubbleBarPinController bubbleBarPinController;
-    public final BubblePinController bubblePinController;
     public final Optional<BubbleBarSwipeController> bubbleBarSwipeController;
     public final BubbleCreator bubbleCreator;
     public final DragToBubbleController dragToBubbleController;
@@ -62,8 +60,6 @@ public class BubbleControllers {
             Optional<BubbleStashedHandleViewController> bubbleStashedHandleViewController,
             BubbleDragController bubbleDragController,
             BubbleDismissController bubbleDismissController,
-            BubbleBarPinController bubbleBarPinController,
-            BubblePinController bubblePinController,
             Optional<BubbleBarSwipeController> bubbleBarSwipeController,
             DragToBubbleController dragToBubbleController,
             BubbleCreator bubbleCreator) {
@@ -73,8 +69,6 @@ public class BubbleControllers {
         this.bubbleStashedHandleViewController = bubbleStashedHandleViewController;
         this.bubbleDragController = bubbleDragController;
         this.bubbleDismissController = bubbleDismissController;
-        this.bubbleBarPinController = bubbleBarPinController;
-        this.bubblePinController = bubblePinController;
         this.bubbleBarSwipeController = bubbleBarSwipeController;
         this.bubbleCreator = bubbleCreator;
         this.dragToBubbleController = dragToBubbleController;
@@ -120,8 +114,6 @@ public class BubbleControllers {
                 });
         bubbleDragController.init(/* bubbleControllers = */ this, bubbleBarLocationListeners);
         bubbleDismissController.init(/* bubbleControllers = */ this);
-        bubbleBarPinController.init(this, bubbleBarLocationListeners);
-        bubblePinController.init(this);
         bubbleBarSwipeController.ifPresent(c -> c.init(this));
         dragToBubbleController.init(bubbleBarViewController,
                 new DragZoneFactory.BubbleBarPropertiesProvider() {
