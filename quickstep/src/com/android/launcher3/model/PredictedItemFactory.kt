@@ -36,6 +36,7 @@ import com.android.launcher3.icons.IconCache
 import com.android.launcher3.icons.cache.CacheLookupFlag
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.ItemInfo
+import com.android.launcher3.model.data.PredictedItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.shortcuts.ShortcutKey
@@ -63,15 +64,16 @@ constructor(
 ) : ItemFactory<ItemInfo> {
 
     private val quietModeCache = mutableMapOf<UserHandle, Boolean>()
+
     // Number of items persisted can be different than what is needed if the grid changed between
     // the two operations
     private var readCount = 0
 
-    override fun createInfo(itemType: Int, user: UserHandle, intent: Intent): ItemInfo? {
+    override fun createInfo(itemType: Int, user: UserHandle, intent: Intent): PredictedItemInfo? {
         if (readCount >= maxItemCount) {
             return null
         }
-        when (itemType) {
+        return when (itemType) {
             Favorites.ITEM_TYPE_APPLICATION -> {
                 val lai =
                     context
@@ -92,7 +94,7 @@ constructor(
                 info.container = predictorState.containerId
                 iconCache.getTitleAndIcon(info, lai, predictorState.lookupFlag)
                 readCount++
-                return info.makeWorkspaceItem(context)
+                return PredictedItemInfo(info.makeWorkspaceItem(context))
             }
 
             Favorites.ITEM_TYPE_DEEP_SHORTCUT -> {
@@ -104,10 +106,11 @@ constructor(
                 wii.container = predictorState.containerId
                 iconCache.getShortcutIcon(wii, si)
                 readCount++
-                return wii
+                return PredictedItemInfo(wii)
             }
+
+            else -> null
         }
-        return null
     }
 
     @AssistedFactory
