@@ -22,7 +22,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -93,6 +95,8 @@ import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
  * @param showAddButton when set, displays the add button instead of details.
  * @param widgetInteractionSource section in which this widget is being displayed
  * @param onWidgetAddClick callback when user clicks on the add button to add the widget
+ * @param onClick callback when user clicks on the details of a widget.
+ * @param onHoverChange callback when user hovers on the details of a widget.
  * @param modifier modifier for the top level composable.
  */
 @Composable
@@ -103,7 +107,8 @@ fun WidgetDetails(
     showAddButton: Boolean,
     widgetInteractionSource: WidgetInteractionSource,
     onWidgetAddClick: (WidgetInteractionInfo.WidgetAddInfo) -> Unit,
-    onAddButtonToggle: (WidgetId) -> Unit,
+    onClick: (WidgetId) -> Unit,
+    onHoverChange: (Boolean) -> Unit,
     modifier: Modifier,
 ) {
     val haptic = LocalHapticFeedback.current
@@ -115,6 +120,8 @@ fun WidgetDetails(
             widget.sizeInfo.spanX,
             widget.sizeInfo.spanY,
         )
+
+    val isHovered by interactionSource.collectIsHoveredAsState()
 
     val detailsAlpha: Float by
         animateFloatAsState(
@@ -135,6 +142,8 @@ fun WidgetDetails(
     // be confused on what the outer click corresponds to; so we don't allow focus on this item.
     // Touch users can still click it to toggle add button.
     val detailsContainerFocusModifier = Modifier.focusProperties { canFocus = !showAddButton }
+
+    LaunchedEffect(isHovered) { onHoverChange(isHovered) }
 
     Box(
         contentAlignment = Alignment.Center,
@@ -159,7 +168,7 @@ fun WidgetDetails(
                     indication = null,
                 ) {
                     haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-                    onAddButtonToggle(widget.id)
+                    onClick(widget.id)
                 }
                 .padding(horizontal = WidgetDetailsDimensions.horizontalPadding)
                 .padding(
@@ -184,13 +193,14 @@ fun WidgetDetails(
                 appIcon = appIcon,
                 modifier =
                     Modifier.semantics {
-                        this.contentDescription =
-                            if (showAllDetails) {
-                                widget.label
-                            } else {
-                                widgetLabelContentDescription
-                            }
-                    },
+                            this.contentDescription =
+                                if (showAllDetails) {
+                                    widget.label
+                                } else {
+                                    widgetLabelContentDescription
+                                }
+                        }
+                        .hoverable(interactionSource = interactionSource),
             )
             if (showAllDetails) {
                 WidgetSpanSizeLabel(spanX = widget.sizeInfo.spanX, spanY = widget.sizeInfo.spanY)
