@@ -73,6 +73,8 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.never
+import org.mockito.kotlin.reset
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
@@ -270,6 +272,23 @@ class PreviewItemManagerTest {
         callbackCaptor.firstValue.reapplyItemInfo(folderItems[3])
         assertThat(drawingParams.drawable.getDelegate())
             .isNotInstanceOf(PlaceHolderDrawableDelegate::class.java)
+    }
+
+    @Test
+    fun `prevent recursive calls when loading high res icon`() {
+        val drawingParams = PreviewItemDrawingParams(0f, 0f, 0f)
+        folderItems[3].bitmap = BitmapInfo.LOW_RES_INFO
+
+        // Setting low res icon will trigger update
+        previewItemManager.setDrawable(drawingParams, folderItems[3])
+        val callbackCaptor = argumentCaptor<ItemInfoUpdateReceiver>()
+        verify(iconCache)
+            .updateIconInBackground(callbackCaptor.capture(), eq(folderItems[3]), any())
+
+        reset(iconCache)
+        callbackCaptor.firstValue.reapplyItemInfo(folderItems[3])
+        // Verify that no new update calls are made, if the cache returns the same low-res icon
+        verify(iconCache, never()).updateIconInBackground(any(), any(), any())
     }
 
     private fun profileFlagOp(type: Int) =
