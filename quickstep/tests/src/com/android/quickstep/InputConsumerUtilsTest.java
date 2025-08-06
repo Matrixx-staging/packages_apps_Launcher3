@@ -46,14 +46,12 @@ import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.taskbar.TaskbarActivityContext;
 import com.android.launcher3.taskbar.TaskbarManager;
 import com.android.launcher3.taskbar.bubbles.BubbleBarController;
-import com.android.launcher3.taskbar.bubbles.BubbleBarPinController;
 import com.android.launcher3.taskbar.bubbles.BubbleBarSwipeController;
 import com.android.launcher3.taskbar.bubbles.BubbleBarViewController;
 import com.android.launcher3.taskbar.bubbles.BubbleControllers;
 import com.android.launcher3.taskbar.bubbles.BubbleCreator;
 import com.android.launcher3.taskbar.bubbles.BubbleDismissController;
 import com.android.launcher3.taskbar.bubbles.BubbleDragController;
-import com.android.launcher3.taskbar.bubbles.BubblePinController;
 import com.android.launcher3.taskbar.bubbles.BubbleStashedHandleViewController;
 import com.android.launcher3.taskbar.bubbles.DragToBubbleController;
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController;
@@ -607,8 +605,6 @@ public class InputConsumerUtilsTest {
                 mock(BubbleStashedHandleViewController.class);
         BubbleDragController bubbleDragController = mock(BubbleDragController.class);
         BubbleDismissController bubbleDismissController = mock(BubbleDismissController.class);
-        BubbleBarPinController bubbleBarPinController = mock(BubbleBarPinController.class);
-        BubblePinController bubblePinController = mock(BubblePinController.class);
         BubbleBarSwipeController bubbleBarSwipeController = mock(BubbleBarSwipeController.class);
         DragToBubbleController dragToBubbleController = mock(DragToBubbleController.class);
         BubbleCreator bubbleCreator = mock(BubbleCreator.class);
@@ -619,8 +615,6 @@ public class InputConsumerUtilsTest {
                 Optional.of(bubbleStashedHandleViewController),
                 bubbleDragController,
                 bubbleDismissController,
-                bubbleBarPinController,
-                bubblePinController,
                 Optional.of(bubbleBarSwipeController),
                 dragToBubbleController,
                 bubbleCreator);

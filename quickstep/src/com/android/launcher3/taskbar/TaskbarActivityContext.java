@@ -128,7 +128,6 @@ import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.AutohideSu
 import com.android.launcher3.taskbar.TaskbarTranslationController.TransitionCallback;
 import com.android.launcher3.taskbar.allapps.TaskbarAllAppsController;
 import com.android.launcher3.taskbar.bubbles.BubbleBarController;
-import com.android.launcher3.taskbar.bubbles.BubbleBarPinController;
 import com.android.launcher3.taskbar.bubbles.BubbleBarSwipeController;
 import com.android.launcher3.taskbar.bubbles.BubbleBarView;
 import com.android.launcher3.taskbar.bubbles.BubbleBarViewController;
@@ -136,7 +135,6 @@ import com.android.launcher3.taskbar.bubbles.BubbleControllers;
 import com.android.launcher3.taskbar.bubbles.BubbleCreator;
 import com.android.launcher3.taskbar.bubbles.BubbleDismissController;
 import com.android.launcher3.taskbar.bubbles.BubbleDragController;
-import com.android.launcher3.taskbar.bubbles.BubblePinController;
 import com.android.launcher3.taskbar.bubbles.BubbleStashedHandleViewController;
 import com.android.launcher3.taskbar.bubbles.DragToBubbleController;
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController;
@@ -352,8 +350,6 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                     bubbleHandleController,
                     new BubbleDragController(this, mWindowContext, mDragLayer, mTaskbarUiState),
                     new BubbleDismissController(this, mDragLayer),
-                    new BubbleBarPinController(this, bubbleBarContainer, this::getScreenSize),
-                    new BubblePinController(this, bubbleBarContainer, this::getScreenSize),
                     bubbleBarSwipeController,
                     new DragToBubbleController(mWindowContext, bubbleBarContainer),
                     new BubbleCreator(this)
