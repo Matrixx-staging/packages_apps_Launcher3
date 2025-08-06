@@ -64,7 +64,7 @@
     <string name="back_gesture_tutorial_subtitle" msgid="6639993416000920142">"Prijeđite prstom od lijevog ili desnog ruba do sredine zaslona"</string>
     <string name="home_gesture_feedback_swipe_too_far_from_edge" msgid="4816365433160895458">"Pazite da prijeđete prstom prema gore od donjeg ruba zaslona"</string>
     <string name="home_gesture_feedback_overview_detected" msgid="5177627157303895077">"Pazite da ne zastanete prije podizanja prsta"</string>
-    <string name="home_gesture_feedback_wrong_swipe_direction" msgid="8328465201424027148">"Pazite da prijeđete prstom ravno prema gore"</string>
+    <string name="home_gesture_feedback_wrong_swipe_direction" msgid="8328465201424027148">"Prijeđite prstom ravno prema gore"</string>
     <string name="home_gesture_feedback_complete_with_follow_up" msgid="8766981412895888417">"Napravili ste pokret za otvaranje početnog zaslona. Sad saznajte kako se vratiti."</string>
     <string name="home_gesture_feedback_complete_without_follow_up" msgid="2978063221383413443">"Napravili ste pokret za otvaranje početnog zaslona"</string>
     <string name="home_gesture_intro_title" msgid="836590312858441830">"Prijeđite prstom da biste otvorili početni zaslon"</string>
@@ -85,7 +85,7 @@
     <string name="gesture_tutorial_confirm_title" msgid="6201516182040074092">"Sve je spremno"</string>
     <string name="gesture_tutorial_action_button_label" msgid="6249846312991332122">"Gotovo"</string>
     <string name="gesture_tutorial_action_button_label_settings" msgid="2923621047916486604">"Postavke"</string>
-    <string name="gesture_tutorial_try_again" msgid="65962545858556697">"Pokušajte ponovo"</string>
+    <string name="gesture_tutorial_try_again" msgid="65962545858556697">"Pokušajte ponovno"</string>
     <string name="gesture_tutorial_nice" msgid="2936275692616928280">"Odlično!"</string>
     <string name="gesture_tutorial_step" msgid="1279786122817620968">"Vodič <xliff:g id="CURRENT">%1$d</xliff:g>/<xliff:g id="TOTAL">%2$d</xliff:g>"</string>
     <string name="allset_title" msgid="5021126669778966707">"Sve je spremno!"</string>
