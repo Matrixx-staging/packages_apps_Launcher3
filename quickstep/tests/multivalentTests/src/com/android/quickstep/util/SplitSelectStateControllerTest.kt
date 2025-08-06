@@ -32,7 +32,6 @@ import com.android.launcher3.statehandlers.DepthController
 import com.android.launcher3.statemanager.StateManager
 import com.android.launcher3.statemanager.StatefulActivity
 import com.android.launcher3.util.ComponentKey
-import com.android.launcher3.util.SplitConfigurationOptions
 import com.android.quickstep.RecentsModel
 import com.android.quickstep.SystemUiProxy
 import com.android.quickstep.util.SplitSelectStateController.SplitFromDesktopController

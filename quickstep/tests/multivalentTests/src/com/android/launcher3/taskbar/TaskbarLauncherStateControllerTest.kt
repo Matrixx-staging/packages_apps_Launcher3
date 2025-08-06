@@ -23,6 +23,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.android.launcher3.Hotseat
 import com.android.launcher3.Launcher
 import com.android.launcher3.LauncherState
+import com.android.launcher3.LauncherUiState
 import com.android.launcher3.statemanager.StateManager
 import com.android.launcher3.taskbar.bubbles.BubbleControllers
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController
@@ -32,6 +33,7 @@ import com.android.launcher3.taskbar.rules.TaskbarWindowSandboxContext
 import com.android.launcher3.uioverrides.QuickstepLauncher
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.LauncherMultivalentJUnit.EmulatedDevices
+import com.android.launcher3.util.MutableListenableRef
 import com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_AWAKE
 import com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_WAKEFULNESS_TRANSITION
 import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags
@@ -124,15 +126,26 @@ class TaskbarLauncherStateControllerTest {
             mock<StateManager<LauncherState, Launcher>> {
                 on { state } doReturn mock<LauncherState>()
             }
+        val dp = taskbarUnitTestRule.activityContext.deviceProfile
         val quickstepLauncher =
             mock<QuickstepLauncher> {
-                on { deviceProfile } doReturn taskbarUnitTestRule.activityContext.deviceProfile
+                on { deviceProfile } doReturn dp
                 on { hotseat } doReturn mock<Hotseat>()
                 on { stateManager } doReturn launcherStateManager
             }
+        val launcherUiState =
+            mock<LauncherUiState> {
+                on { deviceProfileRef } doReturn MutableListenableRef(dp)
+                on { isSplitSelectActiveRef } doReturn MutableListenableRef(false)
+            }
         val controllers = taskbarUnitTestRule.activityContext.controllers
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
-            taskbarLauncherStateController.init(controllers, quickstepLauncher, sysUiStateFlags)
+            taskbarLauncherStateController.init(
+                controllers,
+                quickstepLauncher,
+                launcherUiState,
+                sysUiStateFlags,
+            )
             taskbarStashController.toggleTaskbarStash() // Un-stashing the taskbar.
             bubbleBarViewController.setHiddenForBubbles(false) // Show the bubble bar.
         }
