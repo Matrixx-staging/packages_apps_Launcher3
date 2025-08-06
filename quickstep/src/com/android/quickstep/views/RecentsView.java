@@ -102,6 +102,7 @@ import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.hardware.input.InputManager;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.os.Trace;
@@ -205,6 +206,9 @@ import com.android.quickstep.ViewUtils;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
 import com.android.quickstep.recents.data.AppTimersRepository;
 import com.android.quickstep.recents.data.AppTimersRepositoryImpl;
+import com.android.quickstep.recents.data.InputManagerWrapper;
+import com.android.quickstep.recents.data.PointerRepository;
+import com.android.quickstep.recents.data.PointerRepositoryImpl;
 import com.android.quickstep.recents.data.RecentTasksRepository;
 import com.android.quickstep.recents.data.RecentsDeviceProfileRepository;
 import com.android.quickstep.recents.data.RecentsDeviceProfileRepositoryImpl;
@@ -918,6 +922,10 @@ public abstract class RecentsView<
                             context.getApplicationContext().getSystemService(LauncherApps.class),
                             recentsDependencies.inject(DispatcherProvider.class, scopeId)
                     ));
+
+            recentsDependencies.provide(PointerRepository.class, scopeId,
+                    () -> new PointerRepositoryImpl(new InputManagerWrapper(
+                            context.getApplicationContext().getSystemService(InputManager.class))));
         } else {
             mRecentsViewModel = null;
             mHelper = null;

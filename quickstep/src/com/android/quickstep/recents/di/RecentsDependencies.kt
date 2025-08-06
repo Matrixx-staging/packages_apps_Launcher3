@@ -35,6 +35,7 @@ import com.android.quickstep.recents.domain.usecase.GetRemainingAppTimerDuration
 import com.android.quickstep.recents.domain.usecase.GetSysUiStatusNavFlagsUseCase
 import com.android.quickstep.recents.domain.usecase.GetTaskUseCase
 import com.android.quickstep.recents.domain.usecase.GetThumbnailPositionUseCase
+import com.android.quickstep.recents.domain.usecase.IsPointerConnectedUseCase
 import com.android.quickstep.recents.domain.usecase.IsThumbnailValidUseCase
 import com.android.quickstep.recents.domain.usecase.OrganizeDesktopTasksUseCase
 import com.android.quickstep.recents.viewmodel.RecentsViewData
@@ -232,6 +233,8 @@ private constructor(appContext: Context, dispatcherProvider: DispatcherProvider)
                     )
                 DesktopTileBackgroundRepository::class.java ->
                     DesktopTileBackgroundRepository(inject(scopeId))
+                IsPointerConnectedUseCase::class.java ->
+                    IsPointerConnectedUseCase(pointerRepository = inject(scopeId))
                 else -> {
                     log("Factory for ${modelClass.simpleName} not defined!", Log.ERROR)
                     error("Factory for ${modelClass.simpleName} not defined!")
