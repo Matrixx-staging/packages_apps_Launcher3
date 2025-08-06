@@ -28,6 +28,7 @@ import com.android.launcher3.util.Executors
 import com.android.launcher3.views.ActivityContext
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -86,6 +87,7 @@ class AllAppsRecyclerViewPoolTest<T> where T : Context, T : ActivityContext {
     }
 
     @Test
+    @Ignore("b/427298199 - 0.8% flaky")
     fun preinflate_cancel_before_runOnMainThread() {
         underTest.preInflateAllAppsViewHolders(adapter, VIEW_TYPE, parent, 10) { 10 }
         assertThat(underTest.mCancellableTask!!.canceled).isFalse()
