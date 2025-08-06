@@ -152,7 +152,7 @@ class FolderIconLoadTest {
         app.model.forceReload()
         app.model.loadModelSync()
         val collections =
-            app.model.bgDataModel.itemsIdMap
+            context.bgDataModel.itemsIdMap
                 .filter { it.itemType == ITEM_TYPE_FOLDER }
                 .map { it as FolderInfo }
         assertThat(collections.size).isEqualTo(1)

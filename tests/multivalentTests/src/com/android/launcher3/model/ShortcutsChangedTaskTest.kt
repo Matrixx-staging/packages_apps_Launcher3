@@ -17,7 +17,6 @@
 package com.android.launcher3.model
 
 import android.content.ComponentName
-import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.ApplicationInfo.FLAG_INSTALLED
 import android.content.pm.LauncherApps
@@ -29,339 +28,312 @@ import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
+import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import com.android.launcher3.Flags
-import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT
-import com.android.launcher3.icons.BitmapInfo
-import com.android.launcher3.icons.CacheableShortcutInfo
-import com.android.launcher3.icons.IconCache
-import com.android.launcher3.model.data.ItemInfo
-import com.android.launcher3.model.data.WorkspaceItemInfo
-import com.android.launcher3.model.repository.HomeScreenRepository
-import com.android.launcher3.shortcuts.ShortcutKey
+import com.android.launcher3.model.data.WorkspaceChangeEvent.RemoveEvent
+import com.android.launcher3.model.data.WorkspaceChangeEvent.UpdateEvent
+import com.android.launcher3.model.data.WorkspaceData
+import com.android.launcher3.model.tasks.ShortcutsChangedTask
 import com.android.launcher3.util.ComponentKey
-import com.android.launcher3.util.ModelTestExtensions.initItems
+import com.android.launcher3.util.Executors.MAIN_EXECUTOR
+import com.android.launcher3.util.Executors.MODEL_EXECUTOR
+import com.android.launcher3.util.LauncherLayoutBuilder
+import com.android.launcher3.util.LauncherModelHelper.SHORTCUT_ID
+import com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY
+import com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE
+import com.android.launcher3.util.LayoutResource
+import com.android.launcher3.util.ModelTestExtensions.nonPredictedItemCount
 import com.android.launcher3.util.SandboxApplication
+import com.android.launcher3.util.TestUtil
 import com.google.common.truth.Truth.assertThat
-import java.util.function.Predicate
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.Mock
+import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.times
+import org.mockito.kotlin.never
+import org.mockito.kotlin.reset
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 @SmallTest
 @RunWith(AndroidJUnit4::class)
 class ShortcutsChangedTaskTest {
+
     @get:Rule val setFlagsRule: SetFlagsRule = SetFlagsRule()
-    @get:Rule val context = SandboxApplication()
+    @get:Rule val context = SandboxApplication().withModelDependency()
+    @get:Rule var layout = LayoutResource(context)
+    @get:Rule val mockito = MockitoJUnit.rule()
 
-    private lateinit var shortcutsChangedTask: ShortcutsChangedTask
     private lateinit var launcherApps: LauncherApps
-    private var shortcuts: List<ShortcutInfo> = emptyList()
 
-    private val expectedPackage: String = "expected"
-    private val expectedShortcutId: String = "shortcut_id"
     private val user: UserHandle = myUserHandle()
 
-    private val repo = HomeScreenRepository()
-    private val mockTaskController: ModelTaskController = mock()
-    private val mockAllApps: AllAppsList = mock()
-    private val mockIconCache: IconCache = mock()
-    private val bgDataModel = BgDataModel(mock(), { repo }, mock(), mock())
+    private val modelState: TestableModelState
+        get() = context.appComponent.testableModelState
 
-    private val expectedWai =
-        WorkspaceItemInfo().apply {
-            id = 1
-            itemType = ITEM_TYPE_DEEP_SHORTCUT
-            intent =
-                Intent().apply {
-                    `package` = expectedPackage
-                    putExtra(ShortcutKey.EXTRA_SHORTCUT_ID, expectedShortcutId)
-                }
-        }
+    @Mock lateinit var mockShortcut: ShortcutInfo
+    @Mock lateinit var mockCallbacks: BgDataModel.Callbacks
+
+    private val workspaceUpdates = mutableListOf<WorkspaceData>()
 
     @Before
     fun setup() {
         launcherApps = context.spyService(LauncherApps::class.java)
-        whenever(mockTaskController.context).thenReturn(context)
-        whenever(mockTaskController.iconCache).thenReturn(mockIconCache)
-        whenever(mockIconCache.getShortcutIcon(eq(expectedWai), any<CacheableShortcutInfo>()))
-            .then { _ -> { expectedWai.bitmap = BitmapInfo.LOW_RES_INFO } }
-        shortcuts = emptyList()
-        shortcutsChangedTask = ShortcutsChangedTask(expectedPackage, shortcuts, user, false)
+        layout
+            .withCallbacks(mockCallbacks)
+            .set(
+                LauncherLayoutBuilder()
+                    .atHotseat(1)
+                    .putShortcut(TEST_PACKAGE, SHORTCUT_ID)
+                    .atHotseat(2)
+                    .putApp(TEST_PACKAGE, TEST_ACTIVITY)
+            )
+
+        assertEquals(2, modelState.dataModel.itemsIdMap.nonPredictedItemCount().toLong())
+    }
+
+    private fun setupMockLauncherApps(callback: (ApplicationInfo, ShortcutInfo) -> Unit) {
+        val appInfo = ApplicationInfo(getInstrumentation().context.applicationInfo)
+
+        whenever(mockShortcut.id).thenReturn(SHORTCUT_ID)
+        whenever(mockShortcut.`package`).thenReturn(TEST_PACKAGE)
+        whenever(mockShortcut.userHandle).thenReturn(user)
+        whenever(mockShortcut.activity).thenReturn(ComponentName(TEST_PACKAGE, TEST_ACTIVITY))
+
+        callback.invoke(appInfo, mockShortcut)
+
+        doReturn(appInfo)
+            .whenever(launcherApps)
+            .getApplicationInfo(eq(TEST_PACKAGE), any(), eq(user))
+
+        doReturn(listOf(mockShortcut)).whenever(launcherApps).getShortcuts(any(), eq(user))
+
+        // Clear any previous callback updates
+        TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {}
+        reset(mockCallbacks)
+
+        modelState.homeRepo.workspaceState.forEach(MODEL_EXECUTOR) { workspaceUpdates.add(it) }
+    }
+
+    private fun executeTask(
+        shortcuts: List<ShortcutInfo> = emptyList(),
+        shouldUpdateIdMap: Boolean = false,
+    ) {
+        modelState.model.enqueueModelUpdateTask(
+            ShortcutsChangedTask(TEST_PACKAGE, shortcuts, user, shouldUpdateIdMap)
+        )
+    }
+
+    private fun verifyCallbacks(itemUpdated: Boolean, itemRemoved: Boolean) {
+        // Verify repository update
+        if (!itemRemoved && !itemUpdated) {
+            assertThat(workspaceUpdates).hasSize(1)
+        } else {
+            assertThat(workspaceUpdates).hasSize(2)
+            val initialState = workspaceUpdates[0]
+            val finalState = workspaceUpdates[1]
+            assertThat(finalState.diff(initialState)!!).hasSize(1)
+
+            if (itemUpdated) {
+                val updateEvent = finalState.diff(initialState)!![0] as UpdateEvent
+                assertThat(updateEvent.items).hasSize(1)
+                updateEvent.items.forEach { assertThat(it.targetPackage).isEqualTo(TEST_PACKAGE) }
+            } else {
+                assertThat(finalState.diff(initialState)!![0]).isInstanceOf(RemoveEvent::class.java)
+            }
+        }
+
+        // Verify legacy callbacks
+        TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {}
+        if (itemUpdated) {
+            verify(mockCallbacks)
+                .bindItemsUpdated(
+                    argThat { items ->
+                        assertThat(items).hasSize(1)
+                        items.forEach { assertThat(it.targetPackage).isEqualTo(TEST_PACKAGE) }
+                        true
+                    }
+                )
+        } else {
+            verify(mockCallbacks, never()).bindItemsUpdated(any())
+        }
+
+        if (itemRemoved) {
+            verify(mockCallbacks).bindWorkspaceComponentsRemoved(any())
+        } else {
+            verify(mockCallbacks, never()).bindWorkspaceComponentsRemoved(any())
+        }
     }
 
     @Test
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun `When installed pinned shortcut is found then keep in workspace`() {
-        // Given
-        shortcuts =
-            listOf(
-                mock<ShortcutInfo>().apply {
-                    whenever(isPinned).thenReturn(true)
-                    whenever(id).thenReturn(expectedShortcutId)
-                }
-            )
-        bgDataModel.initItems(expectedWai)
-        doReturn(
-                ApplicationInfo().apply {
-                    enabled = true
-                    flags = flags or FLAG_INSTALLED
-                    isArchived = false
-                }
-            )
-            .whenever(launcherApps)
-            .getApplicationInfo(eq(expectedPackage), any(), eq(user))
-        doReturn(shortcuts).whenever(launcherApps).getShortcuts(any(), eq(user))
-        // When
-        shortcutsChangedTask.execute(mockTaskController, bgDataModel, mockAllApps)
-        // Then
-        verify(mockIconCache).getShortcutIcon(eq(expectedWai), any<CacheableShortcutInfo>())
-        verify(mockTaskController).bindUpdatedWorkspaceItems(listOf(expectedWai))
+        TestUtil.runOnExecutorSync(MODEL_EXECUTOR) {
+            setupMockLauncherApps { ai, si ->
+                ai.enabled = true
+                ai.flags = ai.flags or FLAG_INSTALLED
+                ai.isArchived = false
+                whenever(si.isPinned).thenReturn(true)
+            }
+            executeTask()
+            verifyCallbacks(itemUpdated = true, itemRemoved = false)
+        }
     }
 
     @Test
     @DisableFlags(Flags.FLAG_RESTORE_ARCHIVED_SHORTCUTS)
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun `When installed unpinned shortcut is found with Flag off then remove from workspace`() {
-        // Given
-        shortcuts =
-            listOf(
-                mock<ShortcutInfo>().apply {
-                    whenever(isPinned).thenReturn(false)
-                    whenever(id).thenReturn(expectedShortcutId)
-                }
-            )
-        bgDataModel.initItems(expectedWai)
-        doReturn(
-                ApplicationInfo().apply {
-                    enabled = true
-                    flags = flags or FLAG_INSTALLED
-                    isArchived = false
-                }
-            )
-            .whenever(launcherApps)
-            .getApplicationInfo(eq(expectedPackage), any(), eq(user))
-        doReturn(shortcuts).whenever(launcherApps).getShortcuts(any(), eq(user))
-        // When
-        shortcutsChangedTask.execute(mockTaskController, bgDataModel, mockAllApps)
-        // Then
-        verify(mockTaskController)
-            .deleteAndBindComponentsRemoved(
-                any<Predicate<ItemInfo?>>(),
-                eq("removed because the shortcut is no longer available in shortcut service"),
-            )
+        TestUtil.runOnExecutorSync(MODEL_EXECUTOR) {
+            setupMockLauncherApps { ai, si ->
+                ai.enabled = true
+                ai.flags = ai.flags or FLAG_INSTALLED
+                ai.isArchived = false
+                whenever(si.isPinned).thenReturn(false)
+            }
+            executeTask()
+            verifyCallbacks(itemUpdated = false, itemRemoved = true)
+        }
     }
 
     @Test
-    @EnableFlags(Flags.FLAG_RESTORE_ARCHIVED_SHORTCUTS)
+    @EnableFlags(Flags.FLAG_RESTORE_ARCHIVED_SHORTCUTS, Flags.FLAG_MODEL_REPOSITORY)
     fun `When installed unpinned shortcut is found with Flag on then keep in workspace`() {
-        // Given
-        shortcuts =
-            listOf(
-                mock<ShortcutInfo>().apply {
-                    whenever(isPinned).thenReturn(false)
-                    whenever(id).thenReturn(expectedShortcutId)
-                }
-            )
-        bgDataModel.initItems(expectedWai)
-        doReturn(
-                ApplicationInfo().apply {
-                    enabled = true
-                    flags = flags or FLAG_INSTALLED
-                    isArchived = false
-                }
-            )
-            .whenever(launcherApps)
-            .getApplicationInfo(eq(expectedPackage), any(), eq(user))
-        doReturn(shortcuts).whenever(launcherApps).getShortcuts(any(), eq(user))
-        // When
-        shortcutsChangedTask.execute(mockTaskController, bgDataModel, mockAllApps)
-        // Then
-        verify(mockIconCache).getShortcutIcon(eq(expectedWai), any<CacheableShortcutInfo>())
-        verify(mockTaskController).bindUpdatedWorkspaceItems(listOf(expectedWai))
+        TestUtil.runOnExecutorSync(MODEL_EXECUTOR) {
+            // Given
+            setupMockLauncherApps { ai, si ->
+                ai.enabled = true
+                ai.flags = ai.flags or FLAG_INSTALLED
+                ai.isArchived = false
+                whenever(si.isPinned).thenReturn(false)
+            }
+            executeTask()
+            verifyCallbacks(itemUpdated = true, itemRemoved = false)
+        }
     }
 
     @Test
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun `When shortcut app is uninstalled then skip handling`() {
-        // Given
-        shortcuts =
-            listOf(
-                mock<ShortcutInfo>().apply {
-                    whenever(isPinned).thenReturn(true)
-                    whenever(id).thenReturn(expectedShortcutId)
-                }
-            )
-        bgDataModel.initItems(expectedWai)
-        doReturn(
-                ApplicationInfo().apply {
-                    enabled = true
-                    flags = flags and FLAG_INSTALLED.inv()
-                    isArchived = false
-                }
-            )
-            .whenever(launcherApps)
-            .getApplicationInfo(eq(expectedPackage), any(), eq(user))
-        doReturn(shortcuts).whenever(launcherApps).getShortcuts(any(), eq(user))
-        // When
-        shortcutsChangedTask.execute(mockTaskController, bgDataModel, mockAllApps)
-        // Then
-        verify(mockTaskController, times(0)).deleteAndBindComponentsRemoved(any(), any())
-        verify(mockTaskController, times(0)).bindUpdatedWorkspaceItems(any())
+        TestUtil.runOnExecutorSync(MODEL_EXECUTOR) {
+            setupMockLauncherApps { ai, si ->
+                ai.enabled = true
+                ai.flags = ai.flags and FLAG_INSTALLED.inv()
+                ai.isArchived = false
+                whenever(si.isPinned).thenReturn(true)
+            }
+            executeTask()
+            verifyCallbacks(itemUpdated = false, itemRemoved = false)
+        }
     }
 
     @Test
     @DisableFlags(Flags.FLAG_RESTORE_ARCHIVED_SHORTCUTS)
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun `When archived pinned shortcut is found with flag off then keep in workspace`() {
-        // Given
-        shortcuts =
-            listOf(
-                mock<ShortcutInfo>().apply {
-                    whenever(isPinned).thenReturn(true)
-                    whenever(id).thenReturn(expectedShortcutId)
-                }
-            )
-        bgDataModel.initItems(expectedWai)
-        doReturn(
-                ApplicationInfo().apply {
-                    enabled = true
-                    flags = flags or FLAG_INSTALLED
-                    isArchived = true
-                }
-            )
-            .whenever(launcherApps)
-            .getApplicationInfo(eq(expectedPackage), any(), eq(user))
-        doReturn(shortcuts).whenever(launcherApps).getShortcuts(any(), eq(user))
-        // When
-        shortcutsChangedTask.execute(mockTaskController, bgDataModel, mockAllApps)
-        // Then
-        verify(mockIconCache).getShortcutIcon(eq(expectedWai), any<CacheableShortcutInfo>())
-        verify(mockTaskController).bindUpdatedWorkspaceItems(listOf(expectedWai))
+        TestUtil.runOnExecutorSync(MODEL_EXECUTOR) {
+            setupMockLauncherApps { ai, si ->
+                ai.enabled = true
+                ai.flags = ai.flags or FLAG_INSTALLED
+                ai.isArchived = true
+                whenever(si.isPinned).thenReturn(true)
+            }
+            executeTask()
+            verifyCallbacks(itemUpdated = true, itemRemoved = false)
+        }
     }
 
     @Test
     @DisableFlags(Flags.FLAG_RESTORE_ARCHIVED_SHORTCUTS)
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun `When archived unpinned shortcut is found with flag off then keep in workspace`() {
-        // Given
-        shortcuts =
-            listOf(
-                mock<ShortcutInfo>().apply {
-                    whenever(isPinned).thenReturn(true)
-                    whenever(id).thenReturn(expectedShortcutId)
-                }
-            )
-        bgDataModel.initItems(expectedWai)
-        doReturn(
-                ApplicationInfo().apply {
-                    enabled = true
-                    flags = flags or FLAG_INSTALLED
-                    isArchived = true
-                }
-            )
-            .whenever(launcherApps)
-            .getApplicationInfo(eq(expectedPackage), any(), eq(user))
-        doReturn(shortcuts).whenever(launcherApps).getShortcuts(any(), eq(user))
-        // When
-        shortcutsChangedTask.execute(mockTaskController, bgDataModel, mockAllApps)
-        // Then
-        verify(mockIconCache).getShortcutIcon(eq(expectedWai), any<CacheableShortcutInfo>())
-        verify(mockTaskController).bindUpdatedWorkspaceItems(listOf(expectedWai))
+        TestUtil.runOnExecutorSync(MODEL_EXECUTOR) {
+            setupMockLauncherApps { ai, si ->
+                ai.enabled = true
+                ai.flags = ai.flags or FLAG_INSTALLED
+                ai.isArchived = true
+                whenever(si.isPinned).thenReturn(true)
+                whenever(si.id).thenReturn(SHORTCUT_ID)
+            }
+            executeTask()
+            verifyCallbacks(itemUpdated = true, itemRemoved = false)
+        }
     }
 
     @Test
     @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun `When updateIdMap true then trigger deep shortcut binding`() {
-        // Given
-        val expectedShortcut =
-            mock<ShortcutInfo>().apply {
-                whenever(isEnabled).thenReturn(true)
-                whenever(isDeclaredInManifest).thenReturn(true)
-                whenever(activity).thenReturn(ComponentName(expectedPackage, "expectedClass"))
-                whenever(id).thenReturn(expectedShortcutId)
-                whenever(userHandle).thenReturn(user)
+        TestUtil.runOnExecutorSync(MODEL_EXECUTOR) {
+            setupMockLauncherApps { _, si ->
+                whenever(si.isEnabled).thenReturn(true)
+                whenever(si.isDeclaredInManifest).thenReturn(true)
+                whenever(si.activity).thenReturn(ComponentName(TEST_PACKAGE, "expectedClass"))
             }
-        shortcuts = listOf(expectedShortcut)
-        val expectedKey = ComponentKey(expectedShortcut.activity, expectedShortcut.userHandle)
-        doReturn(ApplicationInfo())
-            .whenever(launcherApps)
-            .getApplicationInfo(eq(expectedPackage), any(), eq(user))
-        shortcutsChangedTask =
-            ShortcutsChangedTask(
-                packageName = expectedPackage,
-                shortcuts = shortcuts,
-                user = user,
-                shouldUpdateIdMap = true,
-            )
-        // When
-        shortcutsChangedTask.execute(mockTaskController, bgDataModel, mockAllApps)
-        // Then
-        assertThat(bgDataModel.deepShortcutMap).containsEntry(expectedKey, 1)
-        assertThat(repo.deepShortcutMap.value).containsEntry(expectedKey, 1)
-        verify(mockTaskController).bindDeepShortcuts(eq(bgDataModel))
+
+            val deepShortcutUpdates = mutableListOf<Any>()
+            modelState.homeRepo.deepShortcutMap.forEach(MODEL_EXECUTOR) {
+                deepShortcutUpdates.add(it)
+            }
+            executeTask(listOf(mockShortcut), true)
+
+            val expectedKey = ComponentKey(ComponentName(TEST_PACKAGE, "expectedClass"), user)
+
+            // Verify that repository was updated once
+            assertThat(modelState.homeRepo.deepShortcutMap.value).containsEntry(expectedKey, 1)
+            assertThat(deepShortcutUpdates).hasSize(2)
+
+            // Verify legacy callbacks
+            assertThat(modelState.dataModel.deepShortcutMap).containsEntry(expectedKey, 1)
+            TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {}
+            verify(mockCallbacks).bindDeepShortcutMap(any())
+        }
     }
 
     @Test
     @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun `When updateIdMap false then do not trigger deep shortcut binding`() {
-        // Given
-        val expectedShortcut =
-            mock<ShortcutInfo>().apply {
-                whenever(isEnabled).thenReturn(true)
-                whenever(isDeclaredInManifest).thenReturn(true)
-                whenever(activity).thenReturn(ComponentName(expectedPackage, "expectedClass"))
-                whenever(id).thenReturn(expectedShortcutId)
-                whenever(userHandle).thenReturn(user)
+        TestUtil.runOnExecutorSync(MODEL_EXECUTOR) {
+            setupMockLauncherApps { _, si ->
+                whenever(si.isEnabled).thenReturn(true)
+                whenever(si.isDeclaredInManifest).thenReturn(true)
+                whenever(si.activity).thenReturn(ComponentName(TEST_PACKAGE, "expectedClass"))
+                whenever(si.userHandle).thenReturn(user)
             }
-        shortcuts = listOf(expectedShortcut)
-        val expectedKey = ComponentKey(expectedShortcut.activity, expectedShortcut.userHandle)
-        doReturn(ApplicationInfo())
-            .whenever(launcherApps)
-            .getApplicationInfo(eq(expectedPackage), any(), eq(user))
-        shortcutsChangedTask =
-            ShortcutsChangedTask(
-                packageName = expectedPackage,
-                shortcuts = shortcuts,
-                user = user,
-                shouldUpdateIdMap = false,
-            )
-        // When
-        shortcutsChangedTask.execute(mockTaskController, bgDataModel, mockAllApps)
-        // Then
-        assertThat(bgDataModel.deepShortcutMap).doesNotContainKey(expectedKey)
-        assertThat(repo.deepShortcutMap.value).doesNotContainKey(expectedKey)
-        verify(mockTaskController, times(0)).bindDeepShortcuts(eq(bgDataModel))
+
+            val deepShortcutUpdates = mutableListOf<Any>()
+            modelState.homeRepo.deepShortcutMap.forEach(MODEL_EXECUTOR) {
+                deepShortcutUpdates.add(it)
+            }
+            executeTask(listOf(mockShortcut), false)
+
+            // Verify that repository was not updated
+            assertThat(deepShortcutUpdates).hasSize(1)
+
+            // Verify legacy callbacks
+            TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {}
+            verify(mockCallbacks, never()).bindDeepShortcutMap(any())
+        }
     }
 
     @Test
-    @EnableFlags(Flags.FLAG_RESTORE_ARCHIVED_SHORTCUTS)
+    @EnableFlags(Flags.FLAG_RESTORE_ARCHIVED_SHORTCUTS, Flags.FLAG_MODEL_REPOSITORY)
     fun `When restoring archived shortcut with flag on then skip handling`() {
-        // Given
-        shortcuts =
-            listOf(
-                mock<ShortcutInfo>().apply {
-                    whenever(isPinned).thenReturn(true)
-                    whenever(id).thenReturn(expectedShortcutId)
-                }
-            )
-        bgDataModel.initItems(expectedWai)
-        doReturn(
-                ApplicationInfo().apply {
-                    enabled = true
-                    flags = flags or FLAG_INSTALLED
-                    isArchived = true
-                }
-            )
-            .whenever(launcherApps)
-            .getApplicationInfo(eq(expectedPackage), any(), eq(user))
-        doReturn(shortcuts).whenever(launcherApps).getShortcuts(any(), eq(user))
-        // When
-        shortcutsChangedTask.execute(mockTaskController, bgDataModel, mockAllApps)
-        // Then
-        verify(mockTaskController, times(0)).deleteAndBindComponentsRemoved(any(), any())
-        verify(mockTaskController, times(0)).bindUpdatedWorkspaceItems(any())
+        TestUtil.runOnExecutorSync(MODEL_EXECUTOR) {
+            setupMockLauncherApps { ai, si ->
+                ai.enabled = true
+                ai.flags = ai.flags or FLAG_INSTALLED
+                ai.isArchived = true
+                whenever(si.isPinned).thenReturn(true)
+            }
+            executeTask()
+            verifyCallbacks(itemUpdated = false, itemRemoved = false)
+        }
     }
 }

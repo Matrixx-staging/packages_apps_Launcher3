@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,41 @@
 
 package com.android.launcher3.model
 
+import android.content.ComponentName
+import android.platform.test.annotations.EnableFlags
+import android.platform.test.flag.junit.SetFlagsRule
 import android.util.Pair
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
+import com.android.launcher3.Flags
+import com.android.launcher3.model.BgDataModel.Callbacks
+import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.ItemInfo
+import com.android.launcher3.model.data.WorkspaceChangeEvent.AddEvent
+import com.android.launcher3.model.data.WorkspaceData
 import com.android.launcher3.model.data.WorkspaceItemInfo
+import com.android.launcher3.model.tasks.AddWorkspaceItemsTask
 import com.android.launcher3.util.Executors
+import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import com.android.launcher3.util.IntArray
+import com.android.launcher3.util.LauncherLayoutBuilder
+import com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY
+import com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE
+import com.android.launcher3.util.LayoutResource
+import com.android.launcher3.util.SandboxApplication
 import com.android.launcher3.util.TestUtil.runOnExecutorSync
 import com.google.common.truth.Truth.assertThat
 import java.util.ArrayList
+import java.util.UUID
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.Mock
 import org.mockito.Mockito.times
+import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
-import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
@@ -40,97 +58,111 @@ import org.mockito.kotlin.whenever
 /** Tests for [AddWorkspaceItemsTask] */
 @SmallTest
 @RunWith(AndroidJUnit4::class)
-class AddWorkspaceItemsTaskTest : AbstractWorkspaceModelTest() {
+class AddWorkspaceItemsTaskTest {
 
-    private lateinit var mDataModelCallbacks: MyCallbacks
+    @get:Rule val setFlagsRule = SetFlagsRule()
+    @get:Rule val targetContext = SandboxApplication().withModelDependency()
+    @get:Rule val mockito = MockitoJUnit.rule()
+    @get:Rule var layout = LayoutResource(targetContext)
 
-    private val mWorkspaceItemSpaceFinder: WorkspaceItemSpaceFinder = mock()
+    private var mDataModelCallbacks = MyCallbacks()
+
+    @Mock lateinit var workspaceItemSpaceFinder: WorkspaceItemSpaceFinder
+
+    private val modelState: TestableModelState
+        get() = targetContext.appComponent.testableModelState
 
     @Before
-    override fun setup() {
-        super.setup()
-        mDataModelCallbacks = MyCallbacks()
-        Executors.MAIN_EXECUTOR.submit { model.addCallbacks(mDataModelCallbacks) }.get()
+    fun setup() {
+        runOnExecutorSync(Executors.MAIN_EXECUTOR) {
+            modelState.model.addCallbacks(mDataModelCallbacks)
+        }
     }
 
     @Test
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun givenNewItemAndNonEmptyPages_whenExecuteTask_thenAddNewItem() {
         val itemToAdd = getNewItem()
         val nonEmptyScreenIds = listOf(0, 1, 2)
         givenNewItemSpaces(NewItemSpace(1, 2, 2))
 
-        val addedItems = testAddItems(nonEmptyScreenIds, itemToAdd)
-
-        assertThat(addedItems.size).isEqualTo(1)
-        assertThat(addedItems.first().screenId).isEqualTo(1)
-        verifyItemSpaceFinderCall(nonEmptyScreenIds, numberOfExpectedCall = 1, addedItems)
+        testAddItems(nonEmptyScreenIds, itemToAdd) { addedItems ->
+            assertThat(addedItems.size).isEqualTo(1)
+            assertThat(addedItems.first().screenId).isEqualTo(1)
+            verifyItemSpaceFinderCall(nonEmptyScreenIds, numberOfExpectedCall = 1, addedItems)
+        }
     }
 
     @Test
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun givenNewAndExistingItems_whenExecuteTask_thenOnlyAddNewItem() {
         val itemsToAdd = arrayOf(getNewItem(), getExistingItem())
         givenNewItemSpaces(NewItemSpace(1, 0, 0))
         val nonEmptyScreenIds = listOf(0)
 
-        val addedItems = testAddItems(nonEmptyScreenIds, *itemsToAdd)
-
-        assertThat(addedItems.size).isEqualTo(1)
-        assertThat(addedItems.first().screenId).isEqualTo(1)
-        verifyItemSpaceFinderCall(nonEmptyScreenIds, numberOfExpectedCall = 1, addedItems)
+        testAddItems(nonEmptyScreenIds, *itemsToAdd) { addedItems ->
+            assertThat(addedItems.size).isEqualTo(1)
+            assertThat(addedItems.first().screenId).isEqualTo(1)
+            verifyItemSpaceFinderCall(nonEmptyScreenIds, numberOfExpectedCall = 1, addedItems)
+        }
     }
 
     @Test
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun givenOnlyExistingItem_whenExecuteTask_thenDoNotAddItem() {
         val itemToAdd = getExistingItem()
         givenNewItemSpaces(NewItemSpace(1, 0, 0))
         val nonEmptyScreenIds = listOf(0)
 
-        val addedItems = testAddItems(nonEmptyScreenIds, itemToAdd)
-
-        assertThat(addedItems.size).isEqualTo(0)
-        // b/343530737
-        verifyNoMoreInteractions(mWorkspaceItemSpaceFinder)
+        testAddItems(nonEmptyScreenIds, itemToAdd) { addedItems ->
+            assertThat(addedItems.size).isEqualTo(0)
+            // b/343530737
+            verifyNoMoreInteractions(workspaceItemSpaceFinder)
+        }
     }
 
     @Test
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun givenNonSequentialScreenIds_whenExecuteTask_thenReturnNewScreenId() {
         val itemToAdd = getNewItem()
         givenNewItemSpaces(NewItemSpace(2, 1, 3))
         val nonEmptyScreenIds = listOf(0, 2, 3)
 
-        val addedItems = testAddItems(nonEmptyScreenIds, itemToAdd)
-
-        assertThat(addedItems.size).isEqualTo(1)
-        assertThat(addedItems.first().screenId).isEqualTo(2)
-        verifyItemSpaceFinderCall(nonEmptyScreenIds, numberOfExpectedCall = 1, addedItems)
+        testAddItems(nonEmptyScreenIds, itemToAdd) { addedItems ->
+            assertThat(addedItems.size).isEqualTo(1)
+            assertThat(addedItems.first().screenId).isEqualTo(2)
+            verifyItemSpaceFinderCall(nonEmptyScreenIds, numberOfExpectedCall = 1, addedItems)
+        }
     }
 
     @Test
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun givenMultipleItems_whenExecuteTask_thenAddThem() {
         val itemsToAdd =
             arrayOf(getNewItem(), getExistingItem(), getNewItem(), getNewItem(), getExistingItem())
         givenNewItemSpaces(NewItemSpace(1, 3, 3), NewItemSpace(2, 0, 0), NewItemSpace(2, 0, 1))
         val nonEmptyScreenIds = listOf(0, 1)
 
-        val addedItems = testAddItems(nonEmptyScreenIds, *itemsToAdd)
+        testAddItems(nonEmptyScreenIds, *itemsToAdd) { addedItems ->
 
-        // Only the new items should be added
-        assertThat(addedItems.size).isEqualTo(3)
+            // Only the new items should be added
+            assertThat(addedItems.size).isEqualTo(3)
 
-        // Items that are added to the first screen should not be animated
-        val itemsAddedToFirstScreen = addedItems.filter { it.screenId == 1 }
-        assertThat(itemsAddedToFirstScreen.size).isEqualTo(1)
+            // Items that are added to the first screen should not be animated
+            val itemsAddedToFirstScreen = addedItems.filter { it.screenId == 1 }
+            assertThat(itemsAddedToFirstScreen.size).isEqualTo(1)
 
-        // Items that are added to the second screen should be animated
-        val itemsAddedToSecondScreen = addedItems.filter { it.screenId == 2 }
-        assertThat(itemsAddedToSecondScreen.size).isEqualTo(2)
-        verifyItemSpaceFinderCall(nonEmptyScreenIds, numberOfExpectedCall = 3, addedItems)
+            // Items that are added to the second screen should be animated
+            val itemsAddedToSecondScreen = addedItems.filter { it.screenId == 2 }
+            assertThat(itemsAddedToSecondScreen.size).isEqualTo(2)
+            verifyItemSpaceFinderCall(nonEmptyScreenIds, numberOfExpectedCall = 3, addedItems)
+        }
     }
 
     /** Sets up the item space data that will be returned from WorkspaceItemSpaceFinder. */
     private fun givenNewItemSpaces(vararg newItemSpaces: NewItemSpace) {
         val spaceStack = newItemSpaces.toMutableList()
-        whenever(mWorkspaceItemSpaceFinder.findSpaceForItem(any(), any(), any(), any(), any()))
+        whenever(workspaceItemSpaceFinder.findSpaceForItem(any(), any(), any(), any(), any()))
             .then { spaceStack.removeFirst().toIntArray() }
     }
 
@@ -143,7 +175,7 @@ class AddWorkspaceItemsTaskTest : AbstractWorkspaceModelTest() {
         numberOfExpectedCall: Int,
         items: List<ItemInfo>,
     ) {
-        verify(mWorkspaceItemSpaceFinder, times(numberOfExpectedCall))
+        verify(workspaceItemSpaceFinder, times(numberOfExpectedCall))
             .findSpaceForItem(
                 eq(IntArray.wrap(*nonEmptyScreenIds.toIntArray())),
                 eq(IntArray()),
@@ -160,34 +192,62 @@ class AddWorkspaceItemsTaskTest : AbstractWorkspaceModelTest() {
     private fun testAddItems(
         nonEmptyScreenIds: List<Int>,
         vararg itemsToAdd: WorkspaceItemInfo,
-    ): List<ItemInfo> {
-        setupWorkspaces(nonEmptyScreenIds)
+        verification: (List<ItemInfo>) -> Unit,
+    ) {
+        val layoutBuilder = LauncherLayoutBuilder()
+        nonEmptyScreenIds.forEach { screenId ->
+            val idp = targetContext.appComponent.idp
+            for (x in 0 until idp.numColumns) {
+                for (y in 0 until idp.numRows) {
+                    layoutBuilder.atWorkspace(x, y, screenId).putApp(TEST_PACKAGE, TEST_ACTIVITY)
+                }
+            }
+        }
+        layout.set(layoutBuilder)
         val task = newTask(*itemsToAdd)
 
-        val addedItems = mutableListOf<ItemInfo>()
+        runOnExecutorSync(MODEL_EXECUTOR) {
+            val workspaceUpdates = mutableListOf<WorkspaceData>()
+            modelState.homeRepo.workspaceState.forEach(MODEL_EXECUTOR) { workspaceUpdates.add(it) }
 
-        runOnExecutorSync(Executors.MODEL_EXECUTOR) {
             mDataModelCallbacks.addedItems.clear()
-            model.enqueueModelUpdateTask(task)
-            runOnExecutorSync(Executors.MAIN_EXECUTOR) {}
-            addedItems.addAll(mDataModelCallbacks.addedItems)
-        }
+            modelState.model.enqueueModelUpdateTask(task)
 
-        return addedItems
+            // Verify that only one workspace update was pushed
+            assertThat(workspaceUpdates).hasSize(2)
+            val initialState = workspaceUpdates[0]
+            val finalState = workspaceUpdates[1]
+            assertThat(finalState.diff(initialState)!!).hasSize(1)
+            val addEvent = finalState.diff(initialState)!![0] as AddEvent
+            verification.invoke(addEvent.items)
+
+            // Verify the legacy callback behavior
+            runOnExecutorSync(Executors.MAIN_EXECUTOR) {}
+            verification.invoke(mDataModelCallbacks.addedItems.toList())
+        }
     }
 
     /**
      * Creates the task with the given items and replaces the WorkspaceItemSpaceFinder dependency
      * with a mock.
      */
-    private fun newTask(vararg items: ItemInfo): AddWorkspaceItemsTask =
-        items
-            .map { Pair.create(it, Any()) }
-            .toMutableList()
-            .let { AddWorkspaceItemsTask(it, mWorkspaceItemSpaceFinder) }
+    private fun newTask(vararg items: ItemInfo) =
+        AddWorkspaceItemsTask(items.map { Pair.create(it, Any()) }, workspaceItemSpaceFinder)
+
+    private fun getExistingItem() =
+        WorkspaceItemInfo().apply {
+            intent = AppInfo.makeLaunchIntent(ComponentName(TEST_PACKAGE, TEST_ACTIVITY))
+        }
+
+    private fun getNewItem(): WorkspaceItemInfo {
+        val itemPackage = UUID.randomUUID().toString()
+        return WorkspaceItemInfo().apply {
+            intent = AppInfo.makeLaunchIntent(ComponentName(itemPackage, itemPackage))
+        }
+    }
 }
 
-private class MyCallbacks : BgDataModel.Callbacks {
+private class MyCallbacks : Callbacks {
 
     val addedItems = mutableListOf<ItemInfo>()
 

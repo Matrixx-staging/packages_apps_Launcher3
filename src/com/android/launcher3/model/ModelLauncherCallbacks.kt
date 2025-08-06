@@ -30,6 +30,9 @@ import com.android.launcher3.model.PackageUpdatedTask.OP_SUSPEND
 import com.android.launcher3.model.PackageUpdatedTask.OP_UNAVAILABLE
 import com.android.launcher3.model.PackageUpdatedTask.OP_UNSUSPEND
 import com.android.launcher3.model.PackageUpdatedTask.OP_UPDATE
+import com.android.launcher3.model.tasks.PackageIncrementalDownloadUpdatedTask
+import com.android.launcher3.model.tasks.PackageInstallStateChangedTask
+import com.android.launcher3.model.tasks.ShortcutsChangedTask
 import com.android.launcher3.pm.InstallSessionTracker
 import com.android.launcher3.pm.PackageInstallInfo
 import com.android.launcher3.util.PackageUserKey

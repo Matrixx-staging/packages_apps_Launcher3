@@ -106,7 +106,7 @@ public class CacheDataUpdatedTaskTest {
                 .build();
         mLayout.set(builder);
         // Items on homescreen and folders:
-        assertEquals(10, nonPredictedItemCount(getBgDataModel(getModel()).itemsIdMap));
+        assertEquals(10, nonPredictedItemCount(getBgDataModel(mContext).itemsIdMap));
     }
 
     private CacheDataUpdatedTask newTask(int op, String... pkg) {
@@ -179,7 +179,7 @@ public class CacheDataUpdatedTaskTest {
     }
 
     private List<WorkspaceItemInfo> allItems() {
-        return ((FolderInfo) getBgDataModel(getModel()).itemsIdMap.get(1)).getAppContents();
+        return ((FolderInfo) getBgDataModel(mContext).itemsIdMap.get(1)).getAppContents();
     }
 
     private LauncherModel getModel() {
