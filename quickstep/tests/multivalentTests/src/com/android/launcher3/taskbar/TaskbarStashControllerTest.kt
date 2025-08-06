@@ -61,10 +61,8 @@ import com.android.launcher3.taskbar.rules.TaskbarWindowSandboxContext
 import com.android.launcher3.taskbar.rules.displayControllerSpy
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.LauncherMultivalentJUnit.EmulatedDevices
-import com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_ALLOW_GESTURE_IGNORING_BAR_VISIBILITY
 import com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_BUBBLES_EXPANDED
 import com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_IME_VISIBLE
-import com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_NAV_BAR_HIDDEN
 import com.android.wm.shell.Flags.FLAG_ENABLE_BUBBLE_BAR
 import com.google.common.truth.Truth.assertThat
 import org.junit.After
@@ -94,8 +92,6 @@ class TaskbarStashControllerTest {
     @InjectController lateinit var autohideSuspendController: TaskbarAutohideSuspendController
     @InjectController lateinit var bubbleBarViewController: BubbleBarViewController
     @InjectController lateinit var bubbleStashController: BubbleStashController
-    @InjectController
-    lateinit var taskbarForceVisibleImmersiveController: TaskbarForceVisibleImmersiveController
 
     private val desktopVisibilityController: DesktopVisibilityController
         get() = DesktopVisibilityController.INSTANCE[context]
@@ -776,12 +772,11 @@ class TaskbarStashControllerTest {
 
     @Test
     @TaskbarMode(TRANSIENT)
-    fun unstashTaskbar_inApp_immersive_navBarForciblyShown() {
+    fun unstashTaskbar_inApp_navBarForciblyShown() {
         val wmLayoutParamsCaptor = argumentCaptor<WindowManager.LayoutParams>()
         getInstrumentation().runOnMainSync {
             stashController.updateStateForFlag(FLAG_IN_APP, true)
             stashController.applyState(0)
-            taskbarForceVisibleImmersiveController.updateSysuiFlags(SYSUI_STATE_NAV_BAR_HIDDEN)
             stashController.updateAndAnimateTransientTaskbar(false)
             animatorTestRule.advanceTimeBy(stashController.stashDuration)
         }
@@ -796,36 +791,12 @@ class TaskbarStashControllerTest {
 
     @Test
     @TaskbarMode(TRANSIENT)
-    fun unstashTaskbar_inApp_notImmersive_doesNotUpdateForciblyShown() {
-        val wmLayoutParamsCaptor = argumentCaptor<WindowManager.LayoutParams>()
-        getInstrumentation().runOnMainSync {
-            stashController.updateStateForFlag(FLAG_IN_APP, true)
-            stashController.applyState(0)
-            taskbarForceVisibleImmersiveController.updateSysuiFlags(
-                SYSUI_STATE_ALLOW_GESTURE_IGNORING_BAR_VISIBILITY
-            )
-            stashController.updateAndAnimateTransientTaskbar(false)
-            animatorTestRule.advanceTimeBy(stashController.stashDuration)
-        }
-        assertThat(stashedHandleViewController.isStashedHandleVisible).isFalse()
-        assertThat(stashController.isStashedInApp).isFalse()
-
-        verify(context.windowManagerSpy, atLeastOnce())
-            .updateViewLayout(any(), wmLayoutParamsCaptor.capture())
-        wmLayoutParamsCaptor.allValues.forEach { wmLayoutParams ->
-            assertThat(isNavBarForciblyShown(wmLayoutParams.forciblyShownTypes)).isFalse()
-        }
-    }
-
-    @Test
-    @TaskbarMode(TRANSIENT)
     fun stashTaskbar_inApp_withBubbleBarExpanded_navBarForciblyShown() {
         val wmLayoutParamsCaptor = argumentCaptor<WindowManager.LayoutParams>()
         getInstrumentation().runOnMainSync {
             // unstash taskbar in an app
             stashController.updateStateForFlag(FLAG_IN_APP, true)
             stashController.applyState(0)
-            taskbarForceVisibleImmersiveController.updateSysuiFlags(SYSUI_STATE_NAV_BAR_HIDDEN)
             stashController.updateAndAnimateTransientTaskbar(false)
             animatorTestRule.advanceTimeBy(stashController.stashDuration)
 
@@ -858,13 +829,12 @@ class TaskbarStashControllerTest {
 
     @Test
     @TaskbarMode(TRANSIENT)
-    fun stashTaskbar_taskbarAutohideSuspended_immersive_navBarForciblyShown() {
+    fun stashTaskbar_taskbarAutohideSuspended_navBarForciblyShown() {
         val wmLayoutParamsCaptor = argumentCaptor<WindowManager.LayoutParams>()
         getInstrumentation().runOnMainSync {
             // stash taskbar in an app
             stashController.updateStateForFlag(FLAG_IN_APP, true)
             stashController.applyState(0)
-            taskbarForceVisibleImmersiveController.updateSysuiFlags(SYSUI_STATE_NAV_BAR_HIDDEN)
             stashController.updateAndAnimateTransientTaskbar(true)
             animatorTestRule.advanceTimeBy(stashController.stashDuration)
         }
