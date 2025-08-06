@@ -1098,7 +1098,9 @@ public class SplitSelectStateController {
                                         && target.mode == RemoteAnimationTarget.MODE_CLOSING)
                         .toArray(RemoteAnimationTarget[]::new);
                 List<FloatingDesktopTaskView> floatingTaskViews = new ArrayList<>();
-                for (int i = 0; i < appTargets.length; i++) {
+                // Targets are ordered top-to-bottom, so iterate backwards here to add bottom task
+                // views first as newly added views are added in front.
+                for (int i = appTargets.length - 1; i >= 0; i--) {
                     RemoteAnimationTarget appTarget = appTargets[i];
                     RectF startBounds = new RectF(appTarget.localBounds);
                     final FloatingDesktopTaskView taskView =
