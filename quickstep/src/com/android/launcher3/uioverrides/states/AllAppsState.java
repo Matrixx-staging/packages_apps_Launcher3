@@ -26,6 +26,8 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Flags;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
+import com.android.launcher3.LauncherUiState;
+import com.android.launcher3.LauncherUiStateUtil;
 import com.android.launcher3.R;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
@@ -164,9 +166,9 @@ public class AllAppsState extends LauncherState {
     }
 
     @Override
-    public int getVisibleElements(Launcher launcher) {
+    public int getVisibleElements(@Deprecated Launcher launcher, LauncherUiState launcherUiState) {
         int elements = ALL_APPS_CONTENT | FLOATING_SEARCH_BAR;
-        if (isWorkspaceVisible(launcher.getDeviceProfile())) {
+        if (isWorkspaceVisible(LauncherUiStateUtil.getDeviceProfile(launcher, launcherUiState))) {
             elements |= HOTSEAT_ICONS;
         }
         return elements;

@@ -15,10 +15,8 @@
  */
 package com.android.launcher3.uioverrides.states;
 
-import static com.android.launcher3.Flags.refactorTaskbarUiState;
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_BACKGROUND;
 
-import com.android.launcher3.BuildConfig;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherUiState;
@@ -49,25 +47,13 @@ public class QuickSwitchState extends BackgroundAppState {
     }
 
     @Override
-    public int getVisibleElements(Launcher launcher) {
+    public int getVisibleElements(@Deprecated Launcher launcher, LauncherUiState launcherUiState) {
         return NONE;
     }
 
     @Override
-    public boolean isTaskbarStashed(Launcher launcher, LauncherUiState launcherUiState) {
-        return !getDeviceProfile(launcher, launcherUiState).isTaskbarPresentInApps;
-    }
-
-    private DeviceProfile getDeviceProfile(Launcher launcher, LauncherUiState launcherUiState) {
-        if (refactorTaskbarUiState()) {
-            DeviceProfile ret = launcherUiState.getDeviceProfileRef().getValue();
-            if (BuildConfig.IS_STUDIO_BUILD && ret != launcher.getDeviceProfile()) {
-                throw new IllegalStateException("getDeviceProfile() doesn't match");
-            }
-            return ret;
-        } else {
-            return launcher.getDeviceProfile();
-        }
+    public boolean isTaskbarStashed(DeviceProfile deviceProfile) {
+        return !deviceProfile.isTaskbarPresentInApps;
     }
 
     @Override
