@@ -645,7 +645,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
     public void onSwipeToUnstashTaskbar() {
         // Once taskbar is unstashed, the user cannot return back to the overlay. We can
         // clear it here to set the expected state once the user goes home.
-        if (mLauncher.getWorkspace().isOverlayShown()) {
+        if (isOverlayShown()) {
             mLauncher.getWorkspace().onOverlayScrollChanged(0);
         }
     }
@@ -683,5 +683,15 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
         onTaskbarInAppDisplayProgressUpdate(pauseProgress, LAUNCHER_PAUSE_PROGRESS_INDEX);
     }
 
-
+    private boolean isOverlayShown() {
+        if (refactorTaskbarUiState()) {
+            final boolean ret = mLauncherUiState.isOverlayShownRef().getValue();
+            if (BuildConfig.IS_STUDIO_BUILD && ret != mLauncher.getWorkspace().isOverlayShown()) {
+                throw new IllegalStateException("isOverlayShown doesn't match");
+            }
+            return ret;
+        } else {
+            return mLauncher.getWorkspace().isOverlayShown();
+        }
+    }
 }
