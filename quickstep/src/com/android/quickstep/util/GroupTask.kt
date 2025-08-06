@@ -15,7 +15,9 @@
  */
 package com.android.quickstep.util
 
+import android.os.UserHandle
 import com.android.launcher3.icons.BitmapInfo
+import com.android.launcher3.model.data.AppPairInfo
 import com.android.launcher3.model.data.TaskItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.quickstep.views.TaskViewType
@@ -125,4 +127,22 @@ class SplitTask(task1: Task, task2: Task, val splitBounds: SplitBounds?) :
     }
 
     override fun hashCode() = Objects.hash(super.hashCode(), splitBounds)
+
+    /**
+     * Converts the task to an [AppPairInfo] instance.
+     *
+     * The result is the minimum data needed to utilize `AppPairIcon` for this task.
+     */
+    fun toAppPairInfo(): AppPairInfo {
+        return AppPairInfo(
+            tasks.mapIndexed { index, task ->
+                WorkspaceItemInfo().apply {
+                    intent = task.key.baseIntent
+                    user = UserHandle.of(task.key.userId)
+                    title = task.title
+                    this@SplitTask.bitmapInfos[index]?.let { bitmap = it }
+                }
+            }
+        )
+    }
 }

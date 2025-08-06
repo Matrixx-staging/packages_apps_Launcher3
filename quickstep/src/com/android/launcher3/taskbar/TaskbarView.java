@@ -75,6 +75,7 @@ import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
 import com.android.quickstep.util.GroupTask;
 import com.android.quickstep.util.SingleTask;
+import com.android.quickstep.util.SplitTask;
 import com.android.quickstep.views.TaskViewType;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation;
@@ -425,8 +426,10 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         hotseatItemInfos = Arrays.stream(hotseatItemInfos)
                 .filter(Objects::nonNull)
                 .toArray(ItemInfo[]::new);
-        // TODO(b/343289567 and b/316004172): support app pairs and desktop mode.
-        recentTasks = recentTasks.stream().filter(it -> it instanceof SingleTask).toList();
+        // TODO(b/316004172): support desktop task.
+        recentTasks = recentTasks.stream()
+                .filter(it -> it instanceof SingleTask || it instanceof SplitTask)
+                .toList();
 
         if (mNumStaticViews == 0) {
             mNumStaticViews = addStaticViews();
@@ -720,8 +723,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                     // TODO(b/316004172): use Desktop tile layout.
                     expectedLayoutResId = -1;
                 } else {
-                    // TODO(b/343289567): use R.layout.app_pair_icon
-                    expectedLayoutResId = -1;
+                    expectedLayoutResId = R.layout.app_pair_icon;
                 }
                 isCollection = true;
             } else {
@@ -738,7 +740,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
                 // see if the view can be reused
                 if (recentIcon.getSourceLayoutResId() != expectedLayoutResId
-                        || isCollection && tag != task
+                        || (isCollection && tag != task && !(tag instanceof SplitTask))
                         // Remove view corresponding to removed task so that it animates out.
                         || !recentTasksSet.contains(tag)
                         || overflownRecentsSet.contains(tag)) {
@@ -751,11 +753,20 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             }
 
             if (recentIcon == null) {
-                // TODO(b/343289567 and b/316004172): support app pairs and desktop mode.
-                recentIcon = inflate(expectedLayoutResId);
+                // TODO(b/316004172): support desktop task.
+                if (task instanceof SingleTask) {
+                    recentIcon = inflate(expectedLayoutResId);
+                } else if (task instanceof SplitTask st) {
+                    recentIcon = AppPairIcon.inflateIcon(expectedLayoutResId, mActivityContext,
+                            this, st.toAppPairInfo(), DISPLAY_TASKBAR);
+                    ((AppPairIcon) recentIcon).setTextVisible(false);
+                    recentIcon.setTag(task);
+                }
                 LayoutParams lp = new TaskbarLayoutParams(mIconTouchSize, mIconTouchSize);
                 recentIcon.setPadding(mItemPadding, mItemPadding, mItemPadding, mItemPadding);
                 addView(recentIcon, mNextViewIndex, lp);
+            } else if (recentIcon instanceof AppPairIcon api && task instanceof SplitTask st) {
+                api.updateInfo(st.toAppPairInfo());
             }
 
             if (recentIcon instanceof BubbleTextView btv) {
@@ -791,7 +802,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     /** Binds the SingleTask to the BubbleTextView to be ready to present to the user. */
     public void applyGroupTaskToBubbleTextView(BubbleTextView btv, GroupTask groupTask) {
         if (!(groupTask instanceof SingleTask singleTask)) {
-            // TODO(b/343289567 and b/316004172): support app pairs and desktop mode.
+            // TODO(b/316004172): support desktop task.
             return;
         }
 
