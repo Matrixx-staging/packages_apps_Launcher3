@@ -90,6 +90,20 @@ public final class Widgets extends LauncherInstrumentation.VisibleContainer
         return true;
     }
 
+    public void close() {
+        final Point displaySize = mLauncher.getRealDisplaySize();
+        mLauncher.linearGesture(
+                /*startX=*/ displaySize.x / 2,
+                /*startY=*/ displaySize.y - 1,
+                /*endX=*/ displaySize.x / 2,
+                /*endY=*/ displaySize.y / 2,
+                /*steps=*/ 100,
+                /*slowDown=*/ false,
+                /*gestureScope=*/ LauncherInstrumentation.GestureScope.DONT_EXPECT_PILFER);
+        // Wait for the workspace to be visible.
+        mLauncher.getWorkspace();
+    }
+
     /**
      * Flings forward (down) and waits the fling's end.
      */

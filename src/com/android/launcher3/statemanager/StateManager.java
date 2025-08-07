@@ -253,7 +253,8 @@ public class StateManager<S extends BaseState<S>, T extends StatefulContainer<S>
         if (enableStateManagerProtoLog()) {
             StateManagerProtoLogProxy.logGoToState(
                     mState, state, getTrimmedStackTrace("StateManager.goToState"));
-        } else if (DEBUG) {
+        }
+        if (DEBUG && !StateManagerProtoLogProxy.isLoggingToLogcat()) {
             Log.d(TAG, "goToState - fromState: " + mState + ", toState: " + state
                     + ", partial trace:\n" + getTrimmedStackTrace("StateManager.goToState"));
         }
@@ -346,7 +347,8 @@ public class StateManager<S extends BaseState<S>, T extends StatefulContainer<S>
         if (enableStateManagerProtoLog()) {
             StateManagerProtoLogProxy.logCreateAtomicAnimation(
                     mState, toState, getTrimmedStackTrace("StateManager.createAtomicAnimation"));
-        } else if (DEBUG) {
+        }
+        if (DEBUG && !StateManagerProtoLogProxy.isLoggingToLogcat()) {
             Log.d(TAG, "createAtomicAnimation - fromState: " + fromState + ", toState: " + toState
                     + ", partial trace:\n" + getTrimmedStackTrace(
                             "StateManager.createAtomicAnimation"));
@@ -425,7 +427,8 @@ public class StateManager<S extends BaseState<S>, T extends StatefulContainer<S>
 
         if (enableStateManagerProtoLog()) {
             StateManagerProtoLogProxy.logOnStateTransitionStart(state);
-        } else if (DEBUG) {
+        }
+        if (DEBUG && !StateManagerProtoLogProxy.isLoggingToLogcat()) {
             Log.d(TAG, "onStateTransitionStart - state: " + state);
         }
         for (int i = mListeners.size() - 1; i >= 0; i--) {
@@ -447,7 +450,8 @@ public class StateManager<S extends BaseState<S>, T extends StatefulContainer<S>
 
         if (enableStateManagerProtoLog()) {
             StateManagerProtoLogProxy.logOnStateTransitionEnd(state);
-        } else if (DEBUG) {
+        }
+        if (DEBUG && !StateManagerProtoLogProxy.isLoggingToLogcat()) {
             Log.d(TAG, "onStateTransitionEnd - state: " + state);
         }
         for (int i = mListeners.size() - 1; i >= 0; i--) {
@@ -458,7 +462,8 @@ public class StateManager<S extends BaseState<S>, T extends StatefulContainer<S>
     private void onRepeatStateSetAborted(S state) {
         if (enableStateManagerProtoLog()) {
             StateManagerProtoLogProxy.logOnRepeatStateSetAborted(state);
-        } else if (DEBUG) {
+        }
+        if (DEBUG && !StateManagerProtoLogProxy.isLoggingToLogcat()) {
             Log.d(TAG, "onRepeatStateSetAborted - state: " + state);
         }
         mContainer.onRepeatStateSetAborted(state);
@@ -500,7 +505,9 @@ public class StateManager<S extends BaseState<S>, T extends StatefulContainer<S>
             StateManagerProtoLogProxy.logCancelAnimation(
                     mConfig.currentAnimation != null,
                     getTrimmedStackTrace("StateManager.cancelAnimation"));
-        } else if (DEBUG && mConfig.currentAnimation != null) {
+        }
+        if (DEBUG && mConfig.currentAnimation != null
+                && !StateManagerProtoLogProxy.isLoggingToLogcat()) {
             Log.d(TAG, "cancelAnimation - with ongoing animation"
                     + ", partial trace:\n" + getTrimmedStackTrace("StateManager.cancelAnimation"));
         }

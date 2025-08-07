@@ -79,6 +79,7 @@ import android.view.Surface;
 import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowManager;
+import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 import android.window.DesktopExperienceFlags;
@@ -174,6 +175,7 @@ import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.util.DesktopTask;
 import com.android.quickstep.util.GroupTask;
 import com.android.quickstep.util.SingleTask;
+import com.android.quickstep.util.SlideInRemoteTransition;
 import com.android.quickstep.util.SplitTask;
 import com.android.quickstep.views.DesktopTaskView;
 import com.android.quickstep.views.RecentsView;
@@ -183,6 +185,7 @@ import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.rotation.RotationButtonController;
 import com.android.systemui.shared.statusbar.phone.BarTransitions;
 import com.android.systemui.shared.system.ActivityManagerWrapper;
+import com.android.systemui.shared.system.QuickStepContract;
 import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags;
 import com.android.systemui.unfold.updates.RotationChangeProvider;
 import com.android.systemui.unfold.util.ScopedUnfoldTransitionProgressProvider;
@@ -1629,7 +1632,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
 
         mControllers.keyboardQuickSwitchController.closeQuickSwitchView(false);
 
-        // TODO: b/316004172, b/343289567: Handle `DesktopTask` and `SplitTask`.
+        // TODO: b/316004172: Handle `DesktopTask`.
         if (tag instanceof SingleTask singleTask) {
             RemoteTransition remoteTransition =
                     (isTaskbarShowingDesktopTasks() && canUnminimizeDesktopTask(
@@ -1644,6 +1647,20 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                 launchTask.run();
             }
 
+            mControllers.taskbarStashController.updateAndAnimateTransientTaskbar(true);
+        } else if (tag instanceof SplitTask st) {
+            // Tapping an icon for a split task on Taskbar
+            final RemoteTransition slideInTransition = new RemoteTransition(
+                    new SlideInRemoteTransition(
+                            !Utilities.isRtl(getResources()),
+                            getDeviceProfile().getOverviewProfile().getPageSpacing(),
+                            QuickStepContract.getWindowCornerRadius(this),
+                            AnimationUtils.loadInterpolator(
+                                    this, android.R.interpolator.fast_out_extra_slow_in)),
+                    "SlideInTransition");
+            // SplitTask is only relevant outside of desktop.
+            handleGroupTaskLaunch(st, slideInTransition, isTaskbarShowingDesktopTasks(),
+                    DesktopTaskToFrontReason.UNKNOWN, view, DesktopModeTransitionSource.TASKBAR);
             mControllers.taskbarStashController.updateAndAnimateTransientTaskbar(true);
         } else if (tag instanceof FolderInfo) {
             // Tapping an expandable folder icon on Taskbar

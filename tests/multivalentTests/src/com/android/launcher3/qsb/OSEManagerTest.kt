@@ -32,7 +32,7 @@ import com.android.launcher3.R
 import com.android.launcher3.pm.InstallSessionHelper
 import com.android.launcher3.pm.InstallSessionTracker
 import com.android.launcher3.pm.PackageInstallInfo
-import com.android.launcher3.pm.PackageInstallInfo.STATUS_INSTALLED
+import com.android.launcher3.pm.PackageInstallInfo.Companion.STATUS_INSTALLED
 import com.android.launcher3.qsb.OSEManager.Companion.OVERLAY_ACTION
 import com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR
 import com.android.launcher3.util.SafeCloseable

@@ -35,6 +35,7 @@ import com.android.launcher3.Flags
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION
 import com.android.launcher3.model.data.AppInfo
+import com.android.launcher3.model.data.AppPairInfo
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.TaskItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
@@ -991,6 +992,62 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
     }
 
     @Test
+    fun onRecentTasksChanged_notInDesktopMode_hasMatchingAppPairAndSplitTask_dedupesSplitTask() {
+        setInDesktopMode(false)
+        prepareHotseatAndRunningAndRecentApps(
+            hotseatPackages = listOf(RECENT_SPLIT_PACKAGES_1),
+            runningTasks = emptyList(),
+            recentTaskPackages =
+                listOf(
+                    RECENT_SPLIT_PACKAGES_1,
+                    RECENT_PACKAGE_1,
+                    RECENT_PACKAGE_2,
+                    RECENT_PACKAGE_3,
+                ),
+        )
+
+        val shownPackages = recentAppsController.shownTasks.flatMap { it.packageNames }
+        val expectedPackages = listOf(RECENT_PACKAGE_1, RECENT_PACKAGE_2)
+        assertThat(shownPackages).containsExactlyElementsIn(expectedPackages)
+    }
+
+    @Test
+    fun onRecentTasksChanged_notInDesktopMode_hasReversedAppPairAndSplitTask_dedupesSplitTask() {
+        setInDesktopMode(false)
+        prepareHotseatAndRunningAndRecentApps(
+            hotseatPackages = listOf(RECENT_SPLIT_PACKAGES_1),
+            runningTasks = emptyList(),
+            recentTaskPackages =
+                listOf(
+                    RECENT_SPLIT_PACKAGES_1_REVERSED,
+                    RECENT_PACKAGE_1,
+                    RECENT_PACKAGE_2,
+                    RECENT_PACKAGE_3,
+                ),
+        )
+
+        val shownPackages = recentAppsController.shownTasks.flatMap { it.packageNames }
+        val expectedPackages = listOf(RECENT_PACKAGE_1, RECENT_PACKAGE_2)
+        assertThat(shownPackages).containsExactlyElementsIn(expectedPackages)
+    }
+
+    @Test
+    fun onRecentTasksChanged_notInDesktopMode_hasDifferentAppPairAndSplitTask_includesSplitTask() {
+        setInDesktopMode(false)
+        prepareHotseatAndRunningAndRecentApps(
+            hotseatPackages = listOf(RECENT_SPLIT_PACKAGES_1),
+            runningTasks = emptyList(),
+            recentTaskPackages = listOf(RECENT_SPLIT_PACKAGES_2, RECENT_PACKAGE_1, RECENT_PACKAGE_2),
+        )
+
+        val shownPackages = recentAppsController.shownTasks.map { it.packageNames }
+        val pairPackages = RECENT_SPLIT_PACKAGES_2.split("_")
+        val recentTaskPackages = listOf(RECENT_PACKAGE_1)
+        val expectedPackages = listOf(pairPackages, recentTaskPackages)
+        assertThat(shownPackages).containsExactlyElementsIn(expectedPackages)
+    }
+
+    @Test
     fun onRecentTasksChanged_notInDesktopMode_noActualChangeToRecents_commitRunningAppsToUI_notCalled() {
         setInDesktopMode(false)
         prepareHotseatAndRunningAndRecentApps(
@@ -1281,18 +1338,28 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
     private fun createHotseatItemsFromPackageUsers(
         packageUsers: List<PackageUser>
     ): List<ItemInfo> {
-        return packageUsers
-            .map {
-                createTestAppInfo(packageName = it.packageName, userHandle = it.userHandle).apply {
-                    container =
-                        if (it.packageName.startsWith("predicted")) {
-                            CONTAINER_HOTSEAT_PREDICTION
-                        } else {
-                            CONTAINER_HOTSEAT
-                        }
-                }
+        return packageUsers.map {
+            val userHandle = it.userHandle
+            if (it.packageName.startsWith("split")) {
+                AppPairInfo(
+                    it.packageName.split("_").map {
+                        createTestAppInfo(packageName = it, userHandle = userHandle)
+                            .makeWorkspaceItem(taskbarActivityContext)
+                    }
+                )
+            } else {
+                createTestAppInfo(packageName = it.packageName, userHandle = userHandle)
+                    .apply {
+                        container =
+                            if (it.packageName.startsWith("predicted")) {
+                                CONTAINER_HOTSEAT_PREDICTION
+                            } else {
+                                CONTAINER_HOTSEAT
+                            }
+                    }
+                    .makeWorkspaceItem(taskbarActivityContext)
             }
-            .map { it.makeWorkspaceItem(taskbarActivityContext) }
+        }
     }
 
     private fun createTestAppInfo(
@@ -1378,6 +1445,8 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
         const val RECENT_PACKAGE_2 = "recent2"
         const val RECENT_PACKAGE_3 = "recent3"
         const val RECENT_SPLIT_PACKAGES_1 = "split1_split2"
+        const val RECENT_SPLIT_PACKAGES_1_REVERSED = "split1_split2"
+        const val RECENT_SPLIT_PACKAGES_2 = "split3_split4"
     }
 
     data class PackageUser(val packageName: String, val userHandle: UserHandle)

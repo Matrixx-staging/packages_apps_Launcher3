@@ -112,10 +112,6 @@ public final class FeatureFlags {
     }
 
     // TODO(Block 16): Clean up flags
-    // When enabled the promise icon is visible in all apps while installation an app.
-    public static final BooleanFlag PROMISE_APPS_IN_ALL_APPS = getDebugFlag(270390012,
-            "PROMISE_APPS_IN_ALL_APPS", DISABLED, "Add promise icon in all-apps");
-
     // Aconfig migration complete for ENABLE_EXPANDING_PAUSE_WORK_BUTTON.
     public static final BooleanFlag ENABLE_EXPANDING_PAUSE_WORK_BUTTON = getDebugFlag(270390779,
             "ENABLE_EXPANDING_PAUSE_WORK_BUTTON", DISABLED,
