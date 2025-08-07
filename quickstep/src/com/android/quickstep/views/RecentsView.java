@@ -46,6 +46,7 @@ import static com.android.launcher3.LauncherState.BACKGROUND_APP;
 import static com.android.launcher3.QuickstepTransitionManager.RECENTS_LAUNCH_DURATION;
 import static com.android.launcher3.Utilities.EDGE_NAV_BAR;
 import static com.android.launcher3.Utilities.debugLog;
+import static com.android.launcher3.Utilities.getTrimmedStackTrace;
 import static com.android.launcher3.Utilities.mapToRange;
 import static com.android.launcher3.Utilities.squaredHypot;
 import static com.android.launcher3.Utilities.squaredTouchSlop;
@@ -6066,7 +6067,9 @@ public abstract class RecentsView<
     public void finishRecentsAnimation(boolean toHome, boolean shouldPip,
             @Nullable Runnable onFinishComplete) {
         Log.d(TAG, "finishRecentsAnimation - mRecentsAnimationController: "
-                + mRecentsAnimationController);
+                + mRecentsAnimationController + ", toHome: " + toHome + ", shouldPip: " + shouldPip
+                + ", partial trace:\n"
+                + getTrimmedStackTrace("RecentsView.finishRecentsAnimation"));
         // TODO(b/197232424#comment#10) Move this back into onRecentsAnimationComplete(). Maybe?
         cleanupRemoteTargets();
 
