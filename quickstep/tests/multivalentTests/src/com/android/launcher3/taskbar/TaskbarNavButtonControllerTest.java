@@ -29,6 +29,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import android.app.contextualsearch.ContextualSearchConfig;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.platform.test.flag.junit.CheckFlagsRule;
@@ -77,6 +78,8 @@ public class TaskbarNavButtonControllerTest {
     @Mock
     TaskbarActivityContext mockTaskbarActivityContext;
     @Mock
+    TaskbarSharedState mockSharedState;
+    @Mock
     View mockView;
 
     @Rule
@@ -108,6 +111,7 @@ public class TaskbarNavButtonControllerTest {
         when(mockStatsLogManager.logger()).thenReturn(mockStatsLogger);
         when(mockTaskbarControllers.getTaskbarActivityContext())
                 .thenReturn(mockTaskbarActivityContext);
+        when(mockTaskbarControllers.getSharedState()).thenReturn(mockSharedState);
         doReturn(mockStatsLogManager).when(mockTaskbarActivityContext).getStatsLogManager();
         when(mockTaskbarActivityContext.getDisplayId()).thenReturn(DISPLAY_ID);
         mNavButtonController = new TaskbarNavButtonController(
@@ -116,6 +120,7 @@ public class TaskbarNavButtonControllerTest {
                 mockSystemUiProxy,
                 mockHandler,
                 mockContextualSearchInvoker);
+        mNavButtonController.init(mockTaskbarControllers);
     }
 
     @Test
@@ -133,7 +138,6 @@ public class TaskbarNavButtonControllerTest {
 
     @Test
     public void testPressImeSwitcher() {
-        mNavButtonController.init(mockTaskbarControllers);
         mNavButtonController.onButtonClick(BUTTON_IME_SWITCH, mockView);
         verify(mockStatsLogger, times(1)).log(LAUNCHER_TASKBAR_IME_SWITCHER_BUTTON_TAP);
         verify(mockStatsLogger, never()).log(LAUNCHER_TASKBAR_IME_SWITCHER_BUTTON_LONGPRESS);
@@ -143,7 +147,6 @@ public class TaskbarNavButtonControllerTest {
 
     @Test
     public void testLongPressImeSwitcher() {
-        mNavButtonController.init(mockTaskbarControllers);
         mNavButtonController.onButtonLongClick(BUTTON_IME_SWITCH, mockView);
         verify(mockStatsLogger, never()).log(LAUNCHER_TASKBAR_IME_SWITCHER_BUTTON_TAP);
         verify(mockSystemUiProxy, never()).onImeSwitcherPressed();
@@ -166,41 +169,49 @@ public class TaskbarNavButtonControllerTest {
 
     @Test
     public void testLongPressHome_enabled_withoutOverride() {
-        mNavButtonController.setAssistantLongPressEnabled(true /*assistantLongPressEnabled*/);
-        when(mockContextualSearchInvoker.tryStartAssistOverride(anyInt())).thenReturn(false);
+        mockSharedState.assistantLongPressEnabled = true;
+        when(mockContextualSearchInvoker.tryStartAssistOverride(anyInt(),
+                any(ContextualSearchConfig.class))).thenReturn(false);
 
         mNavButtonController.onButtonLongClick(BUTTON_HOME, mockView);
-        verify(mockContextualSearchInvoker, times(1)).tryStartAssistOverride(anyInt());
+        verify(mockContextualSearchInvoker, times(1))
+                .tryStartAssistOverride(anyInt(), any(ContextualSearchConfig.class));
         verify(mockSystemUiProxy, times(1)).startAssistant(any());
     }
 
     @Test
     public void testLongPressHome_enabled_withOverride() {
-        mNavButtonController.setAssistantLongPressEnabled(true /*assistantLongPressEnabled*/);
-        when(mockContextualSearchInvoker.tryStartAssistOverride(anyInt())).thenReturn(true);
+        mockSharedState.assistantLongPressEnabled = true;
+        when(mockContextualSearchInvoker.tryStartAssistOverride(anyInt(),
+                any(ContextualSearchConfig.class))).thenReturn(true);
 
         mNavButtonController.onButtonLongClick(BUTTON_HOME, mockView);
-        verify(mockContextualSearchInvoker, times(1)).tryStartAssistOverride(anyInt());
+        verify(mockContextualSearchInvoker, times(1))
+                .tryStartAssistOverride(anyInt(), any(ContextualSearchConfig.class));
         verify(mockSystemUiProxy, never()).startAssistant(any());
     }
 
     @Test
     public void testLongPressHome_disabled_withoutOverride() {
-        mNavButtonController.setAssistantLongPressEnabled(false /*assistantLongPressEnabled*/);
-        when(mockContextualSearchInvoker.tryStartAssistOverride(anyInt())).thenReturn(false);
+        mockSharedState.assistantLongPressEnabled = false;
+        when(mockContextualSearchInvoker.tryStartAssistOverride(anyInt(),
+                any(ContextualSearchConfig.class))).thenReturn(false);
 
         mNavButtonController.onButtonLongClick(BUTTON_HOME, mockView);
-        verify(mockContextualSearchInvoker, never()).tryStartAssistOverride(anyInt());
+        verify(mockContextualSearchInvoker, never())
+                .tryStartAssistOverride(anyInt(), any(ContextualSearchConfig.class));
         verify(mockSystemUiProxy, never()).startAssistant(any());
     }
 
     @Test
     public void testLongPressHome_disabled_withOverride() {
-        mNavButtonController.setAssistantLongPressEnabled(false /*assistantLongPressEnabled*/);
-        when(mockContextualSearchInvoker.tryStartAssistOverride(anyInt())).thenReturn(true);
+        mockSharedState.assistantLongPressEnabled = false;
+        when(mockContextualSearchInvoker.tryStartAssistOverride(anyInt(),
+                any(ContextualSearchConfig.class))).thenReturn(true);
 
         mNavButtonController.onButtonLongClick(BUTTON_HOME, mockView);
-        verify(mockContextualSearchInvoker, never()).tryStartAssistOverride(anyInt());
+        verify(mockContextualSearchInvoker, never())
+                .tryStartAssistOverride(anyInt(), any(ContextualSearchConfig.class));
         verify(mockSystemUiProxy, never()).startAssistant(any());
     }
 
@@ -285,6 +296,7 @@ public class TaskbarNavButtonControllerTest {
 
     @Test
     public void testLongPressHomeScreenPinned() {
+        mockSharedState.assistantLongPressEnabled = true;
         mNavButtonController.updateSysuiFlags(SYSUI_STATE_SCREEN_PINNING);
         mNavButtonController.onButtonLongClick(BUTTON_HOME, mockView);
         verify(mockSystemUiProxy, times(0)).startAssistant(any());
@@ -292,6 +304,8 @@ public class TaskbarNavButtonControllerTest {
 
     @Test
     public void testNoCallsToNullLogger() {
+        doReturn(null).when(mockTaskbarActivityContext).getStatsLogManager();
+        mNavButtonController.init(mockTaskbarControllers);
         mNavButtonController.onButtonClick(BUTTON_HOME, mockView);
         verify(mockStatsLogManager, times(0)).logger();
         verify(mockStatsLogger, times(0)).log(any());
@@ -299,7 +313,6 @@ public class TaskbarNavButtonControllerTest {
 
     @Test
     public void testNoCallsAfterNullingOut() {
-        mNavButtonController.init(mockTaskbarControllers);
         mNavButtonController.onButtonClick(BUTTON_HOME, mockView);
         mNavButtonController.onDestroy();
         mNavButtonController.onButtonClick(BUTTON_HOME, mockView);
@@ -309,7 +322,6 @@ public class TaskbarNavButtonControllerTest {
 
     @Test
     public void testLogOnTap() {
-        mNavButtonController.init(mockTaskbarControllers);
         mNavButtonController.onButtonClick(BUTTON_HOME, mockView);
         verify(mockStatsLogger, times(1)).log(LAUNCHER_TASKBAR_HOME_BUTTON_TAP);
         verify(mockStatsLogger, times(0)).log(LAUNCHER_TASKBAR_HOME_BUTTON_LONGPRESS);
@@ -317,7 +329,7 @@ public class TaskbarNavButtonControllerTest {
 
     @Test
     public void testLogOnLongpress() {
-        mNavButtonController.init(mockTaskbarControllers);
+        mockSharedState.assistantLongPressEnabled = true;
         mNavButtonController.onButtonLongClick(BUTTON_HOME, mockView);
         verify(mockStatsLogger, times(1)).log(LAUNCHER_TASKBAR_HOME_BUTTON_LONGPRESS);
         verify(mockStatsLogger, times(0)).log(LAUNCHER_TASKBAR_HOME_BUTTON_TAP);
@@ -325,7 +337,6 @@ public class TaskbarNavButtonControllerTest {
 
     @Test
     public void testBackOverviewLogOnLongpress() {
-        mNavButtonController.init(mockTaskbarControllers);
         mNavButtonController.onButtonLongClick(BUTTON_RECENTS, mockView);
         verify(mockStatsLogger, times(1)).log(LAUNCHER_TASKBAR_OVERVIEW_BUTTON_LONGPRESS);
         verify(mockStatsLogger, times(0)).log(LAUNCHER_TASKBAR_OVERVIEW_BUTTON_TAP);
@@ -337,7 +348,6 @@ public class TaskbarNavButtonControllerTest {
 
     @Test
     public void testPredictiveBackInvoked() {
-        mNavButtonController.init(mockTaskbarControllers);
         ArgumentCaptor<KeyEvent> keyEventCaptor = ArgumentCaptor.forClass(KeyEvent.class);
         ArgumentCaptor<Integer> displayIdCaptor = ArgumentCaptor.forClass(Integer.class);
         mNavButtonController.sendBackKeyEvent(KeyEvent.ACTION_DOWN, false);
@@ -351,7 +361,6 @@ public class TaskbarNavButtonControllerTest {
 
     @Test
     public void testPredictiveBackCancelled() {
-        mNavButtonController.init(mockTaskbarControllers);
         ArgumentCaptor<KeyEvent> keyEventCaptor = ArgumentCaptor.forClass(KeyEvent.class);
         ArgumentCaptor<Integer> displayIdCaptor = ArgumentCaptor.forClass(Integer.class);
         mNavButtonController.sendBackKeyEvent(KeyEvent.ACTION_DOWN, false);
@@ -365,7 +374,6 @@ public class TaskbarNavButtonControllerTest {
 
     @Test
     public void testButtonsDisabledWhileBackPressed() {
-        mNavButtonController.init(mockTaskbarControllers);
         mNavButtonController.sendBackKeyEvent(KeyEvent.ACTION_DOWN, false);
         mNavButtonController.onButtonClick(BUTTON_HOME, mockView);
         mNavButtonController.onButtonClick(BUTTON_RECENTS, mockView);
@@ -381,13 +389,12 @@ public class TaskbarNavButtonControllerTest {
     @Test
     public void testOnRecentsButtonLayoutChanged() {
         Rect rect = new Rect(10, 20, 30, 40);
-        mNavButtonController.init(mockTaskbarControllers);
         mNavButtonController.onRecentsButtonLayoutChanged(rect);
         verify(mockSystemUiProxy).notifyRecentsButtonPositionChanged(eq(rect));
     }
 
     private void verifyKeyEvent(KeyEvent keyEvent, int action, boolean isCancelled) {
         assertEquals(isCancelled, keyEvent.isCanceled());
-        assertEquals(action, KeyEvent.ACTION_DOWN, keyEvent.getAction());
+        assertEquals(action, keyEvent.getAction());
     }
 }
