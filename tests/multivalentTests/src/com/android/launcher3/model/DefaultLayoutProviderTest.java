@@ -33,7 +33,6 @@ import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 
-import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherSettings;
 import com.android.launcher3.icons.BitmapInfo;
 import com.android.launcher3.model.data.FolderInfo;
@@ -59,7 +58,7 @@ public class DefaultLayoutProviderTest {
     @Rule public LayoutResource mLayout = new LayoutResource(mTargetContext);
 
     private List<ItemInfo> getWorkspaceItems() {
-        return getBgDataModel(LauncherAppState.getInstance(mTargetContext).getModel())
+        return getBgDataModel(mTargetContext)
                 .itemsIdMap
                 .stream()
                 .filter(i -> i.container == CONTAINER_DESKTOP || i.container == CONTAINER_HOTSEAT)

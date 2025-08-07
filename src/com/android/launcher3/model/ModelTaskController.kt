@@ -62,7 +62,6 @@ constructor(
         if (workspaceUpdates.isNotEmpty()) {
             scheduleCallbackTask { it.bindItemsUpdated(workspaceUpdates) }
         }
-        dataModel.updateItems(allUpdates.toList(), null)
     }
 
     fun bindExtraContainerItems(item: FixedContainerItems) {

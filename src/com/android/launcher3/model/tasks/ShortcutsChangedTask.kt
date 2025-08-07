@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.launcher3.model
+package com.android.launcher3.model.tasks
 
 import android.content.pm.ShortcutInfo
 import android.os.UserHandle
@@ -21,6 +21,9 @@ import com.android.launcher3.Flags
 import com.android.launcher3.LauncherModel.ModelUpdateTask
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT
 import com.android.launcher3.icons.CacheableShortcutInfo
+import com.android.launcher3.model.AllAppsList
+import com.android.launcher3.model.BgDataModel
+import com.android.launcher3.model.ModelTaskController
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.shortcuts.ShortcutKey

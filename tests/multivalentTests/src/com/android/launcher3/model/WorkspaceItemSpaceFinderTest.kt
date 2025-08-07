@@ -37,7 +37,11 @@ class WorkspaceItemSpaceFinderTest : AbstractWorkspaceModelTest() {
     }
 
     private fun findSpace(spanX: Int, spanY: Int): NewItemSpace =
-        WorkspaceItemSpaceFinder(model.bgDataModel, mAppState.invariantDeviceProfile, model)
+        WorkspaceItemSpaceFinder(
+                mTargetContext.bgDataModel,
+                mAppState.invariantDeviceProfile,
+                model,
+            )
             .findSpaceForItem(mExistingScreens, mNewScreens, mAddedWorkspaceItems, spanX, spanY)
             .let { NewItemSpace.fromIntArray(it) }
 
