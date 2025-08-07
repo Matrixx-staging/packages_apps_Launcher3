@@ -28,9 +28,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A rule that generates a file that helps diagnosing cases when the test process was terminated
@@ -42,8 +45,10 @@ import java.util.Map;
 public class SamplerRule implements TestRule {
     private static final int TOO_LONG_TEST_MS = 180000;
     private static final int SAMPLE_INTERVAL_MS = 3000;
+    private static final int MAX_THREADS_WITH_SAME_NAME = 10;
+    private static final AtomicBoolean sTooManyThreadsAssertionThrown = new AtomicBoolean(false);
 
-    public static Thread startThread(Description description) {
+    private static Thread startThread(Description description, UncaughtExceptionHandler handler) {
         Thread thread =
                 new Thread() {
                     @Override
@@ -53,6 +58,7 @@ public class SamplerRule implements TestRule {
                         // After the test finishes, delete that file. If the test process is
                         // terminated due to timeout, the trace file won't be deleted.
                         final File file = getFile();
+                        boolean assertionThrown = false;
 
                         final long startTime = SystemClock.elapsedRealtime();
                         try (OutputStreamWriter outputStreamWriter =
@@ -62,11 +68,17 @@ public class SamplerRule implements TestRule {
                             writeSamples(outputStreamWriter);
                         } catch (IOException | InterruptedException e) {
                             // Simply suppressing the exceptions, nothing to do here.
+                        } catch (AssertionError e) {
+                            assertionThrown = true;
+                            throw e; // Rethrow to be caught by the UncaughtExceptionHandler.
                         } finally {
                             // If the process is not killed, then there was no test timeout, and
                             // we are not interested in the trace file, unless the test ran too
-                            // long.
-                            if (SystemClock.elapsedRealtime() - startTime < TOO_LONG_TEST_MS) {
+                            // long or an assertion regarding having too many threads with the same
+                            // name was thrown.
+                            if (!assertionThrown
+                                    && SystemClock.elapsedRealtime() - startTime
+                                    < TOO_LONG_TEST_MS) {
                                 file.delete();
                             }
                         }
@@ -90,22 +102,56 @@ public class SamplerRule implements TestRule {
                                     + (count++)
                                     + " @ "
                                     + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date())
-                                            + "\r\n");
+                                    + "\r\n");
+
+                            final Map<Thread, StackTraceElement[]> allStackTraces =
+                                    Thread.getAllStackTraces();
+
                             for (Map.Entry<Thread, StackTraceElement[]> entry :
-                                     getAllStackTraces().entrySet()) {
+                                    allStackTraces.entrySet()) {
                                 writer.write("  Thread \"" + entry.getKey().getName()
-                                                 + "\"\r\n");
+                                        + "\"\r\n");
                                 for (StackTraceElement frame : entry.getValue()) {
                                     writer.write("    " + frame.toString() + "\r\n");
                                 }
                             }
                             writer.flush();
 
+                            // Conditionally check for too many threads with the same name.
+                            // This check is globally disabled after the first failure.
+                            if (!sTooManyThreadsAssertionThrown.get()) {
+                                // Count threads with the same name.
+                                final Map<String, Integer> threadNameCounts = new HashMap<>();
+                                for (Thread t : allStackTraces.keySet()) {
+                                    threadNameCounts.compute(t.getName(),
+                                            (k, v) -> (v == null) ? 1 : v + 1);
+                                }
+
+                                // Check if any thread name is repeated more than
+                                // MAX_THREADS_WITH_SAME_NAME times.
+                                for (Map.Entry<String, Integer> e : threadNameCounts.entrySet()) {
+                                    if (e.getValue() > MAX_THREADS_WITH_SAME_NAME) {
+                                        sTooManyThreadsAssertionThrown.set(true);
+                                        final String errorMessage =
+                                                "Assertion failed: More than "
+                                                        + MAX_THREADS_WITH_SAME_NAME
+                                                + " threads with the same name '" + e.getKey()
+                                                + "'. Count: " + e.getValue();
+                                        // Save the error in the samples file, after the
+                                        // corresponding slice.
+                                        writer.write(errorMessage + "\r\n");
+                                        writer.flush();
+                                        throw new AssertionError(errorMessage);
+                                    }
+                                }
+                            }
+
                             sleep(SAMPLE_INTERVAL_MS);
                         }
                     }
                 };
 
+        thread.setUncaughtExceptionHandler(handler);
         thread.start();
         return thread;
     }
@@ -115,12 +161,22 @@ public class SamplerRule implements TestRule {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                final Thread traceThread = startThread(description);
+                final Throwable[] samplerException = new Throwable[1];
+                final UncaughtExceptionHandler handler = (thread, throwable) -> {
+                    samplerException[0] = throwable;
+                };
+
+                final Thread traceThread = startThread(description, handler);
                 try {
                     base.evaluate();
                 } finally {
                     traceThread.interrupt();
                     traceThread.join();
+
+                    // Rethrow exception from sampler thread, if any.
+                    if (samplerException[0] != null) {
+                        throw samplerException[0];
+                    }
                 }
             }
         };
