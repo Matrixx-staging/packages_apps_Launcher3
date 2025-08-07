@@ -49,7 +49,6 @@ import com.android.launcher3.anim.AnimationSuccessListener;
 import com.android.launcher3.celllayout.CellLayoutLayoutParams;
 import com.android.launcher3.dragndrop.DragController;
 import com.android.launcher3.dragndrop.DragOptions;
-import com.android.launcher3.graphics.DragPreviewProvider;
 import com.android.launcher3.logger.LauncherAtom.ContainerInfo;
 import com.android.launcher3.logger.LauncherAtom.PredictedHotseatContainer;
 import com.android.launcher3.logging.InstanceId;
@@ -115,11 +114,8 @@ public class HotseatPredictionController implements DragController.DragListener,
         }
 
         // Start the drag
-        // Use a new itemInfo so that the original predicted item is stable
-        WorkspaceItemInfo dragItem = new WorkspaceItemInfo((WorkspaceItemInfo) v.getTag());
         v.setVisibility(View.INVISIBLE);
-        mLauncher.getWorkspace().beginDragShared(
-                v, null, this, dragItem, new DragPreviewProvider(v), new DragOptions());
+        mLauncher.getWorkspace().beginDragShared(v, this, new DragOptions());
         return true;
     };
 
