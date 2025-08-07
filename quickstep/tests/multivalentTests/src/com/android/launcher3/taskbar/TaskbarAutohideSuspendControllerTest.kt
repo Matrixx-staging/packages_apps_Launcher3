@@ -23,6 +23,7 @@ import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOH
 import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_DRAGGING
 import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_IN_LAUNCHER
 import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_TOUCHING
+import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_TRANSIENT_TASKBAR
 import com.android.launcher3.taskbar.rules.SandboxParams
 import com.android.launcher3.taskbar.rules.TaskbarModeRule
 import com.android.launcher3.taskbar.rules.TaskbarModeRule.Mode.TRANSIENT
@@ -136,5 +137,31 @@ class TaskbarAutohideSuspendControllerTest {
         }
         assertThat(stashController.timeoutAlarm.alarmPending()).isTrue()
         assertThat(autohideSuspendController.isTransientTaskbarStashingSuspended).isFalse()
+    }
+
+    @Test
+    fun suspendedForBubbles_shouldForceVisible() {
+        getInstrumentation().runOnMainSync {
+            autohideSuspendController.updateFlag(FLAG_AUTOHIDE_SUSPEND_BUBBLES, true)
+        }
+        assertThat(autohideSuspendController.shouldForceVisible()).isTrue()
+
+        getInstrumentation().runOnMainSync {
+            autohideSuspendController.updateFlag(FLAG_AUTOHIDE_SUSPEND_BUBBLES, false)
+        }
+        assertThat(autohideSuspendController.shouldForceVisible()).isFalse()
+    }
+
+    @Test
+    fun suspendedForUnstashedTaskbar_shouldForceVisible() {
+        getInstrumentation().runOnMainSync {
+            autohideSuspendController.updateFlag(FLAG_AUTOHIDE_SUSPEND_TRANSIENT_TASKBAR, true)
+        }
+        assertThat(autohideSuspendController.shouldForceVisible()).isTrue()
+
+        getInstrumentation().runOnMainSync {
+            autohideSuspendController.updateFlag(FLAG_AUTOHIDE_SUSPEND_TRANSIENT_TASKBAR, false)
+        }
+        assertThat(autohideSuspendController.shouldForceVisible()).isFalse()
     }
 }

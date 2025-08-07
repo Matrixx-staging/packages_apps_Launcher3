@@ -1334,8 +1334,8 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
     }
 
     private void updateTaskbarWindowForciblyShownFlag() {
-        boolean autoHideSuspended = mControllers.taskbarAutohideSuspendController.isSuspended();
-        boolean forceShow = !isStashedInApp() || autoHideSuspended;
+        boolean forceVisible = mControllers.taskbarAutohideSuspendController.shouldForceVisible();
+        boolean forceShow = !isStashedInApp() || forceVisible;
         mActivity.applyForciblyShownFlagWhileTransientTaskbarUnstashed(forceShow);
     }
 
