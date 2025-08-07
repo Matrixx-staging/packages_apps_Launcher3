@@ -84,6 +84,7 @@ class ExternalDisplaySystemShortcut(
                             taskKey.numActivities,
                             taskKey.isTopActivityNoDisplay,
                             taskKey.isActivityStackTransparent,
+                            taskKey.topActivityType,
                         ) -> null
 
                         else -> {

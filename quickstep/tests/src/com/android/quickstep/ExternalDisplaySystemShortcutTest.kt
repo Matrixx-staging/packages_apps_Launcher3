@@ -16,6 +16,8 @@
 
 package com.android.quickstep
 
+import android.app.WindowConfiguration.ACTIVITY_TYPE_DREAM
+import android.app.WindowConfiguration.ACTIVITY_TYPE_STANDARD
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -131,6 +133,7 @@ class ExternalDisplaySystemShortcutTest {
                 /* numActivities */ 1,
                 /* isTopActivityNoDisplay */ true,
                 /* isActivityStackTransparent */ false,
+                /* topActivityType */ ACTIVITY_TYPE_STANDARD,
             )
         val taskContainer = createTaskContainer(Task(taskKey))
         val shortcuts = factory.getShortcuts(launcher, taskContainer)
@@ -157,6 +160,7 @@ class ExternalDisplaySystemShortcutTest {
                 /* numActivities */ 1,
                 /* isTopActivityNoDisplay */ false,
                 /* isActivityStackTransparent */ true,
+                /* topActivityType */ ACTIVITY_TYPE_STANDARD,
             )
         val taskContainer = createTaskContainer(Task(taskKey))
         val shortcuts = factory.getShortcuts(launcher, taskContainer)
@@ -184,6 +188,7 @@ class ExternalDisplaySystemShortcutTest {
                 /* numActivities */ 1,
                 /* isTopActivityNoDisplay */ false,
                 /* isActivityStackTransparent */ false,
+                /* topActivityType */ ACTIVITY_TYPE_STANDARD,
             )
         val taskContainer = createTaskContainer(Task(taskKey))
         val shortcuts = factory.getShortcuts(launcher, taskContainer)
@@ -213,8 +218,37 @@ class ExternalDisplaySystemShortcutTest {
                 /* numActivities */ 1,
                 /* isTopActivityNoDisplay */ false,
                 /* isActivityStackTransparent */ false,
+                /* topActivityType */ ACTIVITY_TYPE_STANDARD,
             )
         val taskContainer = createTaskContainer(Task(taskKey).apply { isDockable = true })
+        val shortcuts = factory.getShortcuts(launcher, taskContainer)
+        assertThat(shortcuts).isNull()
+    }
+
+    @Test
+    @EnableFlags(
+        Flags.FLAG_MOVE_TO_EXTERNAL_DISPLAY_SHORTCUT,
+        Flags.FLAG_ENABLE_DESKTOP_WINDOWING_MODALS_POLICY,
+        Flags.FLAG_ENABLE_DREAM_ACTIVITY_WINDOWING_EXCLUSION,
+    )
+    fun createExternalDisplayTaskShortcut_dreamActivity() {
+        val baseComponent = ComponentName("", /* class */ "")
+        val taskKey =
+            TaskKey(
+                /* id */ 1,
+                /* windowingMode */ 0,
+                Intent(),
+                baseComponent,
+                /* userId */ 0,
+                /* lastActiveTime */ 2000,
+                DEFAULT_DISPLAY,
+                baseComponent,
+                /* numActivities */ 1,
+                /* isTopActivityNoDisplay */ false,
+                /* isActivityStackTransparent */ false,
+                /* topActivityType */ ACTIVITY_TYPE_DREAM,
+            )
+        val taskContainer = createTaskContainer(Task(taskKey))
         val shortcuts = factory.getShortcuts(launcher, taskContainer)
         assertThat(shortcuts).isNull()
     }
@@ -271,6 +305,7 @@ class ExternalDisplaySystemShortcutTest {
                 /* numActivities */ 1,
                 /* isTopActivityNoDisplay */ false,
                 /* isActivityStackTransparent */ false,
+                /* topActivityType */ ACTIVITY_TYPE_STANDARD,
             )
         )
 

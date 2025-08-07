@@ -16,6 +16,7 @@
 
 package com.android.quickstep.recents.data
 
+import android.app.WindowConfiguration.ACTIVITY_TYPE_STANDARD
 import android.content.ComponentName
 import android.content.Intent
 import android.graphics.Bitmap
@@ -618,6 +619,7 @@ class TasksRepositoryTest {
                 0,
                 false,
                 false,
+                ACTIVITY_TYPE_STANDARD,
             )
         )
 
