@@ -68,7 +68,15 @@ public final class LaunchedAppState extends Background {
                     TestProtocol.TEST_INFO_RESPONSE_FIELD) - 1f) < 0.00001f;
 
     LaunchedAppState(LauncherInstrumentation launcher) {
+        this(launcher, /* inDesktopMode= */ false);
+    }
+
+    LaunchedAppState(LauncherInstrumentation launcher, boolean inDesktopMode) {
         super(launcher);
+        if (inDesktopMode) {
+            mLauncher.assertTrue("Taskbar should be persistent in desktop mode",
+                    !mLauncher.isTransientTaskbar());
+        }
     }
 
     @Override

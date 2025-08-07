@@ -661,6 +661,7 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
      * Verifies that the 'Add desktop' button is visible if it is expected.
      */
     private void verifyAddDesktopButtonVisibility() {
+        // TODO(b/436192107): Re-enable AddDesktopButton verification for desktop first mode.
         if (mLauncher.isInDesktopFirstMode()) {
             return;
         }
