@@ -39,7 +39,6 @@ import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
 import org.mockito.Captor
 import org.mockito.Mock
-import org.mockito.MockitoAnnotations
 import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -76,7 +75,6 @@ class IconCacheUpdateHandlerTest {
 
     @Before
     fun setup() {
-        MockitoAnnotations.initMocks(this)
         doReturn(iconProvider).whenever(baseIconCache).iconProvider
         doReturn(cursor).whenever(cacheDb).query(any(), any(), any())
 

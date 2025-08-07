@@ -53,7 +53,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +69,8 @@ public final class WidgetsTableUtilsTest {
     private static final int CELL_SIZE = 50;
     private static final int NUM_OF_COLS = 5;
     private static final int NUM_OF_ROWS = 5;
+
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule public SandboxApplication app = new SandboxApplication();
     @Mock
@@ -89,8 +92,6 @@ public final class WidgetsTableUtilsTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
-
         mContext = new ActivityContextWrapper(app);
         mTestInvariantProfile = InvariantDeviceProfile.INSTANCE.get(app);
         mTestInvariantProfile.numColumns = NUM_OF_COLS;
