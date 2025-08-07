@@ -670,6 +670,8 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
     override fun getTaskIcons(): Sequence<Pair<TaskViewIcon, TransformingTouchDelegate>> =
         sequenceOf(iconView to iconTouchDelegate)
 
+    override fun getContainerForIconView(iconView: TaskViewIcon) = null
+
     // TODO(b/330685808) support overlay for Screenshot action
     override fun setOverlayEnabled(overlayEnabled: Boolean) {}
 

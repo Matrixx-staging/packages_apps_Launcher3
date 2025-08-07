@@ -128,7 +128,6 @@ import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.AutohideSu
 import com.android.launcher3.taskbar.TaskbarTranslationController.TransitionCallback;
 import com.android.launcher3.taskbar.allapps.TaskbarAllAppsController;
 import com.android.launcher3.taskbar.bubbles.BubbleBarController;
-import com.android.launcher3.taskbar.bubbles.BubbleBarPinController;
 import com.android.launcher3.taskbar.bubbles.BubbleBarSwipeController;
 import com.android.launcher3.taskbar.bubbles.BubbleBarView;
 import com.android.launcher3.taskbar.bubbles.BubbleBarViewController;
@@ -136,7 +135,6 @@ import com.android.launcher3.taskbar.bubbles.BubbleControllers;
 import com.android.launcher3.taskbar.bubbles.BubbleCreator;
 import com.android.launcher3.taskbar.bubbles.BubbleDismissController;
 import com.android.launcher3.taskbar.bubbles.BubbleDragController;
-import com.android.launcher3.taskbar.bubbles.BubblePinController;
 import com.android.launcher3.taskbar.bubbles.BubbleStashedHandleViewController;
 import com.android.launcher3.taskbar.bubbles.DragToBubbleController;
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController;
@@ -352,8 +350,6 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                     bubbleHandleController,
                     new BubbleDragController(this, mWindowContext, mDragLayer, mTaskbarUiState),
                     new BubbleDismissController(this, mDragLayer),
-                    new BubbleBarPinController(this, bubbleBarContainer, this::getScreenSize),
-                    new BubblePinController(this, bubbleBarContainer, this::getScreenSize),
                     bubbleBarSwipeController,
                     new DragToBubbleController(mWindowContext, bubbleBarContainer),
                     new BubbleCreator(this)
@@ -1528,12 +1524,19 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         notifyUpdateLayoutParams();
     }
 
-    /** Applies forcibly show flag to taskbar window iff transient taskbar is unstashed. */
+    /**
+     * Applies forcibly show flag to taskbar window iff transient taskbar is unstashed.
+     */
     public void applyForciblyShownFlagWhileTransientTaskbarUnstashed(boolean shouldForceShow) {
         if (!isTransientTaskbar() || isPhoneMode()) {
             return;
         }
-        applyForciblyShownFlag(shouldForceShow);
+        if (shouldForceShow) {
+            mWindowLayoutParams.forciblyShownTypes |= WindowInsets.Type.navigationBars();
+        } else {
+            mWindowLayoutParams.forciblyShownTypes &= ~WindowInsets.Type.navigationBars();
+        }
+        notifyUpdateLayoutParams();
     }
 
     /**
@@ -1549,23 +1552,6 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
      */
     public void applyForciblyShownFlagForBubblesInPersistentTaskbar(boolean shouldForceShow) {
         if (isTransientTaskbar()) {
-            return;
-        }
-        applyForciblyShownFlag(shouldForceShow);
-    }
-
-    /**
-     * Applies the forcibly shown flag to the task bar window.
-     *
-     * <p>Note that this may result in a binder call and a layout pass. If we are not in immersive
-     * mode, then the taskbar window is already visible, so requests to force show it are ignored to
-     * avoid unnecessary binder calls.
-     */
-    private void applyForciblyShownFlag(boolean shouldForceShow) {
-        final boolean isImmersiveMode =
-                mControllers.taskbarForceVisibleImmersiveController.isImmersiveMode();
-        if (shouldForceShow && !isImmersiveMode) {
-            // no need to force show the taskbar window if we're not in immersive mode
             return;
         }
         if (shouldForceShow) {

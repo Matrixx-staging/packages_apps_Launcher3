@@ -115,6 +115,7 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
 
     public void onDestroy() {
         NotificationListener.removeNotificationsChangedListener(mPopupDataProvider);
+        cleanUpMultiInstanceMenuReference();
     }
 
     @NonNull

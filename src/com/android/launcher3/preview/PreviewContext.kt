@@ -37,6 +37,7 @@ import com.android.launcher3.dagger.PerDisplayModule
 import com.android.launcher3.dagger.PluginManagerWrapperModule
 import com.android.launcher3.dagger.SettingsModule
 import com.android.launcher3.dagger.StaticObjectModule
+import com.android.launcher3.dagger.SystemDragModule
 import com.android.launcher3.dagger.WindowManagerProxyModule
 import com.android.launcher3.homescreenfiles.HomeScreenFilesNoOpModule
 import com.android.launcher3.model.LayoutParserFactory
@@ -197,6 +198,7 @@ constructor(
                 PreviewModule::class,
                 HomeScreenFilesNoOpModule::class,
                 SettingsModule::class,
+                SystemDragModule::class,
             ]
     )
     interface PreviewAppComponent : LauncherAppComponent {

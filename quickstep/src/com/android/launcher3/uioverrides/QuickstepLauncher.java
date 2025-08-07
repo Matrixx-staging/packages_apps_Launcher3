@@ -357,6 +357,9 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         if (DesktopModeStatus.canEnterDesktopModeOrShowAppHandle(this)) {
             mSplitSelectStateController.initSplitFromDesktopController(this);
         }
+        if (refactorTaskbarUiState()) {
+            mSplitSelectStateController.setLauncherUiState(launcherUiState);
+        }
         mHotseatPredictionController = new HotseatPredictionController(this);
 
         mEnableWidgetDepth = SystemProperties.getBoolean("ro.launcher.depth.widget", true);
@@ -472,6 +475,9 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         if ((changeBits & (ACTIVITY_STATE_DEFERRED_RESUMED | ACTIVITY_STATE_STARTED
                 | ACTIVITY_STATE_USER_ACTIVE | ACTIVITY_STATE_TRANSITION_ACTIVE)) != 0) {
             onStateOrResumeChanging((getActivityFlags() & ACTIVITY_STATE_TRANSITION_ACTIVE) == 0);
+        }
+        if (refactorTaskbarUiState()) {
+            launcherUiState.setActivityFlag(getActivityFlags());
         }
     }
 

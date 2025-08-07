@@ -36,6 +36,7 @@ import com.android.launcher3.icons.CacheableShortcutInfo
 import com.android.launcher3.icons.IconCache
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
+import com.android.launcher3.model.repository.HomeScreenRepository
 import com.android.launcher3.shortcuts.ShortcutKey
 import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.ModelTestExtensions.initItems
@@ -68,10 +69,11 @@ class ShortcutsChangedTaskTest {
     private val expectedShortcutId: String = "shortcut_id"
     private val user: UserHandle = myUserHandle()
 
+    private val repo = HomeScreenRepository()
     private val mockTaskController: ModelTaskController = mock()
     private val mockAllApps: AllAppsList = mock()
     private val mockIconCache: IconCache = mock()
-    private val bgDataModel = BgDataModel(mock(), mock(), mock(), mock())
+    private val bgDataModel = BgDataModel(mock(), { repo }, mock(), mock())
 
     private val expectedWai =
         WorkspaceItemInfo().apply {
@@ -271,6 +273,7 @@ class ShortcutsChangedTaskTest {
     }
 
     @Test
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun `When updateIdMap true then trigger deep shortcut binding`() {
         // Given
         val expectedShortcut =
@@ -297,10 +300,12 @@ class ShortcutsChangedTaskTest {
         shortcutsChangedTask.execute(mockTaskController, bgDataModel, mockAllApps)
         // Then
         assertThat(bgDataModel.deepShortcutMap).containsEntry(expectedKey, 1)
+        assertThat(repo.deepShortcutMap.value).containsEntry(expectedKey, 1)
         verify(mockTaskController).bindDeepShortcuts(eq(bgDataModel))
     }
 
     @Test
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun `When updateIdMap false then do not trigger deep shortcut binding`() {
         // Given
         val expectedShortcut =
@@ -327,6 +332,7 @@ class ShortcutsChangedTaskTest {
         shortcutsChangedTask.execute(mockTaskController, bgDataModel, mockAllApps)
         // Then
         assertThat(bgDataModel.deepShortcutMap).doesNotContainKey(expectedKey)
+        assertThat(repo.deepShortcutMap.value).doesNotContainKey(expectedKey)
         verify(mockTaskController, times(0)).bindDeepShortcuts(eq(bgDataModel))
     }
 

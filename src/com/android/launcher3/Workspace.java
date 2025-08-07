@@ -18,6 +18,7 @@ package com.android.launcher3;
 
 import static com.android.launcher3.AbstractFloatingView.TYPE_WIDGET_RESIZE_FRAME;
 import static com.android.launcher3.BubbleTextView.DISPLAY_FOLDER;
+import static com.android.launcher3.Flags.refactorTaskbarUiState;
 import static com.android.launcher3.LauncherAnimUtils.SPRING_LOADED_EXIT_DELAY;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS_PREDICTION;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP;
@@ -223,6 +224,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
 
     @Thunk
     final Launcher mLauncher;
+    final LauncherUiState mLauncherUiState;
     @Thunk
     DragController mDragController;
 
@@ -337,6 +339,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
     public Workspace(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         mLauncher = Launcher.getLauncher(context);
+        mLauncherUiState = mLauncher.launcherUiState;
         mStateTransitionAnimation = new WorkspaceStateTransitionAnimation(mLauncher, this);
         mWallpaperManager = WallpaperManager.getInstance(context);
         mAllAppsIconSize = mLauncher.getDeviceProfile().getAllAppsProfile().getIconSizePx();
@@ -1343,6 +1346,9 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                 mOverlayShown = false;
                 mLauncher.onOverlayVisibilityChanged(false);
             }
+        }
+        if (refactorTaskbarUiState()) {
+            mLauncherUiState.setIsOverlayShown(mOverlayShown);
         }
         int count = mOverlayCallbacks.size();
         for (int i = 0; i < count; i++) {

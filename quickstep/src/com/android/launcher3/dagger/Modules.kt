@@ -21,7 +21,11 @@ import android.content.Context
 import android.net.Uri
 import android.os.SystemClock
 import com.android.internal.R
+import com.android.launcher3.Flags.enableSystemDrag
 import com.android.launcher3.backuprestore.LauncherRestoreEventLogger
+import com.android.launcher3.dragndrop.SystemDragController
+import com.android.launcher3.dragndrop.SystemDragControllerImpl
+import com.android.launcher3.dragndrop.SystemDragControllerStub
 import com.android.launcher3.icons.LauncherIconProvider
 import com.android.launcher3.icons.LauncherIconProviderImpl
 import com.android.launcher3.logging.StatsLogManager.StatsLogManagerFactory
@@ -133,4 +137,12 @@ object StaticObjectModule {
     @IntoSet
     @Named("SETTINGS_ENABLED_BY_DEFAULT")
     fun provideNavBarKeyOrderDefaults(): Uri = NAVBAR_KEY_ORDER_URI
+}
+
+@Module
+object SystemDragModule {
+    @Provides
+    @LauncherAppSingleton
+    fun provideSystemDragController(): SystemDragController =
+        if (enableSystemDrag()) SystemDragControllerImpl() else SystemDragControllerStub()
 }
