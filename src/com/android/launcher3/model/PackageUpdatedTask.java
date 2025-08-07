@@ -39,7 +39,6 @@ import androidx.annotation.NonNull;
 import com.android.launcher3.Flags;
 import com.android.launcher3.LauncherModel.ModelUpdateTask;
 import com.android.launcher3.LauncherSettings.Favorites;
-import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.icons.IconCache;
 import com.android.launcher3.logging.FileLog;
 import com.android.launcher3.model.data.ItemInfo;
@@ -122,17 +121,10 @@ public class PackageUpdatedTask implements ModelUpdateTask {
         }
         switch (mOp) {
             case OP_ADD: {
-                for (int i = 0; i < packageCount; i++) {
-                    iconCache.updateIconsForPkg(packages[i], mUser);
-                    if (FeatureFlags.PROMISE_APPS_IN_ALL_APPS.get()) {
-                        if (DEBUG) {
-                            Log.i(TAG, "OP_ADD: PROMISE_APPS_IN_ALL_APPS enabled:"
-                                    + " removing promise icon apps from package=" + packages[i]);
-                        }
-                        appsList.removePackage(packages[i], mUser);
-                    }
-                    activitiesLists.put(packages[i],
-                            appsList.addPackage(context, packages[i], mUser));
+                for (String packageName : packages) {
+                    iconCache.updateIconsForPkg(packageName, mUser);
+                    activitiesLists.put(
+                            packageName, appsList.addPackage(context, packageName, mUser));
                 }
                 flagOp = FlagOp.NO_OP.removeFlag(WorkspaceItemInfo.FLAG_DISABLED_NOT_AVAILABLE);
                 break;

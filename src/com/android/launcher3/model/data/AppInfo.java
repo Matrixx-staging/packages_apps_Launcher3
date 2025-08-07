@@ -125,17 +125,6 @@ public class AppInfo extends ItemInfoWithIcon implements WorkspaceItemFactory {
         this.intent = intent;
     }
 
-    public AppInfo(@NonNull PackageInstallInfo installInfo) {
-        componentName = installInfo.componentName;
-        intent = new Intent(Intent.ACTION_MAIN)
-            .addCategory(Intent.CATEGORY_LAUNCHER)
-            .setComponent(componentName)
-            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-        setProgressLevel(installInfo);
-        user = installInfo.user;
-    }
-
     @Override
     protected String dumpProperties() {
         return super.dumpProperties() + " componentName=" + componentName;

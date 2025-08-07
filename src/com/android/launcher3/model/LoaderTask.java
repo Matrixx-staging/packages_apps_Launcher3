@@ -38,7 +38,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.LauncherActivityInfo;
 import android.content.pm.LauncherApps;
-import android.content.pm.PackageInstaller;
 import android.content.pm.PackageInstaller.SessionInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ShortcutInfo;
@@ -61,7 +60,6 @@ import com.android.launcher3.LauncherModel;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.backuprestore.LauncherRestoreEventLogger;
-import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.folder.FolderNameInfos;
 import com.android.launcher3.folder.FolderNameProvider;
@@ -659,24 +657,6 @@ public class LoaderTask implements Runnable {
                 mBgAllAppsList.add(appInfo, app, false);
             }
             allActivityList.addAll(apps);
-        }
-
-        if (FeatureFlags.PROMISE_APPS_IN_ALL_APPS.get()) {
-            // get all active sessions and add them to the all apps list
-            for (PackageInstaller.SessionInfo info :
-                    mSessionHelper.getAllVerifiedSessions()) {
-                AppInfo promiseAppInfo = mBgAllAppsList.addPromiseApp(
-                        mContext,
-                        PackageInstallInfo.fromInstallingState(info),
-                        false);
-
-                if (promiseAppInfo != null) {
-                    allAppsItemRequestInfos.add(new IconRequestInfo<>(
-                            promiseAppInfo,
-                            /* launcherActivityInfo= */ null,
-                            promiseAppInfo.getMatchingLookupFlag().withThemeIcon(false)));
-                }
-            }
         }
 
         Trace.beginSection("LoadAllAppsIconsInBulk");
