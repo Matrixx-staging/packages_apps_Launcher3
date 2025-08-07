@@ -359,11 +359,13 @@ public class LoaderCursor extends CursorWrapper {
     /**
      * Make an WorkspaceItemInfo object for a shortcut that is an application.
      */
+    @Nullable
     public WorkspaceItemInfo getAppShortcutInfo(
             Intent intent, boolean allowMissingTarget, boolean useLowResIcon) {
         return getAppShortcutInfo(intent, allowMissingTarget, useLowResIcon, true);
     }
 
+    @Nullable
     public WorkspaceItemInfo getAppShortcutInfo(
             Intent intent, boolean allowMissingTarget, boolean useLowResIcon, boolean loadIcon) {
         if (user == null) {

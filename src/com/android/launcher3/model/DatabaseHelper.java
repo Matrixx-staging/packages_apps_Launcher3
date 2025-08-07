@@ -39,6 +39,7 @@ import androidx.annotation.NonNull;
 import com.android.launcher3.AutoInstallsLayout;
 import com.android.launcher3.AutoInstallsLayout.LayoutParserCallback;
 import com.android.launcher3.BuildConfig;
+import com.android.launcher3.Flags;
 import com.android.launcher3.LauncherSettings;
 import com.android.launcher3.LauncherSettings.Favorites;
 import com.android.launcher3.Utilities;
@@ -71,7 +72,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements
      * Represents the schema of the database. Changes in scheme need not be backwards compatible.
      * When increasing the scheme version, ensure that downgrade_schema.json is updated
      */
-    public static final int SCHEMA_VERSION = 32;
+    public static final int SCHEMA_VERSION = Flags.enableLauncherIconShapes() ? 33 : 32;
     private static final String TAG = "DatabaseHelper";
     private static final boolean LOGD = false;
 
@@ -271,8 +272,13 @@ public class DatabaseHelper extends SQLiteOpenHelper implements
             case 31: {
                 LauncherDbUtils.migrateLegacyShortcuts(mContext, db);
             }
-            // Fall through
             case 32: {
+                // Ensure backup icons are updated to full-bleed for icon shapes to restore.
+                Log.d(TAG, "Refreshing launcher db icons to ensure full-bleed");
+                LauncherDbUtils.updateBackupIcons(mContext, db);
+            }
+            // Fall through
+            case 33: {
                 // DB Upgraded successfully
                 return;
             }
