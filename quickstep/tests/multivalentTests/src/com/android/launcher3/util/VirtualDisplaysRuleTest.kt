@@ -23,6 +23,7 @@ import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.google.common.truth.Truth.assertThat
 import dagger.Component
+import org.junit.Assert.assertThrows
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.Description
@@ -63,11 +64,14 @@ class VirtualDisplaysRuleTest {
         assertThat(display.token).isNull()
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun testRemove_displayAlreadyRemoved_exceptionThrown() {
         val display = virtualDisplaysRule.add()
         virtualDisplaysRule.remove(display)
-        virtualDisplaysRule.remove(display)
+
+        assertThrows(IllegalArgumentException::class.java) {
+            virtualDisplaysRule.remove(display)
+        }
     }
 
     @Test

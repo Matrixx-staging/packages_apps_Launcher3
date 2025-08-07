@@ -26,6 +26,7 @@ import android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
 import com.android.launcher3.LauncherFiles.SHARED_PREFERENCES_KEY
 import com.android.launcher3.LauncherPrefs.Companion.BOOT_AWARE_PREFS_KEY
 import com.google.common.truth.Truth.assertThat
+import org.junit.Assert.assertThrows
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -55,10 +56,13 @@ class SandboxApplicationTest {
         assertThat(nestedContext.applicationContext).isEqualTo(app)
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test
     fun testGetApplicationContext_beforeManualInit_throwsException() {
         val manualApp = SandboxApplication()
-        assertThat(manualApp.applicationContext).isEqualTo(manualApp)
+
+        assertThrows(IllegalStateException::class.java) {
+            assertThat(manualApp.applicationContext).isEqualTo(manualApp)
+        }
     }
 
     @Test
@@ -70,16 +74,18 @@ class SandboxApplicationTest {
         }
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test
     fun testGetSharedPreferences_userLocked_throwsException() {
         app.spyService(UserManager::class.java).stub {
             on { isUserUnlockingOrUnlocked(UserHandle.myUserId()) } doReturn false
         }
-        app.createCredentialProtectedStorageContext()
-            .getSharedPreferences(SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE)
+        assertThrows(IllegalStateException::class.java) {
+            app.createCredentialProtectedStorageContext()
+                .getSharedPreferences(SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE)
+        }
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test
     fun testGetSharedPreferences_windowContextAndUserLocked_throwsException() {
         app.spyService(UserManager::class.java).stub {
             on { isUserUnlockingOrUnlocked(UserHandle.myUserId()) } doReturn false
@@ -88,7 +94,10 @@ class SandboxApplicationTest {
             app.createCredentialProtectedStorageContext()
                 .createDisplayContext(display)
                 .createWindowContext(TYPE_APPLICATION_OVERLAY, null)
-        windowContext.getSharedPreferences(SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE)
+
+        assertThrows(IllegalStateException::class.java) {
+            windowContext.getSharedPreferences(SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE)
+        }
     }
 
     @Test
