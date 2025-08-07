@@ -426,7 +426,6 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         hotseatItemInfos = Arrays.stream(hotseatItemInfos)
                 .filter(Objects::nonNull)
                 .toArray(ItemInfo[]::new);
-        // TODO(b/316004172): support desktop task.
         recentTasks = recentTasks.stream()
                 .filter(it -> it instanceof SingleTask || it instanceof SplitTask)
                 .toList();
@@ -720,7 +719,6 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             boolean isCollection = false;
             if (!(task instanceof SingleTask)) {
                 if (task.taskViewType == TaskViewType.DESKTOP) {
-                    // TODO(b/316004172): use Desktop tile layout.
                     expectedLayoutResId = -1;
                 } else {
                     expectedLayoutResId = R.layout.app_pair_icon;
@@ -753,7 +751,6 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             }
 
             if (recentIcon == null) {
-                // TODO(b/316004172): support desktop task.
                 if (task instanceof SingleTask) {
                     recentIcon = inflate(expectedLayoutResId);
                 } else if (task instanceof SplitTask st) {
@@ -802,7 +799,6 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     /** Binds the SingleTask to the BubbleTextView to be ready to present to the user. */
     public void applyGroupTaskToBubbleTextView(BubbleTextView btv, GroupTask groupTask) {
         if (!(groupTask instanceof SingleTask singleTask)) {
-            // TODO(b/316004172): support desktop task.
             return;
         }
 
