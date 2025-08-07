@@ -117,6 +117,7 @@ import android.util.Log;
 import android.util.Pair;
 import android.util.SparseBooleanArray;
 import android.view.HapticFeedbackConstants;
+import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -1745,6 +1746,15 @@ public abstract class RecentsView<
     }
 
     @Override
+    protected void updateIsBeingDraggedOnTouchDown(MotionEvent ev) {
+        // Do not allow mouse to drag RecentsView on action down.
+        if (ev.isFromSource(InputDevice.SOURCE_MOUSE)) {
+            return;
+        }
+        super.updateIsBeingDraggedOnTouchDown(ev);
+    }
+
+    @Override
     public boolean onTouchEvent(MotionEvent ev) {
         super.onTouchEvent(ev);
 
@@ -1890,8 +1900,9 @@ public abstract class RecentsView<
 
     @Override
     protected void determineScrollingStart(MotionEvent ev, float touchSlopScale) {
-        // Enables swiping to the left or right only if the task overlay is not modal.
-        if (!isModal()) {
+        // Enables swiping to the left or right only if the task overlay is not modal, and event
+        // is not from a mouse.
+        if (!isModal() && !ev.isFromSource(InputDevice.SOURCE_MOUSE)) {
             super.determineScrollingStart(ev, touchSlopScale);
         }
     }
