@@ -33,6 +33,7 @@ import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.taskbar.StashedHandleViewController.ALPHA_INDEX_STASHED
 import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_BUBBLES
 import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_EDU_OPEN
+import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_GROWTH_NUDGE_OPEN
 import com.android.launcher3.taskbar.TaskbarControllerTestUtil.asProperty
 import com.android.launcher3.taskbar.TaskbarStashController.FLAG_IN_APP
 import com.android.launcher3.taskbar.TaskbarStashController.FLAG_IN_OVERVIEW
@@ -829,7 +830,7 @@ class TaskbarStashControllerTest {
 
     @Test
     @TaskbarMode(TRANSIENT)
-    fun stashTaskbar_taskbarAutohideSuspended_navBarForciblyShown() {
+    fun stashTaskbar_taskbarAutohideSuspended_withForceShow_navBarForciblyShown() {
         val wmLayoutParamsCaptor = argumentCaptor<WindowManager.LayoutParams>()
         getInstrumentation().runOnMainSync {
             // stash taskbar in an app
@@ -847,7 +848,7 @@ class TaskbarStashControllerTest {
         assertThat(isNavBarForciblyShown(wmLayoutParamsCaptor.lastValue.forciblyShownTypes))
             .isFalse()
 
-        // suspend auto hide and verify that the nav bar window is forcibly shown
+        // suspend auto hide for bubbles and verify that the nav bar window is forcibly shown
         getInstrumentation().runOnMainSync {
             autohideSuspendController.updateFlag(FLAG_AUTOHIDE_SUSPEND_BUBBLES, true)
         }
@@ -855,6 +856,37 @@ class TaskbarStashControllerTest {
             .updateViewLayout(any(), wmLayoutParamsCaptor.capture())
         assertThat(isNavBarForciblyShown(wmLayoutParamsCaptor.lastValue.forciblyShownTypes))
             .isTrue()
+    }
+
+    @Test
+    @TaskbarMode(TRANSIENT)
+    fun stashTaskbar_taskbarAutohideSuspended_withoutForceShow_navBarNotForciblyShown() {
+        val wmLayoutParamsCaptor = argumentCaptor<WindowManager.LayoutParams>()
+        getInstrumentation().runOnMainSync {
+            // stash taskbar in an app
+            stashController.updateStateForFlag(FLAG_IN_APP, true)
+            stashController.applyState(0)
+            stashController.updateAndAnimateTransientTaskbar(true)
+            animatorTestRule.advanceTimeBy(stashController.stashDuration)
+        }
+        assertThat(stashedHandleViewController.isStashedHandleVisible).isTrue()
+        assertThat(stashController.isStashedInApp).isTrue()
+
+        // verify the nav bar window is not forcibly shown
+        verify(context.windowManagerSpy, atLeastOnce())
+            .updateViewLayout(any(), wmLayoutParamsCaptor.capture())
+        assertThat(isNavBarForciblyShown(wmLayoutParamsCaptor.lastValue.forciblyShownTypes))
+            .isFalse()
+
+        // suspend auto hide in a way that does not force show taskbar and verify that the nav bar
+        // window is not forcibly shown
+        getInstrumentation().runOnMainSync {
+            autohideSuspendController.updateFlag(FLAG_AUTOHIDE_SUSPEND_GROWTH_NUDGE_OPEN, true)
+        }
+        verify(context.windowManagerSpy, atLeastOnce())
+            .updateViewLayout(any(), wmLayoutParamsCaptor.capture())
+        assertThat(isNavBarForciblyShown(wmLayoutParamsCaptor.lastValue.forciblyShownTypes))
+            .isFalse()
     }
 
     private fun isNavBarForciblyShown(forciblyShownTypes: Int): Boolean =
