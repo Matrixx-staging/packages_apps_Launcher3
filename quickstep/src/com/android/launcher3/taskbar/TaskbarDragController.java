@@ -17,6 +17,7 @@ package com.android.launcher3.taskbar;
 
 import static com.android.app.animation.Interpolators.FAST_OUT_SLOW_IN;
 import static com.android.launcher3.AbstractFloatingView.TYPE_TASKBAR_ALL_APPS;
+import static com.android.launcher3.Flags.enableSystemDrag;
 import static com.android.launcher3.Flags.refactorTaskbarUiState;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS_PREDICTION;
@@ -128,6 +129,9 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
 
     private boolean mIsTaskbarDragging;
     private @Nullable DragToBubbleController mDragToBubbleController;
+
+    private @Nullable DragController.SystemDragHandler mSystemDragHandler;
+    private @Nullable View.OnDragListener mSystemDragListener;
 
     public TaskbarDragController(BaseTaskbarContext activity) {
         super(activity);
@@ -519,7 +523,7 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
                     View.DRAG_FLAG_GLOBAL | View.DRAG_FLAG_OPAQUE
                             | View.DRAG_FLAG_REQUEST_SURFACE_FOR_RETURN_ANIMATION)) {
                 notifyDragToBubbleController(/* dragInProgress = */ true);
-                onSystemDragStarted(btv);
+                onSystemDragStarted();
 
                 mActivity.getStatsLogManager().logger().withItemInfo(mDragObject.dragInfo)
                         .withInstanceId(launcherInstanceId)
@@ -531,30 +535,52 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
         AbstractFloatingView.closeAllOpenViews(mActivity);
     }
 
-    private void onSystemDragStarted(BubbleTextView btv) {
+    private void onSystemDragStarted() {
         mIsSystemDragInProgress = true;
         updateIsDragging();
-        mActivity.getDragLayer().setOnDragListener((view, dragEvent) -> {
-            switch (dragEvent.getAction()) {
-                case DragEvent.ACTION_DRAG_STARTED:
-                    // Return true to tell system we are interested in events, so we get DRAG_ENDED.
-                    return true;
-                case DragEvent.ACTION_DRAG_ENDED:
-                    mIsSystemDragInProgress = false;
-                    updateIsDragging();
-                    if (dragEvent.getResult()) {
-                        maybeOnDragEnd();
-                    } else {
-                        // This will take care of calling maybeOnDragEnd() after the animation
-                        animateGlobalDragViewToOriginalPosition(btv, dragEvent);
-                    }
-                    notifyDragToBubbleController(/* dragInProgress = */ false);
-                    mActivity.getDragLayer().setOnDragListener(null);
 
-                    return true;
+        if (enableSystemDrag()) {
+            if (mSystemDragHandler == null) {
+                mSystemDragHandler = this::onSystemDrag;
             }
-            return false;
-        });
+            mActivity.getDragController().addSystemDragHandler(mSystemDragHandler);
+        } else {
+            if (mSystemDragListener == null) {
+                mSystemDragListener = (view, dragEvent) -> onSystemDrag(dragEvent);
+            }
+            mActivity.getDragLayer().setOnDragListener(mSystemDragListener);
+        }
+    }
+
+    private boolean onSystemDrag(DragEvent dragEvent) {
+        final boolean enableSystemDrag = enableSystemDrag();
+        return switch (dragEvent.getAction()) {
+            case DragEvent.ACTION_DRAG_STARTED -> {
+                // Return true to tell system we are interested in events, so we get DRAG_ENDED.
+                yield true;
+            }
+            case DragEvent.ACTION_DRAG_ENDED -> {
+                mIsSystemDragInProgress = false;
+                updateIsDragging();
+                if (dragEvent.getResult()) {
+                    maybeOnDragEnd();
+                } else {
+                    // This will take care of calling maybeOnDragEnd() after the animation
+                    BubbleTextView btv = (BubbleTextView) mDragObject.originalView;
+                    animateGlobalDragViewToOriginalPosition(btv, dragEvent);
+                }
+                notifyDragToBubbleController(/* dragInProgress = */ false);
+
+                if (enableSystemDrag) {
+                    mActivity.getDragController().removeSystemDragHandler(mSystemDragHandler);
+                } else {
+                    mActivity.getDragLayer().setOnDragListener(null);
+                }
+
+                yield true;
+            }
+            default -> enableSystemDrag;
+        };
     }
 
     /**
