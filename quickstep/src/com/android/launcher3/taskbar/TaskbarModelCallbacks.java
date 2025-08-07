@@ -143,14 +143,7 @@ public class TaskbarModelCallbacks implements
 
     @Override
     public View mapOverItems(@NonNull ItemOperator op) {
-        final int itemCount = mContainer.getChildCount();
-        for (int itemIdx = 0; itemIdx < itemCount; itemIdx++) {
-            View item = mContainer.getChildAt(itemIdx);
-            if (item.getTag() instanceof ItemInfo itemInfo && op.evaluate(itemInfo, item)) {
-                return item;
-            }
-        }
-        return null;
+        return mContainer.mapOverItems(mContainer, op);
     }
 
     @Override
