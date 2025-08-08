@@ -59,7 +59,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -82,6 +83,8 @@ public class SimpleWidgetsSearchAlgorithmTest {
     private Context mContext;
 
     private SimpleWidgetsSearchAlgorithm mSimpleWidgetsSearchAlgorithm;
+
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
     @Mock
     private WidgetsSearchDataProvider mDataProvider;
     @Mock
@@ -89,7 +92,6 @@ public class SimpleWidgetsSearchAlgorithmTest {
 
     @Before
     public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
         doAnswer(invocation -> {
             CachedObject componentWithLabel = invocation.getArgument(0);
             return componentWithLabel.getComponent().getShortClassName();
