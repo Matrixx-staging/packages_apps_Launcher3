@@ -19,6 +19,8 @@ package com.android.launcher3.taskbar
 import android.content.Context
 import android.util.SparseArray
 import android.view.View
+import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityManager
 import androidx.annotation.VisibleForTesting
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.LauncherAppState
@@ -56,7 +58,6 @@ constructor(
     ) where T : Context?, T : ActivityContext? {
 
     override fun onClick(v: View?) {
-        dismissTaskMenuView()
         // Create a placeholder callbacks for the writer to notify other launcher model callbacks
         // after update.
         val callbacks: BgDataModel.Callbacks = object : BgDataModel.Callbacks {}
@@ -79,7 +80,7 @@ constructor(
                 }
             }
             writer.deleteItemFromDatabase(infoToUnpin, "item unpinned through long-press menu")
-            mOnClickCallback?.run()
+            onClickCleanUp(v)
             return
         }
 
@@ -113,7 +114,37 @@ constructor(
         val (cellX, cellY) = getCellCoordinates(targetIdx)
 
         writer.addItemToDatabase(newInfo, CONTAINER_HOTSEAT, mItemInfo.screenId, cellX, cellY)
+        onClickCleanUp(v)
+    }
+
+    /**
+     * Called in [onClick] after the item is pinned/unpinned and right before [onClick] returns to
+     * reset the UI.
+     */
+    private fun onClickCleanUp(shortcutView: View?) {
+        sendAccessibilityAnnouncement(shortcutView)
+        dismissTaskMenuView()
         mOnClickCallback?.run()
+    }
+
+    private fun sendAccessibilityAnnouncement(shortcutView: View?) {
+        if (
+            shortcutView == null ||
+                mTarget == null ||
+                !AccessibilityManager.getInstance(mTarget).isEnabled
+        )
+            return
+        val announcementText =
+            if (mIsPin) mTarget.getString(R.string.app_added_to_taskbar)
+            else mTarget.getString(R.string.app_removed_from_taskbar)
+
+        shortcutView.setContentDescription(announcementText)
+        shortcutView.sendAccessibilityEventUnchecked(
+            AccessibilityEvent().apply {
+                eventType = AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+                contentChangeTypes = AccessibilityEvent.CONTENT_CHANGE_TYPE_CONTENT_DESCRIPTION
+            }
+        )
     }
 
     /**
