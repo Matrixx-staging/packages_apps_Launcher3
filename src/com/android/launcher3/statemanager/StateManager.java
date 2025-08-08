@@ -19,6 +19,7 @@ package com.android.launcher3.statemanager;
 import static android.animation.ValueAnimator.areAnimatorsEnabled;
 
 import static com.android.launcher3.Flags.enableStateManagerProtoLog;
+import static com.android.launcher3.Utilities.getTrimmedStackTrace;
 import static com.android.launcher3.anim.AnimatorPlaybackController.callListenerCommandRecursively;
 import static com.android.launcher3.states.StateAnimationConfig.HANDLE_STATE_APPLY;
 import static com.android.launcher3.states.StateAnimationConfig.SKIP_ALL_ANIMATIONS;
@@ -43,8 +44,6 @@ import com.android.launcher3.util.StateManagerProtoLogProxy;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
 /**
  * Class to manage transitions between different states for a StatefulActivity based on different
@@ -605,15 +604,6 @@ public class StateManager<S extends BaseState<S>, T extends StatefulContainer<S>
             mConfig.currentAnimation = null;
         }
         mConfig.playbackController = null;
-    }
-
-    private String getTrimmedStackTrace(String callingMethodName) {
-        String stackTrace = Log.getStackTraceString(new Exception());
-        return Arrays.stream(stackTrace.split("\\n"))
-                .skip(2) // Removes the line "java.lang.Exception" and "getTrimmedStackTrace".
-                .filter(traceLine -> !traceLine.contains(callingMethodName))
-                .limit(3)
-                .collect(Collectors.joining("\n"));
     }
 
     private class StartAnimRunnable implements Runnable {

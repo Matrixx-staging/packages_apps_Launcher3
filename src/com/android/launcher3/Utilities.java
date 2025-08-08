@@ -100,11 +100,13 @@ import com.android.launcher3.views.BaseDragLayer;
 import com.android.launcher3.widget.PendingAddShortcutInfo;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Various utilities shared amongst the Launcher's classes.
@@ -1016,5 +1018,17 @@ public final class Utilities {
     public static boolean shouldEnableMouseInteractionChanges(Context context) {
         return enableMouseInteractionChanges() && context.getResources().getBoolean(
                 R.bool.desktop_form_factor);
+    }
+
+    /**
+     * Returns a partial, loggable stack trace.
+     */
+    public static String getTrimmedStackTrace(String callingMethodName) {
+        String stackTrace = Log.getStackTraceString(new Exception());
+        return Arrays.stream(stackTrace.split("\\n"))
+                .skip(2) // Removes the line "java.lang.Exception" and "getTrimmedStackTrace".
+                .filter(traceLine -> !traceLine.contains(callingMethodName))
+                .limit(3)
+                .collect(Collectors.joining("\n"));
     }
 }
