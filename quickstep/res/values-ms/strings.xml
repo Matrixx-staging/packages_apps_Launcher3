@@ -76,10 +76,10 @@
     <string name="overview_gesture_feedback_home_detected" msgid="663432226180397138">"Cuba tahan tetingkap untuk tempoh yang lebih lama sebelum melepaskan"</string>
     <string name="overview_gesture_feedback_wrong_swipe_direction" msgid="1191055451018584958">"Pastikan anda meleret lurus ke atas, kemudian berhenti seketika"</string>
     <string name="overview_gesture_feedback_complete_with_follow_up" msgid="3544611727467765026">"Anda sudah belajar cara menggunakan gerak isyarat. Untuk mematikan gerak isyarat, pergi ke Tetapan."</string>
-    <string name="overview_gesture_feedback_complete_without_follow_up" msgid="2903050864432331629">"Anda telah melengkapkan gerak isyarat menukar apl"</string>
+    <string name="overview_gesture_feedback_complete_without_follow_up" msgid="2903050864432331629">"Anda telah melengkapkan gerak isyarat beralih apl"</string>
     <string name="overview_gesture_intro_title" msgid="2902054412868489378">"Leret untuk menukar apl"</string>
     <string name="overview_gesture_intro_subtitle" msgid="4968091015637850859">"Untuk beralih antara apl, leret ke atas dari bahagian bawah skrin anda, tahan, kemudian lepaskan."</string>
-    <string name="overview_gesture_tutorial_title" msgid="4125835002668708720">"Beralih antara apl"</string>
+    <string name="overview_gesture_tutorial_title" msgid="4125835002668708720">"Beralih apl"</string>
     <string name="overview_gesture_tutorial_subtitle" msgid="5253549754058973071">"Leret ke atas dari bahagian bawah skrin, tahan, kemudian lepas"</string>
     <string name="overview_gesture_tutorial_success" msgid="1910267697807973076">"Syabas!"</string>
     <string name="gesture_tutorial_confirm_title" msgid="6201516182040074092">"Selesai"</string>

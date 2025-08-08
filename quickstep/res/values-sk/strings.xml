@@ -61,7 +61,7 @@
     <string name="back_gesture_intro_title" msgid="19551256430224428">"Prechod späť potiahnutím"</string>
     <string name="back_gesture_intro_subtitle" msgid="7912576483031802797">"Na poslednú obrazovku prejdete potiahnutím z ľavého alebo pravého okraja do stredu obrazovky."</string>
     <string name="back_gesture_tutorial_title" msgid="1944737946101059789">"Prechod späť"</string>
-    <string name="back_gesture_tutorial_subtitle" msgid="6639993416000920142">"Potiahnite z ľavého alebo pravého okraja do stredu obrazovky."</string>
+    <string name="back_gesture_tutorial_subtitle" msgid="6639993416000920142">"Potiahnite z ľavého alebo pravého okraja do stredu obrazovky"</string>
     <string name="home_gesture_feedback_swipe_too_far_from_edge" msgid="4816365433160895458">"Musíte potiahnuť nahor z dolného okraja obrazovky."</string>
     <string name="home_gesture_feedback_overview_detected" msgid="5177627157303895077">"Pred uvoľnením nesmiete zastať"</string>
     <string name="home_gesture_feedback_wrong_swipe_direction" msgid="8328465201424027148">"Musíte potiahnuť priamo nahor"</string>
@@ -70,7 +70,7 @@
     <string name="home_gesture_intro_title" msgid="836590312858441830">"Prechod na plochu potiahnutím"</string>
     <string name="home_gesture_intro_subtitle" msgid="2632238748497975326">"Potiahnite nahor zdola obrazovky. Týmto gestom sa vždy vrátite na plochu."</string>
     <string name="home_gesture_tutorial_title" msgid="3126834347496917376">"Prechod na plochu"</string>
-    <string name="home_gesture_tutorial_subtitle" msgid="7245995490408668778">"Potiahnite z dolnej časti obrazovky nahor."</string>
+    <string name="home_gesture_tutorial_subtitle" msgid="7245995490408668778">"Potiahnite z dolnej časti obrazovky nahor"</string>
     <string name="home_gesture_tutorial_success" msgid="1736295017642244751">"Skvelé!"</string>
     <string name="overview_gesture_feedback_swipe_too_far_from_edge" msgid="6402349235265407385">"Musíte potiahnuť nahor z dolného okraja obrazovky"</string>
     <string name="overview_gesture_feedback_home_detected" msgid="663432226180397138">"Skúste okno pred uvoľnením podržať dlhšie"</string>
@@ -80,7 +80,7 @@
     <string name="overview_gesture_intro_title" msgid="2902054412868489378">"Prepínanie aplikácií potiahnutím"</string>
     <string name="overview_gesture_intro_subtitle" msgid="4968091015637850859">"Aplikácie môžete prepínať potiahnutím obrazovky zdola nahor, pridržaním a následným uvoľnením."</string>
     <string name="overview_gesture_tutorial_title" msgid="4125835002668708720">"Prepnutie aplikácií"</string>
-    <string name="overview_gesture_tutorial_subtitle" msgid="5253549754058973071">"Potiahnite nahor z dolného okraja obrazovky, pridržte a uvoľnite."</string>
+    <string name="overview_gesture_tutorial_subtitle" msgid="5253549754058973071">"Potiahnite nahor z dolného okraja obrazovky, pridržte a uvoľnite"</string>
     <string name="overview_gesture_tutorial_success" msgid="1910267697807973076">"Výborne"</string>
     <string name="gesture_tutorial_confirm_title" msgid="6201516182040074092">"Hotovo"</string>
     <string name="gesture_tutorial_action_button_label" msgid="6249846312991332122">"Hotovo"</string>
