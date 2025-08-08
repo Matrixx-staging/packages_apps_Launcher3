@@ -16,6 +16,8 @@
 
 package com.android.quickstep
 
+import android.app.WindowConfiguration.ACTIVITY_TYPE_DREAM
+import android.app.WindowConfiguration.ACTIVITY_TYPE_STANDARD
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -51,6 +53,7 @@ import com.android.quickstep.views.TaskViewType
 import com.android.systemui.shared.recents.model.Task
 import com.android.systemui.shared.recents.model.Task.TaskKey
 import com.android.window.flags.Flags.FLAG_ENABLE_DESKTOP_WINDOWING_MODALS_POLICY
+import com.android.window.flags.Flags.FLAG_ENABLE_DREAM_ACTIVITY_WINDOWING_EXCLUSION
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus
 import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource
 import com.google.common.truth.Truth.assertThat
@@ -134,6 +137,7 @@ class DesktopSystemShortcutTest {
                 /* numActivities */ 1,
                 /* isTopActivityNoDisplay */ true,
                 /* isActivityStackTransparent */ false,
+                /* topActivityType */ ACTIVITY_TYPE_STANDARD,
             )
         val taskContainer = createTaskContainer(Task(taskKey))
         val shortcuts = factory.getShortcuts(launcher, taskContainer)
@@ -156,6 +160,7 @@ class DesktopSystemShortcutTest {
                 /* numActivities */ 1,
                 /* isTopActivityNoDisplay */ false,
                 /* isActivityStackTransparent */ true,
+                /* topActivityType */ ACTIVITY_TYPE_STANDARD,
             )
         val taskContainer = createTaskContainer(Task(taskKey))
         val shortcuts = factory.getShortcuts(launcher, taskContainer)
@@ -180,6 +185,7 @@ class DesktopSystemShortcutTest {
                 /* numActivities */ 1,
                 /* isTopActivityNoDisplay */ false,
                 /* isActivityStackTransparent */ false,
+                /* topActivityType */ ACTIVITY_TYPE_STANDARD,
             )
         val taskContainer = createTaskContainer(Task(taskKey))
         val shortcuts = factory.getShortcuts(launcher, taskContainer)
@@ -206,8 +212,36 @@ class DesktopSystemShortcutTest {
                 /* numActivities */ 1,
                 /* isTopActivityNoDisplay */ false,
                 /* isActivityStackTransparent */ false,
+                /* topActivityType */ ACTIVITY_TYPE_STANDARD,
             )
         val taskContainer = createTaskContainer(Task(taskKey).apply { isDockable = true })
+        val shortcuts = factory.getShortcuts(launcher, taskContainer)
+        assertThat(shortcuts).isNull()
+    }
+
+    @Test
+    @EnableFlags(
+        FLAG_ENABLE_DESKTOP_WINDOWING_MODALS_POLICY,
+        FLAG_ENABLE_DREAM_ACTIVITY_WINDOWING_EXCLUSION,
+    )
+    fun createDesktopTaskShortcutFactory_dreamActivity() {
+        val baseComponent = ComponentName("", /* class */ "")
+        val taskKey =
+            TaskKey(
+                /* id */ 1,
+                /* windowingMode */ 0,
+                Intent(),
+                baseComponent,
+                /* userId */ 0,
+                /* lastActiveTime */ 2000,
+                DEFAULT_DISPLAY,
+                baseComponent,
+                /* numActivities */ 1,
+                /* isTopActivityNoDisplay */ false,
+                /* isActivityStackTransparent */ false,
+                /* topActivityType */ ACTIVITY_TYPE_DREAM,
+            )
+        val taskContainer = createTaskContainer(Task(taskKey))
         val shortcuts = factory.getShortcuts(launcher, taskContainer)
         assertThat(shortcuts).isNull()
     }
@@ -306,6 +340,7 @@ class DesktopSystemShortcutTest {
                     /* numActivities */ 1,
                     /* isTopActivityNoDisplay */ false,
                     /* isActivityStackTransparent */ false,
+                    /* topActivityType */ ACTIVITY_TYPE_STANDARD,
                 )
             )
             .apply { isDockable = true }
