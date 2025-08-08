@@ -34,16 +34,16 @@ import com.android.quickstep.RecentsAnimationDeviceState;
 import com.android.quickstep.util.TriggerSwipeUpTouchTracker;
 import com.android.systemui.shared.system.InputMonitorCompat;
 
-public class OverviewWithoutFocusInputConsumer implements InputConsumer,
+public class LauncherWithoutFocusInputConsumer implements InputConsumer,
         TriggerSwipeUpTouchTracker.OnSwipeUpListener {
-    private static final String TAG = "OverviewWithoutFocusInputConsumer";
+    private static final String TAG = "LauncherWithoutFocusInputConsumer";
 
     private final Context mContext;
     private final InputMonitorCompat mInputMonitor;
     private final TriggerSwipeUpTouchTracker mTriggerSwipeUpTracker;
     private final GestureState mGestureState;
 
-    public OverviewWithoutFocusInputConsumer(
+    public LauncherWithoutFocusInputConsumer(
             Context context,
             RecentsAnimationDeviceState deviceState,
             GestureState gestureState,
@@ -58,7 +58,7 @@ public class OverviewWithoutFocusInputConsumer implements InputConsumer,
 
     @Override
     public int getType() {
-        return TYPE_OVERVIEW_WITHOUT_FOCUS;
+        return TYPE_LAUNCHER_WITHOUT_FOCUS;
     }
 
     @Override
