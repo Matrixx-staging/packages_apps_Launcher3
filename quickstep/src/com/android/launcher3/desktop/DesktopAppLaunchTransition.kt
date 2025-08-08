@@ -51,7 +51,12 @@ constructor(
 ) : RemoteTransitionStub() {
 
     private val animatorHelper: DesktopAppLaunchAnimatorHelper =
-        DesktopAppLaunchAnimatorHelper(context, launchType, cujType, transactionSupplier)
+        DesktopAppLaunchAnimatorHelper(
+            context.applicationContext,
+            launchType,
+            cujType,
+            transactionSupplier,
+        )
 
     enum class AppLaunchType(
         val boundsAnimationParams: WindowAnimator.BoundsAnimationParams,
