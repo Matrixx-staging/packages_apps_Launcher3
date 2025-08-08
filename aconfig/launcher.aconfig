@@ -72,6 +72,16 @@ flag {
 }
 
 flag {
+  name: "enable_taskbar_icon_container"
+  namespace: "launcher"
+  description: "Enables code path that uses TaskbarIconsContainer"
+  bug: "437189890"
+  metadata {
+    purpose: PURPOSE_BUGFIX
+  }
+}
+
+flag {
     name: "enable_tablet_two_pane_picker_v2"
     namespace: "launcher"
     description: "Enables full width two pane widget picker for tablets in landscape and portrait"
