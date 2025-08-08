@@ -33,18 +33,28 @@ import android.provider.Settings
 import android.provider.Settings.Secure.USER_SETUP_COMPLETE
 import android.util.Log
 import androidx.annotation.VisibleForTesting
+import com.android.launcher3.dagger.ApplicationContext
+import com.android.launcher3.dagger.LauncherAppSingleton
+import com.android.launcher3.util.DaggerSingletonObject
 import com.android.launcher3.util.SettingsCache
 import com.android.launcher3.util.SettingsCache.OnChangeListener
+import com.android.quickstep.dagger.QuickstepBaseAppComponent
 import com.android.quickstep.input.QuickstepKeyGestureEventsManager.OverviewGestureHandler.OverviewType.ALT_TAB
 import com.android.quickstep.input.QuickstepKeyGestureEventsManager.OverviewGestureHandler.OverviewType.UNDEFINED
 import com.android.window.flags.Flags
+import javax.inject.Inject
 
 /**
  * Manages subscription and unsubscription to launcher's key gesture events, e.g. all apps and
  * recents (incl. alt + tab).
  */
-class QuickstepKeyGestureEventsManager(private val context: Context) {
-    private val settingsCache = SettingsCache.INSTANCE[context]
+@LauncherAppSingleton
+class QuickstepKeyGestureEventsManager
+@Inject
+constructor(
+    @ApplicationContext private val context: Context,
+    private val settingsCache: SettingsCache,
+) {
     @VisibleForTesting
     val onUserSetupCompleteListener = OnChangeListener { isUserSetupCompleted = it }
     private val inputManager = requireNotNull(context.getSystemService(InputManager::class.java))
@@ -77,6 +87,7 @@ class QuickstepKeyGestureEventsManager(private val context: Context) {
                 allAppsPendingIntent?.send()
             }
         }
+
     @VisibleForTesting
     val overviewKeyGestureEventHandler =
         object : KeyGestureEventHandler {
@@ -203,5 +214,11 @@ class QuickstepKeyGestureEventsManager(private val context: Context) {
     private companion object {
         const val TAG = "KeyGestureEventsHandler"
         val USER_SETUP_COMPLETE_URI: Uri = Settings.Secure.getUriFor(USER_SETUP_COMPLETE)
+
+        @JvmStatic
+        val INSTANCE: DaggerSingletonObject<QuickstepKeyGestureEventsManager> =
+            DaggerSingletonObject<QuickstepKeyGestureEventsManager>(
+                QuickstepBaseAppComponent::getQuickstepKeyGestureEventsManager
+            )
     }
 }

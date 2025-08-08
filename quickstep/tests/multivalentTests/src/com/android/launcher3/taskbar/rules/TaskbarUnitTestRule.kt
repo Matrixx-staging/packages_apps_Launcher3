@@ -116,7 +116,12 @@ class TaskbarUnitTestRule(
                     if (description.getAnnotation(NavBarKidsMode::class.java) != null) 1 else 0
 
                 val quickstepKeyGestureEventsManagerSpy =
-                    spy(QuickstepKeyGestureEventsManager(context))
+                    spy(
+                        QuickstepKeyGestureEventsManager(
+                            context,
+                            context.settingsCacheSandbox.cache,
+                        )
+                    )
                 doNothing()
                     .whenever(quickstepKeyGestureEventsManagerSpy)
                     .registerAllAppsKeyGestureEvent(any())

@@ -61,7 +61,14 @@ class AllAppsActionManagerTest {
     private val settingsCacheSandbox =
         SettingsCacheSandbox().also { it[USER_SETUP_COMPLETE_URI] = 1 }
     private val quickstepKeyGestureEventsManager by
-        lazy(LazyThreadSafetyMode.NONE) { spy(QuickstepKeyGestureEventsManager(context)) }
+        lazy(LazyThreadSafetyMode.NONE) {
+            spy(
+                QuickstepKeyGestureEventsManager(
+                    context,
+                    settingsCacheSandbox.cache,
+                )
+            )
+        }
 
     private val allAppsActionManager by
         lazy(LazyThreadSafetyMode.NONE) {
