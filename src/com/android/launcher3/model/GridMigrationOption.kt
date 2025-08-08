@@ -61,7 +61,17 @@ sealed class GridMigrationOption(val columns: Int, val rows: Int) {
 
     private val validDestinationsForPhone: List<GridMigrationOption>
         get() =
-            listOf(TwoByTwo, ThreeByThree, FourByFour, FourByFive, FourBySix, FiveByFive, FiveBySix)
+            listOf(
+                TwoByTwo,
+                ThreeByThree,
+                FourByFour,
+                FourByFive,
+                FourBySix,
+                FiveByFive,
+                FiveBySix,
+                EightByThree,
+                SevenByThree,
+            )
 
     private val validDestinationsForTablet: List<GridMigrationOption>
         get() = listOf(SixByFive)
