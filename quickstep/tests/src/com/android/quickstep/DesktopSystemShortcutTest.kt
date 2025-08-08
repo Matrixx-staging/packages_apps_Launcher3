@@ -138,6 +138,7 @@ class DesktopSystemShortcutTest {
                 /* isTopActivityNoDisplay */ true,
                 /* isActivityStackTransparent */ false,
                 /* topActivityType */ ACTIVITY_TYPE_STANDARD,
+                /* isTopActivityTransparent */ false,
             )
         val taskContainer = createTaskContainer(Task(taskKey))
         val shortcuts = factory.getShortcuts(launcher, taskContainer)
@@ -161,6 +162,7 @@ class DesktopSystemShortcutTest {
                 /* isTopActivityNoDisplay */ false,
                 /* isActivityStackTransparent */ true,
                 /* topActivityType */ ACTIVITY_TYPE_STANDARD,
+                /* isTopActivityTransparent */ false,
             )
         val taskContainer = createTaskContainer(Task(taskKey))
         val shortcuts = factory.getShortcuts(launcher, taskContainer)
@@ -186,6 +188,7 @@ class DesktopSystemShortcutTest {
                 /* isTopActivityNoDisplay */ false,
                 /* isActivityStackTransparent */ false,
                 /* topActivityType */ ACTIVITY_TYPE_STANDARD,
+                /* isTopActivityTransparent */ false,
             )
         val taskContainer = createTaskContainer(Task(taskKey))
         val shortcuts = factory.getShortcuts(launcher, taskContainer)
@@ -213,6 +216,7 @@ class DesktopSystemShortcutTest {
                 /* isTopActivityNoDisplay */ false,
                 /* isActivityStackTransparent */ false,
                 /* topActivityType */ ACTIVITY_TYPE_STANDARD,
+                /* isTopActivityTransparent */ false,
             )
         val taskContainer = createTaskContainer(Task(taskKey).apply { isDockable = true })
         val shortcuts = factory.getShortcuts(launcher, taskContainer)
@@ -240,6 +244,7 @@ class DesktopSystemShortcutTest {
                 /* isTopActivityNoDisplay */ false,
                 /* isActivityStackTransparent */ false,
                 /* topActivityType */ ACTIVITY_TYPE_DREAM,
+                /* isTopActivityTransparent */ false,
             )
         val taskContainer = createTaskContainer(Task(taskKey))
         val shortcuts = factory.getShortcuts(launcher, taskContainer)
@@ -341,6 +346,7 @@ class DesktopSystemShortcutTest {
                     /* isTopActivityNoDisplay */ false,
                     /* isActivityStackTransparent */ false,
                     /* topActivityType */ ACTIVITY_TYPE_STANDARD,
+                    /* isTopActivityTransparent */ false,
                 )
             )
             .apply { isDockable = true }

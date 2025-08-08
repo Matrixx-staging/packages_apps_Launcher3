@@ -263,6 +263,7 @@ class AspectRatioSystemShortcutTests {
                 /* isTopActivityNoDisplay */ false,
                 /* isActivityStackTransparent */ false,
                 /* topActivityType */ ACTIVITY_TYPE_STANDARD,
+                /* isTopActivityTransparent */ false,
             )
         )
 

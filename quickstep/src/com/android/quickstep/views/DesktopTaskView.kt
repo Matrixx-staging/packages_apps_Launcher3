@@ -29,7 +29,6 @@ import android.graphics.RectF
 import android.util.AttributeSet
 import android.util.FloatProperty
 import android.util.Log
-import android.util.Size
 import android.view.Display.INVALID_DISPLAY
 import android.view.Gravity
 import android.view.View
@@ -150,12 +149,6 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
     private val wallpaperBackgroundFetchCoroutineJobs = mutableListOf<Job>()
 
     /**
-     * Holds the default (user placed) positions of task windows. This can be moved into the
-     * viewModel once RefactorTaskThumbnail has been launched.
-     */
-    private var fullscreenTaskPositions: List<DesktopTaskViewModel.TaskPosition> = emptyList()
-
-    /**
      * Map from task IDs to previous organized task positions. This is used to animate between two
      * sets of organized task positions when a task is being dismissed.
      */
@@ -248,7 +241,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         taskContainers.forEach { taskContainer ->
             val taskId = taskContainer.task.key.id
             val fullscreenTaskBounds =
-                fullscreenTaskPositions.firstOrNull { it.taskId == taskId }?.bounds
+                viewModel.fullscreenTaskPositions.firstOrNull { it.taskId == taskId }?.bounds
                     ?: return@forEach
 
             val organizedTaskVisibilityData: DesktopTaskVisibilityData? =
@@ -466,6 +459,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         orientedState: RecentsOrientedState,
         taskOverlayFactory: TaskOverlayFactory,
     ) {
+        viewModel.bind(desktopTask)
         this.groupTask = desktopTask
         // Minimized tasks are shown in Overview when exploded view is enabled.
         val tasks =
@@ -558,6 +552,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         taskContainers.forEach { removeAndRecycleThumbnailView(it) }
         remoteTargetHandles = null
         taskIdReorderToFront = null
+        viewModel.bind(null)
     }
 
     @SuppressLint("RtlHardcoded")
@@ -755,22 +750,9 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
     }
 
     private fun updateTaskPositions(dismissedTaskId: Int? = null) {
-        BaseContainerInterface.getTaskDimension(mContext, container.deviceProfile, tempPointF)
-        val desktopSize = Size(tempPointF.x.toInt(), tempPointF.y.toInt())
-        DEFAULT_BOUNDS.set(0, 0, desktopSize.width / 4, desktopSize.height / 4)
-
-        fullscreenTaskPositions =
-            taskContainers.map {
-                DesktopTaskViewModel.TaskPosition(
-                    taskId = it.task.key.id,
-                    isMinimized = it.task.isMinimized,
-                    bounds = it.task.appBounds ?: DEFAULT_BOUNDS,
-                )
-            }
-
         if (enableDesktopExplodedView()) {
             val layoutConfig = getDesktopLayoutConfig()
-            viewModel.organizeDesktopTasks(fullscreenTaskPositions, layoutConfig, dismissedTaskId)
+            viewModel.organizeDesktopTasks(layoutConfig, dismissedTaskId)
         }
         positionTaskWindows(updateLayout = true)
     }
@@ -891,7 +873,6 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
 
         // As DesktopTaskView is inflated in background, use initialSize=0 to avoid initPool.
         private const val VIEW_POOL_INITIAL_SIZE = 0
-        private val DEFAULT_BOUNDS = Rect()
 
         // Temporaries used for various purposes to avoid allocations.
         private val TEMP_OVERVIEW_TASK_POSITION = Rect()
