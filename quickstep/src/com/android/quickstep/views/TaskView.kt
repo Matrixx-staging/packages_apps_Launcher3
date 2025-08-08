@@ -998,7 +998,6 @@ constructor(
                 setTaskDismissButtonState(
                     TaskUiStateMapper.toTaskDismissButtonState(
                         (type == TaskViewType.DESKTOP),
-                        (type == TaskViewType.GROUPED),
                         dismissTaskViewOnClick,
                     )
                 )
