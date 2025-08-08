@@ -647,18 +647,13 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
         }
 
         mControllers.bubbleControllers.ifPresent(controllers -> {
-            if (shouldBubblesFollow) {
-                final boolean willStash = mIsStashedPredicate.test(mState);
-                if (willStash != controllers.bubbleStashController.isStashed()) {
-                    // Typically bubbles gets stashed / unstashed along with Taskbar, however, if
-                    // taskbar is becoming stashed because bubbles is being expanded, we don't want
-                    // to stash bubbles.
-                    if (willStash) {
-                        controllers.bubbleStashController.stashBubbleBar();
-                    } else {
-                        controllers.bubbleStashController.showBubbleBar(false /* expandBubbles */);
-                    }
-                }
+            if (!shouldBubblesFollow || stash == controllers.bubbleStashController.isStashed()) {
+                return;
+            }
+            if (stash) {
+                controllers.bubbleStashController.stashBubbleBar();
+            } else {
+                controllers.bubbleStashController.showBubbleBar(false /* expandBubbles */);
             }
         });
     }
