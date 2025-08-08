@@ -29,7 +29,6 @@ import com.android.launcher3.logging.DumpManager.LauncherDumpable
 import com.android.launcher3.model.AllAppsList
 import com.android.launcher3.model.BaseLauncherBinder.BaseLauncherBinderFactory
 import com.android.launcher3.model.BgDataModel
-import com.android.launcher3.model.CacheDataUpdatedTask
 import com.android.launcher3.model.ItemInstallQueue
 import com.android.launcher3.model.LoaderTask
 import com.android.launcher3.model.LoaderTask.LoaderTaskFactory
@@ -39,11 +38,12 @@ import com.android.launcher3.model.ModelInitializer
 import com.android.launcher3.model.ModelLauncherCallbacks
 import com.android.launcher3.model.ModelTaskController
 import com.android.launcher3.model.ModelWriter
-import com.android.launcher3.model.PackageUpdatedTask
-import com.android.launcher3.model.UserLockStateChangedTask
 import com.android.launcher3.model.UserManagerState
 import com.android.launcher3.model.data.WorkspaceItemInfo
+import com.android.launcher3.model.tasks.CacheDataUpdatedTask
+import com.android.launcher3.model.tasks.PackageUpdatedTask
 import com.android.launcher3.model.tasks.ShortcutsChangedTask
+import com.android.launcher3.model.tasks.UserLockStateChangedTask
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.shortcuts.ShortcutRequest
 import com.android.launcher3.util.DaggerSingletonTracker

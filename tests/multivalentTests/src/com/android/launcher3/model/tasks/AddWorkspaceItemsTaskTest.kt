@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.launcher3.model
+package com.android.launcher3.model.tasks
 
 import android.content.ComponentName
 import android.platform.test.annotations.EnableFlags
@@ -24,12 +24,14 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.android.launcher3.Flags
 import com.android.launcher3.model.BgDataModel.Callbacks
+import com.android.launcher3.model.NewItemSpace
+import com.android.launcher3.model.TestableModelState
+import com.android.launcher3.model.WorkspaceItemSpaceFinder
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.WorkspaceChangeEvent.AddEvent
 import com.android.launcher3.model.data.WorkspaceData
 import com.android.launcher3.model.data.WorkspaceItemInfo
-import com.android.launcher3.model.tasks.AddWorkspaceItemsTask
 import com.android.launcher3.util.Executors
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import com.android.launcher3.util.IntArray
