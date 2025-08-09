@@ -22,6 +22,7 @@ import android.graphics.Color;
 
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Launcher;
+import com.android.launcher3.LauncherUiState;
 import com.android.launcher3.allapps.AllAppsTransitionController;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.views.ScrimColors;
@@ -75,8 +76,8 @@ public class BackgroundAppState extends OverviewState {
     }
 
     @Override
-    public int getVisibleElements(Launcher launcher) {
-        return super.getVisibleElements(launcher)
+    public int getVisibleElements(@Deprecated Launcher launcher, LauncherUiState launcherUiState) {
+        return super.getVisibleElements(launcher, launcherUiState)
                 & ~OVERVIEW_ACTIONS
                 & ~CLEAR_ALL_BUTTON
                 & ~VERTICAL_SWIPE_INDICATOR

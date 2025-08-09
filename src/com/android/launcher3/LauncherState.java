@@ -40,6 +40,7 @@ import android.view.animation.Interpolator;
 import androidx.annotation.FloatRange;
 import androidx.annotation.StringRes;
 
+import com.android.launcher3.deviceprofile.DeviceProperties;
 import com.android.launcher3.statemanager.BaseState;
 import com.android.launcher3.statemanager.StateManager;
 import com.android.launcher3.states.EditModeState;
@@ -259,10 +260,13 @@ public abstract class LauncherState implements BaseState<LauncherState> {
         return false;
     }
 
-    public int getVisibleElements(Launcher launcher) {
+    /** We should remove Launcher param after roll out refactorTaskbarUiState() flag. */
+    public int getVisibleElements(@Deprecated Launcher launcher, LauncherUiState launcherUiState) {
         int elements = HOTSEAT_ICONS | WORKSPACE_PAGE_INDICATOR | VERTICAL_SWIPE_INDICATOR;
         // Floating search bar is visible in normal state except in landscape on phones.
-        if (!(launcher.getDeviceProfile().getDeviceProperties().isPhone() && launcher.getDeviceProfile().getDeviceProperties().isLandscape())) {
+        DeviceProperties dp = LauncherUiStateUtil.getDeviceProfile(launcher, launcherUiState)
+                .getDeviceProperties();
+        if (!(dp.isPhone() && dp.isLandscape())) {
             elements |= FLOATING_SEARCH_BAR;
         }
         return elements;
@@ -273,7 +277,7 @@ public abstract class LauncherState implements BaseState<LauncherState> {
      * @return Whether all of the given elements are visible.
      */
     public boolean areElementsVisible(Launcher launcher, int elements) {
-        return (getVisibleElements(launcher) & elements) == elements;
+        return (getVisibleElements(launcher, launcher.launcherUiState) & elements) == elements;
     }
 
     /**
@@ -281,7 +285,7 @@ public abstract class LauncherState implements BaseState<LauncherState> {
      * 1) replace hotseat or taskbar icons with a handle in gesture navigation mode or
      * 2) fade out the hotseat or taskbar icons in 3-button navigation mode.
      */
-    public boolean isTaskbarStashed(Launcher launcher, LauncherUiState launcherUiState) {
+    public boolean isTaskbarStashed(DeviceProfile deviceProfile) {
         return false;
     }
 

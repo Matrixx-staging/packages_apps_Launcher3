@@ -56,6 +56,7 @@ import com.android.launcher3.Hotseat;
 import com.android.launcher3.Hotseat.HotseatQsbAlphaId;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.LauncherUiState;
+import com.android.launcher3.LauncherUiStateUtil;
 import com.android.launcher3.QuickstepTransitionManager;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.anim.AnimatedFloat;
@@ -365,7 +366,7 @@ public class TaskbarLauncherStateController {
         // Update stashed flags first to ensure goingToUnstashedLauncherState() returns correctly.
         TaskbarStashController stashController = mControllers.taskbarStashController;
         stashController.updateStateForFlag(FLAG_IN_STASHED_LAUNCHER_STATE,
-                toState.isTaskbarStashed(mLauncher, mLauncherUiState));
+                toState.isTaskbarStashed(getDeviceProfile()));
         if (DEBUG) {
             Log.d(TAG, "createAnimToLauncher - FLAG_IN_APP: " + false);
         }
@@ -445,30 +446,12 @@ public class TaskbarLauncherStateController {
      * @param launcherState The current state launcher is in
      */
     private void updateOverviewDragState(LauncherState launcherState) {
-        boolean disallowLongClick = isSplitSelectionActive() || mIsAnimatingToLauncher;
+        boolean disallowLongClick =
+                LauncherUiStateUtil.INSTANCE.isSplitSelectActive(mLauncher, mLauncherUiState)
+                        || mIsAnimatingToLauncher;
         com.android.launcher3.taskbar.Utilities.setOverviewDragState(
                 mControllers, launcherState.disallowTaskbarGlobalDrag(),
                 disallowLongClick, launcherState.allowTaskbarInitialSplitSelection());
-    }
-
-    private boolean isSplitSelectionActive() {
-        if (refactorTaskbarUiState()) {
-            final boolean ret = newIsSplitSelectionActive();
-            if (BuildConfig.IS_STUDIO_BUILD && ret != legacyIsSplitSelectionActive()) {
-                throw new IllegalStateException("isSplitSelectionActive doesn't match");
-            }
-            return ret;
-        } else {
-            return legacyIsSplitSelectionActive();
-        }
-    }
-
-    private boolean newIsSplitSelectionActive() {
-        return mLauncherUiState.isSplitSelectActiveRef().getValue();
-    }
-
-    private boolean legacyIsSplitSelectionActive() {
-        return mLauncher.isSplitSelectionActive();
     }
 
     /**
@@ -571,7 +554,7 @@ public class TaskbarLauncherStateController {
         // Update taskbar stash flag here since we are skipping the playStateTransitionAnim below
         if (isPersistent) {
             stashController.updateStateForFlag(FLAG_IN_STASHED_LAUNCHER_STATE,
-                    mLauncherState.isTaskbarStashed(mLauncher, mLauncherUiState));
+                    mLauncherState.isTaskbarStashed(getDeviceProfile()));
         }
 
         AnimatorSet animatorSet = new AnimatorSet();
@@ -937,7 +920,7 @@ public class TaskbarLauncherStateController {
      */
     public boolean isIconAlignedWithHotseat() {
         if (isInLauncher()) {
-            boolean isInStashedState = mLauncherState.isTaskbarStashed(mLauncher, mLauncherUiState);
+            boolean isInStashedState = mLauncherState.isTaskbarStashed(getDeviceProfile());
             boolean willStashVisually = isInStashedState
                     && mControllers.taskbarStashController.supportsVisualStashing();
             boolean isTaskbarAlignedWithHotseat = isTaskbarAlignedWithHotseat();
@@ -969,7 +952,7 @@ public class TaskbarLauncherStateController {
 
     private void playStateTransitionAnim(AnimatorSet animatorSet, long duration,
             boolean committed) {
-        boolean isInStashedState = mLauncherState.isTaskbarStashed(mLauncher, mLauncherUiState);
+        boolean isInStashedState = mLauncherState.isTaskbarStashed(getDeviceProfile());
         TaskbarStashController stashController = mControllers.taskbarStashController;
         stashController.updateStateForFlag(FLAG_IN_STASHED_LAUNCHER_STATE, isInStashedState);
         Animator stashAnimator = stashController.createApplyStateAnimator(duration);
@@ -1277,15 +1260,7 @@ public class TaskbarLauncherStateController {
     }
 
     private DeviceProfile getDeviceProfile() {
-        if (refactorTaskbarUiState()) {
-            DeviceProfile ret = mLauncherUiState.getDeviceProfileRef().getValue();
-            if (BuildConfig.IS_STUDIO_BUILD && ret != mLauncher.getDeviceProfile()) {
-                throw new IllegalStateException("getDeviceProfile() doesn't match");
-            }
-            return ret;
-        } else {
-            return mLauncher.getDeviceProfile();
-        }
+        return LauncherUiStateUtil.INSTANCE.getDeviceProfile(mLauncher, mLauncherUiState);
     }
 
     private boolean isOverlayShown() {
