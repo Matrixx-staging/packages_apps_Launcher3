@@ -16,6 +16,7 @@
 
 package com.android.quickstep
 
+import android.app.WindowConfiguration.ACTIVITY_TYPE_STANDARD
 import android.content.ComponentName
 import android.content.Context
 import android.content.ContextWrapper
@@ -261,6 +262,7 @@ class AspectRatioSystemShortcutTests {
                 /* numActivities */ 1,
                 /* isTopActivityNoDisplay */ false,
                 /* isActivityStackTransparent */ false,
+                /* topActivityType */ ACTIVITY_TYPE_STANDARD,
             )
         )
 

@@ -19,8 +19,10 @@ import static com.android.app.animation.Interpolators.DECELERATE;
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_ALLAPPS;
 
 import android.graphics.Color;
+
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
+import com.android.launcher3.LauncherUiState;
 import com.android.launcher3.R;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
@@ -55,7 +57,7 @@ public class AllAppsState extends LauncherState {
     }
 
     @Override
-    public int getVisibleElements(Launcher launcher) {
+    public int getVisibleElements(@Deprecated Launcher launcher, LauncherUiState launcherUiState) {
         return ALL_APPS_CONTENT;
     }
 

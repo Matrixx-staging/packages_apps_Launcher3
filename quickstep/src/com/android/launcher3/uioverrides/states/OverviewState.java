@@ -29,6 +29,8 @@ import androidx.core.graphics.ColorUtils;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
+import com.android.launcher3.LauncherUiState;
+import com.android.launcher3.LauncherUiStateUtil;
 import com.android.launcher3.R;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.DisplayController;
@@ -114,22 +116,21 @@ public class OverviewState extends LauncherState {
     }
 
     @Override
-    public int getVisibleElements(Launcher launcher) {
+    public int getVisibleElements(@Deprecated Launcher launcher, LauncherUiState launcherUiState) {
         int elements = CLEAR_ALL_BUTTON | OVERVIEW_ACTIONS | ADD_DESK_BUTTON;
-        DeviceProfile dp = launcher.getDeviceProfile();
         boolean showFloatingSearch;
+        DeviceProfile dp = LauncherUiStateUtil.INSTANCE.getDeviceProfile(launcher, launcherUiState);
         if (dp.getDeviceProperties().isPhone()) {
             // Only show search in phone overview in portrait mode.
             showFloatingSearch = !dp.getDeviceProperties().isLandscape();
         } else {
             // Only show search in tablet overview if taskbar is not visible.
-            showFloatingSearch = !dp.isTaskbarPresent || isTaskbarStashed(launcher,
-                    launcher.launcherUiState);
+            showFloatingSearch = !dp.isTaskbarPresent || isTaskbarStashed(dp);
         }
         if (showFloatingSearch) {
             elements |= FLOATING_SEARCH_BAR;
         }
-        if (launcher.isSplitSelectionActive()) {
+        if (LauncherUiStateUtil.isSplitSelectActive(launcher, launcherUiState)) {
             elements &= ~CLEAR_ALL_BUTTON & ~ADD_DESK_BUTTON;
         }
         return elements;

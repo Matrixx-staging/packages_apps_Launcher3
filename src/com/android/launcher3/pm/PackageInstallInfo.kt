@@ -18,7 +18,6 @@ package com.android.launcher3.pm
 import android.content.pm.PackageInstaller.SessionInfo
 import android.os.UserHandle
 
-@JvmRecord
 data class PackageInstallInfo(
     @JvmField val packageName: String,
     @JvmField val state: Int,

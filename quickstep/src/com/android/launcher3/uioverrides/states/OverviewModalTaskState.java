@@ -18,6 +18,7 @@ package com.android.launcher3.uioverrides.states;
 import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_OVERVIEW;
 
+import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherUiState;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
@@ -43,7 +44,7 @@ public class OverviewModalTaskState extends OverviewState {
     }
 
     @Override
-    public int getVisibleElements(Launcher launcher) {
+    public int getVisibleElements(@Deprecated Launcher launcher, LauncherUiState launcherUiState) {
         return OVERVIEW_ACTIONS;
     }
 
@@ -58,10 +59,10 @@ public class OverviewModalTaskState extends OverviewState {
     }
 
     @Override
-    public boolean isTaskbarStashed(Launcher launcher, LauncherUiState launcherUiState) {
+    public boolean isTaskbarStashed(DeviceProfile deviceProfile) {
         if (enableGridOnlyOverview()) {
             return true;
         }
-        return super.isTaskbarStashed(launcher, launcherUiState);
+        return super.isTaskbarStashed(deviceProfile);
     }
 }

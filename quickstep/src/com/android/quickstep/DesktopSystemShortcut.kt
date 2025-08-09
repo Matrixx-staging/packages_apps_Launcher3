@@ -94,6 +94,7 @@ class DesktopSystemShortcut(
                             taskKey.numActivities,
                             taskKey.isTopActivityNoDisplay,
                             taskKey.isActivityStackTransparent,
+                            taskKey.topActivityType,
                         ) -> null
 
                         !taskContainer.task.isDockable -> null

@@ -46,6 +46,7 @@ import com.android.launcher3.Flags;
 import com.android.launcher3.Hotseat;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.LauncherUiState;
+import com.android.launcher3.LauncherUiStateUtil;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.logging.InstanceId;
@@ -165,15 +166,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
     }
 
     private DeviceProfile getDeviceProfile() {
-        if (refactorTaskbarUiState()) {
-            DeviceProfile ret = mLauncherUiState.getDeviceProfileRef().getValue();
-            if (BuildConfig.IS_STUDIO_BUILD && ret != mLauncher.getDeviceProfile()) {
-                throw new IllegalStateException("getDeviceProfile() doesn't match");
-            }
-            return ret;
-        } else {
-            return mLauncher.getDeviceProfile();
-        }
+        return LauncherUiStateUtil.getDeviceProfile(mLauncher, mLauncherUiState);
     }
 
     @Override

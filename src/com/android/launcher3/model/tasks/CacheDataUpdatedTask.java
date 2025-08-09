@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.launcher3.model;
+package com.android.launcher3.model.tasks;
 
 import static com.android.launcher3.icons.cache.CacheLookupFlag.DEFAULT_LOOKUP_FLAG;
 
@@ -25,6 +25,9 @@ import androidx.annotation.NonNull;
 import com.android.launcher3.LauncherModel.ModelUpdateTask;
 import com.android.launcher3.LauncherSettings;
 import com.android.launcher3.icons.IconCache;
+import com.android.launcher3.model.AllAppsList;
+import com.android.launcher3.model.BgDataModel;
+import com.android.launcher3.model.ModelTaskController;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 
@@ -89,14 +92,11 @@ public class CacheDataUpdatedTask implements ModelUpdateTask {
         taskController.bindApplicationsIfNeeded();
     }
 
-    public boolean isValidShortcut(@NonNull final WorkspaceItemInfo si) {
-        switch (mOp) {
-            case OP_CACHE_UPDATE:
-                return true;
-            case OP_SESSION_UPDATE:
-                return si.hasPromiseIconUi();
-            default:
-                return false;
-        }
+    private boolean isValidShortcut(@NonNull final WorkspaceItemInfo si) {
+        return switch (mOp) {
+            case OP_CACHE_UPDATE -> true;
+            case OP_SESSION_UPDATE -> si.hasPromiseIconUi();
+            default -> false;
+        };
     }
 }

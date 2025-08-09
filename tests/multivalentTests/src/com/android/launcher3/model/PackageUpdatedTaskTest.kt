@@ -32,16 +32,21 @@ import com.android.launcher3.LauncherSettings
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.icons.IconCache
-import com.android.launcher3.model.PackageUpdatedTask.OP_ADD
-import com.android.launcher3.model.PackageUpdatedTask.OP_REMOVE
-import com.android.launcher3.model.PackageUpdatedTask.OP_SUSPEND
-import com.android.launcher3.model.PackageUpdatedTask.OP_UNAVAILABLE
-import com.android.launcher3.model.PackageUpdatedTask.OP_UNSUSPEND
-import com.android.launcher3.model.PackageUpdatedTask.OP_UPDATE
-import com.android.launcher3.model.PackageUpdatedTask.OP_USER_AVAILABILITY_CHANGE
 import com.android.launcher3.model.data.AppInfo
+import com.android.launcher3.model.data.WorkspaceData
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.model.repository.AppsListRepository
+import com.android.launcher3.model.tasks.ModelRepoTestEx.trackUpdate
+import com.android.launcher3.model.tasks.ModelRepoTestEx.verifyAndGetItemsUpdated
+import com.android.launcher3.model.tasks.ModelRepoTestEx.verifyDelete
+import com.android.launcher3.model.tasks.PackageUpdatedTask
+import com.android.launcher3.model.tasks.PackageUpdatedTask.OP_ADD
+import com.android.launcher3.model.tasks.PackageUpdatedTask.OP_REMOVE
+import com.android.launcher3.model.tasks.PackageUpdatedTask.OP_SUSPEND
+import com.android.launcher3.model.tasks.PackageUpdatedTask.OP_UNAVAILABLE
+import com.android.launcher3.model.tasks.PackageUpdatedTask.OP_UNSUSPEND
+import com.android.launcher3.model.tasks.PackageUpdatedTask.OP_UPDATE
+import com.android.launcher3.model.tasks.PackageUpdatedTask.OP_USER_AVAILABILITY_CHANGE
 import com.android.launcher3.util.AllModulesForTest
 import com.android.launcher3.util.Executors
 import com.android.launcher3.util.SandboxApplication
@@ -53,9 +58,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.Mock
+import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doAnswer
-import org.mockito.kotlin.mock
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -64,43 +70,51 @@ import org.mockito.kotlin.whenever
 class PackageUpdatedTaskTest {
 
     @get:Rule val setFlagsRule = SetFlagsRule()
-    @get:Rule val mContext = SandboxApplication()
+    @get:Rule val context = SandboxApplication()
+    @get:Rule val mockito = MockitoJUnit.rule()
 
     private val mUser = myUserHandle()
 
+    @Mock lateinit var expectedActivityInfo: LauncherActivityInfo
+    @Mock lateinit var mockIconCache: IconCache
+    @Mock lateinit var mockAppFilter: AppFilter
+
+    @Mock lateinit var mockApplicationInfo: ApplicationInfo
+    @Mock lateinit var mockActivityInfo: ActivityInfo
+
     private val expectedPackage = "Test.Package"
     private val expectedComponent = ComponentName(expectedPackage, "TestClass")
-    private val expectedActivityInfo: LauncherActivityInfo = mock<LauncherActivityInfo>()
-    private val expectedWorkspaceItem = spy(WorkspaceItemInfo())
+    private val expectedWorkspaceItem =
+        WorkspaceItemInfo().apply {
+            itemType = LauncherSettings.Favorites.ITEM_TYPE_APPLICATION
+            container = LauncherSettings.Favorites.CONTAINER_DESKTOP
+            user = mUser
+            intent = AppInfo.makeLaunchIntent(expectedComponent)
+        }
 
-    private val mockIconCache: IconCache = mock()
-    private val mockAppFilter: AppFilter = mock<AppFilter>()
-    private val appsListRepo = AppsListRepository()
-    private lateinit var mAllAppsList: AllAppsList
-
-    private val mockApplicationInfo: ApplicationInfo = mock<ApplicationInfo>()
-    private val mockActivityInfo: ActivityInfo = mock<ActivityInfo>()
-
-    private lateinit var mDataModel: BgDataModel
     private lateinit var mockTaskController: ModelTaskController
+
+    private val modelState: TestableModelState
+        get() = context.appComponent.testableModelState
 
     @Before
     fun setup() {
-        mAllAppsList = spy(AllAppsList(mockIconCache, mockAppFilter) { appsListRepo })
-        mContext.initDaggerComponent(
+        val appsListRepo = AppsListRepository()
+        context.initDaggerComponent(
             DaggerPackageUpdatedTaskTest_TestComponent.builder()
-                .bindAllAppsList(mAllAppsList)
+                .bindAppsRepository(appsListRepo)
+                .bindAllAppsList(spy(AllAppsList(mockIconCache, mockAppFilter) { appsListRepo }))
                 .bindAppFilter(mockAppFilter)
                 .bindIconCache(mockIconCache)
         )
 
-        mContext.spyService(LauncherApps::class.java).apply {
+        context.spyService(LauncherApps::class.java).apply {
             whenever(getActivityList(expectedPackage, mUser))
                 .thenReturn(listOf(expectedActivityInfo))
+            whenever(isPackageEnabled(expectedPackage, mUser)).thenReturn(true)
         }
 
-        mockTaskController = spy((mContext.appComponent as TestComponent).getTaskController())
-        mDataModel = (mContext.appComponent as TestComponent).getDataModel()
+        mockTaskController = spy((context.appComponent as TestComponent).getTaskController())
 
         whenever(mockAppFilter.shouldShowApp(expectedComponent)).thenReturn(true)
         mockApplicationInfo.apply {
@@ -113,146 +127,167 @@ class PackageUpdatedTaskTest {
             whenever(activityInfo).thenReturn(mockActivityInfo)
             whenever(componentName).thenReturn(expectedComponent)
         }
-        expectedWorkspaceItem.apply {
-            itemType = LauncherSettings.Favorites.ITEM_TYPE_APPLICATION
-            container = LauncherSettings.Favorites.CONTAINER_DESKTOP
-            user = mUser
-            whenever(targetPackage).thenReturn(expectedPackage)
-            whenever(targetComponent).thenReturn(expectedComponent)
-        }
     }
 
+    private fun executeTask(op: Int) =
+        TestUtil.runOnExecutorSync(Executors.MODEL_EXECUTOR) {
+            PackageUpdatedTask(op, mUser, expectedPackage)
+                .execute(mockTaskController, modelState.dataModel, modelState.appsList)
+        }
+
     @Test
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun `OP_ADD triggers model callbacks and adds new items to AllAppsList`() {
-        // Given
-        val taskUnderTest = PackageUpdatedTask(OP_ADD, mUser, expectedPackage)
-        // When
-        mDataModel.addItem(mContext, expectedWorkspaceItem)
-        TestUtil.runOnExecutorSync(Executors.MODEL_EXECUTOR) {
-            taskUnderTest.execute(mockTaskController, mDataModel, mAllAppsList)
-        }
-        // Then
+        modelState.dataModel.addItem(context, expectedWorkspaceItem)
+        val appUpdates = modelState.appsRepo.appsListStateRef.trackUpdate()
+        val widgetsUpdates = modelState.homeRepo.allWidgets.trackUpdate()
+        val workspaceUpdates = modelState.homeRepo.workspaceState.trackUpdate()
+
+        executeTask(OP_ADD)
+
         verify(mockIconCache).updateIconsForPkg(expectedPackage, mUser)
-        verify(mAllAppsList).addPackage(mContext, expectedPackage, mUser)
+        assertThat(appUpdates).hasSize(2)
+        assertThat(widgetsUpdates).hasSize(2)
+        workspaceUpdates.verifyItemUpdated()
+
+        verify(modelState.appsList).addPackage(context, expectedPackage, mUser)
         verify(mockTaskController).bindUpdatedWorkspaceItems(listOf(expectedWorkspaceItem))
-        verify(mockTaskController).bindUpdatedWidgets(mDataModel)
-        assertThat(mAllAppsList.data.firstOrNull()?.componentName)
-            .isEqualTo(AppInfo(mContext, expectedActivityInfo, mUser).componentName)
+        verify(mockTaskController).bindUpdatedWidgets(modelState.dataModel)
+
+        assertThat(modelState.appsList.data.firstOrNull()?.componentName)
+            .isEqualTo(AppInfo(context, expectedActivityInfo, mUser).componentName)
+        assertThat(modelState.appsRepo.appsListStateRef.value.apps.firstOrNull()?.componentName)
+            .isEqualTo(AppInfo(context, expectedActivityInfo, mUser).componentName)
     }
 
     @Test
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun `OP_UPDATE triggers model callbacks and updates items in AllAppsList`() {
-        // Given
-        val taskUnderTest = PackageUpdatedTask(OP_UPDATE, mUser, expectedPackage)
-        // When
-        mDataModel.addItem(mContext, expectedWorkspaceItem)
-        TestUtil.runOnExecutorSync(Executors.MODEL_EXECUTOR) {
-            taskUnderTest.execute(mockTaskController, mDataModel, mAllAppsList)
-        }
-        // Then
+        modelState.dataModel.addItem(context, expectedWorkspaceItem)
+        val appUpdates = modelState.appsRepo.appsListStateRef.trackUpdate()
+        val workspaceUpdates = modelState.homeRepo.workspaceState.trackUpdate()
+
+        executeTask(OP_UPDATE)
+
         verify(mockIconCache).updateIconsForPkg(expectedPackage, mUser)
-        verify(mAllAppsList).updatePackage(mContext, expectedPackage, mUser)
+        assertThat(appUpdates).hasSize(2)
+        workspaceUpdates.verifyItemUpdated()
+
+        verify(modelState.appsList).updatePackage(context, expectedPackage, mUser)
         verify(mockTaskController).bindUpdatedWorkspaceItems(listOf(expectedWorkspaceItem))
-        assertThat(mAllAppsList.data.firstOrNull()?.componentName)
-            .isEqualTo(AppInfo(mContext, expectedActivityInfo, mUser).componentName)
+
+        assertThat(modelState.appsList.data.firstOrNull()?.componentName)
+            .isEqualTo(AppInfo(context, expectedActivityInfo, mUser).componentName)
+        assertThat(modelState.appsRepo.appsListStateRef.value.apps.firstOrNull()?.componentName)
+            .isEqualTo(AppInfo(context, expectedActivityInfo, mUser).componentName)
     }
 
     @Test
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun `OP_REMOVE triggers model callbacks and removes packages and icons`() {
-        // Given
-        val taskUnderTest = PackageUpdatedTask(OP_REMOVE, mUser, expectedPackage)
-        // When
-        mDataModel.addItem(mContext, expectedWorkspaceItem)
-        TestUtil.runOnExecutorSync(Executors.MODEL_EXECUTOR) {
-            taskUnderTest.execute(mockTaskController, mDataModel, mAllAppsList)
-        }
-        // Then
+        modelState.appsList.add(AppInfo(context, expectedActivityInfo, mUser), expectedActivityInfo)
+        modelState.appsList.getAndResetChangeFlag()
+        modelState.dataModel.addItem(context, expectedWorkspaceItem)
+        val appUpdates = modelState.appsRepo.appsListStateRef.trackUpdate()
+        val workspaceUpdates = modelState.homeRepo.workspaceState.trackUpdate()
+
+        executeTask(OP_REMOVE)
+
         verify(mockIconCache).removeIconsForPkg(expectedPackage, mUser)
-        verify(mAllAppsList).removePackage(expectedPackage, mUser)
+        assertThat(appUpdates).hasSize(2)
+        workspaceUpdates.verifyItemUpdated(updateIndex = 1, totalUpdates = 3)
+        workspaceUpdates.verifyDelete(deleteIndex = 2, totalUpdates = 3)
+
+        verify(modelState.appsList).removePackage(expectedPackage, mUser)
         verify(mockTaskController).bindUpdatedWorkspaceItems(listOf(expectedWorkspaceItem))
-        assertThat(mAllAppsList.data).isEmpty()
+
+        assertThat(modelState.appsList.data).isEmpty()
+        assertThat(modelState.appsRepo.appsListStateRef.value.apps).isEmpty()
     }
 
     @Test
+    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun `OP_UNAVAILABLE triggers model callbacks and removes package from AllAppsList`() {
-        // Given
-        val taskUnderTest = PackageUpdatedTask(OP_UNAVAILABLE, mUser, expectedPackage)
-        // When
-        mDataModel.addItem(mContext, expectedWorkspaceItem)
-        TestUtil.runOnExecutorSync(Executors.MODEL_EXECUTOR) {
-            taskUnderTest.execute(mockTaskController, mDataModel, mAllAppsList)
-        }
-        // Then
-        verify(mAllAppsList).removePackage(expectedPackage, mUser)
+        modelState.dataModel.addItem(context, expectedWorkspaceItem)
+        val workspaceUpdates = modelState.homeRepo.workspaceState.trackUpdate()
+        executeTask(OP_UNAVAILABLE)
+
+        workspaceUpdates.verifyItemUpdated()
+        verify(modelState.appsList).removePackage(expectedPackage, mUser)
         verify(mockTaskController).bindUpdatedWorkspaceItems(listOf(expectedWorkspaceItem))
-        assertThat(mAllAppsList.data).isEmpty()
+
+        assertThat(modelState.appsList.data).isEmpty()
+        assertThat(modelState.appsRepo.appsListStateRef.value.apps).isEmpty()
     }
 
     @Test
     @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun `OP_SUSPEND triggers model callbacks and updates flags in AllAppsList`() {
-        // Given
-        val taskUnderTest = PackageUpdatedTask(OP_SUSPEND, mUser, expectedPackage)
-        // When
-        mDataModel.addItem(mContext, expectedWorkspaceItem)
-        mAllAppsList.add(AppInfo(mContext, expectedActivityInfo, mUser), expectedActivityInfo)
-        mAllAppsList.getAndResetChangeFlag()
+        modelState.dataModel.addItem(context, expectedWorkspaceItem)
+        modelState.appsList.add(AppInfo(context, expectedActivityInfo, mUser), expectedActivityInfo)
+        modelState.appsList.getAndResetChangeFlag()
         doAnswer {}.whenever(mockTaskController).bindApplicationsIfNeeded()
-        TestUtil.runOnExecutorSync(Executors.MODEL_EXECUTOR) {
-            taskUnderTest.execute(mockTaskController, mDataModel, mAllAppsList)
-        }
-        // Then
-        verify(mAllAppsList).updateDisabledFlags(any(), any())
+        val workspaceUpdates = modelState.homeRepo.workspaceState.trackUpdate()
+
+        executeTask(OP_SUSPEND)
+
+        workspaceUpdates.verifyItemUpdated()
         verify(mockTaskController).bindUpdatedWorkspaceItems(listOf(expectedWorkspaceItem))
-        assertThat(mAllAppsList.getAndResetChangeFlag()).isTrue()
-        assertThat(appsListRepo.appsListStateRef.value.apps).isNotEmpty()
+
+        verify(modelState.appsList).updateDisabledFlags(any(), any())
+        assertThat(modelState.appsList.getAndResetChangeFlag()).isTrue()
+        assertThat(modelState.appsRepo.appsListStateRef.value.apps).isNotEmpty()
     }
 
     @Test
     @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun `OP_UNSUSPEND triggers no callbacks when app not suspended`() {
-        // Given
-        val taskUnderTest = PackageUpdatedTask(OP_UNSUSPEND, mUser, expectedPackage)
-        // When
-        mDataModel.addItem(mContext, expectedWorkspaceItem)
-        mAllAppsList.getAndResetChangeFlag()
+        modelState.dataModel.addItem(context, expectedWorkspaceItem)
+        modelState.appsList.getAndResetChangeFlag()
         doAnswer {}.whenever(mockTaskController).bindApplicationsIfNeeded()
-        TestUtil.runOnExecutorSync(Executors.MODEL_EXECUTOR) {
-            taskUnderTest.execute(mockTaskController, mDataModel, mAllAppsList)
-        }
-        // Then
-        verify(mAllAppsList).updateDisabledFlags(any(), any())
+        val workspaceUpdates = modelState.homeRepo.workspaceState.trackUpdate()
+
+        executeTask(OP_UNSUSPEND)
+
         verify(mockTaskController).bindUpdatedWorkspaceItems(emptyList())
-        assertThat(mAllAppsList.getAndResetChangeFlag()).isFalse()
-        assertThat(appsListRepo.appsListStateRef.value.apps).isEmpty()
+        assertThat(workspaceUpdates).hasSize(1)
+
+        verify(modelState.appsList).updateDisabledFlags(any(), any())
+        assertThat(modelState.appsList.getAndResetChangeFlag()).isFalse()
+        assertThat(modelState.appsRepo.appsListStateRef.value.apps).isEmpty()
     }
 
-    @EnableFlags(FLAG_ENABLE_PRIVATE_SPACE)
     @Test
+    @EnableFlags(FLAG_ENABLE_PRIVATE_SPACE, Flags.FLAG_MODEL_REPOSITORY)
     fun `OP_USER_AVAILABILITY_CHANGE triggers no callbacks if current user not work or private`() {
-        // Given
-        val taskUnderTest = PackageUpdatedTask(OP_USER_AVAILABILITY_CHANGE, mUser, expectedPackage)
-        // When
-        mDataModel.addItem(mContext, expectedWorkspaceItem)
-        TestUtil.runOnExecutorSync(Executors.MODEL_EXECUTOR) {
-            taskUnderTest.execute(mockTaskController, mDataModel, mAllAppsList)
-        }
-        // Then
-        verify(mAllAppsList).updateDisabledFlags(any(), any())
+        modelState.dataModel.addItem(context, expectedWorkspaceItem)
+        modelState.dataModel.addItem(context, expectedWorkspaceItem)
+        modelState.appsList.getAndResetChangeFlag()
+        val workspaceUpdates = modelState.homeRepo.workspaceState.trackUpdate()
+
+        executeTask(OP_USER_AVAILABILITY_CHANGE)
+        assertThat(workspaceUpdates).hasSize(1)
+
+        verify(modelState.appsList).updateDisabledFlags(any(), any())
         verify(mockTaskController).bindUpdatedWorkspaceItems(emptyList())
-        assertThat(mAllAppsList.data).isEmpty()
+        assertThat(modelState.appsList.data).isEmpty()
+        assertThat(modelState.appsRepo.appsListStateRef.value.apps).isEmpty()
     }
+
+    private fun List<WorkspaceData>.verifyItemUpdated(updateIndex: Int = 1, totalUpdates: Int = 2) =
+        assertThat(verifyAndGetItemsUpdated(updateIndex, totalUpdates))
+            .containsExactly(expectedWorkspaceItem)
 
     @LauncherAppSingleton
     @Component(modules = [AllModulesForTest::class])
     interface TestComponent : LauncherAppComponent {
 
-        fun getDataModel(): BgDataModel
-
         fun getTaskController(): ModelTaskController
 
         @Component.Builder
         interface Builder : LauncherAppComponent.Builder {
+            @BindsInstance fun bindAppsRepository(appsListRepo: AppsListRepository): Builder
+
             @BindsInstance fun bindAppFilter(appFilter: AppFilter): Builder
 
             @BindsInstance fun bindIconCache(iconCache: IconCache): Builder
