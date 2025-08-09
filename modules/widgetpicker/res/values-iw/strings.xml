@@ -20,10 +20,8 @@
     <string name="widget_picker_collapse_sheet_label" msgid="5179800676332357316">"סגירת החלונית"</string>
     <string name="widgets_list_header_app_name_fallback_label" msgid="5151621916941957989">"שם האפליקציה"</string>
     <string name="widgets_list_header_widgets_count_label" msgid="578128450351893001">"{count,plural, =1{ווידג\'ט אחד}one{‫# ווידג\'טים}two{‫# ווידג\'טים}other{‫# ווידג\'טים}}"</string>
-    <!-- no translation found for widgets_list_header_shortcuts_count_label (9168853338469361424) -->
-    <skip />
-    <!-- no translation found for widgets_list_header_widgets_and_shortcuts_count_label (3942871723001789249) -->
-    <skip />
+    <string name="widgets_list_header_shortcuts_count_label" msgid="9168853338469361424">"{count,plural, =1{קיצור דרך אחד}one{‫# קיצורי דרך}two{‫# קיצורי דרך}other{‫# קיצורי דרך}}"</string>
+    <string name="widgets_list_header_widgets_and_shortcuts_count_label" msgid="3942871723001789249">"‫<xliff:g id="WIDGETS_COUNT">%1$s</xliff:g>‏, <xliff:g id="SHORTCUTS_COUNT">%2$s</xliff:g>"</string>
     <string name="widget_span_dimensions_format" msgid="4325492869474815131">"%1$d × %2$d"</string>
     <string name="widget_span_dimensions_accessible_format" msgid="6976586776463259811">"‏רוחב %1$d ואורך %2$d"</string>
     <string name="widget_details_accessibility_label" msgid="4525863892199168041">"‏ווידג\'ט <xliff:g id="WIDGET_NAME">%1$s</xliff:g>, רוחב %2$d ואורך %3$d"</string>

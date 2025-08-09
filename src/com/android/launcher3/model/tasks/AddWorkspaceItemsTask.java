@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.launcher3.model;
+package com.android.launcher3.model.tasks;
 
 import static com.android.launcher3.LauncherSettings.Favorites.DESKTOP_ICON_FLAG;
 
@@ -32,6 +32,11 @@ import com.android.launcher3.LauncherModel.ModelUpdateTask;
 import com.android.launcher3.LauncherSettings;
 import com.android.launcher3.icons.IconCache;
 import com.android.launcher3.logging.FileLog;
+import com.android.launcher3.model.AllAppsList;
+import com.android.launcher3.model.BgDataModel;
+import com.android.launcher3.model.ModelTaskController;
+import com.android.launcher3.model.ModelWriter;
+import com.android.launcher3.model.WorkspaceItemSpaceFinder;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.CollectionInfo;
 import com.android.launcher3.model.data.ItemInfo;

@@ -46,6 +46,7 @@ import static com.android.launcher3.LauncherState.BACKGROUND_APP;
 import static com.android.launcher3.QuickstepTransitionManager.RECENTS_LAUNCH_DURATION;
 import static com.android.launcher3.Utilities.EDGE_NAV_BAR;
 import static com.android.launcher3.Utilities.debugLog;
+import static com.android.launcher3.Utilities.getTrimmedStackTrace;
 import static com.android.launcher3.Utilities.mapToRange;
 import static com.android.launcher3.Utilities.squaredHypot;
 import static com.android.launcher3.Utilities.squaredTouchSlop;
@@ -102,6 +103,7 @@ import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.hardware.input.InputManager;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.os.Trace;
@@ -206,6 +208,9 @@ import com.android.quickstep.ViewUtils;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
 import com.android.quickstep.recents.data.AppTimersRepository;
 import com.android.quickstep.recents.data.AppTimersRepositoryImpl;
+import com.android.quickstep.recents.data.InputManagerWrapper;
+import com.android.quickstep.recents.data.PointerRepository;
+import com.android.quickstep.recents.data.PointerRepositoryImpl;
 import com.android.quickstep.recents.data.RecentTasksRepository;
 import com.android.quickstep.recents.data.RecentsDeviceProfileRepository;
 import com.android.quickstep.recents.data.RecentsDeviceProfileRepositoryImpl;
@@ -919,6 +924,10 @@ public abstract class RecentsView<
                             context.getApplicationContext().getSystemService(LauncherApps.class),
                             recentsDependencies.inject(DispatcherProvider.class, scopeId)
                     ));
+
+            recentsDependencies.provide(PointerRepository.class, scopeId,
+                    () -> new PointerRepositoryImpl(new InputManagerWrapper(
+                            context.getApplicationContext().getSystemService(InputManager.class))));
         } else {
             mRecentsViewModel = null;
             mHelper = null;
@@ -2782,6 +2791,7 @@ public abstract class RecentsView<
         setFocusedTaskViewId(INVALID_TASK_ID);
         mAnyTaskHasBeenDismissed = false;
         setTaskIconVisible(true);
+        mActiveGestureGroupedTaskInfo = null;
         if (mAddDesktopButton != null) {
             mAddDesktopButton.setGestureAlpha(1f);
         }
@@ -6085,7 +6095,9 @@ public abstract class RecentsView<
     public void finishRecentsAnimation(boolean toHome, boolean shouldPip,
             @Nullable Runnable onFinishComplete) {
         Log.d(TAG, "finishRecentsAnimation - mRecentsAnimationController: "
-                + mRecentsAnimationController);
+                + mRecentsAnimationController + ", toHome: " + toHome + ", shouldPip: " + shouldPip
+                + ", partial trace:\n"
+                + getTrimmedStackTrace("RecentsView.finishRecentsAnimation"));
         // TODO(b/197232424#comment#10) Move this back into onRecentsAnimationComplete(). Maybe?
         cleanupRemoteTargets();
 

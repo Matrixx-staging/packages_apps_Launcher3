@@ -92,7 +92,7 @@
     <dimen name="task_thumbnail_header_margin_between_views">8dp</dimen>
     <dimen name="task_thumbnail_header_icon_size">18dp</dimen>
     <dimen name="task_header_close_button_size">20dp</dimen>
-    <dimen name="task_thumbnail_header_close_button_hit_rect_size">32dp</dimen>
+    <dimen name="task_thumbnail_header_close_button_hit_rect_size">48dp</dimen>
     <dimen name="task_thumbnail_header_round_corner_radius">16dp</dimen>
     <!-- The size for non-overlapping layout in desktop tile -->
     <dimen name="desktop_vertical_padding_between_tasks">24dp</dimen>
@@ -116,6 +116,10 @@
 
     <dimen name="task_icon_cache_default_icon_size">72dp</dimen>
     <item name="overview_modal_max_scale" format="float" type="dimen">1.1</item>
+
+    <dimen name="task_dismiss_button_width">24dp</dimen>
+    <dimen name="task_dismiss_button_padding">4dp</dimen>
+    <dimen name="task_dismiss_button_margin">4dp</dimen>
 
     <!-- Overrideable in overlay that provides the Overview Actions. -->
     <dimen name="overview_actions_top_margin">24dp</dimen>

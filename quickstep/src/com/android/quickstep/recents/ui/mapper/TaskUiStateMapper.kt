@@ -128,12 +128,8 @@ object TaskUiStateMapper {
                 )
         }
 
-    fun toTaskDismissButtonState(
-        isDesktopTaskView: Boolean,
-        isGroupedTaskView: Boolean,
-        clickCloseListener: OnClickListener,
-    ) =
-        if (showCloseButtonOnTaskviewHover() && !isDesktopTaskView && !isGroupedTaskView) {
+    fun toTaskDismissButtonState(isDesktopTaskView: Boolean, clickCloseListener: OnClickListener) =
+        if (showCloseButtonOnTaskviewHover() && !isDesktopTaskView) {
             TaskDismissButtonState.Enabled(clickCloseListener)
         } else TaskDismissButtonState.Disabled
 }

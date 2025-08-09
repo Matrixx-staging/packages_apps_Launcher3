@@ -24,7 +24,6 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.android.launcher3.InvariantDeviceProfile
-import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherModel
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
@@ -67,11 +66,11 @@ class LayoutImportExportHelperTest {
     @get:Rule val layout = LayoutResource(context)
 
     private val model: LauncherModel
-        get() = LauncherAppState.getInstance(context).model
+        get() = context.appComponent.testableModelState.model
 
     private val workspaceItems: List<ItemInfo>
         get() =
-            model.bgDataModel.itemsIdMap.filter {
+            context.bgDataModel.itemsIdMap.filter {
                 it.container == CONTAINER_DESKTOP || it.container == CONTAINER_HOTSEAT
             }
 

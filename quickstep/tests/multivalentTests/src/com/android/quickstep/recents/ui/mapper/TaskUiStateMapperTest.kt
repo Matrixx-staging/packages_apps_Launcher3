@@ -325,8 +325,7 @@ class TaskUiStateMapperTest {
         val result =
             TaskUiStateMapper.toTaskDismissButtonState(
                 isDesktopTaskView = false,
-                isGroupedTaskView = false,
-                clickCloseListener = CLOSE_TALKBACK,
+                clickCloseListener = CLOSE_CALLBACK,
             )
 
         assertThat(result).isEqualTo(TaskDismissButtonState.Disabled)
@@ -338,11 +337,10 @@ class TaskUiStateMapperTest {
         val result =
             TaskUiStateMapper.toTaskDismissButtonState(
                 isDesktopTaskView = false,
-                isGroupedTaskView = false,
-                clickCloseListener = CLOSE_TALKBACK,
+                clickCloseListener = CLOSE_CALLBACK,
             )
 
-        assertThat(result).isEqualTo(TaskDismissButtonState.Enabled(CLOSE_TALKBACK))
+        assertThat(result).isEqualTo(TaskDismissButtonState.Enabled(CLOSE_CALLBACK))
     }
 
     @EnableFlags(Flags.FLAG_SHOW_CLOSE_BUTTON_ON_TASKVIEW_HOVER)
@@ -351,20 +349,7 @@ class TaskUiStateMapperTest {
         val result =
             TaskUiStateMapper.toTaskDismissButtonState(
                 isDesktopTaskView = true,
-                isGroupedTaskView = false,
-                clickCloseListener = CLOSE_TALKBACK,
-            )
-        assertThat(result).isEqualTo(TaskDismissButtonState.Disabled)
-    }
-
-    @EnableFlags(Flags.FLAG_SHOW_CLOSE_BUTTON_ON_TASKVIEW_HOVER)
-    @Test
-    fun toTaskDismissButtonState_isGroupedTaskView_hideDismissButton() {
-        val result =
-            TaskUiStateMapper.toTaskDismissButtonState(
-                isDesktopTaskView = false,
-                isGroupedTaskView = true,
-                clickCloseListener = CLOSE_TALKBACK,
+                clickCloseListener = CLOSE_CALLBACK,
             )
         assertThat(result).isEqualTo(TaskDismissButtonState.Disabled)
     }
@@ -393,6 +378,6 @@ class TaskUiStateMapperTest {
                 isLiveTile = false,
                 remainingAppTimerDuration = TASK_APP_TIMER_DURATION,
             )
-        val CLOSE_TALKBACK = View.OnClickListener {}
+        val CLOSE_CALLBACK = View.OnClickListener {}
     }
 }

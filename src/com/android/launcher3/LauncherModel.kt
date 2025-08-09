@@ -40,10 +40,10 @@ import com.android.launcher3.model.ModelLauncherCallbacks
 import com.android.launcher3.model.ModelTaskController
 import com.android.launcher3.model.ModelWriter
 import com.android.launcher3.model.PackageUpdatedTask
-import com.android.launcher3.model.ShortcutsChangedTask
 import com.android.launcher3.model.UserLockStateChangedTask
 import com.android.launcher3.model.UserManagerState
 import com.android.launcher3.model.data.WorkspaceItemInfo
+import com.android.launcher3.model.tasks.ShortcutsChangedTask
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.shortcuts.ShortcutRequest
 import com.android.launcher3.util.DaggerSingletonTracker
@@ -426,10 +426,12 @@ constructor(
     }
 
     fun updateAndBindWorkspaceItem(si: WorkspaceItemInfo, info: ShortcutInfo) {
-        enqueueModelUpdateTask { taskController, _, _ ->
+        enqueueModelUpdateTask { taskController, dataModel, _ ->
             si.updateFromDeepShortcutInfo(info, context)
             iconCache.getShortcutIcon(si, info)
             taskController.getModelWriter().updateItemInDatabase(si)
+
+            dataModel.updateItems(listOf(si), null)
             taskController.bindUpdatedWorkspaceItems(listOf(si))
         }
     }

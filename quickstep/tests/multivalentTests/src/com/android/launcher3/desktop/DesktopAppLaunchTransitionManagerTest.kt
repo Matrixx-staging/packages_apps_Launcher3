@@ -58,6 +58,7 @@ class DesktopAppLaunchTransitionManagerTest {
     @Before
     fun setUp() {
         whenever(context.resources).thenReturn(mock())
+        whenever(context.applicationContext).thenReturn(mock())
         whenever(DesktopModeStatus.canEnterDesktopMode(context)).thenReturn(true)
         transitionManager = DesktopAppLaunchTransitionManager(context, systemUiProxy)
     }

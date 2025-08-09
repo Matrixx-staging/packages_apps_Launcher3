@@ -48,6 +48,7 @@ import androidx.test.filters.SmallTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.android.launcher3.util.DisplayController;
+import com.android.launcher3.util.Executors;
 import com.android.systemui.shared.system.RecentsAnimationControllerCompat;
 
 import org.junit.Before;
@@ -56,6 +57,8 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.util.concurrent.ExecutionException;
 
 @SmallTest
 @RunWith(AndroidJUnit4.class)
@@ -190,6 +193,11 @@ public class TaskAnimationManagerTest {
 
     protected static void runOnMainSync(Runnable runnable) {
         InstrumentationRegistry.getInstrumentation().runOnMainSync(runnable);
+        try {
+            Executors.MAIN_EXECUTOR.submit(() -> null).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private GestureState buildMockGestureState() {

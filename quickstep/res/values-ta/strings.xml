@@ -66,7 +66,7 @@
     <string name="home_gesture_feedback_overview_detected" msgid="5177627157303895077">"விடுவிப்பதற்கு முன்பாக இடைநிறுத்தவில்லை என்பதை உறுதிசெய்துகொள்ளுங்கள்"</string>
     <string name="home_gesture_feedback_wrong_swipe_direction" msgid="8328465201424027148">"மேல்நோக்கி நேராக ஸ்வைப் செய்வதை உறுதிசெய்துகொள்ளுங்கள்"</string>
     <string name="home_gesture_feedback_complete_with_follow_up" msgid="8766981412895888417">"முகப்புக்குச் செல் சைகைப் பயிற்சியை நிறைவுசெய்துவிட்டீர்கள். அடுத்து பின்செல்வது எப்படி என்பதை அறிக."</string>
-    <string name="home_gesture_feedback_complete_without_follow_up" msgid="2978063221383413443">"முகப்புக்குச் செல் சைகைப் பயிற்சியை நிறைவுசெய்துவிட்டீர்கள்"</string>
+    <string name="home_gesture_feedback_complete_without_follow_up" msgid="2978063221383413443">"முகப்புக்குச் செல்வதற்கான சைகைப் பயிற்சியை நிறைவுசெய்துவிட்டீர்கள்"</string>
     <string name="home_gesture_intro_title" msgid="836590312858441830">"முகப்புக்குச் செல்ல ஸ்வைப் செய்யுங்கள்"</string>
     <string name="home_gesture_intro_subtitle" msgid="2632238748497975326">"திரையின் கீழிருந்து மேலாக ஸ்வைப் செய்க. இந்தச் சைகை எப்போதும் முகப்புத் திரைக்கு அழைத்துச் செல்லும்."</string>
     <string name="home_gesture_tutorial_title" msgid="3126834347496917376">"முகப்புக்குச் செல்லுதல்"</string>

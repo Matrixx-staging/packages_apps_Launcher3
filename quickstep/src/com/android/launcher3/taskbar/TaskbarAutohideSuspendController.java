@@ -72,6 +72,10 @@ public class TaskbarAutohideSuspendController implements
     @Retention(RetentionPolicy.SOURCE)
     public @interface AutohideSuspendFlag {}
 
+    /** Flags that require the taskbar window to be visible. */
+    private static final int FLAGS_FORCE_VISIBLE =
+            FLAG_AUTOHIDE_SUSPEND_TRANSIENT_TASKBAR | FLAG_AUTOHIDE_SUSPEND_BUBBLES;
+
     private final TaskbarActivityContext mActivity;
     private final SystemUiProxy mSystemUiProxy;
 
@@ -118,6 +122,11 @@ public class TaskbarAutohideSuspendController implements
      */
     public boolean isSuspendedForTransientTaskbarInLauncher() {
         return (mAutohideSuspendFlags & FLAG_AUTOHIDE_SUSPEND_IN_LAUNCHER) != 0;
+    }
+
+    /** Whether we're in a state that requires the taskbar window to be visible. */
+    public boolean shouldForceVisible() {
+        return (mAutohideSuspendFlags & FLAGS_FORCE_VISIBLE) != 0;
     }
 
     /**

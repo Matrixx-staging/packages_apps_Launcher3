@@ -15,14 +15,11 @@
  */
 package com.android.launcher3.model
 
-import android.content.ComponentName
 import android.graphics.Rect
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherModel
-import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.ItemInfo
-import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.util.GridOccupancy
 import com.android.launcher3.util.IntArray
 import com.android.launcher3.util.IntSparseArrayMap
@@ -31,7 +28,6 @@ import com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY
 import com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE
 import com.android.launcher3.util.LayoutResource
 import com.android.launcher3.util.SandboxApplication
-import java.util.UUID
 import org.junit.Rule
 
 /** Base class for workspace related tests. */
@@ -39,7 +35,6 @@ abstract class AbstractWorkspaceModelTest {
     companion object {
         val emptyScreenSpaces = listOf(Rect(0, 0, 5, 5))
         val fullScreenSpaces = emptyList<Rect>()
-        val nonEmptyScreenSpaces = listOf(Rect(1, 2, 3, 4))
     }
 
     @get:Rule val mTargetContext: SandboxApplication = SandboxApplication().withModelDependency()
@@ -66,14 +61,6 @@ abstract class AbstractWorkspaceModelTest {
         mScreenOccupancy = IntSparseArrayMap()
         mNewScreens = IntArray()
         mAddedWorkspaceItems = ArrayList()
-    }
-
-    /** Sets up workspaces with the given screen IDs with some items and a 2x2 space. */
-    fun setupWorkspaces(screenIdsWithItems: List<Int>) {
-        screenIdsWithItems.forEach { screenId -> setupWorkspace(screenId, nonEmptyScreenSpaces) }
-        mIdp.numRows = 5
-        mIdp.numColumns = mIdp.numRows
-        mLayout.set(mLayoutBuilder)
     }
 
     /**
@@ -111,18 +98,6 @@ abstract class AbstractWorkspaceModelTest {
                     mLayoutBuilder.atWorkspace(x, y, screenId).putApp(TEST_PACKAGE, TEST_ACTIVITY)
                 }
             }
-        }
-    }
-
-    fun getExistingItem() =
-        WorkspaceItemInfo().apply {
-            intent = AppInfo.makeLaunchIntent(ComponentName(TEST_PACKAGE, TEST_ACTIVITY))
-        }
-
-    fun getNewItem(): WorkspaceItemInfo {
-        val itemPackage = UUID.randomUUID().toString()
-        return WorkspaceItemInfo().apply {
-            intent = AppInfo.makeLaunchIntent(ComponentName(itemPackage, itemPackage))
         }
     }
 }

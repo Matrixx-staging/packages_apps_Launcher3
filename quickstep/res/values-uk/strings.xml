@@ -80,7 +80,7 @@
     <string name="overview_gesture_intro_title" msgid="2902054412868489378">"Проведіть пальцем, щоб перейти в інший додаток"</string>
     <string name="overview_gesture_intro_subtitle" msgid="4968091015637850859">"Щоб переключатися між додатками, проведіть знизу вгору по екрану, утримуйте палець, а потім відпустіть."</string>
     <string name="overview_gesture_tutorial_title" msgid="4125835002668708720">"Перемикання між додатками"</string>
-    <string name="overview_gesture_tutorial_subtitle" msgid="5253549754058973071">"Проведіть пальцем знизу вгору, утримуйте палець на екрані, а потім відпустіть"</string>
+    <string name="overview_gesture_tutorial_subtitle" msgid="5253549754058973071">"Проведіть пальцем угору від нижнього краю екрана, утримуйте, а потім відпустіть"</string>
     <string name="overview_gesture_tutorial_success" msgid="1910267697807973076">"Чудово!"</string>
     <string name="gesture_tutorial_confirm_title" msgid="6201516182040074092">"Усе готово!"</string>
     <string name="gesture_tutorial_action_button_label" msgid="6249846312991332122">"Готово"</string>

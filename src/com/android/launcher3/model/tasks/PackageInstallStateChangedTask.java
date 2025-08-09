@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.launcher3.model;
+package com.android.launcher3.model.tasks;
 
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
@@ -22,6 +22,9 @@ import android.content.pm.PackageManager;
 import androidx.annotation.NonNull;
 
 import com.android.launcher3.LauncherModel.ModelUpdateTask;
+import com.android.launcher3.model.AllAppsList;
+import com.android.launcher3.model.BgDataModel;
+import com.android.launcher3.model.ModelTaskController;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.pm.PackageInstallInfo;
 import com.android.launcher3.util.FlagOp;

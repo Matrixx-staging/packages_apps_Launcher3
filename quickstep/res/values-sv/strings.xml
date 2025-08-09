@@ -80,7 +80,7 @@
     <string name="overview_gesture_intro_title" msgid="2902054412868489378">"Svep för att byta mellan appar"</string>
     <string name="overview_gesture_intro_subtitle" msgid="4968091015637850859">"Byt mellan appar genom att svepa uppåt från skärmens nederkant. Håll fingret nedtryckt och släpp."</string>
     <string name="overview_gesture_tutorial_title" msgid="4125835002668708720">"Byt app"</string>
-    <string name="overview_gesture_tutorial_subtitle" msgid="5253549754058973071">"Svep uppåt från skärmens nederkant. Håll fingret nedtryckt och släpp sedan"</string>
+    <string name="overview_gesture_tutorial_subtitle" msgid="5253549754058973071">"Svep uppåt från skärmens nederkant. Håll fingret nedtryckt och släpp sedan."</string>
     <string name="overview_gesture_tutorial_success" msgid="1910267697807973076">"Bra gjort!"</string>
     <string name="gesture_tutorial_confirm_title" msgid="6201516182040074092">"Klart"</string>
     <string name="gesture_tutorial_action_button_label" msgid="6249846312991332122">"Klar"</string>
