@@ -28,6 +28,8 @@ import com.android.launcher3.LauncherSettings.Favorites.TABLE_NAME
 import com.android.launcher3.celllayout.board.CellLayoutBoard
 import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
 import com.android.launcher3.pm.UserCache
+import com.android.launcher3.util.Executors
+import com.android.launcher3.util.TestUtil
 import com.android.launcher3.util.rule.TestToPhoneFileCopier
 import com.android.launcher3.util.rule.setFlags
 import org.junit.Before
@@ -150,13 +152,15 @@ class GridMigrationTest {
      * 4. migration notifies the complete callback.
      */
     private fun runTest(src: GridMigrationData, dst: GridMigrationData, target: GridMigrationData) {
-        migrate(src, dst)
-        assert(src.readEntries().size == dst.readEntries().size) {
-            "Source db and destination db do not contain the same number of elements"
+        TestUtil.runOnExecutorSync(Executors.MODEL_EXECUTOR) {
+            migrate(src, dst)
+            assert(src.readEntries().size == dst.readEntries().size) {
+                "Source db and destination db do not contain the same number of elements"
+            }
+            validateDb(dst)
+            compare(dst, target, src)
+            verify(modelDelegate).gridMigrationComplete(src.gridState, dst.gridState)
         }
-        validateDb(dst)
-        compare(dst, target, src)
-        verify(modelDelegate).gridMigrationComplete(src.gridState, dst.gridState)
     }
 
     // Copying the src db for all tests.
