@@ -27,6 +27,7 @@ import android.view.View
 import android.view.View.LAYOUT_DIRECTION_LTR
 import android.view.View.LAYOUT_DIRECTION_RTL
 import androidx.core.view.children
+import androidx.core.view.isEmpty
 import androidx.core.view.isInvisible
 import androidx.dynamicanimation.animation.FloatPropertyCompat
 import androidx.dynamicanimation.animation.SpringAnimation
@@ -294,7 +295,10 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
             .start()
     }
 
-    private fun animateDesktopTaskViewSpringIn(desktopTaskView: DesktopTaskView) {
+    private fun animateDesktopTaskViewSpringIn(
+        desktopTaskView: DesktopTaskView,
+        fadeInAddDesktopButton: Boolean,
+    ) {
         val taskDismissFloatProperty =
             FloatPropertyCompat.createFloatPropertyCompat(
                 desktopTaskView.primaryDismissTranslationProperty
@@ -328,6 +332,11 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
 
             SpringAnimation(desktopTaskView, taskDismissFloatProperty)
                 .setSpring(SpringForce(0f).setDampingRatio(dampingRatio).setStiffness(stiffness))
+                .addEndListener { _, _, _, _ ->
+                    if (fadeInAddDesktopButton) {
+                        addDeskButton?.setContentVisibility(toVisible = true, animate = true)
+                    }
+                }
                 .start()
         }
     }
@@ -343,8 +352,18 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
                 Log.e(TAG, "A task view for this desk has already been added.")
                 return
             }
-
             val currentPageChild = getChildAt(currentPage)
+
+            val wasEmpty = isEmpty()
+            if (wasEmpty) {
+                // Add ClearAllButton and AddDesktopButton if they are not present.
+                addDeskButton?.let {
+                    it.setContentVisibility(toVisible = false, animate = false)
+                    addView(it)
+                }
+                addView(clearAllButton)
+            }
+
             // Compute [mCurrentPageScrollDiff] to be used for adjusting the scroll to guarantee
             // the existing tasks remain in their previous position after creating the desktop.
             val primaryScroll = pagedOrientationHandler.getPrimaryScroll(this)
@@ -366,7 +385,7 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
             updateTaskSize()
             updateChildTaskOrientations()
             updateScrollSynchronously()
-            animateDesktopTaskViewSpringIn(desktopTaskView)
+            animateDesktopTaskViewSpringIn(desktopTaskView, fadeInAddDesktopButton = wasEmpty)
 
             // Set Current Page based on the stored View.
             currentPageChild?.let { setCurrentPage(indexOfChild(it)) }

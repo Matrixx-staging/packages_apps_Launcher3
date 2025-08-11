@@ -82,11 +82,22 @@ class AddDesktopButton @JvmOverloads constructor(context: Context, attrs: Attrib
         }
 
     @JvmOverloads
-    fun animateVisibility(toVisible: Boolean, onAnimationEndAction: Runnable? = null) {
+    fun setContentVisibility(
+        toVisible: Boolean,
+        animate: Boolean,
+        onAnimationEndAction: Runnable? = null,
+    ) {
         val targetButtonAlpha = if (toVisible) 1f else 0f
         val targetDrawableAlpha = if (toVisible) 255 else 0
 
-        val iconDrawable: Drawable = this.drawable.mutate()
+        if (!animate) {
+            clickAlpha = targetButtonAlpha
+            drawable.mutate().alpha = targetDrawableAlpha
+            onAnimationEndAction?.run()
+            return
+        }
+
+        val iconDrawable: Drawable = drawable.mutate()
         val fadeDuration =
             context.resources.getInteger(R.integer.add_desktop_button_fade_duration).toLong()
         val fadeDelay =
