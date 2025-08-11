@@ -32,7 +32,6 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.DragSource;
@@ -219,8 +218,7 @@ public class LauncherDragController extends DragController<Launcher> {
      * Returns the scale in terms of pixels (to be applied on width) to scale the preview
      * during drag and drop.
      */
-    @VisibleForTesting
-    float getWidgetDragScalePx(@Nullable Drawable drawable, @Nullable View view,
+    public float getWidgetDragScalePx(@Nullable Drawable drawable, @Nullable View view,
             ItemInfo dragInfo) {
         float draggedViewWidthPx = 0;
         float draggedViewHeightPx = 0;
