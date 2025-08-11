@@ -22,13 +22,13 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.LayoutManager
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
+import androidx.test.annotation.UiThreadTest
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.android.launcher3.util.Executors
 import com.android.launcher3.views.ActivityContext
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -87,7 +87,7 @@ class AllAppsRecyclerViewPoolTest<T> where T : Context, T : ActivityContext {
     }
 
     @Test
-    @Ignore("b/427298199 - 0.8% flaky")
+    @UiThreadTest
     fun preinflate_cancel_before_runOnMainThread() {
         underTest.preInflateAllAppsViewHolders(adapter, VIEW_TYPE, parent, 10) { 10 }
         assertThat(underTest.mCancellableTask!!.canceled).isFalse()
