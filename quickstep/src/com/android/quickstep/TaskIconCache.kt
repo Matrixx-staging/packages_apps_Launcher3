@@ -221,6 +221,8 @@ class TaskIconCache(
 
     /** Clears the icon cache */
     fun clearCache() {
+        // Clear on caller and background thread. The cache clears are synchronized.
+        resetFactory()
         bgExecutor.execute { resetFactory() }
     }
 
