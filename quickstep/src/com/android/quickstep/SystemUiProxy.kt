@@ -59,6 +59,7 @@ import com.android.launcher3.Flags
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
+import com.android.launcher3.taskbar.bubbles.BubbleActivityStarter
 import com.android.launcher3.util.DaggerSingletonObject
 import com.android.launcher3.util.Executors
 import com.android.launcher3.util.Preconditions
@@ -694,6 +695,9 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
     /**
      * Tells SysUI to show a shortcut bubble.
      *
+     * This method should NOT be used directly. Please use
+     * [BubbleActivityStarter.showShortcutBubble] instead.
+     *
      * @param info the shortcut info used to create or identify the bubble.
      * @param bubbleBarLocation the optional location of the bubble bar.
      */
@@ -705,6 +709,9 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
 
     /**
      * Tells SysUI to show a bubble of an app.
+     *
+     * This method should NOT be used directly. Please use [BubbleActivityStarter.showAppBubble]
+     * instead.
      *
      * @param intent the intent used to create the bubble.
      * @param bubbleBarLocation the optional location of the bubble bar.

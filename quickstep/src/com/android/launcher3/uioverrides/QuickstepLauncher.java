@@ -155,6 +155,7 @@ import com.android.launcher3.taskbar.TaskbarManager;
 import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.taskbar.TaskbarUiState;
 import com.android.launcher3.taskbar.TaskbarUiStateMonitor;
+import com.android.launcher3.taskbar.bubbles.BubbleActivityStarter;
 import com.android.launcher3.taskbar.bubbles.BubbleBarController;
 import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.TestProtocol;
@@ -1592,13 +1593,13 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     @Override
     public void showShortcutBubble(ShortcutInfo info) {
         if (info == null) return;
-        SystemUiProxy.INSTANCE.get(this).showShortcutBubble(info);
+        BubbleActivityStarter.INSTANCE.get(this).showShortcutBubble(info);
     }
 
     @Override
     public void showAppBubble(Intent intent, UserHandle user) {
         if (intent == null || intent.getPackage() == null) return;
-        SystemUiProxy.INSTANCE.get(this).showAppBubble(intent, user);
+        BubbleActivityStarter.INSTANCE.get(this).showAppBubble(intent, user);
     }
 
     /** Sets the location of the bubble bar */
