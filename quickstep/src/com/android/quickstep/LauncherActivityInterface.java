@@ -130,7 +130,7 @@ public final class LauncherActivityInterface extends
         QuickstepLauncher launcher = factory.initBackgroundStateUI();
         // Since all apps is not visible, we can safely reset the scroll position.
         // This ensures then the next swipe up to all-apps starts from scroll 0.
-        launcher.getAppsView().reset(false /* animate */);
+        launcher.getAppsView().reset(false /* animate */, true /* clearScrim */);
         return factory;
     }
 
