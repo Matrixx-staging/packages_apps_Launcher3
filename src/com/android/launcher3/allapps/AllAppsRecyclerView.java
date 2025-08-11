@@ -15,9 +15,6 @@
  */
 package com.android.launcher3.allapps;
 
-import static androidx.constraintlayout.widget.ConstraintSet.MATCH_CONSTRAINT;
-import static androidx.constraintlayout.widget.ConstraintSet.WRAP_CONTENT;
-
 import static com.android.launcher3.logger.LauncherAtom.ContainerInfo;
 import static com.android.launcher3.logger.LauncherAtom.SearchResultContainer;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ALLAPPS_PERSONAL_SCROLLED_DOWN;
@@ -76,7 +73,7 @@ public class AllAppsRecyclerView extends FastScrollRecyclerView {
     private int mCumulativeVerticalScroll;
     private ConstraintLayout mLetterList;
 
-    protected AlphabeticalAppsList<?> mApps;
+    protected AlphabeticalAppsList mApps;
 
     public AllAppsRecyclerView(Context context) {
         this(context, null);
@@ -100,11 +97,11 @@ public class AllAppsRecyclerView extends FastScrollRecyclerView {
     /**
      * Sets the list of apps in this view, used to determine the fastscroll position.
      */
-    public void setApps(AlphabeticalAppsList<?> apps) {
+    public void setApps(AlphabeticalAppsList apps) {
         mApps = apps;
     }
 
-    public AlphabeticalAppsList<?> getApps() {
+    public AlphabeticalAppsList getApps() {
         return mApps;
     }
 

@@ -19,7 +19,6 @@ import static com.android.launcher3.model.data.AppInfo.COMPONENT_KEY_COMPARATOR;
 import static com.android.launcher3.model.data.AppInfo.EMPTY_ARRAY;
 
 import android.content.ComponentName;
-import android.content.Context;
 import android.os.UserHandle;
 import android.util.Log;
 import android.view.View;
@@ -52,10 +51,8 @@ import java.util.function.Predicate;
 
 /**
  * A utility class to maintain the collection of all apps.
- *
- * @param <T> The type of the context.
  */
-public class AllAppsStore<T extends Context & ActivityContext> {
+public class AllAppsStore {
 
     private static final String TAG = "AllAppsStore";
     // Defer updates flag used to defer all apps updates to the next draw.
@@ -74,16 +71,17 @@ public class AllAppsStore<T extends Context & ActivityContext> {
     private int mModelFlags;
     private int mDeferUpdatesFlags = 0;
     private boolean mUpdatePending = false;
-    private final AllAppsRecyclerViewPool mAllAppsRecyclerViewPool = new AllAppsRecyclerViewPool();
 
-    private final T mContext;
+    private final ActivityContext mContext;
+    private final AllAppsRecyclerViewPool mAllAppsRecyclerViewPool;
 
     public AppInfo[] getApps() {
         return mApps;
     }
 
-    public AllAppsStore(@NonNull T context) {
+    public AllAppsStore(ActivityContext context) {
         mContext = context;
+        mAllAppsRecyclerViewPool = new AllAppsRecyclerViewPool(context);
     }
 
     /**
@@ -114,7 +112,7 @@ public class AllAppsStore<T extends Context & ActivityContext> {
         // Preinflate all apps RV when apps has changed, which can happen after unlocking screen,
         // rotating screen, or downloading/upgrading apps.
         if (shouldPreinflate) {
-            mAllAppsRecyclerViewPool.preInflateAllAppsViewHolders(mContext);
+            mAllAppsRecyclerViewPool.preInflateAllAppsViewHolders();
         }
     }
 

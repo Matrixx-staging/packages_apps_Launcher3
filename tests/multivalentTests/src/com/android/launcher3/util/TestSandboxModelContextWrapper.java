@@ -49,8 +49,8 @@ import java.util.concurrent.CountDownLatch;
 public class TestSandboxModelContextWrapper extends ActivityContextWrapper implements
         BgDataModel.Callbacks {
 
-    protected AllAppsStore<ActivityContextWrapper> mAllAppsStore;
-    protected AlphabeticalAppsList<ActivityContextWrapper> mAppsList;
+    protected AllAppsStore mAllAppsStore;
+    protected AlphabeticalAppsList mAppsList;
 
     public final CountDownLatch mBindCompleted = new CountDownLatch(1);
 
