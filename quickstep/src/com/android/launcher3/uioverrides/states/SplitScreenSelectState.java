@@ -32,7 +32,7 @@ public class SplitScreenSelectState extends OverviewState {
     }
 
     @Override
-    public int getVisibleElements(@Deprecated Launcher launcher, LauncherUiState launcherUiState) {
+    public int getVisibleElements(LauncherUiState launcherUiState) {
         return SPLIT_PLACHOLDER_VIEW;
     }
 
