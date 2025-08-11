@@ -60,7 +60,7 @@ public class PinnedAppsAdapter extends BaseAdapter implements OnSharedPreference
     private final OnClickListener mOnClickListener;
     private final OnLongClickListener mOnLongClickListener;
     private final SharedPreferences mPrefs;
-    private final AllAppsStore<SecondaryDisplayLauncher> mAllAppsList;
+    private final AllAppsStore mAllAppsList;
     private final AppInfoComparator mAppNameComparator;
 
     private final Set<ComponentKey> mPinnedApps = new HashSet<>();
@@ -68,7 +68,7 @@ public class PinnedAppsAdapter extends BaseAdapter implements OnSharedPreference
 
     public PinnedAppsAdapter(
             SecondaryDisplayLauncher launcher,
-            AllAppsStore<SecondaryDisplayLauncher> allAppsStore,
+            AllAppsStore allAppsStore,
             OnLongClickListener onLongClickListener) {
         mLauncher = launcher;
         mOnClickListener = launcher.getItemOnClickListener();

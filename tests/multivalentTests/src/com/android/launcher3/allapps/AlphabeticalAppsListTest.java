@@ -33,7 +33,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Process;
 import android.os.UserHandle;
@@ -71,14 +70,14 @@ public class AlphabeticalAppsListTest {
     private static final int NUM_APP_ROWS = 3;
     private static final int PRIVATE_SPACE_SYS_APP_SEPARATOR_ITEM_COUNT = 1;
 
-    private AlphabeticalAppsList<?> mAlphabeticalAppsList;
+    private AlphabeticalAppsList mAlphabeticalAppsList;
 
     @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
     @Mock
-    private AllAppsStore<?> mAllAppsStore;
+    private AllAppsStore mAllAppsStore;
     @Mock
     private PrivateProfileManager mPrivateProfileManager;
-    private Context mContext;
+    private ActivityContextWrapper mContext;
 
     @Rule
     public final SetFlagsRule mSetFlagsRule =
@@ -89,7 +88,7 @@ public class AlphabeticalAppsListTest {
         mContext = new ActivityContextWrapper(getApplicationContext());
         when(mPrivateProfileManager.getItemInfoMatcher()).thenReturn(info ->
                 info != null && info.user.equals(PRIVATE_HANDLE));
-        mAlphabeticalAppsList = new AlphabeticalAppsList<>(mContext, mAllAppsStore,
+        mAlphabeticalAppsList = new AlphabeticalAppsList(mContext, mAllAppsStore,
                 null, mPrivateProfileManager);
         mAlphabeticalAppsList.setNumAppsPerRowAllApps(NUM_APP_COLS);
     }

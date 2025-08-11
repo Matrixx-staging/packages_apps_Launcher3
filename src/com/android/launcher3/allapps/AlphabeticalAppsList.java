@@ -56,11 +56,8 @@ import java.util.stream.Stream;
 
 /**
  * The alphabetically sorted list of applications.
- *
- * @param <T> Type of context inflating this view.
  */
-public class AlphabeticalAppsList<T extends Context & ActivityContext> implements
-        AllAppsStore.OnUpdateListener {
+public class AlphabeticalAppsList implements AllAppsStore.OnUpdateListener {
 
     public static final String TAG = "AlphabeticalAppsList";
     private static final String PRIVATE_SPACE_PACKAGE = "com.android.privatespace";
@@ -92,13 +89,13 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
     }
 
 
-    private final T mActivityContext;
+    private final ActivityContext mActivityContext;
 
     // The set of apps from the system
     private final List<AppInfo> mApps = new ArrayList<>();
     private final List<AppInfo> mPrivateApps = new ArrayList<>();
     @Nullable
-    private final AllAppsStore<T> mAllAppsStore;
+    private final AllAppsStore mAllAppsStore;
 
     // The number of results in current adapter
     private int mAccessibilityResultsCount = 0;
@@ -111,16 +108,18 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
     private final ArrayList<AdapterItem> mSearchResults = new ArrayList<>();
     private final SpannableString mPrivateProfileAppScrollerBadge;
     private final SpannableString mPrivateProfileDividerBadge;
-    private BaseAllAppsAdapter<T> mAdapter;
+    private BaseAllAppsAdapter mAdapter;
     private AppInfoComparator mAppNameComparator;
     private int mNumAppsPerRowAllApps;
     private int mNumAppRowsInAdapter;
     private Predicate<ItemInfo> mItemFilter;
 
-    public AlphabeticalAppsList(Context context, @Nullable AllAppsStore<T> appsStore,
+    public AlphabeticalAppsList(ActivityContext activityContext, @Nullable AllAppsStore appsStore,
             WorkProfileManager workProfileManager, PrivateProfileManager privateProfileManager) {
         mAllAppsStore = appsStore;
-        mActivityContext = ActivityContext.lookupContext(context);
+        mActivityContext = activityContext;
+
+        Context context = activityContext.asContext();
         mAppNameComparator = new AppInfoComparator(context);
         mWorkProviderManager = workProfileManager;
         mPrivateProviderManager = privateProfileManager;
@@ -152,7 +151,7 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
     /**
      * Sets the adapter to notify when this dataset changes.
      */
-    public void setAdapter(BaseAllAppsAdapter<T> adapter) {
+    public void setAdapter(BaseAllAppsAdapter adapter) {
         mAdapter = adapter;
     }
 
@@ -258,7 +257,7 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
 
         // As a special case for some languages (currently only Simplified Chinese), we may need to
         // coalesce sections
-        Locale curLocale = mActivityContext.getResources().getConfiguration().locale;
+        Locale curLocale = mActivityContext.asContext().getResources().getConfiguration().locale;
         boolean localeRequiresSectionSorting = curLocale.equals(Locale.SIMPLIFIED_CHINESE);
         if (localeRequiresSectionSorting) {
             // Compute the section headers. We use a TreeMap with the section name comparator to
@@ -307,7 +306,7 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
                 if (/* education card was added */ position == 1) {
                     // Add work educard section with "info icon" at 0th position.
                     mFastScrollerSections.add(new FastScrollSectionInfo(
-                            mActivityContext.getResources().getString(
+                            mActivityContext.asContext().getResources().getString(
                                     R.string.work_profile_edu_section), 0));
                     Log.d(TAG, "Adding FastScrollSection for work edu card.");
                 }
@@ -394,7 +393,8 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
         // Split of private space apps into user-installed and system apps.
         Map<Boolean, List<AppInfo>> split = mPrivateApps.stream()
                 .collect(Collectors.partitioningBy(mPrivateProviderManager
-                                .splitIntoUserInstalledAndSystemApps(mActivityContext)));
+                                .splitIntoUserInstalledAndSystemApps(
+                                        mActivityContext.asContext())));
 
         // TODO(b/329688630): switch to the pulled LayoutStaticSnapshot atom
         mActivityContext
@@ -465,7 +465,7 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
             // Apply decorator to private apps.
             if (hasPrivateApps) {
                 mAdapterItems.add(AdapterItem.asAppWithDecorationInfo(info,
-                        new SectionDecorationInfo(mActivityContext,
+                        new SectionDecorationInfo(mActivityContext.asContext(),
                                 getRoundRegions(i, appList.size())),
                         isPrivateSpaceApp(info)));
             } else {

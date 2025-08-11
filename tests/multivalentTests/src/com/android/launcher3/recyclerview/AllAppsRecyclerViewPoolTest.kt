@@ -16,7 +16,6 @@
 
 package com.android.launcher3.recyclerview
 
-import android.content.Context
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -43,11 +42,12 @@ import org.mockito.junit.MockitoJUnit
 
 @SmallTest
 @RunWith(AndroidJUnit4::class)
-class AllAppsRecyclerViewPoolTest<T> where T : Context, T : ActivityContext {
+class AllAppsRecyclerViewPoolTest {
 
-    private lateinit var underTest: AllAppsRecyclerViewPool<T>
+    private lateinit var underTest: AllAppsRecyclerViewPool
     private lateinit var adapter: RecyclerView.Adapter<*>
 
+    @Mock private lateinit var activityContext: ActivityContext
     @Mock private lateinit var parent: RecyclerView
     @Mock private lateinit var itemView: View
     @Mock private lateinit var layoutManager: LayoutManager
@@ -56,7 +56,7 @@ class AllAppsRecyclerViewPoolTest<T> where T : Context, T : ActivityContext {
 
     @Before
     fun setUp() {
-        underTest = spy(AllAppsRecyclerViewPool())
+        underTest = spy(AllAppsRecyclerViewPool(activityContext))
         adapter =
             object : RecyclerView.Adapter<ViewHolder>() {
                 override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =

@@ -91,7 +91,7 @@ public class PrivateProfileManagerTest {
     @Mock
     private Context mContext;
     @Mock
-    private AllAppsStore<?> mAllAppsStore;
+    private AllAppsStore mAllAppsStore;
     @Mock
     private PackageManager mPackageManager;
     @Mock
