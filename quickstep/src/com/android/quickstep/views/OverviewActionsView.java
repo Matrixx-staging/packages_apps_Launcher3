@@ -120,6 +120,7 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
     private static final int INDEX_VISIBILITY_ALPHA = 1;
     private static final int INDEX_FULLSCREEN_ALPHA = 2;
     private static final int INDEX_HIDDEN_FLAGS_ALPHA = 3;
+    // The alpha on the actions view as a result of the share targets being present
     private static final int INDEX_SHARE_TARGET_ALPHA = 4;
     private static final int INDEX_SCROLL_ALPHA = 5;
     private static final int INDEX_GROUPED_ALPHA = 6;
