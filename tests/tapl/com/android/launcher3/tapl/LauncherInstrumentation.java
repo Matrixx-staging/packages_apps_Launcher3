@@ -2703,6 +2703,12 @@ public final class LauncherInstrumentation {
                 TEST_INFO_RESPONSE_FIELD);
     }
 
+    /** Whether the homescreen is always shown behind freeform windows in desktop mode. */
+    public boolean shouldShowHomeBehindDesktop() {
+        return getTestInfo(TestProtocol.REQUEST_SHOULD_SHOW_HOME_BEHIND_DESKTOP).getBoolean(
+                TEST_INFO_RESPONSE_FIELD);
+    }
+
     public boolean isImeDocked() {
         return getTestInfo(TestProtocol.REQUEST_TASKBAR_IME_DOCKED).getBoolean(
                 TestProtocol.TEST_INFO_RESPONSE_FIELD);

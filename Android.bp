@@ -325,8 +325,10 @@ quickstep_compose_java_defaults {
             static_libs: [
                 "androidx.compose.runtime_runtime",
                 "androidx.compose.material3_material3",
+                "androidx.compose.material_material-icons-extended",
                 "androidx.compose.ui_ui-tooling-preview",
                 "androidx.compose.ui_ui-tooling",
+                "PlatformComposeCore",
             ],
 
             // By default, Compose is disabled and we compile the ComposeFacade

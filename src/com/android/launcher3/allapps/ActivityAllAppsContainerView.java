@@ -15,6 +15,7 @@
  */
 package com.android.launcher3.allapps;
 
+import static com.android.launcher3.Flags.clearScrimOnReset;
 import static com.android.launcher3.Flags.enableExpandingPauseWorkButton;
 import static com.android.launcher3.allapps.ActivityAllAppsContainerView.AdapterHolder.MAIN;
 import static com.android.launcher3.allapps.ActivityAllAppsContainerView.AdapterHolder.SEARCH;
@@ -461,9 +462,11 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
      * A-Z apps list.
      *
      * @param animate Whether to animate the header during the reset (e.g. switching profile tabs).
+     * @param clearScrim Scrim gets set during AllAppsTransitionController and should only be
+     *                  {@code true} if All Apps is not visible.
      */
-    public void reset(boolean animate) {
-        reset(animate, true);
+    public void reset(boolean animate, boolean clearScrim) {
+        reset(animate, true, clearScrim);
     }
 
     /**
@@ -471,8 +474,9 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
      *
      * @param animate Whether to animate the header during the reset (e.g. switching profile tabs).
      * @param exitSearch Whether to force exit the search state and return to A-Z apps list.
+     * @param clearScrim Whether to clear the all apps scrim.
      */
-    public void reset(boolean animate, boolean exitSearch) {
+    public void reset(boolean animate, boolean exitSearch, boolean clearScrim) {
         // Scroll Main and Work RV to top. Search RV is done in `resetSearch`.
         for (int i = 0; i < mAH.size(); i++) {
             if (i != SEARCH && mAH.get(i).mRecyclerView != null) {
@@ -494,6 +498,9 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         }
         if (isSearching()) {
             mWorkManager.reset();
+        }
+        if (clearScrimOnReset() && mScrimView != null && clearScrim) {
+            mScrimView.setDrawingController(null);
         }
     }
 
@@ -576,7 +583,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         }
         // Header keeps track of active recycler view to properly render header protection.
         mHeader.setActiveRV(currentActivePage);
-        reset(true /* animate */, !isSearching() /* exitSearch */);
+        reset(true /* animate */, !isSearching() /* exitSearch */, false /* clearScrim */);
 
         mWorkManager.onActivePageChanged(currentActivePage);
     }
@@ -995,7 +1002,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
                 mViewPager.setCurrentPage(currentPage);
                 rebindAdapters();
             } else {
-                reset(true);
+                reset(true, false /* clearScrim */);
             }
         }
     }

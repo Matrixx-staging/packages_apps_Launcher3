@@ -949,9 +949,9 @@ public abstract class RecentsView<
                     R.layout.overview_add_desktop_button, this, false);
             mAddDesktopButton.setOnClickListener(view -> {
                 AddDesktopButton button = (AddDesktopButton) view;
-                button.animateVisibility(/* toVisible = */ false, () -> {
+                button.setContentVisibility(/* toVisible= */ false, /* animate= */ true, () -> {
                     createDesk(view);
-                    button.animateVisibility(/* toVisible = */ true);
+                    button.setContentVisibility(/* toVisible= */ true, /* animate= */ true);
                 });
             });
 

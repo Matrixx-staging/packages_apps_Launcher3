@@ -87,6 +87,7 @@ import com.android.launcher3.taskbar.bubbles.BubbleBarController;
 import com.android.launcher3.taskbar.bubbles.BubbleControllers;
 import com.android.launcher3.taskbar.customization.TaskbarAllAppsButtonContainer;
 import com.android.launcher3.taskbar.customization.TaskbarDividerContainer;
+import com.android.launcher3.taskbar.customization.TaskbarIconsContainer;
 import com.android.launcher3.util.ItemInfoMatcher;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
 import com.android.launcher3.util.MultiPropertyFactory;
@@ -94,7 +95,6 @@ import com.android.launcher3.util.MultiPropertyFactory.MultiProperty;
 import com.android.launcher3.util.MultiTranslateDelegate;
 import com.android.launcher3.util.MultiValueAlpha;
 import com.android.launcher3.util.SandboxContext;
-import com.android.launcher3.views.IconButtonView;
 import com.android.quickstep.util.GroupTask;
 import com.android.quickstep.util.SingleTask;
 import com.android.quickstep.util.SplitTask;
@@ -860,16 +860,30 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
 
         Rect stashedBounds = new Rect();
         mControllers.stashedHandleViewController.getStashedHandleBounds(stashedBounds);
+        int totalNumIcons = mTaskbarView.getTotalNumberOfIcons();
 
-        int numIcons = mTaskbarView.getChildCount();
-        float newChildWidth = stashedBounds.width() / (float) numIcons;
+        animateIconsForReveal(mTaskbarView, reveal, as, isStashed, totalNumIcons, duration,
+                stashedBounds, dispatchOnAnimationStart);
 
+        reveal.setInterpolator(interpolator);
+        as.play(reveal);
+    }
+
+    private void animateIconsForReveal(ViewGroup parent, AnimatorSet reveal, AnimatorSet as,
+            boolean isStashed, int totalNumIcons, long duration, Rect stashedBounds,
+            boolean dispatchOnAnimationStart) {
+        float newChildWidth = stashedBounds.width() / (float) totalNumIcons;
         // All children move the same y-amount since they will be cropped to the same centerY.
         float croppedTransY = mTaskbarView.getIconTouchSize() - stashedBounds.height();
 
-        for (int i = mTaskbarView.getChildCount() - 1; i >= 0; i--) {
-            View child = mTaskbarView.getChildAt(i);
+        for (int i = parent.getChildCount() - 1; i >= 0; i--) {
+            View child = parent.getChildAt(i);
             boolean isQsb = child == mTaskbarView.getQsb();
+            if (child instanceof TaskbarIconsContainer tic) {
+                animateIconsForReveal(tic, reveal, as, isStashed, totalNumIcons, duration,
+                        stashedBounds, dispatchOnAnimationStart);
+                continue;
+            }
 
             // Crop the icons to/from the nav handle shape.
             reveal.play(createRevealAnimForView(child, isStashed, newChildWidth, isQsb,
@@ -879,14 +893,18 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
 
             // All of the Taskbar icons will overlap the entirety of the stashed handle
             // And the QSB, if inline, will overlap part of stashed handle as well.
-            float currentPosition = isQsb ? child.getX() : child.getLeft();
+            float currentPosition = isQsb
+                    ? child.getX() + parent.getX()
+                    : child.getLeft() + parent.getLeft();
             float newPosition = stashedBounds.left + (newChildWidth * i);
             final float croppedTransX;
             // We look at 'left' and 'right' values to ensure that the children stay within the
             // bounds of the stashed handle since the new width only occurs at the end of the anim.
+
             if (currentPosition > newPosition) {
-                float newRight = stashedBounds.right - (newChildWidth
-                        * (numIcons - 1 - i));
+                int iconNumber = totalNumIcons - 1 - i
+                        - ((ViewGroup) parent.getParent()).indexOfChild(parent);
+                float newRight = stashedBounds.right - (newChildWidth * iconNumber);
                 croppedTransX = -(currentPosition + child.getWidth() - newRight);
             } else {
                 croppedTransX = newPosition - currentPosition;
@@ -918,9 +936,6 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
                 }));
             }
         }
-
-        reveal.setInterpolator(interpolator);
-        as.play(reveal);
     }
 
     void notifyIconLayoutBoundsChanged() {
@@ -999,21 +1014,8 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
         }
         mOnControllerPreCreateCallback.run();
         DeviceProfile taskbarDp = mActivity.getDeviceProfile();
-        Rect hotseatPadding = launcherDp.getHotseatLayoutPadding(mActivity);
         boolean isTransientTaskbar = mActivity.isTransientTaskbar();
 
-        float scaleUp = ((float) launcherDp.getWorkspaceIconProfile().getIconSizePx())
-                / taskbarDp.getTaskbarProfile().getIconSize();
-        int borderSpacing = launcherDp.hotseatBorderSpace;
-        int hotseatCellSize = DeviceProfile.calculateCellWidth(
-                launcherDp.getDeviceProperties().getAvailableWidthPx()
-                        - hotseatPadding.left
-                        - hotseatPadding.right,
-                borderSpacing,
-                launcherDp.numShownHotseatIcons
-        );
-
-        boolean isToHome = mControllers.uiController.isIconAlignedWithHotseat();
         boolean isDeviceLocked = mControllers.taskbarStashController.isDeviceLocked();
         // If Hotseat is not the top element, Taskbar should maintain in-app state as it fades out,
         // or fade in while already in in-app state.
@@ -1045,7 +1047,6 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
                 ? mTransientTaskbarProfile.getBottomMargin()
                 : mPersistentTaskbarProfile.getBottomMargin();
 
-        int firstRecentTaskIndex = -1;
         int hotseatNavBarTranslationX = 0;
         if (mCurrentBubbleBarLocation != null) {
             boolean isBubblesOnLeft = mCurrentBubbleBarLocation
@@ -1054,18 +1055,43 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
                     .getHotseatTranslationXForNavBar(mActivity, isBubblesOnLeft);
         }
 
-        int ignoreCount = mTaskbarView.getIgnoreTaskbarIconCount();
+        animateChildViews(mTaskbarView, setter, launcherDp,  taskbarDp, hotseatNavBarTranslationX,
+                interpolator);
+        AnimatorPlaybackController controller = setter.createPlaybackController();
+        mOnControllerPreCreateCallback = () -> controller.setPlayFraction(0);
+        return controller;
+    }
 
-        for (int i = 0; i < mTaskbarView.getChildCount(); i++) {
-            View child = mTaskbarView.getChildAt(i);
+    private void animateChildViews(ViewGroup parent, PendingAnimation setter,
+            DeviceProfile launcherDp, DeviceProfile taskbarDp, int hotseatNavBarTranslationX,
+            Interpolator interpolator) {
+        boolean isToHome = mControllers.uiController.isIconAlignedWithHotseat();
+        float scaleUp = ((float) launcherDp.getWorkspaceIconProfile().getIconSizePx())
+                / taskbarDp.getTaskbarProfile().getIconSize();
+        int borderSpacing = launcherDp.hotseatBorderSpace;
+        Rect hotseatPadding = launcherDp.getHotseatLayoutPadding(mActivity);
+        int hotseatCellSize = DeviceProfile.calculateCellWidth(
+                launcherDp.getDeviceProperties().getAvailableWidthPx()
+                        - hotseatPadding.left
+                        - hotseatPadding.right,
+                borderSpacing,
+                launcherDp.numShownHotseatIcons);
+
+        for (int i = 0; i < parent.getChildCount(); i++) {
+            View child = parent.getChildAt(i);
             boolean isAllAppsButton = child == mTaskbarView.getAllAppsButtonContainer();
             boolean isTaskbarDividerView = child == mTaskbarView.getTaskbarDividerViewContainer();
             boolean isTaskbarOverflowView = child == mTaskbarView.getTaskbarOverflowView();
             boolean isRecentTask = child.getTag() instanceof GroupTask;
-            boolean isRtl = Utilities.isRtl(child.getResources());
-
             // TODO(b/343522351): show recents on the home screen.
             final boolean isRecentsInHotseat = false;
+
+            if (child instanceof TaskbarIconsContainer tic) {
+                animateChildViews(tic, setter, launcherDp, taskbarDp, hotseatNavBarTranslationX,
+                        interpolator);
+                continue;
+            }
+
             if (!mIsHotseatIconOnTopWhenAligned) {
                 // When going to home, the EMPHASIZED interpolator in TaskbarLauncherStateController
                 // plays iconAlignment to 1 really fast, therefore moving the fading towards the end
@@ -1087,21 +1113,12 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
                                     ? Interpolators.clampToProgress(LINEAR, 0f, 0.07f)
                                     : Interpolators.clampToProgress(LINEAR, 0.93f, 1f));
                 }
-            } else if (((!isRtl && mTaskbarView.getChildCount() - i <= ignoreCount)
-                    || (isRtl && i < ignoreCount))
-                    && mIsHotseatIconOnTopWhenAligned
-                    && !(child instanceof IconButtonView)) {
-                setter.addFloat(child, VIEW_ALPHA, 0f, 1f,
-                        isToHome
-                                ? Interpolators.clampToProgress(LINEAR, 0f, 0.35f)
-                                : mActivity.getDeviceProfile().isQsbInline
-                                        ? Interpolators.clampToProgress(LINEAR, 0f, 1f)
-                                        : Interpolators.clampToProgress(LINEAR, 0.84f, 1f));
-                setter.addOnFrameListener(animator -> AlphaUpdateListener.updateVisibility(child));
             }
             if (child == mTaskbarView.getQsb()) {
+                boolean isRtl = Utilities.isRtl(child.getResources());
                 float hotseatIconCenter = isRtl
-                        ? launcherDp.getDeviceProperties().getWidthPx() - hotseatPadding.right + borderSpacing
+                        ? launcherDp.getDeviceProperties().getWidthPx()
+                        - hotseatPadding.right + borderSpacing
                         + launcherDp.hotseatQsbWidth / 2f
                         : hotseatPadding.left - borderSpacing - launcherDp.hotseatQsbWidth / 2f;
                 if (taskbarDp.isQsbInline) {
@@ -1145,6 +1162,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
                 continue;
             }
 
+            int firstRecentTaskIndex = -1;
             int recentTaskIndex = -1;
             if (isRecentTask) {
                 if (firstRecentTaskIndex < 0) {
@@ -1173,6 +1191,9 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
             }
             hotseatIconCenter += hotseatNavBarTranslationX;
             float childCenter = (child.getLeft() + child.getRight()) / 2f;
+            if (parent instanceof TaskbarIconsContainer  tic) {
+                childCenter += tic.getLeft();
+            }
             childCenter += ((Reorderable) child).getTranslateDelegate().getTranslationX(
                     INDEX_TASKBAR_PINNING_ANIM).getValue();
             float toX = hotseatIconCenter - childCenter;
@@ -1188,10 +1209,6 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
             }
             setter.setFloat(child, SCALE_PROPERTY, scaleUp, interpolator);
         }
-
-        AnimatorPlaybackController controller = setter.createPlaybackController();
-        mOnControllerPreCreateCallback = () -> controller.setPlayFraction(0);
-        return controller;
     }
 
     /**

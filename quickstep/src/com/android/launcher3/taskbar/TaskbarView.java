@@ -29,6 +29,7 @@ import static com.android.launcher3.config.FeatureFlags.enableTaskbarPinning;
 import static com.android.launcher3.icons.BitmapInfo.FLAG_THEMED;
 import static com.android.launcher3.icons.IconNormalizer.ICON_VISIBLE_AREA_FACTOR;
 
+import android.animation.LayoutTransition;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
@@ -70,7 +71,9 @@ import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.taskbar.customization.TaskbarAllAppsButtonContainer;
 import com.android.launcher3.taskbar.customization.TaskbarDividerContainer;
+import com.android.launcher3.taskbar.customization.TaskbarIconsContainer;
 import com.android.launcher3.uioverrides.PredictedAppIcon;
+import com.android.launcher3.util.LauncherBindableItemsContainer.ItemOperator;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
 import com.android.quickstep.util.GroupTask;
@@ -119,12 +122,18 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     // Only non-null when device supports having a Divider button.
     @Nullable private TaskbarDividerContainer mTaskbarDividerContainer;
 
+    // Only non-null when taskbar customization is enabled.
+    @Nullable private TaskbarIconsContainer mHotseatIconsContainer;
+
     // Only non-null when device supports having a Taskbar Overflow button.
     @Nullable private TaskbarOverflowView mTaskbarOverflowView;
 
     private int mMaxNumIconsLimitForTest = -1;
 
-    private int mNextViewIndex;
+    // Iterates within child views of TaskbarView
+    private int mNextViewIndex = 0;
+    // Iterates within child views of mHotseatIconsContainer (if non-null)
+    private int mNextHotseatIndex = 0;
 
     public int getIgnoreTaskbarIconCount() {
         return mIgnoreTaskbarIconCount;
@@ -194,6 +203,11 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
         // We layout the icons to be of mIconTouchSize in width and height
         mItemMarginLeftRight = actualMargin - (mIconTouchSize - visualIconSize) / 2;
+
+        if (Flags.enableTaskbarIconContainer()) {
+            mHotseatIconsContainer =
+                    TaskbarIconsContainer.create(context, mIconTouchSize, mItemMarginLeftRight);
+        }
 
         // We always layout taskbar as a transient taskbar when we have taskbar pinning feature on,
         // then we scale and translate the icons to match persistent taskbar designs, so we use
@@ -308,8 +322,14 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     private int addStaticViews() {
         int numStaticViews = 1;
         addView(mAllAppsButtonContainer);
+
+        if (mHotseatIconsContainer != null) {
+            addView(mHotseatIconsContainer, mIsRtl ? 0 : numStaticViews);
+            numStaticViews++;
+        }
+
         if (mActivityContext.getDeviceProfile().isQsbInline) {
-            addView(mQsb, mIsRtl ? 1 : 0);
+            addView(mQsb, mIsRtl ? numStaticViews : 0);
             mQsb.setVisibility(View.INVISIBLE);
             numStaticViews++;
         }
@@ -410,7 +430,11 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     }
 
     private void removeAndRecycle(View view) {
-        removeView(view);
+        removeAndRecycle(this, view);
+    }
+
+    private void removeAndRecycle(ViewGroup parent, View view) {
+        parent.removeView(view);
         view.setOnClickListener(null);
         view.setOnLongClickListener(null);
         if (!(view.getTag() instanceof CollectionInfo)) {
@@ -500,12 +524,16 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     private void updateAllAppsDivider() {
         // Index where All Apps divider would be if it is already in Taskbar.
         final int expectedAllAppsDividerIndex = getExpectedAllAppsDividerIndex();
+        boolean hasAtLeastOneIcon = mHotseatIconsContainer == null
+                ? getChildCount() >= mNumStaticViews + 1
+                : getChildCount() - mNumStaticViews == 0
+                        && mHotseatIconsContainer.getChildCount() > 0;
         if (getChildAt(expectedAllAppsDividerIndex) == mTaskbarDividerContainer
-                && getChildCount() == mNumStaticViews + 1) {
+                && getTotalNumberOfIcons() == mNumStaticViews) {
             // Only static views with divider so remove divider.
             removeView(mTaskbarDividerContainer);
         } else if (getChildAt(expectedAllAppsDividerIndex) != mTaskbarDividerContainer
-                && getChildCount() >= mNumStaticViews + 1) {
+                && hasAtLeastOneIcon) {
             // Static views with at least one app icon so add divider. For RTL, add it after the
             // icon that is at the expected index.
             addView(
@@ -515,7 +543,15 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     }
 
     private int getExpectedAllAppsDividerIndex() {
-        return mIsRtl ? getChildCount() - mNumStaticViews - 1 : mNumStaticViews;
+        if (mHotseatIconsContainer == null) {
+            return mIsRtl
+                    ? getChildCount() - mNumStaticViews - 1
+                    : mNumStaticViews;
+        } else {
+            return mIsRtl
+                    ? getChildCount() - mNumStaticViews
+                    : mNumStaticViews - 1; // -1 to exclude mHotseatIconsContainer
+        }
     }
 
     /**
@@ -568,6 +604,10 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     private void updateHotseatItems(ItemInfo[] hotseatItemInfos) {
         int numViewsAnimated = 0;
 
+        boolean hasHotseatContainer = mHotseatIconsContainer != null;
+        mNextHotseatIndex = hasHotseatContainer
+                ? 0 // Start the count at 0 because the views are in a separate container
+                : mNextViewIndex;
         for (ItemInfo hotseatItemInfo : hotseatItemInfos) {
             // Replace any Hotseat views with the appropriate type if it's not already that type.
             final int expectedLayoutResId;
@@ -584,8 +624,11 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             }
 
             View hotseatView = null;
-            while (isNextViewInSection(ItemInfo.class)) {
-                hotseatView = getChildAt(mNextViewIndex);
+            while ((hasHotseatContainer && isNextViewInHotseat(ItemInfo.class))
+                    || (!hasHotseatContainer && isNextViewInSection(ItemInfo.class))) {
+                hotseatView = hasHotseatContainer
+                        ? mHotseatIconsContainer.getChildAt(mNextHotseatIndex)
+                        : getChildAt(mNextViewIndex);
 
                 // see if the view can be reused
                 if ((hotseatView.getSourceLayoutResId() != expectedLayoutResId)
@@ -593,7 +636,11 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                     // Unlike for BubbleTextView, we can't reapply a new FolderInfo after inflation,
                     // so if the info changes we need to reinflate. This should only happen if a new
                     // folder is dragged to the position that another folder previously existed.
-                    removeAndRecycle(hotseatView);
+                    if (hasHotseatContainer) {
+                        removeAndRecycle(mHotseatIconsContainer, hotseatView);
+                    } else {
+                        removeAndRecycle(hotseatView);
+                    }
                     hotseatView = null;
                 } else {
                     // View found
@@ -626,7 +673,11 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                 }
                 LayoutParams lp = new TaskbarLayoutParams(mIconTouchSize, mIconTouchSize);
                 hotseatView.setPadding(mItemPadding, mItemPadding, mItemPadding, mItemPadding);
-                addView(hotseatView, mNextViewIndex, lp);
+                if (hasHotseatContainer) {
+                    mHotseatIconsContainer.addView(hotseatView, mNextHotseatIndex, lp);
+                } else {
+                    addView(hotseatView, mNextViewIndex, lp);
+                }
             } else if (hotseatView instanceof FolderIcon fi) {
                 fi.onItemsChanged(false);
                 fi.getFolder().reapplyItemInfo();
@@ -654,11 +705,21 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             if (enableCursorHoverStates()) {
                 setHoverListenerForIcon(hotseatView);
             }
-            mNextViewIndex++;
+            mNextHotseatIndex++;
+            if (!hasHotseatContainer) {
+                mNextViewIndex = mNextHotseatIndex;
+            }
         }
 
-        while (isNextViewInSection(ItemInfo.class)) {
-            removeAndRecycle(getChildAt(mNextViewIndex));
+        if (hasHotseatContainer) {
+            while (isNextViewInHotseat(ItemInfo.class)) {
+                removeAndRecycle(mHotseatIconsContainer,
+                        mHotseatIconsContainer.getChildAt(mNextHotseatIndex));
+            }
+        } else {
+            while (isNextViewInSection(ItemInfo.class)) {
+                removeAndRecycle(getChildAt(mNextViewIndex));
+            }
         }
     }
 
@@ -794,6 +855,29 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     private boolean isNextViewInSection(Class<?> tagClass) {
         return mNextViewIndex < getChildCount()
                 && tagClass.isInstance(getChildAt(mNextViewIndex).getTag());
+    }
+
+    private boolean isNextViewInHotseat(Class<?> tagClass) {
+        if (mHotseatIconsContainer == null) {
+            return false;
+        }
+        final int nextIndex = mNextHotseatIndex;
+        return nextIndex < mHotseatIconsContainer.getChildCount()
+                && tagClass.isInstance(mHotseatIconsContainer.getChildAt(nextIndex).getTag());
+    }
+
+    protected View mapOverItems(ViewGroup parent, @NonNull ItemOperator op) {
+        final int itemCount = parent.getChildCount();
+        for (int itemIdx = 0; itemIdx < itemCount; itemIdx++) {
+            View item = parent.getChildAt(itemIdx);
+            if (item instanceof TaskbarIconsContainer tic) {
+                mapOverItems(tic, op);
+            }
+            if (item.getTag() instanceof ItemInfo itemInfo && op.evaluate(itemInfo, item)) {
+                return item;
+            }
+        }
+        return null;
     }
 
     /** Binds the SingleTask to the BubbleTextView to be ready to present to the user. */
@@ -988,6 +1072,13 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                 int iconStart = iconEnd - mIconTouchSize;
                 child.layout(iconStart, mIconLayoutBounds.top, iconEnd, mIconLayoutBounds.bottom);
                 iconEnd = iconStart + mItemMarginLeftRight;
+            } else if (child instanceof TaskbarIconsContainer tic) {
+                iconEnd -= mItemMarginLeftRight;
+                int numItems = tic.getChildCount();
+                int iconStart = iconEnd - (mIconTouchSize * numItems)
+                        - (2 * (mItemMarginLeftRight * (numItems - 1)));
+                child.layout(iconStart, mIconLayoutBounds.top, iconEnd, mIconLayoutBounds.bottom);
+                iconEnd = iconStart - mItemMarginLeftRight;
             } else {
                 iconEnd -= mItemMarginLeftRight;
                 int iconStart = iconEnd - mIconTouchSize;
@@ -1066,27 +1157,41 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         return actualBounds;
     }
 
+    /** Returns the total number of icons in the taskbar. **/
+    public int getTotalNumberOfIcons() {
+        int numContainers = 0;
+        int numIconsInContainers = 0;
+        for (int i = getChildCount() - 1; i >= 0; --i) {
+            if (getChildAt(i) instanceof TaskbarIconsContainer tic) {
+                numContainers++;
+                numIconsInContainers += tic.getChildCount();
+            }
+        }
+
+        int count = getChildCount()
+                - numContainers
+                + numIconsInContainers;
+        if (mActivityContext.getDeviceProfile().isQsbInline) {
+            count--; // Exclude QSB
+        }
+        // count can be negative if views aren't added
+        return Math.max(0, count);
+    }
     /**
      * Returns the space used by the icons.
      */
     private int getIconLayoutWidth() {
-        return getIconLayoutWidth(getChildCount());
+        return getIconLayoutWidth(getTotalNumberOfIcons());
     }
 
     /**
      * Return the space needed based on the number of taskbar icons supplied vs existing children.
      */
     private int getIconLayoutWidth(int expectedNumberOfTaskbarIcons) {
-        int countExcludingQsb = expectedNumberOfTaskbarIcons;
-        DeviceProfile deviceProfile = mActivityContext.getDeviceProfile();
-        if (deviceProfile.isQsbInline) {
-            countExcludingQsb--;
-        }
-
         int iconLayoutBoundsWidth =
-                countExcludingQsb * (mItemMarginLeftRight * 2 + mIconTouchSize);
+                expectedNumberOfTaskbarIcons * (mItemMarginLeftRight * 2 + mIconTouchSize);
 
-        if (enableTaskbarPinning() && countExcludingQsb > 1) {
+        if (enableTaskbarPinning() && expectedNumberOfTaskbarIcons > 1) {
             // We are removing 4 * mItemMarginLeftRight as there should be no space between
             // All Apps icon, divider icon, and first app icon in taskbar
             iconLayoutBoundsWidth -= mItemMarginLeftRight * 4;
@@ -1099,19 +1204,35 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         return iconLayoutBoundsWidth;
     }
 
+    @Override
+    public void setLayoutTransition(LayoutTransition transition) {
+        super.setLayoutTransition(transition);
+        if (mHotseatIconsContainer != null) {
+            mHotseatIconsContainer.setLayoutTransition(transition);
+        }
+    }
+
     /**
      * Returns the app icons currently shown in the taskbar. The returned list does not include qsb,
      * but it includes all apps button and icon divider views.
      */
     public View[] getIconViews() {
         final int count = getChildCount();
-        if (count == 0) {
+        final int totalCount = getTotalNumberOfIcons();
+        if (totalCount == 0) {
             return new View[0];
         }
-        View[] icons = new View[count - (mActivityContext.getDeviceProfile().isQsbInline ? 1 : 0)];
+        View[] icons = new View[totalCount];
         int insertionPoint = 0;
         for (int i = 0; i < count; i++) {
-            if (getChildAt(i)  == mQsb) continue;
+            if (getChildAt(i) == mQsb) continue;
+            if (getChildAt(i) instanceof TaskbarIconsContainer tic) {
+                int ticCount = tic.getChildCount();
+                for (int j = 0; j < ticCount; j++) {
+                    icons[insertionPoint++] = tic.getChildAt(j);
+                }
+                continue;
+            }
             icons[insertionPoint++] = getChildAt(i);
         }
         return icons;
