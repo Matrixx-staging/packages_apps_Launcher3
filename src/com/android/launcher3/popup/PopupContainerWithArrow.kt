@@ -642,10 +642,12 @@ constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 
         @JvmStatic
         fun <T> dismissInvalidPopup(activity: T) where T : Context?, T : ActivityContext? {
             val popup = getOpen(activity)
+            val originalIcon = popup?.originalIcon
+            val originalIconTag = originalIcon?.tag as? ItemInfo
             if (
-                popup != null &&
-                    (popup.originalIcon?.isAttachedToWindow == false ||
-                        !ShortcutUtil.supportsShortcuts(popup.originalIcon?.tag as ItemInfo))
+                originalIcon != null &&
+                    (!originalIcon.isAttachedToWindow ||
+                        !ShortcutUtil.supportsShortcuts(originalIconTag))
             ) {
                 popup.animateClose()
             }
