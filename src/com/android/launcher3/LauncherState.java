@@ -223,8 +223,7 @@ public abstract class LauncherState implements BaseState<LauncherState> {
      */
     public int getFloatingSearchBarRestingMarginBottom(Launcher launcher) {
         DeviceProfile dp = launcher.getDeviceProfile();
-        return areElementsVisible(launcher.launcherUiState, FLOATING_SEARCH_BAR)
-                ? dp.getQsbOffsetY()
+        return areElementsVisible(launcher, FLOATING_SEARCH_BAR) ? dp.getQsbOffsetY()
                 : -dp.getHotseatProfile().getQsbHeight();
     }
 
@@ -262,10 +261,10 @@ public abstract class LauncherState implements BaseState<LauncherState> {
     }
 
     /** We should remove Launcher param after roll out refactorTaskbarUiState() flag. */
-    public int getVisibleElements(LauncherUiState launcherUiState) {
+    public int getVisibleElements(@Deprecated Launcher launcher, LauncherUiState launcherUiState) {
         int elements = HOTSEAT_ICONS | WORKSPACE_PAGE_INDICATOR | VERTICAL_SWIPE_INDICATOR;
         // Floating search bar is visible in normal state except in landscape on phones.
-        DeviceProperties dp = launcherUiState.getDeviceProfileRef().getValue()
+        DeviceProperties dp = LauncherUiStateUtil.getDeviceProfile(launcher, launcherUiState)
                 .getDeviceProperties();
         if (!(dp.isPhone() && dp.isLandscape())) {
             elements |= FLOATING_SEARCH_BAR;
@@ -277,8 +276,8 @@ public abstract class LauncherState implements BaseState<LauncherState> {
      * A shorthand for checking getVisibleElements() & elements == elements.
      * @return Whether all of the given elements are visible.
      */
-    public boolean areElementsVisible(LauncherUiState launcherUiState, int elements) {
-        return (getVisibleElements(launcherUiState) & elements) == elements;
+    public boolean areElementsVisible(Launcher launcher, int elements) {
+        return (getVisibleElements(launcher, launcher.launcherUiState) & elements) == elements;
     }
 
     /**

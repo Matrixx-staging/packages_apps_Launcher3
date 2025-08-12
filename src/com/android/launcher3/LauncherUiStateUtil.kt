@@ -37,7 +37,7 @@ object LauncherUiStateUtil {
     fun isSplitSelectActive(launcher: Launcher, launcherUiState: LauncherUiState): Boolean {
         if (refactorTaskbarUiState()) {
             val ret: Boolean = launcherUiState.isSplitSelectActiveRef.value
-            if (BuildConfig.IS_STUDIO_BUILD && ret != launcher.isSplitSelectionActive) {
+            if (BuildConfig.IS_STUDIO_BUILD && ret !== launcher.isSplitSelectionActive) {
                 throw IllegalStateException("isSplitSelectionActive() doesn't match")
             }
             return ret

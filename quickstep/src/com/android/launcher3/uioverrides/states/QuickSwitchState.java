@@ -47,7 +47,7 @@ public class QuickSwitchState extends BackgroundAppState {
     }
 
     @Override
-    public int getVisibleElements(LauncherUiState launcherUiState) {
+    public int getVisibleElements(@Deprecated Launcher launcher, LauncherUiState launcherUiState) {
         return NONE;
     }
 
