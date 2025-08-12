@@ -20,10 +20,8 @@
     <string name="widget_picker_collapse_sheet_label" msgid="5179800676332357316">"Затвори табелу"</string>
     <string name="widgets_list_header_app_name_fallback_label" msgid="5151621916941957989">"Назив апликације"</string>
     <string name="widgets_list_header_widgets_count_label" msgid="578128450351893001">"{count,plural, =1{# виџет}one{# виџет}few{# виџета}other{# виџета}}"</string>
-    <!-- no translation found for widgets_list_header_shortcuts_count_label (9168853338469361424) -->
-    <skip />
-    <!-- no translation found for widgets_list_header_widgets_and_shortcuts_count_label (3942871723001789249) -->
-    <skip />
+    <string name="widgets_list_header_shortcuts_count_label" msgid="9168853338469361424">"{count,plural, =1{# пречица}one{# пречица}few{# пречице}other{# пречица}}"</string>
+    <string name="widgets_list_header_widgets_and_shortcuts_count_label" msgid="3942871723001789249">"<xliff:g id="WIDGETS_COUNT">%1$s</xliff:g>, <xliff:g id="SHORTCUTS_COUNT">%2$s</xliff:g>"</string>
     <string name="widget_span_dimensions_format" msgid="4325492869474815131">"%1$d×%2$d"</string>
     <string name="widget_span_dimensions_accessible_format" msgid="6976586776463259811">"ширина %1$d и висина %2$d"</string>
     <string name="widget_details_accessibility_label" msgid="4525863892199168041">"Виџет <xliff:g id="WIDGET_NAME">%1$s</xliff:g>, ширина %2$d и висина %3$d"</string>
