@@ -482,6 +482,14 @@ public class SplitSelectStateController {
         extrasBundle.putParcelable(KEY_EXTRA_WIDGET_INTENT, widgetIntent);
         final RemoteTransition remoteTransition = getRemoteTransition(firstTaskId,
                 secondTaskId, callback, "LaunchSplitPair");
+        if (mSplitFromDesktopController != null
+                && mSplitFromDesktopController.mTaskInfo != null
+        ) {
+            SystemUiProxy.INSTANCE.get(mContainer.asContext())
+                    .onDesktopSplitSelectChoice(
+                            mSplitFromDesktopController.mTaskInfo
+                    );
+        }
         switch (launchData.getSplitLaunchType()) {
             case SPLIT_TASK_TASK ->
                     mSystemUiProxy.startTasks(firstTaskId, optionsBundle, secondTaskId,
@@ -799,6 +807,7 @@ public class SplitSelectStateController {
                     .withInstanceId(mSessionInstanceIds.second)
                     .log(LAUNCHER_SPLIT_SELECTION_COMPLETE);
         }
+        if (mSplitFromDesktopController != null) mSplitFromDesktopController.resetState();
         mSessionInstanceIds = null;
     }
 
@@ -995,6 +1004,12 @@ public class SplitSelectStateController {
             }
         }
 
+        /** Reset controller state after a split-select transition is finished. */
+        public void resetState() {
+            mTaskInfo = null;
+            mAppIcon = null;
+        }
+
         private class DesktopSplitRecentsAnimation {
             private final Rect mTempRect = new Rect();
             private final RectF mTaskBounds = new RectF();
@@ -1053,8 +1068,6 @@ public class SplitSelectStateController {
                     @Override
                     public void onAnimationEnd(Animator animation) {
                         InteractionJankMonitorWrapper.end(CUJ_DESKTOP_MODE_MOVE_TO_SPLIT_SCREEN);
-                        SystemUiProxy.INSTANCE.get(mContext)
-                                .onDesktopSplitSelectAnimComplete(mTaskInfo);
                         if (isBugfixFlagEnabled) {
                             for (FloatingDesktopTaskView taskView : closingTaskViews) {
                                 mContainer.getDragLayer().removeView(taskView);
@@ -1120,6 +1133,8 @@ public class SplitSelectStateController {
                         mAppIcon, /* positionOut= */ new RectF());
                 floatingTaskView.setOnClickListener(view -> {
                     InteractionJankMonitorWrapper.cancel(CUJ_DESKTOP_MODE_MOVE_TO_SPLIT_SCREEN);
+                    SystemUiProxy.INSTANCE.get(mContext)
+                            .onDesktopSplitSelectChoice(mTaskInfo);
                     getSplitAnimationController()
                             .playAnimPlaceholderToFullscreen(mContainer, view,
                                     Optional.of(() -> resetState()));

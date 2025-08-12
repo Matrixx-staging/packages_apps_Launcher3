@@ -141,7 +141,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     private final SearchTransitionController mSearchTransitionController;
     private final Paint mHeaderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Rect mInsets = new Rect();
-    private final AllAppsStore<T> mAllAppsStore;
+    private final AllAppsStore mAllAppsStore;
     private final RecyclerView.OnScrollListener mScrollListener =
             new RecyclerView.OnScrollListener() {
                 @Override
@@ -176,7 +176,6 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     private SearchRecyclerView mSearchRecyclerView;
     protected SearchAdapterProvider<?> mMainAdapterProvider;
     private View mBottomSheetHandleArea;
-    private View mBottomSheetHandle;
     private boolean mHasWorkApps;
     private boolean mHasPrivateApps;
     private float[] mBottomSheetCornerRadii;
@@ -199,7 +198,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     public ActivityAllAppsContainerView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mActivityContext = ActivityContext.lookupContext(context);
-        mAllAppsStore = new AllAppsStore<>(mActivityContext);
+        mAllAppsStore = mActivityContext.getActivityComponent().getAppsStore();
 
         mScrimColor = Themes.getAttrColor(context, R.attr.allAppsScrimColor);
         mHeaderThreshold = getResources().getDimensionPixelSize(
@@ -259,14 +258,14 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         mMainAdapterProvider = mSearchUiDelegate.createMainAdapterProvider();
 
         mAH.set(AdapterHolder.MAIN, new AdapterHolder(AdapterHolder.MAIN,
-                new AlphabeticalAppsList<>(mActivityContext,
+                new AlphabeticalAppsList(mActivityContext,
                         mAllAppsStore,
                         null,
                         mPrivateProfileManager)));
         mAH.set(AdapterHolder.WORK, new AdapterHolder(AdapterHolder.WORK,
-                new AlphabeticalAppsList<>(mActivityContext, mAllAppsStore, mWorkManager, null)));
+                new AlphabeticalAppsList(mActivityContext, mAllAppsStore, mWorkManager, null)));
         mAH.set(SEARCH, new AdapterHolder(SEARCH,
-                new AlphabeticalAppsList<>(mActivityContext, null, null, null)));
+                new AlphabeticalAppsList(mActivityContext, null, null, null)));
 
         getLayoutInflater().inflate(R.layout.all_apps_content, this);
         mHeader = findViewById(R.id.all_apps_header);
@@ -274,7 +273,6 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         mAdditionalHeaderRows.addAll(getAdditionalHeaderRows());
         mBottomSheetBackground = findViewById(R.id.bottom_sheet_background);
         mBottomSheetHandleArea = findViewById(R.id.bottom_sheet_handle_area);
-        mBottomSheetHandle = findViewById(R.id.bottom_sheet_handle);
         mSearchRecyclerView = findViewById(R.id.search_results_list_view);
         mFastScroller = findViewById(R.id.fast_scroller);
         mFastScroller.setPopupView(findViewById(R.id.fast_scroller_popup));
@@ -677,12 +675,12 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     }
 
     /**
-     * If {@link ENABLE_ALL_APPS_RV_PREINFLATION} is enabled, wire custom
-     * {@link RecyclerView.RecycledViewPool} to main and work {@link AllAppsRecyclerView}.
+     * Wire custom {@link RecyclerView.RecycledViewPool} to main and work
+     * {@link AllAppsRecyclerView}.
      *
-     * Then if {@link ALL_APPS_GONE_VISIBILITY} is enabled, update max pool size. This is because
-     * all apps rv's hidden visibility is changed to {@link View#GONE} from {@link View#INVISIBLE),
-     * thus we cannot rely on layout pass to update pool size.
+     * Also update max pool size. This is because all apps rv's hidden visibility is changed to
+     * {@link View#GONE} from {@link View#INVISIBLE}, thus we cannot rely on layout pass to update
+     * pool size.
      */
     private static void setUpCustomRecyclerViewPool(
             @NonNull AllAppsRecyclerView mainRecyclerView,
@@ -781,7 +779,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     }
 
     /**
-     * Force header height update with an offset. Used by {@link UniversalSearchInputView} to
+     * Force header height update with an offset. Used by SearchView to
      * request {@link FloatingHeaderView} to update its maxTranslation for multiline search bar.
      */
     public void forceUpdateHeaderHeight(int offset) {
@@ -961,8 +959,8 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         layoutParams.removeRule(RelativeLayout.ALIGN_PARENT_TOP);
     }
 
-    protected BaseAllAppsAdapter<T> createAdapter(AlphabeticalAppsList<T> appsList) {
-        return new AllAppsGridAdapter<>(mActivityContext, getLayoutInflater(), appsList,
+    protected BaseAllAppsAdapter createAdapter(AlphabeticalAppsList appsList) {
+        return new AllAppsGridAdapter(mActivityContext, getLayoutInflater(), appsList,
                 mMainAdapterProvider);
     }
 
@@ -1015,7 +1013,9 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         container.put(R.id.work_tab_state_id, state);
     }
 
-    public AllAppsStore<T> getAppsStore() {
+    /** @deprecated Get it from {@link ActivityContext#getActivityComponent()} */
+    @Deprecated
+    public AllAppsStore getAppsStore() {
         return mAllAppsStore;
     }
 
@@ -1349,15 +1349,15 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         return isDescendantViewVisible(R.id.tab_work);
     }
 
-    public AlphabeticalAppsList<T> getSearchResultList() {
+    public AlphabeticalAppsList getSearchResultList() {
         return mAH.get(SEARCH).mAppsList;
     }
 
-    public AlphabeticalAppsList<T> getPersonalAppList() {
+    public AlphabeticalAppsList getPersonalAppList() {
         return mAH.get(MAIN).mAppsList;
     }
 
-    public AlphabeticalAppsList<T> getWorkAppList() {
+    public AlphabeticalAppsList getWorkAppList() {
         return mAH.get(WORK).mAppsList;
     }
 
@@ -1432,7 +1432,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     }
 
     /**
-     * Set {@link Animator.AnimatorListener} on {@link mAllAppsTransitionController} to observe
+     * Set {@link Animator.AnimatorListener} on {@link #mAllAppsTransitionController} to observe
      * animation of backing out of all apps search view to all apps view.
      */
     public void setAllAppsSearchBackAnimatorListener(Animator.AnimatorListener listener) {
@@ -1630,14 +1630,14 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         public static final int SEARCH = 2;
 
         private final int mType;
-        public final BaseAllAppsAdapter<T> mAdapter;
+        public final BaseAllAppsAdapter mAdapter;
         final RecyclerView.LayoutManager mLayoutManager;
-        final AlphabeticalAppsList<T> mAppsList;
+        final AlphabeticalAppsList mAppsList;
         final Rect mPadding = new Rect();
         AllAppsRecyclerView mRecyclerView;
         private OnFocusChangeListener mOnFocusChangeListener;
 
-        AdapterHolder(int type, AlphabeticalAppsList<T> appsList) {
+        AdapterHolder(int type, AlphabeticalAppsList appsList) {
             mType = type;
             mAppsList = appsList;
             mAdapter = createAdapter(mAppsList);

@@ -19,7 +19,6 @@ import static com.android.launcher3.model.data.AppInfo.COMPONENT_KEY_COMPARATOR;
 import static com.android.launcher3.model.data.AppInfo.EMPTY_ARRAY;
 
 import android.content.ComponentName;
-import android.content.Context;
 import android.os.UserHandle;
 import android.util.Log;
 import android.view.View;
@@ -29,6 +28,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.launcher3.BubbleTextView;
+import com.android.launcher3.dagger.ActivityContextSingleton;
 import com.android.launcher3.icons.FastBitmapDrawable;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfo;
@@ -50,12 +50,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+
 /**
  * A utility class to maintain the collection of all apps.
- *
- * @param <T> The type of the context.
  */
-public class AllAppsStore<T extends Context & ActivityContext> {
+@ActivityContextSingleton
+public class AllAppsStore {
 
     private static final String TAG = "AllAppsStore";
     // Defer updates flag used to defer all apps updates to the next draw.
@@ -74,38 +76,32 @@ public class AllAppsStore<T extends Context & ActivityContext> {
     private int mModelFlags;
     private int mDeferUpdatesFlags = 0;
     private boolean mUpdatePending = false;
-    private final AllAppsRecyclerViewPool mAllAppsRecyclerViewPool = new AllAppsRecyclerViewPool();
 
-    private final T mContext;
+    private final ActivityContext mContext;
+    private final boolean mShouldPreinflate;
+    private final AllAppsRecyclerViewPool mAllAppsRecyclerViewPool;
 
     public AppInfo[] getApps() {
         return mApps;
     }
 
-    public AllAppsStore(@NonNull T context) {
+    @Inject
+    public AllAppsStore(
+            ActivityContext context,
+            @Named("PRELOAD_ALL_APPS") boolean preinflateAllApps) {
         mContext = context;
-    }
-
-    /**
-     * Calling {@link #setApps(AppInfo[], int, Map, boolean)} with shouldPreinflate set to
-     * {@code true}. This method should be called in launcher (not for taskbar).
-     */
-    public void setApps(@Nullable AppInfo[] apps, int flags, Map<PackageUserKey, Integer> map) {
-        setApps(apps, flags, map, /* shouldPreinflate= */ true);
+        mShouldPreinflate = preinflateAllApps;
+        mAllAppsRecyclerViewPool = new AllAppsRecyclerViewPool(context);
     }
 
     /**
      * Sets the current set of apps and sets mapping for {@link PackageUserKey} to Uid for
      * the current set of apps.
      *
-     * <p> Note that shouldPreinflate param should be set to {@code false} for taskbar, because
-     * this method is too late to preinflate all apps, as user will open all apps in the frame
-     *
      * <p>Param: apps are required to be sorted using the comparator COMPONENT_KEY_COMPARATOR
      * in order to enable binary search on the mApps store
      */
-    public void setApps(@Nullable AppInfo[] apps, int flags, Map<PackageUserKey, Integer> map,
-            boolean shouldPreinflate) {
+    public void setApps(@Nullable AppInfo[] apps, int flags, Map<PackageUserKey, Integer> map) {
         mApps = apps == null ? EMPTY_ARRAY : apps;
         Log.d(TAG, "setApps: apps.length=" + mApps.length);
         mModelFlags = flags;
@@ -113,8 +109,8 @@ public class AllAppsStore<T extends Context & ActivityContext> {
         mPackageUserKeytoUidMap = map;
         // Preinflate all apps RV when apps has changed, which can happen after unlocking screen,
         // rotating screen, or downloading/upgrading apps.
-        if (shouldPreinflate) {
-            mAllAppsRecyclerViewPool.preInflateAllAppsViewHolders(mContext);
+        if (mShouldPreinflate) {
+            mAllAppsRecyclerViewPool.preInflateAllAppsViewHolders();
         }
     }
 

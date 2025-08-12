@@ -37,13 +37,17 @@ import com.android.launcher3.accessibility.DragViewStateAnnouncer;
 import com.android.launcher3.celllayout.CellLayoutLayoutParams;
 import com.android.launcher3.celllayout.CellPosMapper.CellPos;
 import com.android.launcher3.config.FeatureFlags;
+import com.android.launcher3.dragndrop.DragController;
 import com.android.launcher3.dragndrop.DragLayer;
+import com.android.launcher3.dragndrop.DragOptions;
 import com.android.launcher3.keyboard.ViewGroupFocusHelper;
 import com.android.launcher3.logging.InstanceId;
 import com.android.launcher3.logging.InstanceIdSequence;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.LauncherAppWidgetInfo;
+import com.android.launcher3.popup.PopupContainerWithArrow;
 import com.android.launcher3.util.PendingRequestArgs;
+import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.ArrowTipView;
 import com.android.launcher3.widget.LauncherAppWidgetHostView;
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo;
@@ -53,7 +57,8 @@ import com.android.launcher3.widget.util.WidgetSizeHandler;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AppWidgetResizeFrame extends AbstractFloatingView implements View.OnKeyListener {
+public class AppWidgetResizeFrame extends AbstractFloatingView implements View.OnKeyListener,
+        DragController.DragListener {
     private static final int SNAP_DURATION_MS = 150;
     private static final float DIMMED_HANDLE_ALPHA = 0f;
     private static final float RESIZE_THRESHOLD = 0.66f;
@@ -153,6 +158,7 @@ public class AppWidgetResizeFrame extends AbstractFloatingView implements View.O
         super(context, attrs, defStyleAttr);
 
         mLauncher = Launcher.getLauncher(context);
+        mLauncher.getDragController().addDragListener(this);
         mStateAnnouncer = DragViewStateAnnouncer.createFor(this);
 
         mCellChildViewPreLayoutListener = FeatureFlags.ENABLE_WIDGET_TRANSITION_FOR_RESIZING.get()
@@ -205,28 +211,34 @@ public class AppWidgetResizeFrame extends AbstractFloatingView implements View.O
         setSystemGestureExclusionRects(mSystemGestureExclusionRects);
     }
 
+
+    /**
+     * Shows the resize frame for a widget
+     *
+     * @param widget is the widget view for which we want to show the resize frame.
+     * @param cellLayout is the cellLayout in which the widget is placed.
+     */
     public static void showForWidget(LauncherAppWidgetHostView widget, CellLayout cellLayout) {
         // If widget is not added to view hierarchy, we cannot show resize frame at correct location
         if (widget.getParent() == null) {
             return;
         }
-        Launcher launcher = Launcher.getLauncher(cellLayout.getContext());
-        AbstractFloatingView.closeAllOpenViews(launcher);
-
-        DragLayer dl = launcher.getDragLayer();
-        AppWidgetResizeFrame frame = (AppWidgetResizeFrame) launcher.getLayoutInflater()
-                .inflate(R.layout.app_widget_resize_frame, dl, false);
-        frame.setupForWidget(widget, cellLayout, dl);
+        ActivityContext activityContext = cellLayout.mActivity;
+        DragLayer dragLayer = (DragLayer) activityContext.getDragLayer();
+        AbstractFloatingView.closeAllOpenViewsExcept(activityContext, TYPE_ACTION_POPUP);
+        AppWidgetResizeFrame frame = (AppWidgetResizeFrame) activityContext.getLayoutInflater()
+                .inflate(R.layout.app_widget_resize_frame, dragLayer, false);
+        frame.setupForWidget(widget, cellLayout, dragLayer);
         // Save widget item info as tag on resize frame; so that, the accessibility delegate can
         // attach actions that typically happen on widget (e.g. resize, move) also on the resize
         // frame.
         frame.setTag(widget.getTag());
-        frame.setAccessibilityDelegate(launcher.getAccessibilityDelegate());
-        frame.setContentDescription(launcher.asContext().getString(R.string.widget_frame_name,
-                widget.getContentDescription()));
+        frame.setAccessibilityDelegate(activityContext.getAccessibilityDelegate());
+        frame.setContentDescription(activityContext.asContext().getString(
+                R.string.widget_frame_name, ((ItemInfo) widget.getTag()).contentDescription));
         ((DragLayer.LayoutParams) frame.getLayoutParams()).customPosition = true;
 
-        dl.addView(frame);
+        dragLayer.addView(frame);
         frame.mIsOpen = true;
         frame.post(() -> frame.snapToWidget(false));
     }
@@ -291,7 +303,7 @@ public class AppWidgetResizeFrame extends AbstractFloatingView implements View.O
         }
 
         mReconfigureButton = (ImageButton) findViewById(R.id.widget_reconfigure_button);
-        if (info.isReconfigurable()) {
+        if (!Flags.homeScreenEditImprovements() && info.isReconfigurable()) {
             mReconfigureButton.setVisibility(VISIBLE);
             mReconfigureButton.setOnClickListener(view -> {
                 mLauncher.setWaitingForResult(
@@ -540,6 +552,7 @@ public class AppWidgetResizeFrame extends AbstractFloatingView implements View.O
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
 
+        mLauncher.getDragController().removeDragListener(this);
         // We are done with resizing the widget. Save the widget size & position to LauncherModel
         resizeWidgetIfNeeded(true);
         mLauncher.getStatsLogManager()
@@ -757,8 +770,29 @@ public class AppWidgetResizeFrame extends AbstractFloatingView implements View.O
         if (isTouchOnReconfigureButton(ev)) {
             return false;
         }
+
+        if (Flags.homeScreenEditImprovements()) {
+            if (shouldIgnoreTouch()) {
+                return false;
+            }
+            // We want to close any open popup if we're not dragging and the touch event is outside
+            // this frame.
+            closePopupIfOpen();
+        }
         close(false);
         return false;
+    }
+
+    private void closePopupIfOpen() {
+        PopupContainerWithArrow<?> container = PopupContainerWithArrow.getOpen(mLauncher);
+        if (container != null) {
+            container.close(true);
+        }
+    }
+
+    private boolean shouldIgnoreTouch() {
+        // When dragging we should ignore touch.
+        return mLauncher.getDragController().isDragging();
     }
 
     @Override
@@ -769,6 +803,7 @@ public class AppWidgetResizeFrame extends AbstractFloatingView implements View.O
         }
         mDragLayer.removeView(this);
         mWidgetView.removeOnLayoutChangeListener(mWidgetViewLayoutListener);
+        mLauncher.getDragController().removeDragListener(this);
     }
 
     private void updateInvalidResizeEffect(CellLayout cellLayout, CellLayout pairedCellLayout,
@@ -820,6 +855,16 @@ public class AppWidgetResizeFrame extends AbstractFloatingView implements View.O
     @Override
     protected boolean isOfType(int type) {
         return (type & TYPE_WIDGET_RESIZE_FRAME) != 0;
+    }
+
+    @Override
+    public void onDragStart(DropTarget.DragObject dragObject, DragOptions options) {
+        close(true);
+    }
+
+    @Override
+    public void onDragEnd() {
+        //No-op
     }
 
     /**

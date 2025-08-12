@@ -93,6 +93,8 @@ public class DeviceProfile {
     public static final ViewScaleProvider DEFAULT_PROVIDER = itemInfo -> DEFAULT_SCALE;
     public static final Consumer<DeviceProfile> DEFAULT_DIMENSION_PROVIDER = dp -> { };
 
+    public static final DeviceProfile DEFAULT_DEVICE_PROFILE = new DeviceProfile();
+
     public final InvariantDeviceProfile inv;
     private final BottomSheetProfile mBottomSheetProfile;
 

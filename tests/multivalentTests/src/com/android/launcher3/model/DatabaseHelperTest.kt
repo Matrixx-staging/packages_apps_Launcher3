@@ -11,7 +11,9 @@ import com.android.launcher3.LauncherSettings.Favorites.TMP_TABLE
 import com.android.launcher3.LauncherSettings.Favorites.addTableToDb
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.provider.LauncherDbUtils
+import com.android.launcher3.util.Executors
 import com.android.launcher3.util.ModelTestExtensions
+import com.android.launcher3.util.TestUtil
 import java.util.function.ToLongFunction
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -55,9 +57,7 @@ class DatabaseHelperTest {
                 UserCache.INSTANCE.get(context).getSerialNumberForUser(it)
             }
         val dbHelper = DatabaseHelper(context, null, userSerialProvider) {}
-
-        dbHelper.onUpgrade(db, 30, 32)
-
+        TestUtil.runOnExecutorSync(Executors.MODEL_EXECUTOR) { dbHelper.onUpgrade(db, 30, 32) }
         assertFalse(hasFavoritesColumn(db, ICON_PACKAGE))
         assertFalse(hasFavoritesColumn(db, ICON_RESOURCE))
     }

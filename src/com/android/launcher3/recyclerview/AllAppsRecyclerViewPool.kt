@@ -16,7 +16,6 @@
 
 package com.android.launcher3.recyclerview
 
-import android.content.Context
 import android.util.Log
 import android.view.ContextThemeWrapper
 import android.view.InflateException
@@ -43,7 +42,7 @@ const val EXTRA_ICONS_COUNT = 2
  * [RecyclerView]. The view inflation will happen on background thread and inflated [ViewHolder]s
  * will be added to [RecycledViewPool] on main thread.
  */
-class AllAppsRecyclerViewPool<T> : RecycledViewPool() where T : Context, T : ActivityContext {
+class AllAppsRecyclerViewPool(private val activityContext: ActivityContext) : RecycledViewPool() {
 
     var hasWorkProfile = false
     @VisibleForTesting(otherwise = PROTECTED)
@@ -58,13 +57,11 @@ class AllAppsRecyclerViewPool<T> : RecycledViewPool() where T : Context, T : Act
     /**
      * Preinflate app icons. If all apps RV cannot be scrolled down, we don't need to preinflate.
      */
-    fun preInflateAllAppsViewHolders(context: T) {
-        val appsView = context.appsView ?: return
+    fun preInflateAllAppsViewHolders() {
+        val appsView = activityContext.appsView ?: return
         val activeRv: RecyclerView = appsView.activeRecyclerView ?: return
-        val preInflateCount = getPreinflateCount(context)
-        if (preInflateCount <= 0) {
-            return
-        }
+        val preInflateCount = getPreinflateCount()
+        if (preInflateCount <= 0) return
 
         if (activeRv.layoutManager == null) {
             if (BuildConfig.IS_STUDIO_BUILD) {
@@ -74,6 +71,8 @@ class AllAppsRecyclerViewPool<T> : RecycledViewPool() where T : Context, T : Act
             }
             return
         }
+
+        val context = activityContext.asContext()
 
         // Create a separate context dedicated for all apps preinflation thread. The goal is to
         // create a separate AssetManager obj internally to avoid lock contention with
@@ -89,9 +88,11 @@ class AllAppsRecyclerViewPool<T> : RecycledViewPool() where T : Context, T : Act
         // data source information.
         val adapter: RecyclerView.Adapter<BaseAllAppsAdapter.ViewHolder> =
             object :
-                BaseAllAppsAdapter<T>(
-                    context,
-                    context.appsView.layoutInflater.cloneInContext(allAppsPreInflationContext),
+                BaseAllAppsAdapter(
+                    activityContext,
+                    activityContext.appsView.layoutInflater.cloneInContext(
+                        allAppsPreInflationContext
+                    ),
                     null,
                     null,
                 ) {
@@ -106,7 +107,7 @@ class AllAppsRecyclerViewPool<T> : RecycledViewPool() where T : Context, T : Act
             activeRv,
             preInflateCount,
         ) {
-            getPreinflateCount(context)
+            getPreinflateCount()
         }
     }
 
@@ -179,11 +180,11 @@ class AllAppsRecyclerViewPool<T> : RecycledViewPool() where T : Context, T : Act
      * app icons in size of one all apps pages, so that opening all apps don't need to inflate app
      * icons.
      */
-    fun getPreinflateCount(context: T): Int {
+    private fun getPreinflateCount(): Int {
+        val grid = activityContext.deviceProfile
         var targetPreinflateCount =
-            PREINFLATE_ICONS_ROW_COUNT * context.deviceProfile.numShownAllAppsColumns +
+            PREINFLATE_ICONS_ROW_COUNT * activityContext.deviceProfile.numShownAllAppsColumns +
                 EXTRA_ICONS_COUNT
-        val grid = ActivityContext.lookupContext<T>(context).deviceProfile
         targetPreinflateCount += grid.maxAllAppsRowCount * grid.numShownAllAppsColumns
         if (hasWorkProfile) {
             targetPreinflateCount *= 2

@@ -291,7 +291,7 @@ public class SecondaryDisplayLauncher extends BaseActivity
     public void bindAllApplications(AppInfo[] apps, int flags,
             Map<PackageUserKey, Integer> packageUserKeytoUidMap) {
         Preconditions.assertUIThread();
-        AllAppsStore<SecondaryDisplayLauncher> appsStore = mAppsView.getAppsStore();
+        AllAppsStore appsStore = mAppsView.getAppsStore();
         appsStore.setApps(apps, flags, packageUserKeytoUidMap);
         PopupContainerWithArrow.dismissInvalidPopup(this);
     }

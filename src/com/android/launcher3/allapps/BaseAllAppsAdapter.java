@@ -25,7 +25,6 @@ import static com.android.launcher3.allapps.SectionDecorationInfo.ROUND_TOP_RIGH
 import static com.android.launcher3.allapps.UserProfileManager.STATE_DISABLED;
 import static com.android.launcher3.allapps.UserProfileManager.STATE_ENABLED;
 
-import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -48,11 +47,9 @@ import com.android.launcher3.views.ActivityContext;
 
 /**
  * Adapter for all the apps.
- *
- * @param <T> Type of context inflating all apps.
  */
-public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> extends
-        RecyclerView.Adapter<BaseAllAppsAdapter.ViewHolder> {
+public abstract class BaseAllAppsAdapter
+        extends RecyclerView.Adapter<BaseAllAppsAdapter.ViewHolder> {
 
     public static final String TAG = "BaseAllAppsAdapter";
 
@@ -166,8 +163,8 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
         }
     }
 
-    protected final T mActivityContext;
-    protected final AlphabeticalAppsList<T> mApps;
+    protected final ActivityContext mActivityContext;
+    protected final AlphabeticalAppsList mApps;
     // The text to show when there are no search results and no market search handler.
     protected int mAppsPerRow;
 
@@ -176,8 +173,8 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
     protected final OnLongClickListener mOnIconLongClickListener;
     protected OnFocusChangeListener mIconFocusListener;
 
-    public BaseAllAppsAdapter(T activityContext, LayoutInflater inflater,
-            AlphabeticalAppsList<T> apps, SearchAdapterProvider<?> adapterProvider) {
+    public BaseAllAppsAdapter(ActivityContext activityContext, LayoutInflater inflater,
+            AlphabeticalAppsList apps, SearchAdapterProvider<?> adapterProvider) {
         mActivityContext = activityContext;
         mApps = apps;
         mLayoutInflater = inflater;
@@ -247,7 +244,7 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
                 return new ViewHolder(mLayoutInflater.inflate(
                         R.layout.private_space_header, parent, false));
             case VIEW_TYPE_BOTTOM_VIEW_TO_SCROLL_TO:
-                return new ViewHolder(new View(mActivityContext));
+                return new ViewHolder(new View(mActivityContext.asContext()));
             default:
                 if (mAdapterProvider.isViewSupported(viewType)) {
                     return mAdapterProvider.onCreateViewHolder(mLayoutInflater, parent, viewType);
@@ -304,7 +301,7 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
             case VIEW_TYPE_EMPTY_SEARCH: {
                 AppInfo info = mApps.getAdapterItems().get(position).itemInfo;
                 if (info != null) {
-                    ((TextView) holder.itemView).setText(mActivityContext.getString(
+                    ((TextView) holder.itemView).setText(mActivityContext.asContext().getString(
                             R.string.all_apps_no_search_results, info.title));
                 }
                 break;
@@ -319,13 +316,15 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
                     roundRegions |= (ROUND_BOTTOM_LEFT | ROUND_BOTTOM_RIGHT);
                 }
                 adapterItem.decorationInfo =
-                        new SectionDecorationInfo(mActivityContext, roundRegions);
+                        new SectionDecorationInfo(mActivityContext.asContext(), roundRegions);
                 break;
             case VIEW_TYPE_PRIVATE_SPACE_SYS_APPS_DIVIDER:
                 adapterItem = mApps.getAdapterItems().get(position);
                 adapterItem.decorationInfo =
-                        mApps.getPrivateProfileManager().getCurrentState() == STATE_DISABLED ? null
-                                : new SectionDecorationInfo(mActivityContext, ROUND_NOTHING);
+                        mApps.getPrivateProfileManager().getCurrentState() == STATE_DISABLED
+                                ? null
+                                : new SectionDecorationInfo(
+                                        mActivityContext.asContext(), ROUND_NOTHING);
                 break;
             case VIEW_TYPE_BOTTOM_VIEW_TO_SCROLL_TO:
             case VIEW_TYPE_ALL_APPS_DIVIDER:

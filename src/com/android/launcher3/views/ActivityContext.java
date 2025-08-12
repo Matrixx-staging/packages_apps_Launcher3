@@ -62,6 +62,7 @@ import androidx.savedstate.SavedStateRegistryOwner;
 
 import com.android.launcher3.BaseActivity;
 import com.android.launcher3.BubbleTextView;
+import com.android.launcher3.CellLayout;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.DeviceProfile.OnDeviceProfileChangeListener;
 import com.android.launcher3.DropTargetHandler;
@@ -274,6 +275,13 @@ public interface ActivityContext extends SavedStateRegistryOwner {
      * Controller for supporting item drag-and-drop
      */
     default <T extends DragController> T getDragController() {
+        return null;
+    }
+
+    /**
+     * Gets the CellLayout of the specified container at the specified screen
+     */
+    default CellLayout getCellLayout(int container, int screenId) {
         return null;
     }
 

@@ -1230,10 +1230,13 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
         }
     }
 
-    /** Perform cleanup transactions after animation to split select is complete */
-    fun onDesktopSplitSelectAnimComplete(taskInfo: RunningTaskInfo?) =
-        executeWithErrorLog({ "Failed call onDesktopSplitSelectAnimComplete" }) {
-            desktopMode?.onDesktopSplitSelectAnimComplete(taskInfo)
+    /**
+     * Perform cleanup transactions after choosing either the second app or the floating task view's
+     * app icon in a desktop split-select transition.
+     */
+    fun onDesktopSplitSelectChoice(taskInfo: RunningTaskInfo?) =
+        executeWithErrorLog({ "Failed call onDesktopSplitSelectChoice" }) {
+            desktopMode?.onDesktopSplitSelectChoice(taskInfo)
         }
 
     /** Call shell to move a task with given `taskId` to desktop */

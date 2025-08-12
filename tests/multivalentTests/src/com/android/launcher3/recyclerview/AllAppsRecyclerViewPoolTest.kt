@@ -16,19 +16,18 @@
 
 package com.android.launcher3.recyclerview
 
-import android.content.Context
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.LayoutManager
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
+import androidx.test.annotation.UiThreadTest
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.android.launcher3.util.Executors
 import com.android.launcher3.views.ActivityContext
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -43,11 +42,12 @@ import org.mockito.junit.MockitoJUnit
 
 @SmallTest
 @RunWith(AndroidJUnit4::class)
-class AllAppsRecyclerViewPoolTest<T> where T : Context, T : ActivityContext {
+class AllAppsRecyclerViewPoolTest {
 
-    private lateinit var underTest: AllAppsRecyclerViewPool<T>
+    private lateinit var underTest: AllAppsRecyclerViewPool
     private lateinit var adapter: RecyclerView.Adapter<*>
 
+    @Mock private lateinit var activityContext: ActivityContext
     @Mock private lateinit var parent: RecyclerView
     @Mock private lateinit var itemView: View
     @Mock private lateinit var layoutManager: LayoutManager
@@ -56,7 +56,7 @@ class AllAppsRecyclerViewPoolTest<T> where T : Context, T : ActivityContext {
 
     @Before
     fun setUp() {
-        underTest = spy(AllAppsRecyclerViewPool())
+        underTest = spy(AllAppsRecyclerViewPool(activityContext))
         adapter =
             object : RecyclerView.Adapter<ViewHolder>() {
                 override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
@@ -87,7 +87,7 @@ class AllAppsRecyclerViewPoolTest<T> where T : Context, T : ActivityContext {
     }
 
     @Test
-    @Ignore("b/427298199 - 0.8% flaky")
+    @UiThreadTest
     fun preinflate_cancel_before_runOnMainThread() {
         underTest.preInflateAllAppsViewHolders(adapter, VIEW_TYPE, parent, 10) { 10 }
         assertThat(underTest.mCancellableTask!!.canceled).isFalse()

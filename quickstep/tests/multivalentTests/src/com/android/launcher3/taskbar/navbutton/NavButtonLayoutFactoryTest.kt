@@ -18,6 +18,7 @@ import com.android.launcher3.deviceprofile.DeviceProperties
 import com.android.launcher3.taskbar.navbutton.LayoutResourceHelper.ID_END_CONTEXTUAL_BUTTONS
 import com.android.launcher3.taskbar.navbutton.LayoutResourceHelper.ID_END_NAV_BUTTONS
 import com.android.launcher3.taskbar.navbutton.LayoutResourceHelper.ID_START_CONTEXTUAL_BUTTONS
+import org.junit.Assert.assertThrows
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
@@ -111,17 +112,19 @@ class NavButtonLayoutFactoryTest {
         assert(layoutter is TaskbarNavLayoutter)
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test
     fun noValidLayoutForLargeScreenTaskbarNotPresent() {
         assumeTrue(ENABLE_TASKBAR_NAVBAR_UNIFICATION)
         mockDeviceProfile.isTaskbarPresent = false
-        getLayoutter(
-            isKidsMode = false,
-            isInSetup = false,
-            isThreeButtonNav = false,
-            phoneMode = false,
-            surfaceRotation = surfaceRotation,
-        )
+        assertThrows(IllegalStateException::class.java) {
+            getLayoutter(
+                isKidsMode = false,
+                isInSetup = false,
+                isThreeButtonNav = false,
+                phoneMode = false,
+                surfaceRotation = surfaceRotation,
+            )
+        }
     }
 
     @Test

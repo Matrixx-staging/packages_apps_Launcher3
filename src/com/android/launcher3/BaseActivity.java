@@ -27,7 +27,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ActionMode;
@@ -59,7 +58,6 @@ import com.android.launcher3.util.RunnableList;
 import com.android.launcher3.util.SystemUiController;
 import com.android.launcher3.util.ViewCache;
 import com.android.launcher3.util.WeakCleanupSet;
-import com.android.launcher3.util.WindowBounds;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.ScrimView;
 
@@ -217,8 +215,12 @@ public abstract class BaseActivity extends Activity implements ActivityContext,
     @Override
     public ActivityContextComponent getActivityComponent() {
         if (mActivityComponent == null) {
+            // Preload all-apps when when embedded in Launcher or any other activity based UI
             mActivityComponent = (ActivityContextComponent) LauncherComponentProvider.get(this)
-                    .getActivityContextComponentBuilder().activityContext(this).build();
+                    .getActivityContextComponentBuilder()
+                    .activityContext(this)
+                    .setAllAppsPreloaded(true)
+                    .build();
         }
         return mActivityComponent;
     }

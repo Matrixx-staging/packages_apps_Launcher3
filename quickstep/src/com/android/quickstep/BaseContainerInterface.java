@@ -23,6 +23,7 @@ import static com.android.launcher3.LauncherAnimUtils.SCRIM_COLORS;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMultiFingerSwipe;
 import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 import static com.android.quickstep.AbsSwipeUpHandler.RECENTS_ATTACH_DURATION;
+import static com.android.quickstep.GestureState.GestureEndTarget.HOME;
 import static com.android.quickstep.GestureState.GestureEndTarget.LAST_TASK;
 import static com.android.quickstep.GestureState.GestureEndTarget.RECENTS;
 import static com.android.quickstep.util.RecentsAtomicAnimationFactory.INDEX_RECENTS_ATTACHED_ALPHA_ANIM;
@@ -69,6 +70,7 @@ import com.android.quickstep.util.ContextInitListener;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
 import com.android.systemui.shared.recents.model.ThumbnailData;
+import com.android.wm.shell.shared.desktopmode.DesktopState;
 
 import java.util.HashMap;
 import java.util.List;
@@ -352,6 +354,17 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
             endTarget = LAST_TASK;
         }
         if (endTarget != null) {
+            // In the case where home is always shown in Desktop mode, then ensure that we reset to
+            // Normal home state, and set `activityVisible` to false so we don't animate home
+            // because home was already showing.
+            final boolean alwaysShowHomeInDesktop = DesktopState.fromContext(
+                    context).getShouldShowHomeBehindDesktop()
+                    && DesktopVisibilityController.INSTANCE.get(context).isInDesktopMode(
+                    context.getDisplayId());
+            if (alwaysShowHomeInDesktop) {
+                endTarget = HOME;
+                activityVisible = false;
+            }
             // We were on our way to this state when we got canceled, end there instead.
             startState = stateFromGestureEndTarget(endTarget);
         }

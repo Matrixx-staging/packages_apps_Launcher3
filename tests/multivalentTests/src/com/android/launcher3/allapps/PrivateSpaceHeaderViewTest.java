@@ -35,7 +35,6 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -102,9 +101,9 @@ public class PrivateSpaceHeaderViewTest {
     private static final int SCROLL_NO_WHERE = -1;
     private static final float HEADER_PROTECTION_HEIGHT = 1F;
 
-    private Context mContext;
+    private ActivityContextWrapper mContext;
     private RelativeLayout mPsHeaderLayout;
-    private AlphabeticalAppsList<?> mAlphabeticalAppsList;
+    private AlphabeticalAppsList mAlphabeticalAppsList;
     private PrivateProfileManager mPrivateProfileManager;
 
     @Rule
@@ -112,7 +111,7 @@ public class PrivateSpaceHeaderViewTest {
     @Mock
     private ActivityAllAppsContainerView mAllApps;
     @Mock
-    private AllAppsStore<?> mAllAppsStore;
+    private AllAppsStore mAllAppsStore;
     @Mock
     private UserCache mUserCache;
     @Mock
@@ -297,7 +296,7 @@ public class PrivateSpaceHeaderViewTest {
         when(mAllApps.getHeight()).thenReturn(ALL_APPS_HEIGHT);
         when(mAllApps.getHeaderProtectionHeight()).thenReturn(HEADER_PROTECTION_HEIGHT);
         when(mAllApps.isUsingTabs()).thenReturn(true);
-        mAlphabeticalAppsList = new AlphabeticalAppsList<>(mContext, mAllAppsStore,
+        mAlphabeticalAppsList = new AlphabeticalAppsList(mContext, mAllAppsStore,
                 null, privateProfileManager);
         mAlphabeticalAppsList.setNumAppsPerRowAllApps(NUM_APP_COLS);
         mAlphabeticalAppsList.updateItemFilter(info -> info != null
@@ -332,7 +331,7 @@ public class PrivateSpaceHeaderViewTest {
         when(mAllApps.getHeight()).thenReturn(ALL_APPS_HEIGHT);
         when(mAllApps.getHeaderProtectionHeight()).thenReturn(HEADER_PROTECTION_HEIGHT);
         when(mAllApps.isUsingTabs()).thenReturn(false);
-        mAlphabeticalAppsList = new AlphabeticalAppsList<>(mContext, mAllAppsStore,
+        mAlphabeticalAppsList = new AlphabeticalAppsList(mContext, mAllAppsStore,
                 null, privateProfileManager);
         mAlphabeticalAppsList.setNumAppsPerRowAllApps(NUM_APP_COLS);
         mAlphabeticalAppsList.updateItemFilter(info -> info != null
@@ -367,7 +366,7 @@ public class PrivateSpaceHeaderViewTest {
         when(mAllApps.getHeight()).thenReturn(ALL_APPS_HEIGHT);
         when(mAllApps.isUsingTabs()).thenReturn(true);
         when(mAllApps.getHeaderProtectionHeight()).thenReturn(HEADER_PROTECTION_HEIGHT);
-        mAlphabeticalAppsList = new AlphabeticalAppsList<>(mContext, mAllAppsStore,
+        mAlphabeticalAppsList = new AlphabeticalAppsList(mContext, mAllAppsStore,
                 null, privateProfileManager);
         mAlphabeticalAppsList.setNumAppsPerRowAllApps(NUM_APP_COLS);
         mAlphabeticalAppsList.updateItemFilter(info -> info != null
@@ -399,7 +398,7 @@ public class PrivateSpaceHeaderViewTest {
         doReturn(0).when(privateProfileManager).addSystemAppsDivider(any());
         when(mAllApps.getHeight()).thenReturn(ALL_APPS_HEIGHT);
         when(mAllApps.getHeaderProtectionHeight()).thenReturn(HEADER_PROTECTION_HEIGHT);
-        mAlphabeticalAppsList = new AlphabeticalAppsList<>(mContext, mAllAppsStore,
+        mAlphabeticalAppsList = new AlphabeticalAppsList(mContext, mAllAppsStore,
                 null, privateProfileManager);
         mAlphabeticalAppsList.setNumAppsPerRowAllApps(NUM_APP_COLS);
         mAlphabeticalAppsList.updateItemFilter(info -> info != null

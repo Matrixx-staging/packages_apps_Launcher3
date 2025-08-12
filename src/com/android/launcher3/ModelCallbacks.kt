@@ -8,6 +8,7 @@ import android.util.Pair
 import androidx.annotation.AnyThread
 import androidx.annotation.UiThread
 import androidx.annotation.VisibleForTesting
+import com.android.launcher3.LauncherConstants.TraceEvents
 import com.android.launcher3.LauncherConstants.TraceEvents.DISPLAY_WORKSPACE_TRACE_METHOD_NAME
 import com.android.launcher3.LauncherConstants.TraceEvents.SINGLE_TRACE_COOKIE
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP
@@ -162,7 +163,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         pendingExecutor = null
 
         // We might have set this flag previously and forgot to clear it.
-        launcher.appsView.appsStore.disableDeferUpdatesSilently(
+        launcher.activityComponent.appsStore.disableDeferUpdatesSilently(
             AllAppsStore.DEFER_UPDATES_NEXT_DRAW
         )
     }
@@ -175,7 +176,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
     ) {
         Preconditions.assertUIThread()
         val hadWorkApps = launcher.appsView.shouldShowTabs()
-        launcher.appsView.appsStore.setApps(apps, flags, packageUserKeytoUidMap)
+        launcher.activityComponent.appsStore.setApps(apps, flags, packageUserKeytoUidMap)
         PopupContainerWithArrow.dismissInvalidPopup(launcher)
         if (
             hadWorkApps != launcher.appsView.shouldShowTabs() &&
@@ -183,6 +184,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         ) {
             launcher.stateManager.goToState(LauncherState.NORMAL)
         }
+        Trace.endAsyncSection(TraceEvents.DISPLAY_ALL_APPS_TRACE_METHOD_NAME, SINGLE_TRACE_COOKIE)
     }
 
     /**
@@ -194,7 +196,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
     }
 
     override fun bindIncrementalDownloadProgressUpdated(app: AppInfo) {
-        launcher.appsView.appsStore.updateProgressBar(app)
+        launcher.activityComponent.appsStore.updateProgressBar(app)
     }
 
     /**

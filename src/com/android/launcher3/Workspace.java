@@ -24,6 +24,7 @@ import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APP
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION;
+import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET;
 import static com.android.launcher3.LauncherState.ALL_APPS;
 import static com.android.launcher3.LauncherState.EDIT_MODE;
 import static com.android.launcher3.LauncherState.FLAG_MULTI_PAGE;
@@ -93,6 +94,7 @@ import com.android.launcher3.dragndrop.DragLayer;
 import com.android.launcher3.dragndrop.DragOptions;
 import com.android.launcher3.dragndrop.DragView;
 import com.android.launcher3.dragndrop.DraggableView;
+import com.android.launcher3.dragndrop.LauncherDragController;
 import com.android.launcher3.dragndrop.SpringLoadedDragController;
 import com.android.launcher3.folder.Folder;
 import com.android.launcher3.folder.FolderIcon;
@@ -1783,6 +1785,14 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
 
         final DragView dv;
         if (contentView != null) {
+            if (Flags.homeScreenEditImprovements()
+                    && ((ItemInfo) child.getTag()).itemType == ITEM_TYPE_APPWIDGET
+                    && mDragController instanceof LauncherDragController launcherDragController) {
+                dragOptions.preDragEndScale = (contentView.getMeasuredWidth()
+                        + launcherDragController.getWidgetDragScalePx(
+                                null, contentView, dragObject))
+                        / contentView.getMeasuredWidth();
+            }
             dv = mDragController.startDrag(
                     contentView,
                     draggableView,
@@ -1795,6 +1805,13 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                     scale,
                     dragOptions);
         } else {
+            if (Flags.homeScreenEditImprovements()
+                    && ((ItemInfo) child.getTag()).itemType == ITEM_TYPE_APPWIDGET
+                    && mDragController instanceof LauncherDragController launcherDragController) {
+                dragOptions.preDragEndScale = (drawable.getIntrinsicWidth()
+                        + launcherDragController.getWidgetDragScalePx(drawable, null, dragObject))
+                        / drawable.getIntrinsicWidth();
+            }
             dv = mDragController.startDrag(
                     drawable,
                     draggableView,
