@@ -19,11 +19,14 @@ package com.android.launcher3.popup
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
+import com.android.launcher3.AppWidgetResizeFrame
+import com.android.launcher3.LauncherSettings.Favorites
 import com.android.launcher3.R
 import com.android.launcher3.dragndrop.LauncherDragController
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.shortcuts.DeepShortcutView
 import com.android.launcher3.views.ActivityContext
+import com.android.launcher3.widget.LauncherAppWidgetHostView
 
 /**
  * Controller for home screen items: folders, app pairs, and widgets. This controller does not
@@ -46,6 +49,16 @@ class PopupControllerForHomeScreenItems<T>(
         addSystemShortcuts(popup, itemInfo, itemView = view, activityContext)
         dragController.addDragListener(popup)
         popup.show()
+
+        val cellLayout = activityContext.getCellLayout(itemInfo.container, itemInfo.screenId)
+        if (
+            itemInfo.container == Favorites.CONTAINER_DESKTOP &&
+                cellLayout != null &&
+                itemInfo.itemType == Favorites.ITEM_TYPE_APPWIDGET &&
+                view is LauncherAppWidgetHostView
+        ) {
+            AppWidgetResizeFrame.showForWidget(view, cellLayout)
+        }
         return popup
     }
 
