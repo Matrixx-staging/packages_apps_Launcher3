@@ -16,12 +16,13 @@
 
 package com.android.launcher3
 
+import com.android.launcher3.DeviceProfile.DEFAULT_DEVICE_PROFILE
 import com.android.launcher3.util.MutableListenableRef
 
 /** Expose Launcher Ui State to Taskbar. */
 class LauncherUiState {
 
-    private val _deviceProfileRef = MutableListenableRef<DeviceProfile?>(null)
+    private val _deviceProfileRef = MutableListenableRef<DeviceProfile>(DEFAULT_DEVICE_PROFILE)
     private val _activityFlagsRef = MutableListenableRef(0)
     private val _isSplitSelectActiveRef = MutableListenableRef(false)
     private val _isOverlayShown = MutableListenableRef(false)
