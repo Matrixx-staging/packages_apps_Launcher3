@@ -22,6 +22,7 @@ import com.android.launcher3.compose.core.widgetpicker.NoOpWidgetPickerModule
 import com.android.launcher3.concurrent.ExecutorsModule
 import com.android.launcher3.dagger.ApiWrapperModule
 import com.android.launcher3.dagger.AppModule
+import com.android.launcher3.dagger.HomeScreenFilesModule
 import com.android.launcher3.dagger.LauncherConcurrencyModule
 import com.android.launcher3.dagger.LauncherModelModule
 import com.android.launcher3.dagger.PerDisplayModule
@@ -30,7 +31,6 @@ import com.android.launcher3.dagger.StaticObjectModule
 import com.android.launcher3.dagger.SystemDragModule
 import com.android.launcher3.dagger.WidgetModule
 import com.android.launcher3.dagger.WindowManagerProxyModule
-import com.android.launcher3.homescreenfiles.HomeScreenFilesNoOpModule
 import com.android.launcher3.util.dagger.LauncherExecutorsModule
 import dagger.Binds
 import dagger.Module
@@ -54,7 +54,7 @@ abstract class FakePrefsModule {
             LauncherExecutorsModule::class,
             NoOpWidgetPickerModule::class,
             LauncherModelModule::class,
-            HomeScreenFilesNoOpModule::class,
+            HomeScreenFilesModule::class,
             SettingsModule::class,
             SystemDragModule::class,
         ]

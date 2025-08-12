@@ -26,6 +26,10 @@ import com.android.launcher3.backuprestore.LauncherRestoreEventLogger
 import com.android.launcher3.dragndrop.SystemDragController
 import com.android.launcher3.dragndrop.SystemDragControllerImpl
 import com.android.launcher3.dragndrop.SystemDragControllerStub
+import com.android.launcher3.homescreenfiles.HomeScreenFilesMediaStoreProvider
+import com.android.launcher3.homescreenfiles.HomeScreenFilesNoOpProvider
+import com.android.launcher3.homescreenfiles.HomeScreenFilesProvider
+import com.android.launcher3.homescreenfiles.HomeScreenFilesUtils
 import com.android.launcher3.icons.LauncherIconProvider
 import com.android.launcher3.icons.LauncherIconProviderImpl
 import com.android.launcher3.logging.StatsLogManager.StatsLogManagerFactory
@@ -145,4 +149,20 @@ object SystemDragModule {
     @LauncherAppSingleton
     fun provideSystemDragController(): SystemDragController =
         if (enableSystemDrag()) SystemDragControllerImpl() else SystemDragControllerStub()
+}
+
+/** A dagger module responsible for managing files on the home screen. */
+@Module
+object HomeScreenFilesModule {
+    @Provides
+    @LauncherAppSingleton
+    fun provideHomeScreenFilesProvider(
+        @ApplicationContext context: Context
+    ): HomeScreenFilesProvider {
+        return if (HomeScreenFilesUtils.isFeatureEnabled(context)) {
+            HomeScreenFilesMediaStoreProvider()
+        } else {
+            HomeScreenFilesNoOpProvider()
+        }
+    }
 }
