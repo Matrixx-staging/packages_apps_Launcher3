@@ -41,8 +41,10 @@ import com.android.systemui.shared.system.InputMonitorCompat;
 
 /**
  * Input consumer for handling touch on the recents/Launcher activity.
+ * @param <S> The state type of the container
+ * @param <T> The container type
  */
-public class OverviewInputConsumer<S extends BaseState<S>,
+public class LauncherInputConsumer<S extends BaseState<S>,
         T extends RecentsViewContainer & StatefulContainer<S>>
         implements InputConsumer {
 
@@ -59,7 +61,7 @@ public class OverviewInputConsumer<S extends BaseState<S>,
     private boolean mTargetHandledTouch;
     private boolean mIsWaitingForAttachToWindow;
 
-    public OverviewInputConsumer(
+    public LauncherInputConsumer(
             GestureState gestureState,
             T container,
             @Nullable InputMonitorCompat inputMonitor,
@@ -76,7 +78,7 @@ public class OverviewInputConsumer<S extends BaseState<S>,
 
     @Override
     public int getType() {
-        return TYPE_OVERVIEW;
+        return TYPE_LAUNCHER;
     }
 
     @Override

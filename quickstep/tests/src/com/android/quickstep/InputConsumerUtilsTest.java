@@ -63,11 +63,11 @@ import com.android.launcher3.views.BaseDragLayer;
 import com.android.quickstep.inputconsumers.AccessibilityInputConsumer;
 import com.android.quickstep.inputconsumers.BubbleBarInputConsumer;
 import com.android.quickstep.inputconsumers.DeviceLockedInputConsumer;
+import com.android.quickstep.inputconsumers.LauncherInputConsumer;
+import com.android.quickstep.inputconsumers.LauncherWithoutFocusInputConsumer;
 import com.android.quickstep.inputconsumers.NavHandleLongPressInputConsumer;
 import com.android.quickstep.inputconsumers.OneHandedModeInputConsumer;
 import com.android.quickstep.inputconsumers.OtherActivityInputConsumer;
-import com.android.quickstep.inputconsumers.OverviewInputConsumer;
-import com.android.quickstep.inputconsumers.OverviewWithoutFocusInputConsumer;
 import com.android.quickstep.inputconsumers.ProgressDelegateInputConsumer;
 import com.android.quickstep.inputconsumers.ResetGestureInputConsumer;
 import com.android.quickstep.inputconsumers.ScreenPinnedInputConsumer;
@@ -229,13 +229,13 @@ public class InputConsumerUtilsTest {
     }
 
     @Test
-    public void testNewBaseConsumer_onLiveTileMode_returnsOverviewInputConsumer() {
+    public void testNewBaseConsumer_onLiveTileMode_returnsLauncherInputConsumer() {
         when(mContainerInterface.isInLiveTileMode()).thenReturn(true);
 
         assertCorrectInputConsumer(
                 this::createBaseInputConsumer,
-                OverviewInputConsumer.class,
-                InputConsumer.TYPE_OVERVIEW);
+                LauncherInputConsumer.class,
+                InputConsumer.TYPE_LAUNCHER);
     }
 
     @Test
@@ -246,55 +246,55 @@ public class InputConsumerUtilsTest {
     }
 
     @Test
-    public void testNewBaseConsumer_prevGestureAnimatingToLauncher_returnsOverviewInputConsumer() {
+    public void testNewBaseConsumer_prevGestureAnimatingToLauncher_returnsLauncherInputConsumer() {
         when(mPreviousGestureState.isRunningAnimationToLauncher()).thenReturn(true);
 
         assertCorrectInputConsumer(
                 this::createBaseInputConsumer,
-                OverviewInputConsumer.class,
-                InputConsumer.TYPE_OVERVIEW);
+                LauncherInputConsumer.class,
+                InputConsumer.TYPE_LAUNCHER);
     }
 
     @Test
-    public void testNewBaseConsumer_predictiveBackToHomeInProgress_returnsOverviewInputConsumer() {
+    public void testNewBaseConsumer_predictiveBackToHomeInProgress_returnsLauncherInputConsumer() {
         when(mDeviceState.isPredictiveBackToHomeInProgress()).thenReturn(true);
 
         assertCorrectInputConsumer(
                 this::createBaseInputConsumer,
-                OverviewInputConsumer.class,
-                InputConsumer.TYPE_OVERVIEW);
+                LauncherInputConsumer.class,
+                InputConsumer.TYPE_LAUNCHER);
     }
 
     @Test
-    public void testNewBaseConsumer_resumedThroughShellTransition_returnsOverviewInputConsumer() {
+    public void testNewBaseConsumer_resumedThroughShellTransition_returnsLauncherInputConsumer() {
         when(mContainerInterface.isResumed()).thenReturn(true);
 
         assertCorrectInputConsumer(
                 this::createBaseInputConsumer,
-                OverviewInputConsumer.class,
-                InputConsumer.TYPE_OVERVIEW);
+                LauncherInputConsumer.class,
+                InputConsumer.TYPE_LAUNCHER);
     }
 
     @Test
-    public void testNewBaseConsumer_shellNoWindowFocus_returnsOverviewWithoutFocusInputConsumer() {
+    public void testNewBaseConsumer_shellNoWindowFocus_returnsLauncherWithoutFocusInputConsumer() {
         when(mContainerInterface.isResumed()).thenReturn(true);
         when(mBaseDragLayer.hasWindowFocus()).thenReturn(false);
 
         assertCorrectInputConsumer(
                 this::createBaseInputConsumer,
-                OverviewWithoutFocusInputConsumer.class,
-                InputConsumer.TYPE_OVERVIEW_WITHOUT_FOCUS);
+                LauncherWithoutFocusInputConsumer.class,
+                InputConsumer.TYPE_LAUNCHER_WITHOUT_FOCUS);
     }
 
     @Test
-    public void testNewBaseConsumer_forceOverviewInputConsumer_returnsOverviewInputConsumer() {
+    public void testNewBaseConsumer_forceLauncherInputConsumer_returnsLauncherInputConsumer() {
         when(mContainerInterface.isResumed()).thenReturn(true);
         when(mRunningTask.isRootChooseActivity()).thenReturn(true);
 
         assertCorrectInputConsumer(
                 this::createBaseInputConsumer,
-                OverviewInputConsumer.class,
-                InputConsumer.TYPE_OVERVIEW);
+                LauncherInputConsumer.class,
+                InputConsumer.TYPE_LAUNCHER);
     }
 
     @Test
