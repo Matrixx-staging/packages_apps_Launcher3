@@ -447,7 +447,7 @@ public class TaskbarLauncherStateController {
      */
     private void updateOverviewDragState(LauncherState launcherState) {
         boolean disallowLongClick =
-                LauncherUiStateUtil.INSTANCE.isSplitSelectActive(mLauncher, mLauncherUiState)
+                LauncherUiStateUtil.isSplitSelectActive(mLauncher, mLauncherUiState)
                         || mIsAnimatingToLauncher;
         com.android.launcher3.taskbar.Utilities.setOverviewDragState(
                 mControllers, launcherState.disallowTaskbarGlobalDrag(),
@@ -538,7 +538,7 @@ public class TaskbarLauncherStateController {
             // Show the bubble bar when on launcher home (hotseat icons visible) or in overview
             boolean onOverview = isInLauncher && mLauncherState == LauncherState.OVERVIEW;
             boolean hotseatIconsVisible = isInLauncher && mLauncherState.areElementsVisible(
-                    mLauncher, HOTSEAT_ICONS);
+                    mLauncherUiState, HOTSEAT_ICONS);
             BubbleLauncherState state = onOverview
                     ? BubbleLauncherState.OVERVIEW
                     : hotseatIconsVisible
@@ -1260,7 +1260,7 @@ public class TaskbarLauncherStateController {
     }
 
     private DeviceProfile getDeviceProfile() {
-        return LauncherUiStateUtil.INSTANCE.getDeviceProfile(mLauncher, mLauncherUiState);
+        return LauncherUiStateUtil.getDeviceProfile(mLauncher, mLauncherUiState);
     }
 
     private boolean isOverlayShown() {

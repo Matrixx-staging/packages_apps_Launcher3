@@ -76,8 +76,8 @@ public class BackgroundAppState extends OverviewState {
     }
 
     @Override
-    public int getVisibleElements(@Deprecated Launcher launcher, LauncherUiState launcherUiState) {
-        return super.getVisibleElements(launcher, launcherUiState)
+    public int getVisibleElements(LauncherUiState launcherUiState) {
+        return super.getVisibleElements(launcherUiState)
                 & ~OVERVIEW_ACTIONS
                 & ~CLEAR_ALL_BUTTON
                 & ~VERTICAL_SWIPE_INDICATOR
