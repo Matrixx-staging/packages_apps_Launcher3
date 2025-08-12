@@ -44,7 +44,7 @@ public class OverviewModalTaskState extends OverviewState {
     }
 
     @Override
-    public int getVisibleElements(@Deprecated Launcher launcher, LauncherUiState launcherUiState) {
+    public int getVisibleElements(LauncherUiState launcherUiState) {
         return OVERVIEW_ACTIONS;
     }
 

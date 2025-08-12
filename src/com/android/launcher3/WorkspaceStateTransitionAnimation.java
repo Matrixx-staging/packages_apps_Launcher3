@@ -122,7 +122,7 @@ public class WorkspaceStateTransitionAnimation {
                     propertySetter, config);
         }
 
-        int elements = state.getVisibleElements(mLauncher, mLauncher.launcherUiState);
+        int elements = state.getVisibleElements(mLauncher.launcherUiState);
         Hotseat hotseat = mWorkspace.getHotseat();
         Interpolator scaleInterpolator = config.getInterpolator(ANIM_WORKSPACE_SCALE, ZOOM_OUT);
         LauncherState fromState = mLauncher.getStateManager().getState();
