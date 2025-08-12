@@ -16,6 +16,12 @@
 
 package com.android.quickstep.task.apptimer.ui.composable
 
+import android.app.ActivityOptions
+import android.content.Context
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
@@ -26,10 +32,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
@@ -43,10 +51,17 @@ import java.time.Duration
 
 @Composable
 fun AppTimerToast(appTimerUiState: TaskAppTimerUiState, modifier: Modifier = Modifier) {
-    when (appTimerUiState) {
-        is TaskAppTimerUiState.Timer -> ActiveTimerToast(appTimerUiState, modifier)
-        else -> {
-            /* Do nothing */
+    AnimatedVisibility(
+        visible = appTimerUiState is TaskAppTimerUiState.Timer,
+        enter = slideInVertically { it },
+        exit = slideOutVertically { it },
+    ) {
+        when (appTimerUiState) {
+            is TaskAppTimerUiState.Timer ->
+                ActiveTimerToast(appTimerUiState, onClick = appTimerUiState.onClick, modifier)
+            else -> {
+                /* Do nothing */
+            }
         }
     }
 }
@@ -54,14 +69,30 @@ fun AppTimerToast(appTimerUiState: TaskAppTimerUiState, modifier: Modifier = Mod
 @Composable
 private fun ActiveTimerToast(
     appTimerUiState: TaskAppTimerUiState.Timer,
+    onClick: ((ActivityOptions, Context) -> Unit)?,
     modifier: Modifier = Modifier,
     iconTextSpacing: Dp = 4.dp,
 ) {
+    val view = LocalView.current
     Surface(
         modifier =
             modifier
                 .fillMaxWidth()
-                .height(dimensionResource(R.dimen.digital_wellbeing_toast_height)),
+                .height(dimensionResource(R.dimen.digital_wellbeing_toast_height))
+                .clickable(
+                    onClick = {
+                        onClick?.invoke(
+                            ActivityOptions.makeScaleUpAnimation(
+                                view,
+                                0,
+                                0,
+                                view.width,
+                                view.height,
+                            ),
+                            view.context,
+                        )
+                    }
+                ),
         shape = MaterialTheme.shapes.extraLarge,
         color = MaterialTheme.colorScheme.secondaryFixed,
     ) {
