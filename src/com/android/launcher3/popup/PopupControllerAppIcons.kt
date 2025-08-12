@@ -45,7 +45,7 @@ class PopupControllerForAppIcon<T> : PopupController<T> where T : Context, T : A
         if (!ShortcutUtil.supportsShortcuts(item)) {
             return null
         }
-        val popupDataProvider = launcher.popupDataProvider
+        val popupDataProvider = launcher.activityComponent.popupDataProvider
         val deepShortcutCount = popupDataProvider.getShortcutCountForItem(item)
         val systemShortcuts =
             launcher

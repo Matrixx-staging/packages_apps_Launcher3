@@ -84,7 +84,6 @@ import com.android.launcher3.model.ModelWriter;
 import com.android.launcher3.model.StringCache;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
-import com.android.launcher3.popup.PopupDataProvider;
 import com.android.launcher3.util.ActivityOptionsWrapper;
 import com.android.launcher3.util.ApplicationInfoWrapper;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
@@ -323,13 +322,8 @@ public interface ActivityContext extends SavedStateRegistryOwner {
         return v -> false;
     }
 
-    @NonNull
-    default PopupDataProvider getPopupDataProvider() {
-        return new PopupDataProvider(this);
-    }
-
     default DotInfo getDotInfoForItem(ItemInfo info) {
-        return getPopupDataProvider().getDotInfoForItem(info);
+        return getActivityComponent().getPopupDataProvider().getDotInfoForItem(info);
     }
 
     /**

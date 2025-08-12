@@ -20,7 +20,6 @@ import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentat
 
 import android.content.ContextWrapper;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.test.platform.app.InstrumentationRegistry;
 
@@ -30,7 +29,6 @@ import com.android.launcher3.allapps.AlphabeticalAppsList;
 import com.android.launcher3.model.BgDataModel;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.pm.UserCache;
-import com.android.launcher3.popup.PopupDataProvider;
 import com.android.launcher3.widget.picker.model.WidgetPickerDataProvider;
 
 import java.util.Map;
@@ -56,7 +54,6 @@ public class TestSandboxModelContextWrapper extends ActivityContextWrapper imple
 
     protected ActivityAllAppsContainerView<ActivityContextWrapper> mAppsView;
 
-    private final PopupDataProvider mPopupDataProvider = new PopupDataProvider(this);
     private final WidgetPickerDataProvider mWidgetPickerDataProvider =
             new WidgetPickerDataProvider();
     protected final UserCache mUserCache;
@@ -77,12 +74,6 @@ public class TestSandboxModelContextWrapper extends ActivityContextWrapper imple
         mUserCache = UserCache.getInstance(this);
         mAppsList = mAppsView.getPersonalAppList();
         mAllAppsStore = mAppsView.getAppsStore();
-    }
-
-    @NonNull
-    @Override
-    public PopupDataProvider getPopupDataProvider() {
-        return mPopupDataProvider;
     }
 
     @Nullable

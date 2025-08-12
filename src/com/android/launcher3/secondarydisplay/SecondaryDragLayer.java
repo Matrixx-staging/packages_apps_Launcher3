@@ -251,10 +251,8 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
         if (!ShortcutUtil.supportsShortcuts(item)) {
             return false;
         }
-        PopupDataProvider popupDataProvider = mContainer.getPopupDataProvider();
-        if (popupDataProvider == null) {
-            return false;
-        }
+        PopupDataProvider popupDataProvider =
+                mContainer.getActivityComponent().getPopupDataProvider();
 
         // order of this list will reflect in the popup
         List<SystemShortcut<?>> systemShortcuts = new ArrayList<>();

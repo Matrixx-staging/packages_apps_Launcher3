@@ -26,7 +26,6 @@ import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.PredictedContainerInfo
 import com.android.launcher3.model.data.WorkspaceData
 import com.android.launcher3.popup.PopupContainerWithArrow
-import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.Executors
 import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR
@@ -185,14 +184,6 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
             launcher.stateManager.goToState(LauncherState.NORMAL)
         }
         Trace.endAsyncSection(TraceEvents.DISPLAY_ALL_APPS_TRACE_METHOD_NAME, SINGLE_TRACE_COOKIE)
-    }
-
-    /**
-     * Copies LauncherModel's map of activities to shortcut counts to Launcher's. This is necessary
-     * because LauncherModel's map is updated in the background, while Launcher runs on the UI.
-     */
-    override fun bindDeepShortcutMap(deepShortcutMap: HashMap<ComponentKey, Int>) {
-        launcher.popupDataProvider.setDeepShortcutMap(deepShortcutMap)
     }
 
     override fun bindIncrementalDownloadProgressUpdated(app: AppInfo) {

@@ -272,28 +272,18 @@ class ShortcutsChangedTaskTest {
     @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun `When updateIdMap true then trigger deep shortcut binding`() {
         TestUtil.runOnExecutorSync(MODEL_EXECUTOR) {
+            val expectedKey = ComponentKey(ComponentName(TEST_PACKAGE, "expectedClass"), user)
+
             setupMockLauncherApps { _, si ->
                 whenever(si.isEnabled).thenReturn(true)
                 whenever(si.isDeclaredInManifest).thenReturn(true)
-                whenever(si.activity).thenReturn(ComponentName(TEST_PACKAGE, "expectedClass"))
+                whenever(si.activity).thenReturn(expectedKey.componentName)
             }
 
-            val deepShortcutUpdates = mutableListOf<Any>()
-            modelState.homeRepo.deepShortcutMap.forEach(MODEL_EXECUTOR) {
-                deepShortcutUpdates.add(it)
-            }
             executeTask(listOf(mockShortcut), true)
 
-            val expectedKey = ComponentKey(ComponentName(TEST_PACKAGE, "expectedClass"), user)
-
-            // Verify that repository was updated once
-            assertThat(modelState.homeRepo.deepShortcutMap.value).containsEntry(expectedKey, 1)
-            assertThat(deepShortcutUpdates).hasSize(2)
-
-            // Verify legacy callbacks
+            // Verify that repository was updated
             assertThat(modelState.dataModel.deepShortcutMap).containsEntry(expectedKey, 1)
-            TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {}
-            verify(mockCallbacks).bindDeepShortcutMap(any())
         }
     }
 
@@ -301,25 +291,18 @@ class ShortcutsChangedTaskTest {
     @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun `When updateIdMap false then do not trigger deep shortcut binding`() {
         TestUtil.runOnExecutorSync(MODEL_EXECUTOR) {
+            val expectedKey = ComponentKey(ComponentName(TEST_PACKAGE, "expectedClass"), user)
+
             setupMockLauncherApps { _, si ->
                 whenever(si.isEnabled).thenReturn(true)
                 whenever(si.isDeclaredInManifest).thenReturn(true)
-                whenever(si.activity).thenReturn(ComponentName(TEST_PACKAGE, "expectedClass"))
+                whenever(si.activity).thenReturn(expectedKey.componentName)
                 whenever(si.userHandle).thenReturn(user)
-            }
-
-            val deepShortcutUpdates = mutableListOf<Any>()
-            modelState.homeRepo.deepShortcutMap.forEach(MODEL_EXECUTOR) {
-                deepShortcutUpdates.add(it)
             }
             executeTask(listOf(mockShortcut), false)
 
             // Verify that repository was not updated
-            assertThat(deepShortcutUpdates).hasSize(1)
-
-            // Verify legacy callbacks
-            TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {}
-            verify(mockCallbacks, never()).bindDeepShortcutMap(any())
+            assertThat(modelState.dataModel.deepShortcutMap).doesNotContainKey(expectedKey)
         }
     }
 

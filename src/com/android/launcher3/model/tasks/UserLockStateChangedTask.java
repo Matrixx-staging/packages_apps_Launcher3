@@ -32,12 +32,11 @@ import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.shortcuts.ShortcutKey;
 import com.android.launcher3.shortcuts.ShortcutRequest;
 import com.android.launcher3.shortcuts.ShortcutRequest.QueryResult;
-import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.ItemInfoMatcher;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -110,19 +109,11 @@ public class UserLockStateChangedTask implements ModelUpdateTask {
                             + " (possibly due to clear data)");
         }
 
-        // Remove shortcut id map for that user
-        Iterator<ComponentKey> keysIter = dataModel.deepShortcutMap.keySet().iterator();
-        while (keysIter.hasNext()) {
-            if (keysIter.next().user.equals(mUser)) {
-                keysIter.remove();
-            }
-        }
-
-        if (mIsUserUnlocked) {
-            dataModel.updateDeepShortcutCounts(
-                    null, mUser,
-                    new ShortcutRequest(context, mUser).query(ShortcutRequest.ALL));
-        }
-        taskController.bindDeepShortcuts(dataModel);
+        // Remove shortcut id map for that user and update the shourtcuts if unlocked
+        dataModel.updateDeepShortcutCounts(
+                mIsUserUnlocked
+                        ? new ShortcutRequest(context, mUser).query(ShortcutRequest.ALL)
+                        : Collections.emptyList(),
+                key -> key.user.equals(mUser));
     }
 }

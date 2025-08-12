@@ -62,15 +62,12 @@ import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.model.data.PredictedContainerInfo;
 import com.android.launcher3.model.data.WorkspaceData;
 import com.android.launcher3.popup.PopupContainerWithArrow;
-import com.android.launcher3.popup.PopupDataProvider;
 import com.android.launcher3.touch.ItemClickHandler.ItemClickProxy;
-import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.PackageUserKey;
 import com.android.launcher3.util.Preconditions;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.BaseDragLayer;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -85,8 +82,6 @@ public class SecondaryDisplayLauncher extends BaseActivity
     private SecondaryDragController mDragController;
     private ActivityAllAppsContainerView<SecondaryDisplayLauncher> mAppsView;
     private View mAppsButton;
-
-    private PopupDataProvider mPopupDataProvider;
 
     private boolean mAppDrawerShown = false;
 
@@ -128,7 +123,6 @@ public class SecondaryDisplayLauncher extends BaseActivity
         }
 
         mDragController.addDragListener(this);
-        mPopupDataProvider = new PopupDataProvider(this);
 
         mModel.addCallbacksAndLoad(this);
 
@@ -281,11 +275,6 @@ public class SecondaryDisplayLauncher extends BaseActivity
         animator.start();
     }
 
-    @Override
-    public void bindDeepShortcutMap(HashMap<ComponentKey, Integer> deepShortcutMap) {
-        mPopupDataProvider.setDeepShortcutMap(deepShortcutMap);
-    }
-
     @UiThread
     @Override
     public void bindAllApplications(AppInfo[] apps, int flags,
@@ -322,12 +311,6 @@ public class SecondaryDisplayLauncher extends BaseActivity
     @Override
     public void bindStringCache(StringCache cache) {
         mStringCache = cache;
-    }
-
-    @Override
-    @NonNull
-    public PopupDataProvider getPopupDataProvider() {
-        return mPopupDataProvider;
     }
 
     @Override
