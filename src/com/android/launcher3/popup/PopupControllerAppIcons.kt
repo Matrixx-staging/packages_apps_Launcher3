@@ -57,7 +57,8 @@ class PopupControllerForAppIcon<T> : PopupController<T> where T : Context, T : A
         val container =
             PopupContainerWithArrow.create<Launcher>(context = launcher, originalView = icon)
         container.configureForLauncher(launcher, item)
-        container.populateAndShowRows(deepShortcutCount, systemShortcuts)
+        container.populateAndShowRows(deepShortcutCount,
+            if (view.showingMinimalPopup) emptyList() else systemShortcuts)
         launcher.refreshAndBindWidgetsForPackageUser(PackageUserKey.fromItemInfo(item))
         container.requestFocus()
         return container

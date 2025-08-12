@@ -417,6 +417,34 @@ public class BubbleTextViewTest {
         assertThat(mBubbleTextView.getIcon().hasBadge()).isEqualTo(false);
     }
 
+    @Test
+    public void configureMinimalPopupOnReset_minimalPopupFalse() {
+        BubbleTextView spyTextView = spy(mBubbleTextView);
+
+        spyTextView.reset();
+
+        verify(spyTextView).configureMinimalPopup(false);
+        assertThat(spyTextView.getShowingMinimalPopup()).isEqualTo(false);
+    }
+
+    @Test
+    public void configureMinimalPopupTrue_minimalPopupTrue() {
+        BubbleTextView spyTextView = spy(mBubbleTextView);
+
+        spyTextView.configureMinimalPopup(true);
+
+        assertThat(spyTextView.getShowingMinimalPopup()).isEqualTo(true);
+    }
+
+    @Test
+    public void configureMinimalPopupFalse_minimalPopupFalse() {
+        BubbleTextView spyTextView = spy(mBubbleTextView);
+
+        spyTextView.configureMinimalPopup(false);
+
+        assertThat(spyTextView.getShowingMinimalPopup()).isEqualTo(false);
+    }
+
     @EnableFlags({FLAG_ENABLE_SUPPORT_FOR_ARCHIVING, FLAG_USE_NEW_ICON_FOR_ARCHIVED_APPS})
     @Test
     public void applyIconAndLabel_setsImageSpan_whenInactiveArchivedApp() {

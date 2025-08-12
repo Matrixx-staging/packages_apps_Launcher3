@@ -209,7 +209,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     protected final DotRenderer.DrawParams mDotParams;
     private Animator mDotScaleAnim;
     private boolean mForceHideDot;
-    private boolean mIconAnimationDisabled;
+    private boolean mIsShowingMinimalPopup;
 
     // These fields, related to showing running apps, are only used for Taskbar.
     private final int mRunningAppIndicatorHeight;
@@ -368,7 +368,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         mDotParams.scale = 0f;
         mForceHideDot = false;
         setBackground(null);
-        setIconAnimationDisabled(false);
+        configureMinimalPopup(false);
 
         mLineIndicatorColor = Color.TRANSPARENT;
         mLineIndicatorWidth = 0;
@@ -538,14 +538,25 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     private void setNonPendingIcon(ItemInfoWithIcon info) {
         FastBitmapDrawable iconDrawable =
                 info.newIcon(getContext(), getIconCreationFlagsForInfo(info));
-        if (mIconAnimationDisabled) {
+        if (mIsShowingMinimalPopup) {
             iconDrawable.setAnimationEnabled(false);
         }
         setIcon(iconDrawable);
     }
 
-    public void setIconAnimationDisabled(boolean shouldDisableAnimation) {
-        mIconAnimationDisabled = shouldDisableAnimation;
+    /**
+     * Configures the BubbleTextView on long click disabling animations and hiding system shortcuts.
+     *
+     * @param shouldDisableAnimationAndShortcuts {@code true} to show the minimal popup and not show
+     * long press animation and system shortcuts.
+     * {@code false} to show long press animation and system shortcuts.
+     */
+    public void configureMinimalPopup(boolean shouldDisableAnimationAndShortcuts) {
+        mIsShowingMinimalPopup = shouldDisableAnimationAndShortcuts;
+    }
+
+    public boolean getShowingMinimalPopup() {
+        return mIsShowingMinimalPopup;
     }
 
     /**
