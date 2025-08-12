@@ -43,6 +43,10 @@ open class PopupContainer<T>(context: Context?, val originalView: View) :
     ArrowPopup<T>(context), DragSource, DragController.DragListener, Popup where
 T : Context,
 T : ActivityContext {
+    /** Here we hold the system shortcuts that we show for the Popup. */
+    // TODO b/441320297
+    var systemShortcutContainer: ViewGroup? = null
+
     /** If the distance the user drags surpasses this number, then we should start drag. */
     val startDragThreshold =
         originalView.context.resources.getDimensionPixelSize(

@@ -57,11 +57,8 @@ import kotlin.math.max
  * @param <T> The activity on with the popup shows </T>
  */
 class PopupContainerWithArrow<T>
-private constructor(
-    context: Context?,
-    originalView: View,
-    private val updateIconUi: Boolean,
-) : PopupContainer<T>(context, originalView), DragSource, DragController.DragListener, Popup where
+private constructor(context: Context?, originalView: View, private val updateIconUi: Boolean) :
+    PopupContainer<T>(context, originalView), DragSource, DragController.DragListener, Popup where
 T : Context,
 T : ActivityContext {
     private val deepShortcuts: MutableList<DeepShortcutView> = ArrayList()
@@ -80,9 +77,6 @@ T : ActivityContext {
     private var currentHeight = 0f
 
     val originalIcon = originalView as BubbleTextView
-
-    var systemShortcutContainer: ViewGroup? = null
-        private set
 
     var itemDragHandler: PopupItemDragHandler? = null
         private set
