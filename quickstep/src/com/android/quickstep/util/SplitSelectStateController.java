@@ -1078,7 +1078,9 @@ public class SplitSelectStateController {
                 });
                 anim.add(getSplitAnimationController()
                         .getShowSplitInstructionsAnim(mContainer).buildAnim());
-                if (isBugfixFlagEnabled) {
+                if (isBugfixFlagEnabled && (mContainer instanceof QuickstepLauncher)) {
+                    // TODO: b/438065072 - Support createHomeRevealAnimation in non-default display
+                    //  when there is no launcher.
                     anim.add(createHomeRevealAnimation());
                 }
                 anim.buildAnim().start();
