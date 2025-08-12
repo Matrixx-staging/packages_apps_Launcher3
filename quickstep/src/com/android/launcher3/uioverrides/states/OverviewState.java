@@ -30,6 +30,7 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.LauncherUiState;
+import com.android.launcher3.LauncherUiStateUtil;
 import com.android.launcher3.R;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.DisplayController;
@@ -115,10 +116,10 @@ public class OverviewState extends LauncherState {
     }
 
     @Override
-    public int getVisibleElements(LauncherUiState launcherUiState) {
+    public int getVisibleElements(@Deprecated Launcher launcher, LauncherUiState launcherUiState) {
         int elements = CLEAR_ALL_BUTTON | OVERVIEW_ACTIONS | ADD_DESK_BUTTON;
         boolean showFloatingSearch;
-        DeviceProfile dp = launcherUiState.getDeviceProfileRef().getValue();
+        DeviceProfile dp = LauncherUiStateUtil.INSTANCE.getDeviceProfile(launcher, launcherUiState);
         if (dp.getDeviceProperties().isPhone()) {
             // Only show search in phone overview in portrait mode.
             showFloatingSearch = !dp.getDeviceProperties().isLandscape();
@@ -129,7 +130,7 @@ public class OverviewState extends LauncherState {
         if (showFloatingSearch) {
             elements |= FLOATING_SEARCH_BAR;
         }
-        if (launcherUiState.isSplitSelectActiveRef().getValue()) {
+        if (LauncherUiStateUtil.isSplitSelectActive(launcher, launcherUiState)) {
             elements &= ~CLEAR_ALL_BUTTON & ~ADD_DESK_BUTTON;
         }
         return elements;
@@ -146,7 +147,7 @@ public class OverviewState extends LauncherState {
 
     @Override
     public int getFloatingSearchBarRestingMarginBottom(Launcher launcher) {
-        return areElementsVisible(launcher.launcherUiState, FLOATING_SEARCH_BAR) ? 0
+        return areElementsVisible(launcher, FLOATING_SEARCH_BAR) ? 0
                 : super.getFloatingSearchBarRestingMarginBottom(launcher);
     }
 

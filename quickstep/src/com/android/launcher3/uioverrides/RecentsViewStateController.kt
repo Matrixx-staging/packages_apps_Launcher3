@@ -285,10 +285,8 @@ class RecentsViewStateController(private val launcher: QuickstepLauncher) :
         config: StateAnimationConfig,
         state: LauncherState,
     ) {
-        val launcherUiState = launcher.launcherUiState
         val clearAllButtonAlpha =
-            if (state.areElementsVisible(launcherUiState, LauncherState.CLEAR_ALL_BUTTON)) 1f
-            else 0f
+            if (state.areElementsVisible(launcher, LauncherState.CLEAR_ALL_BUTTON)) 1f else 0f
         propertySetter.setFloat(
             recentsView.clearAllButton,
             ClearAllButton.VISIBILITY_ALPHA,
@@ -296,8 +294,7 @@ class RecentsViewStateController(private val launcher: QuickstepLauncher) :
             LINEAR,
         )
         val overviewButtonAlpha =
-            if (state.areElementsVisible(launcherUiState, LauncherState.OVERVIEW_ACTIONS)) 1f
-            else 0f
+            if (state.areElementsVisible(launcher, LauncherState.OVERVIEW_ACTIONS)) 1f else 0f
         propertySetter.setFloat(
             launcher.actionsView.visibilityAlpha,
             AnimatedFloat.VALUE,
@@ -308,8 +305,7 @@ class RecentsViewStateController(private val launcher: QuickstepLauncher) :
             propertySetter.setFloat(
                 it,
                 AddDesktopButton.VISIBILITY_ALPHA,
-                if (state.areElementsVisible(launcherUiState, LauncherState.ADD_DESK_BUTTON)) 1f
-                else 0f,
+                if (state.areElementsVisible(launcher, LauncherState.ADD_DESK_BUTTON)) 1f else 0f,
                 LINEAR,
             )
         }

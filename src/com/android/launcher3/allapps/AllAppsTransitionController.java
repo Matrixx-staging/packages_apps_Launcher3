@@ -422,7 +422,7 @@ public class AllAppsTransitionController
      * Updates the property for the provided state
      */
     public void setAlphas(LauncherState state, StateAnimationConfig config, PropertySetter setter) {
-        int visibleElements = state.getVisibleElements(mLauncher.launcherUiState);
+        int visibleElements = state.getVisibleElements(mLauncher, mLauncher.launcherUiState);
         boolean hasAllAppsContent = (visibleElements & ALL_APPS_CONTENT) != 0;
 
         Interpolator allAppsFade = config.getInterpolator(ANIM_ALL_APPS_FADE, LINEAR);
