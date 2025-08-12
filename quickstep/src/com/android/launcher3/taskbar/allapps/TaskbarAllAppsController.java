@@ -91,8 +91,7 @@ public final class TaskbarAllAppsController {
         mAppsModelFlags = flags;
         mPackageUserKeytoUidMap = map;
         if (mAppsView != null) {
-            mAppsView.getAppsStore().setApps(
-                    mApps, mAppsModelFlags, mPackageUserKeytoUidMap, false);
+            mAppsView.getAppsStore().setApps(mApps, mAppsModelFlags, mPackageUserKeytoUidMap);
         }
     }
 
@@ -181,7 +180,7 @@ public final class TaskbarAllAppsController {
 
         viewController.show(animate);
         mAppsView = mOverlayContext.getAppsView();
-        mAppsView.getAppsStore().setApps(mApps, mAppsModelFlags, mPackageUserKeytoUidMap, false);
+        mAppsView.getAppsStore().setApps(mApps, mAppsModelFlags, mPackageUserKeytoUidMap);
         mAppsView.getFloatingHeaderView()
                 .findFixedRowByType(PredictionRowView.class)
                 .setPredictedApps(mPredictedApps);

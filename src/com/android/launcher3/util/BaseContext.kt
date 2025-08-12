@@ -63,8 +63,10 @@ constructor(base: Context, themeResId: Int, private val destroyOnDetach: Boolean
     private val viewCache = ViewCache()
 
     private val activityComponentLazy: ActivityContextComponent by lazy {
-        appComponent.activityContextComponentBuilder.activityContext(this).build()
-            as ActivityContextComponent
+        appComponent.activityContextComponentBuilder
+            .activityContext(this)
+            .setAllAppsPreloaded(false)
+            .build() as ActivityContextComponent
     }
 
     override fun getActivityComponent(): ActivityContextComponent = activityComponentLazy
