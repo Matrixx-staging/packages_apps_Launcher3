@@ -35,7 +35,6 @@ import com.android.launcher3.DragSource;
 import com.android.launcher3.DropTarget.DragObject;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.util.ContextTracker.SchedulerCallback;
-import com.android.launcher3.widget.PendingItemDragHelper;
 
 import java.util.UUID;
 
@@ -123,12 +122,12 @@ public abstract class BaseItemDragListener implements View.OnDragListener, DragS
         // and the absolute position (position relative to the screen) of drag event is same
         // across windows, using drag position here give a good estimate for relative position
         // to source window.
-        createDragHelper().startDrag(new Rect(mPreviewRect),
-                mPreviewBitmapWidth, mPreviewViewWidth, downPos, this, options);
+        startDrag(new Rect(mPreviewRect), mPreviewBitmapWidth, mPreviewViewWidth, downPos, options);
         return true;
     }
 
-    protected abstract PendingItemDragHelper createDragHelper();
+    protected abstract void startDrag(Rect previewRect, int previewBitmapWidth,
+            int previewViewWidth, Point screenPos, DragOptions options);
 
     @Override
     public boolean shouldStartDrag(double distanceDragged) {

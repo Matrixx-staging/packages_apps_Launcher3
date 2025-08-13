@@ -16,10 +16,12 @@
 
 package com.android.launcher3.widgetpicker.listeners
 
+import android.graphics.Point
 import android.graphics.Rect
 import android.view.View
 import com.android.launcher3.PendingAddItemInfo
 import com.android.launcher3.dragndrop.BaseItemDragListener
+import com.android.launcher3.dragndrop.DragOptions
 import com.android.launcher3.pm.ShortcutConfigActivityInfo.ShortcutConfigActivityInfoVO
 import com.android.launcher3.widget.DatabaseWidgetPreviewLoader.WidgetPreviewInfo
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo
@@ -56,7 +58,13 @@ class WidgetPickerDragItemListener(
 ) : BaseItemDragListener(previewRect, previewWidth, previewWidth) {
     override fun getMimeType(): String = mimeType
 
-    override fun createDragHelper(): PendingItemDragHelper {
+    override fun startDrag(
+        previewRect: Rect,
+        previewBitmapWidth: Int,
+        previewViewWidth: Int,
+        screenPos: Point,
+        options: DragOptions,
+    ) {
         val pendingAddItemInfo: PendingAddItemInfo =
             when (widgetInfo) {
                 is WidgetInfo.AppWidgetInfo -> {
@@ -83,7 +91,14 @@ class WidgetPickerDragItemListener(
             setAppWidgetPreviewInfo(widgetPreview, widgetInfo, dragHelper)
         } // shortcut preview is fetched by home screen.
 
-        return dragHelper
+        dragHelper.startDrag(
+            previewRect,
+            previewBitmapWidth,
+            previewViewWidth,
+            screenPos,
+            /*source=*/ this,
+            options,
+        )
     }
 
     private fun setAppWidgetPreviewInfo(
