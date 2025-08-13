@@ -224,7 +224,6 @@ class LoaderTaskTest {
         verify(modelDelegate).loadAndAddExtraModelItems(any())
         verify(launcherBinder).bindAllApps()
         verify(iconCacheUpdateHandler, times(4)).updateIcons(any(), any<CachingLogic<Any>>(), any())
-        verify(launcherBinder).bindDeepShortcuts()
         verify(launcherBinder).bindWidgets()
         verify(iconCacheUpdateHandler).finish()
         verify(modelDelegate).modelLoadComplete()

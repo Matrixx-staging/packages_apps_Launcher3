@@ -68,11 +68,6 @@ constructor(
         scheduleCallbackTask { it.bindExtraContainerItems(item) }
     }
 
-    fun bindDeepShortcuts(dataModel: BgDataModel) {
-        val shortcutMapCopy = HashMap(dataModel.deepShortcutMap)
-        scheduleCallbackTask { it.bindDeepShortcutMap(shortcutMapCopy) }
-    }
-
     fun bindUpdatedWidgets(dataModel: BgDataModel) {
         val allWidgets =
             WidgetsListBaseEntriesBuilder(context)

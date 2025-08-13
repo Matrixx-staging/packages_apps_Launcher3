@@ -22,7 +22,6 @@ import android.graphics.Point;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.launcher3.DeviceProfile;
@@ -157,12 +156,6 @@ public class TaskbarOverlayContext extends BaseTaskbarContext {
     @Override
     public View.OnLongClickListener getAllAppsItemLongClickListener() {
         return mDragController::startDragOnLongClick;
-    }
-
-    @NonNull
-    @Override
-    public PopupDataProvider getPopupDataProvider() {
-        return mTaskbarContext.getPopupDataProvider();
     }
 
     @Override

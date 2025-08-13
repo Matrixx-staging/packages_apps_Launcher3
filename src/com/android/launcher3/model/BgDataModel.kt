@@ -86,7 +86,8 @@ constructor(
     val extraItems = IntSparseArrayMap<FixedContainerItems>()
 
     /** Maps all launcher activities to counts of their shortcuts. */
-    @JvmField val deepShortcutMap = HashMap<ComponentKey, Int>()
+    var deepShortcutMap: Map<ComponentKey, Int> = emptyMap()
+        private set
 
     /** Cache for strings used in launcher */
     var stringCache = StringCache.EMPTY
@@ -105,7 +106,7 @@ constructor(
     /** Clears all the data */
     @Synchronized
     fun clear() {
-        deepShortcutMap.clear()
+        deepShortcutMap = emptyMap()
         extraItems.clear()
     }
 
@@ -322,15 +323,13 @@ constructor(
      * Clear all the deep shortcut counts for the given package, and re-add the new shortcut counts.
      */
     @Synchronized
+    @JvmOverloads
     fun updateDeepShortcutCounts(
-        packageName: String?,
-        user: UserHandle,
         shortcuts: List<ShortcutInfo>,
+        keysToRemove: ((ComponentKey) -> Boolean)? = null,
     ) {
-        if (packageName != null) {
-            deepShortcutMap.keys.removeAll {
-                it.componentName.packageName == packageName && it.user == user
-            }
+        if (keysToRemove != null) {
+            deepShortcutMap = deepShortcutMap.filterKeys { !keysToRemove.invoke(it) }
         }
 
         // Now add the new shortcuts to the map.
@@ -342,10 +341,6 @@ constructor(
                 }
                 .groupingBy { ComponentKey(it.activity, it.userHandle) }
                 .eachCount()
-
-        if (Flags.modelRepository()) {
-            repo.get().dispatchShortcutsCountChange(deepShortcutMap.toMap())
-        }
     }
 
     /**
@@ -417,8 +412,6 @@ constructor(
 
         /** Binds the app widgets to the providers that share widgets with the UI. */
         fun bindAllWidgets(widgets: List<@JvmSuppressWildcards WidgetsListBaseEntry>) {}
-
-        fun bindDeepShortcutMap(deepShortcutMap: HashMap<ComponentKey, Int>) {}
 
         /** Binds extra item provided any external source */
         fun bindExtraContainerItems(item: FixedContainerItems) {}

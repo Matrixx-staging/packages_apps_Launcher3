@@ -573,7 +573,8 @@ constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 
                 return
             }
             val item = icon.tag as ItemInfo
-            val deepShortcutCount = activityContext.popupDataProvider.getShortcutCountForItem(item)
+            val deepShortcutCount =
+                activityContext.activityComponent.popupDataProvider.getShortcutCountForItem(item)
             val container: PopupContainerWithArrow<Launcher> =
                 activityContext.layoutInflater.inflate(
                     R.layout.popup_container,

@@ -124,7 +124,6 @@ import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.TaskItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.popup.PopupContainerWithArrow;
-import com.android.launcher3.popup.PopupDataProvider;
 import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.AutohideSuspendFlag;
 import com.android.launcher3.taskbar.TaskbarTranslationController.TransitionCallback;
@@ -992,12 +991,6 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                     .setPredictionContainer(oldContainer.getPredictionContainer().toBuilder()
                             .setTaskbarContainer(taskbarBuilder)));
         }
-    }
-
-    @NonNull
-    @Override
-    public PopupDataProvider getPopupDataProvider() {
-        return mControllers.taskbarPopupController.getPopupDataProvider();
     }
 
     @NonNull

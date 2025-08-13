@@ -198,11 +198,9 @@ import com.android.launcher3.model.data.LauncherAppWidgetInfo;
 import com.android.launcher3.model.data.PredictedContainerInfo;
 import com.android.launcher3.model.data.WorkspaceData;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
-import com.android.launcher3.notification.NotificationListener;
 import com.android.launcher3.pm.PinRequestHelper;
 import com.android.launcher3.popup.ArrowPopup;
 import com.android.launcher3.popup.PopupController;
-import com.android.launcher3.popup.PopupDataProvider;
 import com.android.launcher3.popup.SystemShortcut;
 import com.android.launcher3.statemanager.StateManager;
 import com.android.launcher3.statemanager.StateManager.StateHandler;
@@ -216,7 +214,6 @@ import com.android.launcher3.touch.ItemLongClickListener;
 import com.android.launcher3.util.ActivityResultInfo;
 import com.android.launcher3.util.BackPressHandler;
 import com.android.launcher3.util.CannedAnimationCoordinator;
-import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.ContextTracker;
 import com.android.launcher3.util.IntSet;
 import com.android.launcher3.util.ItemInflater;
@@ -264,7 +261,6 @@ import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -361,8 +357,6 @@ public class Launcher extends StatefulActivity<LauncherState>
     private LauncherModel mModel;
     private ModelWriter mModelWriter;
     private LauncherAccessibilityDelegate mAccessibilityDelegate;
-
-    private PopupDataProvider mPopupDataProvider;
 
     private PopupController<Launcher> mPopupControllerForHomeScreenItems;
     private PopupController<Launcher> mPopupControllerForAppIcons;
@@ -465,7 +459,6 @@ public class Launcher extends StatefulActivity<LauncherState>
         mWidgetVisibilityTracker = new WidgetVisibilityTracker(this, mAppWidgetHolder, mWorkspace,
             mStateManager);
 
-        mPopupDataProvider = new PopupDataProvider(this);
         mPopupControllerForHomeScreenItems =
                 PopupController.PopupControllerFactory.createPopupController(
                         LauncherComponentProvider.get(this).getPopupDataRepository(),
@@ -990,7 +983,6 @@ public class Launcher extends StatefulActivity<LauncherState>
         hideKeyboard();
         logStopAndResume(false /* isResume */);
         mAppWidgetHolder.setActivityStarted(false);
-        NotificationListener.removeNotificationsChangedListener(getPopupDataProvider());
         FloatingIconView.resetIconLoadResult();
         AccessibilityManagerCompat.sendTestProtocolEventToTest(
                 this, LAUNCHER_ACTIVITY_STOPPED_MESSAGE);
@@ -1019,9 +1011,6 @@ public class Launcher extends StatefulActivity<LauncherState>
 
         // Refresh shortcuts if the permission changed.
         mModel.validateModelDataOnResume();
-
-        // Set the notification listener and fetch updated notifications when we resume
-        NotificationListener.addNotificationsChangedListener(mPopupDataProvider);
 
         DiscoveryBounce.showForHomeIfNeeded(this);
         mAppWidgetHolder.setActivityResumed(true);
@@ -2357,14 +2346,6 @@ public class Launcher extends StatefulActivity<LauncherState>
         mModelCallbacks.bindAllApplications(apps, flags, packageUserKeytoUidMap);
     }
 
-    /**
-     * See {@code LauncherBindingDelegate}
-     */
-    @Override
-    public void bindDeepShortcutMap(HashMap<ComponentKey, Integer> deepShortcutMapCopy) {
-        mModelCallbacks.bindDeepShortcutMap(deepShortcutMapCopy);
-    }
-
     @Override
     public void bindIncrementalDownloadProgressUpdated(AppInfo app) {
         mModelCallbacks.bindIncrementalDownloadProgressUpdated(app);
@@ -2468,7 +2449,6 @@ public class Launcher extends StatefulActivity<LauncherState>
         // Extra logging for general debugging
         mDragLayer.dump(prefix, writer);
         mStateManager.dump(prefix, writer);
-        mPopupDataProvider.dump(prefix, writer);
         mWidgetPickerDataProvider.dump(prefix, writer);
         mDeviceProfile.dump(this, prefix, writer);
         mAppsView.getAppsStore().dump(prefix, writer);
@@ -2768,12 +2748,6 @@ public class Launcher extends StatefulActivity<LauncherState>
     @Override
     public StateManager<LauncherState, Launcher> getStateManager() {
         return mStateManager;
-    }
-
-    @NonNull
-    @Override
-    public PopupDataProvider getPopupDataProvider() {
-        return mPopupDataProvider;
     }
 
     public PopupController<Launcher> getPopupControllerForHomeScreenItems() {

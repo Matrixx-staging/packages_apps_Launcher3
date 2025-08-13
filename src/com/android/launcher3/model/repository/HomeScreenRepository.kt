@@ -21,7 +21,6 @@ import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.model.StringCache
 import com.android.launcher3.model.data.WorkspaceData
 import com.android.launcher3.model.data.WorkspaceData.ImmutableWorkspaceData
-import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.MutableListenableRef
 import com.android.launcher3.widget.model.WidgetsListBaseEntry
 import javax.inject.Inject
@@ -41,10 +40,6 @@ class HomeScreenRepository @Inject constructor() {
     /** Represents the current home screen data model */
     val workspaceState = _workspaceState.asListenable()
 
-    private val _deepShortcutMap = MutableListenableRef(mapOf<ComponentKey, Int>())
-    /** Map of componentKey to the number of associated deep shortcuts */
-    val deepShortcutMap = _deepShortcutMap.asListenable()
-
     /** TODO Change this to a map of counts once widget picker migration is complete */
     private val _allWidgets =
         MutableListenableRef(listOf<@JvmSuppressWildcards WidgetsListBaseEntry>())
@@ -58,11 +53,6 @@ class HomeScreenRepository @Inject constructor() {
     /** sets a new value to [workspaceState] */
     fun dispatchWorkspaceDataChange(workspaceData: WorkspaceData) {
         _workspaceState.dispatchValue(workspaceData)
-    }
-
-    /** Sets a new value to [deepShortcutMap] */
-    fun dispatchShortcutsCountChange(deepShortcutMap: Map<ComponentKey, Int>) {
-        _deepShortcutMap.dispatchValue(deepShortcutMap)
     }
 
     fun dispatchWidgetsChange(widgets: List<WidgetsListBaseEntry>) {

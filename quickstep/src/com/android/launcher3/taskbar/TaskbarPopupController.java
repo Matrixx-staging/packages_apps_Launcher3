@@ -45,11 +45,9 @@ import com.android.launcher3.R;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
-import com.android.launcher3.notification.NotificationListener;
 import com.android.launcher3.popup.Popup;
 import com.android.launcher3.popup.PopupContainerWithArrow;
 import com.android.launcher3.popup.PopupController;
-import com.android.launcher3.popup.PopupDataProvider;
 import com.android.launcher3.popup.PopupItemDragHandler;
 import com.android.launcher3.popup.SystemShortcut;
 import com.android.launcher3.shortcuts.DeepShortcutView;
@@ -68,7 +66,6 @@ import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -88,7 +85,6 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
             BUBBLE = SystemShortcut.BubbleShortcut::new;
 
     private final TaskbarActivityContext mContext;
-    private final PopupDataProvider mPopupDataProvider;
 
     // Initialized in init.
     private TaskbarControllers mControllers;
@@ -104,27 +100,14 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
 
     public TaskbarPopupController(TaskbarActivityContext context) {
         mContext = context;
-        mPopupDataProvider = new PopupDataProvider(mContext);
     }
 
     public void init(TaskbarControllers controllers) {
         mControllers = controllers;
-
-        NotificationListener.addNotificationsChangedListener(mPopupDataProvider);
     }
 
     public void onDestroy() {
-        NotificationListener.removeNotificationsChangedListener(mPopupDataProvider);
         cleanUpMultiInstanceMenuReference();
-    }
-
-    @NonNull
-    public PopupDataProvider getPopupDataProvider() {
-        return mPopupDataProvider;
-    }
-
-    public void setDeepShortcutMap(HashMap<ComponentKey, Integer> deepShortcutMapCopy) {
-        mPopupDataProvider.setDeepShortcutMap(deepShortcutMapCopy);
     }
 
     /** Closes the multi-instance menu if it is enabled and currently open. */
@@ -207,8 +190,6 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
     @Override
     public void dumpLogs(String prefix, PrintWriter pw) {
         pw.println(prefix + "TaskbarPopupController:");
-
-        mPopupDataProvider.dump(prefix + "\t", pw);
     }
 
     @Nullable
@@ -241,7 +222,8 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
         }
 
         PopupContainerWithArrow<BaseTaskbarContext> container;
-        int deepShortcutCount = mPopupDataProvider.getShortcutCountForItem(itemInfo);
+        int deepShortcutCount = mContext.getActivityComponent()
+                .getPopupDataProvider().getShortcutCountForItem(itemInfo);
         // TODO(b/198438631): add support for INSTALL shortcut factory
         final ItemInfo finalInfo = itemInfo;
         List<SystemShortcut<BaseTaskbarContext>> systemShortcuts = getSystemShortcuts()
