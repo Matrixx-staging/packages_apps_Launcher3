@@ -17,6 +17,7 @@
 package com.android.launcher3.util
 
 import android.content.ComponentName
+import android.content.Context
 import android.content.pm.LauncherApps
 import android.graphics.Bitmap
 import android.graphics.Bitmap.Config.ARGB_8888
@@ -41,6 +42,7 @@ import com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY2
 import com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY3
 import com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE
 import com.google.common.truth.Truth.assertThat
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -52,7 +54,9 @@ class LauncherBindableItemsContainerTest {
     private val icon2 by lazy { getLAI(TEST_ACTIVITY2) }
     private val icon3 by lazy { getLAI(TEST_ACTIVITY3) }
 
-    private val container = TestContainer()
+    @get:Rule val uiContext = TestActivityContext(context)
+
+    private val container = TestContainer(uiContext)
 
     @Test
     fun `icon bitmap is updated`() {
@@ -69,7 +73,7 @@ class LauncherBindableItemsContainerTest {
 
         icon2.bitmap = BitmapInfo.fromBitmap(Bitmap.createBitmap(200, 200, ARGB_8888))
         TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {
-            container.updateContainerItems(setOf(icon2), container)
+            container.updateContainerItems(setOf(icon2), uiContext)
         }
 
         assertThat(container.getAppIcon(icon1).icon.delegate)
@@ -93,7 +97,7 @@ class LauncherBindableItemsContainerTest {
         icon1.bitmap = BitmapInfo.fromBitmap(Bitmap.createBitmap(200, 200, ARGB_8888))
         icon1.setProgressLevel(30, PackageInstallInfo.STATUS_INSTALLING)
         TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {
-            container.updateContainerItems(setOf(icon1), container)
+            container.updateContainerItems(setOf(icon1), uiContext)
         }
 
         assertThat(container.getAppIcon(icon2).icon.delegate)
@@ -116,7 +120,7 @@ class LauncherBindableItemsContainerTest {
             )
             .makeWorkspaceItem(context)
 
-    class TestContainer : ActivityContextWrapper(context), LauncherBindableItemsContainer {
+    class TestContainer(private val uiContext: Context) : LauncherBindableItemsContainer {
 
         val items = mutableMapOf<ItemInfo, View>()
 
@@ -126,7 +130,7 @@ class LauncherBindableItemsContainerTest {
             }
 
         fun addIcon(info: WorkspaceItemInfo) {
-            val btv = BubbleTextView(this)
+            val btv = BubbleTextView(uiContext)
             btv.applyFromWorkspaceItem(info)
             items[info] = btv
         }

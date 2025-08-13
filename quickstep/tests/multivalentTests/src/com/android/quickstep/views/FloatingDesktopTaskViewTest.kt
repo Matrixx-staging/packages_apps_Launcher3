@@ -29,8 +29,8 @@ import com.android.launcher3.Workspace
 import com.android.launcher3.anim.PendingAnimation
 import com.android.launcher3.dragndrop.DragLayer
 import com.android.launcher3.uioverrides.QuickstepLauncher
-import com.android.launcher3.util.ActivityContextWrapper
 import com.android.launcher3.util.SandboxApplication
+import com.android.launcher3.util.TestActivityContext
 import com.android.launcher3.views.BaseDragLayer
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -46,7 +46,8 @@ import org.mockito.kotlin.mock
 class FloatingDesktopTaskViewTest {
 
     @get:Rule val context = SandboxApplication()
-    private lateinit var uiContext: Context
+    @get:Rule val uiContext = TestActivityContext(context)
+
     private lateinit var deviceProfile: DeviceProfile
     private val launcher: QuickstepLauncher = mock()
     private val workspace: Workspace<*> = mock()
@@ -54,7 +55,6 @@ class FloatingDesktopTaskViewTest {
 
     @Before
     fun setUp() {
-        uiContext = ActivityContextWrapper(context)
         deviceProfile = InvariantDeviceProfile.INSTANCE[context].getDeviceProfile(context).copy()
         `when`(launcher.workspace).thenReturn(workspace)
         `when`(launcher.dragLayer).thenReturn(dragLayer)

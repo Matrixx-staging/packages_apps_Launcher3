@@ -155,12 +155,13 @@ class SandboxApplication private constructor(private val base: SandboxApplicatio
         return super.getSharedPreferences(file, mode)
     }
 
-    fun <T> spyService(tClass: Class<T>): T {
+    @JvmOverloads
+    fun <T> spyService(tClass: Class<T>, provider: (T?) -> T = { spy(it!!) }): T {
         val name = getSystemServiceName(tClass)
         val service = spiedServices[name]
         if (service != null) return service as T
 
-        val result = spy(getSystemService(tClass))
+        val result = provider.invoke(getSystemService(tClass))
         spiedServices[name] = result
         return result
     }

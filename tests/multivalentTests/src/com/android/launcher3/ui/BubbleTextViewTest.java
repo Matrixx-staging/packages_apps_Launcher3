@@ -38,7 +38,6 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
@@ -67,9 +66,9 @@ import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.pm.PackageInstallInfo;
 import com.android.launcher3.search.StringMatcherUtility;
-import com.android.launcher3.util.ActivityContextWrapper;
 import com.android.launcher3.util.IntArray;
 import com.android.launcher3.util.SandboxApplication;
+import com.android.launcher3.util.TestActivityContext;
 import com.android.launcher3.util.TestUtil;
 import com.android.launcher3.views.BaseDragLayer;
 
@@ -120,12 +119,12 @@ public class BubbleTextViewTest {
     private static final float SPACE_EXTRA = 0;
 
     @Rule public SandboxApplication mModelContext = new SandboxApplication();
+    @Rule public TestActivityContext mContext = new TestActivityContext(mModelContext);
 
     @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private BubbleTextView mBubbleTextView;
     private ItemInfoWithIcon mItemInfoWithIcon;
-    private Context mContext;
     private int mLimitedWidth;
     private AppInfo mGmailAppInfo;
 
@@ -134,7 +133,6 @@ public class BubbleTextViewTest {
         Utilities.enableRunningInTestHarnessForTests();
         LauncherPrefs.get(mModelContext).put(ENABLE_TWOLINE_ALLAPPS_TOGGLE, true);
 
-        mContext = new ActivityContextWrapper(mModelContext);
         mBubbleTextView = new BubbleTextView(mContext);
         mBubbleTextView.reset();
 

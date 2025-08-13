@@ -16,7 +16,6 @@
 
 package com.android.launcher3
 
-import android.content.Context
 import android.content.ContextWrapper
 import android.graphics.Rect
 import android.graphics.RectF
@@ -24,13 +23,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.android.launcher3.util.ActivityContextWrapper
+import com.android.launcher3.util.TestActivityContext
 import kotlin.random.Random
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -41,12 +40,7 @@ class UtilitiesTest {
         const val SEED = 827
     }
 
-    private lateinit var mContext: Context
-
-    @Before
-    fun setUp() {
-        mContext = ActivityContextWrapper(getApplicationContext())
-    }
+    @get:Rule val mContext = TestActivityContext()
 
     @Test
     fun testIsPropertyEnabled() {
@@ -129,22 +123,22 @@ class UtilitiesTest {
             assertEquals(
                 "Utilities.boundToRange doesn't match Kotlin coerceIn",
                 value.coerceIn(lowerBound, higherBound),
-                Utilities.boundToRange(value, lowerBound, higherBound)
+                Utilities.boundToRange(value, lowerBound, higherBound),
             )
             assertEquals(
                 "Utilities.boundToRange doesn't match Kotlin coerceIn",
                 value.toInt().coerceIn(lowerBound.toInt(), higherBound.toInt()),
-                Utilities.boundToRange(value.toInt(), lowerBound.toInt(), higherBound.toInt())
+                Utilities.boundToRange(value.toInt(), lowerBound.toInt(), higherBound.toInt()),
             )
             assertEquals(
                 "Utilities.boundToRange doesn't match Kotlin coerceIn",
                 value.toLong().coerceIn(lowerBound.toLong(), higherBound.toLong()),
-                Utilities.boundToRange(value.toLong(), lowerBound.toLong(), higherBound.toLong())
+                Utilities.boundToRange(value.toLong(), lowerBound.toLong(), higherBound.toLong()),
             )
             assertEquals(
                 "If the lower bound is higher than lower bound, it should return the lower bound",
                 higherBound,
-                Utilities.boundToRange(value, higherBound, lowerBound)
+                Utilities.boundToRange(value, higherBound, lowerBound),
             )
         }
     }
@@ -179,7 +173,7 @@ class UtilitiesTest {
             targetViewBounds,
             inclusionBounds,
             exclusionBounds,
-            Utilities.TRANSLATE_RIGHT
+            Utilities.TRANSLATE_RIGHT,
         )
         assertEquals(30f, targetView.translationX)
         Utilities.translateOverlappingView(
@@ -187,7 +181,7 @@ class UtilitiesTest {
             targetViewBounds,
             inclusionBounds,
             exclusionBounds,
-            Utilities.TRANSLATE_LEFT
+            Utilities.TRANSLATE_LEFT,
         )
         assertEquals(-30f, targetView.translationX)
         Utilities.translateOverlappingView(
@@ -195,7 +189,7 @@ class UtilitiesTest {
             targetViewBounds,
             inclusionBounds,
             exclusionBounds,
-            Utilities.TRANSLATE_DOWN
+            Utilities.TRANSLATE_DOWN,
         )
         assertEquals(30f, targetView.translationY)
         Utilities.translateOverlappingView(
@@ -203,7 +197,7 @@ class UtilitiesTest {
             targetViewBounds,
             inclusionBounds,
             exclusionBounds,
-            Utilities.TRANSLATE_UP
+            Utilities.TRANSLATE_UP,
         )
         assertEquals(-30f, targetView.translationY)
     }
@@ -233,7 +227,7 @@ class UtilitiesTest {
             targetViewBounds,
             inclusionBounds,
             exclusionBounds,
-            Utilities.TRANSLATE_RIGHT
+            Utilities.TRANSLATE_RIGHT,
         )
         assertEquals(0f, targetView.translationX)
         Utilities.translateOverlappingView(
@@ -241,7 +235,7 @@ class UtilitiesTest {
             targetViewBounds,
             inclusionBounds,
             exclusionBounds,
-            Utilities.TRANSLATE_LEFT
+            Utilities.TRANSLATE_LEFT,
         )
         assertEquals(0f, targetView.translationX)
         Utilities.translateOverlappingView(
@@ -249,7 +243,7 @@ class UtilitiesTest {
             targetViewBounds,
             inclusionBounds,
             exclusionBounds,
-            Utilities.TRANSLATE_DOWN
+            Utilities.TRANSLATE_DOWN,
         )
         assertEquals(0f, targetView.translationY)
         Utilities.translateOverlappingView(
@@ -257,7 +251,7 @@ class UtilitiesTest {
             targetViewBounds,
             inclusionBounds,
             exclusionBounds,
-            Utilities.TRANSLATE_UP
+            Utilities.TRANSLATE_UP,
         )
         assertEquals(0f, targetView.translationY)
     }
@@ -285,7 +279,7 @@ class UtilitiesTest {
             targetViewBounds,
             inclusionBounds,
             exclusionBounds,
-            Utilities.TRANSLATE_RIGHT
+            Utilities.TRANSLATE_RIGHT,
         )
         assertEquals(15f, targetView.translationX)
         Utilities.translateOverlappingView(
@@ -293,7 +287,7 @@ class UtilitiesTest {
             targetViewBounds,
             inclusionBounds,
             exclusionBounds,
-            Utilities.TRANSLATE_LEFT
+            Utilities.TRANSLATE_LEFT,
         )
         assertEquals(-5f, targetView.translationX)
         Utilities.translateOverlappingView(
@@ -301,7 +295,7 @@ class UtilitiesTest {
             targetViewBounds,
             inclusionBounds,
             exclusionBounds,
-            Utilities.TRANSLATE_DOWN
+            Utilities.TRANSLATE_DOWN,
         )
         assertEquals(15f, targetView.translationY)
         Utilities.translateOverlappingView(
@@ -309,7 +303,7 @@ class UtilitiesTest {
             targetViewBounds,
             inclusionBounds,
             exclusionBounds,
-            Utilities.TRANSLATE_UP
+            Utilities.TRANSLATE_UP,
         )
         assertEquals(-5f, targetView.translationY)
     }

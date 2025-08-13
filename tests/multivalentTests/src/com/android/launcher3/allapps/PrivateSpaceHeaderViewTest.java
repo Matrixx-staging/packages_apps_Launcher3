@@ -58,7 +58,7 @@ import com.android.launcher3.R;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.pm.UserCache;
-import com.android.launcher3.util.ActivityContextWrapper;
+import com.android.launcher3.util.TestActivityContext;
 import com.android.launcher3.util.UserIconInfo;
 
 import org.junit.Before;
@@ -101,13 +101,15 @@ public class PrivateSpaceHeaderViewTest {
     private static final int SCROLL_NO_WHERE = -1;
     private static final float HEADER_PROTECTION_HEIGHT = 1F;
 
-    private ActivityContextWrapper mContext;
     private RelativeLayout mPsHeaderLayout;
     private AlphabeticalAppsList mAlphabeticalAppsList;
     private PrivateProfileManager mPrivateProfileManager;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Rule public TestActivityContext mContext = new TestActivityContext(
+            getApplicationContext(),
+            R.style.DynamicColorsBaseLauncherTheme);
+
     @Mock
     private ActivityAllAppsContainerView mAllApps;
     @Mock
@@ -121,8 +123,6 @@ public class PrivateSpaceHeaderViewTest {
 
     @Before
     public void setUp() {
-        mContext = new ActivityContextWrapper(getApplicationContext(),
-                R.style.DynamicColorsBaseLauncherTheme);
         when(mAllApps.getContext()).thenReturn(mContext);
         when(mUserCache.getUserInfo(PRIVATE_HANDLE)).thenReturn(PRIVATE_ICON_INFO);
         when(mUserCache.getUserProfiles())

@@ -16,14 +16,11 @@
 
 package com.android.launcher3.widget.picker;
 
-import static androidx.test.core.app.ApplicationProvider.getApplicationContext;
-
 import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import android.content.Context;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,7 +31,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 
 import com.android.launcher3.R;
-import com.android.launcher3.util.ActivityContextWrapper;
+import com.android.launcher3.util.TestActivityContext;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -47,7 +44,9 @@ import org.mockito.junit.MockitoRule;
 @SmallTest
 @RunWith(AndroidJUnit4.class)
 public class WidgetsListHeaderAccessibilityTest {
-    private Context mContext;
+    @Rule
+    public TestActivityContext mContext = new TestActivityContext();
+
     private LayoutInflater mLayoutInflater;
 
     @Rule
@@ -57,7 +56,6 @@ public class WidgetsListHeaderAccessibilityTest {
 
     @Before
     public void setUp() {
-        mContext = new ActivityContextWrapper(getApplicationContext());
         mLayoutInflater = LayoutInflater.from(
                 new ContextThemeWrapper(mContext, R.style.WidgetContainerTheme));
     }
