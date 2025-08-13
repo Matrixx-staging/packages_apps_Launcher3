@@ -43,6 +43,7 @@ import java.util.concurrent.Executor
 class DesktopAppLaunchTransition
 @JvmOverloads
 constructor(
+    // If context needs to become a property, it has to be application context to avoid memory leak.
     context: Context,
     private val launchType: AppLaunchType,
     @Cuj.CujType private val cujType: Int,
@@ -52,6 +53,7 @@ constructor(
 
     private val animatorHelper: DesktopAppLaunchAnimatorHelper =
         DesktopAppLaunchAnimatorHelper(
+            // We need to pass application to avoid leak of activity.
             context.applicationContext,
             launchType,
             cujType,
