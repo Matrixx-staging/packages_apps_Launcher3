@@ -34,6 +34,8 @@ import com.android.launcher3.BubbleTextView.RunningAppState
 import com.android.launcher3.Flags
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION
+import com.android.launcher3.graphics.ThemeManager
+import com.android.launcher3.icons.IconShape
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.AppPairInfo
 import com.android.launcher3.model.data.ItemInfo
@@ -41,6 +43,7 @@ import com.android.launcher3.model.data.TaskItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.taskbar.TaskbarRecentAppsController.TaskState
 import com.android.launcher3.util.LauncherMultivalentJUnit
+import com.android.launcher3.util.MutableListenableRef
 import com.android.quickstep.RecentsModel
 import com.android.quickstep.RecentsModel.RecentTasksChangedListener
 import com.android.quickstep.TaskIconCache
@@ -91,6 +94,7 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
 
     @Mock private lateinit var mockIconCache: TaskIconCache
     @Mock private lateinit var mockRecentsModel: RecentsModel
+    @Mock private lateinit var mockThemeManager: ThemeManager
     @Mock private lateinit var mockContext: Context
     @Mock private lateinit var mockResources: Resources
 
@@ -121,8 +125,10 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
             recentTasksChangedListener = null
             it
         }
+        whenever(mockThemeManager.iconShapeData).thenReturn(MutableListenableRef(IconShape.EMPTY))
         whenever(taskbarDesktopModeController.isLauncherAnimationRunning).thenReturn(false)
-        recentAppsController = TaskbarRecentAppsController(mockContext, mockRecentsModel)
+        recentAppsController =
+            TaskbarRecentAppsController(mockContext, mockRecentsModel, mockThemeManager)
         recentAppsController.canShowRunningApps = canShowRunningAndRecentAppsAtInit
         recentAppsController.canShowRecentApps = canShowRunningAndRecentAppsAtInit
 

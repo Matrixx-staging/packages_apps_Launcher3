@@ -43,6 +43,7 @@ import com.android.launcher3.taskbar.TaskbarStashController.FLAG_STASHED_IME
 import com.android.launcher3.taskbar.TaskbarStashController.FLAG_STASHED_IN_APP_AUTO
 import com.android.launcher3.taskbar.TaskbarStashController.FLAG_STASHED_SMALL_SCREEN
 import com.android.launcher3.taskbar.TaskbarStashController.FLAG_STASHED_SYSUI
+import com.android.launcher3.taskbar.TaskbarStashController.FLAG_TASKBAR_HIDDEN
 import com.android.launcher3.taskbar.TaskbarStashController.TASKBAR_STASH_DURATION
 import com.android.launcher3.taskbar.TaskbarStashController.TASKBAR_STASH_DURATION_FOR_IME
 import com.android.launcher3.taskbar.TaskbarStashController.TRANSIENT_TASKBAR_STASH_ALPHA_DURATION
@@ -521,6 +522,21 @@ class TaskbarStashControllerTest {
     @TaskbarMode(TRANSIENT)
     fun testUpdateAndAnimateTransientTaskbar_stashTaskbarWithBubbles_bubbleBarStashes() {
         getInstrumentation().runOnMainSync {
+            bubbleBarViewController.setHiddenForBubbles(false)
+            bubbleStashController.showBubbleBarImmediate()
+            stashController.updateAndAnimateTransientTaskbar(true, true)
+        }
+        assertThat(bubbleStashController.isStashed).isTrue()
+    }
+
+    @Test
+    @TaskbarMode(TRANSIENT)
+    fun testUpdateAndAnimateTransientTaskbarInSplitCreation_stashTaskbarWithBubbles_bubbleBarStashes() {
+        getInstrumentation().runOnMainSync {
+            stashController.updateStateForFlag(FLAG_IN_APP, false)
+            stashController.updateStateForFlag(FLAG_TASKBAR_HIDDEN, false)
+            stashController.updateStateForFlag(FLAG_STASHED_IN_APP_AUTO, true)
+            stashController.applyState(0)
             bubbleBarViewController.setHiddenForBubbles(false)
             bubbleStashController.showBubbleBarImmediate()
             stashController.updateAndAnimateTransientTaskbar(true, true)

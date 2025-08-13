@@ -566,11 +566,12 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
         if (mDrawAboveOtherApps != null && mDrawAboveOtherApps) {
             baseLayer += 1000;
         }
+        SurfaceControl overviewOverlay;
         if (mSizeStrategy instanceof FallbackWindowInterface windowInterface
+                && (overviewOverlay = windowInterface.getOverviewOverlay()) != null
                 && app.taskInfo.getActivityType() != ACTIVITY_TYPE_HOME) {
             // the Overview surface will live on the overviewOverlayLayer meaning that we
             // allow taskview simulator be set above/below this layer as needed for animations.
-            SurfaceControl overviewOverlay = windowInterface.getOverviewOverlay();
             builder.setRelativeLayer(overviewOverlay, baseLayer);
         } else {
             builder.setLayer(baseLayer);

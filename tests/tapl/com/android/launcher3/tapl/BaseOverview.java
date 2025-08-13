@@ -628,25 +628,13 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
             return;
         }
 
-        boolean isTablet = mLauncher.isTablet();
-        OverviewTask task = isTablet ? getFocusedTaskForTablet() : getCurrentTask();
-
-        try (LauncherInstrumentation.Closable c = mLauncher.addContextLayer(
-                "want to assert overview actions view visibility="
-                        + isActionsViewVisible()
-                        + ", focused task is "
-                        + (task == null ? "null" : (task.isGrouped() ? "split" : "not split"))
-                )) {
-
-            if (isActionsViewVisible()) {
-                if (task.isGrouped()) {
-                    mLauncher.waitForOverviewObject("action_save_app_pair");
-                } else {
-                    mLauncher.waitForOverviewObject("action_buttons");
-                }
+        boolean isActionsViewVisible = isActionsViewVisible();
+        try (LauncherInstrumentation.Closable ignored = mLauncher.addContextLayer(
+                "want to assert overview actions view visibility=" + isActionsViewVisible)) {
+            if (isActionsViewVisible) {
+                mLauncher.waitForOverviewObject("action_buttons");
             } else {
                 mLauncher.waitUntilOverviewObjectGone("action_buttons");
-                mLauncher.waitUntilOverviewObjectGone("action_save_app_pair");
             }
         }
     }

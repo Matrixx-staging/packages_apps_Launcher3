@@ -265,9 +265,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
 
     private final Runnable mAutoDim = () -> mTaskbarTransitions.setAutoDim(true);
 
-    private final SettingsCache.OnChangeListener mButtonOrderListener = isEnabled -> {
-        getLayoutterForCurrentState().addThreeButtons();
-    };
+    private final SettingsCache.OnChangeListener mButtonOrderListener;
 
     private final boolean mIsUserUnlocked;
 
@@ -297,6 +295,9 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
                 || SUWTheme.equals(GLIF_EXPRESSIVE_LIGHT_THEME);
 
         mIsUserUnlocked = LockedUserState.get(context).isUserUnlocked();
+
+        mButtonOrderListener = isEnabled -> getLayoutterForCurrentState().layoutButtons(
+                mContext, isA11yButtonPersistent());
     }
 
     /**

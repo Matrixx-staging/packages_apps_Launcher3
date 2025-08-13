@@ -57,7 +57,7 @@ public class AllAppsState extends LauncherState {
     }
 
     @Override
-    public int getVisibleElements(@Deprecated Launcher launcher, LauncherUiState launcherUiState) {
+    public int getVisibleElements(LauncherUiState launcherUiState) {
         return ALL_APPS_CONTENT;
     }
 

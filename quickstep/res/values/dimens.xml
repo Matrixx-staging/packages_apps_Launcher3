@@ -612,4 +612,11 @@
     <item name="newly_created_desktop_spring_damping_ratio" format="float" type="dimen">0.8</item>
     <item name="newly_created_desktop_spring_stiffness" format="float" type="dimen">380</item>
 
+    <!--
+        The corner radius of freeform tasks in desktop windowing.
+        The value should match the corresponding resource in the WindowManager Shell:
+        frameworks/base/libs/WindowManager/Shell/shared/res/values/dimen.xml.
+    -->
+    <dimen name="desktop_windowing_freeform_task_rounded_corner_radius">16dp</dimen>
+
 </resources>

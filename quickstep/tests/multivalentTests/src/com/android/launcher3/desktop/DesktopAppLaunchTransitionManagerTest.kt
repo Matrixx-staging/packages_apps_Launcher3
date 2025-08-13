@@ -19,6 +19,7 @@ package com.android.launcher3.desktop
 import android.app.WindowConfiguration.ACTIVITY_TYPE_STANDARD
 import android.app.WindowConfiguration.WINDOWING_MODE_FREEFORM
 import android.content.Context
+import android.content.res.Resources
 import android.platform.test.annotations.DisableFlags
 import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
@@ -52,13 +53,17 @@ class DesktopAppLaunchTransitionManagerTest {
     @get:Rule val mSetFlagsRule = SetFlagsRule()
 
     private val context = mock<Context>()
+    private val applicationContext = mock<Context>()
+    private val resources = mock<Resources>()
     private val systemUiProxy = mock<SystemUiProxy>()
     private lateinit var transitionManager: DesktopAppLaunchTransitionManager
 
     @Before
     fun setUp() {
-        whenever(context.resources).thenReturn(mock())
-        whenever(context.applicationContext).thenReturn(mock())
+        whenever(context.applicationContext).thenReturn(applicationContext)
+        whenever(context.resources).thenReturn(resources)
+        whenever(applicationContext.resources).thenReturn(resources)
+        whenever(resources.getDimensionPixelSize(any())).thenReturn(42)
         whenever(DesktopModeStatus.canEnterDesktopMode(context)).thenReturn(true)
         transitionManager = DesktopAppLaunchTransitionManager(context, systemUiProxy)
     }

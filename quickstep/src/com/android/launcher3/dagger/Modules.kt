@@ -26,12 +26,15 @@ import com.android.launcher3.backuprestore.LauncherRestoreEventLogger
 import com.android.launcher3.dragndrop.SystemDragController
 import com.android.launcher3.dragndrop.SystemDragControllerImpl
 import com.android.launcher3.dragndrop.SystemDragControllerStub
+import com.android.launcher3.homescreenfiles.HomeScreenFilesMediaStoreProvider
+import com.android.launcher3.homescreenfiles.HomeScreenFilesNoOpProvider
+import com.android.launcher3.homescreenfiles.HomeScreenFilesProvider
+import com.android.launcher3.homescreenfiles.HomeScreenFilesUtils
 import com.android.launcher3.icons.LauncherIconProvider
 import com.android.launcher3.icons.LauncherIconProviderImpl
 import com.android.launcher3.logging.StatsLogManager.StatsLogManagerFactory
 import com.android.launcher3.secondarydisplay.SecondaryDisplayDelegate
 import com.android.launcher3.secondarydisplay.SecondaryDisplayQuickstepDelegateImpl
-import com.android.launcher3.taskbar.navbutton.AbstractNavButtonLayoutter.Companion.NAVBAR_KEY_ORDER_URI
 import com.android.launcher3.uioverrides.QuickstepWidgetHolder.QuickstepWidgetHolderFactory
 import com.android.launcher3.uioverrides.SystemApiWrapper
 import com.android.launcher3.uioverrides.plugins.PluginManagerWrapperImpl
@@ -53,7 +56,6 @@ import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.ElementsIntoSet
-import dagger.multibindings.IntoSet
 import javax.inject.Named
 
 private object Modules {}
@@ -132,11 +134,6 @@ object StaticObjectModule {
         if (ctx.resources.getBoolean(R.bool.config_searchAllEntrypointsEnabledDefault)) {
             setOf(ContextualSearchStateManager.SEARCH_ALL_ENTRYPOINTS_ENABLED_URI)
         } else emptySet()
-
-    @Provides
-    @IntoSet
-    @Named("SETTINGS_ENABLED_BY_DEFAULT")
-    fun provideNavBarKeyOrderDefaults(): Uri = NAVBAR_KEY_ORDER_URI
 }
 
 @Module
@@ -145,4 +142,20 @@ object SystemDragModule {
     @LauncherAppSingleton
     fun provideSystemDragController(): SystemDragController =
         if (enableSystemDrag()) SystemDragControllerImpl() else SystemDragControllerStub()
+}
+
+/** A dagger module responsible for managing files on the home screen. */
+@Module
+object HomeScreenFilesModule {
+    @Provides
+    @LauncherAppSingleton
+    fun provideHomeScreenFilesProvider(
+        @ApplicationContext context: Context
+    ): HomeScreenFilesProvider {
+        return if (HomeScreenFilesUtils.isFeatureEnabled(context)) {
+            HomeScreenFilesMediaStoreProvider()
+        } else {
+            HomeScreenFilesNoOpProvider()
+        }
+    }
 }
