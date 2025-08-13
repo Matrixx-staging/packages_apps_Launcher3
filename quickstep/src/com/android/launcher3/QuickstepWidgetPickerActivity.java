@@ -51,6 +51,7 @@ import com.android.launcher3.model.WidgetPredictionsRequester;
 import com.android.launcher3.model.WidgetsModel;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.PackageItemInfo;
+import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.widget.WidgetCell;
 import com.android.launcher3.widget.model.WidgetsListBaseEntriesBuilder;
 import com.android.launcher3.widget.model.WidgetsListBaseEntry;
@@ -382,6 +383,11 @@ public class QuickstepWidgetPickerActivity extends
     }
 
     private void updateServiceState(boolean isEnabled) {
+        if (DisplayController.showDesktopTaskbarForFreeformDisplay(this)) {
+            // Avoid blocking gestures when taskbar is always shown. Gestures should still allow
+            // user to return home in this case.
+            return;
+        }
         TouchInteractionService.TISBinder binder = mTISBindHelper.getBinder();
         if (binder != null) {
             binder.setGestureBlockedTaskId(isEnabled ? getTaskId() : -1);
