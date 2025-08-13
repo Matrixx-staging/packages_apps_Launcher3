@@ -24,6 +24,8 @@ import com.android.launcher3.BubbleTextView.RunningAppState
 import com.android.launcher3.Flags
 import com.android.launcher3.Flags.enableRecentsInTaskbar
 import com.android.launcher3.Flags.enableTaskbarRecentsThemedIcons
+import com.android.launcher3.graphics.ThemeManager
+import com.android.launcher3.graphics.ThemeManager.ThemeChangeListener
 import com.android.launcher3.model.data.AppPairInfo
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.TaskItemInfo
@@ -31,6 +33,8 @@ import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.taskbar.TaskbarControllers.LoggableTaskbarController
 import com.android.launcher3.taskbar.TaskbarPopupController.canPinAppWithContextMenu
 import com.android.launcher3.util.CancellableTask
+import com.android.launcher3.util.Executors.MAIN_EXECUTOR
+import com.android.launcher3.util.SafeCloseable
 import com.android.quickstep.RecentsFilterState
 import com.android.quickstep.RecentsModel
 import com.android.quickstep.util.DesktopTask
@@ -49,6 +53,7 @@ import java.io.PrintWriter
 class TaskbarRecentAppsController(
     private val context: Context,
     private val recentsModel: RecentsModel,
+    private val themeManager: ThemeManager,
 ) : LoggableTaskbarController {
 
     var canShowRunningApps =
@@ -214,6 +219,9 @@ class TaskbarRecentAppsController(
     // Whether we've loaded recents tasks at least once
     private var recentTasksLoaded = false
 
+    private var iconShapeDataCloseable: SafeCloseable? = null
+    private var themeChangeListener: ThemeChangeListener? = null
+
     fun init(taskbarControllers: TaskbarControllers, previousShownTasks: List<GroupTask>) {
         controllers = taskbarControllers
         if (previousShownTasks.isNotEmpty()) {
@@ -225,6 +233,12 @@ class TaskbarRecentAppsController(
         if (canShowRunningApps || canShowRecentApps) {
             recentsModel.registerRecentTasksChangedListener(recentTasksChangedListener)
             controllers.runAfterInit { reloadRecentTasksIfNeeded() }
+            if (enableTaskbarRecentsThemedIcons()) {
+                iconShapeDataCloseable =
+                    themeManager.iconShapeData.forEach(MAIN_EXECUTOR) { fetchIcons() }
+                themeChangeListener =
+                    ThemeChangeListener { fetchIcons() }.also { themeManager.addChangeListener(it) }
+            }
         }
     }
 
@@ -240,6 +254,8 @@ class TaskbarRecentAppsController(
         recentsModel.unregisterRecentTasksChangedListener(recentTasksChangedListener)
         iconLoadRequests.forEach { it.cancel() }
         iconLoadRequests.clear()
+        iconShapeDataCloseable?.close()
+        themeChangeListener?.let { themeManager.removeChangeListener(it) }
     }
 
     /** Called to update hotseatItems, in order to de-dupe them from Recent/Running tasks later. */
@@ -268,11 +284,8 @@ class TaskbarRecentAppsController(
                 )
         }
 
-        if (
-            recentTasksLoaded && !onRecentsOrHotseatChanged() && enableTaskbarRecentsThemedIcons()
-        ) {
-            // Icon theme or shape changes cause hotseat item updates, so refresh them.
-            fetchIcons()
+        if (recentTasksLoaded) {
+            onRecentsOrHotseatChanged()
         }
 
         return shownHotseatItems.toTypedArray()
