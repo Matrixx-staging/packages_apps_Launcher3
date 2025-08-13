@@ -121,7 +121,12 @@ class ItemInflater<T>(
         favorite.setOnClickListener(clickListener)
         favorite.onFocusChangeListener = focusListener
 
-        if (container == Favorites.CONTAINER_HOTSEAT_PREDICTION) favorite.verifyHighRes()
+        // If the icon is directly being added on homescreen, verify the high resolution icon
+        when (container) {
+            Favorites.CONTAINER_HOTSEAT_PREDICTION -> favorite.verifyHighRes()
+            Favorites.CONTAINER_DESKTOP -> favorite.verifyHighRes()
+            Favorites.CONTAINER_HOTSEAT -> favorite.verifyHighRes()
+        }
         return favorite
     }
 
