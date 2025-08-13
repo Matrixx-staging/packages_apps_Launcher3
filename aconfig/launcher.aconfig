@@ -640,3 +640,13 @@ flag {
     purpose: PURPOSE_BUGFIX
   }
 }
+
+flag {
+  name: "enable_custom_height_for_all_apps_on_cd"
+  namespace: "launcher"
+  description: "Enables custom height for all apps on CD"
+  bug: "416220478"
+  metadata {
+    purpose: PURPOSE_BUGFIX
+  }
+}

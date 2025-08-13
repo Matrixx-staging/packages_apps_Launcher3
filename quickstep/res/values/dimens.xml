@@ -332,6 +332,13 @@
     <dimen name="swipe_edu_width">80dp</dimen>
     <dimen name="swipe_edu_max_height">184dp</dimen>
 
+    <!-- Taskbar All Apps custom height parameters -->
+    <!-- This multiple will make the all apps a multiple taller as compared to its width on CD.-->
+    <item name="taskbar_all_apps_connected_display_custom_height_multiple" format="float" type="dimen">1.2</item>
+    <!-- If the desired height of all apps on CD is taller that 80% of the total height of display
+         then show a fullscreen all apps instead. -->
+    <item name="taskbar_all_apps_connected_display_custom_height_limit" format="float" type="dimen">0.8</item>
+
     <dimen name="chip_hint_border_width">1dp</dimen>
     <dimen name="chip_hint_corner_radius">20dp</dimen>
     <dimen name="chip_hint_outer_padding">20dp</dimen>
