@@ -40,7 +40,6 @@ import androidx.annotation.VisibleForTesting;
 import androidx.core.os.BuildCompat;
 
 import com.android.launcher3.DeviceProfile;
-import com.android.launcher3.Flags;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
@@ -107,7 +106,7 @@ public class DatabaseWidgetPreviewLoader {
         WidgetPreviewInfo result = new WidgetPreviewInfo();
 
         AppWidgetProviderInfo widgetInfo = item.widgetInfo;
-        if (BuildCompat.isAtLeastV() && Flags.enableGeneratedPreviews() && widgetInfo != null
+        if (BuildCompat.isAtLeastV() && widgetInfo != null
                 && ((widgetInfo.generatedPreviewCategories & WIDGET_CATEGORY_HOME_SCREEN) != 0)) {
             result.remoteViews = new WidgetManagerHelper(mContext)
                     .loadGeneratedPreview(widgetInfo, WIDGET_CATEGORY_HOME_SCREEN);
