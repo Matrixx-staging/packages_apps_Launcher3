@@ -28,6 +28,7 @@ import com.android.launcher3.concurrent.ExecutorsModule
 import com.android.launcher3.dagger.ApiWrapperModule
 import com.android.launcher3.dagger.AppModule
 import com.android.launcher3.dagger.ApplicationContext
+import com.android.launcher3.dagger.HomeScreenFilesModule
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
@@ -39,7 +40,6 @@ import com.android.launcher3.dagger.SettingsModule
 import com.android.launcher3.dagger.StaticObjectModule
 import com.android.launcher3.dagger.SystemDragModule
 import com.android.launcher3.dagger.WindowManagerProxyModule
-import com.android.launcher3.homescreenfiles.HomeScreenFilesNoOpModule
 import com.android.launcher3.model.LayoutParserFactory
 import com.android.launcher3.model.LayoutParserFactory.XmlLayoutParserFactory
 import com.android.launcher3.model.ModelInitializer
@@ -196,7 +196,7 @@ constructor(
                 NoOpWidgetPickerModule::class,
                 LauncherModelModule::class,
                 PreviewModule::class,
-                HomeScreenFilesNoOpModule::class,
+                HomeScreenFilesModule::class,
                 SettingsModule::class,
                 SystemDragModule::class,
             ]
