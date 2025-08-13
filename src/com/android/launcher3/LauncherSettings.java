@@ -151,6 +151,16 @@ public class LauncherSettings {
         public static final int ITEM_TYPE_PRIVATE_SPACE_INSTALL_APP_BUTTON = 11;
 
         /**
+         * The file item that comes from the local file system and is displayed on workspace.
+         */
+        public static final int ITEM_TYPE_FILE_SYSTEM_FILE = 12;
+
+        /**
+         * The folder item that comes from the local file system and is displayed on workspace.
+         */
+        public static final int ITEM_TYPE_FILE_SYSTEM_FOLDER = 13;
+
+        /**
          * The custom icon bitmap.
          * <P>Type: BLOB</P>
          */

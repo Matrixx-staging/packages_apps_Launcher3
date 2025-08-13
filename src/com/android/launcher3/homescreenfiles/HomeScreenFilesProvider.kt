@@ -17,7 +17,6 @@
 package com.android.launcher3.homescreenfiles
 
 import android.net.Uri
-import java.util.concurrent.Future
 
 /** Represents a single file or folder item queried by [HomeScreenFilesProvider]. */
 data class HomeScreenFile(val displayName: String, val mimeType: String?, val isDirectory: Boolean)
@@ -25,5 +24,5 @@ data class HomeScreenFile(val displayName: String, val mimeType: String?, val is
 /** An interface for managing file items to be shown on the home screen. */
 interface HomeScreenFilesProvider {
     /** Returns all eligible file items to be shown on the home screen. */
-    fun query(): Future<Map<Uri, HomeScreenFile>>
+    fun query(): Lazy<Map<Uri, HomeScreenFile>>
 }

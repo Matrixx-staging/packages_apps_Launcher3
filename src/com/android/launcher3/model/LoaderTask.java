@@ -41,6 +41,7 @@ import android.content.pm.LauncherApps;
 import android.content.pm.PackageInstaller.SessionInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ShortcutInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Trace;
 import android.os.UserHandle;
@@ -63,6 +64,8 @@ import com.android.launcher3.backuprestore.LauncherRestoreEventLogger;
 import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.folder.FolderNameInfos;
 import com.android.launcher3.folder.FolderNameProvider;
+import com.android.launcher3.homescreenfiles.HomeScreenFile;
+import com.android.launcher3.homescreenfiles.HomeScreenFilesProvider;
 import com.android.launcher3.icons.CacheableShortcutCachingLogic;
 import com.android.launcher3.icons.CacheableShortcutInfo;
 import com.android.launcher3.icons.IconCache;
@@ -82,6 +85,7 @@ import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.pm.InstallSessionHelper;
 import com.android.launcher3.pm.PackageInstallInfo;
 import com.android.launcher3.pm.UserCache;
+import com.android.launcher3.provider.LauncherDbUtils;
 import com.android.launcher3.shortcuts.ShortcutKey;
 import com.android.launcher3.shortcuts.ShortcutRequest;
 import com.android.launcher3.shortcuts.ShortcutRequest.QueryResult;
@@ -166,6 +170,8 @@ public class LoaderTask implements Runnable {
     private String mDbName;
     private final Provider<FolderNameProvider> mFolderNameProviderFactory;
     private final Provider<LauncherRestoreEventLogger> mRestoreEventLoggerProvider;
+    private final WorkspaceItemSpaceFinder mWorkspaceItemSpaceFinder;
+    private final kotlin.Lazy<Map<Uri, HomeScreenFile>> mHomeScreenFilesQueryResult;
 
     @AssistedInject
     protected LoaderTask(
@@ -186,7 +192,9 @@ public class LoaderTask implements Runnable {
             Provider<LauncherRestoreEventLogger> restoreEventLoggerFactory,
             @Named("MODEL_ITEMS") Provider<Set<ItemInfo>> extraItemsProvider,
             WidgetSizeHandler widgetSizeHandler,
-            LoaderParams params) {
+            LoaderParams params,
+            WorkspaceItemSpaceFinder workspaceItemSpaceFinder,
+            HomeScreenFilesProvider homeScreenFilesProvider) {
         mContext = context;
         mIDP = idp;
         mModel = model;
@@ -209,6 +217,8 @@ public class LoaderTask implements Runnable {
         mExtraItemsProvider = extraItemsProvider;
         mWidgetSizeHandler = widgetSizeHandler;
         mParams = params;
+        mWorkspaceItemSpaceFinder = workspaceItemSpaceFinder;
+        mHomeScreenFilesQueryResult = homeScreenFilesProvider.query();
     }
 
     protected synchronized void waitForIdle() {
@@ -459,7 +469,8 @@ public class LoaderTask implements Runnable {
 
             mShortcutKeyToPinnedShortcuts = new HashMap<>();
             final LoaderCursor c = mLoaderCursorFactory.createLoaderCursor(
-                    dbController.query(null, selection, null, null),
+                    dbController.query(null, selection, null,
+                            LauncherDbUtils.getLoaderCursorQuerySortOrder(mContext)),
                     mUserManagerState,
                     mIsRestoreFromBackup ? restoreEventLogger : null);
             final Bundle extras = c.getExtras();
@@ -475,7 +486,7 @@ public class LoaderTask implements Runnable {
                         mShortcutKeyToPinnedShortcuts, mContext, mIDP, mIconCache,
                         mIsSafeModeEnabled, installingPkgs, isSdCardReady, widgetInflater,
                         mPmHelper, mWorkspaceIconRequestInfos, unlockedUsers, allDeepShortcuts,
-                        mWidgetSizeHandler);
+                        mWidgetSizeHandler, mWorkspaceItemSpaceFinder, mHomeScreenFilesQueryResult);
 
                 if (mStopped) {
                     Log.w(TAG, "loadWorkspaceImpl: Loader stopped, skipping item processing");

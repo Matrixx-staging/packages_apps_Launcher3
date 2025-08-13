@@ -65,7 +65,9 @@ class ItemInflater<T>(
         return when (item.itemType) {
             Favorites.ITEM_TYPE_APPLICATION,
             Favorites.ITEM_TYPE_DEEP_SHORTCUT,
-            Favorites.ITEM_TYPE_SEARCH_ACTION ->
+            Favorites.ITEM_TYPE_SEARCH_ACTION,
+            Favorites.ITEM_TYPE_FILE_SYSTEM_FILE,
+            Favorites.ITEM_TYPE_FILE_SYSTEM_FOLDER ->
                 createShortcut(
                     info =
                         when (item) {

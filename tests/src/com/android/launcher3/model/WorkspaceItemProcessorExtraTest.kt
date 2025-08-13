@@ -79,6 +79,7 @@ class WorkspaceItemProcessorExtraTest {
     @Mock private lateinit var mockUserCache: UserCache
     @Mock private lateinit var mockUserManagerState: UserManagerState
     @Mock private lateinit var mockWidgetInflater: WidgetInflater
+    @Mock private lateinit var mockWorkspaceItemSpaceFinder: WorkspaceItemSpaceFinder
     @get:Rule val mockitoRule = MockitoJUnit.rule()
 
     private var intent: Intent = Intent()
@@ -290,5 +291,7 @@ class WorkspaceItemProcessorExtraTest {
             iconCache = mockIconCache,
             isSafeMode = false,
             widgetSizeHandler = context.appComponent.widgetSizeHandler,
+            homeScreenFiles = lazyOf(mapOf()),
+            workspaceItemSpaceFinder = mockWorkspaceItemSpaceFinder,
         )
 }

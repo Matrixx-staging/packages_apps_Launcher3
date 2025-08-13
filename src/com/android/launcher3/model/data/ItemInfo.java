@@ -101,6 +101,8 @@ public class ItemInfo {
      * {@link Favorites#ITEM_TYPE_QSB}.
      * {@link Favorites#ITEM_TYPE_SEARCH_ACTION}.
      * {@link Favorites#ITEM_TYPE_PRIVATE_SPACE_INSTALL_APP_BUTTON}.
+     * {@link Favorites#ITEM_TYPE_FILE_SYSTEM_FILE}.
+     * {@link Favorites#ITEM_TYPE_FILE_SYSTEM_FOLDER}.
      */
     public int itemType;
 
