@@ -78,6 +78,7 @@ import com.android.launcher3.statemanager.BaseState;
 import com.android.launcher3.statemanager.StateManager;
 import com.android.launcher3.statemanager.StatefulContainer;
 import com.android.launcher3.util.DisplayController;
+import com.android.launcher3.util.Executors;
 import com.android.launcher3.util.MSDLPlayerWrapper;
 import com.android.launcher3.util.SandboxApplication;
 import com.android.launcher3.util.SystemUiController;
@@ -103,6 +104,7 @@ import org.mockito.junit.MockitoRule;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 public abstract class AbsSwipeUpHandlerTestCase<
         STATE_TYPE extends BaseState<STATE_TYPE>,
@@ -540,8 +542,12 @@ public abstract class AbsSwipeUpHandlerTestCase<
         assertNull(swipeHandler.mRecentsView);
         assertNull(swipeHandler.mContainer);
         verify(mTaskAnimationManager).onLauncherDestroyed();
-        runOnMainSync(() -> verify(mContextInitListener)
-                .unregister(eq("AbsSwipeUpHandler.mLauncherOnDestroyCallback")));
+        runOnMainSync(() -> {
+            verify(mContextInitListener).unregister(any());
+            assertTrue(
+                    "Swipe handler wasn't invalidated on container destroyed",
+                    swipeHandler.mStateCallback.hasStates(STATE_HANDLER_INVALIDATED));
+        });
     }
 
     @Test
@@ -771,6 +777,11 @@ public abstract class AbsSwipeUpHandlerTestCase<
 
     protected static void runOnMainSync(Runnable runnable) {
         InstrumentationRegistry.getInstrumentation().runOnMainSync(runnable);
+        try {
+            Executors.MAIN_EXECUTOR.submit(() -> null).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @NonNull
