@@ -97,6 +97,14 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
     val deskId
         get() = desktopTask?.deskId ?: DesktopVisibilityController.INACTIVE_DESK_ID
 
+    val selectedTaskId: Int?
+        get() =
+            taskContainers
+                .firstOrNull { it.taskContentView.isFocused || it.taskContentView.isHovered }
+                ?.task
+                ?.key
+                ?.id
+
     private val contentViewFullscreenParams = FullscreenDrawParams(context)
 
     private val taskThumbnailViewDeprecatedPool =
@@ -603,7 +611,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
      * provided and already on the desktop. It will exit Overview to desktop and activate the
      * according new task afterwards if applicable.
      */
-    private fun launchTaskWithDesktopController(
+    fun launchTaskWithDesktopController(
         animated: Boolean,
         taskIdToReorderToFront: Int? = null,
     ): RunnableList? {
