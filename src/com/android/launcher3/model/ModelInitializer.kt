@@ -33,6 +33,7 @@ import com.android.launcher3.graphics.ThemeManager.ThemeChangeListener
 import com.android.launcher3.icons.IconCache
 import com.android.launcher3.icons.LauncherIconProvider
 import com.android.launcher3.icons.LauncherIcons.IconPool
+import com.android.launcher3.logging.FileLog
 import com.android.launcher3.notification.NotificationListener
 import com.android.launcher3.pm.InstallSessionHelper
 import com.android.launcher3.pm.UserCache
@@ -70,8 +71,14 @@ constructor(
         // System changes
         val modelCallbacks = model.newModelCallbacks()
         val launcherApps = context.getSystemService(LauncherApps::class.java)!!
+        // TODO: remove logging after b/425319508
+        FileLog.d(TAG, "registering modelCallbacks for LauncherApps")
         launcherApps.registerCallback(modelCallbacks, MODEL_EXECUTOR.handler)
-        lifeCycle.addCloseable { launcherApps.unregisterCallback(modelCallbacks) }
+        lifeCycle.addCloseable {
+            // TODO: remove logging after b/425319508
+            FileLog.d(TAG, "Unregistering modelCallbacks from LauncherApps")
+            launcherApps.unregisterCallback(modelCallbacks)
+        }
 
         if (Utilities.ATLEAST_V && Flags.enableSupportForArchiving()) {
             launcherApps.setArchiveCompatibility(
@@ -163,6 +170,7 @@ constructor(
     }
 
     companion object {
+        private const val TAG = "ModelInitializer"
         private const val ACTION_FORCE_RELOAD = "force-reload-launcher"
     }
 }
