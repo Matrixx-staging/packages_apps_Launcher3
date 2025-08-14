@@ -320,7 +320,7 @@ public class TaskbarLauncherStateController {
             runForRecentsWindowManager(recentsWindowManager ->
                     recentsWindowManager.getStateManager().addStateListener(mRecentsStateListener));
         }
-        mLauncherState = launcher.getStateManager().getState();
+        mLauncherState = LauncherUiStateUtil.getLauncherState(mLauncher, mLauncherUiState);
         updateStateForSysuiFlags(sysuiStateFlags, /*applyState*/ false);
 
         applyState(0);
@@ -1163,7 +1163,8 @@ public class TaskbarLauncherStateController {
     }
 
     private boolean isStateManagerInState(@NonNull LauncherState state) {
-        return mLauncher.isInState(state) || state == getFromRecentsWindowManager(
+        return LauncherUiStateUtil.getLauncherState(mLauncher, mLauncherUiState) == state
+                || state == getFromRecentsWindowManager(
                 recentsWindowManager ->
                         toLauncherState(recentsWindowManager.getStateManager().getState()));
     }

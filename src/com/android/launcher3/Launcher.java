@@ -443,6 +443,9 @@ public class Launcher extends StatefulActivity<LauncherState>
         initDragController();
         mAllAppsController = new AllAppsTransitionController(this);
         mStateManager = new StateManager<>(this, NORMAL);
+        if (refactorTaskbarUiState()) {
+            mStateManager.setLauncherUiState(launcherUiState);
+        }
 
         mAppWidgetManager = new WidgetManagerHelper(this);
         mAppWidgetHolder = LauncherWidgetHolder.newInstance(this);

@@ -33,7 +33,10 @@ import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.FloatRange;
+import androidx.annotation.Nullable;
 
+import com.android.launcher3.LauncherState;
+import com.android.launcher3.LauncherUiState;
 import com.android.launcher3.anim.AnimationSuccessListener;
 import com.android.launcher3.anim.AnimatorPlaybackController;
 import com.android.launcher3.anim.PendingAnimation;
@@ -62,6 +65,7 @@ public class StateManager<S extends BaseState<S>, T extends StatefulContainer<S>
     private final T mContainer;
     private final ArrayList<StateListener<S>> mListeners = new ArrayList<>();
     private final S mBaseState;
+    private @Nullable LauncherUiState mLauncherUiState;
 
     // Animators which are run on properties also controlled by state animations.
     private final AtomicAnimationFactory<S> mAtomicAnimationFactory;
@@ -80,6 +84,14 @@ public class StateManager<S extends BaseState<S>, T extends StatefulContainer<S>
         mBaseState = baseState;
         mState = mLastStableState = mCurrentStableState = baseState;
         mAtomicAnimationFactory = container.createAtomicAnimationFactory();
+    }
+
+    /** Set {@link LauncherUiState} to update {@link LauncherState}. */
+    public void setLauncherUiState(LauncherUiState launcherUiState) {
+        mLauncherUiState = launcherUiState;
+        if (mState instanceof LauncherState state) {
+            mLauncherUiState.setLauncherState(state);
+        }
     }
 
     public S getState() {
@@ -422,6 +434,9 @@ public class StateManager<S extends BaseState<S>, T extends StatefulContainer<S>
 
     private void onStateTransitionStart(S state) {
         mState = state;
+        if (mLauncherUiState != null && mState instanceof LauncherState launcherState) {
+            mLauncherUiState.setLauncherState(launcherState);
+        }
         mContainer.onStateSetStart(mState);
 
         if (enableStateManagerProtoLog()) {
