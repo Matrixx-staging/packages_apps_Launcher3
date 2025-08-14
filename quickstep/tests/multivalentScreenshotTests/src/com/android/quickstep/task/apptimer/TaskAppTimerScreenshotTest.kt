@@ -145,7 +145,7 @@ class TaskAppTimerScreenshotTest(emulationSpec: DeviceEmulationSpec) {
     companion object {
         private const val CONTAINER_HEIGHT = 700
         private const val CONTAINER_WIDTH_WIDE = 800
-        private const val CONTAINER_WIDTH_MEDIUM = 400
+        private const val CONTAINER_WIDTH_MEDIUM = 500
         private const val CONTAINER_WIDTH_NARROW = 150
 
         private val TIMER_UI_STATE =
