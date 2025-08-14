@@ -125,13 +125,6 @@ flag {
 }
 
 flag {
-    name: "enable_generated_previews"
-    namespace: "launcher"
-    description: "Enables support for RemoteViews previews in the widget picker."
-    bug: "306546610"
-}
-
-flag {
   name: "enable_categorized_widget_suggestions"
   namespace: "launcher"
   description: "Enables widget suggestions in widget picker to be displayed in categories"
@@ -154,13 +147,6 @@ flag {
     metadata {
       purpose: PURPOSE_BUGFIX
     }
-}
-
-flag {
-    name: "enable_widget_tap_to_add"
-    namespace: "launcher"
-    description: "Enables an add button in the widget picker"
-    bug: "323886237"
 }
 
 flag {

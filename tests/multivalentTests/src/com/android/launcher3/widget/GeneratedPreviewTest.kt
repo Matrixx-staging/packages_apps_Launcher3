@@ -7,7 +7,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
-import android.platform.test.annotations.RequiresFlagsEnabled
 import android.platform.test.flag.junit.CheckFlagsRule
 import android.platform.test.flag.junit.DeviceFlagsValueProvider
 import android.view.ContextThemeWrapper
@@ -16,7 +15,6 @@ import android.widget.RemoteViews
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
-import com.android.launcher3.Flags.FLAG_ENABLE_GENERATED_PREVIEWS
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.R
 import com.android.launcher3.icons.IconCache
@@ -40,7 +38,6 @@ import org.mockito.kotlin.whenever
 
 @SmallTest
 @RunWith(AndroidJUnit4::class)
-@RequiresFlagsEnabled(FLAG_ENABLE_GENERATED_PREVIEWS)
 class GeneratedPreviewTest {
     @get:Rule val mockitoRule = MockitoJUnit.rule()
     @get:Rule val checkFlagsRule: CheckFlagsRule = DeviceFlagsValueProvider.createCheckFlagsRule()
