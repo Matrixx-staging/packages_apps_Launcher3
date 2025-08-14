@@ -96,7 +96,7 @@ public class AnimUtils {
         }
         config.duration = duration;
         AnimatorSet stateAnim = stateManager.createAtomicAnimation(
-                startState, NORMAL, config);
+                startState, stateManager.getRestState(), config);
         AnimatorSet dismissAnim = animationController
                 .createPlaceholderDismissAnim(container, exitReason, duration);
         stateAnim.play(dismissAnim);
@@ -108,7 +108,7 @@ public class AnimUtils {
                 }
             });
         }
-        stateManager.setCurrentAnimation(stateAnim, NORMAL);
+        stateManager.setCurrentAnimation(stateAnim, stateManager.getRestState());
         stateAnim.start();
     }
 
