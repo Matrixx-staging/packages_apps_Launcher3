@@ -1485,7 +1485,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
     @Override
     public boolean shouldShowHomeBehindDesktop() {
-        return DesktopState.fromContext(this).getShouldShowHomeBehindDesktop();
+        return DesktopState.getInstance(this).getShouldShowHomeBehindDesktop();
     }
 
     @Override

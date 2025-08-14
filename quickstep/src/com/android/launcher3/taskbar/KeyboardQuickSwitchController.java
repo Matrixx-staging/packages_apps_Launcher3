@@ -95,7 +95,7 @@ public final class KeyboardQuickSwitchController implements
     public void init(@NonNull TaskbarControllers controllers) {
         mControllers = controllers;
         mModel = RecentsModel.INSTANCE.get(controllers.taskbarActivityContext);
-        mIsProjectedMode = DesktopState.fromContext(
+        mIsProjectedMode = DesktopState.getInstance(
                 mControllers.taskbarActivityContext).isProjectedMode();
     }
 

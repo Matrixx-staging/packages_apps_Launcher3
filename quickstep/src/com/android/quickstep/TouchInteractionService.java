@@ -141,6 +141,7 @@ import com.android.wm.shell.draganddrop.IDragAndDrop;
 import com.android.wm.shell.onehanded.IOneHanded;
 import com.android.wm.shell.recents.IRecentTasks;
 import com.android.wm.shell.shared.IShellTransitions;
+import com.android.wm.shell.shared.desktopmode.DesktopState;
 import com.android.wm.shell.splitscreen.ISplitScreen;
 import com.android.wm.shell.startingsurface.IStartingWindow;
 
@@ -747,6 +748,7 @@ public class TouchInteractionService extends Service {
     private QuickstepKeyGestureEventsManager mQuickstepKeyGestureEventsHandler;
     private DisplaysWithDecorationsRepositoryCompat mDisplaysWithDecorationsRepositoryCompat;
     private CoroutineDispatcher mCoroutineDispatcher;
+    private DesktopState mDesktopState;
 
     @Override
     public void onCreate() {
@@ -766,6 +768,7 @@ public class TouchInteractionService extends Service {
         mCoroutineDispatcher = ProductionDispatchers.INSTANCE.getMain();
         mDisplaysWithDecorationsRepositoryCompat =
                 LauncherDisplaysWithDecorationsRepositoryCompat.getINSTANCE().get(this);
+        mDesktopState = DesktopState.getInstance(this);
         mAllAppsActionManager = new AllAppsActionManager(this, UI_HELPER_EXECUTOR,
                 mQuickstepKeyGestureEventsHandler,
                 () -> mTaskbarManager.createAllAppsPendingIntent());
@@ -1166,7 +1169,8 @@ public class TouchInteractionService extends Service {
                         mSwipeUpProxyProvider,
                         mOverviewCommandHelper,
                         event,
-                        rotationTouchHelper);
+                        rotationTouchHelper,
+                        mDesktopState);
                 mUncheckedConsumer = mConsumer;
             } else if ((deviceState.isFullyGesturalNavMode() || isTrackpadMultiFingerSwipe(event))
                     && deviceState.canTriggerAssistantAction(event)) {
