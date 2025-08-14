@@ -229,7 +229,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
                 public void onActiveDeskChanged(int displayId, int newActiveDesk,
                         int oldActiveDesk) {
                     // Only Handles Special Exit Cases for Desktop Mode Taskbar Recreation.
-                    TaskbarActivityContext taskbarActivityContext = getCurrentActivityContext();
+                    TaskbarActivityContext taskbarActivityContext = getTaskbarForDisplay(displayId);
                     if (taskbarActivityContext != null
                             && !taskbarActivityContext.showLockedTaskbarOnHome()
                             && !taskbarActivityContext.showDesktopTaskbarForFreeformDisplay()
