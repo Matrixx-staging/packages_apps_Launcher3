@@ -16,6 +16,8 @@
 
 package com.android.launcher3.widget
 
+import android.appwidget.AppWidgetProviderInfo.WIDGET_FEATURE_CONFIGURATION_OPTIONAL
+import android.appwidget.AppWidgetProviderInfo.WIDGET_FEATURE_RECONFIGURABLE
 import android.content.Context
 import android.os.Bundle
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -44,6 +46,12 @@ class WidgetAddFlowHandlerTest {
         LauncherAppWidgetProviderInfo().apply {
             configure = InstrumentationRegistry.getInstrumentation().componentName
         }
+    private val configOptionalProviderInfo =
+        LauncherAppWidgetProviderInfo().apply {
+            configure = InstrumentationRegistry.getInstrumentation().componentName
+            widgetFeatures = WIDGET_FEATURE_CONFIGURATION_OPTIONAL or WIDGET_FEATURE_RECONFIGURABLE
+        }
+    private val noConfigureProviderInfo = LauncherAppWidgetProviderInfo()
     private val appWidgetHolder: LauncherWidgetHolder = mock<LauncherWidgetHolder>()
     private val launcher: Launcher =
         mock<Launcher>().also { whenever(it.appWidgetHolder).thenReturn(appWidgetHolder) }
@@ -80,7 +88,7 @@ class WidgetAddFlowHandlerTest {
             launcher,
             appWidgetInfo.appWidgetId,
             ItemInfo(),
-            requestCode
+            requestCode,
         )
         verify(launcher).setWaitingForResult(any())
         verify(appWidgetHolder)
@@ -96,8 +104,46 @@ class WidgetAddFlowHandlerTest {
     }
 
     @Test
+    fun startConfigActivityIfSupported_configOptional_stillStartsActivity() {
+        val flowHandler = WidgetAddFlowHandler(configOptionalProviderInfo)
+        flowHandler.startConfigActivityIfSupported(launcher, appWidgetInfo, requestCode)
+        verify(launcher).setWaitingForResult(any())
+        verify(appWidgetHolder)
+            .startConfigActivity(launcher, appWidgetInfo.appWidgetId, requestCode)
+    }
+
+    @Test
     fun needsConfigure_returnsTrue_ifFlagsAndProviderInfoDetermineSo() {
         Truth.assertThat(flowHandler.needsConfigure()).isTrue()
+    }
+
+    @Test
+    fun needsConfigure_returnsFalse_ifConfigIsOptional() {
+        val flowHandler = WidgetAddFlowHandler(configOptionalProviderInfo)
+        Truth.assertThat(flowHandler.needsConfigure()).isFalse()
+    }
+
+    @Test
+    fun needsConfigure_returnsFalse_ifConfigureIsNotSet() {
+        val flowHandler = WidgetAddFlowHandler(noConfigureProviderInfo)
+        Truth.assertThat(flowHandler.needsConfigure()).isFalse()
+    }
+
+    @Test
+    fun supportsConfiguration_returnsTrue_ifConfigureIsSet() {
+        Truth.assertThat(flowHandler.supportsConfiguration()).isTrue()
+    }
+
+    @Test
+    fun supportsConfiguration_returnsTrue_ifConfigureIsSetEvenIfOptional() {
+        val flowHandler = WidgetAddFlowHandler(configOptionalProviderInfo)
+        Truth.assertThat(flowHandler.supportsConfiguration()).isTrue()
+    }
+
+    @Test
+    fun supportsConfiguration_returnsFalse_ifConfigureIsNotSet() {
+        val flowHandler = WidgetAddFlowHandler(noConfigureProviderInfo)
+        Truth.assertThat(flowHandler.supportsConfiguration()).isFalse()
     }
 
     @Test
