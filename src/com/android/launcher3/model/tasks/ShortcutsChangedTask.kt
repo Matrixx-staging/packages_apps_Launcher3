@@ -123,8 +123,9 @@ class ShortcutsChangedTask(
 
         if (shouldUpdateIdMap) {
             // Update the deep shortcut map if the list of ids has changed for an activity.
-            dataModel.updateDeepShortcutCounts(packageName, user, shortcuts)
-            taskController.bindDeepShortcuts(dataModel)
+            dataModel.updateDeepShortcutCounts(shortcuts) {
+                it.componentName.packageName == packageName && it.user == user
+            }
         }
     }
 }

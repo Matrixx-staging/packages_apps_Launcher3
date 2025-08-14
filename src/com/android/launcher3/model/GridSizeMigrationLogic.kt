@@ -35,7 +35,6 @@ import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ROW_
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_STANDARD_GRID_MIGRATION
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_STANDARD_ONE_GRID_MIGRATION
 import com.android.launcher3.logging.StatsLogManager.StatsLogManagerFactory
-import com.android.launcher3.model.GridSizeMigrationDBController.DbReader
 import com.android.launcher3.model.GridSizeMigrationDBController.isOneGridMigration
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.provider.LauncherDbUtils.SQLiteTransaction

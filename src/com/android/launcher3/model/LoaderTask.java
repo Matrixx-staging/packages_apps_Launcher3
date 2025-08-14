@@ -341,10 +341,6 @@ public class LoaderTask implements Runnable {
         logASplit("loadDeepShortcuts finished");
 
         verifyNotStopped();
-        mLauncherBinder.bindDeepShortcuts();
-        logASplit("bindDeepShortcuts finished");
-
-        verifyNotStopped();
         logASplit("saving deep shortcuts in icon cache");
         updateHandler.updateIcons(
                 convertShortcutsToCacheableShortcuts(allDeepShortcuts, allActivityList),
@@ -745,7 +741,6 @@ public class LoaderTask implements Runnable {
 
     private List<ShortcutInfo> loadDeepShortcuts() {
         List<ShortcutInfo> allShortcuts = new ArrayList<>();
-        mBgDataModel.deepShortcutMap.clear();
 
         if (mBgAllAppsList.hasShortcutHostPermission()) {
             for (UserHandle user : mUserCache.getUserProfiles()) {
@@ -753,7 +748,7 @@ public class LoaderTask implements Runnable {
                     List<ShortcutInfo> shortcuts = new ShortcutRequest(mContext, user)
                             .query(ShortcutRequest.ALL);
                     allShortcuts.addAll(shortcuts);
-                    mBgDataModel.updateDeepShortcutCounts(null, user, shortcuts);
+                    mBgDataModel.updateDeepShortcutCounts(shortcuts);
                 }
             }
         }

@@ -31,8 +31,8 @@ import com.android.launcher3.celllayout.testgenerator.ValidGridMigrationTestCase
 import com.android.launcher3.celllayout.testgenerator.generateItemsForTest
 import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
 import com.android.launcher3.model.DatabaseHelper
+import com.android.launcher3.model.DbReader
 import com.android.launcher3.model.DeviceGridState
-import com.android.launcher3.model.GridSizeMigrationDBController
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.provider.LauncherDbUtils
 import com.android.launcher3.util.rule.TestStabilityRule
@@ -145,14 +145,14 @@ class ValidGridMigrationUnitTest {
                 gridSizeMigrationLogic.migrateHotseat(
                     srcGrid.size.x,
                     dstGrid.size.x,
-                    GridSizeMigrationDBController.DbReader(writableDb, srcGrid.tableName, context),
-                    GridSizeMigrationDBController.DbReader(writableDb, dstGrid.tableName, context),
+                    DbReader(writableDb, srcGrid.tableName, context),
+                    DbReader(writableDb, dstGrid.tableName, context),
                     dbHelper,
                     idsInUse,
                 )
                 gridSizeMigrationLogic.migrateWorkspace(
-                    GridSizeMigrationDBController.DbReader(writableDb, srcGrid.tableName, context),
-                    GridSizeMigrationDBController.DbReader(writableDb, dstGrid.tableName, context),
+                    DbReader(writableDb, srcGrid.tableName, context),
+                    DbReader(writableDb, dstGrid.tableName, context),
                     dbHelper,
                     dstGrid.size,
                     idsInUse,

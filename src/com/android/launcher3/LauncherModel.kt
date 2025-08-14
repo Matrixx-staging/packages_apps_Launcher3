@@ -283,7 +283,6 @@ constructor(
                     // For now, continue posting the binding of AllApps as there are other
                     // issues that arise from that.
                     launcherBinder.bindAllApps()
-                    launcherBinder.bindDeepShortcuts()
                     launcherBinder.bindWidgets()
                     return true
                 } else {

@@ -415,7 +415,10 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
         }
 
         if (mDp.getDeviceProperties().isTablet() && enableGridOnlyOverview()) {
-            return mDp.getTaskbarProfile().getStashedTaskbarHeight();
+            int modalTaskbarHeight = mDp.getTaskbarProfile().isTransientTaskbar()
+                    ? mDp.getTaskbarProfile().getStashedTaskbarHeight()
+                    : mDp.getTaskbarProfile().getHeight();
+            return modalTaskbarHeight + mDp.getOverviewProfile().getActionsTopMarginPx();
         }
 
         // Align to bottom of task Rect.
