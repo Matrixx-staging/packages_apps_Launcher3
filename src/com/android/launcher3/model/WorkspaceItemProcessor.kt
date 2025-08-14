@@ -23,7 +23,6 @@ import android.content.pm.LauncherApps
 import android.content.pm.LauncherApps.ShortcutQuery
 import android.content.pm.PackageInstaller
 import android.content.pm.ShortcutInfo
-import android.graphics.Point
 import android.text.TextUtils
 import android.util.Log
 import android.util.LongSparseArray
@@ -688,9 +687,7 @@ class WorkspaceItemProcessor(
             idp: InvariantDeviceProfile,
             widgetProviderInfo: LauncherAppWidgetProviderInfo,
         ) {
-            val cellSize = Point()
             for (deviceProfile in idp.supportedProfiles) {
-                deviceProfile.getCellSize(cellSize)
                 val cellLayoutBorderSpacePx =
                     deviceProfile.workspaceIconProfile.cellLayoutBorderSpacePx
                 FileLog.d(
@@ -699,7 +696,7 @@ class WorkspaceItemProcessor(
                         " available height: ${deviceProfile.deviceProperties.availableHeightPx}," +
                         " cellLayoutBorderSpacePx Horizontal: ${cellLayoutBorderSpacePx.x}," +
                         " cellLayoutBorderSpacePx Vertical: ${cellLayoutBorderSpacePx.y}," +
-                        " cellSize: $cellSize",
+                        " cellSize: ${deviceProfile.mWorkspaceProfile.cellSize}",
                 )
             }
             val widgetDimension = StringBuilder()
