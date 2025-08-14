@@ -117,7 +117,7 @@ class GridMigrationTest {
     private fun validateDb(data: GridMigrationData) {
         // The array size is just a big enough number to fit all the number of workspaces
         val boards = Array(100) { CellLayoutBoard(data.gridState.columns, data.gridState.rows) }
-        data.readEntries().forEach {
+        data.readEntries()?.forEach {
             val cellLayoutBoard = boards[it.screenId]
             assert(cellLayoutBoard.isEmpty(it.cellX, it.cellY, it.spanX, it.spanY)) {
                 "Db has overlapping items"
@@ -131,9 +131,9 @@ class GridMigrationTest {
         val mapF = { it: DbEntry ->
             EntryData(it.cellX, it.cellY, it.screenId, it.spanX, it.spanY, it.rank)
         }
-        val entriesDst = dst.readEntries().sortedWith(sort).map(mapF)
-        val entriesTarget = target.readEntries().sortedWith(sort).map(mapF)
-        val entriesSrc = src.readEntries().sortedWith(sort).map(mapF)
+        val entriesDst = dst.readEntries()?.sortedWith(sort)?.map(mapF)
+        val entriesTarget = target.readEntries()?.sortedWith(sort)?.map(mapF)
+        val entriesSrc = src.readEntries()?.sortedWith(sort)?.map(mapF)
         Log.i(
             TAG,
             "entriesSrc: $entriesSrc\n entriesDst: $entriesDst\n entriesTarget: $entriesTarget",
@@ -154,7 +154,7 @@ class GridMigrationTest {
     private fun runTest(src: GridMigrationData, dst: GridMigrationData, target: GridMigrationData) {
         TestUtil.runOnExecutorSync(Executors.MODEL_EXECUTOR) {
             migrate(src, dst)
-            assert(src.readEntries().size == dst.readEntries().size) {
+            assert(src.readEntries()?.size == dst.readEntries()?.size) {
                 "Source db and destination db do not contain the same number of elements"
             }
             validateDb(dst)
