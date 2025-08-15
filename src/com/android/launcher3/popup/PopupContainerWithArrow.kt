@@ -23,7 +23,6 @@ import android.graphics.Rect
 import android.graphics.Typeface
 import android.os.Handler
 import android.os.Looper
-import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnClickListener
@@ -59,16 +58,17 @@ import kotlin.math.max
  * @param <T> The activity on with the popup shows </T>
  */
 class PopupContainerWithArrow<T>
-@JvmOverloads
-constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 0) :
-    ArrowPopup<T>(context, attrs, defStyleAttr),
-    DragSource,
-    DragController.DragListener,
-    Popup where T : Context?, T : ActivityContext? {
+private constructor(
+    context: Context?,
+    private val originalView: View,
+    private val updateIconUi: Boolean,
+) : ArrowPopup<T>(context), DragSource, DragController.DragListener, Popup where
+T : Context,
+T : ActivityContext {
+
+    private val popupDelegate: PopupDelegate = PopupDelegateImpl(originalView, this)
     private val deepShortcuts: MutableList<DeepShortcutView> = ArrayList()
     private val interceptTouchDown = PointF()
-    private val startDragThreshold =
-        resources.getDimensionPixelSize(R.dimen.deep_shortcuts_start_drag_threshold)
     private val shortcutHeight: Float =
         resources.getDimension(R.dimen.system_shortcut_header_height)
 
@@ -82,12 +82,8 @@ constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 
     private var accessibilityDelegate: LauncherAccessibilityDelegate? = null
     private var currentHeight = 0f
 
-    var updateIconUi = true
+    val originalIcon = originalView as? BubbleTextView
 
-    var originalIcon: BubbleTextView? = null
-        private set
-
-    var originalView: View? = null
     var systemShortcutContainer: ViewGroup? = null
         private set
 
@@ -114,7 +110,7 @@ constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 
     }
 
     override fun isOfType(type: Int): Boolean {
-        return (type and TYPE_ACTION_POPUP) != 0
+        return popupDelegate.isOfType(type)
     }
 
     fun setPopupItemDragHandler(popupItemDragHandler: PopupItemDragHandler?) {
@@ -122,23 +118,12 @@ constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 
     }
 
     override fun onControllerInterceptTouchEvent(ev: MotionEvent): Boolean {
-        if (ev.action == MotionEvent.ACTION_DOWN) {
-            val dl = popupContainer
-            if (!dl.isEventOverView(this, ev)) {
-                // TODO: add WW log if want to log if tap closed deep shortcut container.
-                close(true)
-
-                // We let touches on the original icon go through so that users can launch
-                // the app with one tap if they don't find a shortcut they want.
-                return originalIcon == null || !dl.isEventOverView(originalIcon, ev)
-            }
-        }
-        return false
+        return popupDelegate.onControllerInterceptTouchEvent(ev)
     }
 
     fun configureForLauncher(launcher: Launcher, itemInfo: ItemInfo) {
         addOnAttachStateChangeListener(
-            LauncherPopupLiveUpdateHandler(launcher, this as PopupContainerWithArrow<Launcher?>)
+            LauncherPopupLiveUpdateHandler(launcher, this as PopupContainerWithArrow<Launcher>)
         )
         if (
             !Flags.privateSpaceRestrictItemDrag() ||
@@ -155,40 +140,26 @@ constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 
      * Populate and show shortcuts for the Launcher U app shortcut design. Will inflate the
      * container and shortcut View instances for the popup container.
      *
-     * @param originalIcon App icon that the popup is shown for
      * @param deepShortcutCount Number of DeepShortcutView instances to add to container
      * @param systemShortcuts List of SystemShortcuts to add to container
      */
-    fun populateAndShowRows(
-        originalIcon: BubbleTextView,
-        deepShortcutCount: Int,
-        systemShortcuts: List<SystemShortcut<*>>,
-    ) {
-        populateAndShowRows(
-            originalIcon,
-            originalIcon.tag as ItemInfo,
-            deepShortcutCount,
-            systemShortcuts,
-        )
+    fun populateAndShowRows(deepShortcutCount: Int, systemShortcuts: List<SystemShortcut<*>>) {
+        populateAndShowRows(originalView.tag as ItemInfo, deepShortcutCount, systemShortcuts)
     }
 
     /**
      * Populate and show shortcuts for the Launcher U app shortcut design. Will inflate the
      * container and shortcut View instances for the popup container.
      *
-     * @param originalIcon App icon that the popup is shown for
      * @param itemInfo The info that is used to load app shortcuts
      * @param deepShortcutCount Number of DeepShortcutView instances to add to container
      * @param systemShortcuts List of SystemShortcuts to add to container
      */
     fun populateAndShowRows(
-        originalIcon: BubbleTextView?,
         itemInfo: ItemInfo,
         deepShortcutCount: Int,
         systemShortcuts: List<SystemShortcut<*>>,
     ) {
-        this.originalIcon = originalIcon
-        originalView = originalIcon
         containerWidth = resources.getDimensionPixelSize(R.dimen.bg_popup_item_width)
 
         if (deepShortcutCount > 0) {
@@ -402,12 +373,7 @@ constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 
     }
 
     override fun getTargetObjectLocation(outPos: Rect) {
-        popupContainer.getDescendantRectRelativeToSelf(originalView, outPos)
-        outPos.top += originalView?.paddingTop ?: 0
-        outPos.left += originalView?.paddingLeft ?: 0
-        outPos.right -= originalView?.paddingRight ?: 0
-        outPos.bottom =
-            outPos.top + (originalIcon?.icon?.bounds?.height() ?: originalView?.height ?: 0)
+        popupDelegate.getTargetObjectLocation(outPos)
     }
 
     private fun updateHiddenShortcuts() {
@@ -471,7 +437,7 @@ constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 
     override fun createPreDragCondition(): PreDragCondition {
         return object : PreDragCondition {
             override fun shouldStartDrag(distanceDragged: Double): Boolean {
-                return distanceDragged > startDragThreshold
+                return popupDelegate.shouldStartDrag(distanceDragged)
             }
 
             override fun onPreDragStart(dragObject: DragObject) {
@@ -513,24 +479,11 @@ constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 
     override fun onDropCompleted(target: View, d: DragObject, success: Boolean) {}
 
     override fun onDragStart(dragObject: DragObject, options: DragOptions) {
-        // Either the original icon or one of the shortcuts was dragged.
-        // Hide the container, but don't remove it yet because that interferes with touch events.
-        mDeferContainerRemoval = true
-        animateClose()
+        popupDelegate.onDragStart()
     }
 
     override fun onDragEnd() {
-        if (!mIsOpen) {
-            if (mOpenCloseAnimator != null) {
-                // Close animation is running.
-                mDeferContainerRemoval = false
-            } else {
-                // Close animation is not running.
-                if (mDeferContainerRemoval) {
-                    closeComplete()
-                }
-            }
-        }
+        popupDelegate.onDragEnd()
     }
 
     override fun onCreateCloseAnimation(anim: AnimatorSet) {
@@ -575,13 +528,9 @@ constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 
             val item = icon.tag as ItemInfo
             val deepShortcutCount =
                 activityContext.activityComponent.popupDataProvider.getShortcutCountForItem(item)
-            val container: PopupContainerWithArrow<Launcher> =
-                activityContext.layoutInflater.inflate(
-                    R.layout.popup_container,
-                    activityContext.dragLayer,
-                    false,
-                ) as PopupContainerWithArrow<Launcher>
-            container.populateAndShowRows(icon, deepShortcutCount, emptyList())
+
+            val container = create<Launcher>(context = icon.context, originalView = icon)
+            container.populateAndShowRows(deepShortcutCount, emptyList())
             container.requestFocus()
         }
 
@@ -652,6 +601,33 @@ constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 
             ) {
                 popup.animateClose()
             }
+        }
+
+        /**
+         * Creates a new instance of [PopupContainerWithArrow].
+         *
+         * @param context The context in which the popup will be created.
+         * @param originalView The view that the popup is associated with.
+         * @param updateIconUi Whether to update the icon UI during drag and drop.
+         * @return A new instance of [PopupContainerWithArrow].
+         */
+        @JvmStatic
+        fun <T> create(
+            context: Context,
+            originalView: View,
+            updateIconUi: Boolean = true,
+        ): PopupContainerWithArrow<T> where T : Context, T : ActivityContext {
+            val container = PopupContainerWithArrow<T>(context, originalView, updateIconUi)
+            container.id = R.id.popup_container
+            container.clipChildren = false
+            container.clipToPadding = false
+            container.orientation = VERTICAL
+            container.layoutParams =
+                LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                )
+            return container
         }
     }
 }

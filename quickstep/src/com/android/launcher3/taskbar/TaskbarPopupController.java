@@ -41,7 +41,6 @@ import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.BubbleTextView;
 import com.android.launcher3.Flags;
 import com.android.launcher3.LauncherSettings;
-import com.android.launcher3.R;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
@@ -240,11 +239,11 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
             }
         }
 
-        container = (PopupContainerWithArrow) context.getLayoutInflater().inflate(
-                R.layout.popup_container, context.getDragLayer(), false);
-        container.populateAndShowRows(icon, itemInfo, deepShortcutCount, systemShortcuts);
-
+        container = PopupContainerWithArrow.create(context, /* originalView */ icon,
+                /* updateIconUi */ false);
         // TODO (b/198438631): configure for taskbar/context
+        icon.setTag(itemInfo);
+        container.populateAndShowRows(deepShortcutCount, systemShortcuts);
         container.setPopupItemDragHandler(new TaskbarPopupItemDragHandler());
         context.getDragController().addDragListener(container);
         container.requestFocus();
