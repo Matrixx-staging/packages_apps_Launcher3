@@ -17,6 +17,7 @@
 package com.android.launcher3.widgetpicker
 
 import android.os.UserHandle
+import com.android.launcher3.widgetpicker.shared.model.CloseBehavior
 
 /**
  * Possible parameters sent over by the widget host when launching the widget picker activity.
@@ -36,6 +37,7 @@ import android.os.UserHandle
  *   set this to true if the picker is shown in an activity that disables gesture nav. When set,
  *   swipe up from bottom will scale down the picker sheet and animate close if it detects user is
  *   trying to close the sheet.
+ * @param closeBehavior indicates the how the picker is closed.
  */
 data class WidgetPickerConfig(
     val uiSurface: String = HOMESCREEN_WIDGETS_UI_SURFACE,
@@ -45,6 +47,7 @@ data class WidgetPickerConfig(
     val categoryExclusionFilter: Int = 0,
     val filteredUsers: List<UserHandle> = listOf(),
     val enableSwipeUpToDismiss: Boolean = false,
+    val closeBehavior: CloseBehavior = CloseBehavior.DRAG_HANDLE,
 ) {
     /**
      * Indicates if the intent request is for picking home screen widgets. If false, implies its for

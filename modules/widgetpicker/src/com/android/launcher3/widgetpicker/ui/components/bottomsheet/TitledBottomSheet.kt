@@ -40,7 +40,11 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -66,6 +70,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import com.android.launcher3.widgetpicker.R
+import com.android.launcher3.widgetpicker.shared.model.CloseBehavior
 import com.android.launcher3.widgetpicker.ui.components.accessibility.LocalAccessibilityState
 import com.android.launcher3.widgetpicker.ui.components.bottomsheet.TitledBottomSheetDimens.contentWindowInsets
 import com.android.launcher3.widgetpicker.ui.components.bottomsheet.TitledBottomSheetDimens.headerBottomMargin
@@ -102,7 +107,7 @@ fun TitledBottomSheet(
     title: String?,
     description: String?,
     heightStyle: ModalBottomSheetHeightStyle,
-    showDragHandle: Boolean = true,
+    closeBehavior: CloseBehavior = CloseBehavior.DRAG_HANDLE,
     enableSwipeUpToDismiss: Boolean = false,
     onSheetOpen: () -> Unit,
     onDismissSheet: () -> Unit,
@@ -147,15 +152,32 @@ fun TitledBottomSheet(
                             .windowInsetsPadding(contentWindowInsets)
                             .sheetContentHeight(heightStyle, maxHeight)
                             .padding(horizontal = sheetInnerHorizontalPadding)
-                            .padding(top = sheetInnerTopPadding.takeIf { !showDragHandle } ?: 0.dp)
+                            .padding(
+                                top =
+                                    sheetInnerTopPadding.takeIf {
+                                        closeBehavior != CloseBehavior.DRAG_HANDLE
+                                    } ?: 0.dp
+                            )
                             .dismissableBottomSheetContent(sheetState)
                 ) {
-                    DecorativeDragHandle(
-                        modifier =
-                            Modifier.align(alignment = Alignment.CenterHorizontally)
-                                .padding(top = sheetInnerTopPadding, bottom = headerBottomMargin)
-                    )
-                    title?.let { Header(title = title, description = description) }
+                    if (closeBehavior == CloseBehavior.DRAG_HANDLE) {
+                        DecorativeDragHandle(
+                            modifier =
+                                Modifier.align(alignment = Alignment.CenterHorizontally)
+                                    .padding(
+                                        top = sheetInnerTopPadding,
+                                        bottom = headerBottomMargin,
+                                    )
+                        )
+                    }
+                    title?.let {
+                        Header(
+                            title = title,
+                            description = description,
+                            closeBehavior = closeBehavior,
+                            onDismissSheet = onDismissSheet,
+                        )
+                    }
                     content()
                 }
             },
@@ -218,19 +240,40 @@ private fun SwipeUpToDismissHandler(
 }
 
 @Composable
-private fun Header(title: String, description: String?) {
+private fun Header(
+    title: String,
+    description: String?,
+    closeBehavior: CloseBehavior,
+    onDismissSheet: () -> Unit,
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(bottom = headerBottomMargin).fillMaxWidth(),
     ) {
-        Text(
-            maxLines = 1,
-            text = title,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-            style = WidgetPickerTheme.typography.sheetTitle,
-            color = WidgetPickerTheme.colors.sheetTitle,
-        )
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                modifier = Modifier.align(Alignment.Center).padding(horizontal = 48.dp),
+                maxLines = 1,
+                text = title,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                style = WidgetPickerTheme.typography.sheetTitle,
+                color = WidgetPickerTheme.colors.sheetTitle,
+            )
+            if (closeBehavior == CloseBehavior.CLOSE_BUTTON) {
+                IconButton(
+                    onClick = onDismissSheet,
+                    modifier = Modifier.align(Alignment.CenterEnd),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription =
+                            stringResource(R.string.widget_picker_collapse_sheet_label),
+                        tint = WidgetPickerTheme.colors.sheetTitle,
+                    )
+                }
+            }
+        }
         description?.let {
             Text(
                 text = it,

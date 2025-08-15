@@ -120,6 +120,7 @@ constructor(
                         constraints = widgetPickerConfig.asHostConstraints(),
                         showDragShadow = !widgetPickerConfig.isForHomeScreen,
                         enableSwipeUpToDismiss = widgetPickerConfig.enableSwipeUpToDismiss,
+                        closeBehavior = widgetPickerConfig.closeBehavior,
                     ),
                 backgroundContext = backgroundContext,
             )
