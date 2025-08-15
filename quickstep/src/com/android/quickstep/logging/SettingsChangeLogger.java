@@ -17,7 +17,7 @@
 package com.android.quickstep.logging;
 
 import static com.android.launcher3.graphics.ThemeManager.PREF_ICON_SHAPE;
-import static com.android.launcher3.graphics.ThemeManager.THEMED_ICONS;
+import static com.android.launcher3.graphics.theme.ThemePreference.MONO_THEME_VALUE;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_HOME_SCREEN_SUGGESTIONS_DISABLED;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_HOME_SCREEN_SUGGESTIONS_ENABLED;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ICON_SHAPE_ARCH;
@@ -54,6 +54,7 @@ import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.R;
 import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.dagger.LauncherAppSingleton;
+import com.android.launcher3.graphics.theme.ThemePreference;
 import com.android.launcher3.logging.InstanceId;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent;
@@ -95,6 +96,7 @@ public class SettingsChangeLogger implements
     private final ArrayMap<String, LoggablePref> mLoggablePrefs;
     private final StatsLogManager mStatsLogManager;
     private final LauncherPrefs mLauncherPrefs;
+    private final ThemePreference mThemePreference;
 
     @NonNull
     private NavigationMode mNavMode;
@@ -108,11 +110,13 @@ public class SettingsChangeLogger implements
             DisplayController displayController,
             SettingsCache settingsCache,
             LauncherPrefs launcherPrefs,
-            StatsLogManager.StatsLogManagerFactory factory) {
+            StatsLogManager.StatsLogManagerFactory factory,
+            ThemePreference themePreference) {
         mContext = context;
         mLauncherPrefs = launcherPrefs;
         mStatsLogManager = factory.create(context);
         mLoggablePrefs = loadPrefKeys(context);
+        mThemePreference = themePreference;
 
         displayController.addChangeListener(this);
         mNavMode = displayController.getInfo().getNavigationMode();
@@ -222,7 +226,8 @@ public class SettingsChangeLogger implements
                 logger::log);
 
         SharedPreferences prefs = mLauncherPrefs.getBackedUpPrefs();
-        logger.log(LauncherPrefs.get(mContext).get(THEMED_ICONS)
+        logger.log(
+                MONO_THEME_VALUE.equals(mThemePreference.getValue())
                 ? LAUNCHER_THEMED_ICON_ENABLED
                 : LAUNCHER_THEMED_ICON_DISABLED);
 

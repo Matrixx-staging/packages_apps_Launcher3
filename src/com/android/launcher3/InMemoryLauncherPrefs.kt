@@ -22,6 +22,7 @@ import android.content.SharedPreferences.Editor
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * Manages [Item] preferences through [InMemorySharedPreferences].
@@ -55,7 +56,7 @@ private class InMemorySharedPreferences : SharedPreferences {
     val editorLock = Any()
     var values = mapOf<String, Any>()
 
-    private val listeners = mutableSetOf<OnSharedPreferenceChangeListener>()
+    private val listeners = CopyOnWriteArrayList<OnSharedPreferenceChangeListener>()
 
     override fun getAll(): Map<String, *> = values
 
