@@ -26,9 +26,14 @@ import android.os.TestLooperManager
 import androidx.core.graphics.drawable.toBitmap
 import androidx.test.platform.app.InstrumentationRegistry
 import com.android.launcher3.util.LauncherMultivalentJUnit
+import com.android.launcher3.util.rule.TestStabilityRule
+import com.android.launcher3.util.rule.TestStabilityRule.LOCAL
+import com.android.launcher3.util.rule.TestStabilityRule.PLATFORM_POSTSUBMIT
+import com.android.launcher3.util.rule.TestStabilityRule.Stability
 import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -45,6 +50,8 @@ class HandoffSuggestionMetadataLoaderTest {
 
     private lateinit var testLooperManager: TestLooperManager
 
+    @get:Rule val testStabilityRule = TestStabilityRule()
+
     @Before
     fun setUp() {
         testLooperManager =
@@ -57,6 +64,7 @@ class HandoffSuggestionMetadataLoaderTest {
     }
 
     @Test
+    @Stability(flavors = LOCAL or PLATFORM_POSTSUBMIT) // b/438797644
     fun loadMetadata_drawableLoaded_callsCallback() {
         // Create a fake suggestion to load
         val remoteTask = RemoteTask.Builder(1).setIcon(icon).setLabel(TEST_LABEL).build()
@@ -79,6 +87,7 @@ class HandoffSuggestionMetadataLoaderTest {
     }
 
     @Test
+    @Stability(flavors = LOCAL or PLATFORM_POSTSUBMIT) // b/438797644
     fun loadMetadata_allSuggestionsHaveMetadata_doesNotReloadIcons() {
         // Create a fake suggestion with loaded metadata
         val remoteTask = RemoteTask.Builder(1).setIcon(icon).setLabel(TEST_LABEL).build()
@@ -96,6 +105,7 @@ class HandoffSuggestionMetadataLoaderTest {
     }
 
     @Test
+    @Stability(flavors = LOCAL or PLATFORM_POSTSUBMIT) // b/438797644
     fun loadMetadata_taskHasNullIcon_doesNotCallCallback() {
         // Create a fake suggestion to load with a null icon
         val remoteTask = RemoteTask.Builder(1).setLabel(TEST_LABEL).build()
@@ -111,6 +121,7 @@ class HandoffSuggestionMetadataLoaderTest {
     }
 
     @Test
+    @Stability(flavors = LOCAL or PLATFORM_POSTSUBMIT) // b/438797644
     fun cancelPendingLoads_cancelsPendingLoads() {
         // Create a fake suggestion to load with a null icon
         val remoteTask = RemoteTask.Builder(1).setLabel(TEST_LABEL).build()
