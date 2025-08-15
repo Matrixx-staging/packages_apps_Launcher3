@@ -18,7 +18,6 @@ package com.android.launcher3.widget
 
 import android.appwidget.AppWidgetProviderInfo.WIDGET_FEATURE_CONFIGURATION_OPTIONAL
 import android.appwidget.AppWidgetProviderInfo.WIDGET_FEATURE_RECONFIGURABLE
-import android.content.Context
 import android.os.Bundle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
@@ -26,8 +25,9 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.android.launcher3.Launcher
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.LauncherAppWidgetInfo
-import com.android.launcher3.util.ActivityContextWrapper
+import com.android.launcher3.util.TestActivityContext
 import com.google.common.truth.Truth
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.any
@@ -39,8 +39,7 @@ import org.mockito.kotlin.whenever
 @RunWith(AndroidJUnit4::class)
 class WidgetAddFlowHandlerTest {
 
-    private val context: Context
-        get() = ActivityContextWrapper(InstrumentationRegistry.getInstrumentation().targetContext)
+    @get:Rule val context = TestActivityContext()
 
     private val providerInfo =
         LauncherAppWidgetProviderInfo().apply {

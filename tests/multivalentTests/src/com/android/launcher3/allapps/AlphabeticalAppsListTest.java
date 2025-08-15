@@ -16,8 +16,6 @@
 
 package com.android.launcher3.allapps;
 
-import static androidx.test.core.app.ApplicationProvider.getApplicationContext;
-
 import static com.android.launcher3.allapps.BaseAllAppsAdapter.VIEW_TYPE_PRIVATE_SPACE_HEADER;
 import static com.android.launcher3.allapps.BaseAllAppsAdapter.VIEW_TYPE_PRIVATE_SPACE_SYS_APPS_DIVIDER;
 import static com.android.launcher3.allapps.SectionDecorationInfo.ROUND_BOTTOM_LEFT;
@@ -42,7 +40,7 @@ import androidx.test.runner.AndroidJUnit4;
 
 import com.android.launcher3.Flags;
 import com.android.launcher3.model.data.AppInfo;
-import com.android.launcher3.util.ActivityContextWrapper;
+import com.android.launcher3.util.TestActivityContext;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -73,11 +71,12 @@ public class AlphabeticalAppsListTest {
     private AlphabeticalAppsList mAlphabeticalAppsList;
 
     @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Rule public TestActivityContext mContext = new TestActivityContext();
+
     @Mock
     private AllAppsStore mAllAppsStore;
     @Mock
     private PrivateProfileManager mPrivateProfileManager;
-    private ActivityContextWrapper mContext;
 
     @Rule
     public final SetFlagsRule mSetFlagsRule =
@@ -85,7 +84,6 @@ public class AlphabeticalAppsListTest {
 
     @Before
     public void setUp() {
-        mContext = new ActivityContextWrapper(getApplicationContext());
         when(mPrivateProfileManager.getItemInfoMatcher()).thenReturn(info ->
                 info != null && info.user.equals(PRIVATE_HANDLE));
         mAlphabeticalAppsList = new AlphabeticalAppsList(mContext, mAllAppsStore,

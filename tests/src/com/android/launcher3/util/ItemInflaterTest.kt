@@ -17,17 +17,14 @@
 package com.android.launcher3.util
 
 import android.content.ComponentName
-import android.content.Context
 import android.content.pm.LauncherApps
 import android.os.Bundle
 import android.os.Process
 import android.view.View.OnClickListener
 import android.view.View.OnFocusChangeListener
 import android.widget.FrameLayout
-import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
-import androidx.test.platform.app.InstrumentationRegistry
 import com.android.launcher3.BubbleTextView
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APP_PAIR
 import com.android.launcher3.apppairs.AppPairIcon
@@ -42,6 +39,7 @@ import com.android.launcher3.model.data.LauncherAppWidgetInfo.FLAG_UI_NOT_READY
 import com.android.launcher3.model.data.LauncherAppWidgetInfo.RESTORE_COMPLETED
 import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.Executors.VIEW_PREINFLATION_EXECUTOR
+import com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE
 import com.android.launcher3.util.rule.ShellCommandRule
 import com.android.launcher3.util.ui.TestViewHelpers
 import com.android.launcher3.widget.LauncherAppWidgetHostView
@@ -59,11 +57,14 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
+import org.mockito.Mockito.spy
 import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.same
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
+import org.mockito.kotlin.whenever
 
 /** Tests for ItemInflater */
 @SmallTest
@@ -72,26 +73,19 @@ class ItemInflaterTest {
 
     @get:Rule val grantWidgetRule = ShellCommandRule.grantWidgetBind()
     @get:Rule val mockitoRule = MockitoJUnit.rule()
+    @get:Rule val uiContext = spy(TestActivityContext())
 
     private val clickListener = OnClickListener {}
     private val focusListener = OnFocusChangeListener { _, _ -> }
 
     @Mock private lateinit var modelWriterMock: ModelWriter
 
-    private lateinit var testContext: Context
-    private lateinit var uiContext: ActivityContextWrapper
-
     private lateinit var widgetHolder: LauncherWidgetHolder
     private lateinit var underTest: ItemInflater<*>
 
     @Before
     fun setUp() {
-        testContext = InstrumentationRegistry.getInstrumentation().context
-
-        uiContext =
-            object : ActivityContextWrapper(getApplicationContext()) {
-                override fun getModelWriter() = modelWriterMock
-            }
+        doReturn(modelWriterMock).whenever(uiContext).modelWriter
         uiContext.setTheme(Themes.getActivityThemeRes(uiContext, 0))
 
         widgetHolder = LauncherWidgetHolder.newInstance(uiContext)
@@ -269,7 +263,7 @@ class ItemInflaterTest {
                 uiContext,
                 uiContext
                     .getSystemService(LauncherApps::class.java)!!
-                    .getActivityList(testContext.packageName, Process.myUserHandle())[0],
+                    .getActivityList(TEST_PACKAGE, Process.myUserHandle())[0],
                 Process.myUserHandle(),
             )
             .makeWorkspaceItem(uiContext)

@@ -25,7 +25,6 @@ import static org.mockito.Mockito.when;
 
 import android.appwidget.AppWidgetProviderInfo;
 import android.content.ComponentName;
-import android.content.Context;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.os.UserHandle;
@@ -43,8 +42,8 @@ import com.android.launcher3.icons.cache.BaseIconCache;
 import com.android.launcher3.icons.cache.CachedObject;
 import com.android.launcher3.model.WidgetItem;
 import com.android.launcher3.pm.ShortcutConfigActivityInfo;
-import com.android.launcher3.util.ActivityContextWrapper;
 import com.android.launcher3.util.SandboxApplication;
+import com.android.launcher3.util.TestActivityContext;
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo;
 import com.android.launcher3.widget.util.WidgetsTableUtils;
 
@@ -74,12 +73,13 @@ public final class WidgetsTableUtilsTest {
     @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule public SandboxApplication app = new SandboxApplication();
+    @Rule public TestActivityContext mContext = new TestActivityContext(app);
+
     @Mock
     private IconCache mIconCache;
 
     private DeviceProfile mTestDeviceProfile;
 
-    private Context mContext;
     private InvariantDeviceProfile mTestInvariantProfile;
     private WidgetItem mWidget1x1;
     private WidgetItem mWidget2x2;
@@ -93,7 +93,6 @@ public final class WidgetsTableUtilsTest {
 
     @Before
     public void setUp() {
-        mContext = new ActivityContextWrapper(app);
         mTestInvariantProfile = InvariantDeviceProfile.INSTANCE.get(app);
         mTestInvariantProfile.numColumns = NUM_OF_COLS;
         mTestInvariantProfile.numRows = NUM_OF_ROWS;

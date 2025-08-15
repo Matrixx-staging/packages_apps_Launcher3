@@ -16,6 +16,8 @@
 
 package com.android.launcher3.allapps;
 
+import static android.app.PendingIntent.FLAG_IMMUTABLE;
+
 import static androidx.test.core.app.ApplicationProvider.getApplicationContext;
 
 import static com.android.launcher3.allapps.UserProfileManager.STATE_DISABLED;
@@ -45,7 +47,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.pm.UserCache;
-import com.android.launcher3.util.ActivityContextWrapper;
 import com.android.launcher3.util.ApiWrapper;
 import com.android.launcher3.util.UserIconInfo;
 import com.android.launcher3.util.rule.TestStabilityRule;
@@ -115,9 +116,9 @@ public class PrivateProfileManagerTest {
         when(mContext.getPackageManager()).thenReturn(mPackageManager);
         when(mPackageManager.resolveActivity(any(), any())).thenReturn(new ResolveInfo());
         when(mContext.getSystemService(LauncherApps.class)).thenReturn(mLauncherApps);
-        when(mLauncherApps.getAppMarketActivityIntent(any(), any())).thenReturn(PendingIntent
-                .getActivity(new ActivityContextWrapper(getApplicationContext()), 0,
-                        new Intent(), PendingIntent.FLAG_IMMUTABLE).getIntentSender());
+        when(mLauncherApps.getAppMarketActivityIntent(any(), any())).thenReturn(
+                PendingIntent.getActivity(getApplicationContext(), 0, new Intent(), FLAG_IMMUTABLE)
+                        .getIntentSender());
         when(mContext.getPackageName())
                 .thenReturn("com.android.launcher3.tests.privateProfileManager");
         when(mLauncherApps.getPreInstalledSystemPackages(any())).thenReturn(new ArrayList<>());

@@ -38,6 +38,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -73,7 +74,7 @@ import com.android.launcher3.util.AllModulesForTest;
 import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.LauncherMultivalentJUnit;
 import com.android.launcher3.util.SandboxApplication;
-import com.android.launcher3.util.TestSandboxModelContextWrapper;
+import com.android.launcher3.util.TestActivityContext;
 import com.android.launcher3.util.TestUtil;
 import com.android.launcher3.util.UserIconInfo;
 import com.android.launcher3.views.Snackbar;
@@ -97,18 +98,18 @@ import org.mockito.junit.MockitoRule;
 @RunWith(LauncherMultivalentJUnit.class)
 public class SystemShortcutTest {
     @Rule public final SetFlagsRule mSetFlagsRule = new SetFlagsRule(DEVICE_DEFAULT);
-    @Rule public final SandboxApplication mSandboxContext = new SandboxApplication();
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Rule public final SandboxApplication mSandboxContext = spy(new SandboxApplication());
+    @Rule public final TestActivityContext mTestContext =
+            spy(new TestActivityContext(mSandboxContext));
 
     private static final UserHandle PRIVATE_HANDLE = new UserHandle(11);
     private static final UserHandle MAIN_HANDLE = Process.myUserHandle();
     private View mView;
     private ItemInfo mItemInfo;
-    private TestSandboxModelContextWrapper mTestContext;
     private PrivateProfileManager mPrivateProfileManager;
     private WidgetPickerDataProvider mWidgetPickerDataProvider;
     private AppInfo mAppInfo;
-
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock UserCache mUserCache;
     @Mock UserIconInfo mUserIconInfo;
@@ -123,13 +124,8 @@ public class SystemShortcutTest {
         mSandboxContext.initDaggerComponent(
                 DaggerSystemShortcutTest_TestComponent.builder().bindUserCache(mUserCache)
         );
-        mTestContext = new TestSandboxModelContextWrapper(mSandboxContext) {
-            @Override
-            public StatsLogManager getStatsLogManager() {
-                return mStatsLogManager;
-            }
-        };
-        spyOn(mSandboxContext);
+        doReturn(mStatsLogManager).when(mTestContext).getStatsLogManager();
+
         doReturn(mStatsLogger).when(mStatsLogManager).logger();
 
         mView = new View(mTestContext);

@@ -27,7 +27,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.Mockito.doReturn;
 
-import android.content.Context;
 import android.platform.test.annotations.DisableFlags;
 import android.platform.test.annotations.EnableFlags;
 import android.platform.test.flag.junit.SetFlagsRule;
@@ -36,7 +35,7 @@ import android.view.ViewGroup;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 
-import com.android.launcher3.util.ActivityContextWrapper;
+import com.android.launcher3.util.TestActivityContext;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -56,12 +55,14 @@ public class WorkUtilityViewTest {
 
     @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
+    @Rule
+    public TestActivityContext context = new TestActivityContext(getApplicationContext(),
+            com.android.launcher3.R.style.DynamicColorsBaseLauncherTheme);
+
     private WorkUtilityView mVut;
 
     @Before
     public void setUp() {
-        Context context = new ActivityContextWrapper(getApplicationContext(),
-                com.android.launcher3.R.style.DynamicColorsBaseLauncherTheme);
         mVut = (WorkUtilityView) ViewGroup.inflate(context,
                 com.android.launcher3.R.layout.work_mode_utility_view, null);
     }

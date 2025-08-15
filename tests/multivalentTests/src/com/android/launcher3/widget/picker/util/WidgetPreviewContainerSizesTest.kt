@@ -19,7 +19,6 @@ package com.android.launcher3.widget.picker.util
 import android.content.ComponentName
 import android.content.Context
 import android.graphics.Point
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.android.launcher3.DeviceProfile
@@ -28,7 +27,7 @@ import com.android.launcher3.LauncherAppState
 import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
 import com.android.launcher3.icons.IconCache
 import com.android.launcher3.model.WidgetItem
-import com.android.launcher3.util.ActivityContextWrapper
+import com.android.launcher3.util.TestActivityContext
 import com.android.launcher3.util.WidgetUtils.createAppWidgetProviderInfo
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo
 import com.google.common.truth.Truth.assertWithMessage
@@ -42,7 +41,8 @@ import org.mockito.junit.MockitoJUnit
 @SmallTest
 @RunWith(AndroidJUnit4::class)
 class WidgetPreviewContainerSizesTest {
-    private lateinit var context: Context
+    @get:Rule val context = TestActivityContext()
+
     private lateinit var deviceProfile: DeviceProfile
     private lateinit var testInvariantProfile: InvariantDeviceProfile
     private lateinit var widgetItemInvariantProfile: InvariantDeviceProfile
@@ -52,7 +52,6 @@ class WidgetPreviewContainerSizesTest {
 
     @Before
     fun setUp() {
-        context = ActivityContextWrapper(ApplicationProvider.getApplicationContext())
         testInvariantProfile = LauncherAppState.getIDP(context)
         widgetItemInvariantProfile =
             context.appComponent.idp.apply {

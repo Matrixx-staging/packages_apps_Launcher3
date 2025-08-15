@@ -26,7 +26,6 @@ import static java.util.Collections.EMPTY_LIST;
 
 import android.appwidget.AppWidgetProviderInfo;
 import android.content.ComponentName;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.UserHandle;
 import android.view.ContextThemeWrapper;
@@ -49,8 +48,8 @@ import com.android.launcher3.icons.IconShape;
 import com.android.launcher3.icons.cache.CachedObject;
 import com.android.launcher3.model.WidgetItem;
 import com.android.launcher3.model.data.PackageItemInfo;
-import com.android.launcher3.util.ActivityContextWrapper;
 import com.android.launcher3.util.SandboxApplication;
+import com.android.launcher3.util.TestActivityContext;
 import com.android.launcher3.util.WidgetUtils;
 import com.android.launcher3.widget.DatabaseWidgetPreviewLoader;
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo;
@@ -75,7 +74,8 @@ public final class WidgetsListTableViewHolderBinderTest {
     private static final String APP_NAME = "Test app";
 
     @Rule public SandboxApplication app = new SandboxApplication();
-    private Context mContext;
+    @Rule public TestActivityContext mContext = new TestActivityContext(app);
+
     private WidgetsListTableViewHolderBinder mViewHolderBinder;
     private InvariantDeviceProfile mTestProfile;
 
@@ -90,7 +90,6 @@ public final class WidgetsListTableViewHolderBinderTest {
 
     @Before
     public void setUp() {
-        mContext = new ActivityContextWrapper(app);
         mTestProfile = InvariantDeviceProfile.INSTANCE.get(app);
         mTestProfile.numRows = 5;
         mTestProfile.numColumns = 5;

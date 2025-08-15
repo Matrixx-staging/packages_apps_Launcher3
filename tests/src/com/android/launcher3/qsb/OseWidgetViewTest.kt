@@ -18,17 +18,16 @@ package com.android.launcher3.qsb
 
 import android.appwidget.AppWidgetManager.INVALID_APPWIDGET_ID
 import android.appwidget.AppWidgetProviderInfo
-import android.content.Context
 import android.widget.RemoteViews
 import androidx.test.annotation.UiThreadTest
 import com.android.dx.mockito.inline.extended.ExtendedMockito.spyOn
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppModule
 import com.android.launcher3.dagger.LauncherAppSingleton
-import com.android.launcher3.util.ActivityContextWrapper
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.MutableListenableRef
 import com.android.launcher3.util.SandboxApplication
+import com.android.launcher3.util.TestActivityContext
 import com.android.launcher3.util.ui.TestViewHelpers
 import dagger.BindsInstance
 import dagger.Component
@@ -51,11 +50,11 @@ class OseWidgetViewTest {
 
     @get:Rule val sandboxContext = SandboxApplication()
     @get:Rule val mockitoRule = MockitoJUnit.rule()
+    @get:Rule val context = TestActivityContext(sandboxContext)
 
     @Mock lateinit var oseWidgetManager: OseWidgetManager
 
     private lateinit var mVut: OseWidgetView
-    private lateinit var context: Context
 
     private val widgetInfo = TestViewHelpers.findWidgetProvider(false)
     private val remoteView = RemoteViews(widgetInfo.provider.packageName, 0)
@@ -67,7 +66,6 @@ class OseWidgetViewTest {
         sandboxContext.initDaggerComponent(
             DaggerOseWidgetViewTest_TestComponent.builder().bindOseWidgetManager(oseWidgetManager)
         )
-        context = ActivityContextWrapper(sandboxContext)
         mVut = OseWidgetView(context)
         spyOn(mVut)
         spyOn(mVut.closeActions)

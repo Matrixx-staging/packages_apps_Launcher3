@@ -41,7 +41,6 @@ import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_ARCHIVED
 import com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_INSTALL_SESSION_ACTIVE
 import com.android.launcher3.model.data.WorkspaceItemInfo
-import com.android.launcher3.util.ActivityContextWrapper
 import com.android.launcher3.util.AllModulesForTest
 import com.android.launcher3.util.Executors
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
@@ -53,6 +52,7 @@ import com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY3
 import com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY4
 import com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE
 import com.android.launcher3.util.SandboxApplication
+import com.android.launcher3.util.TestActivityContext
 import com.android.launcher3.util.TestUtil
 import com.android.launcher3.util.UserIconInfo
 import com.google.common.truth.Truth.assertThat
@@ -84,6 +84,8 @@ import org.mockito.kotlin.whenever
 class PreviewItemManagerTest {
 
     @get:Rule val context = SandboxApplication().withModelDependency()
+    @get:Rule val uiContext = TestActivityContext(context)
+
     @get:Rule val theseStateRule = ThemeStateRule()
     @get:Rule val mockitoRule = MockitoJUnit.rule()
 
@@ -98,7 +100,7 @@ class PreviewItemManagerTest {
         theseStateRule.themeState?.let {
             LauncherPrefs.get(context).putSync(ThemeManager.THEMED_ICONS.to(it))
         }
-        folderIcon = FolderIcon(ActivityContextWrapper(context))
+        folderIcon = FolderIcon(uiContext)
 
         iconCache = LauncherAppState.INSTANCE[context].iconCache
         spyOn(iconCache)

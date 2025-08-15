@@ -15,8 +15,6 @@
  */
 package com.android.launcher3.ui;
 
-import static androidx.test.core.app.ApplicationProvider.getApplicationContext;
-
 import static com.android.launcher3.model.data.AppInfo.EMPTY_ARRAY;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 
@@ -25,7 +23,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Process;
 import android.os.UserHandle;
@@ -40,7 +37,7 @@ import com.android.launcher3.allapps.WorkProfileManager;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.pm.UserCache;
-import com.android.launcher3.util.ActivityContextWrapper;
+import com.android.launcher3.util.TestActivityContext;
 import com.android.launcher3.util.UserIconInfo;
 
 import org.junit.Before;
@@ -61,6 +58,8 @@ public class ActivityAllAppsContainerViewTest {
     private static final UserHandle WORK_HANDLE = new UserHandle(13);
 
     @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Rule public TestActivityContext mContext = new TestActivityContext();
+
     @Mock
     private StatsLogManager mStatsLogManager;
     @Mock
@@ -70,13 +69,11 @@ public class ActivityAllAppsContainerViewTest {
     private AppInfo[] mWorkAppInfo;
     private ActivityAllAppsContainerView<?> mActivityAllAppsContainerView;
     private WorkProfileManager mWorkManager;
-    private Context mContext;
 
     @Rule public final SetFlagsRule mSetFlagsRule = new SetFlagsRule();
 
     @Before
     public void setUp() {
-        mContext = new ActivityContextWrapper(getApplicationContext());
         mActivityAllAppsContainerView = new ActivityAllAppsContainerView(mContext);
         when(mUserCache.getUserProfiles())
                 .thenReturn(Arrays.asList(Process.myUserHandle(), WORK_HANDLE));
