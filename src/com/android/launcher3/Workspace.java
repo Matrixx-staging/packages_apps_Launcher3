@@ -1806,7 +1806,8 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                     dragOptions);
         } else {
             if (Flags.homeScreenEditImprovements()
-                    && ((ItemInfo) child.getTag()).itemType == ITEM_TYPE_APPWIDGET
+                    && child.getTag() instanceof ItemInfo childItemInfo
+                    && childItemInfo.itemType == ITEM_TYPE_APPWIDGET
                     && mDragController instanceof LauncherDragController launcherDragController) {
                 dragOptions.preDragEndScale = (drawable.getIntrinsicWidth()
                         + launcherDragController.getWidgetDragScalePx(drawable, null, dragObject))
