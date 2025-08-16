@@ -779,7 +779,7 @@ public class TouchInteractionService extends Service {
                 mQuickstepKeyGestureEventsHandler,
                 () -> mTaskbarManager.createAllAppsPendingIntent());
         mTrackpadsConnected = new ActiveTrackpadList(this, () -> {
-            if (mInputMonitorCompat != null && !mTrackpadsConnected.isEmpty()) {
+            if (isInputMonitorInitialized() && !mTrackpadsConnected.isEmpty()) {
                 // Don't destroy and reinitialize input monitor due to trackpad
                 // connecting when it's already set up.
                 return;
@@ -864,6 +864,12 @@ public class TouchInteractionService extends Service {
         }
 
         mRotationTouchHelperRepository.get(DEFAULT_DISPLAY).updateGestureTouchRegions();
+    }
+
+    private boolean isInputMonitorInitialized() {
+        return ENABLE_GESTURE_NAV_ON_CONNECTED_DISPLAYS.isTrue()
+                ? mInputMonitorDisplayModel != null
+                : mInputMonitorCompat != null;
     }
 
     /**
