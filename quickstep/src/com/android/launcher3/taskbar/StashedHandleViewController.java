@@ -371,4 +371,9 @@ public class StashedHandleViewController implements TaskbarControllers.LoggableT
     public int getNavHandleWidth(Context context) {
         return mStashedHandleWidth;
     }
+
+    @Override
+    public Rect getBoundsOnScreen() {
+        return mStashedHandleView.getSampledRegion();
+    }
 }
