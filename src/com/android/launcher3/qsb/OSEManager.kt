@@ -60,7 +60,8 @@ class OSEManager(
 ) {
 
     private val handler = Handler(handlerLooper)
-    private val packageAvailableReceiver = SimpleBroadcastReceiver(context, handler) { reloadOse() }
+    private val packageAvailableReceiver =
+        SimpleBroadcastReceiver(context, handler) { handler.post { reloadOse() } }
     @VisibleForTesting var tracker: InstallSessionTracker? = null
     private val mutableOSEInfoRef = MutableListenableRef(OSEInfo())
 

@@ -17,15 +17,14 @@
 package com.android.launcher3.widget
 
 import android.appwidget.AppWidgetManager
-import android.content.Context
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.os.Process
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import androidx.test.platform.app.InstrumentationRegistry
-import com.android.launcher3.util.ActivityContextWrapper
 import com.android.launcher3.util.PackageUserKey
+import com.android.launcher3.util.TestActivityContext
 import com.google.common.truth.Truth
 import org.junit.Before
 import org.junit.Rule
@@ -41,8 +40,7 @@ import org.mockito.kotlin.whenever
 @RunWith(AndroidJUnit4::class)
 class WidgetManagerHelperTest {
 
-    private val context: Context
-        get() = ActivityContextWrapper(InstrumentationRegistry.getInstrumentation().targetContext)
+    @get:Rule val context = TestActivityContext()
 
     private val info =
         LauncherAppWidgetProviderInfo().apply {

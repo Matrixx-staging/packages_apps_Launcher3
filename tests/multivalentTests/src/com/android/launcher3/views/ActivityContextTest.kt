@@ -16,25 +16,24 @@
 
 package com.android.launcher3.views
 
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
-import com.android.launcher3.util.ActivityContextWrapper
 import com.android.launcher3.util.Executors
+import com.android.launcher3.util.TestActivityContext
 import com.android.launcher3.util.TestUtil
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @SmallTest
 @RunWith(AndroidJUnit4::class)
 class ActivityContextTest {
+    @get:Rule val ctx = TestActivityContext()
 
     @Test
     fun closeOnDestroy_closes_closable() {
-        val ctx = ActivityContextWrapper(ApplicationProvider.getApplicationContext())
-
         var closed = false
         ctx.closeOnDestroy { closed = true }
 

@@ -97,26 +97,17 @@ class ScalingWorkspaceRevealAnim(
     init {
         // Make sure the starting state is right for the animation.
         val setupConfig = StateAnimationConfig()
-        val currentState = launcher.stateManager.currentStableState
-        if (currentState != LauncherState.OVERVIEW) {
-            setupConfig.animFlags = SKIP_OVERVIEW
-        }
-        setupConfig.animFlags = setupConfig.animFlags.or(SKIP_DEPTH_CONTROLLER).or(SKIP_SCRIM)
+        setupConfig.animFlags = SKIP_OVERVIEW.or(SKIP_DEPTH_CONTROLLER).or(SKIP_SCRIM)
         setupConfig.duration = 0
-        val animationSet =
-            launcher.stateManager.createAtomicAnimation(
-                currentState,
-                LauncherState.NORMAL,
-                setupConfig,
-            )
-        launcher.stateManager.setCurrentAnimation(animationSet, LauncherState.NORMAL)
-        animationSet.start()
+        launcher.stateManager
+            .createAtomicAnimation(LauncherState.BACKGROUND_APP, LauncherState.NORMAL, setupConfig)
+            .start()
         launcher
             .getOverviewPanel<RecentsView<QuickstepLauncher, LauncherState>>()
             .forceFinishScroller()
         launcher.workspace.stateTransitionAnimation.setScrim(
             PropertySetter.NO_ANIM_PROPERTY_SETTER,
-            currentState,
+            LauncherState.BACKGROUND_APP,
             setupConfig,
         )
         if (playBlur) {

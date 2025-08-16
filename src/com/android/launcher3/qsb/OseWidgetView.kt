@@ -130,6 +130,12 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         invalidateOutline()
     }
 
+    override fun shouldDelayChildPressedState(): Boolean {
+        // Delay the ripple effect on the widget view when swiping up from home screen
+        // to go to all apps.
+        return true
+    }
+
     override fun getErrorView(): View =
         View.inflate(context, R.layout.ose_default_layout, null).apply {
             setOnClickListener {

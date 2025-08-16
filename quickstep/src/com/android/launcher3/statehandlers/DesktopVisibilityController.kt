@@ -17,7 +17,6 @@ package com.android.launcher3.statehandlers
 
 import android.content.Context
 import android.util.Log
-import android.util.Slog
 import android.util.SparseArray
 import android.util.SparseBooleanArray
 import android.view.Display.DEFAULT_DISPLAY
@@ -368,9 +367,7 @@ constructor(
         this.canCreateDesks = canCreateDesks
     }
 
-    private fun getDisplayDeskConfig(displayId: Int) =
-        displaysDesksConfigsMap[displayId]
-            ?: null.also { Slog.e(TAG, "Expected non-null desk config for display: $displayId") }
+    private fun getDisplayDeskConfig(displayId: Int) = displaysDesksConfigsMap[displayId]
 
     private fun onCanCreateDesksChanged(canCreateDesks: Boolean) {
         if (!enableMultipleDesktops(context)) {

@@ -339,7 +339,7 @@ private object ListHeaderDimensions {
     val headerHorizontalPadding = 16.dp
     val centerTextHorizontalPadding = 16.dp
 
-    val focusOutlineRadius = 360.dp
+    val focusOutlineRadius = 28.dp
     val focusOutlineStrokeWidth = 3.dp
 }
 

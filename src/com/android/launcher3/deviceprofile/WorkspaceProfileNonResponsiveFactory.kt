@@ -28,6 +28,7 @@ import com.android.launcher3.Utilities
 import com.android.launcher3.Utilities.getIconSizeWithOverlap
 import com.android.launcher3.Utilities.getNormalizedIconDrawablePadding
 import com.android.launcher3.Utilities.pxFromSp
+import com.android.launcher3.deviceprofile.WorkspaceProfile.Factory.calculateCellSize
 import com.android.launcher3.deviceprofile.WorkspaceProfile.Factory.calculateHotseatBarSizePx
 import com.android.launcher3.deviceprofile.WorkspaceProfile.Factory.insetPadding
 import com.android.launcher3.testing.shared.ResourceUtils.INVALID_RESOURCE_HANDLE
@@ -117,29 +118,35 @@ object WorkspaceProfileNonResponsiveFactory {
     }
 
     fun hideWorkspaceLabelsIfNotEnoughSpace(
-        cellSize: Point,
         isVerticalLayout: Boolean,
         workspaceProfile: WorkspaceProfile,
+        inv: InvariantDeviceProfile,
     ): WorkspaceProfile {
         if (!isVerticalLayout) return workspaceProfile
-
         val iconTextHeight =
             Utilities.calculateTextHeight(workspaceProfile.iconTextSizePx.toFloat()).toFloat()
         val workspaceCellPaddingY: Float =
-            (cellSize.y -
+            (workspaceProfile.cellSize.y -
                 workspaceProfile.iconSizePx -
                 workspaceProfile.iconDrawablePaddingPx -
                 iconTextHeight)
 
         if (workspaceCellPaddingY >= iconTextHeight) return workspaceProfile
 
+        val cellHeightPx = getIconSizeWithOverlap(workspaceProfile.iconSizePx)
+
         // We want enough space so that the text is closer to its corresponding icon.
         return workspaceProfile.copy(
             iconTextSizePx = 0,
             iconDrawablePaddingPx = 0,
-            cellHeightPx = getIconSizeWithOverlap(workspaceProfile.iconSizePx),
+            cellHeightPx = cellHeightPx,
             maxIconTextLineCount = 0,
             isLabelHidden = true,
+            cellLayoutHeightSpecification =
+                ((cellHeightPx * inv.numRows) +
+                    (workspaceProfile.cellLayoutBorderSpacePx.y * (inv.numRows - 1)) +
+                    workspaceProfile.cellLayoutPaddingPx.top +
+                    workspaceProfile.cellLayoutPaddingPx.bottom),
         )
     }
 
@@ -152,16 +159,26 @@ object WorkspaceProfileNonResponsiveFactory {
         iconSizePx: Int,
         iconTextSizePx: Int,
         isVerticalLayout: Boolean,
-        cellSize: Point,
         iconDrawablePaddingOriginalPx: Int,
-        cellLayoutBorderSpacePx: Point,
         isFirstPass: Boolean,
         insets: Rect,
         isSeascape: Boolean,
         hotseatProfile: HotseatProfile,
         hotseatBarBottomSpacePx: Int,
         hotseatQsbSpace: Int,
+        panelCount: Int,
     ): WorkspaceProfile {
+        val cellLayoutBorderSpacePx = Point(0, 0)
+        var cellSize =
+            calculateCellSize(
+                cellLayoutBorderSpacePx = cellLayoutBorderSpacePx,
+                panelCount = panelCount,
+                deviceProperties = deviceProperties,
+                numColumns = inv.numColumns,
+                numRows = inv.numRows,
+                cellLayoutPadding = Rect(0, 0, 0, 0),
+                totalWorkspacePadding = Point(0, 0),
+            )
         val desiredWorkspaceHorizontalMarginOriginalPx =
             when {
                 isVerticalLayout -> 0
@@ -215,7 +232,7 @@ object WorkspaceProfileNonResponsiveFactory {
         val cellLayoutPadding =
             when {
                 isFirstPass -> 0
-                deviceProperties.isTwoPanels -> cellLayoutBorderSpacePx.x / 2
+                deviceProperties.isTwoPanels -> 0
                 else -> res.getDimensionPixelSize(R.dimen.cell_layout_padding)
             }
         val (workspacePadding, cellLayoutPaddingPx) =
@@ -224,6 +241,22 @@ object WorkspaceProfileNonResponsiveFactory {
                 Rect(cellLayoutPadding, cellLayoutPadding, cellLayoutPadding, cellLayoutPadding),
             )
 
+        val numColumns: Int = panelCount * inv.numColumns
+
+        cellSize =
+            calculateCellSize(
+                cellLayoutBorderSpacePx = cellLayoutBorderSpacePx,
+                panelCount = panelCount,
+                deviceProperties = deviceProperties,
+                numColumns = inv.numColumns,
+                numRows = inv.numRows,
+                cellLayoutPadding = cellLayoutPaddingPx,
+                totalWorkspacePadding =
+                    Point(
+                        workspacePadding.left + workspacePadding.right,
+                        workspacePadding.bottom + workspacePadding.top,
+                    ),
+            )
         return WorkspaceProfile(
             // Workspace icons
             iconScale = iconScale,
@@ -259,6 +292,18 @@ object WorkspaceProfileNonResponsiveFactory {
             workspacePadding = workspacePadding,
             cellLayoutPaddingPx = cellLayoutPaddingPx,
             edgeMarginPx = edgeMarginPx,
+            cellLayoutHeightSpecification =
+                ((cellHeightPx * inv.numRows) +
+                    (cellLayoutBorderSpacePx.y * (inv.numRows - 1)) +
+                    cellLayoutPaddingPx.top +
+                    cellLayoutPaddingPx.bottom),
+            cellLayoutWidthSpecification =
+                ((cellWidthPx * numColumns) +
+                    (cellLayoutBorderSpacePx.x * (numColumns - 1)) +
+                    cellLayoutPaddingPx.left +
+                    cellLayoutPaddingPx.right),
+            panelCount = panelCount,
+            cellSize = cellSize,
         )
     }
 
@@ -271,7 +316,6 @@ object WorkspaceProfileNonResponsiveFactory {
         iconSizePxParam: Int,
         iconTextSizePxParam: Int,
         iconScale: Float,
-        cellLayoutBorderSpacePx: Point,
         iconDrawablePaddingOriginalPx: Int,
         cellScaleToFit: Float,
         panelCount: Int,
@@ -284,6 +328,23 @@ object WorkspaceProfileNonResponsiveFactory {
         hotseatBarBottomSpacePx: Int,
         hotseatQsbSpace: Int,
     ): WorkspaceProfile {
+        val cellLayoutBorderSpacePx =
+            Point(
+                pxFromDp(inv.borderSpaces[typeIndex].x, metrics, scale),
+                pxFromDp(inv.borderSpaces[typeIndex].y, metrics, scale),
+            )
+
+        var cellSize =
+            calculateCellSize(
+                cellLayoutBorderSpacePx = cellLayoutBorderSpacePx,
+                panelCount = panelCount,
+                deviceProperties = deviceProperties,
+                numColumns = inv.numColumns,
+                numRows = inv.numRows,
+                cellLayoutPadding = Rect(0, 0, 0, 0),
+                totalWorkspacePadding = Point(0, 0),
+            )
+
         val desiredWorkspaceHorizontalMarginOriginalPx =
             when {
                 isVerticalLayout -> 0
@@ -388,6 +449,23 @@ object WorkspaceProfileNonResponsiveFactory {
                 Rect(cellLayoutPadding, cellLayoutPadding, cellLayoutPadding, cellLayoutPadding),
             )
 
+        val numColumns: Int = panelCount * inv.numColumns
+
+        // TODO: this is really bad, we shouldn't be calculating this twice
+        cellSize =
+            calculateCellSize(
+                cellLayoutBorderSpacePx = cellLayoutBorderSpacePx,
+                panelCount = panelCount,
+                deviceProperties = deviceProperties,
+                numColumns = inv.numColumns,
+                numRows = inv.numRows,
+                cellLayoutPadding = cellLayoutPaddingPx,
+                totalWorkspacePadding =
+                    Point(
+                        workspacePadding.left + workspacePadding.right,
+                        workspacePadding.bottom + workspacePadding.top,
+                    ),
+            )
         return WorkspaceProfile(
             // Workspace icons
             iconScale = iconScale,
@@ -423,6 +501,18 @@ object WorkspaceProfileNonResponsiveFactory {
             workspacePadding = workspacePadding,
             cellLayoutPaddingPx = cellLayoutPaddingPx,
             edgeMarginPx = edgeMarginPx,
+            cellLayoutHeightSpecification =
+                ((cellHeightPx * inv.numRows) +
+                    (cellLayoutBorderSpacePx.y * (inv.numRows - 1)) +
+                    cellLayoutPaddingPx.top +
+                    cellLayoutPaddingPx.bottom),
+            cellLayoutWidthSpecification =
+                ((cellWidthPx * numColumns) +
+                    (cellLayoutBorderSpacePx.x * (numColumns - 1)) +
+                    cellLayoutPaddingPx.left +
+                    cellLayoutPaddingPx.right),
+            panelCount = panelCount,
+            cellSize = cellSize,
         )
     }
 
@@ -434,11 +524,9 @@ object WorkspaceProfileNonResponsiveFactory {
         inv: InvariantDeviceProfile,
         isVerticalLayout: Boolean,
         isScalableGrid: Boolean,
-        cellSize: Point,
         typeIndex: Int,
         metrics: DisplayMetrics,
         panelCount: Int,
-        cellLayoutBorderSpacePx: Point,
         iconSizePx: Int,
         isFirstPass: Boolean,
         insets: Rect,
@@ -475,7 +563,6 @@ object WorkspaceProfileNonResponsiveFactory {
                         iconSizePxParam = iconSizePx,
                         iconTextSizePxParam = iconTextSizePx,
                         iconScale = iconScale,
-                        cellLayoutBorderSpacePx = cellLayoutBorderSpacePx,
                         iconDrawablePaddingOriginalPx = iconDrawablePaddingOriginalPx,
                         cellScaleToFit = cellScaleToFit,
                         panelCount = panelCount,
@@ -488,7 +575,7 @@ object WorkspaceProfileNonResponsiveFactory {
                         hotseatBarBottomSpacePx = hotseatBarBottomSpacePx,
                         hotseatQsbSpace = hotseatQsbSpace,
                     )
-                    .let { hideWorkspaceLabelsIfNotEnoughSpace(cellSize, isVerticalLayout, it) }
+                    .let { hideWorkspaceLabelsIfNotEnoughSpace(isVerticalLayout, it, inv) }
 
             else ->
                 createWorkspaceProfileNonScalable(
@@ -499,9 +586,7 @@ object WorkspaceProfileNonResponsiveFactory {
                         iconSizePx = iconSizePx,
                         iconTextSizePx = iconTextSizePx,
                         isVerticalLayout = isVerticalLayout,
-                        cellSize = cellSize,
                         iconDrawablePaddingOriginalPx = iconDrawablePaddingOriginalPx,
-                        cellLayoutBorderSpacePx = cellLayoutBorderSpacePx,
                         inv = inv,
                         isFirstPass = isFirstPass,
                         insets = insets,
@@ -509,8 +594,9 @@ object WorkspaceProfileNonResponsiveFactory {
                         hotseatProfile = hotseatProfile,
                         hotseatBarBottomSpacePx = hotseatBarBottomSpacePx,
                         hotseatQsbSpace = hotseatQsbSpace,
+                        panelCount = panelCount,
                     )
-                    .let { hideWorkspaceLabelsIfNotEnoughSpace(cellSize, isVerticalLayout, it) }
+                    .let { hideWorkspaceLabelsIfNotEnoughSpace(isVerticalLayout, it, inv) }
         }
     }
 }

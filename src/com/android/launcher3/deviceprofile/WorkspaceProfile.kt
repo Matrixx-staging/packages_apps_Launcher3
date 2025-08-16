@@ -22,6 +22,7 @@ import android.graphics.Point
 import android.graphics.Rect
 import android.util.DisplayMetrics
 import com.android.launcher3.DevicePaddings
+import com.android.launcher3.DeviceProfile
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.R
 import com.android.launcher3.Utilities.getIconSizeWithOverlap
@@ -63,6 +64,7 @@ data class WorkspaceProfile(
     val edgeMarginPx: Int,
     val cellLayoutPaddingPx: Rect,
     val workspacePadding: Rect,
+    val panelCount: Int,
 
     // Visualization
     val gridVisualizationPaddingX: Int,
@@ -73,7 +75,16 @@ data class WorkspaceProfile(
     val workspacePageIndicatorOverlapWorkspace: Int,
     val isLabelHidden: Boolean = false,
     val iconDrawablePaddingOriginalPx: Int,
+    val cellLayoutHeightSpecification: Int,
+    val cellLayoutWidthSpecification: Int,
+    val cellSize: Point,
 ) {
+
+    fun getTotalWorkspacePadding(): Point =
+        Point(
+            workspacePadding.left + workspacePadding.right,
+            workspacePadding.top + workspacePadding.bottom,
+        )
 
     // TODO(b/432070502)
     @Deprecated(
@@ -120,6 +131,7 @@ data class WorkspaceProfile(
         res: Resources,
         hotseatBarBottomSpacePx: Int,
         hotseatQsbSpace: Int,
+        inv: InvariantDeviceProfile,
     ): WorkspaceProfile {
         val noInsetWorkspacePadding =
             WorkspaceProfileNonResponsiveFactory.createWorkspacePadding(
@@ -149,7 +161,25 @@ data class WorkspaceProfile(
                 noInsetWorkspacePadding,
                 Rect(cellLayoutPadding, cellLayoutPadding, cellLayoutPadding, cellLayoutPadding),
             )
-        return copy(workspacePadding = workspacePadding, cellLayoutPaddingPx = cellLayoutPaddingPx)
+        val cellSize =
+            calculateCellSize(
+                cellLayoutBorderSpacePx = this.cellLayoutBorderSpacePx,
+                panelCount = this.panelCount,
+                deviceProperties = deviceProperties,
+                numColumns = inv.numColumns,
+                numRows = inv.numRows,
+                cellLayoutPadding = cellLayoutPaddingPx,
+                totalWorkspacePadding =
+                    Point(
+                        workspacePadding.left + workspacePadding.right,
+                        workspacePadding.top + workspacePadding.bottom,
+                    ),
+            )
+        return copy(
+            workspacePadding = workspacePadding,
+            cellLayoutPaddingPx = cellLayoutPaddingPx,
+            cellSize = cellSize,
+        )
     }
 
     // TODO(b/430382569)
@@ -162,6 +192,39 @@ data class WorkspaceProfile(
     }
 
     companion object Factory {
+
+        // TODO: the first time we use this, cellLayoutPadding and totalWorkspacePadding are zero
+        // but it doesn't make sense to do that, and other variables depend on those values, we need
+        // to
+        // fix the order
+        fun calculateCellSize(
+            cellLayoutBorderSpacePx: Point,
+            panelCount: Int,
+            deviceProperties: DeviceProperties,
+            numColumns: Int,
+            numRows: Int,
+            cellLayoutPadding: Rect,
+            totalWorkspacePadding: Point,
+        ): Point {
+
+            val cellLayoutWith =
+                ((deviceProperties.availableWidthPx - totalWorkspacePadding.x) / panelCount)
+            val cellLayoutHeight = deviceProperties.availableHeightPx - totalWorkspacePadding.y
+            return Point(
+                DeviceProfile.calculateCellWidth(
+                    // shortcutAndWidgetContainerWidth
+                    cellLayoutWith - (cellLayoutPadding.left + cellLayoutPadding.right),
+                    cellLayoutBorderSpacePx.x,
+                    numColumns,
+                ),
+                DeviceProfile.calculateCellHeight(
+                    // shortcutAndWidgetContainerHeight
+                    cellLayoutHeight - (cellLayoutPadding.top + cellLayoutPadding.bottom),
+                    cellLayoutBorderSpacePx.y,
+                    numRows,
+                ),
+            )
+        }
 
         fun insetPadding(paddings: Rect, insetsArgs: Rect): Pair<Rect, Rect> {
             val insets =
@@ -297,14 +360,27 @@ data class WorkspaceProfile(
             responsiveWorkspaceHeightSpec: CalculatedResponsiveSpec,
             responsiveWorkspaceCellSpec: CalculatedCellSpec,
             iconScale: Float,
-            cellLayoutBorderSpacePx: Point,
-            cellSize: Point,
             cellScaleToFit: Float,
             insets: Rect,
             hotseatProfile: HotseatProfile,
             hotseatBarBottomSpacePx: Int,
             hotseatQsbSpace: Int,
+            panelCount: Int,
         ): WorkspaceProfile {
+
+            val cellLayoutBorderSpacePx =
+                Point(responsiveWorkspaceWidthSpec.gutterPx, responsiveWorkspaceHeightSpec.gutterPx)
+            var cellSize =
+                calculateCellSize(
+                    cellLayoutBorderSpacePx = cellLayoutBorderSpacePx,
+                    panelCount = panelCount,
+                    deviceProperties = deviceProperties,
+                    numColumns = inv.numColumns,
+                    numRows = inv.numRows,
+                    cellLayoutPadding = Rect(0, 0, 0, 0),
+                    totalWorkspacePadding = Point(0, 0),
+                )
+
             val iconDrawablePaddingOriginalPx = responsiveWorkspaceCellSpec.iconDrawablePadding
             var iconTextSizePx = responsiveWorkspaceCellSpec.iconTextSize
             var iconSizePx = responsiveWorkspaceCellSpec.iconSize
@@ -382,6 +458,24 @@ data class WorkspaceProfile(
                     noInsetWorkspacePadding,
                     Rect(cellLayoutPadding, cellLayoutPadding, cellLayoutPadding, cellLayoutPadding),
                 )
+
+            val numColumns: Int = panelCount * inv.numColumns
+
+            // TODO: this is really bad, we shouldn't be calculating this twice
+            cellSize =
+                calculateCellSize(
+                    cellLayoutBorderSpacePx = cellLayoutBorderSpacePx,
+                    panelCount = panelCount,
+                    deviceProperties = deviceProperties,
+                    numColumns = inv.numColumns,
+                    numRows = inv.numRows,
+                    cellLayoutPadding = cellLayoutPaddingPx,
+                    totalWorkspacePadding =
+                        Point(
+                            workspacePadding.left + workspacePadding.right,
+                            workspacePadding.bottom + workspacePadding.top,
+                        ),
+                )
             return WorkspaceProfile(
                 // Workspace icons
                 iconScale = iconScale,
@@ -420,6 +514,18 @@ data class WorkspaceProfile(
                 workspacePadding = workspacePadding,
                 cellLayoutPaddingPx = cellLayoutPaddingPx,
                 edgeMarginPx = edgeMarginPx,
+                cellLayoutHeightSpecification =
+                    ((cellHeightPx * inv.numRows) +
+                        (cellLayoutBorderSpacePx.y * (inv.numRows - 1)) +
+                        cellLayoutPaddingPx.top +
+                        cellLayoutPaddingPx.bottom),
+                cellLayoutWidthSpecification =
+                    ((cellWidthPx * numColumns) +
+                        (cellLayoutBorderSpacePx.x * (numColumns - 1)) +
+                        cellLayoutPaddingPx.left +
+                        cellLayoutPaddingPx.right),
+                panelCount = panelCount,
+                cellSize = cellSize,
             )
         }
 
@@ -437,11 +543,9 @@ data class WorkspaceProfile(
             mResponsiveWorkspaceWidthSpec: CalculatedResponsiveSpec?,
             mResponsiveWorkspaceHeightSpec: CalculatedResponsiveSpec?,
             mResponsiveWorkspaceCellSpec: CalculatedCellSpec?,
-            cellSize: Point,
             typeIndex: Int,
             metrics: DisplayMetrics,
             panelCount: Int,
-            cellLayoutBorderSpacePx: Point,
             iconSizePx: Int,
             insets: Rect,
             isFirstPass: Boolean,
@@ -468,8 +572,6 @@ data class WorkspaceProfile(
                         responsiveWorkspaceHeightSpec = mResponsiveWorkspaceHeightSpec,
                         responsiveWorkspaceCellSpec = mResponsiveWorkspaceCellSpec,
                         iconScale = iconScale,
-                        cellLayoutBorderSpacePx = cellLayoutBorderSpacePx,
-                        cellSize = cellSize,
                         cellScaleToFit = cellScaleToFit,
                         deviceProperties = deviceProperties,
                         isScalableGrid = isScalableGrid,
@@ -479,6 +581,7 @@ data class WorkspaceProfile(
                         hotseatBarBottomSpacePx = hotseatBarBottomSpacePx,
                         hotseatQsbSpace = hotseatQsbSpace,
                         isQsbInline = isQsbInline,
+                        panelCount = panelCount,
                     )
 
                 else ->
@@ -489,11 +592,9 @@ data class WorkspaceProfile(
                         inv = inv,
                         isVerticalLayout = isVerticalLayout,
                         isScalableGrid = isScalableGrid,
-                        cellSize = cellSize,
                         typeIndex = typeIndex,
                         metrics = metrics,
                         panelCount = panelCount,
-                        cellLayoutBorderSpacePx = cellLayoutBorderSpacePx,
                         iconSizePx = iconSizePx,
                         context = context,
                         isFirstPass = isFirstPass,

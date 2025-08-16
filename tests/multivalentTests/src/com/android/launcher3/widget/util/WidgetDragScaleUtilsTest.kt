@@ -17,34 +17,34 @@ package com.android.launcher3.widget.util
 
 import android.content.Context
 import android.graphics.Point
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.R
 import com.android.launcher3.model.data.ItemInfo
-import com.android.launcher3.util.ActivityContextWrapper
+import com.android.launcher3.util.TestActivityContext
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.spy
 import org.mockito.kotlin.whenever
 
 @SmallTest
 @RunWith(AndroidJUnit4::class)
 class WidgetDragScaleUtilsTest {
-    private lateinit var context: Context
+    @get:Rule val context = TestActivityContext()
+
     private lateinit var itemInfo: ItemInfo
     private lateinit var deviceProfile: DeviceProfile
 
     @Before
     fun setup() {
-        context = ActivityContextWrapper(ApplicationProvider.getApplicationContext())
-
         itemInfo = ItemInfo()
 
         deviceProfile =
@@ -62,7 +62,9 @@ class WidgetDragScaleUtilsTest {
     fun getWidgetDragScalePx_largeDraggedView_downScaled() {
         val minSize =
             context.resources.getDimensionPixelSize(R.dimen.widget_drag_view_min_scale_down_size)
-        whenever(deviceProfile.cellSize).thenReturn(Point(minSize * 2, minSize * 2))
+
+        val workspaceProfile = spy(deviceProfile.mWorkspaceProfile)
+        whenever(workspaceProfile.cellSize).thenReturn(Point(minSize * 2, minSize * 2))
 
         itemInfo.spanX = 2
         itemInfo.spanY = 2
@@ -88,7 +90,8 @@ class WidgetDragScaleUtilsTest {
     fun getWidgetDragScalePx_draggedViewSameAsWidgetSize_downScaled() {
         val minSize =
             context.resources.getDimensionPixelSize(R.dimen.widget_drag_view_min_scale_down_size)
-        whenever(deviceProfile.cellSize).thenReturn(Point(minSize * 2, minSize * 2))
+        val workspaceProfile = spy(deviceProfile.mWorkspaceProfile)
+        whenever(workspaceProfile.cellSize).thenReturn(Point(minSize * 2, minSize * 2))
         itemInfo.spanX = 4
         itemInfo.spanY = 2
 
@@ -118,7 +121,8 @@ class WidgetDragScaleUtilsTest {
             context.resources.getDimensionPixelSize(R.dimen.widget_drag_view_min_scale_down_size)
         // Assume min size is greater than cell size, so that, we know the upscale of dragged view
         // is due to min size enforcement.
-        whenever(deviceProfile.cellSize).thenReturn(Point(minSizePx / 2, minSizePx / 2))
+        val workspaceProfile = spy(deviceProfile.mWorkspaceProfile)
+        whenever(workspaceProfile.cellSize).thenReturn(Point(minSizePx / 2, minSizePx / 2))
         itemInfo.spanX = 1
         itemInfo.spanY = 1
 

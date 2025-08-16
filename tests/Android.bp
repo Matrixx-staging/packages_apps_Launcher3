@@ -26,6 +26,8 @@ filegroup {
         "src/**/*.kt",
         "multivalentTests/src/**/*.java",
         "multivalentTests/src/**/*.kt",
+        "src_e2e/**/*.java",
+        "src_e2e/**/*.kt",
     ],
     exclude_srcs: [
         ":launcher-non-quickstep-tests-src",
@@ -123,7 +125,7 @@ android_test {
     exclude_srcs: [
         // Launcher3 tests setup has an issue with resolving a few resources within transitive
         // compose dependencies that work fine in actual Launcher3 app.
-        "src/com/android/launcher3/widget/TaplAddWidgetTest.java",
+        "src_e2e/com/android/launcher3/widget/TaplAddWidgetTest.java",
     ],
     static_libs: [
         "Launcher3TestLib",
