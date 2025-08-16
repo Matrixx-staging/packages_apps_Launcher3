@@ -31,8 +31,10 @@ import static com.android.quickstep.util.ContextualSearchInvoker.SHADE_EXPANDED_
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -197,7 +199,7 @@ public class ContextualSearchInvokerTest {
                             CONTEXTUAL_SEARCH_ENTRY_POINT));
             verify(mMockContextualSearchHapticManager).vibrateForSearch();
             verify(mMockContextualSearchManager).startContextualSearch(
-                    CONTEXTUAL_SEARCH_ENTRY_POINT);
+                    eq(CONTEXTUAL_SEARCH_ENTRY_POINT), any());
             verifyNoMoreInteractions(mMockStatsLogManager);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -212,7 +214,7 @@ public class ContextualSearchInvokerTest {
                             CONTEXTUAL_SEARCH_ENTRY_POINT));
             verify(mMockContextualSearchHapticManager, never()).vibrateForSearch();
             verify(mMockContextualSearchManager).startContextualSearch(
-                    CONTEXTUAL_SEARCH_ENTRY_POINT);
+                    eq(CONTEXTUAL_SEARCH_ENTRY_POINT), any());
             verifyNoMoreInteractions(mMockStatsLogManager);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -231,7 +233,7 @@ public class ContextualSearchInvokerTest {
             // Still vibrate based on the flag.
             verify(mMockContextualSearchHapticManager).vibrateForSearch();
             verify(mMockContextualSearchManager).startContextualSearch(
-                    CONTEXTUAL_SEARCH_ENTRY_POINT);
+                    eq(CONTEXTUAL_SEARCH_ENTRY_POINT), any());
             verifyNoMoreInteractions(mMockStatsLogManager);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -251,7 +253,7 @@ public class ContextualSearchInvokerTest {
             // Still don't vibrate based on the flag.
             verify(mMockContextualSearchHapticManager, never()).vibrateForSearch();
             verify(mMockContextualSearchManager).startContextualSearch(
-                    CONTEXTUAL_SEARCH_ENTRY_POINT);
+                    eq(CONTEXTUAL_SEARCH_ENTRY_POINT), any());
             verifyNoMoreInteractions(mMockStatsLogManager);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -273,7 +275,8 @@ public class ContextualSearchInvokerTest {
         verify(mMockRecentsView).finishRecentsAnimation(anyBoolean(), anyBoolean(),
                 finishRecentsAnimationCaptor.capture());
         finishRecentsAnimationCaptor.getValue().run();
-        verify(mMockContextualSearchManager).startContextualSearch(CONTEXTUAL_SEARCH_ENTRY_POINT);
+        verify(mMockContextualSearchManager).startContextualSearch(
+                eq(CONTEXTUAL_SEARCH_ENTRY_POINT), any());
         verifyNoMoreInteractions(mMockStatsLogManager);
     }
 
@@ -293,7 +296,7 @@ public class ContextualSearchInvokerTest {
         verify(mMockRecentsView, never()).finishRecentsAnimation(anyBoolean(), anyBoolean(),
                 finishRecentsAnimationCaptor.capture());
         // And ContextualSearch should not start.
-        verify(mMockContextualSearchManager, never()).startContextualSearch(anyInt());
+        verify(mMockContextualSearchManager, never()).startContextualSearch(anyInt(), any());
         verifyNoMoreInteractions(mMockStatsLogManager);
     }
 
@@ -312,7 +315,7 @@ public class ContextualSearchInvokerTest {
         verify(mMockRecentsView).finishRecentsAnimation(anyBoolean(), anyBoolean(),
                 finishRecentsAnimationCaptor.capture());
         // Don't run finishRecentsAnimation's callback. Therefore ContextualSearch should not start.
-        verify(mMockContextualSearchManager, never()).startContextualSearch(anyInt());
+        verify(mMockContextualSearchManager, never()).startContextualSearch(anyInt(), any());
         verifyNoMoreInteractions(mMockStatsLogManager);
     }
 

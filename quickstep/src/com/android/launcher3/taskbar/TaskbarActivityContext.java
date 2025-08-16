@@ -280,6 +280,9 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
 
     private @Nullable UIControllerChangeListener mUIControllerChangeListener;
 
+    private final boolean mIsTransient;
+    private final boolean mIsPinned;
+
     public TaskbarActivityContext(int displayId, Context windowContext,
             @Nullable Context navigationBarPanelContext, DeviceProfile launcherDp,
             TaskbarNavButtonController buttonController,
@@ -287,6 +290,8 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             boolean isPrimaryDisplay, int primaryDisplayId, SystemUiProxy sysUiProxy) {
         super(windowContext, displayId, isPrimaryDisplay);
         mTaskbarFeatureEvaluator = TaskbarFeatureEvaluator.INSTANCE.get(this);
+        mIsTransient = mTaskbarFeatureEvaluator.isTransient();
+        mIsPinned = mTaskbarFeatureEvaluator.isPinned();
         mTaskbarUiState = TaskbarUiStateMonitor.INSTANCE.get(this).getTaskbarUiState(displayId);
         mTaskbarUiState.setIsPrimaryDisplay(isPrimaryDisplay);
         mNavigationBarPanelContext = navigationBarPanelContext;
@@ -436,12 +441,12 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
 
     @Override
     public boolean isTransientTaskbar() {
-        return mTaskbarFeatureEvaluator.isTransient() && isPrimaryDisplay() && !isPhoneMode();
+        return mIsTransient && isPrimaryDisplay() && !isPhoneMode();
     }
 
     @Override
     public boolean isPinnedTaskbar() {
-        return mTaskbarFeatureEvaluator.isPinned();
+        return mIsPinned;
     }
 
     @Override

@@ -35,6 +35,7 @@ import static com.android.systemui.shared.system.ActivityManagerWrapper.CLOSE_SY
 import static com.android.systemui.shared.system.ActivityManagerWrapper.CLOSE_SYSTEM_WINDOWS_REASON_RECENTS;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_SCREEN_PINNING;
 
+import android.app.contextualsearch.ContextualSearchConfig;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
@@ -74,9 +75,9 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
     static final int SCREEN_PIN_LONG_PRESS_RESET = SCREEN_PIN_LONG_PRESS_THRESHOLD + 100;
     private static final String TAG = "TaskbarNavButtonController";
 
+    private final Rect mTempRect = new Rect();
     private long mLastScreenPinLongPress;
     private boolean mScreenPinned;
-    private boolean mAssistantLongPressEnabled;
     private int mLastSentBackAction = ACTION_UP;
 
     @Override
@@ -197,7 +198,7 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
         switch (buttonType) {
             case BUTTON_HOME:
                 logEvent(LAUNCHER_TASKBAR_HOME_BUTTON_LONGPRESS);
-                onLongPressHome();
+                onLongPressHome(view);
                 view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS,
                         HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
                 return true;
@@ -324,10 +325,6 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
         mStatsLogManager = null;
     }
 
-    public void setAssistantLongPressEnabled(boolean assistantLongPressEnabled) {
-        mAssistantLongPressEnabled = assistantLongPressEnabled;
-    }
-
     private void logEvent(StatsLogManager.LauncherEvent event) {
         if (mStatsLogManager == null) {
             Log.w(TAG, "No stats log manager to log taskbar button event");
@@ -394,13 +391,25 @@ public class TaskbarNavButtonController implements TaskbarControllers.LoggableTa
         }
     }
 
-    private void onLongPressHome() {
-        if (mScreenPinned || !mAssistantLongPressEnabled) {
+    private void onLongPressHome(View view) {
+        if (mControllers == null) {
+            Log.w(TAG, "Contextual Search invocation failed: Controller not initialized");
+            return;
+        }
+        if (mScreenPinned) {
+            Log.w(TAG, "Contextual Search invocation failed: Screen pinned");
+            return;
+        }
+        if (!mControllers.getSharedState().assistantLongPressEnabled) {
+            Log.w(TAG, "Contextual Search invocation failed: LPH disabled");
             return;
         }
         // Attempt to start Contextual Search, otherwise fall back to SysUi's implementation.
+        view.getBoundsOnScreen(mTempRect);
+        ContextualSearchConfig config = new ContextualSearchConfig.Builder()
+                .setSourceBounds(mTempRect).setDisplayId(mDisplayId).build();
         if (!mContextualSearchInvoker.tryStartAssistOverride(
-                INVOCATION_TYPE_HOME_BUTTON_LONG_PRESS)) {
+                INVOCATION_TYPE_HOME_BUTTON_LONG_PRESS, config)) {
             Bundle args = new Bundle();
             args.putInt(INVOCATION_TYPE_KEY, INVOCATION_TYPE_HOME_BUTTON_LONG_PRESS);
             mSystemUiProxy.startAssistant(args);
