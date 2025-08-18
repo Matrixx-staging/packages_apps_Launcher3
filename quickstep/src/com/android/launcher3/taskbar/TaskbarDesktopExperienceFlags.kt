@@ -35,4 +35,12 @@ object TaskbarDesktopExperienceFlags {
             /* shouldOverrideByDevOption= */ true,
             Flags.FLAG_ENABLE_ALT_TAB_KQS_FLATENNING,
         )
+
+    @JvmField
+    val enableCustomHeightForAllAppsOnCd: DesktopExperienceFlag =
+        DesktopExperienceFlag(
+            Flags::enableCustomHeightForAllAppsOnCd,
+            /* shouldOverrideByDevOption= */ true,
+            Flags.FLAG_ENABLE_CUSTOM_HEIGHT_FOR_ALL_APPS_ON_CD,
+        )
 }
