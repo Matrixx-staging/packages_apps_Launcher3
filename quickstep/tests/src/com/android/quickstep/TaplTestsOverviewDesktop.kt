@@ -29,6 +29,8 @@ import com.android.launcher3.tapl.LaunchedAppState
 import com.android.launcher3.tapl.OverviewTask
 import com.android.launcher3.util.TestUtil
 import com.android.launcher3.util.ui.PortraitLandscapeRunner.PortraitLandscape
+import com.android.quickstep.AbstractTaplTestsTaskbar.CALCULATOR_APP_NAME
+import com.android.quickstep.AbstractTaplTestsTaskbar.CALCULATOR_APP_PACKAGE
 import com.android.window.flags.Flags.FLAG_ENABLE_MULTIPLE_DESKTOPS_BACKEND
 import com.android.window.flags.Flags.FLAG_ENABLE_MULTIPLE_DESKTOPS_FRONTEND
 import com.google.common.truth.Truth.assertThat
@@ -155,6 +157,32 @@ class TaplTestsOverviewDesktop : AbstractQuickStepTest() {
 
         // Fling and tap add desk button again to create one more desk.
         overview.createDeskViaClickAddDesktopButton()
+    }
+
+    @Test
+    @PortraitLandscape
+    @EnableFlags(FLAG_ENABLE_MULTIPLE_DESKTOPS_FRONTEND, FLAG_ENABLE_MULTIPLE_DESKTOPS_BACKEND)
+    fun testEmptyDesk() {
+        mLauncher.workspace
+            .switchToOverview()
+            // Create an empty desk
+            .createDeskViaClickAddDesktopButton()
+            .apply { flingBackward() }
+            .currentTask
+            // Launch the empty desk
+            .open()
+            // Go back to Overview from the empty desk
+            .switchToOverview()
+            // Relaunch it
+            .currentTask
+            .open()
+            // Launch an app from the taskbar
+            .taskbar
+            .openAllApps()
+            .getAppIcon(CALCULATOR_APP_NAME)
+            .launch(CALCULATOR_APP_PACKAGE)
+            // Verify that the app is now running inside the desktop.
+            .assertAppInDesktop(CALCULATOR_APP_PACKAGE)
     }
 
     @Test
