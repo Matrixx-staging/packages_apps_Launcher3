@@ -17,8 +17,8 @@
 package com.android.launcher3.dagger
 
 import com.android.launcher3.allapps.AllAppsStore
-import com.android.launcher3.dagger.LauncherBaseAppComponent.Builder
 import com.android.launcher3.popup.PopupDataProvider
+import com.android.launcher3.qsb.OseWidgetOptionsProvider
 import com.android.launcher3.secondarydisplay.SecondaryDisplayDelegate
 import com.android.launcher3.views.ActivityContext
 import dagger.BindsInstance
@@ -28,6 +28,8 @@ import javax.inject.Named
 interface BaseActivityContextComponent {
 
     fun getSecondaryDisplayDelegate(): SecondaryDisplayDelegate
+
+    fun getOseWidgetOptionsProvider(): OseWidgetOptionsProvider
 
     val appsStore: AllAppsStore
     val popupDataProvider: PopupDataProvider

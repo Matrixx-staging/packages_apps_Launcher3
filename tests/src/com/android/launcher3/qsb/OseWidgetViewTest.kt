@@ -29,9 +29,12 @@ import com.android.launcher3.util.MutableListenableRef
 import com.android.launcher3.util.SandboxApplication
 import com.android.launcher3.util.TestActivityContext
 import com.android.launcher3.util.ui.TestViewHelpers
+import com.android.launcher3.views.OptionsPopupView.OptionItem
 import dagger.BindsInstance
 import dagger.Component
 import kotlin.test.Test
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.runner.RunWith
@@ -53,6 +56,8 @@ class OseWidgetViewTest {
     @get:Rule val context = TestActivityContext(sandboxContext)
 
     @Mock lateinit var oseWidgetManager: OseWidgetManager
+    @Mock lateinit var oseWidgetOptionsProvider: OseWidgetOptionsProvider
+    @Mock lateinit var optionItem: OptionItem
 
     private lateinit var mVut: OseWidgetView
 
@@ -66,6 +71,11 @@ class OseWidgetViewTest {
         sandboxContext.initDaggerComponent(
             DaggerOseWidgetViewTest_TestComponent.builder().bindOseWidgetManager(oseWidgetManager)
         )
+        val activityContextComponent = context.activityComponent
+        spyOn(activityContextComponent)
+        doReturn(oseWidgetOptionsProvider)
+            .whenever(activityContextComponent)
+            .getOseWidgetOptionsProvider()
         mVut = OseWidgetView(context)
         spyOn(mVut)
         spyOn(mVut.closeActions)
@@ -145,6 +155,20 @@ class OseWidgetViewTest {
         mockRemoteViews.dispatchValue(anotherRemoteView)
         // updateAppWidget is not called since view is detached even though remoteView changes
         verify(mVut, times(1)).updateAppWidget(any())
+    }
+
+    @Test
+    fun when_view_longClicked_noOptionItems_returnsFalse() {
+        doReturn(emptyList<OptionItem>()).whenever(oseWidgetOptionsProvider).getOptionItems()
+        doNothing().whenever(mVut).showOptionsPopup(any(), any())
+        assertFalse { mVut.onLongClick(mVut) }
+    }
+
+    @Test
+    fun when_view_longClicked_optionItemsExist_returnsTrue() {
+        doReturn(listOf(optionItem)).whenever(oseWidgetOptionsProvider).getOptionItems()
+        doNothing().whenever(mVut).showOptionsPopup(any(), any())
+        assertTrue { mVut.onLongClick(mVut) }
     }
 
     @LauncherAppSingleton
