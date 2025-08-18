@@ -23,6 +23,7 @@ import android.os.SystemClock
 import com.android.internal.R
 import com.android.launcher3.Flags.enableSystemDrag
 import com.android.launcher3.backuprestore.LauncherRestoreEventLogger
+import com.android.launcher3.concurrent.annotations.ThreadPool
 import com.android.launcher3.dragndrop.SystemDragController
 import com.android.launcher3.dragndrop.SystemDragControllerImpl
 import com.android.launcher3.dragndrop.SystemDragControllerStub
@@ -56,6 +57,7 @@ import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.ElementsIntoSet
+import java.util.concurrent.ExecutorService
 import javax.inject.Named
 
 private object Modules {}
@@ -150,10 +152,11 @@ object HomeScreenFilesModule {
     @Provides
     @LauncherAppSingleton
     fun provideHomeScreenFilesProvider(
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
+        @ThreadPool executorService: ExecutorService,
     ): HomeScreenFilesProvider {
         return if (HomeScreenFilesUtils.isFeatureEnabled(context)) {
-            HomeScreenFilesMediaStoreProvider()
+            HomeScreenFilesMediaStoreProvider(context, executorService)
         } else {
             HomeScreenFilesNoOpProvider()
         }

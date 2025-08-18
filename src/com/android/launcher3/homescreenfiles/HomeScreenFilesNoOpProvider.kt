@@ -16,5 +16,13 @@
 
 package com.android.launcher3.homescreenfiles
 
-/** No-op implementation of `HomeScreenFilesProvider`. */
-class HomeScreenFilesNoOpProvider : HomeScreenFilesProvider {}
+import android.net.Uri
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Future
+
+/** No-op implementation of [HomeScreenFilesProvider]. */
+class HomeScreenFilesNoOpProvider : HomeScreenFilesProvider {
+    override fun query(): Future<Map<Uri, HomeScreenFile>> {
+        return CompletableFuture.completedFuture(emptyMap())
+    }
+}
