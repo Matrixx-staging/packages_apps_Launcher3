@@ -18,6 +18,7 @@ package com.android.quickstep;
 import static android.app.ActivityTaskManager.INVALID_TASK_ID;
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_HOME;
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_RECENTS;
+import static android.app.WindowConfiguration.WINDOWING_MODE_FREEFORM;
 import static android.app.WindowConfiguration.WINDOWING_MODE_FULLSCREEN;
 import static android.app.WindowConfiguration.WINDOWING_MODE_MULTI_WINDOW;
 import static android.content.Intent.ACTION_CHOOSER;
@@ -47,6 +48,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
+import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.dagger.LauncherAppSingleton;
@@ -77,6 +79,8 @@ import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
+import kotlin.collections.CollectionsKt;
+
 /**
  * This class tracked the top-most task and  some 'approximate' task history to allow faster
  * system state estimation during touch interaction
@@ -87,7 +91,8 @@ public class TopTaskTracker extends ISplitScreenListener.Stub implements TaskSta
     public static DaggerSingletonObject<TopTaskTracker> INSTANCE =
             new DaggerSingletonObject<>(QuickstepBaseAppComponent::getTopTaskTracker);
 
-    private static final int HISTORY_SIZE = 5;
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    static final int HISTORY_SIZE = 5;
 
     // Only used when Flags.enableShellTopTaskTracking() is disabled
     // Ordered list with first item being the most recent task.
@@ -180,14 +185,17 @@ public class TopTaskTracker extends ISplitScreenListener.Stub implements TaskSta
             }
         }
 
-        if (mOrderedTaskList.size() >= HISTORY_SIZE) {
+        if (CollectionsKt.count(mOrderedTaskList,
+                task -> task.getWindowingMode() != WINDOWING_MODE_FREEFORM)
+                > HISTORY_SIZE) {
             // If we grow in size, remove the last taskInfo which is not part of the split task.
             Iterator<TaskInfo> itr = mOrderedTaskList.descendingIterator();
             while (itr.hasNext()) {
                 TaskInfo info = itr.next();
                 if (info.taskId != taskInfo.taskId
                         && info.taskId != mMainStagePosition.taskId
-                        && info.taskId != mSideStagePosition.taskId) {
+                        && info.taskId != mSideStagePosition.taskId
+                        && info.getWindowingMode() != WINDOWING_MODE_FREEFORM) {
                     itr.remove();
                     return;
                 }

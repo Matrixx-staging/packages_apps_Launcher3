@@ -36,6 +36,7 @@ import com.android.internal.R
 import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.statehandlers.DesktopVisibilityController.Companion.INACTIVE_DESK_ID
 import com.android.launcher3.util.DaggerSingletonTracker
+import com.android.quickstep.TopTaskTracker.HISTORY_SIZE
 import com.android.window.flags.Flags.FLAG_ENABLE_MULTIPLE_DESKTOPS_BACKEND
 import com.android.window.flags.Flags.FLAG_ENABLE_MULTIPLE_DESKTOPS_FRONTEND
 import com.android.wm.shell.Flags.FLAG_ENABLE_SHELL_TOP_TASK_TRACKING
@@ -246,22 +247,48 @@ class TopTaskTrackerTest {
         assertThat(topTask.taskId).isEqualTo(INVALID_TASK_ID)
     }
 
-    private fun createTaskInfo(taskId: Int, displayId: Int = DEFAULT_DISPLAY): TaskInfo {
-        val taskInfo = ActivityManager.RunningTaskInfo()
-        taskInfo.taskId = taskId
-        taskInfo.displayId = displayId
-        taskInfo.baseIntent = Intent()
-        taskInfo.baseActivity = ComponentName("test", "test")
-        taskInfo.configuration.windowConfiguration.setActivityType(ACTIVITY_TYPE_STANDARD)
-        taskInfo.configuration.windowConfiguration.setWindowingMode(WINDOWING_MODE_FULLSCREEN)
-        return taskInfo
+    @Test
+    fun getAllTasks_tasksMoreThanHistorySize_onlyFreeFormTasksNotRemoved() {
+        val freeformTaskCount = HISTORY_SIZE * 2
+        val fullScreenTaskCount = HISTORY_SIZE + 2
+        var taskId = 0
+        val freeformTasks = mutableListOf<TaskInfo>()
+        repeat(freeformTaskCount) {
+            val task = createTaskInfo(taskId = ++taskId, windowingMode = WINDOWING_MODE_FREEFORM)
+            freeformTasks.add(task)
+            topTaskTracker.handleTaskMovedToFront(task)
+        }
+        val fullScreenTasks = mutableListOf<TaskInfo>()
+        repeat(fullScreenTaskCount) {
+            val task = createTaskInfo(taskId = ++taskId, windowingMode = WINDOWING_MODE_FULLSCREEN)
+            fullScreenTasks.add(task)
+            topTaskTracker.handleTaskMovedToFront(task)
+        }
+
+        val cachedInfo =
+            topTaskTracker.getCachedTopTask(/* filterOnlyVisibleRecents= */ false, DEFAULT_DISPLAY)
+        val tasks = cachedInfo.mAllCachedTasks
+
+        val expectedTasks = freeformTasks + fullScreenTasks.takeLast(HISTORY_SIZE)
+        assertThat(tasks).containsExactlyElementsIn(expectedTasks)
     }
 
-    private fun createDesktopTaskInfo(taskId: Int, displayId: Int): TaskInfo {
-        val taskInfo = createTaskInfo(taskId, displayId)
-        taskInfo.configuration.windowConfiguration.setWindowingMode(WINDOWING_MODE_FREEFORM)
-        return taskInfo
-    }
+    private fun createTaskInfo(
+        taskId: Int,
+        displayId: Int = DEFAULT_DISPLAY,
+        windowingMode: Int = WINDOWING_MODE_FULLSCREEN,
+    ) =
+        ActivityManager.RunningTaskInfo().apply {
+            this.taskId = taskId
+            this.displayId = displayId
+            this.baseIntent = Intent()
+            this.baseActivity = ComponentName("test", "test")
+            this.configuration.windowConfiguration.activityType = ACTIVITY_TYPE_STANDARD
+            this.configuration.windowConfiguration.windowingMode = windowingMode
+        }
+
+    private fun createDesktopTaskInfo(taskId: Int, displayId: Int) =
+        createTaskInfo(taskId, displayId, WINDOWING_MODE_FREEFORM)
 
     private fun createBubbleTaskInfo(
         taskId: Int,
