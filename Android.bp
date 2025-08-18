@@ -68,13 +68,6 @@ filegroup {
     ],
 }
 
-filegroup {
-    name: "launcher-compose-ui-tests-src",
-    srcs: [
-        "compose/tests/com/android/launcher3/widgetpicker/theme/LauncherWidgetPickerThemeScreenshotTest.kt",
-    ],
-}
-
 // Tests for features that are enabled only when compose dependency is enabled & run as part of
 // Launcher3Tests
 filegroup {
