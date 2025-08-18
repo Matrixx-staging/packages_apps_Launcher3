@@ -150,10 +150,8 @@
     <string name="change_navigation_mode" msgid="9088393078736808968">"ナビゲーション モードを変更"</string>
     <string name="taskbar_divider_a11y_title" msgid="6608690309720242080">"タスクバーの区切り"</string>
     <string name="taskbar_overflow_a11y_title" msgid="8114045167370723746">"その他の最近使ったアプリ"</string>
-    <!-- no translation found for app_added_to_taskbar (1160433791917609063) -->
-    <skip />
-    <!-- no translation found for app_removed_from_taskbar (7887298201562912487) -->
-    <skip />
+    <string name="app_added_to_taskbar" msgid="1160433791917609063">"タスクバーにアプリを追加しました"</string>
+    <string name="app_removed_from_taskbar" msgid="7887298201562912487">"タスクバーからアプリを削除しました"</string>
     <string name="move_drop_target_top_or_left" msgid="2988702185049595807">"上 / 左に移動"</string>
     <string name="move_drop_target_bottom_or_right" msgid="5431393418797620162">"下 / 右に移動"</string>
     <string name="open_app_as_a_bubble" msgid="6642626287247807473">"アプリをバブルとして開く"</string>
