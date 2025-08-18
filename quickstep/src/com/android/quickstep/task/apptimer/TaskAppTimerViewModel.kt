@@ -16,6 +16,12 @@
 
 package com.android.quickstep.task.apptimer
 
+import android.app.ActivityOptions
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
+import android.provider.Settings
+import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,7 +36,41 @@ class TaskAppTimerViewModel : ViewModel<TaskAppTimerUiState> {
 
     override val uiState = _appTimerUiState.asStateFlow()
 
+    private fun startActivityWithScaleUpAnimation(
+        packageName: String,
+        description: String?,
+        options: ActivityOptions,
+        context: Context,
+    ) {
+        try {
+            context.startActivity(appUsageSettingsIntent(packageName), options.toBundle())
+        } catch (e: ActivityNotFoundException) {
+            Log.e(TAG, "Failed to open $description ", e)
+        }
+    }
+
     fun setState(uiState: TaskAppTimerUiState) {
-        _appTimerUiState.value = uiState
+        _appTimerUiState.value =
+            if (uiState is TaskAppTimerUiState.Timer)
+                uiState.copy { activityOptions, context ->
+                    startActivityWithScaleUpAnimation(
+                        uiState.taskPackageName,
+                        uiState.taskDescription,
+                        activityOptions,
+                        context,
+                    )
+                }
+            else {
+                uiState
+            }
+    }
+
+    private fun appUsageSettingsIntent(packageName: String) =
+        Intent(Settings.ACTION_APP_USAGE_SETTINGS)
+            .putExtra(Intent.EXTRA_PACKAGE_NAME, packageName)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+
+    private companion object {
+        const val TAG = "TaskAppTimerViewModel"
     }
 }
