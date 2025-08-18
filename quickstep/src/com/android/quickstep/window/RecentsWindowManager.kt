@@ -238,12 +238,12 @@ constructor(
         }
     }
 
-    private fun createWindowView() {
-        theme.applyStyle(overviewBlurStyleResId, true)
+    fun createWindowView() {
         if (windowView != null) {
             return
         }
 
+        theme.applyStyle(overviewBlurStyleResId, true)
         windowView = layoutInflater.inflate(R.layout.fallback_recents_activity, null)
         windowView?.let { it ->
             actionsView = it.findViewById(R.id.overview_actions_view)
@@ -318,15 +318,6 @@ constructor(
             homeVisibilityState.addListener(homeVisibilityListener)
         }
 
-        // create window view so that recentsView and dragLayer can be used for split select
-        // animation in external displays.
-        createWindowView()
-
-        // Hide the views so it doesn't show up on the screen.
-        AbstractFloatingView.closeAllOpenViews(this, /* animate= */ false)
-        recentsView?.viewRootImpl?.touchModeChanged(true)
-        windowRootView.visibility = View.GONE
-
         if (
             DesktopExperienceFlags.ENABLE_NON_DEFAULT_DISPLAY_SPLIT_BUGFIX.isTrue &&
                 displayId != DEFAULT_DISPLAY &&
@@ -400,6 +391,7 @@ constructor(
             return
         }
 
+        createWindowView()
         windowRootView.visibility = View.VISIBLE
 
         this.callbacks = callbacks

@@ -1030,6 +1030,10 @@ public class SplitSelectStateController {
                 setInitialTaskSelect(mTaskInfo, mSplitPosition,
                         null, launcherDesktopSplitEvent);
 
+                if (mRecentsWindowManager != null) {
+                    mRecentsWindowManager.createWindowView();
+                }
+
                 final SurfaceTransactionApplier surfaceApplier =
                         new SurfaceTransactionApplier(mContainer.getDragLayer());
 
