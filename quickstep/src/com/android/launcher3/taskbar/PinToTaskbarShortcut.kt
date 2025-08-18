@@ -22,9 +22,11 @@ import android.view.View
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityManager
 import androidx.annotation.VisibleForTesting
+import androidx.core.util.isNotEmpty
+import androidx.core.util.size
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.LauncherAppState
-import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
+import com.android.launcher3.LauncherSettings.Favorites
 import com.android.launcher3.R
 import com.android.launcher3.model.BgDataModel
 import com.android.launcher3.model.ModelWriter
@@ -32,6 +34,8 @@ import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.popup.SystemShortcut
 import com.android.launcher3.popup.SystemShortcut.Factory
+import com.android.launcher3.taskbar.customization.TaskbarSpecsEvaluator
+import com.android.launcher3.taskbar.overlay.TaskbarOverlayContext
 import com.android.launcher3.uioverrides.QuickstepLauncher
 import com.android.launcher3.views.ActivityContext
 
@@ -45,13 +49,13 @@ constructor(
     target: T,
     itemInfo: ItemInfo?,
     originalView: View,
-    @get:VisibleForTesting val mIsPin: Boolean,
-    private val mPinnedInfoList: SparseArray<ItemInfo?>,
-    private val mOnClickCallback: Runnable? = null,
+    @get:VisibleForTesting val isPin: Boolean,
+    private val pinnedInfoList: SparseArray<ItemInfo?>,
+    private val onClickCallback: Runnable? = null,
 ) :
     SystemShortcut<T>(
-        if (mIsPin) R.drawable.ic_pin else R.drawable.ic_unpin,
-        if (mIsPin) R.string.pin_to_taskbar else R.string.unpin_from_taskbar,
+        if (isPin) R.drawable.ic_pin else R.drawable.ic_unpin,
+        if (isPin) R.string.pin_to_taskbar else R.string.unpin_from_taskbar,
         target,
         itemInfo,
         originalView,
@@ -67,44 +71,45 @@ constructor(
                 .model
                 .getWriter(true, mTarget!!.cellPosMapper, callbacks)
 
-        if (!mIsPin) {
+        if (!isPin) {
             var infoToUnpin = mItemInfo
+            // If the shortcut is triggered from the all apps, find the info in the taskbar to
+            // unpin. Otherwise, directly unpin the info on the taskbar.
             if (mItemInfo.isInAllApps) {
-                for (i in 0..<mPinnedInfoList.size()) {
-                    if (
-                        mPinnedInfoList.valueAt(i)?.getComponentKey() == mItemInfo.getComponentKey()
-                    ) {
-                        infoToUnpin = mPinnedInfoList.valueAt(i)
+                for (i in 0 until pinnedInfoList.size) {
+                    if (pinnedInfoList[i]?.getComponentKey() == mItemInfo.getComponentKey()) {
+                        infoToUnpin = pinnedInfoList.valueAt(i)
                         break
                     }
                 }
             }
-            writer.deleteItemFromDatabase(infoToUnpin, "item unpinned through long-press menu")
+            unpinItem(writer, infoToUnpin)
             onClickCleanUp(v)
             return
         }
 
         val newInfo =
-            if (mItemInfo is com.android.launcher3.model.data.AppInfo) {
-                mItemInfo.makeWorkspaceItem(mOriginalView.context)
-            } else if (mItemInfo is WorkspaceItemInfo) {
-                mItemInfo.clone()
-            } else {
-                return
+            when (mItemInfo) {
+                is com.android.launcher3.model.data.AppInfo ->
+                    mItemInfo.makeWorkspaceItem(mOriginalView.context)
+
+                is WorkspaceItemInfo -> mItemInfo.clone()
+                else -> return
             }
 
-        val dp: DeviceProfile = mTarget.deviceProfile
         var targetIdx = -1
+        val maxIcons = getMaxPinnableCount(mTarget)
+        if (maxIcons < 0) return
 
         // Reorder the taskbar only if we can't find a space that is to the right of all other
         // items.
-        if (mPinnedInfoList[dp.numShownHotseatIcons - 1] != null) {
+        if (pinnedInfoList[maxIcons - 1] != null) {
             compactTaskbarItems(writer)
         }
 
         // Find the first available space that has larger index than all other items.
-        for (i in dp.numShownHotseatIcons - 1 downTo 0) {
-            if (mPinnedInfoList[i] == null) {
+        for (i in maxIcons - 1 downTo 0) {
+            if (pinnedInfoList[i] == null) {
                 targetIdx = i
             } else {
                 break
@@ -113,8 +118,24 @@ constructor(
 
         val (cellX, cellY) = getCellCoordinates(targetIdx)
 
-        writer.addItemToDatabase(newInfo, CONTAINER_HOTSEAT, mItemInfo.screenId, cellX, cellY)
+        pinItem(writer, newInfo, mItemInfo.screenId, cellX, cellY)
         onClickCleanUp(v)
+    }
+
+    @VisibleForTesting
+    fun pinItem(
+        writer: ModelWriter,
+        info: WorkspaceItemInfo,
+        screenId: Int,
+        cellX: Int,
+        cellY: Int,
+    ) {
+        writer.addOrMoveItemInDatabase(info, Favorites.CONTAINER_HOTSEAT, screenId, cellX, cellY)
+    }
+
+    @VisibleForTesting
+    fun unpinItem(writer: ModelWriter, info: ItemInfo) {
+        writer.deleteItemFromDatabase(info, "item unpinned through long-press menu")
     }
 
     /**
@@ -124,7 +145,7 @@ constructor(
     private fun onClickCleanUp(shortcutView: View?) {
         sendAccessibilityAnnouncement(shortcutView)
         dismissTaskMenuView()
-        mOnClickCallback?.run()
+        onClickCallback?.run()
     }
 
     private fun sendAccessibilityAnnouncement(shortcutView: View?) {
@@ -132,10 +153,11 @@ constructor(
             shortcutView == null ||
                 mTarget == null ||
                 !AccessibilityManager.getInstance(mTarget).isEnabled
-        )
+        ) {
             return
+        }
         val announcementText =
-            if (mIsPin) mTarget.getString(R.string.app_added_to_taskbar)
+            if (isPin) mTarget.getString(R.string.app_added_to_taskbar)
             else mTarget.getString(R.string.app_removed_from_taskbar)
 
         shortcutView.setContentDescription(announcementText)
@@ -153,20 +175,16 @@ constructor(
      * end of the taskbar.
      */
     private fun compactTaskbarItems(writer: ModelWriter) {
-        if (mIsPin && mPinnedInfoList.size() > 0) {
-            val dp: DeviceProfile = mTarget!!.deviceProfile
-            val nonNullItems = mutableListOf<ItemInfo>()
+        if (isPin && pinnedInfoList.isNotEmpty()) {
             // Collect existing non-null items in their current order (based on SparseArray keys)
-            for (i in 0 until dp.numShownHotseatIcons) {
-                mPinnedInfoList.get(i)?.let { nonNullItems.add(it) }
-            }
-            // Update database for moved items
-            for (newScreenId in nonNullItems.indices) {
-                val itemToUpdate = nonNullItems[newScreenId]
+            val nonNullItems =
+                List(getMaxPinnableCount(requireNotNull(mTarget))) { i -> pinnedInfoList[i] }
+                    .filterNotNull()
 
+            // Update database for moved items
+            for ((newScreenId, itemToUpdate) in nonNullItems.withIndex()) {
                 // Calculate new cellX, cellY based on newScreenId
                 val (newCellX, newCellY) = getCellCoordinates(newScreenId)
-
                 if (
                     itemToUpdate.screenId != newScreenId ||
                         itemToUpdate.cellX != newCellX ||
@@ -181,19 +199,16 @@ constructor(
             }
 
             // Update the mPinnedInfoList in memory to reflect the new state
-            mPinnedInfoList.clear()
-            for (i in nonNullItems.indices) {
-                mPinnedInfoList.put(i, nonNullItems[i])
-            }
-            for (i in nonNullItems.size until dp.numShownHotseatIcons) {
-                mPinnedInfoList.put(i, null)
+            pinnedInfoList.clear()
+            for ((i, nonNullItem) in nonNullItems.withIndex()) {
+                pinnedInfoList[i] = nonNullItem
             }
         }
     }
 
     /** This should be the same as how Hotseat calculates cellX and cellY from a rank. */
     private fun getCellCoordinates(targetIdx: Int): Pair<Int, Int> {
-        val dp: DeviceProfile = mTarget!!.deviceProfile
+        val dp: DeviceProfile = requireNotNull(mTarget).deviceProfile
         val cellX = if (dp.isVerticalBarLayout) 0 else targetIdx
         val cellY = if (dp.isVerticalBarLayout) (dp.numShownHotseatIcons - (targetIdx + 1)) else 0
 
@@ -211,7 +226,7 @@ constructor(
                         ?.taskbarInfoList ?: return@Factory null
 
                 var isPinnedInTaskbar = false
-                for (i in 0 until taskbarInfoList.size()) {
+                for (i in 0 until taskbarInfoList.size) {
                     if (taskbarInfoList.valueAt(i)?.componentKey == itemInfo?.componentKey) {
                         isPinnedInTaskbar = true
                         break
@@ -229,7 +244,7 @@ constructor(
                     )
                 }
 
-                if (taskbarInfoList.size() < context.deviceProfile.numShownHotseatIcons) {
+                if (taskbarInfoList.size < getMaxPinnableCount(context)) {
                     return@Factory PinToTaskbarShortcut<QuickstepLauncher>(
                         context,
                         itemInfo,
@@ -242,5 +257,21 @@ constructor(
 
                 return@Factory null
             }
+
+        /**
+         * Returns the maximum number of items that can be pinned to the taskbar, or -1 if the
+         * context is not supported or the [TaskbarSpecsEvaluator] is not available.
+         */
+        private fun getMaxPinnableCount(context: ActivityContext): Int {
+            val specEvaluator =
+                when (context) {
+                    is TaskbarActivityContext -> context.taskbarSpecsEvaluator
+                    is TaskbarOverlayContext -> context.specsEvaluator
+                    is QuickstepLauncher -> context.taskbarUIController?.taskbarSpecsEvaluator
+                    else -> null
+                }
+
+            return specEvaluator?.maxPinnableCount ?: -1
+        }
     }
 }

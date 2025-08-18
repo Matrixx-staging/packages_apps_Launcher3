@@ -38,6 +38,7 @@ import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.popup.SystemShortcut;
 import com.android.launcher3.taskbar.bubbles.BubbleBarController;
 import com.android.launcher3.taskbar.customization.TaskbarFeatureEvaluator;
+import com.android.launcher3.taskbar.customization.TaskbarSpecsEvaluator;
 import com.android.launcher3.util.SplitConfigurationOptions;
 import com.android.quickstep.GestureState;
 import com.android.quickstep.RecentsAnimationCallbacks;
@@ -78,6 +79,10 @@ public class TaskbarUIController implements BubbleBarController.BubbleBarLocatio
             recentsView.setTaskLaunchListener(null);
             recentsView.setTaskLaunchCancelledRunnable(null);
         }
+    }
+
+    protected TaskbarSpecsEvaluator getTaskbarSpecsEvaluator() {
+        return mControllers.taskbarActivityContext.getTaskbarSpecsEvaluator();
     }
 
     protected boolean isTaskbarTouchable() {
