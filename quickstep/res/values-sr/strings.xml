@@ -150,10 +150,8 @@
     <string name="change_navigation_mode" msgid="9088393078736808968">"Промени режим навигације"</string>
     <string name="taskbar_divider_a11y_title" msgid="6608690309720242080">"Разделник траке задатака"</string>
     <string name="taskbar_overflow_a11y_title" msgid="8114045167370723746">"Друге недавне апликације"</string>
-    <!-- no translation found for app_added_to_taskbar (1160433791917609063) -->
-    <skip />
-    <!-- no translation found for app_removed_from_taskbar (7887298201562912487) -->
-    <skip />
+    <string name="app_added_to_taskbar" msgid="1160433791917609063">"Апликација је додата на траку задатака"</string>
+    <string name="app_removed_from_taskbar" msgid="7887298201562912487">"Апликација је уклоњена са траке задатака"</string>
     <string name="move_drop_target_top_or_left" msgid="2988702185049595807">"Премести горе лево"</string>
     <string name="move_drop_target_bottom_or_right" msgid="5431393418797620162">"Премести доле десно"</string>
     <string name="open_app_as_a_bubble" msgid="6642626287247807473">"Отвори апликацију као облачић"</string>
