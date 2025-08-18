@@ -18,9 +18,6 @@ package com.android.quickstep.compose
 
 import android.content.Context
 import android.view.View
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
@@ -59,15 +56,7 @@ object QuickstepComposeFacade : BaseComposeFacade, QuickstepComposeFeatures {
         return (view as ComposeView).apply {
             setContent {
                 val timerUiState by viewModel.uiState.collectAsStateWithLifecycle()
-                PlatformTheme {
-                    AnimatedVisibility(
-                        visible = timerUiState is TaskAppTimerUiState.Timer,
-                        enter = slideInVertically { it },
-                        exit = slideOutVertically { it },
-                    ) {
-                        AppTimerToast(timerUiState)
-                    }
-                }
+                PlatformTheme { AppTimerToast(timerUiState) }
             }
         }
     }
