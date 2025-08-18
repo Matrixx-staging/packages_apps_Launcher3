@@ -748,6 +748,7 @@ public class AppWidgetResizeFrame extends AbstractFloatingView implements View.O
             case MotionEvent.ACTION_DOWN:
                 return handleTouchDown(ev);
             case MotionEvent.ACTION_MOVE:
+                closePopupIfOpen();
                 visualizeResizeForDelta(x - mXDown, y - mYDown);
                 break;
             case MotionEvent.ACTION_CANCEL:
