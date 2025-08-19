@@ -36,6 +36,7 @@ import android.os.UserHandle
  *   set this to true if the picker is shown in an activity that disables gesture nav. When set,
  *   swipe up from bottom will scale down the picker sheet and animate close if it detects user is
  *   trying to close the sheet.
+ * @param isDesktopFormFactor indicates the whether the picker is presented for desktop.
  */
 data class WidgetPickerConfig(
     val uiSurface: String = HOMESCREEN_WIDGETS_UI_SURFACE,
@@ -45,6 +46,7 @@ data class WidgetPickerConfig(
     val categoryExclusionFilter: Int = 0,
     val filteredUsers: List<UserHandle> = listOf(),
     val enableSwipeUpToDismiss: Boolean = false,
+    val isDesktopFormFactor: Boolean = false,
 ) {
     /**
      * Indicates if the intent request is for picking home screen widgets. If false, implies its for
