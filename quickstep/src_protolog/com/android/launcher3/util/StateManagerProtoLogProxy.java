@@ -30,16 +30,19 @@ import com.android.launcher3.Flags;
  * Proxy class used for StateManager ProtoLog support.
  */
 public class StateManagerProtoLogProxy {
-    private static final DesktopModeFlag ENABLE_STATE_MANAGER_PROTO_LOG =
-            new DesktopModeFlag(Flags::enableStateManagerProtoLog, true);
+
+    private static final boolean IS_STATE_MANAGER_PROTOLOG_ENABLED =
+            new DesktopModeFlag(Flags::enableStateManagerProtoLog, true).isTrue();
+    private static final boolean IS_LOGGING_TO_LOGCAT =
+            IS_STATE_MANAGER_PROTOLOG_ENABLED && LAUNCHER_STATE_MANAGER.isLogToLogcat();
 
     public static boolean isLoggingToLogcat() {
-        return ENABLE_STATE_MANAGER_PROTO_LOG.isTrue() && LAUNCHER_STATE_MANAGER.isLogToLogcat();
+        return IS_LOGGING_TO_LOGCAT;
     }
 
     public static void logGoToState(
             @NonNull Object fromState, @NonNull Object toState, @NonNull String trace) {
-        if (!ENABLE_STATE_MANAGER_PROTO_LOG.isTrue() || !isProtoLogInitialized()) return;
+        if (!IS_STATE_MANAGER_PROTOLOG_ENABLED || !isProtoLogInitialized()) return;
         ProtoLog.d(LAUNCHER_STATE_MANAGER,
                 "StateManager.goToState: fromState: %s, toState: %s, partial trace:\n%s",
                 fromState,
@@ -49,7 +52,7 @@ public class StateManagerProtoLogProxy {
 
     public static void logCreateAtomicAnimation(
             @NonNull Object fromState, @NonNull Object toState, @NonNull String trace) {
-        if (!ENABLE_STATE_MANAGER_PROTO_LOG.isTrue() || !isProtoLogInitialized()) return;
+        if (!IS_STATE_MANAGER_PROTOLOG_ENABLED || !isProtoLogInitialized()) return;
         ProtoLog.d(LAUNCHER_STATE_MANAGER, "StateManager.createAtomicAnimation: "
                         + "fromState: %s, toState: %s, partial trace:\n%s",
                 fromState,
@@ -58,23 +61,23 @@ public class StateManagerProtoLogProxy {
     }
 
     public static void logOnStateTransitionStart(@NonNull Object state) {
-        if (!ENABLE_STATE_MANAGER_PROTO_LOG.isTrue() || !isProtoLogInitialized()) return;
+        if (!IS_STATE_MANAGER_PROTOLOG_ENABLED || !isProtoLogInitialized()) return;
         ProtoLog.d(LAUNCHER_STATE_MANAGER, "StateManager.onStateTransitionStart: state: %s", state);
     }
 
     public static void logOnStateTransitionEnd(@NonNull Object state) {
-        if (!ENABLE_STATE_MANAGER_PROTO_LOG.isTrue() || !isProtoLogInitialized()) return;
+        if (!IS_STATE_MANAGER_PROTOLOG_ENABLED || !isProtoLogInitialized()) return;
         ProtoLog.d(LAUNCHER_STATE_MANAGER, "StateManager.onStateTransitionEnd: state: %s", state);
     }
 
     public static void logOnRepeatStateSetAborted(@NonNull Object state) {
-        if (!ENABLE_STATE_MANAGER_PROTO_LOG.isTrue() || !isProtoLogInitialized()) return;
+        if (!IS_STATE_MANAGER_PROTOLOG_ENABLED || !isProtoLogInitialized()) return;
         ProtoLog.d(LAUNCHER_STATE_MANAGER,
                 "StateManager.onRepeatStateSetAborted: state: %s", state);
     }
 
     public static void logCancelAnimation(boolean animationOngoing, @NonNull String trace) {
-        if (!ENABLE_STATE_MANAGER_PROTO_LOG.isTrue() || !isProtoLogInitialized()) return;
+        if (!IS_STATE_MANAGER_PROTOLOG_ENABLED || !isProtoLogInitialized()) return;
         ProtoLog.d(LAUNCHER_STATE_MANAGER,
                 "StateManager.cancelAnimation: animation ongoing: %b, partial trace:\n%s",
                 animationOngoing,
