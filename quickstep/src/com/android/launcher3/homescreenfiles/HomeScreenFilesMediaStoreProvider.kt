@@ -23,7 +23,6 @@ import androidx.core.database.getStringOrNull
 import java.io.File
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Future
 
 /** MediaStore-based implementation of [HomeScreenFilesProvider]. */
 class HomeScreenFilesMediaStoreProvider(
@@ -31,7 +30,7 @@ class HomeScreenFilesMediaStoreProvider(
     private val executorService: ExecutorService,
 ) : HomeScreenFilesProvider {
     /** Returns all file items presented in [HOME_SCREEN_FOLDER_RELATIVE_PATH]. */
-    override fun query(): Future<Map<Uri, HomeScreenFile>> {
+    override fun query(): Lazy<Map<Uri, HomeScreenFile>> {
         val uri = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
         val projection =
             arrayOf(
@@ -65,7 +64,8 @@ class HomeScreenFilesMediaStoreProvider(
                 }
             return@Callable result
         }
-        return executorService.submit(query)
+        val future = executorService.submit(query)
+        return lazy { future.get() }
     }
 
     companion object {

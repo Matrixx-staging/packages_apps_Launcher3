@@ -23,6 +23,7 @@ import android.content.pm.LauncherApps
 import android.content.pm.LauncherApps.ShortcutQuery
 import android.content.pm.PackageInstaller
 import android.content.pm.ShortcutInfo
+import android.net.Uri
 import android.text.TextUtils
 import android.util.Log
 import android.util.LongSparseArray
@@ -33,6 +34,7 @@ import com.android.launcher3.LauncherSettings.Favorites
 import com.android.launcher3.backuprestore.LauncherRestoreEventLogger.RestoreError
 import com.android.launcher3.folder.Folder
 import com.android.launcher3.folder.FolderGridOrganizer.createFolderGridOrganizer
+import com.android.launcher3.homescreenfiles.HomeScreenFile
 import com.android.launcher3.icons.CacheableShortcutInfo
 import com.android.launcher3.icons.IconCache
 import com.android.launcher3.icons.cache.CacheLookupFlag.Companion.DEFAULT_LOOKUP_FLAG
@@ -51,6 +53,7 @@ import com.android.launcher3.shortcuts.ShortcutKey
 import com.android.launcher3.shortcuts.ShortcutRequest
 import com.android.launcher3.util.ApiWrapper
 import com.android.launcher3.util.ApplicationInfoWrapper
+import com.android.launcher3.util.ContentWriter
 import com.android.launcher3.util.IntArray
 import com.android.launcher3.util.IntSparseArrayMap
 import com.android.launcher3.util.PackageManagerHelper
@@ -86,6 +89,8 @@ class WorkspaceItemProcessor(
     private val unlockedUsers: LongSparseArray<Boolean>,
     private val allDeepShortcuts: MutableList<CacheableShortcutInfo>,
     private val widgetSizeHandler: WidgetSizeHandler,
+    private val workspaceItemSpaceFinder: WorkspaceItemSpaceFinder,
+    private val homeScreenFiles: Lazy<Map<Uri, HomeScreenFile>>,
 ) {
 
     private val loadedItems = IntSparseArrayMap<ItemInfo>()
@@ -117,6 +122,8 @@ class WorkspaceItemProcessor(
                 Favorites.ITEM_TYPE_APP_PAIR -> processFolderOrAppPair()
                 Favorites.ITEM_TYPE_APPWIDGET,
                 Favorites.ITEM_TYPE_CUSTOM_APPWIDGET -> processWidget()
+                Favorites.ITEM_TYPE_FILE_SYSTEM_FILE,
+                Favorites.ITEM_TYPE_FILE_SYSTEM_FOLDER -> processFileSystemItem()
             }
         } catch (e: Exception) {
             Log.e(TAG, "Desktop items loading interrupted", e)
@@ -607,6 +614,64 @@ class WorkspaceItemProcessor(
         c.checkAndAddItem(appWidgetInfo, loadedItems, memoryLogger)
     }
 
+    /** Restores file system items coming from the DB ([LoaderCursor]). */
+    private fun processFileSystemItem() {
+        // TODO(b/424466810): restore items coming from the db.
+        // `c.markDeleted` is a temporary call to recreate all items from scratch and avoid
+        // merging/migration after adding new fields (icon, intent, etc.) at the cost of not saving
+        // the grid position between reboots.
+        c.markDeleted(
+            "File system item ${c.title} no longer exists",
+            RestoreError.FILE_SYSTEM_ITEM_NO_LONGER_EXISTS,
+        )
+    }
+
+    /**
+     * Creates remaining file system items presented in [homeScreenFiles] that were not part of the
+     * restore in [processFileSystemItem].
+     */
+    private fun addRemainingFileSystemItems(modelDbController: ModelDbController) {
+        val knownDesktopContainerItems =
+            ArrayList(loadedItems.filter { it.container == Favorites.CONTAINER_DESKTOP })
+        val knownScreenIds =
+            IntArray.wrap(*knownDesktopContainerItems.map { it.screenId }.distinct().toIntArray())
+
+        for ((_, file) in homeScreenFiles.value) {
+            // TODO(b/424466810): ignore normally restored items.
+
+            val item = WorkspaceItemInfo()
+            item.id = modelDbController.generateNewItemId()
+            item.title = file.displayName
+            item.container = Favorites.CONTAINER_DESKTOP
+            item.itemType =
+                if (file.isDirectory) Favorites.ITEM_TYPE_FILE_SYSTEM_FOLDER
+                else Favorites.ITEM_TYPE_FILE_SYSTEM_FILE
+
+            // TODO(b/424466144, b/424466406): add MIME-type-based icons or thumbnails.
+            item.bitmap = iconCache.getDefaultIcon(item.user)
+
+            val coords =
+                workspaceItemSpaceFinder.findSpaceForItem(
+                    knownScreenIds,
+                    IntArray(),
+                    knownDesktopContainerItems,
+                    item.spanX,
+                    item.spanY,
+                )
+            item.screenId = coords[0]
+            item.cellX = coords[1]
+            item.cellY = coords[2]
+
+            val writer = ContentWriter(context)
+            item.onAddToDatabase(writer)
+            writer.put(Favorites._ID, item.id)
+            modelDbController.insert(writer.getValues(context))
+
+            knownDesktopContainerItems.add(item)
+            loadedItems.put(item.id, item)
+        }
+    }
+
     /**
      * After all items have been processed and added to the BgDataModel, this method can correctly
      * rank items inside folders and load the correct miniature preview icons to be shown when the
@@ -645,7 +710,7 @@ class WorkspaceItemProcessor(
     /**
      * Applies any queued update data update tasks and data sanity checks and returns the final set
      * of workspace data. This includes:
-     * 1) Loading any additional model data, not coming from the DB
+     * 1) Loading any additional model data, not coming from the DB (including file system items)
      * 2) Sanity checks on folder and app pair: removing empty and single item folders, and sorting
      *    contents
      * 3) Committing any persistent modifications and deletions to the storage
@@ -672,6 +737,9 @@ class WorkspaceItemProcessor(
         // Cleans up app pairs if they don't have the right number of member apps (2).
         removeItems(modelDbController.deleteBadAppPairs())
         removeItems(modelDbController.deleteUnparentedApps())
+
+        addRemainingFileSystemItems(modelDbController)
+
         return loadedItems
     }
 

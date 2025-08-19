@@ -17,12 +17,10 @@
 package com.android.launcher3.homescreenfiles
 
 import android.net.Uri
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Future
 
 /** No-op implementation of [HomeScreenFilesProvider]. */
 class HomeScreenFilesNoOpProvider : HomeScreenFilesProvider {
-    override fun query(): Future<Map<Uri, HomeScreenFile>> {
-        return CompletableFuture.completedFuture(emptyMap())
+    override fun query(): Lazy<Map<Uri, HomeScreenFile>> {
+        return lazyOf(emptyMap())
     }
 }

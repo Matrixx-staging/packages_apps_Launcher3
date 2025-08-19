@@ -22,6 +22,7 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.LauncherApps
 import android.content.pm.PackageInstaller
 import android.content.pm.ShortcutInfo
+import android.net.Uri
 import android.os.Process
 import android.os.UserHandle
 import android.platform.test.annotations.DisableFlags
@@ -36,9 +37,13 @@ import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPLICATION
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT
+import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_FILE_SYSTEM_FILE
+import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_FILE_SYSTEM_FOLDER
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_FOLDER
 import com.android.launcher3.Utilities.EMPTY_PERSON_ARRAY
 import com.android.launcher3.backuprestore.LauncherRestoreEventLogger.RestoreError
+import com.android.launcher3.homescreenfiles.HomeScreenFile
+import com.android.launcher3.icons.BitmapInfo
 import com.android.launcher3.icons.CacheableShortcutInfo
 import com.android.launcher3.icons.IconCache
 import com.android.launcher3.model.data.FolderInfo
@@ -95,6 +100,7 @@ class WorkspaceItemProcessorTest {
     @Mock private lateinit var mockUserManagerState: UserManagerState
     @Mock private lateinit var mockWidgetInflater: WidgetInflater
     @Mock private lateinit var mockIconCache: IconCache
+    @Mock private lateinit var mockWorkspaceItemSpaceFinder: WorkspaceItemSpaceFinder
 
     lateinit var mLauncherApps: LauncherApps
     private var mIntent: Intent = Intent()
@@ -172,6 +178,7 @@ class WorkspaceItemProcessorTest {
         unlockedUsers: LongSparseArray<Boolean> = mUnlockedUsersArray,
         installingPkgs: HashMap<PackageUserKey, PackageInstaller.SessionInfo> = mInstallingPkgs,
         allDeepShortcuts: MutableList<CacheableShortcutInfo> = mAllDeepShortcuts,
+        homeScreenFiles: Lazy<Map<Uri, HomeScreenFile>> = lazyOf(mapOf()),
     ) =
         WorkspaceItemProcessor(
             c = cursor,
@@ -193,6 +200,8 @@ class WorkspaceItemProcessorTest {
             idp = InvariantDeviceProfile.INSTANCE.get(mContext),
             isSafeMode = false,
             widgetSizeHandler = mContext.appComponent.widgetSizeHandler,
+            workspaceItemSpaceFinder = mockWorkspaceItemSpaceFinder,
+            homeScreenFiles = homeScreenFiles,
         )
 
     @Test
@@ -773,5 +782,102 @@ class WorkspaceItemProcessorTest {
 
         // Then
         verify(mockCursor).markDeleted(inflationResult.reason, inflationResult.restoreErrorType)
+    }
+
+    @Test
+    fun restoresFileSystemFileItemType() {
+        // Given
+        mockCursor.apply {
+            itemType = ITEM_TYPE_FILE_SYSTEM_FILE
+            whenever(title).thenReturn("name.ext")
+        }
+
+        // When
+        itemProcessorUnderTest = createWorkspaceItemProcessorUnderTest()
+        itemProcessorUnderTest.processItem()
+
+        // Then
+        // TODO(b/424466810): update expectation after implementing
+        // `WorkspaceItemProcessor#processFileSystemItem()`.
+        verify(mockCursor)
+            .markDeleted(
+                "File system item name.ext no longer exists",
+                RestoreError.FILE_SYSTEM_ITEM_NO_LONGER_EXISTS,
+            )
+        verify(mockCursor, times(0)).checkAndAddItem(any(), any(), anyOrNull())
+    }
+
+    @Test
+    fun restoresFileSystemFolderItemType() {
+        // Given
+        mockCursor.apply {
+            itemType = ITEM_TYPE_FILE_SYSTEM_FOLDER
+            whenever(title).thenReturn("folder_a")
+        }
+
+        // When
+        itemProcessorUnderTest = createWorkspaceItemProcessorUnderTest()
+        itemProcessorUnderTest.processItem()
+
+        // Then
+        // TODO(b/424466810): update expectation after implementing
+        // `WorkspaceItemProcessor#processFileSystemItem()`.
+        verify(mockCursor)
+            .markDeleted(
+                "File system item folder_a no longer exists",
+                RestoreError.FILE_SYSTEM_ITEM_NO_LONGER_EXISTS,
+            )
+        verify(mockCursor, times(0)).checkAndAddItem(any(), any(), anyOrNull())
+    }
+
+    @Test
+    fun addsRemainingFileSystemItemsThatWereNotPartOfRestore() {
+        // Given
+        val homeScreenFiles =
+            lazyOf(
+                mapOf(
+                    Uri.parse("content://media/external/file/1") to
+                        HomeScreenFile("file.png", "image/png", false),
+                    Uri.parse("content://media/external/file/2") to
+                        HomeScreenFile("folder_a", null, true),
+                )
+            )
+        mockIconCache.apply { whenever(getDefaultIcon(any())).thenReturn(BitmapInfo.LOW_RES_INFO) }
+        mockWorkspaceItemSpaceFinder.apply {
+            whenever(findSpaceForItem(any(), any(), any(), any(), any()))
+                .thenAnswer { intArrayOf(0, 0, 0) }
+                .thenAnswer { intArrayOf(0, 1, 1) }
+        }
+        val mockModelDelegate = mock<ModelDelegate>()
+        val mockModelDbController =
+            mock<ModelDbController>().apply { whenever(generateNewItemId()).thenReturn(0, 1) }
+
+        // When
+        itemProcessorUnderTest =
+            createWorkspaceItemProcessorUnderTest(homeScreenFiles = homeScreenFiles)
+        val items = itemProcessorUnderTest.finalizeData(mockModelDelegate, mockModelDbController)
+
+        // Then
+        assertThat(items.size()).isEqualTo(2)
+
+        assertThat(items.get(0).id).isEqualTo(0)
+        assertThat(items.get(0).title).isEqualTo("file.png")
+        assertThat(items.get(0).itemType).isEqualTo(ITEM_TYPE_FILE_SYSTEM_FILE)
+        assertThat(items.get(0).container).isEqualTo(CONTAINER_DESKTOP)
+        assertThat(items.get(0).spanX).isEqualTo(1)
+        assertThat(items.get(0).spanY).isEqualTo(1)
+        assertThat(items.get(0).screenId).isEqualTo(0)
+        assertThat(items.get(0).cellX).isEqualTo(0)
+        assertThat(items.get(0).cellY).isEqualTo(0)
+
+        assertThat(items.get(1).id).isEqualTo(1)
+        assertThat(items.get(1).title).isEqualTo("folder_a")
+        assertThat(items.get(1).itemType).isEqualTo(ITEM_TYPE_FILE_SYSTEM_FOLDER)
+        assertThat(items.get(1).container).isEqualTo(CONTAINER_DESKTOP)
+        assertThat(items.get(1).spanX).isEqualTo(1)
+        assertThat(items.get(1).spanY).isEqualTo(1)
+        assertThat(items.get(1).screenId).isEqualTo(0)
+        assertThat(items.get(1).cellX).isEqualTo(1)
+        assertThat(items.get(1).cellY).isEqualTo(1)
     }
 }
