@@ -42,7 +42,8 @@ constructor(
     private val launcherPrefs: LauncherPrefs,
 ) {
     val hasBubbles = false
-    val hasNavButtons = displayController.info.navigationMode == THREE_BUTTONS
+    val hasNavButtons: Boolean
+        get() = displayController.info.navigationMode == THREE_BUTTONS
 
     val isRecentsEnabled: Boolean
         get() = enableRecentsInTaskbar()
