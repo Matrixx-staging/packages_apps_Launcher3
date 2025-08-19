@@ -51,6 +51,7 @@ import com.android.launcher3.util.DaggerSingletonTracker;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.DynamicResource;
 import com.android.launcher3.util.InstantAppResolver;
+import com.android.launcher3.util.LayoutImportExportHelper;
 import com.android.launcher3.util.LockedUserState;
 import com.android.launcher3.util.MSDLPlayerWrapper;
 import com.android.launcher3.util.PackageManagerHelper;
@@ -121,6 +122,9 @@ public interface LauncherBaseAppComponent {
     TestInformationHandler getTestInformationHandler();
     TaskbarModeUtil getTaskbarModeUtil();
     SystemDragController getSystemDragController();
+
+    /** Utility class for importing/exporting launcher layout */
+    LayoutImportExportHelper getLayoutImportExportHelper();
 
     @VisibleForTesting
     GridSizeMigrationLogic createNewGridSizeMigrationLogic();

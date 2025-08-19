@@ -37,7 +37,6 @@ import android.util.Pair;
 import com.android.launcher3.LauncherSettings.Favorites;
 import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.model.ModelDbController;
-import com.android.launcher3.util.LayoutImportExportHelper;
 import com.android.launcher3.widget.LauncherWidgetHolder;
 
 import java.io.FileDescriptor;
@@ -218,8 +217,8 @@ public class LauncherProvider extends ContentProvider {
                     throw new SecurityException("Caller doesn't have read permission");
                 }
 
-                CompletableFuture<String> resultFuture = LayoutImportExportHelper.INSTANCE
-                        .exportModelDbAsXmlFuture(getContext());
+                CompletableFuture<String> resultFuture = LauncherComponentProvider
+                        .get(getContext()).getLayoutImportExportHelper().exportModelDbAsXmlFuture();
                 try {
                     b.putString(KEY_LAYOUT, resultFuture.get());
                     b.putString(KEY_RESULT, SUCCESS);
@@ -234,7 +233,8 @@ public class LauncherProvider extends ContentProvider {
                     throw new SecurityException("Caller doesn't have write permission");
                 }
 
-                LayoutImportExportHelper.INSTANCE.importModelFromXml(getContext(), arg);
+                LauncherComponentProvider
+                        .get(getContext()).getLayoutImportExportHelper().importModelFromXml(arg);
                 b.putString(KEY_RESULT, SUCCESS);
                 return b;
             default:
