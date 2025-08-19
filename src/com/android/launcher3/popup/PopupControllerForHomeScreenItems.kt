@@ -40,15 +40,11 @@ class PopupControllerForHomeScreenItems<T>(
     override fun show(view: View): Popup {
         val itemInfo = view.tag as ItemInfo
         val activityContext: ActivityContext = ActivityContext.lookupContext<T>(view.context)
-        val popup: PopupContainerWithArrow<T> =
-            activityContext
-                .getLayoutInflater()
-                .inflate(R.layout.popup_container, activityContext.getDragLayer(), false)
-                as PopupContainerWithArrow<T>
-        popup.originalView = view
-        addSystemShortcuts(popup, itemInfo, itemView = view, activityContext)
-        dragController.addDragListener(popup)
-        popup.show()
+        val container =
+            PopupContainerWithArrow.create<T>(context = view.context, originalView = view)
+        dragController.addDragListener(container)
+        addSystemShortcuts(container, itemInfo, itemView = view, activityContext)
+        container.show()
 
         val cellLayout = activityContext.getCellLayout(itemInfo.container, itemInfo.screenId)
         if (
@@ -59,7 +55,7 @@ class PopupControllerForHomeScreenItems<T>(
         ) {
             AppWidgetResizeFrame.showForWidget(view, cellLayout)
         }
-        return popup
+        return container
     }
 
     private fun addSystemShortcuts(
