@@ -55,7 +55,7 @@ class WidgetsInteractorTest {
             widgetUsersRepository = widgetUsersRepository,
             getWidgetAppsByProfileUseCase = GroupWidgetAppsByProfileUseCase(),
             filterWidgetsForHostUseCase = FilterWidgetsForHostUseCase(WidgetHostInfo()),
-            backgroundContext = testDispatcher
+            backgroundContext = testDispatcher,
         )
 
     @Test
@@ -200,8 +200,8 @@ class WidgetsInteractorTest {
             runCurrent()
 
             assertThat(result.size).isEqualTo(1)
-            assertThat(result[0].widgets.size).isEqualTo(1)
-            assertThat(result[0].widgets[0].label).isEqualTo(input)
+            assertThat(result[0].widgetApp.widgets.size).isEqualTo(1)
+            assertThat(result[0].widgetApp.widgets[0].label).isEqualTo(input)
         }
 
     @Test
@@ -223,6 +223,6 @@ class WidgetsInteractorTest {
             runCurrent()
 
             assertThat(result.size).isEqualTo(PERSONAL_TEST_APPS.size)
-            assertThat(result.filter { it.title == WORK_TEST_APPS[0].title }).isEmpty()
+            assertThat(result.filter { it.widgetApp.title == WORK_TEST_APPS[0].title }).isEmpty()
         }
 }
