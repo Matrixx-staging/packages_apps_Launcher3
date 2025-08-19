@@ -39,6 +39,7 @@ import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.util.LauncherLayoutBuilder;
 import com.android.launcher3.util.LayoutResource;
+import com.android.launcher3.util.ModelTestExtensions;
 import com.android.launcher3.util.SandboxApplication;
 
 import org.junit.Rule;
@@ -61,6 +62,7 @@ public class DefaultLayoutProviderTest {
         return getBgDataModel(mTargetContext)
                 .itemsIdMap
                 .stream()
+                .filter(ModelTestExtensions::isPersistedModelItem)
                 .filter(i -> i.container == CONTAINER_DESKTOP || i.container == CONTAINER_HOTSEAT)
                 .toList();
     }

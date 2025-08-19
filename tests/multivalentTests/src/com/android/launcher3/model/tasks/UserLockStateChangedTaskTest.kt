@@ -35,7 +35,7 @@ import com.android.launcher3.util.LauncherModelHelper.SHORTCUT_ID
 import com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY
 import com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE
 import com.android.launcher3.util.LayoutResource
-import com.android.launcher3.util.ModelTestExtensions.nonPredictedItemCount
+import com.android.launcher3.util.ModelTestExtensions.countPersistedModelItems
 import com.android.launcher3.util.SandboxApplication
 import com.android.launcher3.util.TestUtil
 import org.junit.Assert.assertEquals
@@ -78,7 +78,7 @@ class UserLockStateChangedTaskTest {
                 .putApp(TEST_PACKAGE, TEST_ACTIVITY)
         )
 
-        assertEquals(2, modelState.dataModel.itemsIdMap.nonPredictedItemCount().toLong())
+        assertEquals(2, modelState.dataModel.itemsIdMap.countPersistedModelItems())
 
         whenever(mockShortcut.id).thenReturn(SHORTCUT_ID)
         whenever(mockShortcut.`package`).thenReturn(TEST_PACKAGE)

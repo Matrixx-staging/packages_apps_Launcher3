@@ -22,7 +22,7 @@ import static com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY;
 import static com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY2;
 import static com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY3;
 import static com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE;
-import static com.android.launcher3.util.ModelTestExtensions.nonPredictedItemCount;
+import static com.android.launcher3.util.ModelTestExtensions.countPersistedModelItems;
 import static com.android.launcher3.util.TestUtil.runOnExecutorSync;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -100,7 +100,7 @@ public class PackageInstallStateChangedTaskTest {
         mDownloadingApps = IntSet.wrap(4, 5, 6, 7, 8, 9, 10);
         mLayout.set(builder);
         assertTrue(mModelState.model.isModelLoaded());
-        assertEquals(10, nonPredictedItemCount(mModelState.dataModel.itemsIdMap));
+        assertEquals(10, countPersistedModelItems(mModelState.dataModel.itemsIdMap));
 
         mModelState.appsRepo.getIncrementalUpdates().forEach(MODEL_EXECUTOR, info -> {
             mIncrementalUpdates.add(info);

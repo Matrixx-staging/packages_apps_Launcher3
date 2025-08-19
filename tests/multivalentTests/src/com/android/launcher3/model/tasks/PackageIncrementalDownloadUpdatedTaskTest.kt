@@ -34,7 +34,7 @@ import com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY
 import com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY2
 import com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE
 import com.android.launcher3.util.LayoutResource
-import com.android.launcher3.util.ModelTestExtensions.nonPredictedItemCount
+import com.android.launcher3.util.ModelTestExtensions.countPersistedModelItems
 import com.android.launcher3.util.SandboxApplication
 import com.android.launcher3.util.TestUtil
 import com.google.common.truth.Truth.assertThat
@@ -76,7 +76,7 @@ class PackageIncrementalDownloadUpdatedTaskTest {
         )
 
         Assert.assertTrue(modelState.model.isModelLoaded())
-        assertEquals(6, modelState.dataModel.itemsIdMap.nonPredictedItemCount())
+        assertEquals(6, modelState.dataModel.itemsIdMap.countPersistedModelItems())
     }
 
     @Test
