@@ -18,6 +18,7 @@ package com.android.launcher3.taskbar.bubbles
 
 import android.content.Context
 import android.graphics.Color
+import android.platform.test.rule.DisableAnimationsRule
 import android.platform.test.rule.ScreenRecordRule
 import android.view.View
 import android.widget.FrameLayout
@@ -63,6 +64,8 @@ class BubbleBarViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
             emulationSpec,
             ViewScreenshotGoldenPathManager(getEmulatedDevicePathConfig(emulationSpec)),
         )
+
+    @get:Rule val disableAnimationsRule = DisableAnimationsRule()
 
     @Test
     fun bubbleBarView_collapsed_oneBubble() {
