@@ -25,6 +25,7 @@ import com.android.launcher3.AbstractFloatingView.TYPE_TASKBAR_OVERLAY_PROXY
 import com.android.launcher3.AbstractFloatingView.hasOpenView
 import com.android.launcher3.taskbar.TaskbarActivityContext
 import com.android.launcher3.taskbar.TaskbarControllerTestUtil.runOnMainSync
+import com.android.launcher3.taskbar.bubbles.BubbleActivityStarter
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.InjectController
 import com.android.launcher3.taskbar.rules.TaskbarWindowSandboxContext
@@ -36,6 +37,7 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.kotlin.mock
 
 @RunWith(LauncherMultivalentJUnit::class)
 @EmulatedDevices(["pixelFoldable2023"])
@@ -159,6 +161,35 @@ class TaskbarOverlayControllerTest {
         TaskStackChangeListeners.getInstance().listenerImpl.onTaskMovedToFront(RunningTaskInfo())
         // Make sure TaskStackChangeListeners' Handler posts the callback before checking state.
         runOnMainSync { assertThat(overlay.isOpen).isFalse() }
+    }
+
+    @Test
+    fun testTaskMovedToFront_stashesBubbleBar() {
+        val bubbleBarControllers = taskbarContext.controllers.bubbleControllers.get()
+        val bubbleStashController = bubbleBarControllers.bubbleStashController
+        runOnMainSync { bubbleBarControllers.bubbleBarViewController.setHiddenForBubbles(false) }
+        assertThat(bubbleStashController.isStashed).isFalse()
+
+        runOnMainSync { TestOverlayView.show(overlayController.requestWindow()) }
+        TaskStackChangeListeners.getInstance().listenerImpl.onTaskMovedToFront(RunningTaskInfo())
+
+        // Make sure TaskStackChangeListeners' Handler posts the callback before checking state.
+        runOnMainSync { assertThat(bubbleStashController.isStashed).isTrue() }
+    }
+
+    @Test
+    fun testTaskMovedToFront_requestedToShowBubble_doesNotStashBubbleBar() {
+        val bubbleBarControllers = taskbarContext.controllers.bubbleControllers.get()
+        val bubbleStashController = bubbleBarControllers.bubbleStashController
+        runOnMainSync { bubbleBarControllers.bubbleBarViewController.setHiddenForBubbles(false) }
+        assertThat(bubbleStashController.isStashed).isFalse()
+
+        runOnMainSync { TestOverlayView.show(overlayController.requestWindow()) }
+        BubbleActivityStarter.INSTANCE.get(taskbarContext).showAppBubble(null, mock())
+        TaskStackChangeListeners.getInstance().listenerImpl.onTaskMovedToFront(RunningTaskInfo())
+
+        // Make sure TaskStackChangeListeners' Handler posts the callback before checking state.
+        runOnMainSync { assertThat(bubbleStashController.isStashed).isFalse() }
     }
 
     @Test

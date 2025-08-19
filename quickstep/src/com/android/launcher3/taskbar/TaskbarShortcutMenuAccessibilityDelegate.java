@@ -36,6 +36,7 @@ import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
+import com.android.launcher3.taskbar.bubbles.BubbleActivityStarter;
 import com.android.launcher3.util.ShortcutUtil;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.util.LogUtils;
@@ -96,10 +97,11 @@ public class TaskbarShortcutMenuAccessibilityDelegate
             if (item.itemType == LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT
                     && item instanceof WorkspaceItemInfo) {
                 ShortcutInfo shortcutInfo = ((WorkspaceItemInfo) item).getDeepShortcutInfo();
-                SystemUiProxy.INSTANCE.get(mContext).showShortcutBubble(shortcutInfo);
+                BubbleActivityStarter.INSTANCE.get(mContext).showShortcutBubble(shortcutInfo);
                 return true;
             } else if (item.getIntent() != null && item.getIntent().getPackage() != null) {
-                SystemUiProxy.INSTANCE.get(mContext).showAppBubble(item.getIntent(), item.user);
+                BubbleActivityStarter.INSTANCE.get(mContext).showAppBubble(item.getIntent(),
+                        item.user);
                 return true;
             }
         } else if (item instanceof ItemInfoWithIcon
