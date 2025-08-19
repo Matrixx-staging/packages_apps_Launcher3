@@ -23,7 +23,7 @@ import com.android.launcher3.util.MutableListenableRef
 class LauncherUiState {
 
     private val _launcherStateRef = MutableListenableRef(LauncherState.NORMAL)
-    private val _deviceProfileRef = MutableListenableRef<DeviceProfile>(DEFAULT_DEVICE_PROFILE)
+    private val _deviceProfileRef = MutableListenableRef(DEFAULT_DEVICE_PROFILE)
     private val _activityFlagsRef = MutableListenableRef(0)
     private val _isSplitSelectActiveRef = MutableListenableRef(false)
     private val _isOverlayShown = MutableListenableRef(false)
@@ -34,6 +34,8 @@ class LauncherUiState {
 
     val isResumed: Boolean
         get() = (_activityFlagsRef.value and BaseActivity.ACTIVITY_STATE_RESUMED) != 0
+
+    val isDeviceProfileInitialized = _deviceProfileRef.value !== DEFAULT_DEVICE_PROFILE
 
     val isOverlayShownRef = _isOverlayShown.asListenable()
 

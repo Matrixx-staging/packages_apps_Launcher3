@@ -18,10 +18,14 @@ package com.android.launcher3
 
 import com.android.launcher3.Flags.refactorTaskbarUiState
 
+/** Temporary util class to get [LauncherUiState] properties. */
 object LauncherUiStateUtil {
 
     @JvmStatic
-    fun getDeviceProfile(launcher: Launcher, launcherUiState: LauncherUiState): DeviceProfile {
+    fun getDeviceProfile(
+        launcher: LauncherInteractor,
+        launcherUiState: LauncherUiState,
+    ): DeviceProfile {
         if (refactorTaskbarUiState()) {
             val ret: DeviceProfile = launcherUiState.deviceProfileRef.value!!
             check(!(BuildConfig.IS_STUDIO_BUILD && ret !== launcher.getDeviceProfile())) {
@@ -34,28 +38,34 @@ object LauncherUiStateUtil {
     }
 
     @JvmStatic
-    fun isSplitSelectActive(launcher: Launcher, launcherUiState: LauncherUiState): Boolean {
+    fun isSplitSelectActive(
+        launcher: LauncherInteractor,
+        launcherUiState: LauncherUiState,
+    ): Boolean {
         if (refactorTaskbarUiState()) {
             val ret: Boolean = launcherUiState.isSplitSelectActiveRef.value
-            if (BuildConfig.IS_STUDIO_BUILD && ret != launcher.isSplitSelectionActive) {
+            if (BuildConfig.IS_STUDIO_BUILD && ret != launcher.isSplitSelectActive()) {
                 throw IllegalStateException("isSplitSelectionActive() doesn't match")
             }
             return ret
         } else {
-            return launcher.isSplitSelectionActive
+            return launcher.isSplitSelectActive()
         }
     }
 
     @JvmStatic
-    fun getLauncherState(launcher: Launcher, launcherUiState: LauncherUiState): LauncherState {
+    fun getLauncherState(
+        launcher: LauncherInteractor,
+        launcherUiState: LauncherUiState,
+    ): LauncherState {
         if (refactorTaskbarUiState()) {
             val ret: LauncherState = launcherUiState.launcherStateRef.value
-            if (BuildConfig.IS_STUDIO_BUILD && ret !== launcher.stateManager.state) {
+            if (BuildConfig.IS_STUDIO_BUILD && ret !== launcher.getState()) {
                 throw IllegalStateException("launcher state doesn't match")
             }
             return ret
         } else {
-            return launcher.stateManager.state
+            return launcher.getState()
         }
     }
 }

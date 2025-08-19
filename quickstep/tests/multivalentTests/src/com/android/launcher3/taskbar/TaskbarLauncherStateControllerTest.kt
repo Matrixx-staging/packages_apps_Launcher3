@@ -20,17 +20,21 @@ import android.animation.AnimatorTestRule
 import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
 import androidx.test.platform.app.InstrumentationRegistry
+import com.android.launcher3.Flags.enableTaskbarUiThread
 import com.android.launcher3.Hotseat
 import com.android.launcher3.Launcher
+import com.android.launcher3.LauncherInteractor
 import com.android.launcher3.LauncherState
 import com.android.launcher3.LauncherUiState
 import com.android.launcher3.statemanager.StateManager
+import com.android.launcher3.taskbar.TaskbarManagerImpl.TASKBAR_UI_THREAD
 import com.android.launcher3.taskbar.bubbles.BubbleControllers
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.InjectController
 import com.android.launcher3.taskbar.rules.TaskbarWindowSandboxContext
 import com.android.launcher3.uioverrides.QuickstepLauncher
+import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.LauncherMultivalentJUnit.EmulatedDevices
 import com.android.launcher3.util.MutableListenableRef
@@ -40,6 +44,7 @@ import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags
 import com.android.wm.shell.Flags.FLAG_ENABLE_CREATE_ANY_BUBBLE
 import com.google.common.truth.Truth.assertThat
 import java.util.Optional
+import java.util.concurrent.Executor
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -140,12 +145,18 @@ class TaskbarLauncherStateControllerTest {
                 on { launcherStateRef } doReturn MutableListenableRef(LauncherState.NORMAL)
             }
         val controllers = taskbarUnitTestRule.activityContext.controllers
+        val immediateExecutor = Executor { r -> r.run() }
+        val launcherExecutor: Executor =
+            if (enableTaskbarUiThread()) MAIN_EXECUTOR else immediateExecutor
+        val taskbarExecutor: Executor =
+            if (enableTaskbarUiThread()) TASKBAR_UI_THREAD else immediateExecutor
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             taskbarLauncherStateController.init(
                 controllers,
-                quickstepLauncher,
+                LauncherInteractor(quickstepLauncher, launcherExecutor),
                 launcherUiState,
                 sysUiStateFlags,
+                taskbarExecutor,
             )
             taskbarStashController.toggleTaskbarStash() // Un-stashing the taskbar.
             bubbleBarViewController.setHiddenForBubbles(false) // Show the bubble bar.
