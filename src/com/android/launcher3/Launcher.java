@@ -457,8 +457,6 @@ public class Launcher extends StatefulActivity<LauncherState>
 
         mAppWidgetHolder.startListening();
         mAppWidgetHolder.addProviderChangeListener(() -> refreshAndBindWidgetsForPackageUser(null));
-        mItemInflater = new ItemInflater<>(this, mAppWidgetHolder, getItemOnClickListener(),
-                mFocusHandler, new CellLayout(mWorkspace.getContext(), mWorkspace));
         mWidgetVisibilityTracker = new WidgetVisibilityTracker(this, mAppWidgetHolder, mWorkspace,
             mStateManager);
 
@@ -1303,6 +1301,9 @@ public class Launcher extends StatefulActivity<LauncherState>
                 this, R.attr.isWorkspaceDarkText) ? Color.BLACK : Color.WHITE);
 
         mDepthBlurTargets = List.of(mWorkspace, mHotseat);
+
+        mItemInflater = new ItemInflater<>(this, mAppWidgetHolder, getItemOnClickListener(),
+                mFocusHandler, new CellLayout(mWorkspace.getContext(), mWorkspace));
     }
 
     /**

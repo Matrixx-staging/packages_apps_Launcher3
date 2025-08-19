@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.launcher3.uioverrides;
+package com.android.launcher3.views;
 
 import static com.android.app.animation.Interpolators.ACCELERATE_DECELERATE;
 import static com.android.launcher3.icons.FastBitmapDrawable.getDisabledColorFilter;
@@ -58,8 +58,6 @@ import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.touch.ItemLongClickListener;
 import com.android.launcher3.util.SafeCloseable;
-import com.android.launcher3.views.ActivityContext;
-import com.android.launcher3.views.DoubleShadowBubbleTextView;
 
 /**
  * A BubbleTextView with a ring around it's drawable
@@ -113,18 +111,18 @@ public class PredictedAppIcon extends DoubleShadowBubbleTextView {
     private int mWidth;
 
     private static final FloatProperty<PredictedAppIcon> SLOT_MACHINE_TRANSLATION_Y =
-            new FloatProperty<PredictedAppIcon>("slotMachineTranslationY") {
-        @Override
-        public void setValue(PredictedAppIcon predictedAppIcon, float transY) {
-            predictedAppIcon.mSlotMachineIconTranslationY = transY;
-            predictedAppIcon.invalidate();
-        }
+            new FloatProperty<>("slotMachineTranslationY") {
+                @Override
+                public void setValue(PredictedAppIcon predictedAppIcon, float transY) {
+                    predictedAppIcon.mSlotMachineIconTranslationY = transY;
+                    predictedAppIcon.invalidate();
+                }
 
-        @Override
-        public Float get(PredictedAppIcon predictedAppIcon) {
-            return predictedAppIcon.mSlotMachineIconTranslationY;
-        }
-    };
+                @Override
+                public Float get(PredictedAppIcon predictedAppIcon) {
+                    return predictedAppIcon.mSlotMachineIconTranslationY;
+                }
+            };
 
     public PredictedAppIcon(Context context) {
         this(context, null, 0);
@@ -347,7 +345,8 @@ public class PredictedAppIcon extends DoubleShadowBubbleTextView {
     }
 
     private void updateShapePath() {
-        IconShape iconShapeData = ThemeManager.INSTANCE.get(mContext).getIconShapeData().getValue();
+        IconShape iconShapeData = ThemeManager.INSTANCE.get(getContext())
+                .getIconShapeData().getValue();
         mShapePath = new Path();
         mShapePath.addPath(iconShapeData.path);
         mTmpMatrix.reset();
@@ -462,7 +461,7 @@ public class PredictedAppIcon extends DoubleShadowBubbleTextView {
     private class AnimColorHolder {
 
         public final AnimatedFloat progress = new AnimatedFloat(this::onUpdate, 1);
-        public final ArgbEvaluator evaluator = ArgbEvaluator.getInstance();
+        public final ArgbEvaluator evaluator = new ArgbEvaluator();
         public Integer startColor = 0;
         public Integer endColor = 0;
 
