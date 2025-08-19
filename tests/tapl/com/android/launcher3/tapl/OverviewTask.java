@@ -254,6 +254,9 @@ public final class OverviewTask {
     public LaunchedAppState open() {
         try (LauncherInstrumentation.Closable e = mLauncher.eventsCheck()) {
             verifyActiveContainer();
+            final boolean isDesktopTask = mType == TaskViewType.DESKTOP;
+            final boolean hasDesktopTasks = hasDesktopTasks();
+
             mLauncher.executeAndWaitForLauncherStop(
                     () -> mLauncher.clickLauncherObject(mTask),
                     "clicking an overview task");
@@ -272,22 +275,40 @@ public final class OverviewTask {
                 final Pattern event;
                 if (mOverview.isLiveTile(mTask)) {
                     event = TASK_START_EVENT_LIVE_TILE;
-                } else if (mType == TaskViewType.DESKTOP) {
+                } else if (isDesktopTask) {
                     event = TASK_START_EVENT_DESKTOP;
                 } else {
                     event = TASK_START_EVENT;
                 }
                 mLauncher.expectEvent(TestProtocol.SEQUENCE_MAIN, event);
 
-                if (mType == TaskViewType.DESKTOP) {
+                if (isDesktopTask) {
                     try (LauncherInstrumentation.Closable ignored = mLauncher.addContextLayer(
                             "launched desktop")) {
-                        mLauncher.waitForSystemUiObject("desktop_mode_caption");
+                        if (hasDesktopTasks) {
+                            mLauncher.waitForSystemUiObject("desktop_mode_caption");
+                        } else {
+                            // For an empty desk, wait for the persistent taskbar to appear.
+                            mLauncher.assertTrue("Timed out waiting for persistent taskbar",
+                                    mLauncher.waitAndGet(
+                                        () -> !mLauncher.isTransientTaskbar(),
+                                        LauncherInstrumentation.WAIT_TIME_MS,
+                                        LauncherInstrumentation.DEFAULT_POLL_INTERVAL));
+                        }
                     }
                 }
-                return new LaunchedAppState(mLauncher);
+                return new LaunchedAppState(mLauncher, isDesktopTask);
             }
         }
+    }
+
+    private boolean hasDesktopTasks() {
+        if (!isDesktop()) {
+            return false;
+        }
+        // A desk has content if it contains any thumbnail headers.
+        return !mTask.findObjects(By.res(getOverviewPackageName(),
+                DESKTOP_TASK_THUMBNAIL_VIEW_HEADER)).isEmpty();
     }
 
     /** Taps the task menu. Returns the task menu object. */
@@ -375,7 +396,7 @@ public final class OverviewTask {
             mLauncher.executeAndWaitForLauncherStop(
                     () -> mLauncher.clickLauncherObject(thumbnailView),
                     "clicking on a desktop thumbnail view");
-            return new LaunchedAppState(mLauncher);
+            return new LaunchedAppState(mLauncher, /* inDesktopMode= */ true);
         }
     }
 
@@ -399,7 +420,7 @@ public final class OverviewTask {
             mLauncher.sendPointer(downTime, downTime, MotionEvent.ACTION_UP, tapPoint,
                     LauncherInstrumentation.GestureScope.DONT_EXPECT_PILFER);
 
-            return new LaunchedAppState(mLauncher);
+            return new LaunchedAppState(mLauncher, /* inDesktopMode= */ true);
         }
     }
 

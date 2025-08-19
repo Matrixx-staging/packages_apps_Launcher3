@@ -32,7 +32,6 @@ import com.android.launcher3.DropTarget.DragObject
 import com.android.launcher3.dragndrop.DragOptions
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.taskbar.bubbles.BubbleBarController.BubbleBarLocationListener
-import com.android.quickstep.SystemUiProxy
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation
 import com.android.wm.shell.shared.bubbles.DeviceConfig
 import com.android.wm.shell.shared.bubbles.DragZoneFactory
@@ -63,7 +62,7 @@ class DragToBubbleControllerTest {
     private val context = getApplicationContext<Context>()
     private val container = FrameLayout(context)
     private val bubbleBarViewController: BubbleBarViewController = mock()
-    private val systemUiProxy: SystemUiProxy = mock()
+    private val bubbleActivityStarter: BubbleActivityStarter = mock()
     private val bubbleBarLocationListener: BubbleBarLocationListener = mock()
     private val bubbleBarPropertiesProvider = FakeBubbleBarPropertiesProvider()
     private val testDragZonesFactory = createTestDragZoneFactory()
@@ -107,7 +106,7 @@ class DragToBubbleControllerTest {
             bubbleBarViewController,
             bubbleBarPropertiesProvider,
             bubbleBarLocationListener,
-            systemUiProxy,
+            bubbleActivityStarter,
         )
         dragToBubbleController.dragZoneFactory = testDragZonesFactory
     }
@@ -294,8 +293,8 @@ class DragToBubbleControllerTest {
         }
 
         assertThat(dragToBubbleController.isItemDropHandled).isFalse()
-        verify(systemUiProxy, never()).showAppBubble(any(), any(), any())
-        verify(systemUiProxy, never()).showShortcutBubble(any(), any())
+        verify(bubbleActivityStarter, never()).showAppBubble(any(), any(), any())
+        verify(bubbleActivityStarter, never()).showShortcutBubble(any(), any())
     }
 
     @Test
@@ -315,7 +314,8 @@ class DragToBubbleControllerTest {
             bubbleBarLeftDropTarget.onDragExit(dragObject)
         }
 
-        verify(systemUiProxy).showAppBubble(itemIntent, appInfo.user, BubbleBarLocation.LEFT)
+        verify(bubbleActivityStarter)
+            .showAppBubble(itemIntent, appInfo.user, BubbleBarLocation.LEFT)
     }
 
     @Test

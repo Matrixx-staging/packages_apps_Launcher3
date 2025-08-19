@@ -125,8 +125,11 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     // Only non-null when taskbar customization is enabled.
     @Nullable private TaskbarIconsContainer mHotseatIconsContainer;
 
-    // Only non-null when device supports having a Taskbar Overflow button.
-    @Nullable private TaskbarOverflowView mTaskbarOverflowView;
+    // Only non-null when device supports having a Taskbar Overflow button for pinned items.
+    @Nullable private TaskbarOverflowView mTaskbarPinnedOverflowView;
+
+    // Only non-null when device supports having a Taskbar Overflow button for recent tasks.
+    @Nullable private TaskbarOverflowView mTaskbarRecentsOverflowView;
 
     private int mMaxNumIconsLimitForTest = -1;
 
@@ -232,10 +235,14 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         }
 
         if (ENABLE_TASKBAR_OVERFLOW.isTrue()) {
-            mTaskbarOverflowView = TaskbarOverflowView.inflateIcon(
-                    R.layout.taskbar_overflow_view, this,
-                    mIconTouchSize, mItemPadding);
-            mTaskbarOverflowView.setId(R.id.taskbar_overflow_view);
+            mTaskbarRecentsOverflowView = TaskbarOverflowView.inflateIcon(
+                    R.layout.taskbar_overflow_view, this, mIconTouchSize, mItemPadding);
+            mTaskbarRecentsOverflowView.setId(R.id.taskbar_overflow_view);
+        }
+
+        if (TaskbarPopupController.canPinAppsOverflow()) {
+            mTaskbarPinnedOverflowView = TaskbarOverflowView.inflateIcon(
+                    R.layout.taskbar_overflow_view, this, mIconTouchSize, mItemPadding);
         }
 
         // TODO: Disable touch events on QSB otherwise it can crash.
@@ -400,13 +407,13 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         mIconLongClickListener = mControllerCallbacks.getIconOnLongClickListener();
 
         mAllAppsButtonContainer.setUpCallbacks(callbacks);
-        if (mTaskbarOverflowView != null) {
-            mTaskbarOverflowView.setOnClickListener(
+        if (mTaskbarRecentsOverflowView != null) {
+            mTaskbarRecentsOverflowView.setOnClickListener(
                     mControllerCallbacks.getOverflowOnClickListener());
-            mTaskbarOverflowView.setOnLongClickListener(
+            mTaskbarRecentsOverflowView.setOnLongClickListener(
                     mControllerCallbacks.getOverflowOnLongClickListener());
             if (enableCursorHoverStates()) {
-                setHoverListenerForIcon(mTaskbarOverflowView);
+                setHoverListenerForIcon(mTaskbarRecentsOverflowView);
             }
         }
 
@@ -467,9 +474,16 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         mIgnoreTaskbarIconCount = getIgnoreCountForTaskbarIcons(recentTasks.size(),
                 hotseatItemInfos.length);
 
+        // If pinned apps overflows, the maximum length of hotseat is still the same where the
+        // last item is replaced by the overflow icon.
+        final int hotseatItemLength = TaskbarPopupController.canPinAppsOverflow() ? Math.min(
+                hotseatItemInfos.length,
+                mActivityContext.getTaskbarSpecsEvaluator().getNumShownHotseatIcons())
+                : hotseatItemInfos.length;
+
         // Update left section.
         if (mIsRtl) {
-            updateRecents(recentTasks.reversed(), hotseatItemInfos.length);
+            updateRecents(recentTasks.reversed(), hotseatItemLength);
         } else {
             updateHotseatItems(hotseatItemInfos);
         }
@@ -484,7 +498,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         if (mIsRtl) {
             updateHotseatItems(hotseatItemInfos);
         } else {
-            updateRecents(recentTasks, hotseatItemInfos.length);
+            updateRecents(recentTasks, hotseatItemLength);
         }
 
         // Recents divider takes priority.
@@ -603,12 +617,49 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
     private void updateHotseatItems(ItemInfo[] hotseatItemInfos) {
         int numViewsAnimated = 0;
+        final int numMaxIcons =
+                mActivityContext.getTaskbarSpecsEvaluator().getNumShownHotseatIcons();
+        final int hotseatLength = hotseatItemInfos.length;
+        final boolean hasOverflow =
+                mTaskbarPinnedOverflowView != null && hotseatLength > numMaxIcons;
+
+        // The starting index of the pinned items on the taskbar.
+        int onTaskbarStartIdx = 0;
+        // The last index of the pinned items on the taskbar. This does not include the overflow
+        // icon and the items inside the overflow icon if the pinned items overflow.
+        int onTaskbarEndIdx = hotseatLength;
 
         boolean hasHotseatContainer = mHotseatIconsContainer != null;
         mNextHotseatIndex = hasHotseatContainer
                 ? 0 // Start the count at 0 because the views are in a separate container
                 : mNextViewIndex;
-        for (ItemInfo hotseatItemInfo : hotseatItemInfos) {
+
+        if (hasOverflow) {
+            final int itemsNotOverflown = numMaxIcons - 1;
+            onTaskbarStartIdx = mIsRtl ? hotseatLength - itemsNotOverflown : 0;
+            onTaskbarEndIdx = mIsRtl ? hotseatLength : itemsNotOverflown;
+
+            final int overflownStartIndex = mIsRtl ? 0 : onTaskbarEndIdx;
+            final int overflownEndIndex = mIsRtl ? onTaskbarStartIdx : hotseatLength;
+            final List<ItemInfo> overflownItems = Arrays.asList(hotseatItemInfos).subList(
+                    overflownStartIndex, overflownEndIndex);
+            mTaskbarPinnedOverflowView.setItems(
+                    overflownItems.stream().map(
+                            iteminfo -> new ItemInfoWrapper(iteminfo, mActivityContext)).toList());
+            if (mIsRtl) {
+                maybeAddPinOverflowView();
+            }
+        } else if (isOverflowViewShowing()) {
+            if (hasHotseatContainer) {
+                mHotseatIconsContainer.removeView(mTaskbarPinnedOverflowView);
+            } else {
+                removeView(mTaskbarPinnedOverflowView);
+            }
+            mTaskbarPinnedOverflowView.clearItems();
+        }
+
+        for (ItemInfo hotseatItemInfo : Arrays.asList(hotseatItemInfos).subList(onTaskbarStartIdx,
+                onTaskbarEndIdx)) {
             // Replace any Hotseat views with the appropriate type if it's not already that type.
             final int expectedLayoutResId;
             boolean isCollection = false;
@@ -721,13 +772,41 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                 removeAndRecycle(getChildAt(mNextViewIndex));
             }
         }
+
+        if (hasOverflow && !mIsRtl) {
+            maybeAddPinOverflowView();
+        }
+    }
+
+    private boolean isOverflowViewShowing() {
+        return mTaskbarPinnedOverflowView != null && indexOfChild(mTaskbarPinnedOverflowView) != -1;
+    }
+
+    private void maybeAddPinOverflowView() {
+        if (!TaskbarPopupController.canPinAppsOverflow()) {
+            return;
+        }
+        if (mHotseatIconsContainer != null) {
+            if (!isOverflowViewShowing()) {
+                mHotseatIconsContainer.addView(mTaskbarPinnedOverflowView, mNextHotseatIndex);
+            }
+            mNextHotseatIndex++;
+        } else {
+            if (!isOverflowViewShowing()) {
+                addView(mTaskbarPinnedOverflowView, mNextViewIndex);
+            }
+            // [mNextViewIndex] follows the same index as [mNextHotseatIndex] so updates both
+            // pointer here.
+            mNextHotseatIndex++;
+            mNextViewIndex++;
+        }
     }
 
     private void updateRecents(List<GroupTask> recentTasks, int hotseatSize) {
         boolean supportsOverflow = ENABLE_TASKBAR_OVERFLOW.isTrue() && recentTasks.size() > 1;
         int overflowSize = 0;
         boolean hasOverflow = false;
-        if (supportsOverflow && mTaskbarOverflowView != null) {
+        if (supportsOverflow && mTaskbarRecentsOverflowView != null) {
             // Need to account for All Apps and the divider. If we need to have an overflow, we will
             // have a divider for recents.
             final int nonTaskIconsToBeAdded = 2;
@@ -738,19 +817,21 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             // RTL case is handled after we add the recent icons, because the button needs to
             // then be to the right of them.
             if (hasOverflow && !mIsRtl) {
-                if (mPrevOverflowTasks.isEmpty()) addView(mTaskbarOverflowView, mNextViewIndex);
+                if (mPrevOverflowTasks.isEmpty()) {
+                    addView(mTaskbarRecentsOverflowView, mNextViewIndex);
+                }
                 // NOTE: If overflow already existed, assume the overflow view is already
                 // at the correct position.
                 mNextViewIndex++;
             } else if (!hasOverflow && !mPrevOverflowTasks.isEmpty()) {
-                removeView(mTaskbarOverflowView);
-                mTaskbarOverflowView.clearItems();
+                removeView(mTaskbarRecentsOverflowView);
+                mTaskbarRecentsOverflowView.clearItems();
             }
-        } else if (mTaskbarOverflowView != null && !mPrevOverflowTasks.isEmpty()) {
+        } else if (mTaskbarRecentsOverflowView != null && !mPrevOverflowTasks.isEmpty()) {
             // Handle the case when closing all the windows together such as "clear all"
             // from overview.
-            removeView(mTaskbarOverflowView);
-            mTaskbarOverflowView.clearItems();
+            removeView(mTaskbarRecentsOverflowView);
+            mTaskbarRecentsOverflowView.clearItems();
         }
 
         // An extra item needs to be added to overflow button to account for the space taken up by
@@ -758,12 +839,13 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         final int itemsToAddToOverflow =
                 hasOverflow ? Math.min(overflowSize + 1, recentTasks.size()) : 0;
         final Set<GroupTask> overflownRecentsSet;
-        if (hasOverflow && mTaskbarOverflowView != null) {
+        if (hasOverflow && mTaskbarRecentsOverflowView != null) {
             final int startIndex = mIsRtl ? recentTasks.size() - itemsToAddToOverflow : 0;
             final int endIndex = mIsRtl ? recentTasks.size() : itemsToAddToOverflow;
             final List<GroupTask> overflownRecents = recentTasks.subList(startIndex, endIndex);
-            mTaskbarOverflowView.setItems(
-                    overflownRecents.stream().map(t -> ((SingleTask) t).getTask()).toList());
+            mTaskbarRecentsOverflowView.setItems(
+                    overflownRecents.stream().map(
+                            t -> new TaskWrapper(((SingleTask) t).getTask())).toList());
             overflownRecentsSet = new ArraySet<>(overflownRecents);
         } else {
             overflownRecentsSet = Collections.emptySet();
@@ -843,7 +925,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
 
         if (mIsRtl && hasOverflow) {
             if (mPrevOverflowTasks.isEmpty()) {
-                addView(mTaskbarOverflowView, mNextViewIndex);
+                addView(mTaskbarRecentsOverflowView, mNextViewIndex);
             }
             mNextViewIndex++;
         }
@@ -1268,8 +1350,16 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
      * Returns the taskbar overflow view in the taskbar.
      */
     @Nullable
-    public TaskbarOverflowView getTaskbarOverflowView() {
-        return mTaskbarOverflowView;
+    public TaskbarOverflowView getTaskbarRecentsOverflowView() {
+        return mTaskbarRecentsOverflowView;
+    }
+
+    /**
+     * Returns the taskbar overflow view for pinned apps in the taskbar.
+     */
+    @Nullable
+    public TaskbarOverflowView getTaskbarPinnedOverflowView() {
+        return mTaskbarPinnedOverflowView;
     }
 
     /**

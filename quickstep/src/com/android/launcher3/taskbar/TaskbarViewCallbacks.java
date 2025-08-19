@@ -193,12 +193,12 @@ public class TaskbarViewCallbacks {
     }
 
     private void toggleKeyboardQuickSwitchView() {
-        if (mTaskbarView.getTaskbarOverflowView() != null) {
-            mTaskbarView.getTaskbarOverflowView().setIsActive(
-                    !mTaskbarView.getTaskbarOverflowView().getIsActive());
+        if (mTaskbarView.getTaskbarRecentsOverflowView() != null) {
+            mTaskbarView.getTaskbarRecentsOverflowView().setIsActive(
+                    !mTaskbarView.getTaskbarRecentsOverflowView().getIsActive());
             mControllers.taskbarAutohideSuspendController
                     .updateFlag(FLAG_AUTOHIDE_SUSPEND_TASKBAR_OVERFLOW,
-                            mTaskbarView.getTaskbarOverflowView().getIsActive());
+                            mTaskbarView.getTaskbarRecentsOverflowView().getIsActive());
         }
         mControllers.keyboardQuickSwitchController.toggleQuickSwitchViewForTaskbar(
                 mControllers.taskbarViewController.getShownTaskIds(),
@@ -206,8 +206,8 @@ public class TaskbarViewCallbacks {
     }
 
     private void onKeyboardQuickSwitchViewClosed() {
-        if (mTaskbarView.getTaskbarOverflowView() != null) {
-            mTaskbarView.getTaskbarOverflowView().setIsActive(false);
+        if (mTaskbarView.getTaskbarRecentsOverflowView() != null) {
+            mTaskbarView.getTaskbarRecentsOverflowView().setIsActive(false);
         }
         mControllers.taskbarAutohideSuspendController.updateFlag(
                 FLAG_AUTOHIDE_SUSPEND_TASKBAR_OVERFLOW, false);

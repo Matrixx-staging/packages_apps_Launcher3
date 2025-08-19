@@ -277,9 +277,6 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         if (orderedScreenIds.indexOf(FIRST_SCREEN_ID) != firstScreenPosition) {
             orderedScreenIds.removeValue(FIRST_SCREEN_ID)
             orderedScreenIds.add(firstScreenPosition, FIRST_SCREEN_ID)
-        } else if (orderedScreenIds.isEmpty) {
-            // If there are no screens, we need to have an empty screen
-            launcher.workspace.addExtraEmptyScreens()
         }
         bindAddScreens(orderedScreenIds)
 

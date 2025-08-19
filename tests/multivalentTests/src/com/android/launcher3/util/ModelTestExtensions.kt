@@ -109,9 +109,22 @@ object ModelTestExtensions {
     val SandboxApplication.bgDataModel
         get() = appComponent.testableModelState.dataModel
 
-    /** Total number of items belonging to a non-predicted container */
+    /**
+     * Checks if an item is persisted in model. It excludes items whose ID corresponds to an AAPT
+     * generated id which always has a non-zero package identifier first-byte.
+     *
+     * @see [android.view.View.generateViewId]
+     */
+    @JvmStatic fun ItemInfo.isPersistedModelItem() = id >= 0 && (id ushr 24) == 0
+
+    /**
+     * Total number of items which are persisted in the model. This excludes any predicted item and
+     * any dynamically injected item with an AAPT generated id.
+     */
     @JvmStatic
-    fun Iterable<ItemInfo>.nonPredictedItemCount() = count { it.container >= CONTAINER_HOTSEAT }
+    fun Iterable<ItemInfo>.countPersistedModelItems() = count {
+        it.isPersistedModelItem() && it.container >= CONTAINER_HOTSEAT
+    }
 
     /** Creates an in-memory sqlite DB and initializes with the data in [insertFile] */
     fun createInMemoryDb(insertFile: String): SQLiteDatabase =

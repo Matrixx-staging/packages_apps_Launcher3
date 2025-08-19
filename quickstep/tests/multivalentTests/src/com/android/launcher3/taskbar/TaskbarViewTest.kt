@@ -39,6 +39,7 @@ import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.InjectController
 import com.android.launcher3.taskbar.rules.TaskbarWindowSandboxContext
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.LauncherMultivalentJUnit.EmulatedDevices
+import com.android.window.flags.Flags.FLAG_ENABLE_OVERFLOW_BUTTON_FOR_TASKBAR_PINNED_ITEMS
 import com.android.window.flags.Flags.FLAG_ENABLE_TASKBAR_OVERFLOW
 import com.google.common.truth.Truth
 import org.junit.Before
@@ -68,6 +69,9 @@ class TaskbarViewTest {
 
     private val maxShownRecents: Int
         get() = taskbarView.maxNumIconViews - 2 // Account for All Apps and Divider.
+
+    private val maxShownHotseat: Int
+        get() = taskbarUnitTestRule.activityContext.taskbarSpecsEvaluator.numShownHotseatIcons
 
     @Before
     fun obtainView() {
@@ -524,8 +528,72 @@ class TaskbarViewTest {
         Truth.assertThat(icon.titleTextView.text).isEqualTo(expectedTitle2)
     }
 
+    @Test
+    @EnableFlags(FLAG_ENABLE_OVERFLOW_BUTTON_FOR_TASKBAR_PINNED_ITEMS)
+    fun testUpdateItems_hotseatOverflow_noRecents() {
+        runOnMainSync {
+            taskbarView.updateItems(createHotseatItems(maxShownHotseat + 1), emptyList())
+        }
+        assertThat(taskbarView)
+            .hasIconTypes(ALL_APPS, DIVIDER, *HOTSEAT * (maxShownHotseat - 1), OVERFLOW)
+    }
+
+    @Test
+    @EnableFlags(FLAG_ENABLE_OVERFLOW_BUTTON_FOR_TASKBAR_PINNED_ITEMS)
+    @ForceRtl
+    fun testUpdateItems_rtl_hotseatOverflow_noRecents() {
+        runOnMainSync {
+            taskbarView.updateItems(createHotseatItems(maxShownHotseat + 1), emptyList())
+        }
+        assertThat(taskbarView)
+            .hasIconTypes(OVERFLOW, *HOTSEAT * (maxShownHotseat - 1), DIVIDER, ALL_APPS)
+    }
+
+    @Test
+    @EnableFlags(FLAG_ENABLE_OVERFLOW_BUTTON_FOR_TASKBAR_PINNED_ITEMS)
+    fun testUpdateItems_hotseatAndRecentsOverflow() {
+        val recentsSize = maxShownRecents + 2
+        runOnMainSync {
+            taskbarView.updateItems(
+                createHotseatItems(maxShownHotseat + 1),
+                createRecents(recentsSize),
+            )
+        }
+        assertThat(taskbarView)
+            .hasIconTypes(
+                ALL_APPS,
+                *HOTSEAT * (maxShownHotseat - 1),
+                OVERFLOW,
+                DIVIDER,
+                OVERFLOW,
+                *RECENT * getExpectedNumRecentsWithOverflow(maxShownHotseat),
+            )
+    }
+
+    @Test
+    @EnableFlags(FLAG_ENABLE_OVERFLOW_BUTTON_FOR_TASKBAR_PINNED_ITEMS)
+    @ForceRtl
+    fun testUpdateItems_rtl_hotseatAndRecentsOverflow() {
+        val recentsSize = maxShownRecents + 2
+        runOnMainSync {
+            taskbarView.updateItems(
+                createHotseatItems(maxShownHotseat + 1),
+                createRecents(recentsSize),
+            )
+        }
+        assertThat(taskbarView)
+            .hasIconTypes(
+                *RECENT * getExpectedNumRecentsWithOverflow(maxShownHotseat),
+                OVERFLOW,
+                DIVIDER,
+                OVERFLOW,
+                *HOTSEAT * (maxShownHotseat - 1),
+                ALL_APPS,
+            )
+    }
+
     /** Returns the number of expected recents outside of the overflow based on [hotseatSize]. */
     private fun getExpectedNumRecentsWithOverflow(hotseatSize: Int = 0): Int {
-        return maxShownRecents - hotseatSize - 1 // Account for overflow.
+        return 0.coerceAtLeast(maxShownRecents - hotseatSize - 1)
     }
 }

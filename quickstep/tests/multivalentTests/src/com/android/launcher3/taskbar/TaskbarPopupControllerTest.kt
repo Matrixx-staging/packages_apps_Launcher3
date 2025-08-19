@@ -150,7 +150,7 @@ class TaskbarPopupControllerTest {
             "Shortcut should be PinToTaskbarShortcut",
             shortcut is PinToTaskbarShortcut<*>,
         )
-        Assert.assertFalse((shortcut as PinToTaskbarShortcut<*>).mIsPin)
+        Assert.assertFalse((shortcut as PinToTaskbarShortcut<*>).isPin)
     }
 
     private fun hasPopupMenu(): Boolean {

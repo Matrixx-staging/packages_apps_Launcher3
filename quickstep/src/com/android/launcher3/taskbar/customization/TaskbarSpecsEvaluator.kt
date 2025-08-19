@@ -17,6 +17,11 @@
 package com.android.launcher3.taskbar.customization
 
 import com.android.launcher3.taskbar.TaskbarActivityContext
+import com.android.launcher3.taskbar.TaskbarPopupController
+import com.google.common.annotations.VisibleForTesting
+
+/** The maximum number of icons that can be pinned in the taskbar overflow. */
+@VisibleForTesting const val TASKBAR_OVERFLOW_PIN_LIMIT = 99
 
 /** Evaluates the taskbar specs based on the taskbar grid size and the taskbar icon size. */
 class TaskbarSpecsEvaluator(
@@ -28,6 +33,14 @@ class TaskbarSpecsEvaluator(
     var taskbarIconSize: TaskbarIconSize = getIconSizeByGrid(numColumns, numRows)
     val numShownHotseatIcons
         get() = taskbarActivityContext.deviceProfile.numShownHotseatIcons
+
+    val maxPinnableCount
+        get() =
+            if (TaskbarPopupController.canPinAppsOverflow()) {
+                TASKBAR_OVERFLOW_PIN_LIMIT
+            } else {
+                numShownHotseatIcons
+            }
 
     // TODO(b/341146605) : initialize it to taskbar container in later cl.
     private var taskbarContainer: List<TaskbarContainer> = emptyList()

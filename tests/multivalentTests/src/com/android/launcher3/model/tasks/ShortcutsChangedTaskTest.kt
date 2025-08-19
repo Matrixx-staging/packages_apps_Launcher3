@@ -43,7 +43,7 @@ import com.android.launcher3.util.LauncherModelHelper.SHORTCUT_ID
 import com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY
 import com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE
 import com.android.launcher3.util.LayoutResource
-import com.android.launcher3.util.ModelTestExtensions.nonPredictedItemCount
+import com.android.launcher3.util.ModelTestExtensions.countPersistedModelItems
 import com.android.launcher3.util.SandboxApplication
 import com.android.launcher3.util.TestUtil
 import com.google.common.truth.Truth.assertThat
@@ -97,7 +97,7 @@ class ShortcutsChangedTaskTest {
                     .putApp(TEST_PACKAGE, TEST_ACTIVITY)
             )
 
-        assertEquals(2, modelState.dataModel.itemsIdMap.nonPredictedItemCount().toLong())
+        assertEquals(2, modelState.dataModel.itemsIdMap.countPersistedModelItems())
     }
 
     private fun setupMockLauncherApps(callback: (ApplicationInfo, ShortcutInfo) -> Unit) {

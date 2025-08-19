@@ -164,7 +164,7 @@ public class TaskbarOverflowView extends FrameLayout implements Reorderable {
             };
 
     private boolean mIsRtlLayout;
-    private final List<Task> mItems = new ArrayList<Task>();
+    private final List<TaskbarOverflowItem> mItems = new ArrayList<TaskbarOverflowItem>();
     private int mIconSize;
     private Paint mItemBackgroundPaint;
     private final MultiTranslateDelegate mTranslateDelegate = new MultiTranslateDelegate(this);
@@ -265,7 +265,7 @@ public class TaskbarOverflowView extends FrameLayout implements Reorderable {
 
         int itemsToShow = Math.min(mItems.size(), MAX_ITEMS_IN_PREVIEW);
         for (int i = itemsToShow - 1; i >= 0; --i) {
-            Drawable icon = mItems.get(mItems.size() - i - 1).icon;
+            Drawable icon = mItems.get(mItems.size() - i - 1).getDrawableIcon();
             if (icon == null) {
                 continue;
             }
@@ -311,7 +311,7 @@ public class TaskbarOverflowView extends FrameLayout implements Reorderable {
      * Update the view to represent a new list of recent tasks.
      * @param items Items to be shown in the view.
      */
-    public void setItems(List<Task> items) {
+    public void setItems(List<? extends TaskbarOverflowItem> items) {
         mItems.clear();
         mItems.addAll(items);
         invalidate();
@@ -319,7 +319,7 @@ public class TaskbarOverflowView extends FrameLayout implements Reorderable {
 
     @VisibleForTesting
     public List<Integer> getItemIds() {
-        return mItems.stream().map(task -> task.key.id).toList();
+        return mItems.stream().map(TaskbarOverflowItem::getItemId).toList();
     }
 
     /**
@@ -330,8 +330,9 @@ public class TaskbarOverflowView extends FrameLayout implements Reorderable {
      */
     public void updateTaskIsShown(Task task) {
         for (int i = 0; i < mItems.size(); ++i) {
-            if (mItems.get(i).key.id == task.key.id) {
-                mItems.set(i, task);
+            if (mItems.get(i) instanceof TaskWrapper taskItem
+                    && taskItem.getItemId() == task.key.id) {
+                mItems.set(i, new TaskWrapper(task));
                 if (i >= mItems.size() - MAX_ITEMS_IN_PREVIEW) {
                     invalidate();
                 }
