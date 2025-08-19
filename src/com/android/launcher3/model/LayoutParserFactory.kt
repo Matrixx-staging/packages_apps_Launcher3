@@ -21,8 +21,6 @@ import android.app.blob.BlobStoreManager
 import android.content.Context
 import android.content.res.Resources
 import android.os.ParcelFileDescriptor.AutoCloseInputStream
-import android.provider.Settings.Secure
-import android.text.TextUtils
 import android.util.Base64
 import android.util.Log
 import android.util.Xml
@@ -32,6 +30,7 @@ import com.android.launcher3.DefaultLayoutParser
 import com.android.launcher3.DefaultLayoutParser.RES_PARTNER_DEFAULT_LAYOUT
 import com.android.launcher3.LauncherSettings.Settings
 import com.android.launcher3.dagger.ApplicationContext
+import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
 import com.android.launcher3.util.IOUtils
 import com.android.launcher3.util.Partner
 import com.android.launcher3.widget.LauncherWidgetHolder
@@ -83,10 +82,8 @@ constructor(@ApplicationContext private val context: Context) {
         openHelper: DatabaseHelper,
     ): AutoInstallsLayout? {
         val systemLayoutProvider =
-            Secure.getString(context.contentResolver, Settings.LAYOUT_PROVIDER_KEY)
-        if (TextUtils.isEmpty(systemLayoutProvider)) {
-            return null
-        }
+            context.appComponent.settingsCache.getSecureString(Settings.LAYOUT_PROVIDER_KEY)
+        if (systemLayoutProvider.isNullOrEmpty()) return null
 
         // Try the blob store first
         val blobManager = context.getSystemService(BlobStoreManager::class.java)

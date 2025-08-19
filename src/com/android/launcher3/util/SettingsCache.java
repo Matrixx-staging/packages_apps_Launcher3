@@ -28,6 +28,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 
+import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 
 import com.android.launcher3.dagger.ApplicationContext;
@@ -84,6 +85,8 @@ public class SettingsCache extends ContentObserver {
         registerUriAsync(uri);
         return new CopyOnWriteArrayList<>();
     };
+
+    private final Map<String, String> mSecureStringOverrides = new ConcurrentHashMap<>();
 
     /**
      * Caches the last seen value for registered keys.
@@ -177,6 +180,23 @@ public class SettingsCache extends ContentObserver {
         if (listenersToRemoveFrom != null) {
             listenersToRemoveFrom.remove(listener);
         }
+    }
+
+    /**
+     * Wrapper around {@link Settings.Secure#getString}
+     */
+    @Nullable
+    public String getSecureString(String key) {
+        return mSecureStringOverrides.getOrDefault(key, Settings.Secure.getString(mResolver, key));
+    }
+
+    /**
+     * Temporarily overrides the value of {@link #getSecureString} and returns a callback to
+     * clear the override
+     */
+    public SafeCloseable applyLocalSecureStringOverride(String key, String value) {
+        mSecureStringOverrides.put(key, value);
+        return () -> mSecureStringOverrides.remove(key);
     }
 
     public interface OnChangeListener {
