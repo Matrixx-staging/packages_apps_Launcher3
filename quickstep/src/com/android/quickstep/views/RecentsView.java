@@ -1518,7 +1518,7 @@ public abstract class RecentsView<
         } else {
             TaskViewUtils.composeRecentsLaunchAnimator(anim, taskView, apps, wallpaper, nonApps,
                     true /* launcherClosing */, getStateManager(), this,
-                    getDepthController(), transitionInfo);
+                    getDepthController(), transitionInfo, /* appearedTaskId= */ taskId);
         }
         anim.start();
     }
