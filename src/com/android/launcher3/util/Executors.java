@@ -100,9 +100,6 @@ public class Executors {
 
     /**
      * A background executor to preinflate views.
-     *
-     * @deprecated Prefer using an executor annotated from the
-     * {@link com.android.launcher3.concurrent} package.
      */
     public static final ExecutorService VIEW_PREINFLATION_EXECUTOR =
             java.util.concurrent.Executors.newSingleThreadExecutor(
@@ -111,9 +108,6 @@ public class Executors {
 
     /**
      * Executor used for running Launcher model related tasks (eg loading icons or updated db)
-     *
-     * @deprecated Prefer using an executor annotated from the
-     * {@link com.android.launcher3.concurrent} package.
      */
     public static final LooperExecutor MODEL_EXECUTOR = new LooperExecutor("launcher-loader");
 
