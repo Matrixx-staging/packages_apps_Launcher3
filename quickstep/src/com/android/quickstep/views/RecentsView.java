@@ -19,6 +19,7 @@ package com.android.quickstep.views;
 import static android.app.ActivityTaskManager.INVALID_TASK_ID;
 import static android.os.Trace.traceBegin;
 import static android.os.Trace.traceEnd;
+import static android.view.MotionEvent.CLASSIFICATION_TWO_FINGER_SWIPE;
 import static android.view.View.MeasureSpec.EXACTLY;
 import static android.view.View.MeasureSpec.makeMeasureSpec;
 
@@ -1757,7 +1758,7 @@ public abstract class RecentsView<
     @Override
     protected void updateIsBeingDraggedOnTouchDown(MotionEvent ev) {
         // Do not allow mouse to drag RecentsView on action down.
-        if (ev.isFromSource(InputDevice.SOURCE_MOUSE)) {
+        if (!shouldAllowDrag(ev)) {
             return;
         }
         super.updateIsBeingDraggedOnTouchDown(ev);
@@ -1911,9 +1912,14 @@ public abstract class RecentsView<
     protected void determineScrollingStart(MotionEvent ev, float touchSlopScale) {
         // Enables swiping to the left or right only if the task overlay is not modal, and event
         // is not from a mouse.
-        if (!isModal() && !ev.isFromSource(InputDevice.SOURCE_MOUSE)) {
+        if (!isModal() && shouldAllowDrag(ev)) {
             super.determineScrollingStart(ev, touchSlopScale);
         }
+    }
+
+    private boolean shouldAllowDrag(MotionEvent ev) {
+        return !ev.isFromSource(InputDevice.SOURCE_MOUSE)
+                || ev.getClassification() == CLASSIFICATION_TWO_FINGER_SWIPE;
     }
 
     /**
