@@ -36,17 +36,13 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
-import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performCustomAccessibilityActionWithLabelMatching
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeDown
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.android.launcher3.widgetpicker.shared.model.CloseBehavior
 import com.android.launcher3.widgetpicker.ui.LocalWidgetPickerCuiReporter
 import com.android.launcher3.widgetpicker.ui.NoOpWidgetPickerCuiReporter
 import com.android.launcher3.widgetpicker.ui.components.accessibility.AccessibilityState
@@ -93,24 +89,6 @@ class TitledBottomSheetTest {
     }
 
     @Test
-    fun canCloseWithCloseButton() {
-        composeTestRule.setContent {
-            SheetTestContent(/* closeBehavior= */ CloseBehavior.CLOSE_BUTTON)
-        }
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNode(hasText(CONTENT_TEXT)).assertExists()
-        composeTestRule.onNode(hasText(CLOSED_TEXT)).assertDoesNotExist()
-        composeTestRule
-            .onNodeWithContentDescription("Close sheet")
-            .assertIsDisplayed()
-            .performClick()
-
-        composeTestRule.onNode(hasText(CONTENT_TEXT)).assertDoesNotExist()
-        composeTestRule.onNode(hasText(CLOSED_TEXT)).assertExists()
-    }
-
-    @Test
     fun accessibilityEnabled_nestedScrollDisabled() {
         nestedScrollAccessibilityTest(accessibilityEnabled = true)
     }
@@ -144,7 +122,7 @@ class TitledBottomSheetTest {
     }
 
     @Composable
-    private fun SheetTestContent(closeBehavior: CloseBehavior = CloseBehavior.DRAG_HANDLE) {
+    private fun SheetTestContent() {
         var isClosed by remember { mutableStateOf(false) }
 
         TestContentWrapper {
@@ -157,7 +135,7 @@ class TitledBottomSheetTest {
                         description = null,
                         modifier = Modifier,
                         heightStyle = ModalBottomSheetHeightStyle.FILL_HEIGHT,
-                        closeBehavior = closeBehavior,
+                        showDragHandle = true,
                         onSheetOpen = {},
                         onDismissSheet = { isClosed = true },
                     ) {

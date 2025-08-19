@@ -99,7 +99,7 @@ constructor(private val viewModelFactory: FullWidgetsCatalogViewModel.Factory) {
                     .widgetPickerTestTag(WIDGET_CATALOG_TEST_TAG),
             description = viewModel.description,
             heightStyle = ModalBottomSheetHeightStyle.FILL_HEIGHT,
-            closeBehavior = viewModel.closeBehavior,
+            showDragHandle = true,
             enableSwipeUpToDismiss = viewModel.enableSwipeUpToClose,
             onDismissSheet = {
                 // Report end of cui in case user tried to close picker while it was opening.
