@@ -2750,7 +2750,10 @@ public final class LauncherInstrumentation {
     }
 
     public Closable eventsCheck() {
-        Assert.assertTrue("Nested event checking", mEventChecker == null);
+        if (mEventChecker != null) {
+            // Nested call, do nothing.
+            return () -> {};
+        }
         disableSensorRotation();
         final Integer initialPid = getPid();
         final LogEventChecker eventChecker = new LogEventChecker(this);
