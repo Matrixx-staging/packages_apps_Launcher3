@@ -244,11 +244,7 @@ constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 
 
         currentHeight = shortcutHeight + mChildContainerMargin
 
-        if (Flags.enableLongPressRemoveShortcut()) {
-            collapseEligibleSystemShortcutsIfOverThreshold(systemShortcuts)
-        } else {
-            collapseNonWidgetSystemShortcutsIfOverThreshold(systemShortcuts)
-        }
+        collapseEligibleSystemShortcutsIfOverThreshold(systemShortcuts)
         addDeepShortcuts(deepShortcutCount, currentHeight)
     }
 
@@ -288,38 +284,6 @@ constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 
             )
             currentHeight +=
                 ((shortcutHeight * nonCollapsibleSystemShortcuts.size) + mChildContainerMargin)
-        }
-    }
-
-    /**
-     * If the total amount of shortcuts is over threshold, we collapse the shortcuts that are not
-     * the widget shortcut, and make sure widget gets its own container.
-     *
-     * @param systemShortcuts List of SystemShortcuts
-     */
-    private fun collapseNonWidgetSystemShortcutsIfOverThreshold(
-        systemShortcuts: List<SystemShortcut<*>>
-    ) {
-        val nonWidgetSystemShortcuts = getNonWidgetSystemShortcuts(systemShortcuts)
-        // If total shortcuts over threshold, collapse system shortcuts to single row
-        addSystemShortcutsIconsOnly(nonWidgetSystemShortcuts)
-        // May need to recalculate row width
-        containerWidth =
-            max(
-                    containerWidth.toDouble(),
-                    (nonWidgetSystemShortcuts.size *
-                            resources.getDimensionPixelSize(
-                                R.dimen.system_shortcut_header_icon_touch_size
-                            ))
-                        .toDouble(),
-                )
-                .toInt()
-        // Add widget shortcut to separate container
-        val widgetShortcutOpt = getWidgetShortcut(systemShortcuts)
-        if (widgetShortcutOpt.isPresent) {
-            widgetContainer = inflateAndAdd(R.layout.widget_shortcut_container_material_u, this)
-            initializeWidgetShortcut(widgetContainer, widgetShortcutOpt.get())
-            currentHeight += shortcutHeight + mChildContainerMargin
         }
     }
 
