@@ -20,7 +20,6 @@ import static android.content.ClipDescription.MIMETYPE_TEXT_INTENT;
 import static android.view.WindowInsets.Type.navigationBars;
 import static android.view.WindowInsets.Type.statusBars;
 
-import static com.android.launcher3.Utilities.shouldEnableMouseInteractionChanges;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
 
@@ -60,7 +59,6 @@ import com.android.launcher3.widget.picker.WidgetCategoryFilter;
 import com.android.launcher3.widget.picker.WidgetsFullSheet;
 import com.android.launcher3.widget.picker.model.WidgetPickerDataProvider;
 import com.android.launcher3.widgetpicker.WidgetPickerConfig;
-import com.android.launcher3.widgetpicker.shared.model.CloseBehavior;
 import com.android.quickstep.TouchInteractionService;
 import com.android.quickstep.util.TISBindHelper;
 import com.android.systemui.animation.back.FlingOnBackAnimationCallback;
@@ -235,10 +233,7 @@ public class QuickstepWidgetPickerActivity extends
                 /*categoryInclusionFilter=*/ inclusionFilter,
                 /*categoryExclusionFilter=*/ exclusionFilter,
                 /*filteredUsers=*/ filteredUsers,
-                /*handleSwipeUpGesture=*/ deviceProfile.getDeviceProperties().isGestureMode(),
-                /*closeBehavior=*/ shouldEnableMouseInteractionChanges(
-                        getApplicationContext())
-                ? CloseBehavior.CLOSE_BUTTON : CloseBehavior.DRAG_HANDLE);
+                /*handleSwipeUpGesture=*/ deviceProfile.getDeviceProperties().isGestureMode());
     }
 
     @NonNull
