@@ -322,6 +322,11 @@ public class BaseDepthController {
                 ? RenderEffect.createBlurEffect(mCurrentBlur, mCurrentBlur, Shader.TileMode.DECAL)
                 // If blur is not desired, clear the blur effect from the depth targets.
                 : null;
+        Log.d(TAG, "shouldBlurWorkspace: " + shouldBlurWorkspace
+                + " targetState: " + targetState
+                + " currentStableState: " + stateManager.getCurrentStableState()
+                + " mCurrentBlur: " + mCurrentBlur
+                + " mLauncher.getDepthBlurTargets(): " + mLauncher.getDepthBlurTargets());
         mLauncher.getDepthBlurTargets().forEach(target -> target.setRenderEffect(blurEffect));
         return shouldBlurWorkspace;
     }
