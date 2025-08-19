@@ -359,7 +359,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
             mSplitSelectStateController.initSplitFromDesktopController(this);
         }
         if (refactorTaskbarUiState()) {
-            mSplitSelectStateController.setLauncherUiState(launcherUiState);
+            mSplitSelectStateController.setLauncherUiState(mLauncherUiState);
         }
         mHotseatPredictionController = new HotseatPredictionController(this);
 
@@ -478,7 +478,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
             onStateOrResumeChanging((getActivityFlags() & ACTIVITY_STATE_TRANSITION_ACTIVE) == 0);
         }
         if (refactorTaskbarUiState()) {
-            launcherUiState.setActivityFlag(getActivityFlags());
+            mLauncherUiState.setActivityFlag(getActivityFlags());
         }
     }
 

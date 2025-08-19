@@ -341,7 +341,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
     public Workspace(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         mLauncher = Launcher.getLauncher(context);
-        mLauncherUiState = mLauncher.launcherUiState;
+        mLauncherUiState = mLauncher.getLauncherUiState();
         mStateTransitionAnimation = new WorkspaceStateTransitionAnimation(mLauncher, this);
         mWallpaperManager = WallpaperManager.getInstance(context);
         mAllAppsIconSize = mLauncher.getDeviceProfile().getAllAppsProfile().getIconSizePx();

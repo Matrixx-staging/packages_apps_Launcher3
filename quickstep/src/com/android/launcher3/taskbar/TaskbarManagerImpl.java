@@ -720,7 +720,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
             return new LauncherTaskbarUIController(
                     new LauncherInteractor(quickstepLauncher,
                             enableTaskbarUiThread()? MAIN_EXECUTOR : Runnable::run),
-                    quickstepLauncher.launcherUiState,
+                    quickstepLauncher.getLauncherUiState(),
                     SystemUiProxy.INSTANCE.get(quickstepLauncher).getHomeVisibilityState());
         }
         // If a 3P Launcher is default, always use FallbackTaskbarUIController regardless of

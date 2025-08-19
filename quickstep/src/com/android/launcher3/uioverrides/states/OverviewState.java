@@ -146,7 +146,7 @@ public class OverviewState extends LauncherState {
 
     @Override
     public int getFloatingSearchBarRestingMarginBottom(Launcher launcher) {
-        return areElementsVisible(launcher.launcherUiState, FLOATING_SEARCH_BAR) ? 0
+        return areElementsVisible(launcher.getLauncherUiState(), FLOATING_SEARCH_BAR) ? 0
                 : super.getFloatingSearchBarRestingMarginBottom(launcher);
     }
 
