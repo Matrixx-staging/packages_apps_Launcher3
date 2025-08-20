@@ -340,7 +340,7 @@ public class SecondaryDisplayLauncher extends BaseActivity
                 ItemInfoWithIcon appInfo = (ItemInfoWithIcon) item;
                 intent = appInfo.getMarketIntent(this);
             } else {
-                intent = item.getIntent();
+                intent = new Intent(item.getIntent());
             }
             if (intent == null) {
                 throw new IllegalArgumentException("Input must have a valid intent");
