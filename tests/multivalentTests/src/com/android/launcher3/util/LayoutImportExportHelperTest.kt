@@ -250,7 +250,7 @@ class LayoutImportExportHelperTest {
                 .addApp(TEST_PACKAGE, TEST_ACTIVITY)
                 .addApp(TEST_PACKAGE, TEST_ACTIVITY2)
                 .build()
-        LayoutImportExportHelper.importModelFromXml(context, layoutXml.build())
+        context.appComponent.layoutImportExportHelper.importModelFromXml(layoutXml.build())
         assertEquals(differentGridOption.numRows, idp.numRows)
         assertEquals(differentGridOption.numColumns, idp.numColumns)
     }
@@ -262,7 +262,8 @@ class LayoutImportExportHelperTest {
         layout.set(layoutBuilder)
         assertTrue(verification.get())
 
-        val exportedXml = LayoutImportExportHelper.exportModelDbAsXmlFuture(context).get()
+        val exportedXml =
+            context.appComponent.layoutImportExportHelper.exportModelDbAsXmlFuture().get()
 
         // To test the exported XML, we merely clear the DB and re-load it. If the XML is
         // well-formatted, it will be loaded into the DB properly. Otherwise, it will be rejected.
@@ -276,7 +277,7 @@ class LayoutImportExportHelperTest {
         MODEL_EXECUTOR.submit {}.get()
         assertFalse(verification.get())
 
-        LayoutImportExportHelper.importModelFromXml(context, exportedXml)
+        context.appComponent.layoutImportExportHelper.importModelFromXml(exportedXml)
         assertTrue(verification.get())
     }
 }
