@@ -21,6 +21,7 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performClick
 import com.android.launcher3.widgetpicker.WidgetPickerComponent
 import com.android.launcher3.widgetpicker.goldenpathmanager.WidgetPickerGoldenPathManager
+import com.android.launcher3.widgetpicker.shared.model.CloseBehavior
 import com.android.launcher3.widgetpicker.shared.model.WidgetHostInfo
 import com.android.launcher3.widgetpicker.ui.NoOpWidgetPickerCuiReporter
 import com.android.launcher3.widgetpicker.ui.WidgetInteractionInfo
@@ -39,7 +40,6 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -50,6 +50,7 @@ import platform.test.screenshot.Displays
 import platform.test.screenshot.getEmulatedDevicePathConfig
 import platform.test.screenshot.utils.compose.ComposeScreenshotTestRule
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(ParameterizedAndroidJunit4::class)
 class LandingScreenScreenshotTest(emulationSpec: DeviceEmulationSpec) {
     @get:Rule(order = 0) val disableAnimationsRule = DisableAnimationsRule()
@@ -70,30 +71,29 @@ class LandingScreenScreenshotTest(emulationSpec: DeviceEmulationSpec) {
     private val widgetsRepository = ScreenshotTestWidgetsRepository(testData)
     private val widgetAppIconsRepository = ScreenshotTestWidgetAppIconsRepository(testData)
 
-    @OptIn(ExperimentalCoroutinesApi::class) private val testDispatcher = UnconfinedTestDispatcher()
+    private val testDispatcher = UnconfinedTestDispatcher()
     private val testScope = TestScope(testDispatcher)
 
-    private lateinit var widgetPickerComponent: WidgetPickerComponent
+    private val testComponent by lazy { DaggerScreenshotTestComponent.create() }
 
-    @Before
-    fun setUp() {
-        val widgetPickerComponentFactory =
-            DaggerScreenshotTestComponent.create().widgetPickerComponentFactory()
-
-        widgetPickerComponent =
-            widgetPickerComponentFactory.build(
+    private fun createWidgetPickerComponent(
+        widgetHostInfo: WidgetHostInfo = WidgetHostInfo(title = "Widgets")
+    ): WidgetPickerComponent {
+        return testComponent
+            .widgetPickerComponentFactory()
+            .build(
                 widgetUsersRepository = usersRepository,
                 widgetAppIconsRepository = widgetAppIconsRepository,
                 widgetsRepository = widgetsRepository,
-                widgetHostInfo = WidgetHostInfo(title = "Widgets"),
+                widgetHostInfo = widgetHostInfo,
                 backgroundContext = testDispatcher,
             )
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun fullCatalog_landingScreen_featuredSection() =
         testScope.runTest {
+            val widgetPickerComponent = createWidgetPickerComponent()
             screenshotRule.screenshotTest(
                 goldenIdentifier = "fullCatalog_landingScreen_featuredSection",
                 beforeScreenshot = {
@@ -112,10 +112,10 @@ class LandingScreenScreenshotTest(emulationSpec: DeviceEmulationSpec) {
             }
         }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun fullCatalog_landingScreen_browseSection() =
         testScope.runTest {
+            val widgetPickerComponent = createWidgetPickerComponent()
             screenshotRule.screenshotTest(
                 goldenIdentifier = "fullCatalog_landingScreen_browseSection",
                 beforeScreenshot = {
@@ -141,6 +141,36 @@ class LandingScreenScreenshotTest(emulationSpec: DeviceEmulationSpec) {
                         .onNode(hasText("App 2"))
                         .assertExists()
                         .performClick()
+                },
+            ) {
+                WidgetPickerTheme {
+                    widgetPickerComponent
+                        .getFullWidgetsCatalog()
+                        .Content(
+                            eventListeners = NoOpEventListener,
+                            cuiReporter = NoOpWidgetPickerCuiReporter(),
+                        )
+                }
+            }
+        }
+
+    @Test
+    fun enforceMaxSizes_landingScreen() =
+        testScope.runTest {
+            val widgetPickerComponent =
+                createWidgetPickerComponent(
+                    widgetHostInfo =
+                        WidgetHostInfo(
+                            title = "Widgets",
+                            closeBehavior = CloseBehavior.CLOSE_BUTTON,
+                        )
+                )
+
+            screenshotRule.screenshotTest(
+                goldenIdentifier = "enforceMaxSizes_landingScreen",
+                beforeScreenshot = {
+                    advanceUntilIdle()
+                    runCurrent()
                 },
             ) {
                 WidgetPickerTheme {

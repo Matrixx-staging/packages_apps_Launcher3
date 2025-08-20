@@ -100,6 +100,7 @@ constructor(private val viewModelFactory: FullWidgetsCatalogViewModel.Factory) {
             description = viewModel.description,
             heightStyle = ModalBottomSheetHeightStyle.FILL_HEIGHT,
             closeBehavior = viewModel.closeBehavior,
+            enforceStaticMaxSizes = viewModel.enforceStaticMaxSizes,
             enableSwipeUpToDismiss = viewModel.enableSwipeUpToClose,
             onDismissSheet = {
                 // Report end of cui in case user tried to close picker while it was opening.
