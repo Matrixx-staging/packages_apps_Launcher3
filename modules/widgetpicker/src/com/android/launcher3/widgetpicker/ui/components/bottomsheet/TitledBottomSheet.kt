@@ -252,7 +252,7 @@ private fun Header(
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             Text(
-                modifier = Modifier.align(Alignment.Center).padding(horizontal = 48.dp),
+                modifier = Modifier.align(Alignment.Center),
                 maxLines = 1,
                 text = title,
                 overflow = TextOverflow.Ellipsis,

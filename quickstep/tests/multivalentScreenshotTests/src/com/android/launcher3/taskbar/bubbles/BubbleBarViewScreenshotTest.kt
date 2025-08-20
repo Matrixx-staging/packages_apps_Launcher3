@@ -18,6 +18,9 @@ package com.android.launcher3.taskbar.bubbles
 
 import android.content.Context
 import android.graphics.Color
+import android.platform.test.annotations.DisableFlags
+import android.platform.test.annotations.EnableFlags
+import android.platform.test.rule.DisableAnimationsRule
 import android.platform.test.rule.ScreenRecordRule
 import android.view.View
 import android.widget.FrameLayout
@@ -64,7 +67,10 @@ class BubbleBarViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
             ViewScreenshotGoldenPathManager(getEmulatedDevicePathConfig(emulationSpec)),
         )
 
+    @get:Rule val disableAnimationsRule = DisableAnimationsRule()
+
     @Test
+    @DisableFlags("com.android.launcher3.avoid_display_cutout_bubble_bar")
     fun bubbleBarView_collapsed_oneBubble() {
         screenshotRule.screenshotTest("bubbleBarView_collapsed_oneBubble") { activity ->
             activity.actionBar?.hide()
@@ -79,6 +85,22 @@ class BubbleBarViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
     }
 
     @Test
+    @EnableFlags("com.android.launcher3.avoid_display_cutout_bubble_bar")
+    fun bubbleBarView_collapsed_oneBubble_flagOn() {
+        screenshotRule.screenshotTest("bubbleBarView_collapsed_oneBubble_flagOn") { activity ->
+            activity.actionBar?.hide()
+            setupBubbleBarView()
+            bubbleBarView.addBubble(createBubble("key1", Color.GREEN), false)
+            val container = FrameLayout(context)
+            val lp = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+            container.layoutParams = lp
+            container.addView(bubbleBarView)
+            container
+        }
+    }
+
+    @Test
+    @DisableFlags("com.android.launcher3.avoid_display_cutout_bubble_bar")
     fun bubbleBarView_collapsed_twoBubbles() {
         screenshotRule.screenshotTest("bubbleBarView_collapsed_twoBubbles") { activity ->
             activity.actionBar?.hide()
@@ -94,6 +116,23 @@ class BubbleBarViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
     }
 
     @Test
+    @EnableFlags("com.android.launcher3.avoid_display_cutout_bubble_bar")
+    fun bubbleBarView_collapsed_twoBubbles_flagOn() {
+        screenshotRule.screenshotTest("bubbleBarView_collapsed_twoBubbles_flagOn") { activity ->
+            activity.actionBar?.hide()
+            setupBubbleBarView()
+            bubbleBarView.addBubble(createBubble("key1", Color.GREEN), true)
+            bubbleBarView.addBubble(createBubble("key2", Color.CYAN), true)
+            val container = FrameLayout(context)
+            val lp = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+            container.layoutParams = lp
+            container.addView(bubbleBarView)
+            container
+        }
+    }
+
+    @Test
+    @DisableFlags("com.android.launcher3.avoid_display_cutout_bubble_bar")
     fun bubbleBarView_expanded_threeBubbles() {
         // if we're still expanding, wait with taking a screenshot
         val shouldWait: (ComponentActivity, View) -> Boolean = { _, _ -> bubbleBarView.isExpanding }
@@ -101,6 +140,31 @@ class BubbleBarViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
         screenshotRule.frameLimit = 500
         screenshotRule.screenshotTest(
             "bubbleBarView_expanded_threeBubbles",
+            checkView = shouldWait,
+        ) { activity ->
+            activity.actionBar?.hide()
+            setupBubbleBarView()
+            bubbleBarView.addBubble(createBubble("key1", Color.GREEN), false)
+            bubbleBarView.addBubble(createBubble("key2", Color.CYAN), false)
+            bubbleBarView.addBubble(createBubble("key3", Color.MAGENTA), false)
+            val container = FrameLayout(context)
+            val lp = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+            container.layoutParams = lp
+            container.addView(bubbleBarView)
+            bubbleBarView.animateExpanded(true)
+            container
+        }
+    }
+
+    @Test
+    @EnableFlags("com.android.launcher3.avoid_display_cutout_bubble_bar")
+    fun bubbleBarView_expanded_threeBubbles_flagOn() {
+        // if we're still expanding, wait with taking a screenshot
+        val shouldWait: (ComponentActivity, View) -> Boolean = { _, _ -> bubbleBarView.isExpanding }
+        // increase the frame limit to allow the animation to end before taking the screenshot
+        screenshotRule.frameLimit = 500
+        screenshotRule.screenshotTest(
+            "bubbleBarView_expanded_threeBubbles_flagOn",
             checkView = shouldWait,
         ) { activity ->
             activity.actionBar?.hide()

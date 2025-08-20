@@ -77,6 +77,7 @@ import com.android.quickstep.task.thumbnail.TaskContentView
 import com.android.quickstep.task.thumbnail.TaskThumbnailView
 import com.android.quickstep.util.DesktopTask
 import com.android.quickstep.util.RecentsOrientedState
+import com.android.quickstep.util.getRemoteTargetHandle
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus.enableMultipleDesktops
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
@@ -205,11 +206,6 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                 super.displayId
             }
 
-    private fun getRemoteTargetHandle(taskId: Int): RemoteTargetHandle? =
-        remoteTargetHandles?.firstOrNull {
-            it.transformParams.targetSet.firstAppTargetTaskId == taskId
-        }
-
     override fun onFinishInflate() {
         super.onFinishInflate()
         contentView =
@@ -318,7 +314,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                 }
 
             if (enableDesktopExplodedView()) {
-                getRemoteTargetHandle(taskId)?.let { remoteTargetHandle ->
+                remoteTargetHandles?.getRemoteTargetHandle(taskId)?.let { remoteTargetHandle ->
                     val fromRect =
                         TEMP_FROM_RECTF.apply {
                             set(fullscreenTaskBounds)
@@ -618,13 +614,6 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         checkNotNull(desktopController) { "recentsController is null" }
 
         if (taskIdToReorderToFront != null) {
-            // The to-be-activated window should animate on top of other apps during shell
-            // transition.
-            val remoteTargetHandle = getRemoteTargetHandle(taskIdToReorderToFront)
-            // The layer swapping is only applied after [createRecentsWindowAnimator] starts, which
-            // will bring the [remoteTargetHandles] above Recents, therefore this call won't affect
-            // the base surface in [DepthController].
-            remoteTargetHandle?.taskViewSimulator?.setDrawsAboveOtherApps(true)
             taskIdReorderToFront = taskIdToReorderToFront
         }
         val launchDesktopFromRecents = {
@@ -713,7 +702,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         } else {
             // If this task has a live window, then hide it.
             // TODO(b/413120214) The dismissed view should fade out.
-            getRemoteTargetHandle(taskId)?.let {
+            remoteTargetHandles?.getRemoteTargetHandle(taskId)?.let {
                 it.taskViewSimulator.setTaskRectTransform(Matrix().apply { postScale(0.0f, 0.0f) })
                 it.taskViewSimulator.apply(it.transformParams)
             }

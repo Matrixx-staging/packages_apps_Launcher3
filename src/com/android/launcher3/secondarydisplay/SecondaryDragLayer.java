@@ -263,9 +263,12 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
         }
         int deepShortcutCount = popupDataProvider.getShortcutCountForItem(item);
         final PopupContainerWithArrow<SecondaryDisplayLauncher> container =
-                (PopupContainerWithArrow) mContainer.getLayoutInflater().inflate(
-                        R.layout.popup_container, mContainer.getDragLayer(), false);
-        container.populateAndShowRows((BubbleTextView) v, deepShortcutCount,
+                PopupContainerWithArrow.create(
+                        /* context */ mContainer,
+                        /* originalView */ v,
+                        /* updateIconUi */ false
+                );
+        container.populateAndShowRows(deepShortcutCount,
                 systemShortcuts);
         container.requestFocus();
 
@@ -277,7 +280,6 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
         DeviceProfile grid = mContainer.getDeviceProfile();
         options.intrinsicIconScaleFactor = (float) grid.getAllAppsProfile().getIconSizePx()
                 / grid.getWorkspaceIconProfile().getIconSizePx();
-        container.setUpdateIconUi(false);
         options.preDragCondition = container.createPreDragCondition();
         if (options.preDragCondition == null) {
             options.preDragCondition = new DragOptions.PreDragCondition() {

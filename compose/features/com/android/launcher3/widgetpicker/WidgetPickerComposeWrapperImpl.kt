@@ -40,6 +40,7 @@ import com.android.launcher3.widgetpicker.data.repository.WidgetsRepository
 import com.android.launcher3.widgetpicker.listeners.WidgetPickerAddItemListener
 import com.android.launcher3.widgetpicker.listeners.WidgetPickerDragItemListener
 import com.android.launcher3.widgetpicker.logging.LauncherWidgetPickerCuiReporter
+import com.android.launcher3.widgetpicker.shared.model.CloseBehavior
 import com.android.launcher3.widgetpicker.shared.model.HostConstraint
 import com.android.launcher3.widgetpicker.shared.model.WidgetHostInfo
 import com.android.launcher3.widgetpicker.shared.model.isAppWidget
@@ -120,7 +121,9 @@ constructor(
                         constraints = widgetPickerConfig.asHostConstraints(),
                         showDragShadow = !widgetPickerConfig.isForHomeScreen,
                         enableSwipeUpToDismiss = widgetPickerConfig.enableSwipeUpToDismiss,
-                        closeBehavior = widgetPickerConfig.closeBehavior,
+                        closeBehavior =
+                            if (widgetPickerConfig.isDesktopFormFactor) CloseBehavior.CLOSE_BUTTON
+                            else CloseBehavior.DRAG_HANDLE,
                     ),
                 backgroundContext = backgroundContext,
             )

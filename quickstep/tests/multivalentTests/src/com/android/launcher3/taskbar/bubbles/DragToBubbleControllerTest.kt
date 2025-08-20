@@ -44,8 +44,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.clearInvocations
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
@@ -314,8 +316,12 @@ class DragToBubbleControllerTest {
             bubbleBarLeftDropTarget.onDragExit(dragObject)
         }
 
+        // Intent does not implement equals() so we need to capture and compare the intents manually
+        val intentCaptor = argumentCaptor<Intent>()
         verify(bubbleActivityStarter)
-            .showAppBubble(itemIntent, appInfo.user, BubbleBarLocation.LEFT)
+            .showAppBubble(intentCaptor.capture(), eq(appInfo.user),
+            eq(BubbleBarLocation.LEFT))
+        assertThat(intentCaptor.firstValue.filterEquals(itemIntent)).isTrue()
     }
 
     @Test

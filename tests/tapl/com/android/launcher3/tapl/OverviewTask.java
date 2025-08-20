@@ -413,13 +413,16 @@ public final class OverviewTask {
             // Start with a point in the bottom-right, just inside the container bounds. It should
             // not collide with any UI elements.
             final Point tapPoint = new Point(taskViewBounds.right - 1, taskViewBounds.bottom - 1);
-            final long downTime = SystemClock.uptimeMillis();
             mLauncher.expectEvent(TestProtocol.SEQUENCE_MAIN, TASK_START_EVENT_DESKTOP);
-            mLauncher.sendPointer(downTime, downTime, MotionEvent.ACTION_DOWN, tapPoint,
-                    LauncherInstrumentation.GestureScope.DONT_EXPECT_PILFER);
-            mLauncher.sendPointer(downTime, downTime, MotionEvent.ACTION_UP, tapPoint,
-                    LauncherInstrumentation.GestureScope.DONT_EXPECT_PILFER);
-
+            mLauncher.executeAndWaitForLauncherStop(
+                    () -> {
+                        final long downTime = SystemClock.uptimeMillis();
+                        mLauncher.sendPointer(downTime, downTime, MotionEvent.ACTION_DOWN, tapPoint,
+                                LauncherInstrumentation.GestureScope.DONT_EXPECT_PILFER);
+                        mLauncher.sendPointer(downTime, downTime, MotionEvent.ACTION_UP, tapPoint,
+                                LauncherInstrumentation.GestureScope.DONT_EXPECT_PILFER);
+                    },
+                    "tapping on the empty space in the desktop task view");
             return new LaunchedAppState(mLauncher, /* inDesktopMode= */ true);
         }
     }

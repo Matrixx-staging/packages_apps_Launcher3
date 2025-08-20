@@ -17,10 +17,8 @@
 package com.android.launcher3.util
 
 import android.content.Context
-import android.content.pm.ProviderInfo
-import android.os.Bundle
 import com.android.launcher3.LauncherAppState
-import com.android.launcher3.LauncherProvider
+import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
 import com.android.launcher3.model.BgDataModel
 import org.junit.rules.ExternalResource
 
@@ -54,9 +52,7 @@ class LayoutResource(private val ctx: Context) : ExternalResource() {
 
     private fun set(xmlRepresentation: String) {
         callbacks ?: withCallbacks(NO_OP_CALLBACKS)
-        LauncherProvider()
-            .apply { attachInfo(ctx, ProviderInfo()) }
-            .call(LauncherProvider.METHOD_IMPORT_LAYOUT_XML, xmlRepresentation, Bundle.EMPTY)
+        ctx.appComponent.layoutImportExportHelper.importModelFromXml(xmlRepresentation)
     }
 
     companion object {

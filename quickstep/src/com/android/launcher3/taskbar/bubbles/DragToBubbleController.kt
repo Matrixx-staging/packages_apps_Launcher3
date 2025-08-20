@@ -262,7 +262,10 @@ class DragToBubbleController(
                     bubbleActivityStarter.showShortcutBubble(si, location)
                     return true
                 }
-                val itemIntent: Intent = itemInfo.intent ?: return false
+                if (itemInfo.intent == null) {
+                    return false
+                }
+                val itemIntent = Intent(itemInfo.intent)
                 val packageName = itemIntent.component?.packageName ?: return false
                 itemIntent.setPackage(packageName)
                 bubbleActivityStarter.showAppBubble(itemIntent, itemInfo.user, location)

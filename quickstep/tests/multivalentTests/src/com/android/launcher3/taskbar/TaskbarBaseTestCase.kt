@@ -18,6 +18,7 @@ package com.android.launcher3.taskbar
 import com.android.launcher3.taskbar.allapps.TaskbarAllAppsController
 import com.android.launcher3.taskbar.bubbles.BubbleControllers
 import com.android.launcher3.taskbar.growth.NudgeController
+import com.android.launcher3.taskbar.handoff.TaskbarHandoffController
 import com.android.launcher3.taskbar.overlay.TaskbarOverlayController
 import com.android.systemui.shared.rotation.RotationButtonController
 import java.util.Optional
@@ -61,6 +62,7 @@ abstract class TaskbarBaseTestCase {
     @Mock lateinit var taskbarDesktopModeController: TaskbarDesktopModeController
     @Mock lateinit var nudgeController: NudgeController
     @Mock lateinit var nudgeViewController: NudgeViewController
+    @Mock lateinit var taskbarHandoffController: TaskbarHandoffController
 
     lateinit var taskbarControllers: TaskbarControllers
 
@@ -104,7 +106,8 @@ abstract class TaskbarBaseTestCase {
                 optionalBubbleControllers,
                 taskbarDesktopModeController,
                 nudgeController,
-                nudgeViewController
+                nudgeViewController,
+                taskbarHandoffController,
             )
     }
 }

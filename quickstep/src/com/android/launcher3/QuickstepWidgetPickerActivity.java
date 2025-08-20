@@ -60,7 +60,6 @@ import com.android.launcher3.widget.picker.WidgetCategoryFilter;
 import com.android.launcher3.widget.picker.WidgetsFullSheet;
 import com.android.launcher3.widget.picker.model.WidgetPickerDataProvider;
 import com.android.launcher3.widgetpicker.WidgetPickerConfig;
-import com.android.launcher3.widgetpicker.shared.model.CloseBehavior;
 import com.android.quickstep.TouchInteractionService;
 import com.android.quickstep.util.TISBindHelper;
 import com.android.systemui.animation.back.FlingOnBackAnimationCallback;
@@ -236,9 +235,8 @@ public class QuickstepWidgetPickerActivity extends
                 /*categoryExclusionFilter=*/ exclusionFilter,
                 /*filteredUsers=*/ filteredUsers,
                 /*handleSwipeUpGesture=*/ deviceProfile.getDeviceProperties().isGestureMode(),
-                /*closeBehavior=*/ shouldEnableMouseInteractionChanges(
-                        getApplicationContext())
-                ? CloseBehavior.CLOSE_BUTTON : CloseBehavior.DRAG_HANDLE);
+                /*isDesktopFormFactor=*/ shouldEnableMouseInteractionChanges(
+                        getApplicationContext()));
     }
 
     @NonNull

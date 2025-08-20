@@ -20,7 +20,6 @@ import android.content.Context
 import android.view.View
 import com.android.launcher3.BubbleTextView
 import com.android.launcher3.Launcher
-import com.android.launcher3.R
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.popup.PopupContainerWithArrow.Companion.getOpen
 import com.android.launcher3.util.PackageUserKey
@@ -56,12 +55,10 @@ class PopupControllerForAppIcon<T> : PopupController<T> where T : Context, T : A
                 .filter { it != null }
                 .collect(Collectors.toList())
 
-        val container: PopupContainerWithArrow<Launcher> =
-            launcher.layoutInflater.inflate(R.layout.popup_container, launcher.dragLayer, false)
-                as PopupContainerWithArrow<Launcher>
-
+        val container =
+            PopupContainerWithArrow.create<Launcher>(context = launcher, originalView = icon)
         container.configureForLauncher(launcher, item)
-        container.populateAndShowRows(icon, deepShortcutCount, systemShortcuts)
+        container.populateAndShowRows(deepShortcutCount, systemShortcuts)
         launcher.refreshAndBindWidgetsForPackageUser(PackageUserKey.fromItemInfo(item))
         container.requestFocus()
         return container

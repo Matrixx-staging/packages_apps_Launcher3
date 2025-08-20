@@ -512,8 +512,8 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
                 }
             }
             // If we're here check for an intent
-            Intent intent = mItemInfo.getIntent();
-            if (intent != null) {
+            if (mItemInfo.getIntent() != null) {
+                final Intent intent = new Intent(mItemInfo.getIntent());
                 if (intent.getPackage() == null) {
                     intent.setPackage(mItemInfo.getTargetPackage());
                 }

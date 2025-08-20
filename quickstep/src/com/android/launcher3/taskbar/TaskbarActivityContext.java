@@ -146,6 +146,7 @@ import com.android.launcher3.taskbar.bubbles.stashing.TransientBubbleStashContro
 import com.android.launcher3.taskbar.customization.TaskbarFeatureEvaluator;
 import com.android.launcher3.taskbar.customization.TaskbarSpecsEvaluator;
 import com.android.launcher3.taskbar.growth.NudgeController;
+import com.android.launcher3.taskbar.handoff.TaskbarHandoffController;
 import com.android.launcher3.taskbar.navbutton.NearestTouchFrame;
 import com.android.launcher3.taskbar.overlay.TaskbarOverlayContext;
 import com.android.launcher3.taskbar.overlay.TaskbarOverlayController;
@@ -409,7 +410,8 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                 new TaskbarDesktopModeController(this,
                         DesktopVisibilityController.INSTANCE.get(this)),
                 new NudgeController(this),
-                new NudgeViewController(this, nudgeView));
+                new NudgeViewController(this, nudgeView),
+                new TaskbarHandoffController(this));
 
         mLauncherPrefs = LauncherPrefs.get(this);
         onViewCreated();

@@ -275,8 +275,8 @@ class PopupDataSource @Inject constructor() {
         }
 
         // If we're here check for an intent
-        val intent: Intent? = itemInfo.intent
-        if (intent != null) {
+        if (itemInfo.intent != null) {
+            val intent = Intent(itemInfo.intent)
             if (intent.getPackage() == null) {
                 intent.setPackage(itemInfo.getTargetPackage())
             }

@@ -44,12 +44,12 @@ import com.android.launcher3.ExtendedEditText
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.R
+import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
 import com.android.launcher3.proxy.ProxyActivityStarter
 import com.android.launcher3.secondarydisplay.SecondaryDisplayLauncher
 import com.android.launcher3.uioverrides.plugins.PluginManagerWrapperImpl
 import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.Executors.ORDERED_BG_EXECUTOR
-import com.android.launcher3.util.LayoutImportExportHelper
 import com.android.launcher3.util.OnboardingPrefs.ALL_APPS_VISITED_COUNT
 import com.android.launcher3.util.OnboardingPrefs.HOME_BOUNCE_COUNT
 import com.android.launcher3.util.OnboardingPrefs.HOME_BOUNCE_SEEN
@@ -404,7 +404,7 @@ class DevOptionsUiHelper(c: Context, attr: AttributeSet?) : PreferenceGroup(c, a
             title = "Export"
             intent =
                 createUriPickerIntent(ACTION_CREATE_DOCUMENT, MAIN_EXECUTOR) { uri ->
-                    LayoutImportExportHelper.exportModelDbAsXml(context) { layoutXml ->
+                    context.appComponent.layoutImportExportHelper.exportModelDbAsXml { layoutXml ->
                         context.contentResolver.openOutputStream(uri).use { os ->
                             val bytes: ByteArray =
                                 layoutXml.toByteArray(StandardCharsets.UTF_8) // Encode to UTF-8
@@ -427,7 +427,7 @@ class DevOptionsUiHelper(c: Context, attr: AttributeSet?) : PreferenceGroup(c, a
                         resolver.openInputStream(uri).use { stream ->
                             stream?.readAllBytes() ?: return@createUriPickerIntent
                         }
-                    LayoutImportExportHelper.importModelFromXml(context, data)
+                    context.appComponent.layoutImportExportHelper.importModelFromXml(data)
                 }
             category.addPreference(this)
         }

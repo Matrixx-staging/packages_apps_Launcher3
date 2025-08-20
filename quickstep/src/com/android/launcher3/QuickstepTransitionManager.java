@@ -16,6 +16,7 @@
 
 package com.android.launcher3;
 
+import static android.app.ActivityTaskManager.INVALID_TASK_ID;
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_HOME;
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_STANDARD;
 import static android.app.WindowConfiguration.WINDOWING_MODE_MULTI_WINDOW;
@@ -429,7 +430,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         TaskViewUtils.composeRecentsLaunchAnimator(anim, v, appTargets, wallpaperTargets,
                 nonAppTargets, launcherClosing, mLauncher.getStateManager(),
                 mLauncher.getOverviewPanel(), mLauncher.getDepthController(),
-                /* transitionInfo= */ null);
+                /* transitionInfo= */ null, /* appearedTaskId= */ INVALID_TASK_ID);
     }
 
     private boolean areAllTargetsTranslucent(@NonNull RemoteAnimationTarget[] targets) {

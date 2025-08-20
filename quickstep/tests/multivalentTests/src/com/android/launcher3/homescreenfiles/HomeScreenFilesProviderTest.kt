@@ -83,7 +83,7 @@ class HomeScreenFilesProviderTest {
                 return@thenAnswer answer
             }
 
-        val result = provider.query().get()
+        val result = provider.query().value
         assertThat(result.size).isEqualTo(2)
 
         val uri1 = Uri.parse("content://media/external/file/1")

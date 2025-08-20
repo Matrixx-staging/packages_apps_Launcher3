@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-package com.android.launcher3.homescreenfiles
+package com.android.quickstep.util
 
-import android.net.Uri
+import com.android.quickstep.RemoteTargetGluer.RemoteTargetHandle
 
-/** No-op implementation of [HomeScreenFilesProvider]. */
-class HomeScreenFilesNoOpProvider : HomeScreenFilesProvider {
-    override fun query(): Lazy<Map<Uri, HomeScreenFile>> {
-        return lazyOf(emptyMap())
-    }
-}
+fun Array<RemoteTargetHandle>.getRemoteTargetHandle(taskId: Int): RemoteTargetHandle? =
+    firstOrNull() { it.transformParams.targetSet.firstAppTargetTaskId == taskId }

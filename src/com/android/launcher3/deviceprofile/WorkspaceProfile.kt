@@ -78,6 +78,8 @@ data class WorkspaceProfile(
     val cellLayoutHeightSpecification: Int,
     val cellLayoutWidthSpecification: Int,
     val cellSize: Point,
+    val scale: Float,
+    val extraSpace: Int = 0,
 ) {
 
     fun getTotalWorkspacePadding(): Point =
@@ -526,6 +528,8 @@ data class WorkspaceProfile(
                         cellLayoutPaddingPx.right),
                 panelCount = panelCount,
                 cellSize = cellSize,
+                scale = 1f,
+                extraSpace = 0,
             )
         }
 

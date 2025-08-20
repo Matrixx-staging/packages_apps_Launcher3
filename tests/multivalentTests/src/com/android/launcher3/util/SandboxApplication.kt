@@ -67,6 +67,7 @@ class SandboxApplication private constructor(private val base: SandboxApplicatio
     SandboxContext(base), TestRule {
 
     private val mockResolver = MockContentResolver()
+    private val manuallyNamedServices = ArrayMap<Class<*>, String>()
     private val spiedServices = ArrayMap<String, Any>()
     private val packageManager = spy(baseContext.packageManager)
     private val dbDir = File(cacheDir, UUID.randomUUID().toString())
@@ -142,6 +143,10 @@ class SandboxApplication private constructor(private val base: SandboxApplicatio
 
     override fun getPackageManager(): PackageManager = packageManager
 
+    override fun getSystemServiceName(tClass: Class<*>): String? {
+        return manuallyNamedServices[tClass] ?: super.getSystemServiceName(tClass)
+    }
+
     override fun getSystemService(name: String): Any? =
         spiedServices[name] ?: super.getSystemService(name)
 
@@ -153,6 +158,11 @@ class SandboxApplication private constructor(private val base: SandboxApplicatio
     override fun getSharedPreferences(file: File?, mode: Int): SharedPreferences? {
         checkUnlockedIfCredentialProtectedStorage()
         return super.getSharedPreferences(file, mode)
+    }
+
+    fun <T> mockService(name: String, mockedServiceType: Class<T>, mockedServiceInstance: T) {
+        manuallyNamedServices[mockedServiceType] = name
+        spiedServices[name] = mockedServiceInstance
     }
 
     @JvmOverloads
