@@ -25,6 +25,7 @@ import static com.android.launcher3.testing.shared.TestProtocol.NORMAL_STATE_ORD
 
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.MotionEvent;
 
@@ -256,6 +257,7 @@ public final class OverviewTask {
             verifyActiveContainer();
             final boolean isDesktopTask = mType == TaskViewType.DESKTOP;
             final boolean hasDesktopTasks = hasDesktopTasks();
+            final int deskId = isDesktopTask ? getDeskId() : -1;
 
             mLauncher.executeAndWaitForLauncherStop(
                     () -> mLauncher.clickLauncherObject(mTask),
@@ -295,6 +297,9 @@ public final class OverviewTask {
                                         LauncherInstrumentation.WAIT_TIME_MS,
                                         LauncherInstrumentation.DEFAULT_POLL_INTERVAL));
                         }
+                        mLauncher.assertEquals(
+                                "Active desk ID doesn't match opened task's desk ID",
+                                deskId, mLauncher.getActiveDeskId());
                     }
                 }
                 return new LaunchedAppState(mLauncher, isDesktopTask);
@@ -505,6 +510,18 @@ public final class OverviewTask {
 
     public boolean isDesktop() {
         return mType == TaskViewType.DESKTOP;
+    }
+
+    /**
+     * Returns the desk id of the desktop task.
+     */
+    private int getDeskId() {
+        mLauncher.assertTrue("Current task is not a desktop task.", isDesktop());
+        Bundle extras = new Bundle();
+        extras.putParcelable(TestProtocol.TEST_INFO_RESPONSE_FIELD, mTask.getVisibleBounds());
+        return mLauncher.getTestInfo(
+                TestProtocol.REQUEST_GET_DESK_ID, null, extras).getInt(
+                TestProtocol.TEST_INFO_RESPONSE_FIELD);
     }
 
     /**

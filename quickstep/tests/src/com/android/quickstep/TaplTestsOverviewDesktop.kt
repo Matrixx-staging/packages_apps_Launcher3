@@ -187,6 +187,44 @@ class TaplTestsOverviewDesktop : AbstractQuickStepTest() {
 
     @Test
     @PortraitLandscape
+    @EnableFlags(FLAG_ENABLE_MULTIPLE_DESKTOPS_FRONTEND, FLAG_ENABLE_MULTIPLE_DESKTOPS_BACKEND)
+    fun testSwitchMultiDesktopsViaOverview() {
+        val overview =
+            mLauncher.workspace
+                .switchToOverview()
+                // Create an empty desk
+                .createDeskViaClickAddDesktopButton()
+                // Create one non-empty desk
+                .createDeskViaClickAddDesktopButton()
+                .apply { flingBackward() }
+                .currentTask
+                .open()
+                .taskbar
+                .openAllApps()
+                .getAppIcon(CALCULATOR_APP_NAME)
+                .launch(CALCULATOR_APP_PACKAGE)
+                .switchToOverview()
+                // Create one more empty desk
+                .createDeskViaClickAddDesktopButton()
+
+        // From each desk, launch it and switch to Overview and then tap a different desktop tile
+        // to switch between the desks, and verify the correct desk is launched.
+        val deskCount = overview.desktopTasksCount
+        // Fling to the right-most desk, and enumerate desks from it.
+        var currentOverview = overview.apply { flingBackward() }
+        for (i in 0 until deskCount) {
+            val task = currentOverview.currentTask
+            assertTrue("Current task should be a desktop", task.isDesktop)
+            val launchedDesk = task.open()
+            // Go back to overview and scroll the distance of one task for the next iteration
+            if (i < deskCount - 1) {
+                currentOverview = launchedDesk.switchToOverview().scrollForwardByOneTask()
+            }
+        }
+    }
+
+    @Test
+    @PortraitLandscape
     fun dismissFocusedTasks_thenDesktopIsCentered() {
         // Create DesktopTaskView
         mLauncher.goHome().switchToOverview().moveTaskToDesktop(TEST_ACTIVITY_2)
