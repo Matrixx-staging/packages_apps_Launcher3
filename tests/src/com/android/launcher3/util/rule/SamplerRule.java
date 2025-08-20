@@ -43,7 +43,7 @@ import java.util.Map;
 public class SamplerRule implements TestRule {
     private static final int TOO_LONG_TEST_MS = 180000;
     private static final int SAMPLE_INTERVAL_MS = 3000;
-    private static final int MAX_THREADS_WITH_SAME_NAME = 5;
+    private static final int MAX_THREADS_WITH_SAME_NAME = 3;
     private static boolean sTooManyThreadsAssertionThrown = false;
 
     private static Thread startThread(Description description) {
