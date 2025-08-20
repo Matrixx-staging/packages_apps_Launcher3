@@ -29,6 +29,7 @@ import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_FOLDER
 import com.android.launcher3.LauncherSettings.Favorites.TABLE_NAME
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
+import com.android.launcher3.icons.BitmapInfo
 import com.android.launcher3.icons.IconCache
 import com.android.launcher3.icons.cache.CacheLookupFlag.Companion.DEFAULT_LOOKUP_FLAG
 import com.android.launcher3.icons.cache.CachingLogic
@@ -138,6 +139,7 @@ class LoaderTaskTest {
         `when`(launcherModel.beginLoader(any())).thenReturn(transaction)
 
         `when`(launcherModel.modelDbController).thenReturn(modelDbController)
+        doReturn(BitmapInfo.LOW_RES_INFO).whenever(iconCache).getDefaultIcon(any())
         doAnswer {}.whenever(modelDbController).loadDefaultFavoritesIfNecessary()
         doAnswer { i ->
                 inMemoryDb.query(
