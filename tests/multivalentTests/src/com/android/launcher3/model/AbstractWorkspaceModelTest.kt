@@ -44,7 +44,6 @@ abstract class AbstractWorkspaceModelTest {
     protected lateinit var mIdp: InvariantDeviceProfile
     protected lateinit var mAppState: LauncherAppState
     protected lateinit var mExistingScreens: IntArray
-    protected lateinit var mNewScreens: IntArray
     protected lateinit var mAddedWorkspaceItems: ArrayList<ItemInfo>
     protected lateinit var mScreenOccupancy: IntSparseArrayMap<GridOccupancy>
 
@@ -59,7 +58,6 @@ abstract class AbstractWorkspaceModelTest {
         mAppState = LauncherAppState.getInstance(mTargetContext)
         mExistingScreens = IntArray()
         mScreenOccupancy = IntSparseArrayMap()
-        mNewScreens = IntArray()
         mAddedWorkspaceItems = ArrayList()
     }
 
@@ -99,13 +97,5 @@ abstract class AbstractWorkspaceModelTest {
                 }
             }
         }
-    }
-}
-
-data class NewItemSpace(val screenId: Int, val cellX: Int, val cellY: Int) {
-    fun toIntArray() = intArrayOf(screenId, cellX, cellY)
-
-    companion object {
-        fun fromIntArray(array: kotlin.IntArray) = NewItemSpace(array[0], array[1], array[2])
     }
 }
