@@ -55,7 +55,7 @@ object QuickstepComposeFacade : BaseComposeFacade, QuickstepComposeFeatures {
         return (view as ComposeView).apply {
             setContent {
                 val timerUiState by viewModel.uiState
-                PlatformTheme { AppTimerToast(timerUiState) }
+                PlatformTheme { AppTimerToast(timerUiState, viewModel) }
             }
         }
     }

@@ -24,9 +24,20 @@ import android.provider.Settings
 import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import com.android.launcher3.R
+import java.time.Duration
 
 interface ViewModel<T> {
     val uiState: State<T>
+
+    fun getFormattedDuration(duration: Duration, context: Context): String
+
+    fun startActivityWithScaleUpAnimation(
+        activityOptions: ActivityOptions,
+        context: Context,
+        taskPackage: String,
+        taskDescription: String?,
+    )
 }
 
 class TaskAppTimerViewModel : ViewModel<TaskAppTimerUiState> {
@@ -34,33 +45,24 @@ class TaskAppTimerViewModel : ViewModel<TaskAppTimerUiState> {
 
     override val uiState = _uiState
 
-    private fun startActivityWithScaleUpAnimation(
-        packageName: String,
-        description: String?,
-        options: ActivityOptions,
+    override fun getFormattedDuration(duration: Duration, context: Context) =
+        DurationFormatter.format(context, duration, R.string.shorter_duration_less_than_one_minute)
+
+    override fun startActivityWithScaleUpAnimation(
+        activityOptions: ActivityOptions,
         context: Context,
+        taskPackage: String,
+        taskDescription: String?,
     ) {
         try {
-            context.startActivity(appUsageSettingsIntent(packageName), options.toBundle())
+            context.startActivity(appUsageSettingsIntent(taskPackage), activityOptions.toBundle())
         } catch (e: ActivityNotFoundException) {
-            Log.e(TAG, "Failed to open $description ", e)
+            Log.e(TAG, "Failed to open $taskDescription ", e)
         }
     }
 
     fun setState(uiState: TaskAppTimerUiState) {
-        _uiState.value =
-            if (uiState is TaskAppTimerUiState.Timer)
-                uiState.copy { activityOptions, context ->
-                    startActivityWithScaleUpAnimation(
-                        uiState.taskPackageName,
-                        uiState.taskDescription,
-                        activityOptions,
-                        context,
-                    )
-                }
-            else {
-                uiState
-            }
+        _uiState.value = uiState
     }
 
     private fun appUsageSettingsIntent(packageName: String) =
