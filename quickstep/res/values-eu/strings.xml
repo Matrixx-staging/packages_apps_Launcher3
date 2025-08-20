@@ -47,7 +47,6 @@
     <string name="hotseat_tip_gaps_filled" msgid="3035673010274223538">"Aplikazioen iradokizunak eremu huts batean gehitu dira"</string>
     <string name="hotsaet_tip_prediction_enabled" msgid="2233554377501347650">"Gaituta daude aplikazioen iradokizunak"</string>
     <string name="hotsaet_tip_prediction_disabled" msgid="1506426298884658491">"Desgaituta daude aplikazioen iradokizunak"</string>
-    <string name="hotseat_prediction_content_description" msgid="4582028296938078419">"Iragarritako aplikazioa: <xliff:g id="TITLE">%1$s</xliff:g>"</string>
     <string name="gesture_tutorial_title" msgid="2750751261768388354">"Keinu bidezko nabigazioaren tutoriala"</string>
     <string name="gesture_tutorial_rotation_prompt_title" msgid="7537946781362766964">"Biratu gailua"</string>
     <string name="gesture_tutorial_rotation_prompt" msgid="1664493449851960691">"Keinu bidezko nabigazioaren tutoriala osatzeko, biratu gailua"</string>
@@ -150,10 +149,8 @@
     <string name="change_navigation_mode" msgid="9088393078736808968">"Aldatu nabigazio modua"</string>
     <string name="taskbar_divider_a11y_title" msgid="6608690309720242080">"Zereginen barraren zatitzailea"</string>
     <string name="taskbar_overflow_a11y_title" msgid="8114045167370723746">"Azkenaldiko beste aplikazio batzuk"</string>
-    <!-- no translation found for app_added_to_taskbar (1160433791917609063) -->
-    <skip />
-    <!-- no translation found for app_removed_from_taskbar (7887298201562912487) -->
-    <skip />
+    <string name="app_added_to_taskbar" msgid="1160433791917609063">"Gehitu da aplikazioa zereginen barran"</string>
+    <string name="app_removed_from_taskbar" msgid="7887298201562912487">"Kendu da aplikazioa zereginen barratik"</string>
     <string name="move_drop_target_top_or_left" msgid="2988702185049595807">"Eraman gora, ezkerretara"</string>
     <string name="move_drop_target_bottom_or_right" msgid="5431393418797620162">"Eraman behera, eskuinetara"</string>
     <string name="open_app_as_a_bubble" msgid="6642626287247807473">"Ireki aplikazioa burbuila gisa"</string>
