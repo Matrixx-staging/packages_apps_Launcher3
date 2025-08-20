@@ -17,6 +17,7 @@
 package com.android.quickstep
 
 import android.platform.test.annotations.RequiresFlagsEnabled
+import android.platform.test.rule.ScreenRecordRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import com.android.launcher3.tapl.BubbleBar
@@ -29,6 +30,8 @@ import org.junit.Assume
 import org.junit.Test
 import org.junit.runner.RunWith
 
+// TODO(b/418015387) remove once issues like b/418015387 disappear completely
+@ScreenRecordRule.ScreenRecord
 @LargeTest
 @RunWith(AndroidJUnit4::class)
 @RequiresFlagsEnabled(Flags.FLAG_ENABLE_BUBBLE_ANYTHING)
@@ -115,6 +118,7 @@ class TaplTestTaskbarIconDrag : AbstractQuickStepTest() {
 
     private fun dismissExpandedBubbleBar() {
         val bubbleBar = this.bubbleBar!!
+        bubbleBar.verifyExpanded()
         // close expanded bubble bar
         mLauncher.pressBack()
         bubbleBar.verifyCollapsed()
