@@ -21,7 +21,6 @@ import android.view.View
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.android.compose.theme.PlatformTheme
 import com.android.launcher3.compose.ComposeFacade
 import com.android.launcher3.compose.core.BaseComposeFacade
@@ -55,7 +54,7 @@ object QuickstepComposeFacade : BaseComposeFacade, QuickstepComposeFeatures {
     ): View {
         return (view as ComposeView).apply {
             setContent {
-                val timerUiState by viewModel.uiState.collectAsStateWithLifecycle()
+                val timerUiState by viewModel.uiState
                 PlatformTheme { AppTimerToast(timerUiState) }
             }
         }

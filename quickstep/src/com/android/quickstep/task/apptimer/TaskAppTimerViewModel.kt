@@ -22,19 +22,17 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Settings
 import android.util.Log
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 
 interface ViewModel<T> {
-    val uiState: StateFlow<T>
+    val uiState: State<T>
 }
 
 class TaskAppTimerViewModel : ViewModel<TaskAppTimerUiState> {
-    private val _appTimerUiState =
-        MutableStateFlow<TaskAppTimerUiState>(TaskAppTimerUiState.Uninitialized)
+    private var _uiState = mutableStateOf<TaskAppTimerUiState>(TaskAppTimerUiState.Uninitialized)
 
-    override val uiState = _appTimerUiState.asStateFlow()
+    override val uiState = _uiState
 
     private fun startActivityWithScaleUpAnimation(
         packageName: String,
@@ -50,7 +48,7 @@ class TaskAppTimerViewModel : ViewModel<TaskAppTimerUiState> {
     }
 
     fun setState(uiState: TaskAppTimerUiState) {
-        _appTimerUiState.value =
+        _uiState.value =
             if (uiState is TaskAppTimerUiState.Timer)
                 uiState.copy { activityOptions, context ->
                     startActivityWithScaleUpAnimation(
