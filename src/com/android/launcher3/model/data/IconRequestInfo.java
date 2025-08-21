@@ -19,6 +19,7 @@ import static android.graphics.BitmapFactory.decodeByteArray;
 
 import android.content.Context;
 import android.content.pm.LauncherActivityInfo;
+import android.graphics.Bitmap;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -83,7 +84,13 @@ public class IconRequestInfo<T extends ItemInfoWithIcon> {
                         + info.getTargetComponent());
                 return false;
             }
-            info.bitmap = li.createIconBitmap(decodeByteArray(iconBlob, 0, iconBlob.length));
+            Bitmap parsedIcon = decodeByteArray(iconBlob, 0, iconBlob.length);
+            if (parsedIcon == null) {
+                Log.d(TAG, "loadIconFromDb: icon parsing failed, returning. Component="
+                        + info.getTargetComponent());
+                return false;
+            }
+            info.bitmap = li.createIconBitmap(parsedIcon);
             return true;
         } catch (Exception e) {
             Log.e(TAG, "Failed to decode byte array for info " + itemInfo, e);
