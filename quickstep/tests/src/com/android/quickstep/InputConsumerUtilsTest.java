@@ -78,6 +78,7 @@ import com.android.quickstep.util.NavBarPosition;
 import com.android.quickstep.views.RecentsViewContainer;
 import com.android.systemui.shared.system.InputChannelCompat;
 import com.android.systemui.shared.system.InputMonitorCompat;
+import com.android.wm.shell.shared.desktopmode.DesktopState;
 
 import dagger.BindsInstance;
 import dagger.Component;
@@ -125,6 +126,7 @@ public class InputConsumerUtilsTest {
     @NonNull @Mock private TopTaskTracker.CachedTaskInfo mRunningTask;
     @NonNull @Mock private BaseContainerInterface<?, ?> mContainerInterface;
     @NonNull @Mock private BaseDragLayer<?> mBaseDragLayer;
+    @NonNull @Mock private DesktopState mDesktopState;
 
     @Rule
     public final MockitoRule mMockitoRule = MockitoJUnit.rule();
@@ -512,7 +514,8 @@ public class InputConsumerUtilsTest {
                 mSwipeUpProxyProvider,
                 mOverviewCommandHelper,
                 event,
-                mRotationTouchHelper);
+                mRotationTouchHelper,
+                mDesktopState);
 
         event.recycle();
 
@@ -536,7 +539,8 @@ public class InputConsumerUtilsTest {
                 mInputEventReceiver,
                 event,
                 ActiveGestureLog.CompoundString.NO_OP,
-                mRotationTouchHelper);
+                mRotationTouchHelper,
+                mDesktopState);
 
         event.recycle();
 

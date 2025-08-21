@@ -125,6 +125,7 @@ constructor(
     private val systemUiProxy: SystemUiProxy,
     private val recentsModel: RecentsModel,
     private val screenOnTracker: ScreenOnTracker,
+    private val desktopState: DesktopState,
 ) :
     RecentsWindowContext(windowContext, wallpaperColorHints.hints),
     RecentsViewContainer,
@@ -321,7 +322,7 @@ constructor(
         if (
             DesktopExperienceFlags.ENABLE_NON_DEFAULT_DISPLAY_SPLIT_BUGFIX.isTrue &&
                 displayId != DEFAULT_DISPLAY &&
-                DesktopState.fromContext(this).canEnterDesktopModeOrShowAppHandle
+                desktopState.canEnterDesktopModeOrShowAppHandle
         ) {
             splitSelectStateController.initSplitFromDesktopController(this)
         }

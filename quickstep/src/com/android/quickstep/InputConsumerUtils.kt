@@ -74,6 +74,7 @@ object InputConsumerUtils {
         overviewCommandHelper: OverviewCommandHelper,
         event: MotionEvent,
         rotationTouchHelper: RotationTouchHelper,
+        desktopState: DesktopState,
     ): InputConsumer where T : RecentsViewContainer, T : StatefulContainer<S> {
         val tac = taskbarManager.getCurrentActivityContext()
         val bubbleControllers = tac?.bubbleControllers
@@ -175,6 +176,7 @@ object InputConsumerUtils {
                     event,
                     reasonString,
                     rotationTouchHelper,
+                    desktopState,
                 )
         } else {
             reasonString =
@@ -503,6 +505,7 @@ object InputConsumerUtils {
         event: MotionEvent,
         reasonString: CompoundString,
         rotationTouchHelper: RotationTouchHelper,
+        desktopState: DesktopState,
     ): InputConsumer where T : RecentsViewContainer, T : StatefulContainer<S> {
         if (deviceState.isKeyguardShowingOccluded) {
             // This handles apps showing over the lockscreen (e.g. camera)
@@ -555,7 +558,7 @@ object InputConsumerUtils {
         val launcherResumedThroughShellTransition =
             containerInterface.isResumed() &&
                 !previousGestureState.isRecentsAnimationRunning &&
-                !DesktopState.fromContext(context).shouldShowHomeBehindDesktop
+                !desktopState.shouldShowHomeBehindDesktop
 
         // If a task fragment within Launcher is resumed
         val launcherChildActivityResumed =
