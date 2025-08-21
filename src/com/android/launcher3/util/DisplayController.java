@@ -553,7 +553,9 @@ public class DisplayController {
          * Returns {@code true} if the bounds represent a tablet.
          */
         public boolean isTablet(WindowBounds bounds) {
-            return smallestSizeDp(bounds) >= MIN_TABLET_WIDTH;
+            return smallestSizeDp(bounds) >= MIN_TABLET_WIDTH
+                    // External displays should always be considered tablet.
+                    || context.getDisplay().getDisplayId() != DEFAULT_DISPLAY;
         }
 
         /** Getter for {@link #navigationMode} to allow mocking. */
