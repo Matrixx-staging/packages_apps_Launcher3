@@ -18,8 +18,8 @@ package com.android.launcher3.taskbar.bubbles
 
 import android.content.Context
 import android.graphics.Color
-import android.platform.test.annotations.DisableFlags
-import android.platform.test.annotations.EnableFlags
+import android.platform.test.annotations.RequiresFlagsDisabled
+import android.platform.test.annotations.RequiresFlagsEnabled
 import android.platform.test.rule.DisableAnimationsRule
 import android.platform.test.rule.ScreenRecordRule
 import android.view.View
@@ -70,7 +70,7 @@ class BubbleBarViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
     @get:Rule val disableAnimationsRule = DisableAnimationsRule()
 
     @Test
-    @DisableFlags("com.android.launcher3.avoid_display_cutout_bubble_bar")
+    @RequiresFlagsDisabled("com.android.launcher3.avoid_display_cutout_bubble_bar")
     fun bubbleBarView_collapsed_oneBubble() {
         screenshotRule.screenshotTest("bubbleBarView_collapsed_oneBubble") { activity ->
             activity.actionBar?.hide()
@@ -85,7 +85,7 @@ class BubbleBarViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
     }
 
     @Test
-    @EnableFlags("com.android.launcher3.avoid_display_cutout_bubble_bar")
+    @RequiresFlagsEnabled("com.android.launcher3.avoid_display_cutout_bubble_bar")
     fun bubbleBarView_collapsed_oneBubble_flagOn() {
         screenshotRule.screenshotTest("bubbleBarView_collapsed_oneBubble_flagOn") { activity ->
             activity.actionBar?.hide()
@@ -100,7 +100,7 @@ class BubbleBarViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
     }
 
     @Test
-    @DisableFlags("com.android.launcher3.avoid_display_cutout_bubble_bar")
+    @RequiresFlagsDisabled("com.android.launcher3.avoid_display_cutout_bubble_bar")
     fun bubbleBarView_collapsed_twoBubbles() {
         screenshotRule.screenshotTest("bubbleBarView_collapsed_twoBubbles") { activity ->
             activity.actionBar?.hide()
@@ -116,7 +116,7 @@ class BubbleBarViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
     }
 
     @Test
-    @EnableFlags("com.android.launcher3.avoid_display_cutout_bubble_bar")
+    @RequiresFlagsEnabled("com.android.launcher3.avoid_display_cutout_bubble_bar")
     fun bubbleBarView_collapsed_twoBubbles_flagOn() {
         screenshotRule.screenshotTest("bubbleBarView_collapsed_twoBubbles_flagOn") { activity ->
             activity.actionBar?.hide()
@@ -132,7 +132,7 @@ class BubbleBarViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
     }
 
     @Test
-    @DisableFlags("com.android.launcher3.avoid_display_cutout_bubble_bar")
+    @RequiresFlagsDisabled("com.android.launcher3.avoid_display_cutout_bubble_bar")
     fun bubbleBarView_expanded_threeBubbles() {
         // if we're still expanding, wait with taking a screenshot
         val shouldWait: (ComponentActivity, View) -> Boolean = { _, _ -> bubbleBarView.isExpanding }
@@ -157,7 +157,7 @@ class BubbleBarViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
     }
 
     @Test
-    @EnableFlags("com.android.launcher3.avoid_display_cutout_bubble_bar")
+    @RequiresFlagsEnabled("com.android.launcher3.avoid_display_cutout_bubble_bar")
     fun bubbleBarView_expanded_threeBubbles_flagOn() {
         // if we're still expanding, wait with taking a screenshot
         val shouldWait: (ComponentActivity, View) -> Boolean = { _, _ -> bubbleBarView.isExpanding }
