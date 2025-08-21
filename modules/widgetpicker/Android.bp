@@ -99,6 +99,7 @@ android_library {
         "src/com/android/launcher3/widgetpicker/domain/usecase/FilterWidgetsForHostUseCase.kt",
         "src/com/android/launcher3/widgetpicker/domain/interactor/WidgetsInteractor.kt",
         "src/com/android/launcher3/widgetpicker/domain/interactor/WidgetAppIconsInteractor.kt",
+        "src/com/android/launcher3/widgetpicker/domain/model/SearchResult.kt",
     ],
     static_libs: [
         "widget_picker_shared_data_types",
