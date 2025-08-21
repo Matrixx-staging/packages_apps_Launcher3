@@ -1866,6 +1866,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         return new RemoteTransition(
                 new DesktopAppLaunchTransition(
                         this,
+                        DisplayController.INSTANCE.get(this),
                         appLaunchType,
                         cujType,
                         getMainExecutor()

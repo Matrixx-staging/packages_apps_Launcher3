@@ -43,6 +43,7 @@ import com.android.launcher3.anim.AnimatorListeners;
 import com.android.launcher3.desktop.DesktopAppLaunchTransition;
 import com.android.launcher3.taskbar.overlay.TaskbarOverlayContext;
 import com.android.launcher3.taskbar.overlay.TaskbarOverlayDragLayer;
+import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.views.BaseDragLayer;
 import com.android.quickstep.FocusState;
 import com.android.quickstep.SystemUiProxy;
@@ -341,6 +342,7 @@ public class KeyboardQuickSwitchViewController {
         return new RemoteTransition(
                 new DesktopAppLaunchTransition(
                         mControllers.taskbarActivityContext,
+                        DisplayController.INSTANCE.get(mControllers.taskbarActivityContext),
                         UNMINIMIZE,
                         Cuj.CUJ_DESKTOP_MODE_KEYBOARD_QUICK_SWITCH_APP_LAUNCH,
                         MAIN_EXECUTOR
