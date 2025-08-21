@@ -47,7 +47,6 @@
     <string name="hotseat_tip_gaps_filled" msgid="3035673010274223538">"रिकाम्या जागेवर जोडलेल्या अ‍ॅप सूचना"</string>
     <string name="hotsaet_tip_prediction_enabled" msgid="2233554377501347650">"अ‍ॅप सूचना सुरू केल्या आहेत"</string>
     <string name="hotsaet_tip_prediction_disabled" msgid="1506426298884658491">"अ‍ॅप सूचना बंद केल्या आहेत"</string>
-    <string name="hotseat_prediction_content_description" msgid="4582028296938078419">"पूर्वानुमान केलेले अ‍ॅप: <xliff:g id="TITLE">%1$s</xliff:g>"</string>
     <string name="gesture_tutorial_title" msgid="2750751261768388354">"जेश्चर नेव्हिगेशन ट्यूटोरियल"</string>
     <string name="gesture_tutorial_rotation_prompt_title" msgid="7537946781362766964">"तुमचे डिव्हाइस फिरवा"</string>
     <string name="gesture_tutorial_rotation_prompt" msgid="1664493449851960691">"कृपया जेश्चर नेव्हिगेशन ट्यूटोरियल पूर्ण करण्यासाठी तुमचे डिव्हाइस फिरवा"</string>
@@ -150,10 +149,8 @@
     <string name="change_navigation_mode" msgid="9088393078736808968">"नेव्हिगेशन मोड बदला"</string>
     <string name="taskbar_divider_a11y_title" msgid="6608690309720242080">"टास्कबार विभाजक"</string>
     <string name="taskbar_overflow_a11y_title" msgid="8114045167370723746">"अलीकडील इतर अ‍ॅप्स"</string>
-    <!-- no translation found for app_added_to_taskbar (1160433791917609063) -->
-    <skip />
-    <!-- no translation found for app_removed_from_taskbar (7887298201562912487) -->
-    <skip />
+    <string name="app_added_to_taskbar" msgid="1160433791917609063">"टास्कबार मध्ये अ‍ॅप जोडले"</string>
+    <string name="app_removed_from_taskbar" msgid="7887298201562912487">"टास्कबार मधून अ‍ॅप काढून टाकले"</string>
     <string name="move_drop_target_top_or_left" msgid="2988702185049595807">"सर्वात वरती/डावीकडे हलवा"</string>
     <string name="move_drop_target_bottom_or_right" msgid="5431393418797620162">"तळाशी/उजवीकडे हलवा"</string>
     <string name="open_app_as_a_bubble" msgid="6642626287247807473">"बबल म्हणून अ‍ॅप उघडा"</string>

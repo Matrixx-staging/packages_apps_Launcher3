@@ -47,7 +47,6 @@
     <string name="hotseat_tip_gaps_filled" msgid="3035673010274223538">"యాప్ సూచ‌న‌లు ఖాళీ స్పేస్‌కు జోడించబడ్డాయి"</string>
     <string name="hotsaet_tip_prediction_enabled" msgid="2233554377501347650">"యాప్ సలహాలు ఎనేబుల్ చేయబడ్డాయి"</string>
     <string name="hotsaet_tip_prediction_disabled" msgid="1506426298884658491">"యాప్ సూచ‌న‌లు డిజేబుల్‌ చేయబడ్డాయి"</string>
-    <string name="hotseat_prediction_content_description" msgid="4582028296938078419">"సూచించబడిన యాప్: <xliff:g id="TITLE">%1$s</xliff:g>"</string>
     <string name="gesture_tutorial_title" msgid="2750751261768388354">"సంజ్ఞ నావిగేషన్ ట్యుటోరియల్"</string>
     <string name="gesture_tutorial_rotation_prompt_title" msgid="7537946781362766964">"మీ పరికరాన్ని రొటేట్ చేయండి"</string>
     <string name="gesture_tutorial_rotation_prompt" msgid="1664493449851960691">"సంజ్ఞ నావిగేషన్ ట్యుటోరియల్‌ను పూర్తి చేయడానికి దయచేసి మీ పరికరాన్ని రొటేట్ చేయండి"</string>
@@ -150,10 +149,8 @@
     <string name="change_navigation_mode" msgid="9088393078736808968">"నావిగేషన్ మోడ్‌ను మార్చండి"</string>
     <string name="taskbar_divider_a11y_title" msgid="6608690309720242080">"టాస్క్‌బార్ డివైడర్"</string>
     <string name="taskbar_overflow_a11y_title" msgid="8114045167370723746">"ఇతర ఇటీవలి యాప్‌లు"</string>
-    <!-- no translation found for app_added_to_taskbar (1160433791917609063) -->
-    <skip />
-    <!-- no translation found for app_removed_from_taskbar (7887298201562912487) -->
-    <skip />
+    <string name="app_added_to_taskbar" msgid="1160433791917609063">"టాస్క్‌బార్‌కు యాప్ జోడించబడింది"</string>
+    <string name="app_removed_from_taskbar" msgid="7887298201562912487">"టాస్క్‌బార్ నుండి యాప్ తీసివేయబడింది"</string>
     <string name="move_drop_target_top_or_left" msgid="2988702185049595807">"ఎగువ/ఎడమ వైపునకు తరలించండి"</string>
     <string name="move_drop_target_bottom_or_right" msgid="5431393418797620162">"దిగువ/కుడి వైపునకు తరలించండి"</string>
     <string name="open_app_as_a_bubble" msgid="6642626287247807473">"యాప్‌ను బబుల్‌లాగా తెరవండి"</string>
