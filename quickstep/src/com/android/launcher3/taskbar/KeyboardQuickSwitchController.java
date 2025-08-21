@@ -182,12 +182,13 @@ public final class KeyboardQuickSwitchController implements
                                         wasOpenedFromTaskbar ? 0 : mNumHiddenTasks,
                                         currentFocusIndexOverride,
                                         mHasDesktopTask,
-                                        mWasDesktopTaskFilteredOut);
+                                        mWasDesktopTaskFilteredOut,
+                                        /* useAnimationStartDelay= */ !wasOpenedFromTaskbar);
                             });
                 }
 
-                mQuickSwitchViewController.updateLayoutForSurface(wasOpenedFromTaskbar,
-                        currentFocusIndexOverride);
+                mQuickSwitchViewController.updateLayoutForSurface(
+                        wasOpenedFromTaskbar, currentFocusIndexOverride);
                 return;
             } else {
                 // Allow the KQS to be reopened during the close animation to make it more
