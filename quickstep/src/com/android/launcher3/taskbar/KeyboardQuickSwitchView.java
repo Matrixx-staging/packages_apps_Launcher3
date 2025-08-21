@@ -37,6 +37,7 @@ import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
 import android.view.ViewTreeObserver;
@@ -312,12 +313,12 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
             boolean updateTasks,
             int currentFocusIndexOverride,
             @NonNull KeyboardQuickSwitchViewController.ViewCallbacks viewCallbacks,
-            boolean useDesktopTaskView) {
+            boolean useDesktopTaskView,
+            boolean useAnimationStartDelay) {
         mContent.removeAllViews();
 
         mViewCallbacks = viewCallbacks;
         Resources resources = context.getResources();
-        Resources.Theme theme = context.getTheme();
 
         View previousTaskView = null;
         LayoutInflater layoutInflater = LayoutInflater.from(context);
@@ -420,7 +421,7 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
                     @Override
                     public void onGlobalLayout() {
                         registerOnBackInvokedCallback();
-                        animateOpen(currentFocusIndexOverride);
+                        animateOpen(currentFocusIndexOverride, useAnimationStartDelay);
 
                         getViewTreeObserver().removeOnGlobalLayoutListener(this);
                     }
@@ -583,7 +584,7 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
         animator.play(contentAlphaAnimation);
     }
 
-    protected void animateOpen(int currentFocusIndexOverride) {
+    protected void animateOpen(int currentFocusIndexOverride, boolean useStartDelay) {
         if (mOpenAnimation != null) {
             // Restart animation since currentFocusIndexOverride can change the initial scroll.
             mOpenAnimation.cancel();
@@ -595,6 +596,11 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
         mNoRecentItemsPane.setAlpha(0);
 
         mOpenAnimation = new AnimatorSet();
+
+        if (useStartDelay) {
+            // Use a start delay to make the quick alt-tab case smoother
+            mOpenAnimation.setStartDelay(ViewConfiguration.getLongPressTimeout());
+        }
 
         Animator outlineAnimation = mOutlineAnimationProgress.animateToValue(1f);
         outlineAnimation.setDuration(OUTLINE_ANIMATION_DURATION_MS);
@@ -709,6 +715,10 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
     protected void animateFocusMove(int fromIndex, int toIndex) {
         if (!mDisplayingRecentTasks) {
             return;
+        }
+        if (mOpenAnimation != null && fromIndex != -1) {
+            // Skip open animation on first tab after starting the animation
+            mOpenAnimation.end();
         }
         KeyboardQuickSwitchTaskView focusedTask = getTaskAt(toIndex);
         if (focusedTask == null) {
