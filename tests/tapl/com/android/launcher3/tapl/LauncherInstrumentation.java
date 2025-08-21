@@ -460,8 +460,9 @@ public final class LauncherInstrumentation {
     }
 
     public boolean isInDesktopFirstMode() {
-        return getTestInfo(TestProtocol.REQUEST_IS_IN_DESKTOP_FIRST_MODE,
-                String.valueOf(mDisplayId)).getBoolean(
+        Bundle bundle = getTestInfo(TestProtocol.REQUEST_IS_IN_DESKTOP_FIRST_MODE,
+                String.valueOf(mDisplayId));
+        return bundle != null && bundle.getBoolean(
                 TestProtocol.TEST_INFO_RESPONSE_FIELD);
     }
 
@@ -2265,8 +2266,9 @@ public final class LauncherInstrumentation {
      * returns if multi-desks feature is enabled or not.
      */
     public boolean areMultiDesksFlagsEnabled() {
-        return getTestInfo(TestProtocol.REQUEST_FLAG_ENABLE_MULTIPLE_DESKTOPS,
-                String.valueOf(mDisplayId)).getBoolean(
+        Bundle bundle = getTestInfo(TestProtocol.REQUEST_FLAG_ENABLE_MULTIPLE_DESKTOPS,
+                String.valueOf(mDisplayId));
+        return bundle != null && bundle.getBoolean(
                 TestProtocol.TEST_INFO_RESPONSE_FIELD);
     }
 
