@@ -23,16 +23,23 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Outline
 import android.graphics.Rect
+import android.graphics.RectF
 import android.util.AttributeSet
 import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewOutlineProvider
 import android.widget.RemoteViews
 import androidx.annotation.VisibleForTesting
+import com.android.launcher3.CheckLongPressHelper
 import com.android.launcher3.R
+import com.android.launcher3.Utilities
 import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
 import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.RunnableList
+import com.android.launcher3.views.ActivityContext
+import com.android.launcher3.views.OptionsPopupView
+import com.android.launcher3.views.OptionsPopupView.OptionItem
 import com.android.launcher3.widget.RoundedCornerEnforcement
 
 /**
@@ -42,16 +49,19 @@ import com.android.launcher3.widget.RoundedCornerEnforcement
 class OseWidgetView
 @JvmOverloads
 constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0) :
-    AppWidgetHostView(context) {
+    AppWidgetHostView(context), View.OnLongClickListener {
 
     private val oseWidgetManager = context.appComponent.oseWidgetManager
     private val enforcedCornerRadius: Float
     private val enforcedRectangle = Rect()
     @VisibleForTesting val closeActions = RunnableList()
+    val mLongPressHelper = CheckLongPressHelper(this)
+    private val activityContext: ActivityContext = ActivityContext.lookupContext(context)
 
     init {
         enforcedCornerRadius = RoundedCornerEnforcement.computeEnforcedRadius(context)
         clipToOutline = true
+        this.setOnLongClickListener(this)
     }
 
     private val cornerRadiusEnforcementOutline =
@@ -148,6 +158,31 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
                 )
             }
         }
+
+    override fun onLongClick(view: View?): Boolean {
+        val oseWidgetOptionsProvider =
+            activityContext.activityComponent.getOseWidgetOptionsProvider()
+        val optionItems = oseWidgetOptionsProvider.getOptionItems()
+        if (optionItems.isEmpty()) return false
+
+        val bounds =
+            RectF(Utilities.getViewBounds(this)).apply {
+                left = centerX()
+                right = centerX()
+            }
+        showOptionsPopup(bounds, optionItems)
+        return true
+    }
+
+    @VisibleForTesting
+    fun showOptionsPopup(bounds: RectF, optionItems: List<OptionItem>) {
+        OptionsPopupView.showNoReturn(activityContext, bounds, optionItems, true)
+    }
+
+    override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
+        mLongPressHelper.onTouchEvent(ev)
+        return mLongPressHelper.hasPerformedLongPress()
+    }
 
     companion object {
         private const val TAG = "OseWidgetView"
