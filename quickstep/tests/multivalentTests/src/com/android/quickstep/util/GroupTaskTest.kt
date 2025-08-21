@@ -152,6 +152,7 @@ class GroupTaskTest {
                 false,
                 false,
                 ACTIVITY_TYPE_STANDARD,
+                false,
             )
         )
     }
