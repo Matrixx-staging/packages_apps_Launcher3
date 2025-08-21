@@ -182,6 +182,7 @@ import com.android.quickstep.views.DesktopTaskView;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.TaskView;
 import com.android.systemui.animation.ViewRootSync;
+import com.android.systemui.rotation.impl.RotationPolicyWrapperImpl;
 import com.android.systemui.shared.recents.model.Task;
 import com.android.systemui.shared.rotation.RotationButtonController;
 import com.android.systemui.shared.statusbar.phone.BarTransitions;
@@ -366,7 +367,9 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         }
 
         // Construct controllers.
-        RotationButtonController rotationButtonController = new RotationButtonController(this,
+        RotationButtonController rotationButtonController = new RotationButtonController(
+                new RotationPolicyWrapperImpl(c),
+                this,
                 c.getColor(R.color.floating_rotation_button_light_color),
                 c.getColor(R.color.floating_rotation_button_dark_color),
                 R.drawable.ic_sysbar_rotate_button_ccw_start_0,

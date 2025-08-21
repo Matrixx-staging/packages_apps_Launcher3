@@ -31,6 +31,7 @@ import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.systemui.rotation.RotationPolicyWrapper;
 import com.android.systemui.shared.rotation.RotationButton;
 import com.android.systemui.shared.rotation.RotationButtonController;
 
@@ -55,8 +56,8 @@ public class NavigationBarRotationContextTest {
         Context mTargetContext = InstrumentationRegistry.getTargetContext();
         final View view = new View(mTargetContext);
         RotationButton rotationButton = mock(RotationButton.class);
-        mRotationButtonController = new RotationButtonController(mTargetContext, 0, 0, 0, 0, 0, 0,
-                () -> 0);
+        mRotationButtonController = new RotationButtonController(mock(RotationPolicyWrapper.class),
+                mTargetContext, 0, 0, 0, 0, 0, 0, () -> 0);
         mRotationButtonController.setRotationButton(rotationButton, null);
         // Due to a mockito issue, only spy the object after setting the initial state
         mRotationButtonController = spy(mRotationButtonController);
