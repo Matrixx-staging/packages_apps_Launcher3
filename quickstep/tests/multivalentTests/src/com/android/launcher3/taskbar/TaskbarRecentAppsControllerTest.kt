@@ -1295,6 +1295,24 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
         assertThat(recentAppsController.hasSingleTask(itemInfo)).isFalse()
     }
 
+    @Test
+    fun onRecentTasksChanged_inDesktopMode_transparentTask_isFilteredOut() {
+        setInDesktopMode(true)
+        val transparentTask = createTask(id = 1, "transparentPackage")
+        transparentTask.key.isTopActivityTransparent = true
+        val regularTask = createTask(id = 2, RUNNING_APP_PACKAGE_1)
+
+        prepareHotseatAndRunningAndRecentApps(
+            hotseatPackages = emptyList(),
+            runningTasks = listOf(transparentTask, regularTask),
+            recentTaskPackages = emptyList(),
+        )
+
+        assertThat(recentAppsController.runningTaskIds).containsExactly(2)
+        val shownPackages = recentAppsController.shownTasks.flatMap { it.packageNames }
+        assertThat(shownPackages).containsExactly(RUNNING_APP_PACKAGE_1)
+    }
+
     private fun prepareHotseatAndRunningAndRecentApps(
         hotseatPackages: List<String>,
         runningTasks: List<Task>,

@@ -213,7 +213,7 @@ public final class LauncherActivityInterface extends
         if (launcher == null) {
             return false;
         }
-        if (DesktopState.fromContext(launcher.asContext()).getShouldShowHomeBehindDesktop()
+        if (DesktopState.getInstance(launcher.asContext()).getShouldShowHomeBehindDesktop()
                 && !launcher.hasWindowFocus()) {
             // Home is always shown behind desktop, but it is currently not the top task, so treat
             // it as if it is not visible.

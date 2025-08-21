@@ -53,6 +53,7 @@ import com.android.quickstep.util.ContextualSearchStateManager
 import com.android.quickstep.util.GestureExclusionManager
 import com.android.quickstep.util.SystemWindowManagerProxy
 import com.android.systemui.shared.system.ActivityManagerWrapper
+import com.android.wm.shell.shared.desktopmode.DesktopState
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -136,6 +137,11 @@ object StaticObjectModule {
         if (ctx.resources.getBoolean(R.bool.config_searchAllEntrypointsEnabledDefault)) {
             setOf(ContextualSearchStateManager.SEARCH_ALL_ENTRYPOINTS_ENABLED_URI)
         } else emptySet()
+
+    @Provides
+    @JvmStatic
+    fun provideDesktopState(@ApplicationContext context: Context): DesktopState =
+        DesktopState.getInstance(context)
 }
 
 @Module
