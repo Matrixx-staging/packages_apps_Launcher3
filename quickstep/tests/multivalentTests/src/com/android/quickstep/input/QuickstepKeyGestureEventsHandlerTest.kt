@@ -33,6 +33,7 @@ import android.platform.test.flag.junit.SetFlagsRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.android.launcher3.util.SandboxApplication
+import com.android.launcher3.util.SettingsCacheSandbox
 import com.android.quickstep.input.QuickstepKeyGestureEventsHandlerTest.FakeOverviewHandler.OverviewEvent
 import com.android.quickstep.input.QuickstepKeyGestureEventsManager.OverviewGestureHandler
 import com.android.quickstep.input.QuickstepKeyGestureEventsManager.OverviewGestureHandler.OverviewType
@@ -68,6 +69,7 @@ class QuickstepKeyGestureEventsHandlerTest {
 
     @get:Rule val setFlagsRule = SetFlagsRule(SetFlagsRule.DefaultInitValueType.DEVICE_DEFAULT)
 
+    private val settingsCacheSandbox = SettingsCacheSandbox()
     private val inputManager =
         context.spyService(InputManager::class.java).stub {
             doNothing().whenever(it).registerKeyGestureEventHandler(any(), any())
@@ -80,7 +82,8 @@ class QuickstepKeyGestureEventsHandlerTest {
 
     @Before
     fun setup() {
-        keyGestureEventsManager = QuickstepKeyGestureEventsManager(context)
+        keyGestureEventsManager =
+            QuickstepKeyGestureEventsManager(context, settingsCacheSandbox.cache)
         keyGestureEventsManager.onUserSetupCompleteListener.onSettingsChanged(/* isEnabled= */ true)
     }
 

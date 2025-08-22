@@ -769,7 +769,8 @@ public class TouchInteractionService extends Service {
         mRotationTouchHelperRepository = RotationTouchHelper.REPOSITORY_INSTANCE.get(this);
         mRecentsWindowManagerRepository = RecentsWindowManager.REPOSITORY_INSTANCE.get(this);
         mSystemDecorationChangeObserver = SystemDecorationChangeObserver.getINSTANCE().get(this);
-        mQuickstepKeyGestureEventsHandler = new QuickstepKeyGestureEventsManager(this);
+        mQuickstepKeyGestureEventsHandler =
+                QuickstepKeyGestureEventsManager.getINSTANCE().get(this);
         mCoroutineDispatcher = ProductionDispatchers.INSTANCE.getMain();
         mDisplaysWithDecorationsRepositoryCompat =
                 LauncherDisplaysWithDecorationsRepositoryCompat.getINSTANCE().get(this);
