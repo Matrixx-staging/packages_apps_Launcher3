@@ -46,6 +46,7 @@ import com.android.launcher3.pm.PackageInstallInfo;
 import com.android.launcher3.util.IntSet;
 import com.android.launcher3.util.LauncherLayoutBuilder;
 import com.android.launcher3.util.LayoutResource;
+import com.android.launcher3.util.ModelTestExtensions;
 import com.android.launcher3.util.SandboxApplication;
 import com.android.launcher3.util.rule.InstallerSessionRule;
 
@@ -153,7 +154,7 @@ public class PackageInstallStateChangedTaskTest {
     private void verifyProgressUpdate(int progress, int... idsUpdated) {
         IntSet updates = IntSet.wrap(idsUpdated);
         for (ItemInfo info : mModelState.dataModel.itemsIdMap) {
-            if (info.id < 0) continue;
+            if (info.id < 0 || !ModelTestExtensions.isPersistedModelItem(info)) continue;
             int expectedProgress = updates.contains(info.id) ? progress
                     : (mDownloadingApps.contains(info.id) ? 0 : 100);
             if (info instanceof WorkspaceItemInfo wi) {
