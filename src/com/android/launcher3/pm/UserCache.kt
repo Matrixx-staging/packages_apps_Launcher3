@@ -17,18 +17,22 @@ package com.android.launcher3.pm
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.LauncherApps
+import android.graphics.drawable.ColorDrawable
 import android.os.Process
 import android.os.UserHandle
-import android.util.ArrayMap
+import android.os.UserManager
+import android.os.UserManager.USER_TYPE_PROFILE_CLONE
+import android.os.UserManager.USER_TYPE_PROFILE_MANAGED
+import android.os.UserManager.USER_TYPE_PROFILE_PRIVATE
 import androidx.annotation.AnyThread
-import androidx.annotation.VisibleForTesting
 import androidx.annotation.WorkerThread
 import com.android.launcher3.Utilities.ATLEAST_U
+import com.android.launcher3.Utilities.ATLEAST_V
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.icons.BitmapInfo
 import com.android.launcher3.icons.UserBadgeDrawable
-import com.android.launcher3.util.ApiWrapper
 import com.android.launcher3.util.DaggerSingletonObject
 import com.android.launcher3.util.DaggerSingletonTracker
 import com.android.launcher3.util.Executors
@@ -43,24 +47,28 @@ import javax.inject.Inject
 @LauncherAppSingleton
 class UserCache
 @Inject
-constructor(
-    @ApplicationContext context: Context,
-    tracker: DaggerSingletonTracker,
-    private val apiWrapper: ApiWrapper,
-) {
+constructor(@ApplicationContext private val context: Context, tracker: DaggerSingletonTracker) {
     private val userEventListeners = ArrayList<BiConsumer<UserHandle, String>>()
     private val userChangeReceiver =
         SimpleBroadcastReceiver(context, Executors.MODEL_EXECUTOR) { intent: Intent ->
             this.onUsersChanged(intent)
         }
 
-    private var userToSerialMap: Map<UserHandle, UserIconInfo> = emptyMap()
+    private val userManager = context.getSystemService(UserManager::class.java)!!
 
-    private var userToPreInstallAppMap: Map<UserHandle, List<String>> = emptyMap()
+    private var closed = false
+
+    private var _userInfoMap: Map<UserHandle, CachedUserInfo>? = null
+
+    private val userInfoMap: Map<UserHandle, CachedUserInfo>
+        get() = _userInfoMap ?: rebuildUserCache()
 
     init {
         Executors.MODEL_EXECUTOR.execute { this.initAsync() }
-        tracker.addCloseable { userChangeReceiver.unregisterReceiverSafely() }
+        tracker.addCloseable {
+            closed = true
+            userChangeReceiver.unregisterReceiverSafely()
+        }
     }
 
     @WorkerThread
@@ -76,34 +84,61 @@ constructor(
             ACTION_PROFILE_AVAILABLE,
             ACTION_PROFILE_UNAVAILABLE,
         )
-        updateCache()
+        rebuildUserCache()
     }
 
     @AnyThread
     private fun onUsersChanged(intent: Intent) {
-        Executors.MODEL_EXECUTOR.execute { this.updateCache() }
+        if (closed) return
+        Executors.MODEL_EXECUTOR.execute { rebuildUserCache() }
         val user = intent.getParcelableExtra<UserHandle>(Intent.EXTRA_USER) ?: return
         val action = intent.action ?: return
         userEventListeners.forEach { it.accept(user, action) }
     }
 
     @WorkerThread
-    private fun updateCache() {
-        userToSerialMap = apiWrapper.queryAllUsers()
-        userToPreInstallAppMap = fetchPreInstallApps()
+    private fun rebuildUserCache() =
+        buildMap { userManager.userProfiles?.forEach { put(it, buildCachedUserInfo(it)) } }
+            .also { _userInfoMap = it }
+
+    private fun buildCachedUserInfo(user: UserHandle): CachedUserInfo {
+        val info = buildCachedUserInfoAndroidV(user)
+        if (info != null) return info
+
+        // Simple check to check if the provided user is work profile
+        val isWork =
+            NoopDrawable().let { it !== context.packageManager.getUserBadgedIcon(it, user) }
+        return CachedUserInfo(
+            UserIconInfo(
+                user = user,
+                type = if (isWork) UserIconInfo.TYPE_WORK else UserIconInfo.TYPE_MAIN,
+                userSerial = userManager.getSerialNumberForUser(user),
+            )
+        )
     }
 
-    @WorkerThread
-    private fun fetchPreInstallApps(): MutableMap<UserHandle, List<String>> {
-        val userToPreInstallApp = ArrayMap<UserHandle, List<String>>()
-        userToSerialMap.forEach { (userHandle, userIconInfo) ->
-            // Fetch only for private profile, as other profiles have no usages yet.
-            val preInstallApp =
-                if (userIconInfo.isPrivate) apiWrapper.getPreInstalledSystemPackages(userHandle)
-                else ArrayList()
-            userToPreInstallApp[userHandle] = preInstallApp
+    private fun buildCachedUserInfoAndroidV(user: UserHandle): CachedUserInfo? {
+        if (!ATLEAST_V) return null
+        val launcherApps = context.getSystemService(LauncherApps::class.java) ?: return null
+        return launcherApps.getLauncherUserInfo(user)?.let {
+            val userType: String? = it.userType
+            CachedUserInfo(
+                iconInfo =
+                    UserIconInfo(
+                        user = user,
+                        type =
+                            when (userType) {
+                                null -> UserIconInfo.TYPE_MAIN
+                                USER_TYPE_PROFILE_MANAGED -> UserIconInfo.TYPE_WORK
+                                USER_TYPE_PROFILE_CLONE -> UserIconInfo.TYPE_CLONED
+                                USER_TYPE_PROFILE_PRIVATE -> UserIconInfo.TYPE_PRIVATE
+                                else -> UserIconInfo.TYPE_MAIN
+                            },
+                        userSerial = it.userSerialNumber.toLong(),
+                    ),
+                preInstallApps = launcherApps.getPreInstalledSystemPackages(user).toSet(),
+            )
         }
-        return userToPreInstallApp
     }
 
     /** Adds a listener for user additions and removals */
@@ -117,31 +152,38 @@ constructor(
 
     /** Returns the user properties for the provided user or default values */
     fun getUserInfo(user: UserHandle): UserIconInfo =
-        userToSerialMap[user] ?: UserIconInfo(user, UserIconInfo.TYPE_MAIN)
+        userInfoMap[user]?.iconInfo ?: UserIconInfo(user, UserIconInfo.TYPE_MAIN)
 
     /** @see UserManager.getUserForSerialNumber */
     fun getUserForSerialNumber(serialNumber: Long): UserHandle =
-        userToSerialMap.firstNotNullOfOrNull { (user, info) ->
-            if (serialNumber == info.userSerial) user else null
+        userInfoMap.firstNotNullOfOrNull { (user, info) ->
+            if (serialNumber == info.iconInfo.userSerial) user else null
         } ?: Process.myUserHandle()
-
-    @VisibleForTesting
-    fun putToCache(userHandle: UserHandle, info: UserIconInfo) {
-        userToSerialMap += userHandle to info
-    }
-
-    @VisibleForTesting
-    fun putToPreInstallCache(userHandle: UserHandle, preInstalledApps: List<String>) {
-        userToPreInstallAppMap += userHandle to preInstalledApps
-    }
 
     /** @see UserManager.getUserProfiles */
     val userProfiles: List<UserHandle>
-        get() = userToSerialMap.keys.toList()
+        get() = userInfoMap.keys.toList()
 
     /** Returns the pre-installed apps for a user. */
-    fun getPreInstallApps(user: UserHandle): List<String> =
-        userToPreInstallAppMap[user] ?: emptyList()
+    fun getPreInstallApps(user: UserHandle): Set<String> =
+        userInfoMap[user]?.preInstallApps ?: emptySet()
+
+    private class NoopDrawable : ColorDrawable() {
+        override fun getIntrinsicHeight() = 1
+
+        override fun getIntrinsicWidth() = 1
+    }
+
+    /** Information about a UserHandle cached in the platform */
+    data class CachedUserInfo(
+        val iconInfo: UserIconInfo,
+
+        /**
+         * List of the system packages that are installed at user creation. An empty list denotes
+         * that all system packages are installed for that user at creation.
+         */
+        val preInstallApps: Set<String> = emptySet(),
+    )
 
     companion object {
         @JvmField var INSTANCE = DaggerSingletonObject { it.userCache }
