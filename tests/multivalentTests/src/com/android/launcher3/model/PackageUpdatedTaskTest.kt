@@ -70,7 +70,7 @@ import org.mockito.kotlin.whenever
 class PackageUpdatedTaskTest {
 
     @get:Rule val setFlagsRule = SetFlagsRule()
-    @get:Rule val context = SandboxApplication()
+    @get:Rule val context = SandboxApplication().withModelDependency()
     @get:Rule val mockito = MockitoJUnit.rule()
 
     private val mUser = myUserHandle()

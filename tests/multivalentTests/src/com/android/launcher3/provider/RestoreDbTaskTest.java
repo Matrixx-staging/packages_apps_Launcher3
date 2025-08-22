@@ -90,7 +90,7 @@ public class RestoreDbTaskTest {
     private final UserHandle mWorkUser = UserHandle.getUserHandleForUid(PER_USER_RANGE);
 
     @Rule
-    public final SandboxApplication mContext = new SandboxApplication();
+    public final SandboxApplication mContext = new SandboxApplication().withModelDependency();
 
     private UserCache mUserCacheSpy;
 

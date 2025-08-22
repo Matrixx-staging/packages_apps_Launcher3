@@ -68,7 +68,7 @@ public class PackageInstallStateChangedTaskTest {
     private static final String PENDING_APP_1 = TEST_PACKAGE + ".pending1";
     private static final String PENDING_APP_2 = TEST_PACKAGE + ".pending2";
 
-    @Rule public SandboxApplication mContext = new SandboxApplication();
+    @Rule public SandboxApplication mContext = new SandboxApplication().withModelDependency();
     @Rule public SetFlagsRule mSetFlagsRule = new SetFlagsRule();
     @Rule public LayoutResource mLayout = new LayoutResource(mContext);
     @Rule public InstallerSessionRule mInstallerSessionRule = new InstallerSessionRule();

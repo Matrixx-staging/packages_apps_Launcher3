@@ -84,7 +84,7 @@ private const val INSERTION_STATEMENT_FILE = "databases/workspace_items.sql"
 class LoaderTaskTest {
     @get:Rule val setFlagsRule = SetFlagsRule()
     @get:Rule val mockitoRule = MockitoJUnit.rule()
-    @get:Rule val context = spy(SandboxApplication())
+    @get:Rule val context = spy(SandboxApplication().withModelDependency())
 
     private val expectedBroadcastModel =
         FirstScreenBroadcastModel(

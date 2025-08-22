@@ -32,7 +32,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class UserCacheTest {
 
-    @get:Rule val sandboxContext = SandboxApplication()
+    @get:Rule val sandboxContext = SandboxApplication().withModelDependency()
 
     private val userCache: UserCache by lazy { UserCache.getInstance(sandboxContext) }
 

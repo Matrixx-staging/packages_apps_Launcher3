@@ -90,7 +90,7 @@ class WorkspaceItemProcessorTest {
 
     @get:Rule val mockitoRule = MockitoJUnit.rule()
     @get:Rule val setFlagsRule: SetFlagsRule = SetFlagsRule()
-    @get:Rule val mContext = SandboxApplication()
+    @get:Rule val mContext = SandboxApplication().withModelDependency()
 
     @Mock private lateinit var mockIconRequestInfo: IconRequestInfo<WorkspaceItemInfo>
     @Mock private lateinit var mockWorkspaceInfo: WorkspaceItemInfo
@@ -338,10 +338,7 @@ class WorkspaceItemProcessorTest {
             .isEqualTo(1)
         verify(mockCursor)
             .markDeleted(
-                "No Activities found for id=1," +
-                    " targetPkg=package," +
-                    " component=ComponentInfo{package/class}." +
-                    " Unable to create launch Intent.",
+                "No Activities found for id=1, targetPkg=package, component=ComponentInfo{package/class}. Unable to create launch Intent.",
                 RestoreError.APP_NO_LAUNCH_INTENT,
             )
         verify(mockCursor, times(0)).checkAndAddItem(any(), any(), anyOrNull())

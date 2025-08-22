@@ -96,7 +96,7 @@ public class LoaderCursorTest {
     public final SetFlagsRule mSetFlagsRule = new SetFlagsRule(DEVICE_DEFAULT);
 
     @Rule
-    public final SandboxApplication mContext = new SandboxApplication();
+    public final SandboxApplication mContext = new SandboxApplication().withModelDependency();
 
     private LauncherAppState mApp;
     private LauncherPrefs mPrefs;
