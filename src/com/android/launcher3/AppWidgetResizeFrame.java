@@ -45,7 +45,7 @@ import com.android.launcher3.logging.InstanceId;
 import com.android.launcher3.logging.InstanceIdSequence;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.LauncherAppWidgetInfo;
-import com.android.launcher3.popup.PopupContainerWithArrow;
+import com.android.launcher3.popup.PopupContainer;
 import com.android.launcher3.util.PendingRequestArgs;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.ArrowTipView;
@@ -785,7 +785,7 @@ public class AppWidgetResizeFrame extends AbstractFloatingView implements View.O
     }
 
     private void closePopupIfOpen() {
-        PopupContainerWithArrow<?> container = PopupContainerWithArrow.getOpen(mLauncher);
+        PopupContainer<?> container = PopupContainer.getOpen(mLauncher);
         if (container != null) {
             container.close(true);
         }

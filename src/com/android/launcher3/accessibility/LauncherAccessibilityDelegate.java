@@ -50,7 +50,7 @@ import com.android.launcher3.model.data.LauncherAppWidgetInfo;
 import com.android.launcher3.model.data.WorkspaceItemFactory;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.popup.ArrowPopup;
-import com.android.launcher3.popup.PopupContainerWithArrow;
+import com.android.launcher3.popup.PopupContainer;
 import com.android.launcher3.shortcuts.DeepShortcutView;
 import com.android.launcher3.touch.ItemLongClickListener;
 import com.android.launcher3.util.IntArray;
@@ -170,9 +170,10 @@ public class LauncherAccessibilityDelegate extends BaseAccessibilityDelegate<Lau
         if (host == null || !(host.getTag() instanceof  ItemInfo)) {
             return Collections.emptyList();
         }
-        PopupContainerWithArrow container = PopupContainerWithArrow.getOpen(launcher);
+        PopupContainer<?> container = PopupContainer.getOpen(launcher);
         LauncherAccessibilityDelegate delegate = container != null
-                ? container.getAccessibilityDelegate() : launcher.getAccessibilityDelegate();
+                ? (LauncherAccessibilityDelegate) container.getAccessibilityDelegate()
+                : launcher.getAccessibilityDelegate();
         List<LauncherAction> result = new ArrayList<>();
         delegate.getSupportedActions(host, (ItemInfo) host.getTag(), result);
         return result;

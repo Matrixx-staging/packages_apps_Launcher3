@@ -33,15 +33,14 @@ import com.android.launcher3.widget.LauncherAppWidgetHostView
  * handle apps or app shortcuts. This controller handles actions for the popups such as showing and
  * dismissing them.
  */
-class PopupControllerForHomeScreenItems<T>(
+class PopupControllerForExtraHomeScreenItems<T>(
     private val popupDataRepository: PopupDataRepository,
     private val dragController: LauncherDragController,
 ) : PopupController<T> where T : Context, T : ActivityContext {
     override fun show(view: View): Popup {
         val itemInfo = view.tag as ItemInfo
         val activityContext: ActivityContext = ActivityContext.lookupContext<T>(view.context)
-        val container =
-            PopupContainerWithArrow.create<T>(context = view.context, originalView = view)
+        val container = PopupContainer.create<T>(context = view.context, originalView = view)
         dragController.addDragListener(container)
         addSystemShortcuts(container, itemInfo, itemView = view, activityContext)
         container.show()
@@ -59,7 +58,7 @@ class PopupControllerForHomeScreenItems<T>(
     }
 
     private fun addSystemShortcuts(
-        popup: PopupContainerWithArrow<T>,
+        popup: PopupContainer<T>,
         itemInfo: ItemInfo,
         itemView: View,
         activityContext: ActivityContext,
