@@ -42,6 +42,7 @@ import com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY
 import com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY2
 import com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE
 import com.android.launcher3.util.ModelTestExtensions.bgDataModel
+import com.android.launcher3.util.ModelTestExtensions.isPersistedModelItem
 import java.util.function.Supplier
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -71,7 +72,8 @@ class LayoutImportExportHelperTest {
     private val workspaceItems: List<ItemInfo>
         get() =
             context.bgDataModel.itemsIdMap.filter {
-                it.container == CONTAINER_DESKTOP || it.container == CONTAINER_HOTSEAT
+                it.isPersistedModelItem() &&
+                    (it.container == CONTAINER_DESKTOP || it.container == CONTAINER_HOTSEAT)
             }
 
     @Test

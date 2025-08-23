@@ -73,7 +73,6 @@ import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.xmlpull.v1.XmlPullParserException
 
 /** Tests for [AutoInstallsLayout] */
 @SmallTest
@@ -81,7 +80,7 @@ import org.xmlpull.v1.XmlPullParserException
 class AutoInstallsLayoutTest {
 
     @get:Rule val mockitoRule = MockitoJUnit.rule()
-    @get:Rule val targetContext = SandboxApplication()
+    @get:Rule val targetContext = SandboxApplication().withModelDependency()
 
     private val callback: MyCallback = MyCallback()
 
@@ -106,28 +105,30 @@ class AutoInstallsLayoutTest {
 
     @Test
     fun pending_icon_added_on_home_missingScreenAttr_logsExpection() {
-        val result = LauncherLayoutBuilder()
-            .withBaseValues(
-                mapOf(
-                    ATTR_CONTAINER to containerToString(CONTAINER_DESKTOP),
-                    ATTR_X to x.toString(),
-                    ATTR_Y to y.toString(),
+        val result =
+            LauncherLayoutBuilder()
+                .withBaseValues(
+                    mapOf(
+                        ATTR_CONTAINER to containerToString(CONTAINER_DESKTOP),
+                        ATTR_X to x.toString(),
+                        ATTR_Y to y.toString(),
+                    )
                 )
-            )
-            .putApp("p1", "c1")
-            .toAutoInstallsLayout()
-            .loadLayout(db)
+                .putApp("p1", "c1")
+                .toAutoInstallsLayout()
+                .loadLayout(db)
 
         assertThat(result).isEqualTo(-1)
     }
 
     @Test
     fun pending_icon_hotseat_missingRankAttr_logsException() {
-        val result = LauncherLayoutBuilder()
-            .withBaseValues(mapOf(ATTR_CONTAINER to containerToString(CONTAINER_HOTSEAT)))
-            .putApp("p1", "c1")
-            .toAutoInstallsLayout()
-            .loadLayout(db)
+        val result =
+            LauncherLayoutBuilder()
+                .withBaseValues(mapOf(ATTR_CONTAINER to containerToString(CONTAINER_HOTSEAT)))
+                .putApp("p1", "c1")
+                .toAutoInstallsLayout()
+                .loadLayout(db)
 
         assertThat(result).isEqualTo(-1)
     }

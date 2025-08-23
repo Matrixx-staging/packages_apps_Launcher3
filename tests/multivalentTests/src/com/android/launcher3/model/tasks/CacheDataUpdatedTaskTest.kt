@@ -53,7 +53,7 @@ import org.junit.runner.RunWith
 class CacheDataUpdatedTaskTest {
 
     @get:Rule var testStabilityRule: TestRule = TestStabilityRule()
-    @get:Rule var context: SandboxApplication = SandboxApplication()
+    @get:Rule var context: SandboxApplication = SandboxApplication().withModelDependency()
     @get:Rule var layout: LayoutResource = LayoutResource(context)
     @get:Rule var installerSessionRule: InstallerSessionRule = InstallerSessionRule()
 

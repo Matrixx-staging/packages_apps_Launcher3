@@ -161,6 +161,11 @@ public class LauncherSettings {
         public static final int ITEM_TYPE_FILE_SYSTEM_FOLDER = 13;
 
         /**
+         * A custom view which typically implemented using
+         * {@link com.android.launcher3.model.data.ItemViewProvider}.
+         */
+        public static final int ITEM_TYPE_CUSTOM_VIEW = 14;
+        /**
          * The custom icon bitmap.
          * <P>Type: BLOB</P>
          */

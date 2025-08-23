@@ -44,7 +44,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class FolderIconLoadTest {
 
-    @get:Rule val context = SandboxApplication()
+    @get:Rule val context = SandboxApplication().withModelDependency()
     @get:Rule val layoutResource = LayoutResource(context)
 
     private val uniqueActivities =

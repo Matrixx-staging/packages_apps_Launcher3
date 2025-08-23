@@ -20,6 +20,7 @@ import static com.android.launcher3.Flags.enableLauncherBrMetricsFixed;
 import static com.android.launcher3.LauncherPrefs.IS_FIRST_LOAD_AFTER_RESTORE;
 import static com.android.launcher3.icons.CacheableShortcutInfo.convertShortcutsToCacheableShortcuts;
 import static com.android.launcher3.icons.cache.CacheLookupFlag.DEFAULT_LOOKUP_FLAG;
+import static com.android.launcher3.model.FirstScreenBroadcastHelper.DISABLE_INSTALLED_APPS_BROADCAST;
 import static com.android.launcher3.model.ModelUtils.WIDGET_FILTER;
 import static com.android.launcher3.model.ModelUtils.currentScreenContentFilter;
 import static com.android.launcher3.model.data.AppsListData.FLAG_HAS_SHORTCUT_PERMISSION;
@@ -46,7 +47,6 @@ import android.os.Bundle;
 import android.os.Trace;
 import android.os.UserHandle;
 import android.os.UserManager;
-import android.provider.Settings;
 import android.util.Log;
 import android.util.LongSparseArray;
 
@@ -96,6 +96,7 @@ import com.android.launcher3.util.IntSet;
 import com.android.launcher3.util.LooperIdleLock;
 import com.android.launcher3.util.PackageManagerHelper;
 import com.android.launcher3.util.PackageUserKey;
+import com.android.launcher3.util.SettingsCache;
 import com.android.launcher3.util.TraceHelper;
 import com.android.launcher3.widget.WidgetInflater;
 import com.android.launcher3.widget.util.WidgetSizeHandler;
@@ -145,8 +146,6 @@ public class LoaderTask implements Runnable {
     private final ModelDelegate mModelDelegate;
     private boolean mIsRestoreFromBackup;
 
-    private FirstScreenBroadcast mFirstScreenBroadcast;
-
     @NonNull
     private final BaseLauncherBinder mLauncherBinder;
 
@@ -172,6 +171,8 @@ public class LoaderTask implements Runnable {
     private final Provider<LauncherRestoreEventLogger> mRestoreEventLoggerProvider;
     private final WorkspaceItemSpaceFinder mWorkspaceItemSpaceFinder;
     private final kotlin.Lazy<Map<Uri, HomeScreenFile>> mHomeScreenFilesQueryResult;
+    private final FirstScreenBroadcastHelper mFirstScreenBroadcastHelper;
+    private final SettingsCache mSettingsCache;
 
     @AssistedInject
     protected LoaderTask(
@@ -194,7 +195,9 @@ public class LoaderTask implements Runnable {
             WidgetSizeHandler widgetSizeHandler,
             LoaderParams params,
             WorkspaceItemSpaceFinder workspaceItemSpaceFinder,
-            HomeScreenFilesProvider homeScreenFilesProvider) {
+            HomeScreenFilesProvider homeScreenFilesProvider,
+            FirstScreenBroadcastHelper firstScreenBroadcastHelper,
+            SettingsCache settingsCache) {
         mContext = context;
         mIDP = idp;
         mModel = model;
@@ -219,6 +222,8 @@ public class LoaderTask implements Runnable {
         mParams = params;
         mWorkspaceItemSpaceFinder = workspaceItemSpaceFinder;
         mHomeScreenFilesQueryResult = homeScreenFilesProvider.query();
+        mFirstScreenBroadcastHelper = firstScreenBroadcastHelper;
+        mSettingsCache = settingsCache;
     }
 
     protected synchronized void waitForIdle() {
@@ -247,27 +252,18 @@ public class LoaderTask implements Runnable {
                 mBgDataModel.itemsIdMap.stream()
                         .filter(currentScreenContentFilter(firstScreens))
                         .toList();
-        final int disableArchivingLauncherBroadcast = Settings.Secure.getInt(
-                mContext.getContentResolver(),
-                "disable_launcher_broadcast_installed_apps",
-                /* default */ 0);
         boolean shouldAttachArchivingExtras = mIsRestoreFromBackup
-                && disableArchivingLauncherBroadcast == 0
-                && Flags.enableFirstScreenBroadcastArchivingExtras();
-        if (shouldAttachArchivingExtras) {
-            List<FirstScreenBroadcastModel> broadcastModels =
-                    FirstScreenBroadcastHelper.createModelsForFirstScreenBroadcast(
-                            mPmHelper,
-                            firstScreenItems,
-                            mInstallingPkgsCached,
-                            mBgDataModel.itemsIdMap.stream().filter(WIDGET_FILTER).toList()
-                    );
-            logASplit("Sending first screen broadcast with additional archiving Extras");
-            FirstScreenBroadcastHelper.sendBroadcastsForModels(mContext, broadcastModels);
-        } else {
-            logASplit("Sending first screen broadcast");
-            mFirstScreenBroadcast.sendBroadcasts(mContext, firstScreenItems);
-        }
+                && !mSettingsCache.getValue(DISABLE_INSTALLED_APPS_BROADCAST);
+        List<FirstScreenBroadcastModel> broadcastModels =
+                mFirstScreenBroadcastHelper.createModelsForFirstScreenBroadcast(
+                        firstScreenItems,
+                        mInstallingPkgsCached,
+                        mBgDataModel.itemsIdMap.stream().filter(WIDGET_FILTER).toList(),
+                        shouldAttachArchivingExtras
+                );
+        logASplit("Sending first screen broadcast with shouldAttachArchivingExtras="
+                + shouldAttachArchivingExtras);
+        broadcastModels.forEach(bm -> bm.sentBroadcast(mContext));
     }
 
     private void loadAllSurfacesOrdered(
@@ -464,8 +460,6 @@ public class LoaderTask implements Runnable {
             installingPkgs.forEach(mIconCache::updateSessionCache);
             FileLog.d(TAG, "loadWorkspace: Packages with active install/update sessions: "
                     + installingPkgs.keySet().stream().map(info -> info.mPackageName).toList());
-
-            mFirstScreenBroadcast = new FirstScreenBroadcast(installingPkgs);
 
             mShortcutKeyToPinnedShortcuts = new HashMap<>();
             final LoaderCursor c = mLoaderCursorFactory.createLoaderCursor(

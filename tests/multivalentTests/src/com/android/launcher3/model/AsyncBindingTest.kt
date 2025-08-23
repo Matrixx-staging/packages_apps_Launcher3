@@ -38,10 +38,12 @@ import com.android.launcher3.util.IntSet
 import com.android.launcher3.util.ItemInflater
 import com.android.launcher3.util.LauncherLayoutBuilder
 import com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE
+import com.android.launcher3.util.ModelTestExtensions.isPersistedModelItem
 import com.android.launcher3.util.ModelTestExtensions.loadModelSync
 import com.android.launcher3.util.SandboxApplication
 import com.android.launcher3.util.TestUtil
 import com.android.launcher3.util.TestUtil.runOnExecutorSync
+import com.google.common.truth.Truth.assertThat
 import java.io.File
 import java.io.FileWriter
 import java.security.MessageDigest
@@ -132,12 +134,23 @@ class AsyncBindingTest {
 
         verify(callbacks, never()).bindItems(any(), any())
         // First 2 items were bound and eventually remaining items were bound
-        verify(launcher, times(1)).bindInflatedItems(argThat { size == 2 }, anyOrNull())
-        verify(launcher, times(1)).bindInflatedItems(argThat { size == 3 }, anyOrNull())
+        verify(launcher, times(1))
+            .bindInflatedItems(
+                argThat { count { it.first.isPersistedModelItem() } == 2 },
+                anyOrNull(),
+            )
+        verify(launcher, times(1))
+            .bindInflatedItems(
+                argThat { count { it.first.isPersistedModelItem() } == 3 },
+                anyOrNull(),
+            )
 
         // Verify that all items were inflated on the background thread
-        assertEquals(5, inflationLooper.size())
-        for (i in 0..4) assertEquals(MODEL_EXECUTOR.looper, inflationLooper.valueAt(i))
+        assertThat(inflationLooper.size()).isAtLeast(5)
+        for (i in 0..<inflationLooper.size()) assertEquals(
+            MODEL_EXECUTOR.looper,
+            inflationLooper.valueAt(i),
+        )
     }
 
     @Test
@@ -153,7 +166,7 @@ class AsyncBindingTest {
                 .bindInflatedItems(
                     argThat {
                         firstPageBindIds.addAll(map { it.first.id })
-                        size == 2
+                        count { it.first.isPersistedModelItem() } == 2
                     },
                     anyOrNull(),
                 )
@@ -167,12 +180,16 @@ class AsyncBindingTest {
 
         // Verify remaining 3 times are bound using pending tasks
         assertNull(callbacks.pendingExecutor)
-        verify(launcher, times(1)).bindInflatedItems(argThat { t -> t.size == 3 }, anyOrNull())
+        verify(launcher, times(1))
+            .bindInflatedItems(
+                argThat { count { it.first.isPersistedModelItem() } == 3 },
+                anyOrNull(),
+            )
 
         // Verify that firstPageBindIds are loaded on the main thread and remaining
         // on the background thread.
-        assertEquals(5, inflationLooper.size())
-        for (i in 0..4) {
+        assertThat(inflationLooper.size()).isAtLeast(5)
+        for (i in 0..<inflationLooper.size()) {
             if (firstPageBindIds.contains(inflationLooper.keyAt(i)))
                 assertEquals(MAIN_EXECUTOR.looper, inflationLooper.valueAt(i))
             else assertEquals(MODEL_EXECUTOR.looper, inflationLooper.valueAt(i))

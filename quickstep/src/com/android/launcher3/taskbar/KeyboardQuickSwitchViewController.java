@@ -448,6 +448,10 @@ public class KeyboardQuickSwitchViewController {
             return mControllerCallbacks.isAspectRatioSquare();
         }
 
+        boolean isLandscape() {
+            return mControllerCallbacks.isLandscape();
+        }
+
         void onViewDetchedFromWindow() {
             mDetachingFromWindow = true;
             closeQuickSwitchView(false);
