@@ -546,6 +546,12 @@ public final class KeyboardQuickSwitchController implements
                     mControllers.taskbarActivityContext.getDeviceProfile().getDeviceProperties().getAspectRatio());
         }
 
+        boolean isLandscape() {
+            return mControllers != null
+                    && mControllers.taskbarActivityContext
+                    .getDeviceProfile().getDeviceProperties().isLandscape();
+        }
+
         @Nullable
         Set<Integer> getFirstHiddenTaskIds() {
             return mFirstHiddenTaskIds;

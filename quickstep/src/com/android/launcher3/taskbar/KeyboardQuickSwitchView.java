@@ -64,6 +64,7 @@ import com.android.launcher3.testing.shared.TestProtocol;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.util.DesktopTask;
 import com.android.quickstep.util.GroupTask;
+import com.android.quickstep.util.LayoutUtils;
 import com.android.quickstep.util.SingleTask;
 import com.android.quickstep.util.SplitTask;
 import com.android.systemui.shared.recents.model.Task;
@@ -330,9 +331,7 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
                     /* isFinalView= */ i == tasksToDisplay - 1
                             && numHiddenTasks == 0 && !useDesktopTaskView,
                     /* useSmallStartSpacing= */ false,
-                    mViewCallbacks.isAspectRatioSquare()
-                            ? R.layout.keyboard_quick_switch_taskview_square
-                            : R.layout.keyboard_quick_switch_taskview,
+                    getDesktopTaskLayoutRes(groupTask),
                     layoutInflater,
                     previousTaskView);
 
@@ -426,6 +425,43 @@ public class KeyboardQuickSwitchView extends ConstraintLayout {
                         getViewTreeObserver().removeOnGlobalLayoutListener(this);
                     }
                 });
+    }
+
+    @LayoutRes
+    private int getDesktopTaskLayoutRes(GroupTask groupTask) {
+        // Before KQS flattening, res ID was decided based on device aspect ratio. This will also
+        // be followed for non-desktop tasks.
+        if (!enableAltTabKqsFlatenning.isTrue() || !(groupTask instanceof DesktopTask)) {
+            return getDefaultLayoutRes();
+        }
+
+        // Check if a task is available to evaluate its aspect ratio. This is a safe guard against
+        // edge case.
+        if (groupTask.getTasks().isEmpty() || groupTask.getTasks().getFirst().appBounds == null) {
+            return getDefaultLayoutRes();
+        }
+
+        // Always use square view if the task bounds are within the square aspect ratio limit.
+        Rect taskBounds = groupTask.getTasks().getFirst().appBounds;
+        if (LayoutUtils.isAspectRatioSquare((float) taskBounds.width() / taskBounds.height())) {
+            return R.layout.keyboard_quick_switch_taskview_square;
+        }
+
+        // Determine if a task is in landscape orientation based on task bounds.
+        boolean isTaskBoundsInLandscape = taskBounds.width() > taskBounds.height();
+
+        // If both device and task's bounds match, that is either both are landscape or both are
+        // portrait, then use the default view otherwise use the square version to differentiate.
+        return (mViewCallbacks.isLandscape() == isTaskBoundsInLandscape)
+                ? R.layout.keyboard_quick_switch_taskview
+                : R.layout.keyboard_quick_switch_taskview_square;
+    }
+
+    @LayoutRes
+    private int getDefaultLayoutRes() {
+        return mViewCallbacks.isAspectRatioSquare()
+                ? R.layout.keyboard_quick_switch_taskview_square
+                : R.layout.keyboard_quick_switch_taskview;
     }
 
     void enableScrollArrowSupport() {
