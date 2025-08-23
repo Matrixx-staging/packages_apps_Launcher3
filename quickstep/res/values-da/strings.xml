@@ -47,7 +47,6 @@
     <string name="hotseat_tip_gaps_filled" msgid="3035673010274223538">"Appforslag blev føjet til tom plads"</string>
     <string name="hotsaet_tip_prediction_enabled" msgid="2233554377501347650">"Appforslag er aktiveret"</string>
     <string name="hotsaet_tip_prediction_disabled" msgid="1506426298884658491">"Appforslag er deaktiveret"</string>
-    <string name="hotseat_prediction_content_description" msgid="4582028296938078419">"App, du forventes at skulle bruge: <xliff:g id="TITLE">%1$s</xliff:g>"</string>
     <string name="gesture_tutorial_title" msgid="2750751261768388354">"Vejledning i navigation med bevægelser"</string>
     <string name="gesture_tutorial_rotation_prompt_title" msgid="7537946781362766964">"Rotér din enhed"</string>
     <string name="gesture_tutorial_rotation_prompt" msgid="1664493449851960691">"Rotér enheden for at gennemgå vejledningen i navigation med bevægelser"</string>
@@ -150,10 +149,8 @@
     <string name="change_navigation_mode" msgid="9088393078736808968">"Skift navigationstilstand"</string>
     <string name="taskbar_divider_a11y_title" msgid="6608690309720242080">"Opdeling af proceslinjen"</string>
     <string name="taskbar_overflow_a11y_title" msgid="8114045167370723746">"Andre seneste apps"</string>
-    <!-- no translation found for app_added_to_taskbar (1160433791917609063) -->
-    <skip />
-    <!-- no translation found for app_removed_from_taskbar (7887298201562912487) -->
-    <skip />
+    <string name="app_added_to_taskbar" msgid="1160433791917609063">"Appen er føjet til proceslinjen"</string>
+    <string name="app_removed_from_taskbar" msgid="7887298201562912487">"Appen er fjernet fra proceslinjen"</string>
     <string name="move_drop_target_top_or_left" msgid="2988702185049595807">"Flyt til toppen eller venstre side"</string>
     <string name="move_drop_target_bottom_or_right" msgid="5431393418797620162">"Flyt til bunden eller højre side"</string>
     <string name="open_app_as_a_bubble" msgid="6642626287247807473">"Åbn appen som en boble"</string>

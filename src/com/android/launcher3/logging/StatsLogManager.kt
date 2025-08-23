@@ -639,6 +639,8 @@ open class StatsLogManager protected constructor(@JvmField protected val mContex
         LAUNCHER_DESKTOP_MODE_TASKBAR_UNPINNED(2242),
         @UiEvent(doc = "Launcher window insets controller reportedly null")
         LAUNCHER_WINDOW_INSETS_CONTROLLER_NULL(2400),
+        @UiEvent(doc = "Widget settings tapped on QSB in launcher")
+        LAUNCHER_QSB_WIDGET_SETTINGS_TAP(2415),
         // ADD MORE
     }
 

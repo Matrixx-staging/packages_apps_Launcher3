@@ -47,7 +47,6 @@
     <string name="hotseat_tip_gaps_filled" msgid="3035673010274223538">"應用程式建議已新增到空白位置"</string>
     <string name="hotsaet_tip_prediction_enabled" msgid="2233554377501347650">"應用程式建議功能已啟用"</string>
     <string name="hotsaet_tip_prediction_disabled" msgid="1506426298884658491">"應用程式建議功能已停用"</string>
-    <string name="hotseat_prediction_content_description" msgid="4582028296938078419">"預測的應用程式：<xliff:g id="TITLE">%1$s</xliff:g>"</string>
     <string name="gesture_tutorial_title" msgid="2750751261768388354">"手勢操作教學課程"</string>
     <string name="gesture_tutorial_rotation_prompt_title" msgid="7537946781362766964">"旋轉裝置螢幕方向"</string>
     <string name="gesture_tutorial_rotation_prompt" msgid="1664493449851960691">"如要完成手勢操作教學課程，請旋轉裝置螢幕方向"</string>
@@ -150,10 +149,8 @@
     <string name="change_navigation_mode" msgid="9088393078736808968">"變更操作模式"</string>
     <string name="taskbar_divider_a11y_title" msgid="6608690309720242080">"工作列分隔線"</string>
     <string name="taskbar_overflow_a11y_title" msgid="8114045167370723746">"最近曾使用的其他應用程式"</string>
-    <!-- no translation found for app_added_to_taskbar (1160433791917609063) -->
-    <skip />
-    <!-- no translation found for app_removed_from_taskbar (7887298201562912487) -->
-    <skip />
+    <string name="app_added_to_taskbar" msgid="1160433791917609063">"已將應用程式新增到工作列"</string>
+    <string name="app_removed_from_taskbar" msgid="7887298201562912487">"已將應用程式從工作列中移除"</string>
     <string name="move_drop_target_top_or_left" msgid="2988702185049595807">"移到上方/左側"</string>
     <string name="move_drop_target_bottom_or_right" msgid="5431393418797620162">"移到底部/右側"</string>
     <string name="open_app_as_a_bubble" msgid="6642626287247807473">"以泡泡形式開啟應用程式"</string>

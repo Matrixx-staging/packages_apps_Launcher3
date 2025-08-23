@@ -47,7 +47,6 @@
     <string name="hotseat_tip_gaps_filled" msgid="3035673010274223538">"«پیشنهاد برنامه» به فضای خالی اضافه شد"</string>
     <string name="hotsaet_tip_prediction_enabled" msgid="2233554377501347650">"«پیشنهاد برنامه» فعال است"</string>
     <string name="hotsaet_tip_prediction_disabled" msgid="1506426298884658491">"«پیشنهاد برنامه» غیرفعال است"</string>
-    <string name="hotseat_prediction_content_description" msgid="4582028296938078419">"برنامه پیش‌بینی‌شده: <xliff:g id="TITLE">%1$s</xliff:g>"</string>
     <string name="gesture_tutorial_title" msgid="2750751261768388354">"آموزش گام‌به‌گام پیمایش اشاره‌ای"</string>
     <string name="gesture_tutorial_rotation_prompt_title" msgid="7537946781362766964">"دستگاهتان را بچرخانید"</string>
     <string name="gesture_tutorial_rotation_prompt" msgid="1664493449851960691">"لطفاً برای تکمیل آموزش گام‌به‌گام پیمایش اشاره‌ای، دستگاهتان را بچرخانید"</string>
@@ -150,10 +149,8 @@
     <string name="change_navigation_mode" msgid="9088393078736808968">"تغییر حالت پیمایش"</string>
     <string name="taskbar_divider_a11y_title" msgid="6608690309720242080">"جداکننده نوار وظیفه"</string>
     <string name="taskbar_overflow_a11y_title" msgid="8114045167370723746">"سایر برنامه‌های اخیر"</string>
-    <!-- no translation found for app_added_to_taskbar (1160433791917609063) -->
-    <skip />
-    <!-- no translation found for app_removed_from_taskbar (7887298201562912487) -->
-    <skip />
+    <string name="app_added_to_taskbar" msgid="1160433791917609063">"‏برنامه به Taskbar اضافه شد"</string>
+    <string name="app_removed_from_taskbar" msgid="7887298201562912487">"‏برنامه از Taskbar حذف شد"</string>
     <string name="move_drop_target_top_or_left" msgid="2988702185049595807">"انتقال به بالا/ چپ"</string>
     <string name="move_drop_target_bottom_or_right" msgid="5431393418797620162">"انتقال به پایین/ راست"</string>
     <string name="open_app_as_a_bubble" msgid="6642626287247807473">"باز کردن برنامه به‌صورت حبابک"</string>
@@ -171,7 +168,7 @@
     <string name="bubble_bar_description_multiple_bubbles" msgid="3922207715357143648">"<xliff:g id="BUBBLE_BAR_BUBBLE_DESCRIPTION">%1$s</xliff:g> و <xliff:g id="BUBBLE_COUNT">%2$d</xliff:g> حبابک دیگر"</string>
     <string name="bubble_bar_action_move_left" msgid="3306922475737714758">"انتقال به چپ"</string>
     <string name="bubble_bar_action_move_right" msgid="3455099638571411251">"انتقال به راست"</string>
-    <string name="bubble_bar_action_dismiss_all" msgid="3290722022983403060">"رد کردن همه"</string>
+    <string name="bubble_bar_action_dismiss_all" msgid="3290722022983403060">"بستن همه"</string>
     <string name="bubble_bar_accessibility_announce_expand" msgid="1503192695527477102">"ازهم باز کردن <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
     <string name="bubble_bar_accessibility_announce_collapse" msgid="928284600086798791">"جمع کردن <xliff:g id="BUBBLE_DESCRIPTION">%1$s</xliff:g>"</string>
     <string name="search_gesture_feature_title" msgid="1294044108313175306">"حلقه جستجو"</string>

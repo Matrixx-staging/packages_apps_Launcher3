@@ -37,6 +37,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -59,6 +60,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
@@ -108,91 +110,105 @@ fun TitledBottomSheet(
     description: String?,
     heightStyle: ModalBottomSheetHeightStyle,
     closeBehavior: CloseBehavior = CloseBehavior.DRAG_HANDLE,
+    enforceStaticMaxSizes: Boolean = false,
     enableSwipeUpToDismiss: Boolean = false,
     onSheetOpen: () -> Unit,
     onDismissSheet: () -> Unit,
     content: @Composable () -> Unit,
 ) {
-    val density = LocalDensity.current
-    val accessibilityState = LocalAccessibilityState.current
-    val closeSheetLabel = stringResource(R.string.widget_picker_collapse_sheet_label)
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+        val density = LocalDensity.current
+        val accessibilityState = LocalAccessibilityState.current
+        val closeSheetLabel = stringResource(R.string.widget_picker_collapse_sheet_label)
 
-    BoxWithConstraints(modifier = modifier.windowInsetsPadding(sheetWindowInsets)) {
-        val animSpec: AnimationSpec<Float> = MaterialTheme.motionScheme.slowSpatialSpec()
-        val sheetState = remember {
-            BottomSheetDismissState(expandCollapseAnimationSpec = animSpec)
-        }
+        val sizeModifier =
+            if (enforceStaticMaxSizes) {
+                val sheetMaxWidth = dimensionResource(id = R.dimen.bottom_sheet_max_width)
+                val sheetMaxHeight = dimensionResource(id = R.dimen.bottom_sheet_max_height)
+                Modifier.widthIn(max = sheetMaxWidth).heightIn(max = sheetMaxHeight)
+            } else {
+                Modifier
+            }
 
-        Surface(
-            modifier =
-                Modifier.semantics {
-                        isTraversalGroup = true
-                        customActions =
-                            listOf(
-                                CustomAccessibilityAction(label = closeSheetLabel) {
-                                    onDismissSheet()
-                                    true
-                                }
-                            )
-                    }
-                    .fillMaxSize()
-                    .dismissibleBottomSheet(
-                        sheetState = sheetState,
-                        onSheetOpen = onSheetOpen,
-                        onDismissSheet = onDismissSheet,
-                        maxHeight = with(density) { maxHeight.toPx() },
-                        enableNestedScrolling = !accessibilityState.isEnabled,
-                    ),
-            color = WidgetPickerTheme.colors.sheetBackground,
-            shape = sheetShape,
-            content = {
-                Column(
-                    modifier =
-                        Modifier.imePadding()
-                            .windowInsetsPadding(contentWindowInsets)
-                            .sheetContentHeight(heightStyle, maxHeight)
-                            .padding(horizontal = sheetInnerHorizontalPadding)
-                            .padding(
-                                top =
-                                    sheetInnerTopPadding.takeIf {
-                                        closeBehavior != CloseBehavior.DRAG_HANDLE
-                                    } ?: 0.dp
-                            )
-                            .dismissableBottomSheetContent(sheetState)
-                ) {
-                    if (closeBehavior == CloseBehavior.DRAG_HANDLE) {
-                        DecorativeDragHandle(
-                            modifier =
-                                Modifier.align(alignment = Alignment.CenterHorizontally)
-                                    .padding(
-                                        top = sheetInnerTopPadding,
-                                        bottom = headerBottomMargin,
-                                    )
-                        )
-                    }
-                    title?.let {
-                        Header(
-                            title = title,
-                            description = description,
-                            closeBehavior = closeBehavior,
+        BoxWithConstraints(
+            modifier = modifier.then(sizeModifier).windowInsetsPadding(sheetWindowInsets)
+        ) {
+            val animSpec: AnimationSpec<Float> = MaterialTheme.motionScheme.slowSpatialSpec()
+            val sheetState = remember {
+                BottomSheetDismissState(expandCollapseAnimationSpec = animSpec)
+            }
+
+            Surface(
+                modifier =
+                    Modifier.semantics {
+                            isTraversalGroup = true
+                            customActions =
+                                listOf(
+                                    CustomAccessibilityAction(label = closeSheetLabel) {
+                                        onDismissSheet()
+                                        true
+                                    }
+                                )
+                        }
+                        .fillMaxSize()
+                        .dismissibleBottomSheet(
+                            sheetState = sheetState,
+                            onSheetOpen = onSheetOpen,
                             onDismissSheet = onDismissSheet,
-                        )
+                            maxHeight = with(density) { maxHeight.toPx() },
+                            enableNestedScrolling = !accessibilityState.isEnabled,
+                        ),
+                color = WidgetPickerTheme.colors.sheetBackground,
+                shape = sheetShape,
+                content = {
+                    Column(
+                        modifier =
+                            Modifier.imePadding()
+                                .windowInsetsPadding(contentWindowInsets)
+                                .sheetContentHeight(heightStyle, maxHeight)
+                                .padding(horizontal = sheetInnerHorizontalPadding)
+                                .padding(
+                                    top =
+                                        sheetInnerTopPadding.takeIf {
+                                            closeBehavior != CloseBehavior.DRAG_HANDLE
+                                        } ?: 0.dp
+                                )
+                                .dismissableBottomSheetContent(sheetState)
+                    ) {
+                        if (closeBehavior == CloseBehavior.DRAG_HANDLE) {
+                            DecorativeDragHandle(
+                                modifier =
+                                    Modifier.align(alignment = Alignment.CenterHorizontally)
+                                        .padding(
+                                            top = sheetInnerTopPadding,
+                                            bottom = headerBottomMargin,
+                                        )
+                            )
+                        }
+                        title?.let {
+                            Header(
+                                title = title,
+                                description = description,
+                                closeBehavior = closeBehavior,
+                                onDismissSheet = onDismissSheet,
+                            )
+                        }
+                        content()
                     }
-                    content()
-                }
-            },
-        )
-
-        if (enableSwipeUpToDismiss) {
-            val scope = rememberCoroutineScope()
-
-            SwipeUpToDismissHandler(
-                modifier = Modifier.align(Alignment.BottomCenter),
-                contentHeight = maxHeight,
-                onProgress = { scope.launch { sheetState.backProgress.snapTo(it) } },
-                onCancel = { scope.launch { sheetState.settleProgress() } },
-                onClose = { scope.launch { sheetState.collapse() } },
+                },
             )
+
+            if (enableSwipeUpToDismiss) {
+                val scope = rememberCoroutineScope()
+
+                SwipeUpToDismissHandler(
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                    contentHeight = maxHeight,
+                    onProgress = { scope.launch { sheetState.backProgress.snapTo(it) } },
+                    onCancel = { scope.launch { sheetState.settleProgress() } },
+                    onClose = { scope.launch { sheetState.collapse() } },
+                )
+            }
         }
     }
 }

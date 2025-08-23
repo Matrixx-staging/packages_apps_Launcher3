@@ -25,6 +25,7 @@ import static android.view.MotionEvent.ACTION_POINTER_UP;
 import static android.view.MotionEvent.ACTION_UP;
 
 import static com.android.launcher3.Flags.enableCursorHoverStates;
+import static com.android.launcher3.Flags.enableMetaTabToggleInOverview;
 import static com.android.launcher3.Flags.enableTaskbarForDirectBoot;
 import static com.android.launcher3.LauncherPrefs.backedUpItem;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMotionEvent;
@@ -275,7 +276,11 @@ public class TouchInteractionService extends Service {
                     TaskUtils.closeSystemWindowsAsync(CLOSE_SYSTEM_WINDOWS_REASON_RECENTS);
                     tis.mOverviewCommandHelper.addCommand(CommandType.SHOW_ALT_TAB, displayId);
                 } else {
-                    tis.mOverviewCommandHelper.addCommand(CommandType.SHOW_WITH_FOCUS, displayId);
+                    tis.mOverviewCommandHelper.addCommand(
+                            enableMetaTabToggleInOverview()
+                                    ? CommandType.TOGGLE_WITH_FOCUS
+                                    : CommandType.SHOW_WITH_FOCUS,
+                            displayId);
                 }
             });
         }
@@ -764,7 +769,8 @@ public class TouchInteractionService extends Service {
         mRotationTouchHelperRepository = RotationTouchHelper.REPOSITORY_INSTANCE.get(this);
         mRecentsWindowManagerRepository = RecentsWindowManager.REPOSITORY_INSTANCE.get(this);
         mSystemDecorationChangeObserver = SystemDecorationChangeObserver.getINSTANCE().get(this);
-        mQuickstepKeyGestureEventsHandler = new QuickstepKeyGestureEventsManager(this);
+        mQuickstepKeyGestureEventsHandler =
+                QuickstepKeyGestureEventsManager.getINSTANCE().get(this);
         mCoroutineDispatcher = ProductionDispatchers.INSTANCE.getMain();
         mDisplaysWithDecorationsRepositoryCompat =
                 LauncherDisplaysWithDecorationsRepositoryCompat.getINSTANCE().get(this);

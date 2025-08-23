@@ -137,7 +137,8 @@ public class KeyboardQuickSwitchViewController {
                 updateTasks,
                 currentFocusIndexOverride,
                 mViewCallbacks,
-                /* useDesktopTaskView= */ !onDesktop && hasDesktopTask);
+                /* useDesktopTaskView= */ !onDesktop && hasDesktopTask,
+                /* useAnimationStartDelay= */ !wasOpenedFromTaskbar);
     }
 
     protected void updateQuickSwitchView(
@@ -145,7 +146,8 @@ public class KeyboardQuickSwitchViewController {
             int numHiddenTasks,
             int currentFocusIndexOverride,
             boolean hasDesktopTask,
-            boolean wasDesktopTaskFilteredOut) {
+            boolean wasDesktopTaskFilteredOut,
+            boolean useAnimationStartDelay) {
         mWasDesktopTaskFilteredOut = wasDesktopTaskFilteredOut;
         mKeyboardQuickSwitchView.applyLoadPlan(
                 mOverlayContext,
@@ -154,7 +156,8 @@ public class KeyboardQuickSwitchViewController {
                 /* updateTasks= */ true,
                 currentFocusIndexOverride,
                 mViewCallbacks,
-                /* useDesktopTaskView= */ !mOnDesktop && hasDesktopTask);
+                /* useDesktopTaskView= */ !mOnDesktop && hasDesktopTask,
+                useAnimationStartDelay);
     }
 
     protected void positionView(boolean wasOpenedFromTaskbar, boolean isTransientTaskbar) {
@@ -185,18 +188,13 @@ public class KeyboardQuickSwitchViewController {
         mKeyboardQuickSwitchView.setLayoutParams(lp);
     }
 
-    protected void updateLayoutForSurface(boolean updateLayoutFromTaskbar,
-            int currentFocusIndexOverride) {
-        BaseDragLayer.LayoutParams lp =
-                (BaseDragLayer.LayoutParams) mKeyboardQuickSwitchView.getLayoutParams();
+    protected void updateLayoutForSurface(
+            boolean updateLayoutFromTaskbar, int currentFocusIndexOverride) {
+        mKeyboardQuickSwitchView.getLayoutParams().width = updateLayoutFromTaskbar
+                ? BaseDragLayer.LayoutParams.WRAP_CONTENT
+                : BaseDragLayer.LayoutParams.MATCH_PARENT;
 
-        if (updateLayoutFromTaskbar) {
-            lp.width = BaseDragLayer.LayoutParams.WRAP_CONTENT;
-        } else {
-            lp.width = BaseDragLayer.LayoutParams.MATCH_PARENT;
-        }
-
-        mKeyboardQuickSwitchView.animateOpen(currentFocusIndexOverride);
+        mKeyboardQuickSwitchView.animateOpen(currentFocusIndexOverride, !updateLayoutFromTaskbar);
     }
 
     boolean isCloseAnimationRunning() {

@@ -15,7 +15,6 @@
  */
 package com.android.launcher3.taskbar;
 
-import static android.view.accessibility.AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED;
 import static android.window.DesktopModeFlags.ENABLE_TASKBAR_OVERFLOW;
 
 import static com.android.launcher3.BubbleTextView.DISPLAY_TASKBAR;
@@ -367,29 +366,6 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
     @Override
     public void onDeviceProfileChanged(DeviceProfile dp) {
         mShouldTryStartAlign = mActivityContext.shouldStartAlignTaskbar();
-    }
-
-    private void announceTaskbarShown() {
-        BubbleBarLocation bubbleBarLocation = mControllerCallbacks.getBubbleBarLocationIfVisible();
-        if (bubbleBarLocation == null) {
-            announceForAccessibility(mContext.getString(R.string.taskbar_a11y_shown_title));
-        } else if (bubbleBarLocation.isOnLeft(isLayoutRtl())) {
-            announceForAccessibility(
-                    mContext.getString(R.string.taskbar_a11y_shown_with_bubbles_left_title));
-        } else {
-            announceForAccessibility(
-                    mContext.getString(R.string.taskbar_a11y_shown_with_bubbles_right_title));
-        }
-    }
-
-    protected void announceAccessibilityChanges() {
-        // Only announce taskbar window shown. Window disappearing is generally not announce.
-        // This also aligns with talkback guidelines and unnecessary announcement to users.
-        if (isVisibleToUser()) {
-            announceTaskbarShown();
-        }
-        ActivityContext.lookupContext(getContext()).getDragLayer()
-                .sendAccessibilityEvent(TYPE_WINDOW_CONTENT_CHANGED);
     }
 
     /**

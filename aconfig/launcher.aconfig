@@ -396,16 +396,6 @@ flag {
 }
 
 flag {
-  name: "expressive_theme_in_taskbar_and_navigation"
-  namespace: "launcher"
-  description: "Enables the expressive theme and GSF font styles for Taskbar and Gesture Navigation"
-  bug: "394613212"
-  metadata {
-    purpose: PURPOSE_BUGFIX
-  }
-}
-
-flag {
   name: "enable_strict_mode"
   namespace: "launcher"
   description: "Enable Strict Mode for the Launcher app"

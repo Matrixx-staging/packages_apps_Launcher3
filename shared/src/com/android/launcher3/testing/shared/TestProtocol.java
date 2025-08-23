@@ -183,6 +183,10 @@ public final class TestProtocol {
 
     public static final String REQUEST_FLAG_ENABLE_MULTIPLE_DESKTOPS = "enable-multiple-desks";
 
+    public static final String REQUEST_GET_ACTIVE_DESK_ID = "get-active-desk-id";
+
+    public static final String REQUEST_GET_DESK_ID = "get-desk-id";
+
     public static final String REQUEST_IS_RECENTS_WINDOW_ENABLED = "recents-window-enabled";
 
     public static final String REQUEST_UNSTASH_BUBBLE_BAR_IF_STASHED =

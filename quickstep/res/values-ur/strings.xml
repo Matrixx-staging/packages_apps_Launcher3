@@ -47,7 +47,6 @@
     <string name="hotseat_tip_gaps_filled" msgid="3035673010274223538">"ایپس کی تجاویز کو خالی اسپیس میں شامل کر دیا گیا"</string>
     <string name="hotsaet_tip_prediction_enabled" msgid="2233554377501347650">"ایپ کی تجاویز فعال ہیں"</string>
     <string name="hotsaet_tip_prediction_disabled" msgid="1506426298884658491">"ایپ کی تجاویز غیر فعال ہیں"</string>
-    <string name="hotseat_prediction_content_description" msgid="4582028296938078419">"پیشن گوئی کردہ ایپ: <xliff:g id="TITLE">%1$s</xliff:g>"</string>
     <string name="gesture_tutorial_title" msgid="2750751261768388354">"اشاروں والی نیویگیشن ٹیوٹوریل"</string>
     <string name="gesture_tutorial_rotation_prompt_title" msgid="7537946781362766964">"اپنا آلہ گھمائیں"</string>
     <string name="gesture_tutorial_rotation_prompt" msgid="1664493449851960691">"براہ کرم اشاروں والی نیویگیشن کا ٹیوٹوریل مکمل کرنے کے لیے اپنا آلہ گھمائیں"</string>
@@ -150,10 +149,8 @@
     <string name="change_navigation_mode" msgid="9088393078736808968">"نیویگیشن موڈ تبدیل کریں"</string>
     <string name="taskbar_divider_a11y_title" msgid="6608690309720242080">"ٹاسک بار ڈیوائیڈر"</string>
     <string name="taskbar_overflow_a11y_title" msgid="8114045167370723746">"دیگر حالیہ ایپس"</string>
-    <!-- no translation found for app_added_to_taskbar (1160433791917609063) -->
-    <skip />
-    <!-- no translation found for app_removed_from_taskbar (7887298201562912487) -->
-    <skip />
+    <string name="app_added_to_taskbar" msgid="1160433791917609063">"ایپ کو ٹاسک بار میں شامل کیا گیا"</string>
+    <string name="app_removed_from_taskbar" msgid="7887298201562912487">"ایپ کو ٹاسک بار سے نکالا گیا"</string>
     <string name="move_drop_target_top_or_left" msgid="2988702185049595807">"اوپر/بائیں طرف منتقل کریں"</string>
     <string name="move_drop_target_bottom_or_right" msgid="5431393418797620162">"نیچے/دائیں طرف منتقل کریں"</string>
     <string name="open_app_as_a_bubble" msgid="6642626287247807473">"ایپ کو بطور ببل کھولیں"</string>

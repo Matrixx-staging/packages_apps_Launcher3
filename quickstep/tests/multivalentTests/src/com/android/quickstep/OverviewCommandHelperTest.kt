@@ -40,6 +40,7 @@ import com.android.quickstep.OverviewCommandHelper.CommandType
 import com.android.quickstep.OverviewCommandHelper.Companion.TOGGLE_PREVIOUS_TIMEOUT_MS
 import com.android.quickstep.views.KeyboardFocusTask
 import com.android.quickstep.views.RecentsView
+import com.android.quickstep.views.RecentsViewUtils
 import com.android.quickstep.views.TaskView
 import com.android.window.flags.Flags as WindowFlags
 import com.google.common.truth.Truth.assertThat
@@ -449,6 +450,67 @@ class OverviewCommandHelperTest {
             sut.addCommand(CommandType.TOGGLE)
             runCurrent()
             verify(previousTaskView).launchWithAnimation()
+        }
+
+    @Test
+    fun toggleWithFocus_recentViewNotVisible_goToOverview() =
+        testScope.runTest {
+            whenever(containerInterface.getVisibleRecentsView<RecentsView<*, *>>()).thenReturn(null)
+            sut.addCommand(CommandType.TOGGLE_WITH_FOCUS)!!
+            runCurrent()
+            verify(containerInterface).switchToRecentsIfVisible(any())
+        }
+
+    // TODO(b/385128447): add tests for when a TaskContentView is focused.
+    @Test
+    fun toggleWithFocus_recentViewVisible_windowTaskFocused_launchFocusedTask() =
+        testScope.runTest {
+            val mockFocusedTask = mock<TaskView>()
+            val mockTaskViewsIterable = mock<RecentsViewUtils.TaskViewsIterable>()
+
+            whenever(containerInterface.getVisibleRecentsView<RecentsView<*, *>>())
+                .thenReturn(recentView)
+            whenever(mockFocusedTask.isFocused).thenReturn(true)
+            whenever(mockTaskViewsIterable.iterator())
+                .thenReturn(listOf(mockFocusedTask).iterator())
+            whenever(recentView.taskViews).thenReturn(mockTaskViewsIterable)
+            sut.addCommand(CommandType.TOGGLE_WITH_FOCUS)!!
+            runCurrent()
+            verify(mockFocusedTask).launchWithAnimation()
+        }
+
+    @Test
+    fun toggleWithFocus_recentViewVisible_windowTaskHovered_launchHoveredTask() =
+        testScope.runTest {
+            val mockFocusedTask = mock<TaskView>()
+            val mockTaskViewsIterable = mock<RecentsViewUtils.TaskViewsIterable>()
+
+            whenever(containerInterface.getVisibleRecentsView<RecentsView<*, *>>())
+                .thenReturn(recentView)
+            whenever(mockFocusedTask.isFocused).thenReturn(false)
+            whenever(mockFocusedTask.isHovered).thenReturn(true)
+            whenever(mockTaskViewsIterable.iterator())
+                .thenReturn(listOf(mockFocusedTask).iterator())
+            whenever(recentView.taskViews).thenReturn(mockTaskViewsIterable)
+            sut.addCommand(CommandType.TOGGLE_WITH_FOCUS)!!
+            runCurrent()
+            verify(mockFocusedTask).launchWithAnimation()
+        }
+
+    @Test
+    fun toggleWithFocus_recentViewVisible_noTaskFocused_launchCurrentPageTaskView() =
+        testScope.runTest {
+            val mockTask = mock<TaskView>()
+            val mockTaskViewsIterable = mock<RecentsViewUtils.TaskViewsIterable>()
+
+            whenever(containerInterface.getVisibleRecentsView<RecentsView<*, *>>())
+                .thenReturn(recentView)
+            whenever(mockTaskViewsIterable.iterator()).thenReturn(emptyList<TaskView>().iterator())
+            whenever(recentView.taskViews).thenReturn(mockTaskViewsIterable)
+            whenever(recentView.currentPageTaskView).thenReturn(mockTask)
+            sut.addCommand(CommandType.TOGGLE_WITH_FOCUS)!!
+            runCurrent()
+            verify(mockTask).launchWithAnimation()
         }
 
     @Test

@@ -398,13 +398,6 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     }
 
     /**
-     * Announcement for Accessibility when Taskbar stashes/unstashes.
-     */
-    public void announceForAccessibility() {
-        mTaskbarView.announceAccessibilityChanges();
-    }
-
-    /**
      * Called with destroying Taskbar with animation.
      */
     public void onDestroyAnimation(AnimatorSet animatorSet) {

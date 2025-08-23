@@ -640,8 +640,12 @@ public abstract class AbsSwipeUpHandler<
             HashMap<Integer, ThumbnailData> snapshots =
                     mGestureState.consumeRecentsAnimationCanceledSnapshot();
             if (snapshots != null) {
-                mRecentsView.switchToScreenshot(snapshots, () -> {});
-                mRecentsView.onRecentsAnimationComplete();
+                mRecentsView.switchToScreenshot(snapshots, () -> {
+                    if (mRecentsAnimationController != null) {
+                        mRecentsAnimationController.finish(/* toHome= */ true, () -> {});
+                    }
+                    mRecentsView.onRecentsAnimationComplete();
+                });
             }
         });
 
