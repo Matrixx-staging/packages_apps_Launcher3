@@ -84,6 +84,7 @@ import com.android.launcher3.views.RecyclerViewFastScroller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 
 /**
@@ -346,7 +347,7 @@ public class PrivateProfileManager extends UserProfileManager {
      * When the list of system apps is empty, all apps are treated as system.
      */
     public Predicate<AppInfo> splitIntoUserInstalledAndSystemApps(Context context) {
-        List<String> preInstallApps = UserCache.getInstance(context)
+        Set<String> preInstallApps = UserCache.getInstance(context)
                 .getPreInstallApps(getProfileUser());
         return appInfo -> !preInstallApps.isEmpty()
                 && (appInfo.componentName == null

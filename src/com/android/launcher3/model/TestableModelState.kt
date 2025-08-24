@@ -33,4 +33,5 @@ constructor(
     @JvmField val appsList: AllAppsList,
     @JvmField val homeRepo: HomeScreenRepository,
     @JvmField val appsRepo: AppsListRepository,
+    @JvmField val dbController: ModelDbController,
 )

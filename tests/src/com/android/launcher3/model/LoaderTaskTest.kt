@@ -6,8 +6,7 @@ import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.LauncherActivityInfo
 import android.database.sqlite.SQLiteDatabase
-import android.os.Process
-import android.os.UserHandle
+import android.os.Process.myUserHandle
 import android.platform.test.annotations.DisableFlags
 import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
@@ -39,7 +38,6 @@ import com.android.launcher3.model.data.AppsListData.Companion.FLAG_QUIET_MODE_E
 import com.android.launcher3.model.data.AppsListData.Companion.FLAG_WORK_PROFILE_QUIET_MODE_ENABLED
 import com.android.launcher3.model.data.IconRequestInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
-import com.android.launcher3.pm.UserCache
 import com.android.launcher3.provider.RestoreDbTask
 import com.android.launcher3.util.AllModulesForTest
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
@@ -49,6 +47,8 @@ import com.android.launcher3.util.SandboxApplication
 import com.android.launcher3.util.SettingsCache
 import com.android.launcher3.util.TestUtil
 import com.android.launcher3.util.UserIconInfo
+import com.android.launcher3.util.rule.MockUsersRule
+import com.android.launcher3.util.rule.MockUsersRule.MockUser
 import com.android.launcher3.util.ui.TestViewHelpers
 import com.google.common.truth.Truth.assertThat
 import dagger.BindsInstance
@@ -85,6 +85,7 @@ class LoaderTaskTest {
     @get:Rule val setFlagsRule = SetFlagsRule()
     @get:Rule val mockitoRule = MockitoJUnit.rule()
     @get:Rule val context = spy(SandboxApplication().withModelDependency())
+    @get:Rule val mockUsers = MockUsersRule(context)
 
     private val expectedBroadcastModel =
         FirstScreenBroadcastModel(
@@ -102,7 +103,6 @@ class LoaderTaskTest {
     @Mock private lateinit var modelDelegate: ModelDelegate
     @Mock private lateinit var launcherModel: LauncherModel
     @Mock private lateinit var iconCache: IconCache
-    @Mock private lateinit var userCache: UserCache
     @Mock private lateinit var modelDbController: ModelDbController
     @Mock private lateinit var broadcastHelper: FirstScreenBroadcastHelper
 
@@ -157,7 +157,6 @@ class LoaderTaskTest {
 
         context.initDaggerComponent(
             DaggerLoaderTaskTest_TestComponent.builder()
-                .bindUserCache(userCache)
                 .bindIconCache(iconCache)
                 .bindLauncherModel(launcherModel)
                 .bindAllAppsList(bgAllAppsList)
@@ -180,12 +179,9 @@ class LoaderTaskTest {
     }
 
     @Test
+    @MockUser(userType = UserIconInfo.TYPE_WORK)
     fun loadsDataProperly() =
         with(bgDataModel) {
-            val MAIN_HANDLE = Process.myUserHandle()
-            val mockUserHandles = arrayListOf<UserHandle>(MAIN_HANDLE)
-            `when`(userCache.userProfiles).thenReturn(mockUserHandles)
-            `when`(userCache.getUserInfo(MAIN_HANDLE)).thenReturn(UserIconInfo(MAIN_HANDLE, 1))
             testComponent
                 .getLoaderTaskFactory()
                 .newLoaderTask(launcherBinder, userManagerState)
@@ -229,14 +225,11 @@ class LoaderTaskTest {
     }
 
     @Test
+    @MockUser(userType = UserIconInfo.TYPE_WORK)
     fun setsQuietModeFlagCorrectlyForWorkProfile() =
         with(bgDataModel) {
             setFlagsRule.enableFlags(Flags.FLAG_ENABLE_PRIVATE_SPACE)
-            val MAIN_HANDLE = Process.myUserHandle()
-            val mockUserHandles = arrayListOf<UserHandle>(MAIN_HANDLE)
-            `when`(userCache.userProfiles).thenReturn(mockUserHandles)
-            `when`(userManagerState?.isUserQuiet(MAIN_HANDLE)).thenReturn(true)
-            `when`(userCache.getUserInfo(MAIN_HANDLE)).thenReturn(UserIconInfo(MAIN_HANDLE, 1))
+            `when`(userManagerState.isUserQuiet(myUserHandle())).thenReturn(true)
 
             testComponent
                 .getLoaderTaskFactory()
@@ -249,14 +242,11 @@ class LoaderTaskTest {
         }
 
     @Test
+    @MockUser(userType = UserIconInfo.TYPE_PRIVATE)
     fun setsQuietModeFlagCorrectlyForPrivateProfile() =
         with(bgDataModel) {
             setFlagsRule.enableFlags(Flags.FLAG_ENABLE_PRIVATE_SPACE)
-            val MAIN_HANDLE = Process.myUserHandle()
-            val mockUserHandles = arrayListOf<UserHandle>(MAIN_HANDLE)
-            `when`(userCache.userProfiles).thenReturn(mockUserHandles)
-            `when`(userManagerState?.isUserQuiet(MAIN_HANDLE)).thenReturn(true)
-            `when`(userCache.getUserInfo(MAIN_HANDLE)).thenReturn(UserIconInfo(MAIN_HANDLE, 3))
+            `when`(userManagerState.isUserQuiet(myUserHandle())).thenReturn(true)
 
             testComponent
                 .getLoaderTaskFactory()
@@ -543,8 +533,6 @@ class LoaderTaskTest {
 
         @Component.Builder
         interface Builder : LauncherAppComponent.Builder {
-            @BindsInstance fun bindUserCache(userCache: UserCache): Builder
-
             @BindsInstance fun bindLauncherModel(model: LauncherModel): Builder
 
             @BindsInstance fun bindIconCache(iconCache: IconCache): Builder

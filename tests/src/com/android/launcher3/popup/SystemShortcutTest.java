@@ -48,8 +48,6 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.LauncherActivityInfo;
 import android.content.pm.LauncherApps;
-import android.os.Process;
-import android.os.UserHandle;
 import android.platform.test.annotations.DisableFlags;
 import android.platform.test.annotations.EnableFlags;
 import android.platform.test.flag.junit.SetFlagsRule;
@@ -62,27 +60,22 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.R;
 import com.android.launcher3.allapps.PrivateProfileManager;
-import com.android.launcher3.dagger.LauncherAppComponent;
-import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.logging.StatsLogManager.StatsLogger;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
-import com.android.launcher3.pm.UserCache;
-import com.android.launcher3.util.AllModulesForTest;
 import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.LauncherMultivalentJUnit;
 import com.android.launcher3.util.SandboxApplication;
 import com.android.launcher3.util.TestActivityContext;
 import com.android.launcher3.util.TestUtil;
 import com.android.launcher3.util.UserIconInfo;
+import com.android.launcher3.util.rule.MockUsersRule;
+import com.android.launcher3.util.rule.MockUsersRule.MockUser;
 import com.android.launcher3.views.Snackbar;
 import com.android.launcher3.widget.picker.model.WidgetPickerDataProvider;
 import com.android.launcher3.widget.picker.model.data.WidgetPickerData;
-
-import dagger.BindsInstance;
-import dagger.Component;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -102,17 +95,14 @@ public class SystemShortcutTest {
     @Rule public final SandboxApplication mSandboxContext = spy(new SandboxApplication());
     @Rule public final TestActivityContext mTestContext =
             spy(new TestActivityContext(mSandboxContext));
+    @Rule public final MockUsersRule mMockUsers = new MockUsersRule(mSandboxContext);
 
-    private static final UserHandle PRIVATE_HANDLE = new UserHandle(11);
-    private static final UserHandle MAIN_HANDLE = Process.myUserHandle();
     private View mView;
     private ItemInfo mItemInfo;
     private PrivateProfileManager mPrivateProfileManager;
     private WidgetPickerDataProvider mWidgetPickerDataProvider;
     private AppInfo mAppInfo;
 
-    @Mock UserCache mUserCache;
-    @Mock UserIconInfo mUserIconInfo;
     @Mock LauncherActivityInfo mLauncherActivityInfo;
     @Mock ApplicationInfo mApplicationInfo;
     @Mock Intent mIntent;
@@ -121,9 +111,6 @@ public class SystemShortcutTest {
 
     @Before
     public void setUp() {
-        mSandboxContext.initDaggerComponent(
-                DaggerSystemShortcutTest_TestComponent.builder().bindUserCache(mUserCache)
-        );
         doReturn(mStatsLogManager).when(mTestContext).getStatsLogManager();
 
         doReturn(mStatsLogger).when(mStatsLogManager).logger();
@@ -135,10 +122,8 @@ public class SystemShortcutTest {
         doReturn(mLauncherActivityInfo).when(mLauncherApps).resolveActivity(any(), any());
         when(mLauncherActivityInfo.getApplicationInfo()).thenReturn(mApplicationInfo);
 
-        when(mUserCache.getUserInfo(any())).thenReturn(mUserIconInfo);
         mPrivateProfileManager = mTestContext.getAppsView().getPrivateProfileManager();
         spyOn(mPrivateProfileManager);
-        when(mPrivateProfileManager.getProfileUser()).thenReturn(PRIVATE_HANDLE);
 
         mWidgetPickerDataProvider = mTestContext.getWidgetPickerDataProvider();
         spyOn(mWidgetPickerDataProvider);
@@ -279,19 +264,20 @@ public class SystemShortcutTest {
     }
 
     @Test
+    @MockUser(userType = UserIconInfo.TYPE_MAIN)
+    @MockUser(userType = UserIconInfo.TYPE_PRIVATE)
     public void testPrivateProfileInstallNonNullPrivateProfileUser() {
         mAppInfo = new AppInfo();
         mAppInfo.componentName = new ComponentName(mTestContext, getClass());
         mAppInfo.container = CONTAINER_ALL_APPS;
         when(mPrivateProfileManager.isEnabled()).thenReturn(true);
-        when(mPrivateProfileManager.getProfileUser()).thenReturn(PRIVATE_HANDLE);
 
         assertNotNull(mAppInfo.getTargetComponent());
         assertTrue(mAppInfo.getContainerInfo().hasAllAppsContainer());
         assertNotNull(mPrivateProfileManager);
         assertNotNull(mPrivateProfileManager.getProfileUser());
-        assertNull(mTestContext.getAppsView().getAppsStore().getApp(
-                new ComponentKey(mAppInfo.getTargetComponent(), PRIVATE_HANDLE)));
+        assertNull(mTestContext.getAppsView().getAppsStore().getApp(new ComponentKey(
+                mAppInfo.getTargetComponent(), mMockUsers.findUser(UserIconInfo::isPrivate))));
 
         SystemShortcut systemShortcut = SystemShortcut.PRIVATE_PROFILE_INSTALL
                 .getShortcut(mTestContext, mAppInfo, mView);
@@ -333,25 +319,21 @@ public class SystemShortcutTest {
     @EnableFlags(FLAG_ENABLE_PRIVATE_SPACE)
     public void testUninstallGetShortcutWithNonPrivateItemInfo() {
         mAppInfo = new AppInfo();
-        mAppInfo.user = MAIN_HANDLE;
-        when(mUserIconInfo.isPrivate()).thenReturn(false);
-
-        SystemShortcut systemShortcut = SystemShortcut.UNINSTALL_APP.getShortcut(
-                mTestContext, mAppInfo, mView);
-        verify(mUserIconInfo).isPrivate();
-        Assert.assertNull(systemShortcut);
+        Assert.assertNull(SystemShortcut.UNINSTALL_APP.getShortcut(
+                mTestContext, mAppInfo, mView));
     }
 
     @Test
     @EnableFlags(FLAG_ENABLE_PRIVATE_SPACE)
+    @MockUser(userType = UserIconInfo.TYPE_MAIN)
+    @MockUser(userType = UserIconInfo.TYPE_PRIVATE)
     public void testUninstallGetShortcutWithSystemItemInfo() {
         mAppInfo = new AppInfo();
-        mAppInfo.user = PRIVATE_HANDLE;
+        mAppInfo.user = mMockUsers.findUser(UserIconInfo::isPrivate);
         mAppInfo.itemType = ITEM_TYPE_APPLICATION;
         mAppInfo.intent = mIntent;
         mAppInfo.componentName = new ComponentName(mTestContext, getClass());
         when(mLauncherActivityInfo.getComponentName()).thenReturn(mAppInfo.componentName);
-        when(mUserIconInfo.isPrivate()).thenReturn(true);
         // System App
         mApplicationInfo.flags = 1;
 
@@ -363,13 +345,14 @@ public class SystemShortcutTest {
 
     @Test
     @EnableFlags(FLAG_ENABLE_PRIVATE_SPACE)
+    @MockUser(userType = UserIconInfo.TYPE_MAIN)
+    @MockUser(userType = UserIconInfo.TYPE_PRIVATE)
     public void testUninstallGetShortcutWithPrivateItemInfo() {
         mAppInfo = new AppInfo();
-        mAppInfo.user = PRIVATE_HANDLE;
+        mAppInfo.user = mMockUsers.findUser(UserIconInfo::isPrivate);
         mAppInfo.itemType = ITEM_TYPE_APPLICATION;
         mAppInfo.intent = mIntent;
         mAppInfo.componentName = new ComponentName(mTestContext, getClass());
-        when(mUserIconInfo.isPrivate()).thenReturn(true);
         when(mLauncherActivityInfo.getComponentName()).thenReturn(mAppInfo.componentName);
         // 3rd party app, not system app.
         mApplicationInfo.flags = 0;
@@ -382,16 +365,5 @@ public class SystemShortcutTest {
 
         systemShortcut.onClick(mView);
         verify(mSandboxContext).startActivity(any());
-    }
-
-    @LauncherAppSingleton
-    @Component(modules = { AllModulesForTest.class })
-    interface TestComponent extends LauncherAppComponent {
-        @Component.Builder
-        interface Builder extends LauncherAppComponent.Builder {
-            @BindsInstance
-            SystemShortcutTest.TestComponent.Builder bindUserCache(UserCache userCache);
-            @Override LauncherAppComponent build();
-        }
     }
 }
