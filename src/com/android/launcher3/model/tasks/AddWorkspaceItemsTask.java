@@ -16,6 +16,7 @@
 package com.android.launcher3.model.tasks;
 
 import static com.android.launcher3.LauncherSettings.Favorites.DESKTOP_ICON_FLAG;
+import static com.android.launcher3.WorkspaceLayoutManager.FIRST_SCREEN_ID;
 
 import android.content.Context;
 import android.content.Intent;
@@ -42,12 +43,13 @@ import com.android.launcher3.model.data.CollectionInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.model.data.LauncherAppWidgetInfo;
+import com.android.launcher3.model.data.WorkspaceItemCoordinates;
 import com.android.launcher3.model.data.WorkspaceItemFactory;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.pm.InstallSessionHelper;
 import com.android.launcher3.pm.PackageInstallInfo;
 import com.android.launcher3.util.ApplicationInfoWrapper;
-import com.android.launcher3.util.IntArray;
+import com.android.launcher3.util.IntSet;
 import com.android.launcher3.util.PackageManagerHelper;
 
 import java.util.ArrayList;
@@ -86,12 +88,10 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
         }
 
         final ArrayList<ItemInfo> addedItemsFinal = new ArrayList<>();
-        final IntArray addedWorkspaceScreensFinal = new IntArray();
+        final IntSet excludedScreens = IntSet.wrap(FIRST_SCREEN_ID);
         final Context context = taskController.getContext();
 
         synchronized (dataModel) {
-            IntArray workspaceScreens = dataModel.itemsIdMap.collectWorkspaceScreens();
-
             List<ItemInfo> filteredItems = new ArrayList<>();
             for (Pair<ItemInfo, Object> entry : mItemList) {
                 ItemInfo item = entry.first;
@@ -130,9 +130,8 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
             ModelWriter writer = taskController.getModelWriter();
             for (ItemInfo item : filteredItems) {
                 // Find appropriate space for the item.
-                int[] coords = mItemSpaceFinder.findSpaceForItem(workspaceScreens,
-                        addedWorkspaceScreensFinal, addedItemsFinal, item.spanX, item.spanY);
-                int screenId = coords[0];
+                WorkspaceItemCoordinates coords = mItemSpaceFinder.findSpaceForItem(addedItemsFinal,
+                        item.spanX, item.spanY, excludedScreens);
 
                 ItemInfo itemInfo;
                 if (item instanceof WorkspaceItemInfo || item instanceof CollectionInfo
@@ -198,9 +197,8 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
                 }
 
                 // Save the WorkspaceItemInfo for binding in the workspace
-                writer.updateItemInfoProps(itemInfo,
-                        LauncherSettings.Favorites.CONTAINER_DESKTOP, screenId,
-                        coords[1], coords[2]);
+                writer.updateItemInfoProps(itemInfo, LauncherSettings.Favorites.CONTAINER_DESKTOP,
+                        coords.getScreenId(), coords.getCellX(), coords.getCellY());
                 addedItemsFinal.add(itemInfo);
 
                 // log bitmap and label
