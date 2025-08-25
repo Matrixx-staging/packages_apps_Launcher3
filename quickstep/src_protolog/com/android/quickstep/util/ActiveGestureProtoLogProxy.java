@@ -592,4 +592,15 @@ public class ActiveGestureProtoLogProxy {
                 endTarget,
                 reason.toString());
     }
+
+    public static void logCalculateEndTargetResultAndReason(
+            @NonNull String endTarget, @NonNull ActiveGestureLog.CompoundString reason) {
+        ActiveGestureLog.INSTANCE.addLog(new ActiveGestureLog.CompoundString(
+                "calculateEndTarget: endTarget=%s, reason=", endTarget).append(reason));
+        if (!isProtoLogInitialized()) return;
+        ProtoLog.d(ACTIVE_GESTURE_LOG,
+                "calculateEndTarget: endTarget=%s, reason=%s",
+                endTarget,
+                reason.toString());
+    }
 }
