@@ -339,6 +339,7 @@ public class NavHandleLongPressInputConsumerTest {
                 eq(NavHandleLongPressInputConsumer.CANCEL_REASON_INPUT_CONSUMER_SWITCHED));
         verify(mStatsLogger, never()).log(LAUNCHER_LONG_PRESS_NAVBAR);
         verify(mStatsLatencyLogger).log(LAUNCHER_LATENCY_CONTEXTUAL_SEARCH_LPNH_ABANDON);
+        verify(mDelegate).onConsumerAboutToBeSwitched();
     }
 
     @Test
