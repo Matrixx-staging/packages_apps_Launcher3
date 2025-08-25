@@ -18,9 +18,6 @@ package com.android.launcher3.graphics
 
 import android.content.Context
 import android.content.res.Resources
-import android.graphics.Color
-import android.graphics.drawable.AdaptiveIconDrawable
-import android.graphics.drawable.ColorDrawable
 import com.android.launcher3.EncryptionType
 import com.android.launcher3.Item
 import com.android.launcher3.LauncherPrefChangeListener
@@ -97,6 +94,7 @@ constructor(
         val prefListener = LauncherPrefChangeListener { key ->
             if (prefKeySet.contains(key)) verifyIconState()
         }
+
         prefs.addListener(prefListener, *keysArray)
         lifecycle.addCloseable {
             receiver.unregisterReceiverSafely()
@@ -107,12 +105,13 @@ constructor(
     private fun verifyIconState() {
         val newState = parseIconState(iconState)
         if (newState == iconState) return
-        val hasThemedChanged = newState.themeCode != iconState.themeCode
+        val hasThemedChanged = newState.toUniqueId() != iconState.toUniqueId()
         iconState = newState
         if (hasThemedChanged) {
             // trigger listeners only for theme change, not shape change
             listeners.forEach { it.onThemeChanged() }
         }
+        _iconShapeData.dispatchValue(iconShape.createIconShape(iconShapeData.value.pathSize))
     }
 
     fun addChangeListener(listener: ThemeChangeListener) = listeners.add(listener)
@@ -147,11 +146,6 @@ constructor(
                 pickBestShape(iconMask)
             }
 
-        if (oldState?.iconMask != iconMask) {
-            // Create only if shape changed.
-            _iconShapeData.dispatchValue(iconShape.createIconShape(iconShapeData.value.pathSize))
-        }
-
         val folderRadius = shapeModel?.folderRadiusRatio ?: 1f
         val folderShape =
             if (oldState != null && oldState.folderRadius == folderRadius) {
@@ -178,10 +172,12 @@ constructor(
         val themeController: IconThemeController?,
         val themeCode: String = themeController?.themeID ?: "no-theme",
         val iconShape: ShapeDelegate,
+        /* Icon content may change when using Circle shape due to android:roundIcon property */
+        val isCircle: Boolean = iconShape is ShapeDelegate.Circle,
         val folderShape: ShapeDelegate,
         val shapeRadius: Float,
     ) {
-        fun toUniqueId() = "${iconMask.hashCode()},$themeCode"
+        fun toUniqueId() = "$themeCode,$isCircle"
 
         val iconShapeInfo = IconShapeInfo.fromPath(iconShape.getPath(), DEFAULT_PATH_SIZE_INT)
         val folderShapeInfo = IconShapeInfo.fromPath(folderShape.getPath(), DEFAULT_PATH_SIZE_INT)
@@ -221,6 +217,5 @@ constructor(
 
         private fun ShapeDelegate.createIconShape(size: Int) =
             generateIconShape(size, getPath(size.toFloat()))
-
     }
 }
