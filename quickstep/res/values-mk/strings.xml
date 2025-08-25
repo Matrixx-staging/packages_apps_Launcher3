@@ -141,9 +141,6 @@
     <string name="taskbar_button_notifications" msgid="7471740351507357318">"Известувања"</string>
     <string name="taskbar_button_quick_settings" msgid="227662894293189391">"Брзи поставки"</string>
     <string name="taskbar_a11y_title" msgid="6432169809852243110">"Лента со задачи"</string>
-    <string name="taskbar_a11y_shown_title" msgid="6842833581088937713">"Лентата со задачи е прикажана"</string>
-    <string name="taskbar_a11y_shown_with_bubbles_left_title" msgid="4242431789851790046">"Лен. со зад. и бал. се лево"</string>
-    <string name="taskbar_a11y_shown_with_bubbles_right_title" msgid="8219065376188180113">"Лен. со зад. и бал. се десно"</string>
     <string name="taskbar_phone_a11y_title" msgid="4933360237131229395">"Лента за навигација"</string>
     <string name="always_show_taskbar" msgid="3608801276107751229">"Секогаш прикажувај „Лента“"</string>
     <string name="change_navigation_mode" msgid="9088393078736808968">"Променете режим на навигација"</string>
