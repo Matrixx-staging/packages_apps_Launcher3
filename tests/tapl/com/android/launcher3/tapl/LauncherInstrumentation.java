@@ -461,7 +461,7 @@ public final class LauncherInstrumentation {
                 TestProtocol.TEST_INFO_RESPONSE_FIELD);
     }
 
-    int getActiveDeskId() {
+    public int getActiveDeskId() {
         return getTestInfo(TestProtocol.REQUEST_GET_ACTIVE_DESK_ID,
                 String.valueOf(mDisplayId)).getInt(
                 TestProtocol.TEST_INFO_RESPONSE_FIELD);

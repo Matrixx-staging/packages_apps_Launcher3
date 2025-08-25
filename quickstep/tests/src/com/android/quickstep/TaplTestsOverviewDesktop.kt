@@ -225,6 +225,73 @@ class TaplTestsOverviewDesktop : AbstractQuickStepTest() {
 
     @Test
     @PortraitLandscape
+    @EnableFlags(FLAG_ENABLE_MULTIPLE_DESKTOPS_FRONTEND, FLAG_ENABLE_MULTIPLE_DESKTOPS_BACKEND)
+    fun testQuickSwitchBetweenDesksForwardAndBackward() {
+        // Create two empty desks and 1 non-empty desk, and keep record of deskId.
+        var overview =
+            mLauncher.workspace
+                .switchToOverview()
+                .createDeskViaClickAddDesktopButton()
+                .apply { flingBackward() }
+                .currentTask
+                .open()
+                .switchToOverview()
+        val desk1Id = overview.currentTask.deskId
+
+        overview =
+            overview
+                .createDeskViaClickAddDesktopButton()
+                .apply { flingBackward() }
+                .currentTask
+                .open()
+                .switchToOverview()
+        val desk2Id = overview.currentTask.deskId
+
+        overview =
+            overview
+                .createDeskViaClickAddDesktopButton()
+                .apply { flingBackward() }
+                .currentTask
+                .open()
+                .taskbar
+                .openAllApps()
+                .getAppIcon(CALCULATOR_APP_NAME)
+                .launch(CALCULATOR_APP_PACKAGE)
+                .switchToOverview()
+        val desk3Id = overview.currentTask.deskId
+
+        // Start from Desk 3
+        var launchedDesk = overview.currentTask.open()
+        assertWithMessage("The active desk should be Desk 3")
+            .that(mLauncher.activeDeskId)
+            .isEqualTo(desk3Id)
+
+        // Quick switch backward
+        launchedDesk = launchedDesk.quickSwitchToPreviousApp()
+        assertWithMessage("The active desk should be Desk 2 after switching backward")
+            .that(mLauncher.activeDeskId)
+            .isEqualTo(desk2Id)
+        launchedDesk = launchedDesk.quickSwitchToPreviousApp()
+        assertWithMessage("The active desk should be Desk 1 after switching backward")
+            .that(mLauncher.activeDeskId)
+            .isEqualTo(desk1Id)
+
+        // Quick switch forward
+        launchedDesk = launchedDesk.quickSwitchToPreviousAppSwipeLeft()
+        assertWithMessage("The active desk should be Desk 2 after switching forward")
+            .that(mLauncher.activeDeskId)
+            .isEqualTo(desk2Id)
+        launchedDesk.quickSwitchToPreviousAppSwipeLeft()
+        assertWithMessage("The active desk should be Desk 3 after switching forward")
+            .that(mLauncher.activeDeskId)
+            .isEqualTo(desk3Id)
+
+        // Cleanup: Go to overview and dismiss all tasks to prevent memory leak.
+        mLauncher.launchedAppState.switchToOverview().dismissAllTasks()
+    }
+
+    @Test
+    @PortraitLandscape
     fun dismissFocusedTasks_thenDesktopIsCentered() {
         // Create DesktopTaskView
         mLauncher.goHome().switchToOverview().moveTaskToDesktop(TEST_ACTIVITY_2)
