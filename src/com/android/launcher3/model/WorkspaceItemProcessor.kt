@@ -55,6 +55,7 @@ import com.android.launcher3.util.ApiWrapper
 import com.android.launcher3.util.ApplicationInfoWrapper
 import com.android.launcher3.util.ContentWriter
 import com.android.launcher3.util.IntArray
+import com.android.launcher3.util.IntSet
 import com.android.launcher3.util.IntSparseArrayMap
 import com.android.launcher3.util.PackageManagerHelper
 import com.android.launcher3.util.PackageUserKey
@@ -633,8 +634,7 @@ class WorkspaceItemProcessor(
     private fun addRemainingFileSystemItems(modelDbController: ModelDbController) {
         val knownDesktopContainerItems =
             ArrayList(loadedItems.filter { it.container == Favorites.CONTAINER_DESKTOP })
-        val knownScreenIds =
-            IntArray.wrap(*knownDesktopContainerItems.map { it.screenId }.distinct().toIntArray())
+        val excludedScreens = IntSet()
 
         for ((_, file) in homeScreenFiles.value) {
             // TODO(b/424466810): ignore normally restored items.
@@ -652,15 +652,14 @@ class WorkspaceItemProcessor(
 
             val coords =
                 workspaceItemSpaceFinder.findSpaceForItem(
-                    knownScreenIds,
-                    IntArray(),
                     knownDesktopContainerItems,
                     item.spanX,
                     item.spanY,
+                    excludedScreens,
                 )
-            item.screenId = coords[0]
-            item.cellX = coords[1]
-            item.cellY = coords[2]
+            item.screenId = coords.screenId
+            item.cellX = coords.cellX
+            item.cellY = coords.cellY
 
             val writer = ContentWriter(context)
             item.onAddToDatabase(writer)
