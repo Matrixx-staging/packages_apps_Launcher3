@@ -30,6 +30,7 @@ import androidx.annotation.VisibleForTesting
 import androidx.core.graphics.ColorUtils
 import com.android.app.animation.Interpolators
 import com.android.launcher3.Flags
+import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.launcher3.anim.AnimatedFloat
 import com.android.launcher3.anim.AnimatorListeners
@@ -43,11 +44,8 @@ import com.android.launcher3.icons.GraphicsUtils.transformed
 import com.android.launcher3.icons.IconNormalizer.ICON_VISIBLE_AREA_FACTOR
 import com.android.launcher3.icons.IconShape
 import com.android.launcher3.model.data.ItemInfoWithIcon
-import com.android.launcher3.R
-
 import kotlin.math.max
 import kotlin.math.min
-
 
 /** Extension of [FastBitmapDrawable] which shows a progress bar around the icon. */
 class PreloadIconDelegate(
@@ -61,35 +59,29 @@ class PreloadIconDelegate(
     private val themedProgressColor: Int,
     private val themedProgressColorDark: Int,
 ) : FastBitmapDrawableDelegate by parentDelegate {
-
     private val pathMeasure =
         PathMeasure().apply { setPath(iconShape.path, true /* force close */) }
     private var trackLength = pathMeasure.length
-
     private val progressPath = Path()
-
     private val progressPaint =
-        Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply { strokeCap = ROUND }
-
+        Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
+            strokeCap = ROUND
+            strokeJoin = Paint.Join.ROUND
+        }
     private var progressColor: Int
     private var trackColor: Int
     private var plateColor: Int
-
     private var ranFinishAnimation = false
-
     // Progress of the internal state. [0, 1] indicates the fraction of completed progress,
     // [1, (1 + COMPLETE_ANIM_FRACTION)] indicates the progress of zoom animation.
     private var internalStateProgress = 0f
-
     // This multiplier is used to animate scale when going from 0 to non-zero and expanding
     private val invalidateRunnable = Runnable { host.invalidateSelf() }
     private val iconScaleMultiplier = AnimatedFloat(invalidateRunnable)
-
     private val fixedDelegateBounds =
         Rect(0, 0, iconShape.pathSize, iconShape.pathSize).also {
             parentDelegate.onBoundsChange(it)
         }
-
     @get:VisibleForTesting
     var activeAnimation: ObjectAnimator? = null
         private set
@@ -107,14 +99,14 @@ class PreloadIconDelegate(
                 ColorUtils.M3HCTToColor(
                     m3HCT[0],
                     if (isDarkMode) 36f else 24f, // 36 chroma (dark) / 24 chroma (light)
-                    if (isDarkMode) 10f else 80f // 10 tone (dark) / 80 tone (light)
+                    if (isDarkMode) 10f else 80f, // 10 tone (dark) / 80 tone (light)
                 )
 
             trackColor =
                 ColorUtils.M3HCTToColor(
                     m3HCT[0],
                     16f, // 16 chroma for both
-                    if (isDarkMode) 30f else 90f // 30 tone (dark) / 90 tone (light)
+                    if (isDarkMode) 30f else 90f, // 30 tone (dark) / 90 tone (light)
                 )
         } else {
             val m3HCT = FloatArray(3)
@@ -171,30 +163,42 @@ class PreloadIconDelegate(
         paint: Paint,
     ) {
         if (internalStateProgress > 0f) {
+            if (internalStateProgress < 1f) {
+                // Draw icon at scale UNDER the progress and background paths.
+                // We do this to ensure that the gap stroke is drawn at a consistent width,
+                // overlapping slightly with the icon delegate.
+                drawIconAtScale(info, canvas, bounds, paint)
+            }
             val size = iconShape.pathSize.toFloat()
             canvas.resizeToContentSize(bounds, size) {
                 progressPaint.style = STROKE
+                // Draw a "gap" stroke for between the icon and track
                 canvas.setupStrokeWidthFactor(
-                    PROGRESS_PLATE_SIZE,
-                    PROGRESS_PLATE_EDGE_DISTANCE,
+                    PLATE_STROKE_SIZE,
+                    PROGRESS_GAP_SIZE / 2,
                     size,
                     progressPaint,
                 ) {
                     progressPaint.color = plateColor
                     drawPath(iconShape.path, progressPaint)
                 }
+                // Draw the track and progress.
                 canvas.setupStrokeWidthFactor(PROGRESS_STROKE_SIZE, 0f, size, progressPaint) {
                     progressPaint.color = trackColor
                     drawPath(iconShape.path, progressPaint)
-
                     progressPaint.color = progressColor
                     drawPath(progressPath, progressPaint)
                 }
             }
+            if (internalStateProgress >= 1f) {
+                // Draw icon at scale animating OVER the progress and background path.
+                // This helps the animation scale the icon over the gap/track when install is done.
+                drawIconAtScale(info, canvas, bounds, paint)
+            }
+        } else {
+            // Just draw Icon when no progress
+            drawIconAtScale(info, canvas, bounds, paint)
         }
-
-        // Just draw Icon when no progress
-        drawIconAtScale(info, canvas, bounds, paint)
     }
 
     /**
@@ -209,11 +213,12 @@ class PreloadIconDelegate(
         paint: Paint,
         block: () -> Unit,
     ) {
+        val iconScale = 1 - iconScaleMultiplier.value * (1 - SMALL_ICON_SCALE)
         val finalStrokeSize = factor * canvasSize
         // Since the stroke is drawn with half its width on each side, scale down the canvas so that
         // each edge is half the stroke size away from the original edge
-        val finalDistanceFromEdge = distanceFromEdge * canvasSize + finalStrokeSize / 2
-
+        // Account for icon being scaled down, which will move the icon away from the gap stroke.
+        val finalDistanceFromEdge = distanceFromEdge * canvasSize / iconScale + finalStrokeSize / 2
         val scaleFactor = (canvasSize - 2 * finalDistanceFromEdge) / canvasSize
         transformed {
             scale(scaleFactor, scaleFactor, canvasSize / 2, canvasSize / 2)
@@ -233,17 +238,14 @@ class PreloadIconDelegate(
                 // Draw icon at scale UNDER the progress and background paths.
                 drawIconAtScale(info, canvas, bounds, paint)
             }
-
             val size = iconShape.pathSize.toFloat()
             canvas.resizeToContentSize(bounds, size) {
                 val center = size / 2
                 canvas.scale(1 - PROGRESS_BOUNDS_SCALE, 1 - PROGRESS_BOUNDS_SCALE, center, center)
-
                 // Draw background.
                 progressPaint.style = FILL
                 progressPaint.color = plateColor
                 canvas.drawPath(progressPath, progressPaint)
-
                 progressPaint.style = STROKE
                 progressPaint.strokeWidth = size * PROGRESS_STROKE_MULTIPLIER_SCALED
                 progressPaint.color = trackColor
@@ -251,7 +253,6 @@ class PreloadIconDelegate(
                 progressPaint.color = progressColor
                 canvas.drawPath(progressPath, progressPaint)
             }
-
             if (internalStateProgress >= 1f) {
                 // Draw icon at scale animating OVER the progress and background path.
                 drawIconAtScale(info, canvas, bounds, paint)
@@ -278,7 +279,6 @@ class PreloadIconDelegate(
                 fixedDelegateBounds.exactCenterX(),
                 fixedDelegateBounds.exactCenterY(),
             )
-
             parentDelegate.drawContent(info, iconShape, canvas, fixedDelegateBounds, paint)
         }
     }
@@ -296,11 +296,9 @@ class PreloadIconDelegate(
         progressColor = oldDelegate.progressColor
         trackColor = oldDelegate.trackColor
         plateColor = oldDelegate.plateColor
-
         if (oldDelegate.internalStateProgress >= 1) {
             internalStateProgress = oldDelegate.internalStateProgress
         }
-
         // If the drawable was recently initialized, skip the progress animation.
         if (internalStateProgress == 0f) {
             internalStateProgress = 1f
@@ -315,7 +313,6 @@ class PreloadIconDelegate(
     ) {
         activeAnimation?.cancel()
         activeAnimation = null
-
         val animateProgress = finalProgress >= internalStateProgress && host.bounds.width() > 0
         if (!animateProgress || ranFinishAnimation) {
             setInternalProgress(finalProgress)
@@ -326,7 +323,6 @@ class PreloadIconDelegate(
                     it.duration =
                         ((finalProgress - internalStateProgress) * DURATION_SCALE).toLong()
                     it.interpolator = Interpolators.LINEAR
-
                     if (isFinish) {
                         it.addListener(
                             AnimatorListeners.forEndCallback(Runnable { ranFinishAnimation = true })
@@ -364,7 +360,6 @@ class PreloadIconDelegate(
                 start()
             }
         }
-
         internalStateProgress = progress
         if (progress <= 0) {
             iconScaleMultiplier.updateValue(0f)
@@ -405,29 +400,17 @@ class PreloadIconDelegate(
                 override fun setValue(obj: PreloadIconDelegate, value: Float) =
                     obj.setInternalProgress(value)
             }
-
         private const val DURATION_SCALE: Long = 500
         private const val SCALE_AND_ALPHA_ANIM_DURATION: Long = 500
-
         // The smaller the number, the faster the animation would be.
         // Duration = COMPLETE_ANIM_FRACTION * DURATION_SCALE
         private const val COMPLETE_ANIM_FRACTION = 1f
-
         private const val SMALL_ICON_SCALE = 24f / 30
         private const val PROGRESS_STROKE_SIZE = 2f / 30
-
-        // Actual values:
-        //      PROGRESS_PLATE_SIZE = 1/30,
-        //      PROGRESS_PLATE_EDGE_DISTANCE = PROGRESS_STROKE_SIZE
-        // But in order to avoid gaps when drawing concave shapes, we add some overlap. Adding
-        // complete overlap causes antialiasing issue with the progress track. Also making it
-        // slightly thicker for the same reason
-        private const val PROGRESS_PLATE_SIZE = 2.7f / 30
-        private const val PROGRESS_PLATE_EDGE_DISTANCE = 0.5f / 30
-
+        private const val PROGRESS_GAP_SIZE = 1f / 30
+        private const val PLATE_STROKE_SIZE = PROGRESS_STROKE_SIZE + PROGRESS_GAP_SIZE
         private const val PROGRESS_STROKE_SCALE = 0.055f
         private const val PROGRESS_BOUNDS_SCALE = 0.075f
-
         // Final progress stroke multiplier, taking into account, any canvas scale performed as part
         // of drawing the path
         private val PROGRESS_STROKE_MULTIPLIER_SCALED =
@@ -481,14 +464,12 @@ class PreloadIconDelegate(
         private val themedProgressColor: Int,
         private val themedProgressColorDark: Int,
     ) : DelegateFactory {
-
         override fun newDelegate(
             bitmapInfo: BitmapInfo,
             iconShape: IconShape,
             paint: Paint,
             host: FastBitmapDrawable,
         ): FastBitmapDrawableDelegate {
-
             return PreloadIconDelegate(
                 info,
                 isDarkTheme,
