@@ -286,7 +286,7 @@ constructor(
                 try {
                     FileLog.d(
                         TAG,
-                        ("updateShortcutPinnedState:" + " Pinning Shortcuts: $key: $modelShortcuts"),
+                        "updateShortcutPinnedState: Pinning Shortcuts: $key: $modelShortcuts",
                     )
                     context
                         .getSystemService(LauncherApps::class.java)
@@ -305,8 +305,7 @@ constructor(
             try {
                 FileLog.d(
                     TAG,
-                    ("updateShortcutPinnedState:" +
-                        " Unpinning extra Shortcuts for package: $packageName: ${systemMap[packageName]}"),
+                    "updateShortcutPinnedState: Unpinning extra Shortcuts for package: $packageName: ${systemMap[packageName]}",
                 )
                 context
                     .getSystemService(LauncherApps::class.java)
@@ -350,6 +349,7 @@ constructor(
      * synchronized over the model, that should be handled by the caller.
      */
     @JvmOverloads
+    @Synchronized
     fun updateAndCollectWorkspaceItemInfos(
         userHandle: UserHandle,
         workspaceItemOp: (WorkspaceItemInfo) -> Boolean,
