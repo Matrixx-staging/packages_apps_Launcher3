@@ -1361,21 +1361,41 @@ public abstract class AbsSwipeUpHandler<
                 dpiFromPx(velocityPxPerMs.x),
                 dpiFromPx(velocityPxPerMs.y),
                 Math.toDegrees(Math.atan2(-velocityPxPerMs.y, velocityPxPerMs.x)));
+        ActiveGestureLog.CompoundString reasonString =
+                ActiveGestureLog.CompoundString.newEmptyString();
 
         if (mGestureState.isHandlingAtomicEvent()) {
-            return mGestureState.getAtomicEndTarget();
+            GestureEndTarget endTarget = mGestureState.getAtomicEndTarget();
+            ActiveGestureProtoLogProxy.logCalculateEndTargetResultAndReason(
+                    endTarget.toString(),
+                    new ActiveGestureLog.CompoundString(
+                            "mGestureState.isHandlingAtomicEvent = true"));
+            return endTarget;
         }
 
         GestureEndTarget endTarget;
+        ActiveGestureLog.CompoundString potentialReason =
+                ActiveGestureLog.CompoundString.newEmptyString();
         if (isCancel) {
+            potentialReason.append("isCancel = true");
             endTarget = LAST_TASK;
         } else if (isFlingY) {
-            endTarget = calculateEndTargetForFlingY(velocityPxPerMs, endVelocityPxPerMs);
+            potentialReason.append("isFlingY = true -> used calculateEndTargetForFlingY -> ");
+            endTarget = calculateEndTargetForFlingY(
+                    velocityPxPerMs, endVelocityPxPerMs, potentialReason);
         } else {
-            endTarget = calculateEndTargetForNonFling(velocityPxPerMs, horizontalTouchSlopPassed);
+            potentialReason.append("isFlingY = false -> used calculateEndTargetForNonFling -> ");
+            endTarget = calculateEndTargetForNonFling(
+                    velocityPxPerMs, horizontalTouchSlopPassed, potentialReason);
         }
 
         if (mDeviceState.isOverviewDisabled() && endTarget == RECENTS) {
+            reasonString.append("mDeviceState.isOverviewDisabled = true and "
+                            + "endTarget = RECENTS [")
+                    .append(potentialReason)
+                    .append("]");
+            ActiveGestureProtoLogProxy.logCalculateEndTargetResultAndReason(
+                    "LAST_TASK", reasonString);
             return LAST_TASK;
         }
 
@@ -1390,9 +1410,20 @@ public abstract class AbsSwipeUpHandler<
             if ((nextPageTaskView instanceof DesktopTaskView
                     || currentPageTaskView instanceof DesktopTaskView)
                     && endTarget == NEW_TASK) {
+                reasonString.append("LAST_TASK", "Desktop mode checks passed and ")
+                        .append((nextPageTaskView instanceof DesktopTaskView)
+                                ? "nextPageTaskView instanceof DesktopTaskView"
+                                : "currentPageTaskView instanceof DesktopTaskView")
+                        .append(" and endTarget == NEW_TASK [")
+                        .append(potentialReason)
+                        .append("]");
+                ActiveGestureProtoLogProxy.logCalculateEndTargetResultAndReason(
+                        "LAST_TASK", reasonString);
                 return LAST_TASK;
             }
         }
+        ActiveGestureProtoLogProxy.logCalculateEndTargetResultAndReason(
+                endTarget.toString(), potentialReason);
         return endTarget;
     }
 
@@ -1405,27 +1436,78 @@ public abstract class AbsSwipeUpHandler<
                 : REJECT_HOME;
     }
 
-    private GestureEndTarget calculateEndTargetForFlingY(PointF velocity, float endVelocity) {
+    private GestureEndTarget calculateEndTargetForFlingY(
+            PointF velocity, float endVelocity, ActiveGestureLog.CompoundString reasonString) {
         // If swiping at a diagonal, base end target on the faster velocity direction.
+        ActiveGestureLog.CompoundString isScrollingToNewTaskReason =
+                ActiveGestureLog.CompoundString.newEmptyString();
+        final boolean isScrollingToNewTask = isScrollingToNewTask(isScrollingToNewTaskReason);
         final boolean willGoToNewTask =
-                isScrollingToNewTask() && Math.abs(velocity.x) > Math.abs(endVelocity);
+                isScrollingToNewTask && Math.abs(velocity.x) > Math.abs(endVelocity);
         final boolean isSwipeUp = endVelocity < 0;
+
+        reasonString.append("willGoToNewTask = %b, "
+                        + "isSwipeUp = %b "
+                        + "[isScrollingToNewTask = %b [",
+                        willGoToNewTask,
+                        isSwipeUp,
+                        isScrollingToNewTask)
+                .append(isScrollingToNewTaskReason)
+                .append("], "
+                                + "Math.abs(velocity.x) = %fdp/ms, "
+                                + "Math.abs(endVelocity) = %fdp/ms]",
+                        Math.abs(velocity.x),
+                        Math.abs(endVelocity));
+
         if (!isSwipeUp) {
-            final boolean isCenteredOnNewTask = mRecentsView != null
-                    && mRecentsView.getDestinationPage() != mRecentsView.getRunningTaskIndex();
-            return willGoToNewTask || isCenteredOnNewTask ? NEW_TASK : LAST_TASK;
+            Integer destinationPage = mRecentsView == null
+                    ? null : mRecentsView.getDestinationPage();
+            Integer runningTaskIndex = mRecentsView == null
+                    ? null : mRecentsView.getRunningTaskIndex();
+            final boolean isCenteredOnNewTask = destinationPage != null
+                    && runningTaskIndex != null
+                    && !destinationPage.equals(runningTaskIndex);
+            GestureEndTarget endTarget =
+                    willGoToNewTask || isCenteredOnNewTask ? NEW_TASK : LAST_TASK;
+
+            reasonString.append("; isCenteredOnNewTask = %s "
+                    + "[mRecentsView.getDestinationPage = %s, "
+                    + "mRecentsView.getRunningTaskIndex = %s]",
+                    isCenteredOnNewTask,
+                    destinationPage,
+                    runningTaskIndex);
+
+            return endTarget;
         }
 
         return willGoToNewTask ? NEW_TASK : getHomeTarget();
     }
 
     private GestureEndTarget calculateEndTargetForNonFling(
-            PointF velocity, boolean horizontalTouchSlopPassed) {
-        final boolean isScrollingToNewTask = isScrollingToNewTask();
+            PointF velocity,
+            boolean horizontalTouchSlopPassed,
+            ActiveGestureLog.CompoundString reasonString) {
+        ActiveGestureLog.CompoundString isScrollingToNewTaskReason =
+                ActiveGestureLog.CompoundString.newEmptyString();
+        final boolean isScrollingToNewTask = isScrollingToNewTask(isScrollingToNewTaskReason);
 
+        final float thresholdSpeed =
+                mContext.getResources().getDimension(R.dimen.quickstep_fling_threshold_speed);
         // Fully gestural mode.
-        final boolean isFlingX = Math.abs(velocity.x) > mContext.getResources()
-                .getDimension(R.dimen.quickstep_fling_threshold_speed) && horizontalTouchSlopPassed;
+        final boolean isFlingX = Math.abs(velocity.x) > thresholdSpeed && horizontalTouchSlopPassed;
+
+        reasonString.append("isScrollingToNewTask = %b [", isScrollingToNewTask)
+                .append(isScrollingToNewTaskReason)
+                .append("], isFlingX = %b "
+                                + "[Math.abs(velocity.x) = %fdp/ms, "
+                                + "thresholdSpeed = %fdp/ms, "
+                                + "horizontalTouchSlopPassed = %b], "
+                                + "mIsMotionPaused = %b",
+                        isFlingX,
+                        Math.abs(velocity.x),
+                        thresholdSpeed,
+                        horizontalTouchSlopPassed,
+                        mIsMotionPaused);
         if (isScrollingToNewTask && isFlingX) {
             // Flinging towards new task takes precedence over mIsMotionPaused (which only
             // checks y-velocity).
@@ -1435,20 +1517,29 @@ public abstract class AbsSwipeUpHandler<
         } else if (isScrollingToNewTask) {
             return NEW_TASK;
         }
+        reasonString.append(", velocity.y = %fdp/ms, mCanSlowSwipeGoHome = %b",
+                velocity.y, mCanSlowSwipeGoHome);
         return velocity.y < 0 && mCanSlowSwipeGoHome ? getHomeTarget()  : LAST_TASK;
     }
 
-    private boolean isScrollingToNewTask() {
+    private boolean isScrollingToNewTask(ActiveGestureLog.CompoundString reasonString) {
         if (mRecentsView == null) {
+            reasonString.append("mRecentsView is null");
             return false;
         }
         if (!hasTargets()) {
             // If there are no running tasks, then we can assume that this is a continuation of
             // the last gesture, but after the recents animation has finished.
+            reasonString.append("no running animation targets");
             return true;
         }
         int runningTaskIndex = mRecentsView.getRunningTaskIndex();
-        return runningTaskIndex >= 0 && mRecentsView.getNextPage() != runningTaskIndex;
+        int nextPageIndex = mRecentsView.getNextPage();
+
+        reasonString.append(
+                "runningTaskIndex = %d, nextPageIndex = %d", runningTaskIndex, nextPageIndex);
+
+        return runningTaskIndex >= 0 && nextPageIndex != runningTaskIndex;
     }
 
     /**
