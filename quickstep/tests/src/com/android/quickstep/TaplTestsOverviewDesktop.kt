@@ -296,6 +296,28 @@ class TaplTestsOverviewDesktop : AbstractQuickStepTest() {
 
     @Test
     @PortraitLandscape
+    @EnableFlags(FLAG_ENABLE_MULTIPLE_DESKTOPS_FRONTEND, FLAG_ENABLE_MULTIPLE_DESKTOPS_BACKEND)
+    fun testDismissDeskViaTaskMenuClearButton() {
+        var overview =
+            mLauncher.workspace
+                .switchToOverview()
+                // Create an empty desk
+                .createDeskViaClickAddDesktopButton()
+                // Create a non-empty desk
+                .createAnNonEmptyDesk()
+
+        // Fling to the right-most desk to start dismissing via task menu
+        overview = overview.apply { flingBackward() }
+        for (i in 0 until 2) {
+            val task = overview.currentTask
+            assertThat(task.isDesktop).isTrue()
+            task.dismissViaMenu()
+            overview = mLauncher.overview
+        }
+    }
+
+    @Test
+    @PortraitLandscape
     fun dismissFocusedTasks_thenDesktopIsCentered() {
         // Create DesktopTaskView
         mLauncher.goHome().switchToOverview().moveTaskToDesktop(TEST_ACTIVITY_2)
