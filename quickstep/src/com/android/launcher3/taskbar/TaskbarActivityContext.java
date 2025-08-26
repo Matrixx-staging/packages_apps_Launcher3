@@ -2012,11 +2012,20 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         if (!DesktopModeFlags.ENABLE_DESKTOP_APP_LAUNCH_TRANSITIONS_BUGFIX.isTrue()) {
             return false;
         }
+        final SingleTask singleTask = mControllers.taskbarRecentAppsController.getSingleTask(info);
         if (DesktopExperienceFlags.ENABLE_DESKTOP_FIRST_FULLSCREEN_REFOCUS_BUGFIX.isTrue()
-                && DisplayController.isInDesktopFirstMode(this)
-                && mControllers.taskbarRecentAppsController.hasSingleTask(info)) {
-            // Keep the fullscreen mode in desktop-first mode.
-            return false;
+                && DisplayController.isInDesktopFirstMode(this) && singleTask != null) {
+            if (!DesktopExperienceFlags.ENABLE_DESKTOP_FIRST_POLICY_IN_LPM.isTrue()) {
+                // Keep the fullscreen mode in desktop-first mode.
+                return false;
+            }
+            final DisplayController.Info currentDisplayInfo = DisplayController.INSTANCE.get(this)
+                    .getInfoForDisplay(singleTask.getTask().getKey().displayId);
+            if (currentDisplayInfo != null && currentDisplayInfo.isInDesktopFirstMode()) {
+                // Keep the fullscreen mode if both current and target displays are in desktop-first
+                // mode.
+                return false;
+            }
         }
         // Always launch in freeform if in external display.
         return (DesktopExperienceFlags.ENABLE_FREEFORM_DISPLAY_LAUNCH_PARAMS.isTrue()
