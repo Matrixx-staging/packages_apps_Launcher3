@@ -506,8 +506,8 @@ public final class Utilities {
     }
 
     /** Converts a pixel value (px) to scale pixel value (SP) for the current device. */
-    public static float pxToSp(float size) {
-        return size / Resources.getSystem().getDisplayMetrics().scaledDensity;
+    public static float pxToSp(float size, Context context) {
+        return size / context.getResources().getDisplayMetrics().scaledDensity;
     }
 
     public static float dpiFromPx(float size, int densityDpi) {
