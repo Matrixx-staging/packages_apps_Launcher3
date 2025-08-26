@@ -36,6 +36,7 @@ import com.android.launcher3.Launcher;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.tapl.Workspace;
 import com.android.launcher3.util.LauncherLayoutBuilder;
+import com.android.launcher3.util.ModelTestExtensions;
 import com.android.launcher3.util.TestUtil;
 import com.android.launcher3.util.ui.AbstractLauncherUiTest;
 import com.android.launcher3.util.ui.PortraitLandscapeRunner.PortraitLandscape;
@@ -364,7 +365,7 @@ public class TaplTwoPanelWorkspaceTest extends AbstractLauncherUiTest<Launcher, 
         int itemCount = page.getShortcutsAndWidgets().getChildCount();
         for (int i = 0; i < itemCount; i++) {
             ItemInfo itemInfo = (ItemInfo) page.getShortcutsAndWidgets().getChildAt(i).getTag();
-            if (itemInfo != null) {
+            if (itemInfo != null && ModelTestExtensions.isPersistedModelItem(itemInfo)) {
                 assertTrue("There was an extra item on page " + pageId + ": " + itemInfo.title,
                         itemTitleSet.remove(itemInfo.title));
             }
