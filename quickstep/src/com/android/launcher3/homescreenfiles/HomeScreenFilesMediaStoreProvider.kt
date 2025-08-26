@@ -17,9 +17,13 @@
 package com.android.launcher3.homescreenfiles
 
 import android.content.Context
+import android.database.ContentObserver
 import android.net.Uri
 import android.provider.MediaStore
 import androidx.core.database.getStringOrNull
+import com.android.launcher3.homescreenfiles.HomeScreenFilesProvider.FileChange
+import com.android.launcher3.util.DaggerSingletonTracker
+import com.android.launcher3.util.MutableListenableStream
 import java.io.File
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorService
@@ -28,7 +32,25 @@ import java.util.concurrent.ExecutorService
 class HomeScreenFilesMediaStoreProvider(
     private val context: Context,
     private val executorService: ExecutorService,
+    lifecycle: DaggerSingletonTracker,
 ) : HomeScreenFilesProvider {
+    override val fileChanges = MutableListenableStream<FileChange>()
+
+    init {
+        val uri = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
+        val observer =
+            object : ContentObserver(null) {
+                override fun onChange(selfChange: Boolean, uri: Uri?, flags: Int) {
+                    if (!selfChange && uri != null) {
+                        fileChanges.dispatchValue(FileChange(uri, flags))
+                    }
+                }
+            }
+        context.contentResolver.registerContentObserver(uri, true, observer)
+
+        lifecycle.addCloseable { context.contentResolver.unregisterContentObserver(observer) }
+    }
+
     /** Returns all file items presented in [HOME_SCREEN_FOLDER_RELATIVE_PATH]. */
     override fun query(): Lazy<Map<Uri, HomeScreenFile>> {
         val uri = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)

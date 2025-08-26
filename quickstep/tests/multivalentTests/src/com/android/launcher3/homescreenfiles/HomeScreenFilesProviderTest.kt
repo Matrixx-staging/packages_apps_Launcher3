@@ -18,12 +18,16 @@ package com.android.launcher3.homescreenfiles
 
 import android.content.ContentResolver
 import android.content.Context
+import android.database.ContentObserver
 import android.database.MatrixCursor
 import android.net.Uri
 import android.provider.MediaStore
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.launcher3.util.DaggerSingletonTracker
+import com.android.launcher3.util.SafeCloseable
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import java.util.concurrent.Executor
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -31,8 +35,11 @@ import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.isNull
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -41,18 +48,35 @@ import org.mockito.kotlin.whenever
 class HomeScreenFilesProviderTest {
     @Mock private lateinit var context: Context
     @Mock private lateinit var contentResolver: ContentResolver
+    private val lifeCycleTracker: DaggerSingletonTracker =
+        mock() {
+            on { addCloseable(any()) } doAnswer
+                {
+                    lifecycleCloseables.add(it.getArgument<SafeCloseable>(0))
+                    Unit
+                }
+
+            on { close() } doAnswer { lifecycleCloseables.forEach { it.close() } }
+        }
+
     private lateinit var provider: HomeScreenFilesProvider
+
+    private val lifecycleCloseables = mutableListOf<SafeCloseable>()
 
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
         whenever(context.contentResolver).thenReturn(contentResolver)
         provider =
-            HomeScreenFilesMediaStoreProvider(context, MoreExecutors.newDirectExecutorService())
+            HomeScreenFilesMediaStoreProvider(
+                context,
+                MoreExecutors.newDirectExecutorService(),
+                lifeCycleTracker,
+            )
     }
 
     @Test
-    fun queriesMediaStore() {
+    fun testQueriesMediaStore() {
         val expectedUri = Uri.parse("content://media/external/file")
         val expectedProjection =
             arrayOf(
@@ -105,5 +129,36 @@ class HomeScreenFilesProviderTest {
                 isNull(),
                 isNull(),
             )
+    }
+
+    @Test
+    fun testRegistersChangeCallback() {
+        val callback = mock<(Uri, Int) -> Unit>()
+        val immediateExecutor = Executor { r -> r.run() }
+        val unregisterChangeCallback =
+            provider.fileChanges.forEach(immediateExecutor) { callback(it.uri, it.flags) }
+        val underlyingContentObserverCaptor = argumentCaptor<ContentObserver>()
+        verify(contentResolver, times(1))
+            .registerContentObserver(
+                eq(Uri.parse("content://media/external/file")),
+                eq(true),
+                underlyingContentObserverCaptor.capture(),
+            )
+
+        underlyingContentObserverCaptor.firstValue.dispatchChange(
+            false,
+            Uri.parse("content://media/external/file/1"),
+            ContentResolver.NOTIFY_INSERT,
+        )
+        verify(callback, times(1))(
+            Uri.parse("content://media/external/file/1"),
+            ContentResolver.NOTIFY_INSERT,
+        )
+
+        lifeCycleTracker.close()
+        verify(contentResolver, times(1))
+            .unregisterContentObserver(eq(underlyingContentObserverCaptor.firstValue))
+
+        unregisterChangeCallback.close()
     }
 }

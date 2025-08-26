@@ -30,6 +30,8 @@ import com.android.launcher3.Utilities
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.graphics.ThemeManager
 import com.android.launcher3.graphics.ThemeManager.ThemeChangeListener
+import com.android.launcher3.homescreenfiles.HomeScreenFilesChangedTask
+import com.android.launcher3.homescreenfiles.HomeScreenFilesProvider
 import com.android.launcher3.icons.IconCache
 import com.android.launcher3.icons.LauncherIconProvider
 import com.android.launcher3.icons.LauncherIcons.IconPool
@@ -63,6 +65,7 @@ constructor(
     private val iconProvider: LauncherIconProvider,
     private val customWidgetManager: CustomWidgetManager,
     private val installSessionHelper: InstallSessionHelper,
+    private val homeScreenFilesProvider: HomeScreenFilesProvider,
     private val lifeCycle: DaggerSingletonTracker,
 ) {
 
@@ -139,6 +142,13 @@ constructor(
 
         // Install session changes
         lifeCycle.addCloseable(installSessionHelper.registerInstallTracker(modelCallbacks))
+
+        // Monitor changes to files shown on homescreen.
+        lifeCycle.addCloseable(
+            homeScreenFilesProvider.fileChanges.forEach(MODEL_EXECUTOR) {
+                model.enqueueModelUpdateTask(HomeScreenFilesChangedTask(it.uri, it.flags))
+            }
+        )
     }
 
     fun initializeDisplayEvents(model: LauncherModel) {

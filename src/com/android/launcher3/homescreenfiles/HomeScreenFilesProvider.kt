@@ -17,6 +17,7 @@
 package com.android.launcher3.homescreenfiles
 
 import android.net.Uri
+import com.android.launcher3.util.ListenableStream
 
 /** Represents a single file or folder item queried by [HomeScreenFilesProvider]. */
 data class HomeScreenFile(val displayName: String, val mimeType: String?, val isDirectory: Boolean)
@@ -25,4 +26,17 @@ data class HomeScreenFile(val displayName: String, val mimeType: String?, val is
 interface HomeScreenFilesProvider {
     /** Returns all eligible file items to be shown on the home screen. */
     fun query(): Lazy<Map<Uri, HomeScreenFile>>
+
+    /**
+     * Information about a change to a file item shown on the home screen.
+     *
+     * @param uri The URI of the item that was changed and
+     * @param flags The bitmask describing the type of the file change (one of
+     *   [ContentResolver.NOTIFY_INSERT], [ContentResolver.NOTIFY_UPDATE],
+     *   [ContentResolver.NOTIFY_DELETE]).
+     */
+    data class FileChange(val uri: Uri, val flags: Int)
+
+    /** A stream of changes to file items shown on the home screen. */
+    val fileChanges: ListenableStream<FileChange>
 }
