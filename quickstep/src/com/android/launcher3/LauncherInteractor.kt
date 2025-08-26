@@ -22,6 +22,7 @@ import android.window.RemoteTransition
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
 import com.android.app.animation.Interpolators
+import com.android.launcher3.Hotseat.ALPHA_CHANNEL_TASKBAR_ALIGNMENT
 import com.android.launcher3.logging.InstanceId
 import com.android.launcher3.logging.StatsLogManager
 import com.android.launcher3.model.data.ItemInfo
@@ -108,13 +109,14 @@ class LauncherInteractor(private val launcher: QuickstepLauncher, val executor: 
         executor.execute { synchronizeNextDraw(launcher.hotseat, view, Runnable {}) }
     }
 
-    // TODO(b/404636836) Add hotseat icons alpha to LauncherUiState and avoid this call.
-    @MainThread
-    fun getHotseatIconsAlpha(channelId: Int) = launcher.hotseat.getIconsAlpha(channelId).value
-
     @AnyThread
     fun setHotseatIconsAlpha(alpha: Float, @Hotseat.HotseatQsbAlphaId channelId: Int) {
-        executor.execute { launcher.hotseat.setIconsAlpha(alpha, channelId) }
+        executor.execute {
+            if (channelId == ALPHA_CHANNEL_TASKBAR_ALIGNMENT) {
+                launcher.getLauncherUiState().setTaskbarAlignmentChannelAlpha(alpha)
+            }
+            launcher.hotseat.setIconsAlpha(alpha, channelId)
+        }
     }
 
     @AnyThread
@@ -236,4 +238,11 @@ class LauncherInteractor(private val launcher: QuickstepLauncher, val executor: 
     )
     @MainThread
     fun getState(): LauncherState = launcher.stateManager.state
+
+    @Deprecated(
+        "Should be removed once we turned on [refactorTaskbarUiState()] flag",
+        ReplaceWith("LauncherUiState.taskbarAlignmentChannelAlphaRef.value()"),
+    )
+    fun getTaskbarAlignmentChannelAlpha() =
+        launcher.hotseat.getIconsAlpha(ALPHA_CHANNEL_TASKBAR_ALIGNMENT).value
 }

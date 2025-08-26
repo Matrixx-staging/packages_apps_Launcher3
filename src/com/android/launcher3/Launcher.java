@@ -312,7 +312,7 @@ public class Launcher extends StatefulActivity<LauncherState>
 
     private final ModelCallbacks mModelCallbacks = createModelCallbacks();
 
-    public final LauncherUiState launcherUiState = new LauncherUiState();
+    protected final LauncherUiState mLauncherUiState = new LauncherUiState();
 
     private final KeyboardShortcutsDelegate mKeyboardShortcutsDelegate =
             new KeyboardShortcutsDelegate(this);
@@ -443,7 +443,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         mAllAppsController = new AllAppsTransitionController(this);
         mStateManager = new StateManager<>(this, NORMAL);
         if (refactorTaskbarUiState()) {
-            mStateManager.setLauncherUiState(launcherUiState);
+            mStateManager.setLauncherUiState(mLauncherUiState);
         }
 
         mAppWidgetManager = new WidgetManagerHelper(this);
@@ -714,7 +714,7 @@ public class Launcher extends StatefulActivity<LauncherState>
 
         mDeviceProfile = deviceProfile;
         if (refactorTaskbarUiState()) {
-            launcherUiState.setDeviceProfile(deviceProfile);
+            mLauncherUiState.setDeviceProfile(deviceProfile);
         }
 
         if (FOLDABLE_SINGLE_PAGE.get() && mDeviceProfile.getDeviceProperties().isTwoPanels()) {
@@ -2635,6 +2635,10 @@ public class Launcher extends StatefulActivity<LauncherState>
                 mDeviceProfile.getBottomSheetProfile().getBottomSheetWorkspaceScale(), EMPHASIZED);
         WORKSPACE_WIDGET_SCALE.set(getWorkspace(), scale);
         HOTSEAT_WIDGET_SCALE.set(getHotseat(), scale);
+    }
+
+    public LauncherUiState getLauncherUiState() {
+        return mLauncherUiState;
     }
 
     private static class NonConfigInstance {

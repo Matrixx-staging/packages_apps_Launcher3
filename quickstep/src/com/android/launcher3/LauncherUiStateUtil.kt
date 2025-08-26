@@ -25,47 +25,59 @@ object LauncherUiStateUtil {
     fun getDeviceProfile(
         launcher: LauncherInteractor,
         launcherUiState: LauncherUiState,
-    ): DeviceProfile {
+    ): DeviceProfile =
         if (refactorTaskbarUiState()) {
             val ret: DeviceProfile = launcherUiState.deviceProfileRef.value!!
             check(!(BuildConfig.IS_STUDIO_BUILD && ret !== launcher.getDeviceProfile())) {
                 "getDeviceProfile() doesn't match"
             }
-            return ret
+            ret
         } else {
-            return launcher.getDeviceProfile()
+            launcher.getDeviceProfile()
         }
-    }
 
     @JvmStatic
     fun isSplitSelectActive(
         launcher: LauncherInteractor,
         launcherUiState: LauncherUiState,
-    ): Boolean {
+    ): Boolean =
         if (refactorTaskbarUiState()) {
             val ret: Boolean = launcherUiState.isSplitSelectActiveRef.value
             if (BuildConfig.IS_STUDIO_BUILD && ret != launcher.isSplitSelectActive()) {
                 throw IllegalStateException("isSplitSelectionActive() doesn't match")
             }
-            return ret
+            ret
         } else {
-            return launcher.isSplitSelectActive()
+            launcher.isSplitSelectActive()
         }
-    }
 
     @JvmStatic
     fun getLauncherState(
         launcher: LauncherInteractor,
         launcherUiState: LauncherUiState,
-    ): LauncherState {
+    ): LauncherState =
         if (refactorTaskbarUiState()) {
             val ret: LauncherState = launcherUiState.launcherStateRef.value
             if (BuildConfig.IS_STUDIO_BUILD && ret !== launcher.getState()) {
                 throw IllegalStateException("launcher state doesn't match")
             }
-            return ret
+            ret
         } else {
-            return launcher.getState()
+            launcher.getState()
         }
-    }
+
+    @JvmStatic
+    fun getTaskbarAlignmentChannelAlpha(
+        launcher: LauncherInteractor,
+        launcherUiState: LauncherUiState,
+    ): Float =
+        if (refactorTaskbarUiState()) {
+            val ret: Float = launcherUiState.taskbarAlignmentChannelAlpha.value
+            if (BuildConfig.IS_STUDIO_BUILD && ret != launcher.getTaskbarAlignmentChannelAlpha()) {
+                throw IllegalStateException("taskbarAlignmentChannelAlpha doesn't match")
+            }
+            ret
+        } else {
+            launcher.getTaskbarAlignmentChannelAlpha()
+        }
 }
