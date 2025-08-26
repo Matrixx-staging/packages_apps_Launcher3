@@ -325,18 +325,24 @@ public abstract class ItemInfoWithIcon extends ItemInfo {
     public FastBitmapDrawable newIcon(Context context, @DrawableCreationFlags int creationFlags) {
         ThemeManager themeManager = ThemeManager.INSTANCE.get(context);
         IconShape iconShape = null;
-        if (Flags.enableLauncherIconShapes()) {
-            if ((creationFlags & FLAG_THEMED) != 0) {
-                iconShape = themeManager.getIconShapeData().getValue();
-            }
+        if (supportsCustomShapes(creationFlags)) {
+            iconShape = themeManager.getIconShapeData().getValue();
         }
         if (!themeManager.isIconThemeEnabled()) {
             creationFlags &= ~FLAG_THEMED;
         }
-
         FastBitmapDrawable drawable = bitmap.newIcon(context, creationFlags, iconShape);
         drawable.setDisabled(isDisabled());
         return drawable;
+    }
+
+    /**
+     * Returns true if the current BitmapInfo can support cropping to custom icon shapes.
+     */
+    public boolean supportsCustomShapes(@DrawableCreationFlags int creationFlags) {
+        return Flags.enableLauncherIconShapes()
+                && (creationFlags & FLAG_THEMED) != 0
+                && bitmap.isFullBleed();
     }
 
     /**

@@ -728,6 +728,7 @@ public class LoaderTask implements Runnable {
                         appInfo,
                         activityInfo,
                         workspaceIconRequest.get().iconBlob,
+                        workspaceIconRequest.get().isBlobFullBleed,
                         DEFAULT_LOOKUP_FLAG.withUseLowRes(false)
                 );
                 if (!iconRequestInfo.loadIconFromDbBlob(mContext)) {

@@ -166,7 +166,7 @@ public class LauncherDbUtilsTest {
         assertEquals("Error creating test db, unexpected row count.",
                 1, getFavoriteDataCount(db));
         TestUtil.runOnExecutorSync(MODEL_EXECUTOR, () -> {
-            LauncherDbUtils.updateBackupIcons(mContext, db);
+            LauncherDbUtils.updateBackupIcons(mContext, db, /* useDefaultShape **/ false);
         });
         assertEquals("Unexpected row count after updateBackupIcons().",
                 1, getFavoriteDataCount(db));
@@ -190,7 +190,7 @@ public class LauncherDbUtilsTest {
         assertEquals("Error creating test db, unexpected row count.",
                 1, getFavoriteDataCount(db));
         TestUtil.runOnExecutorSync(MODEL_EXECUTOR, () -> {
-            LauncherDbUtils.updateBackupIcons(mContext, db);
+            LauncherDbUtils.updateBackupIcons(mContext, db, /* useDefaultShape **/ false);
         });
         assertEquals("Unexpected row count after updateBackupIcons().",
                 1, getFavoriteDataCount(db));
@@ -216,7 +216,7 @@ public class LauncherDbUtilsTest {
         assertEquals("Error creating test db, unexpected row count.",
                 1, getFavoriteDataCount(db));
         TestUtil.runOnExecutorSync(MODEL_EXECUTOR, () -> {
-            LauncherDbUtils.updateBackupIcons(mContext, db);
+            LauncherDbUtils.updateBackupIcons(mContext, db, /* useDefaultShape **/ false);
         });
         assertEquals("Unexpected row count after updateBackupIcons().",
                 1, getFavoriteDataCount(db));
@@ -243,7 +243,7 @@ public class LauncherDbUtilsTest {
         assertEquals("Error creating test db, unexpected row count.",
                 1, getFavoriteDataCount(db));
         TestUtil.runOnExecutorSync(MODEL_EXECUTOR, () -> {
-            LauncherDbUtils.updateBackupIcons(mContext, db);
+            LauncherDbUtils.updateBackupIcons(mContext, db, /* useDefaultShape **/ false);
         });
         assertEquals("Unexpected row count after updateBackupIcons().",
                 1, getFavoriteDataCount(db));
@@ -289,8 +289,8 @@ public class LauncherDbUtilsTest {
         assertFalse(
                 "Icon blob should have changed.",
                 Arrays.equals(
-                     unexpectedIcon,
-                     cursor.getBlob(cursor.getColumnIndexOrThrow(Favorites.ICON))
+                        unexpectedIcon,
+                        cursor.getBlob(cursor.getColumnIndexOrThrow(Favorites.ICON))
                 )
         );
     }

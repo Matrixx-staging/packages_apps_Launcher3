@@ -72,7 +72,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements
      * Represents the schema of the database. Changes in scheme need not be backwards compatible.
      * When increasing the scheme version, ensure that downgrade_schema.json is updated
      */
-    public static final int SCHEMA_VERSION = Flags.enableLauncherIconShapes() ? 33 : 32;
+    public static final int SCHEMA_VERSION = Flags.enableLauncherIconShapes() ? 34 : 32;
     private static final String TAG = "DatabaseHelper";
     private static final boolean LOGD = false;
 
@@ -272,13 +272,15 @@ public class DatabaseHelper extends SQLiteOpenHelper implements
             case 31: {
                 LauncherDbUtils.migrateLegacyShortcuts(mContext, db);
             }
-            case 32: {
-                // Ensure backup icons are updated to full-bleed for icon shapes to restore.
-                Log.d(TAG, "Refreshing launcher db icons to ensure full-bleed");
-                LauncherDbUtils.updateBackupIcons(mContext, db);
+            // Skip version 32 as it introduced a restore bug, and is no longer necessary
+            case 32:
+            case 33: {
+                // Ensure backup icons are updated to default shape to handle downgrade backup
+                FileLog.d(TAG, "Cropping db icons to default shape for downgrade backup");
+                LauncherDbUtils.updateBackupIcons(mContext, db, /** useDefaultShape */ true);
             }
             // Fall through
-            case 33: {
+            case 34: {
                 // DB Upgraded successfully
                 return;
             }
