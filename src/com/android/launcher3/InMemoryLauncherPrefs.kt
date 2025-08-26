@@ -39,8 +39,9 @@ class InMemoryLauncherPrefs(context: Context, private val copyRealPrefs: Boolean
 
         val realPrefs = super.getSharedPrefs(item)
         copiedPrefs.computeIfAbsent(realPrefs) { _ ->
-            backingPrefs.values +=
+            val existingValues =
                 realPrefs.all.filterValues { it != null }.mapValues { (_, v) -> checkNotNull(v) }
+            synchronized(backingPrefs.editorLock) { backingPrefs.values += existingValues }
             true
         }
 
@@ -51,7 +52,9 @@ class InMemoryLauncherPrefs(context: Context, private val copyRealPrefs: Boolean
 /** A [SharedPreferences] where the values are stored in memory instead of storage. */
 private class InMemorySharedPreferences : SharedPreferences {
 
-    val values = mutableMapOf<String, Any>()
+    val editorLock = Any()
+    var values = mapOf<String, Any>()
+
     private val listeners = mutableSetOf<OnSharedPreferenceChangeListener>()
 
     override fun getAll(): Map<String, *> = values
@@ -120,9 +123,13 @@ private class InMemorySharedPreferences : SharedPreferences {
         }
 
         override fun commit(): Boolean {
-            if (clear) values.clear()
-            values -= keysToRemove
-            values += valuesToAdd
+            synchronized(editorLock) {
+                val newValues = values.toMutableMap()
+                if (clear) newValues.clear()
+                newValues -= keysToRemove
+                newValues += valuesToAdd
+                values = newValues.toMap()
+            }
 
             MAIN_EXECUTOR.execute {
                 for (k in keysToRemove.union(valuesToAdd.keys)) {

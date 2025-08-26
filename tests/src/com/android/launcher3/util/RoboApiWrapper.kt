@@ -19,8 +19,10 @@ package com.android.launcher3.util
 import android.content.ContentResolver
 import android.net.Uri
 import android.os.Looper
+import com.android.launcher3.util.rule.ShellCommandRule
 import java.io.InputStream
 import java.util.function.Supplier
+import org.junit.rules.TestRule
 
 object RoboApiWrapper {
 
@@ -31,4 +33,7 @@ object RoboApiWrapper {
     ) {}
 
     fun waitForLooperSync(looper: Looper) {}
+
+    /** Rule to grant shortcuts permission */
+    fun grantShortcutsPermissionRule(): TestRule = ShellCommandRule.setDefaultLauncher()
 }
