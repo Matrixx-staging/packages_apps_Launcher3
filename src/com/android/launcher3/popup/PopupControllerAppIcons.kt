@@ -21,7 +21,6 @@ import android.view.View
 import com.android.launcher3.BubbleTextView
 import com.android.launcher3.Launcher
 import com.android.launcher3.model.data.ItemInfo
-import com.android.launcher3.popup.PopupContainerWithArrow.Companion.getOpen
 import com.android.launcher3.util.PackageUserKey
 import com.android.launcher3.util.ShortcutUtil
 import com.android.launcher3.views.ActivityContext
@@ -35,7 +34,7 @@ class PopupControllerForAppIcon<T> : PopupController<T> where T : Context, T : A
     override fun show(view: View): Popup? {
         val icon = view as BubbleTextView
         val launcher = Launcher.getLauncher(icon.context)
-        if (getOpen(launcher) != null) {
+        if (PopupContainer.getOpen(launcher) != null) {
             // There is already an items container open, so don't open this one.
             icon.clearFocus()
             return null
