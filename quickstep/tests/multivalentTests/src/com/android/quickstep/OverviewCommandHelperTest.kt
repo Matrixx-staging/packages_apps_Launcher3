@@ -594,7 +594,7 @@ class OverviewCommandHelperTest {
             assertThat(command.status).isEqualTo(CommandStatus.PROCESSING)
             verify(swipeUpHandler).onGestureStarted(any())
             verify(newGestureState).setHandlingAtomicEvent(GestureState.GestureEndTarget.RECENTS)
-            verify(recentView).setKeyboardFocusTask(KeyboardFocusTask.CurrentPageTaskView)
+            verify(recentView).setKeyboardFocusTask(KeyboardFocusTask.ExpectedCurrentTask)
 
             // Make sure we can transition to completed state once we see an end callback.
             val gestureAnimationEndCallbackCaptor = argumentCaptor<Runnable>()
