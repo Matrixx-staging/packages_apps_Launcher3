@@ -46,7 +46,7 @@ import com.android.internal.util.ArrayUtils;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.dagger.ApplicationContext;
-import com.android.launcher3.taskbar.TaskbarUIController;
+import com.android.launcher3.taskbar.TaskbarInteractor;
 import com.android.launcher3.util.DaggerSingletonObject;
 import com.android.launcher3.util.DisplayController;
 import com.android.quickstep.dagger.QuickstepBaseAppComponent;
@@ -347,21 +347,21 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
 
         // Notify taskbar that we should skip reacting to launcher visibility change to
         // avoid a jumping taskbar.
-        TaskbarUIController taskbarUIController = containerInterface.getTaskbarController();
-        if (taskbarUIController != null) {
-            taskbarUIController.setSkipLauncherVisibilityChange(true);
+        TaskbarInteractor taskbarInteractor = containerInterface.getTaskbarInteractor();
+        if (taskbarInteractor != null) {
+            taskbarInteractor.setSkipLauncherVisibilityChange(true);
 
             mCallbacks.addListener(new RecentsAnimationCallbacks.RecentsAnimationListener() {
                 @Override
                 public void onRecentsAnimationCanceled(
                         @NonNull HashMap<Integer, ThumbnailData> thumbnailDatas) {
-                    taskbarUIController.setSkipLauncherVisibilityChange(false);
+                    taskbarInteractor.setSkipLauncherVisibilityChange(false);
                 }
 
                 @Override
                 public void onRecentsAnimationFinished(
                         @NonNull RecentsAnimationController controller) {
-                    taskbarUIController.setSkipLauncherVisibilityChange(false);
+                    taskbarInteractor.setSkipLauncherVisibilityChange(false);
                 }
             });
         }

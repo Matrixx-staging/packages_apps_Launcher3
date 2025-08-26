@@ -35,7 +35,7 @@ import androidx.annotation.BinderThread;
 
 import com.android.launcher3.R;
 import com.android.launcher3.anim.PendingAnimation;
-import com.android.launcher3.taskbar.LauncherTaskbarUIController;
+import com.android.launcher3.taskbar.TaskbarInteractor;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.quickstep.BaseContainerInterface;
 import com.android.quickstep.OverviewComponentObserver;
@@ -156,10 +156,10 @@ public class SplitWithKeyboardShortcutController {
                     controller.finish(
                             true /* toRecents */,
                             () -> {
-                                LauncherTaskbarUIController controller =
-                                        mLauncher.getTaskbarUIController();
-                                if (controller != null) {
-                                    controller.updateTaskbarLauncherStateGoingHome();
+                                TaskbarInteractor taskbarInteractor =
+                                        mLauncher.getTaskbarInteractor();
+                                if (taskbarInteractor != null) {
+                                    taskbarInteractor.updateTaskbarLauncherStateGoingHome();
                                 }
 
                             },

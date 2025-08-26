@@ -70,9 +70,8 @@ import com.android.launcher3.statemanager.StateManager;
 import com.android.launcher3.statemanager.StateManager.AtomicAnimationFactory;
 import com.android.launcher3.statemanager.StateManager.StateHandler;
 import com.android.launcher3.statemanager.StatefulActivity;
-import com.android.launcher3.taskbar.FallbackTaskbarUIController;
+import com.android.launcher3.taskbar.TaskbarInteractor;
 import com.android.launcher3.taskbar.TaskbarManager;
-import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.util.ActivityOptionsWrapper;
 import com.android.launcher3.util.ContextTracker;
 import com.android.launcher3.util.RunnableList;
@@ -118,7 +117,7 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
     private FallbackRecentsView mFallbackRecentsView;
     private OverviewActionsView<?> mActionsView;
     private TISBindHelper mTISBindHelper;
-    private @Nullable FallbackTaskbarUIController<RecentsActivity> mTaskbarUIController;
+    private @Nullable TaskbarInteractor mTaskbarInteractor;
 
     private StateManager<RecentsState, RecentsActivity> mStateManager;
 
@@ -179,14 +178,14 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
     }
 
     @Override
-    public void setTaskbarUIController(@Nullable TaskbarUIController taskbarUIController) {
-        mTaskbarUIController = (FallbackTaskbarUIController<RecentsActivity>) taskbarUIController;
+    public void setTaskbarInteractor(@Nullable TaskbarInteractor taskbarInteractor) {
+        mTaskbarInteractor = taskbarInteractor;
     }
 
     @Nullable
     @Override
-    public FallbackTaskbarUIController<RecentsActivity> getTaskbarUIController() {
-        return mTaskbarUIController;
+    public TaskbarInteractor getTaskbarInteractor() {
+        return mTaskbarInteractor;
     }
 
     @Override

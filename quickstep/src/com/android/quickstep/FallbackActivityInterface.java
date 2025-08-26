@@ -32,7 +32,7 @@ import androidx.annotation.Nullable;
 
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.statemanager.StateManager;
-import com.android.launcher3.taskbar.FallbackTaskbarUIController;
+import com.android.launcher3.taskbar.TaskbarInteractor;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.views.ScrimColors;
 import com.android.quickstep.GestureState.GestureEndTarget;
@@ -103,12 +103,12 @@ public final class FallbackActivityInterface extends
     }
 
     @Override
-    public FallbackTaskbarUIController getTaskbarController() {
+    public TaskbarInteractor getTaskbarInteractor() {
         RecentsActivity activity = getCreatedContainer();
         if (activity == null) {
             return null;
         }
-        return activity.getTaskbarUIController();
+        return activity.getTaskbarInteractor();
     }
 
     @Nullable
@@ -201,13 +201,13 @@ public final class FallbackActivityInterface extends
     @Override
     public @Nullable Animator getParallelAnimationToGestureEndTarget(GestureEndTarget endTarget,
             long duration, RecentsAnimationCallbacks callbacks) {
-        FallbackTaskbarUIController uiController = getTaskbarController();
+        TaskbarInteractor interactor = getTaskbarInteractor();
         Animator superAnimator = super.getParallelAnimationToGestureEndTarget(
                 endTarget, duration, callbacks);
-        if (uiController == null) {
+        if (interactor == null) {
             return superAnimator;
         }
-        Animator taskbarAnimator = uiController.getParallelAnimationToGestureEndTarget(
+        Animator taskbarAnimator = interactor.getParallelAnimationToGestureEndTarget(
                 endTarget, duration, callbacks);
         if (taskbarAnimator == null) {
             return superAnimator;

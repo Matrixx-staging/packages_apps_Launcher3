@@ -74,11 +74,11 @@ import com.android.quickstep.window.RecentsWindowManager;
 import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags;
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation;
 
+import kotlin.Unit;
+
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.concurrent.Executor;
-
-import kotlin.Unit;
 
 /**
  * A data source which integrates with a Launcher instance
@@ -150,12 +150,12 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
                 && containerInterface.getCreatedContainer()
                 instanceof RecentsWindowManager recentsWindowManager) {
             mRecentsViewContainer = recentsWindowManager;
-            mRecentsViewContainer.setTaskbarUIController(this);
+            mRecentsViewContainer.setTaskbarInteractor(new TaskbarInteractor(this));
         } else {
             // TODO(b/404636836) Refactor API calls on mRecentsViewContainer
             mRecentsViewContainer = mLauncher.getLauncherAsRecentViewContainer();
         }
-        mLauncher.setTaskbarUiController(this);
+        mLauncher.setTaskbarInteractor(new TaskbarInteractor(this));
 
         mHomeState.addListener(mVisibilityChangeListener);
         onLauncherVisibilityChanged(mHomeState.isHomeVisible(), true /* fromInit */);
@@ -193,8 +193,8 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
         super.onDestroy();
         mTaskbarLauncherStateController.onDestroy();
 
-        mLauncher.setTaskbarUiController(null);
-        mRecentsViewContainer.setTaskbarUIController(null);
+        mLauncher.setTaskbarInteractor(null);
+        mRecentsViewContainer.setTaskbarInteractor(null);
         mHomeState.removeListener(mVisibilityChangeListener);
     }
 

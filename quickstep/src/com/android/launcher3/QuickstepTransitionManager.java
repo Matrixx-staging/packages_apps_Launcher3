@@ -130,7 +130,7 @@ import com.android.launcher3.dragndrop.DragLayer;
 import com.android.launcher3.icons.FastBitmapDrawable;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.shortcuts.DeepShortcutView;
-import com.android.launcher3.taskbar.LauncherTaskbarUIController;
+import com.android.launcher3.taskbar.TaskbarInteractor;
 import com.android.launcher3.testing.shared.ResourceUtils;
 import com.android.launcher3.touch.PagedOrientationHandler;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
@@ -176,7 +176,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map.Entry;
 
 /**
  * Manages the opening and closing app transitions from Launcher
@@ -365,14 +364,14 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
 
         // Prepare taskbar for animation synchronization. This needs to happen here before any
         // app transition is created.
-        LauncherTaskbarUIController taskbarController = mLauncher.getTaskbarUIController();
+        TaskbarInteractor taskbarInteractor = mLauncher.getTaskbarInteractor();
         if (syncAppLaunchWithTaskbarStash()
                 && mLauncher.getStateManager().getState() == NORMAL
-                && taskbarController != null) {
-            taskbarController.setIgnoreInAppFlagForSync(true);
+                && taskbarInteractor != null) {
+            taskbarInteractor.setIgnoreInAppFlagForSync(true);
             mLauncher.addEventCallback(EVENT_DESTROYED, onEndCallback::executeAllAndDestroy);
             onEndCallback.add(() -> {
-                taskbarController.setIgnoreInAppFlagForSync(false);
+                taskbarInteractor.setIgnoreInAppFlagForSync(false);
             });
         }
 
@@ -715,9 +714,9 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
 
         RectF launcherIconBounds = new RectF();
         FloatingIconView floatingView = getFloatingIconView(mLauncher, v,
-                (mLauncher.getTaskbarUIController() == null || !isTransientTaskbar())
+                (mLauncher.getTaskbarInteractor() == null || !isTransientTaskbar())
                         ? null
-                        : mLauncher.getTaskbarUIController().findMatchingView(v),
+                        : mLauncher.getTaskbarInteractor().findMatchingView(v),
                 null /* fadeOutView */, !appTargetsAreTranslucent, launcherIconBounds,
                 true /* isOpening */);
         Rect crop = new Rect();
@@ -779,9 +778,9 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 if (v instanceof BubbleTextView) {
                     ((BubbleTextView) v).setStayPressed(false);
                 }
-                LauncherTaskbarUIController taskbarController = mLauncher.getTaskbarUIController();
-                if (taskbarController != null) {
-                    taskbarController.showEduOnAppLaunch();
+                TaskbarInteractor taskbarInteractor = mLauncher.getTaskbarInteractor();
+                if (taskbarInteractor != null) {
+                    taskbarInteractor.showEduOnAppLaunch();
                 }
                 openingTargets.release();
             }
@@ -799,8 +798,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
             }
 
             private boolean legacyShouldShowEduOnAppLaunch() {
-                return mLauncher.getTaskbarUIController() != null
-                        && mLauncher.getTaskbarUIController().shouldShowEduOnAppLaunch();
+                return mLauncher.getTaskbarInteractor() != null
+                        && mLauncher.getTaskbarInteractor().shouldShowEduOnAppLaunch();
             }
 
             private boolean newShouldShowEduOnAppLaunch() {
@@ -1015,7 +1014,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
     }
 
     private boolean isTransientTaskbar() {
-        return mLauncher.getTaskbarUIController().getTaskbarFeatureEvaluator().isTransient();
+        return mLauncher.getTaskbarInteractor().getTaskbarFeatureEvaluator().isTransient();
     }
 
     private Animator getOpeningWindowAnimatorsForWidget(LauncherAppWidgetHostView v,
@@ -1476,9 +1475,9 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         } else if (launcherView != null && !RemoveAnimationSettingsTracker.INSTANCE.get(
                 mLauncher).isRemoveAnimationEnabled()) {
             floatingIconView = getFloatingIconView(mLauncher, launcherView, null,
-                    mLauncher.getTaskbarUIController() == null
+                    mLauncher.getTaskbarInteractor() == null
                             ? null
-                            : mLauncher.getTaskbarUIController().findMatchingView(launcherView),
+                            : mLauncher.getTaskbarInteractor().findMatchingView(launcherView),
                     true /* hideOriginal */, targetRect, false /* isOpening */);
         } else {
             targetRect.set(getDefaultWindowTargetRect());
@@ -1949,15 +1948,12 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
 
             // Syncs the app launch animation and taskbar stash animation (if exists).
             if (syncAppLaunchWithTaskbarStash()) {
-                LauncherTaskbarUIController taskbarController = mLauncher.getTaskbarUIController();
-                if (taskbarController != null) {
-                    taskbarController.setIgnoreInAppFlagForSync(false);
+                TaskbarInteractor taskbarInteractor = mLauncher.getTaskbarInteractor();
+                if (taskbarInteractor != null) {
+                    taskbarInteractor.setIgnoreInAppFlagForSync(false);
 
                     if (launcherClosing) {
-                        Animator taskbar = taskbarController.createAnimToApp();
-                        if (taskbar != null) {
-                            anim.play(taskbar);
-                        }
+                        taskbarInteractor.createAnimToAppAndPlay(anim);
                     }
                 }
             }

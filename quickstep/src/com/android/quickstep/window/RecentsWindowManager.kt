@@ -56,7 +56,7 @@ import com.android.launcher3.desktop.DesktopRecentsTransitionController
 import com.android.launcher3.statemanager.StateManager
 import com.android.launcher3.statemanager.StateManager.AtomicAnimationFactory
 import com.android.launcher3.statemanager.StatefulContainer
-import com.android.launcher3.taskbar.TaskbarUIController
+import com.android.launcher3.taskbar.TaskbarInteractor
 import com.android.launcher3.testing.TestLogging
 import com.android.launcher3.testing.shared.TestProtocol.LAUNCHER_ACTIVITY_STOPPED_MESSAGE
 import com.android.launcher3.testing.shared.TestProtocol.SEQUENCE_MAIN
@@ -169,7 +169,7 @@ constructor(
 
     private var callbacks: RecentsAnimationCallbacks? = null
 
-    private var taskbarUIController: TaskbarUIController? = null
+    private var taskbarInteractor: TaskbarInteractor? = null
 
     private val tisBindHelper: TISBindHelper = TISBindHelper(this) {}
     private val splitSelectStateController: SplitSelectStateController =
@@ -517,12 +517,12 @@ constructor(
             displayId != DEFAULT_DISPLAY
     }
 
-    override fun setTaskbarUIController(taskbarUIController: TaskbarUIController?) {
-        this.taskbarUIController = taskbarUIController
+    override fun setTaskbarInteractor(taskbarInteractor: TaskbarInteractor?) {
+        this.taskbarInteractor = taskbarInteractor
     }
 
-    override fun getTaskbarUIController(): TaskbarUIController? {
-        return taskbarUIController
+    override fun getTaskbarInteractor(): TaskbarInteractor? {
+        return taskbarInteractor
     }
 
     override fun collectStateHandlers(out: MutableList<StateManager.StateHandler<RecentsState?>>?) {
