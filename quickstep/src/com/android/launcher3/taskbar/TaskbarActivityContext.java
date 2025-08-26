@@ -1904,8 +1904,12 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             // If the icon is an app pair, the logic gets a bit complicated because we play
             // different animations depending on which app (or app pair) is currently running on
             // screen, so delegate logic to appPairsController.
-            recents.getSplitSelectController().getAppPairsController()
-                    .handleAppPairLaunchInApp((AppPairIcon) launchingIconView, itemInfos);
+            if (recents != null && recents.getSplitSelectController() != null
+                    && launchingIconView != null) {
+                // TODO: b/441341469 - Split screen should be handled correctly on CD.
+                recents.getSplitSelectController().getAppPairsController()
+                        .handleAppPairLaunchInApp((AppPairIcon) launchingIconView, itemInfos);
+            }
         } else {
             // Tapped a single app, nothing complicated here.
             startItemInfoActivity(itemInfos.get(0), null /*foundTask*/);
