@@ -17,7 +17,6 @@
 package com.android.launcher3.tapl;
 
 import static com.android.launcher3.tapl.BaseOverview.TASK_SELECTOR;
-import static com.android.launcher3.tapl.OverviewTask.TASK_START_EVENT;
 import static com.android.launcher3.testing.shared.TestProtocol.OVERVIEW_STATE_ORDINAL;
 
 import android.graphics.Point;
@@ -43,6 +42,8 @@ public abstract class Background extends LauncherInstrumentation.VisibleContaine
         implements KeyboardQuickSwitchSource {
     private static final int ZERO_BUTTON_SWIPE_UP_GESTURE_DURATION = 500;
     private static final Pattern SQUARE_BUTTON_EVENT = Pattern.compile("onOverviewToggle");
+    private static final Pattern QUICK_SWITCH_EVENT = Pattern.compile(
+            "startActivityFromRecentsAsync|launchDesktopFromRecents");
 
     Background(LauncherInstrumentation launcher) {
         super(launcher);
@@ -282,7 +283,7 @@ public abstract class Background extends LauncherInstrumentation.VisibleContaine
                         () -> recentsButton.click(),
                         "clicking Recents button for the second time");
             }
-            mLauncher.expectEvent(TestProtocol.SEQUENCE_MAIN, TASK_START_EVENT);
+            mLauncher.expectEvent(TestProtocol.SEQUENCE_MAIN, QUICK_SWITCH_EVENT);
         }
     }
 
