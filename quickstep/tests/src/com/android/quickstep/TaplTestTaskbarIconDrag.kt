@@ -17,6 +17,7 @@
 package com.android.quickstep
 
 import android.platform.test.annotations.RequiresFlagsEnabled
+import android.platform.test.flag.junit.DeviceFlagsValueProvider
 import android.platform.test.rule.ScreenRecordRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -27,6 +28,7 @@ import com.android.launcher3.util.TestUtil
 import com.android.wm.shell.Flags
 import org.junit.After
 import org.junit.Assume
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -36,6 +38,8 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 @RequiresFlagsEnabled(Flags.FLAG_ENABLE_BUBBLE_ANYTHING)
 class TaplTestTaskbarIconDrag : AbstractQuickStepTest() {
+
+    @get:Rule val checkFlagsRule = DeviceFlagsValueProvider.createCheckFlagsRule()
 
     private var launcherLayout: AutoCloseable? = null
     private var bubbleBar: BubbleBar? = null
