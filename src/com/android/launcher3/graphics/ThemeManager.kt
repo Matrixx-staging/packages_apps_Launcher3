@@ -18,9 +18,6 @@ package com.android.launcher3.graphics
 
 import android.content.Context
 import android.content.res.Resources
-import android.graphics.Color
-import android.graphics.drawable.AdaptiveIconDrawable
-import android.graphics.drawable.ColorDrawable
 import com.android.launcher3.EncryptionType
 import com.android.launcher3.Item
 import com.android.launcher3.LauncherPrefChangeListener
@@ -45,6 +42,7 @@ import com.android.launcher3.util.ListenableRef
 import com.android.launcher3.util.LooperExecutor
 import com.android.launcher3.util.MutableListenableRef
 import com.android.launcher3.util.SimpleBroadcastReceiver
+import com.android.launcher3.util.SimpleBroadcastReceiver.Companion.packageFilter
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.inject.Inject
 
@@ -88,7 +86,8 @@ constructor(
 
     init {
         val receiver = SimpleBroadcastReceiver(context, uiExecutor) { verifyIconState() }
-        receiver.registerPkgActions("android", ACTION_OVERLAY_CHANGED)
+        receiver.register(packageFilter("android", ACTION_OVERLAY_CHANGED))
+        lifecycle.addCloseable(receiver)
 
         val keys = (iconControllerFactory.prefKeys + PREF_ICON_SHAPE)
 
@@ -98,10 +97,7 @@ constructor(
             if (prefKeySet.contains(key)) verifyIconState()
         }
         prefs.addListener(prefListener, *keysArray)
-        lifecycle.addCloseable {
-            receiver.unregisterReceiverSafely()
-            prefs.removeListener(prefListener, *keysArray)
-        }
+        lifecycle.addCloseable { prefs.removeListener(prefListener, *keysArray) }
     }
 
     private fun verifyIconState() {
@@ -221,6 +217,5 @@ constructor(
 
         private fun ShapeDelegate.createIconShape(size: Int) =
             generateIconShape(size, getPath(size.toFloat()))
-
     }
 }
