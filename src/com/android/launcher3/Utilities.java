@@ -18,6 +18,7 @@ package com.android.launcher3;
 
 import static com.android.launcher3.Flags.enableMouseInteractionChanges;
 import static com.android.launcher3.Flags.injectableModelItems;
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_PRIVATESPACE;
 import static com.android.launcher3.folder.ClippedFolderIconLayoutRule.ICON_OVERLAP_FACTOR;
 import static com.android.launcher3.graphics.ShapeDelegate.DEFAULT_PATH_SIZE;
 import static com.android.launcher3.icons.BitmapInfo.FLAG_THEMED;
@@ -686,7 +687,11 @@ public final class Utilities {
             if (activityInfo == null) {
                 return null;
             }
-            mainIcon = appState.getIconCache().getFullResIcon(activityInfo.getActivityInfo());
+            if (info instanceof ItemInfoWithIcon && info.container == CONTAINER_PRIVATESPACE) {
+                mainIcon = ((ItemInfoWithIcon) info).bitmap.getBadgeDrawable(context, useTheme);
+            } else {
+                mainIcon = appState.getIconCache().getFullResIcon(activityInfo.getActivityInfo());
+            }
         } else if (info.itemType == LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT) {
             List<ShortcutInfo> siList = ShortcutKey.fromItemInfo(info)
                     .buildRequest(context)
