@@ -10,7 +10,6 @@ filegroup {
         "tapl/TaplUtilityTest.java",
         "ui/TaplTestsLauncher3Test.java",
         "widget/TaplAddWidgetTest.java",
-        "workspace/TaplTwoPanelWorkspaceTest.java",
         "workspace/TaplWorkspaceTest.java",
     ],
 }

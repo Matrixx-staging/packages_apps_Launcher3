@@ -16,33 +16,31 @@
 
 package com.android.launcher3.workspace;
 
-import static com.android.launcher3.util.TestConstants.AppNames.CHROME_APP_NAME;
-import static com.android.launcher3.util.TestConstants.AppNames.MAPS_APP_NAME;
-import static com.android.launcher3.util.TestConstants.AppNames.MESSAGES_APP_NAME;
-import static com.android.launcher3.util.TestConstants.AppNames.STORE_APP_NAME;
+import static com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE;
+import static com.android.launcher3.util.WorkspaceDragHelper.className;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
-import android.view.View;
-
+import androidx.test.core.app.ActivityScenario.ActivityAction;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
-import androidx.test.runner.AndroidJUnit4;
 
 import com.android.launcher3.CellLayout;
+import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.model.data.ItemInfo;
-import com.android.launcher3.tapl.Workspace;
+import com.android.launcher3.util.BaseLauncherActivityTest;
 import com.android.launcher3.util.LauncherLayoutBuilder;
+import com.android.launcher3.util.LauncherModelHelper;
+import com.android.launcher3.util.LayoutResource;
 import com.android.launcher3.util.ModelTestExtensions;
-import com.android.launcher3.util.TestUtil;
-import com.android.launcher3.util.ui.AbstractLauncherUiTest;
-import com.android.launcher3.util.ui.PortraitLandscapeRunner.PortraitLandscape;
+import com.android.launcher3.util.WorkspaceDragHelper;
 
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -57,28 +55,29 @@ import java.util.stream.Collectors;
  */
 @LargeTest
 @RunWith(AndroidJUnit4.class)
-public class TaplTwoPanelWorkspaceTest extends AbstractLauncherUiTest<Launcher, View> {
+public class TwoPanelWorkspaceTest extends BaseLauncherActivityTest<Launcher> {
 
-    private AutoCloseable mLauncherLayout;
+    @Rule public LayoutResource layoutRule = new LayoutResource(targetContext());
+
+    private static final String CHROME_APP_NAME = LauncherModelHelper.TEST_ACTIVITY;
+    private static final String MAPS_APP_NAME = LauncherModelHelper.TEST_ACTIVITY2;
+    private static final String MESSAGES_APP_NAME = LauncherModelHelper.TEST_ACTIVITY3;
+    private static final String STORE_APP_NAME = LauncherModelHelper.TEST_ACTIVITY4;
 
     @Before
     public void setUp() throws Exception {
-        super.setUp();
+        assumeTrue("Ignoring test because Launcher doesn't have two panels",
+                InvariantDeviceProfile.INSTANCE.get(targetContext())
+                        .getDeviceProfile(targetContext()).getDeviceProperties().isTwoPanels());
 
         // Set layout that includes Maps/Play on workspace, and Messaging/Chrome on hotseat.
         LauncherLayoutBuilder builder = new LauncherLayoutBuilder()
-                .atHotseat(0).putApp(
-                        "com.google.android.apps.messaging",
-                        "com.google.android.apps.messaging.ui.ConversationListActivity")
-                .atHotseat(1).putApp("com.android.chrome", "com.google.android.apps.chrome.Main")
-                .atWorkspace(0, -1, 0).putApp(
-                        "com.google.android.apps.maps", "com.google.android.maps.MapsActivity")
-                .atWorkspace(3, -1, 0).putApp(
-                        "com.android.vending", "com.android.vending.AssetBrowserActivity");
-        mLauncherLayout = TestUtil.setLauncherDefaultLayout(mTargetContext, builder);
-        AbstractLauncherUiTest.initialize(this);
-        assumeTrue("Ignoring test because Launcher doesn't have two panels",
-            mLauncher.isTwoPanels());
+                .atHotseat(0).putApp(TEST_PACKAGE, MESSAGES_APP_NAME)
+                .atHotseat(1).putApp(TEST_PACKAGE, CHROME_APP_NAME)
+                .atWorkspace(0, -1, 0).putApp(TEST_PACKAGE, MAPS_APP_NAME)
+                .atWorkspace(3, -1, 0).putApp(TEST_PACKAGE, STORE_APP_NAME);
+        layoutRule.set(builder);
+        loadLauncherSync();
 
         // Pre verifying the screens
         executeOnLauncher(launcher -> {
@@ -89,18 +88,9 @@ public class TaplTwoPanelWorkspaceTest extends AbstractLauncherUiTest<Launcher, 
         });
     }
 
-    @After
-    public void tearDown() throws Exception {
-        executeOnLauncherInTearDown(launcher -> launcher.enableHotseatEdu(true));
-        if (mLauncherLayout != null) {
-            mLauncherLayout.close();
-        }
-    }
-
     @Test
-    @PortraitLandscape
     public void testDragIconToRightPanel() {
-        Workspace workspace = mLauncher.getWorkspace();
+        WorkspaceDragHelper workspace = new WorkspaceDragHelper(getLauncherActivity());
 
         workspace.dragIcon(workspace.getHotseatAppIcon(CHROME_APP_NAME), 1);
 
@@ -112,9 +102,8 @@ public class TaplTwoPanelWorkspaceTest extends AbstractLauncherUiTest<Launcher, 
     }
 
     @Test
-    @PortraitLandscape
     public void testSinglePageDragIconWhenMultiplePageScrollingIsPossible() {
-        Workspace workspace = mLauncher.getWorkspace();
+        WorkspaceDragHelper workspace = new WorkspaceDragHelper(getLauncherActivity());
 
         workspace.dragIcon(workspace.getHotseatAppIcon(CHROME_APP_NAME), 2);
 
@@ -166,9 +155,8 @@ public class TaplTwoPanelWorkspaceTest extends AbstractLauncherUiTest<Launcher, 
     }
 
     @Test
-    @PortraitLandscape
     public void testDragIconToPage2() {
-        Workspace workspace = mLauncher.getWorkspace();
+        WorkspaceDragHelper workspace = new WorkspaceDragHelper(getLauncherActivity());
 
         workspace.dragIcon(workspace.getWorkspaceAppIcon(MAPS_APP_NAME), 2);
 
@@ -182,9 +170,8 @@ public class TaplTwoPanelWorkspaceTest extends AbstractLauncherUiTest<Launcher, 
     }
 
     @Test
-    @PortraitLandscape
     public void testDragIconToPage3() {
-        Workspace workspace = mLauncher.getWorkspace();
+        WorkspaceDragHelper workspace = new WorkspaceDragHelper(getLauncherActivity());
 
         // b/299522368 sometimes the phone app is not present in the hotseat.
         workspace.dragIcon(workspace.getHotseatAppIcon(CHROME_APP_NAME), 3);
@@ -199,9 +186,8 @@ public class TaplTwoPanelWorkspaceTest extends AbstractLauncherUiTest<Launcher, 
     }
 
     @Test
-    @PortraitLandscape
     public void testMultiplePageDragIcon() {
-        Workspace workspace = mLauncher.getWorkspace();
+        WorkspaceDragHelper workspace = new WorkspaceDragHelper(getLauncherActivity());
 
         workspace.dragIcon(workspace.getHotseatAppIcon(MESSAGES_APP_NAME), 2);
 
@@ -245,9 +231,8 @@ public class TaplTwoPanelWorkspaceTest extends AbstractLauncherUiTest<Launcher, 
     }
 
     @Test
-    @PortraitLandscape
     public void testEmptyPageDoesNotGetRemovedIfPagePairIsNotEmpty() {
-        Workspace workspace = mLauncher.getWorkspace();
+        WorkspaceDragHelper workspace = new WorkspaceDragHelper(getLauncherActivity());
 
         workspace.dragIcon(workspace.getWorkspaceAppIcon(MAPS_APP_NAME), 3);
         workspace.dragIcon(workspace.getHotseatAppIcon(CHROME_APP_NAME), 0);
@@ -285,9 +270,8 @@ public class TaplTwoPanelWorkspaceTest extends AbstractLauncherUiTest<Launcher, 
     }
 
     @Test
-    @PortraitLandscape
     public void testEmptyPagesGetRemovedIfBothPagesAreEmpty() {
-        Workspace workspace = mLauncher.getWorkspace();
+        WorkspaceDragHelper workspace = new WorkspaceDragHelper(getLauncherActivity());
 
         workspace.dragIcon(workspace.getWorkspaceAppIcon(STORE_APP_NAME), 2);
         workspace.dragIcon(workspace.getHotseatAppIcon(CHROME_APP_NAME), 1);
@@ -312,9 +296,8 @@ public class TaplTwoPanelWorkspaceTest extends AbstractLauncherUiTest<Launcher, 
     }
 
     @Test
-    @PortraitLandscape
     public void testMiddleEmptyPagesGetRemoved() {
-        Workspace workspace = mLauncher.getWorkspace();
+        WorkspaceDragHelper workspace = new WorkspaceDragHelper(getLauncherActivity());
 
         workspace.dragIcon(workspace.getWorkspaceAppIcon(MAPS_APP_NAME), 2);
         workspace.dragIcon(workspace.getHotseatAppIcon(MESSAGES_APP_NAME), 3);
@@ -339,6 +322,10 @@ public class TaplTwoPanelWorkspaceTest extends AbstractLauncherUiTest<Launcher, 
             assertItemsOnPage(launcher, 4, MAPS_APP_NAME);
             assertItemsOnPage(launcher, 5, MESSAGES_APP_NAME);
         });
+    }
+
+    private void executeOnLauncher(ActivityAction<Launcher> action) {
+        getLauncherActivity().executeOnLauncher(action);
     }
 
     private void assertPageEmpty(Launcher launcher, int pageId) {
@@ -366,8 +353,8 @@ public class TaplTwoPanelWorkspaceTest extends AbstractLauncherUiTest<Launcher, 
         for (int i = 0; i < itemCount; i++) {
             ItemInfo itemInfo = (ItemInfo) page.getShortcutsAndWidgets().getChildAt(i).getTag();
             if (itemInfo != null && ModelTestExtensions.isPersistedModelItem(itemInfo)) {
-                assertTrue("There was an extra item on page " + pageId + ": " + itemInfo.title,
-                        itemTitleSet.remove(itemInfo.title));
+                assertTrue("There was an extra item on page " + pageId + ": " + className(itemInfo),
+                        itemTitleSet.remove(className(itemInfo)));
             }
         }
         assertTrue("Could NOT find some of the items on page " + pageId + ": "
