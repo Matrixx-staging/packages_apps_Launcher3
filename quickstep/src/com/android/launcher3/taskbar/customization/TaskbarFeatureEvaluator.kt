@@ -41,6 +41,7 @@ constructor(
     private val desktopVisibilityController: DesktopVisibilityController,
     private val launcherPrefs: LauncherPrefs,
 ) {
+    val primaryDisplayId = context.displayId
     val hasBubbles = false
     val hasNavButtons: Boolean
         get() = displayController.info.navigationMode == THREE_BUTTONS
@@ -52,7 +53,7 @@ constructor(
         get() =
             if (
                 displayController.info.navigationMode != NO_BUTTON ||
-                    desktopVisibilityController.isInDesktopMode(context.displayId) ||
+                    desktopVisibilityController.isInDesktopMode(primaryDisplayId) ||
                     displayController.info.showDesktopTaskbarForFreeformDisplay() ||
                     (displayController.info.showLockedTaskbarOnHome() &&
                         displayController.info.isHomeVisible)
@@ -66,9 +67,9 @@ constructor(
 
     val isPinned: Boolean
         get() =
-            if (desktopVisibilityController.isInDesktopModeAndNotInOverview(context.displayId)) {
+            if (desktopVisibilityController.isInDesktopModeAndNotInOverview(primaryDisplayId)) {
                 true
-            } else if (desktopVisibilityController.isInDesktopMode(context.displayId)) {
+            } else if (desktopVisibilityController.isInDesktopMode(primaryDisplayId)) {
                 launcherPrefs.get(TASKBAR_PINNING_IN_DESKTOP_MODE)
             } else {
                 launcherPrefs.get(TASKBAR_PINNING)
