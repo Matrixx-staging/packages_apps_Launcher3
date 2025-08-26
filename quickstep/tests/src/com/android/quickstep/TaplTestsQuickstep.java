@@ -28,7 +28,6 @@ import static org.junit.Assume.assumeTrue;
 
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.platform.test.annotations.DisableFlags;
 import android.platform.test.annotations.EnableFlags;
 
 import androidx.annotation.NonNull;
@@ -209,7 +208,6 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
     }
 
     @Test
-    @DisableFlags(Flags.FLAG_ENABLE_ALT_TAB_KQS_FLATENNING)
     public void testOpenOverviewWithActionPlusTabKeys() throws Exception {
         startTestAppsWithCheck();
         startAppFast(CALCULATOR_APP_PACKAGE); // Ensure Calculator is last opened app.

@@ -269,14 +269,7 @@ public final class KeyboardQuickSwitchController implements
             processLoadedTasksOutsideDesktop(tasks, taskIdsToExclude);
         }
 
-        // With flattened KQS structure, there is no max app limit and so there is no overview.
-        if (enableAltTabKqsFlatenning.isTrue() && !openedFromTaskbar) {
-            mFirstHiddenTaskIds = null;
-            mNumHiddenTasks = 0;
-            return;
-        }
-
-        // Find the non-desktop tasks that were excluded from mTasks when opened from taskbar.
+        // Find the non-desktop tasks that were excluded from mTasks.
         // These are the tasks we want to refer to in the overview button.
         List<GroupTask> hiddenTasks = tasks.stream()
                 .filter(task -> !mTasks.contains(task) && !(task instanceof DesktopTask))
@@ -310,7 +303,7 @@ public final class KeyboardQuickSwitchController implements
                 .filter(this::shouldIncludeTaskBasedOnProjectedMode)
                 .sorted(combinedTasksComparator());
 
-        if (!enableAltTabKqsFlatenning.isTrue() && !openedFromTaskbar) {
+        if (!openedFromTaskbar) {
             allTasks = allTasks.limit(MAX_TASKS);
         }
 
