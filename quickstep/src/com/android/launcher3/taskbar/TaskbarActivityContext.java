@@ -124,6 +124,7 @@ import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.AppPairInfo;
 import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.model.data.ResolvedTargetInfo;
 import com.android.launcher3.model.data.TaskItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.popup.PopupContainer;
@@ -160,7 +161,6 @@ import com.android.launcher3.touch.ItemClickHandler.ItemClickProxy;
 import com.android.launcher3.util.ActivityOptionsWrapper;
 import com.android.launcher3.util.ApiWrapper;
 import com.android.launcher3.util.ApplicationInfoWrapper;
-import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.Executors;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
@@ -1968,10 +1968,10 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
 
         boolean isLaunchingAppPair = itemInfos.size() == 2;
         // Convert the list of ItemInfo instances to a list of ComponentKeys
-        List<ComponentKey> componentKeys =
-                itemInfos.stream().map(ItemInfo::getComponentKey).toList();
+        List<ResolvedTargetInfo> resolvedTargetInfo =
+                itemInfos.stream().map(ItemInfo::getResolvedTargetInfo).toList();
         recents.getSplitSelectController().findLastActiveTasksAndRunCallback(
-                componentKeys,
+                resolvedTargetInfo,
                 isLaunchingAppPair,
                 foundTasks -> {
                     @Nullable Task foundTask = foundTasks[0];

@@ -21,6 +21,7 @@ import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APP
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.LauncherActivityInfo;
 import android.os.UserHandle;
 import android.os.UserManager;
@@ -176,6 +177,7 @@ public class AppInfo extends ItemInfoWithIcon implements WorkspaceItemFactory {
             ApiWrapper apiWrapper, PackageManagerHelper pmHelper) {
         final int oldProgressLevel = info.getProgressLevel();
         final int oldRuntimeStatusFlags = info.runtimeStatusFlags;
+        final ActivityInfo activityInfo = lai.getActivityInfo();
         ApplicationInfoWrapper appInfo = new ApplicationInfoWrapper(lai.getApplicationInfo());
         if (appInfo.isSuspended()) {
             info.runtimeStatusFlags |= FLAG_DISABLED_SUSPENDED;
@@ -183,7 +185,7 @@ public class AppInfo extends ItemInfoWithIcon implements WorkspaceItemFactory {
             info.runtimeStatusFlags &= ~FLAG_DISABLED_SUSPENDED;
         }
         if (Flags.enableSupportForArchiving()) {
-            if (lai.getActivityInfo().isArchived) {
+            if (activityInfo.isArchived) {
                 info.runtimeStatusFlags |= FLAG_ARCHIVED;
             } else {
                 info.runtimeStatusFlags &= ~FLAG_ARCHIVED;
@@ -203,6 +205,12 @@ public class AppInfo extends ItemInfoWithIcon implements WorkspaceItemFactory {
         info.setProgressLevel(
                 PackageManagerHelper.getLoadingProgress(lai),
                 PackageInstallInfo.STATUS_INSTALLED_DOWNLOADING);
+        if (activityInfo.targetActivity != null) {
+            info.setTargetActivityComponentName(
+                    new ComponentName(activityInfo.packageName, activityInfo.targetActivity));
+        } else {
+            info.setTargetActivityComponentName(null);
+        }
         info.setNonResizeable(apiWrapper.isNonResizeableActivity(lai));
         info.setSupportsMultiInstance(apiWrapper.supportsMultiInstance(lai));
         return (oldProgressLevel != info.getProgressLevel())

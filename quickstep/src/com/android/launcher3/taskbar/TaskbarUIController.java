@@ -269,7 +269,7 @@ public class TaskbarUIController implements BubbleBarController.BubbleBarLocatio
         }
 
         recentsView.getSplitSelectController().findLastActiveTasksAndRunCallback(
-                Collections.singletonList(splitSelectSource.getItemInfo().getComponentKey()),
+                Collections.singletonList(splitSelectSource.getItemInfo().getResolvedTargetInfo()),
                 false /* findExactPairMatch */,
                 foundTasks -> {
                     @Nullable Task foundTask = foundTasks[0];
@@ -318,7 +318,7 @@ public class TaskbarUIController implements BubbleBarController.BubbleBarLocatio
 
         RecentsView recents = getRecentsView();
         recents.getSplitSelectController().findLastActiveTasksAndRunCallback(
-                Collections.singletonList(info.getComponentKey()),
+                Collections.singletonList(info.getResolvedTargetInfo()),
                 false /* findExactPairMatch */,
                 foundTasks -> {
                     @Nullable Task foundTask = foundTasks[0];
