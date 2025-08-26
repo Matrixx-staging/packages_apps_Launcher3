@@ -141,9 +141,6 @@
     <string name="taskbar_button_notifications" msgid="7471740351507357318">"Обавештења"</string>
     <string name="taskbar_button_quick_settings" msgid="227662894293189391">"Брза подешавања"</string>
     <string name="taskbar_a11y_title" msgid="6432169809852243110">"Трака задатака"</string>
-    <string name="taskbar_a11y_shown_title" msgid="6842833581088937713">"Трака задатака је приказана"</string>
-    <string name="taskbar_a11y_shown_with_bubbles_left_title" msgid="4242431789851790046">"Приказ задатака/облачића лево"</string>
-    <string name="taskbar_a11y_shown_with_bubbles_right_title" msgid="8219065376188180113">"Приказ задатака/облачића десно"</string>
     <string name="taskbar_phone_a11y_title" msgid="4933360237131229395">"Трака за навигацију"</string>
     <string name="always_show_taskbar" msgid="3608801276107751229">"Увек приказуј траку задатака"</string>
     <string name="change_navigation_mode" msgid="9088393078736808968">"Промени режим навигације"</string>

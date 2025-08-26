@@ -61,7 +61,6 @@ import com.android.launcher3.util.PackageUserKey;
 import com.android.launcher3.util.SafeCloseable;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -83,10 +82,6 @@ public class PackageUpdatedTask implements ModelUpdateTask {
     public static final int OP_NONE = 0;
     public static final int OP_ADD = 1;
     public static final int OP_UPDATE = 2;
-    public static final int OP_REMOVE = 3; // uninstalled
-    public static final int OP_UNAVAILABLE = 4; // external media unmounted
-    public static final int OP_SUSPEND = 5; // package suspended
-    public static final int OP_UNSUSPEND = 6; // package unsuspended
     public static final int OP_USER_AVAILABILITY_CHANGE = 7; // user available/unavailable
 
     private final int mOp;
@@ -151,27 +146,6 @@ public class PackageUpdatedTask implements ModelUpdateTask {
                 // Since package was just updated, the target must be available now.
                 flagOp = FlagOp.NO_OP.removeFlag(WorkspaceItemInfo.FLAG_DISABLED_NOT_AVAILABLE);
                 break;
-            case OP_REMOVE: {
-                for (int i = 0; i < packageCount; i++) {
-                    iconCache.removeIconsForPkg(packages[i], mUser);
-                }
-            }
-            // Fall through
-            case OP_UNAVAILABLE:
-                for (int i = 0; i < packageCount; i++) {
-                    if (DEBUG) {
-                        Log.i(TAG, getOpString() + ": removing package=" + packages[i]);
-                    }
-                    appsList.removePackage(packages[i], mUser);
-                }
-                flagOp = FlagOp.NO_OP.addFlag(WorkspaceItemInfo.FLAG_DISABLED_NOT_AVAILABLE);
-                break;
-            case OP_SUSPEND:
-            case OP_UNSUSPEND:
-                flagOp = FlagOp.NO_OP.setFlag(
-                        WorkspaceItemInfo.FLAG_DISABLED_SUSPENDED, mOp == OP_SUSPEND);
-                appsList.updateDisabledFlags(matcher, flagOp);
-                break;
             case OP_USER_AVAILABILITY_CHANGE: {
                 UserManagerState ums = new UserManagerState();
                 UserManager userManager = context.getSystemService(UserManager.class);
@@ -223,9 +197,6 @@ public class PackageUpdatedTask implements ModelUpdateTask {
 
                         if (itemInfo.hasStatusFlag(WorkspaceItemInfo.FLAG_SUPPORTS_WEB_UI)) {
                             forceKeepShortcuts.add(itemInfo.id);
-                            if (mOp == OP_REMOVE) {
-                                return false;
-                            }
                         }
 
                         if (itemInfo.isPromise() && isNewApkAvailable) {
@@ -375,16 +346,7 @@ public class PackageUpdatedTask implements ModelUpdateTask {
         }
 
         final HashSet<String> removedPackages = new HashSet<>();
-        if (mOp == OP_REMOVE) {
-            // Mark all packages in the broadcast to be removed
-            Collections.addAll(removedPackages, packages);
-            if (DEBUG) {
-                Log.i(TAG, "OP_REMOVE: removing packages=" + Arrays.toString(packages));
-            }
-
-            // No need to update the removedComponents as
-            // removedPackages is a super-set of removedComponents
-        } else if (mOp == OP_UPDATE) {
+        if (mOp == OP_UPDATE) {
             // Mark disabled packages in the broadcast to be removed
             final LauncherApps launcherApps = context.getSystemService(LauncherApps.class);
             for (int i = 0; i < packageCount; i++) {
@@ -462,10 +424,6 @@ public class PackageUpdatedTask implements ModelUpdateTask {
             case OP_NONE -> "NONE";
             case OP_ADD -> "ADD";
             case OP_UPDATE -> "UPDATE";
-            case OP_REMOVE -> "REMOVE";
-            case OP_UNAVAILABLE -> "UNAVAILABLE";
-            case OP_SUSPEND -> "SUSPEND";
-            case OP_UNSUSPEND -> "UNSUSPEND";
             case OP_USER_AVAILABILITY_CHANGE -> "USER_AVAILABILITY_CHANGE";
             default -> "UNKNOWN";
         };

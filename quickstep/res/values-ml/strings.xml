@@ -141,9 +141,6 @@
     <string name="taskbar_button_notifications" msgid="7471740351507357318">"അറിയിപ്പുകൾ"</string>
     <string name="taskbar_button_quick_settings" msgid="227662894293189391">"ദ്രുത ക്രമീകരണം"</string>
     <string name="taskbar_a11y_title" msgid="6432169809852243110">"ടാസ്‌ക്ബാർ"</string>
-    <string name="taskbar_a11y_shown_title" msgid="6842833581088937713">"ടാസ്‌ക്ബാർ കാണിച്ചിരിക്കുന്നു"</string>
-    <string name="taskbar_a11y_shown_with_bubbles_left_title" msgid="4242431789851790046">"ടാസ്ക്ബാറും ബബിളും ഇടതുവശത്ത്"</string>
-    <string name="taskbar_a11y_shown_with_bubbles_right_title" msgid="8219065376188180113">"ടാസ്ക്ബാറും ബബിളും വലതുവശത്ത്"</string>
     <string name="taskbar_phone_a11y_title" msgid="4933360237131229395">"നാവിഗേഷൻ ബാർ"</string>
     <string name="always_show_taskbar" msgid="3608801276107751229">"ടാസ്‌ക്ബാർ എപ്പോഴും കാണിക്കൂ"</string>
     <string name="change_navigation_mode" msgid="9088393078736808968">"നാവിഗേഷൻ മോഡ് മാറ്റുക"</string>

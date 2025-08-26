@@ -81,6 +81,7 @@ import java.util.function.Predicate
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.ExternalResource
 import org.junit.runner.RunWith
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
@@ -128,7 +129,17 @@ class TaskbarOverflowTest {
 
     @get:Rule(order = 4) val animatorTestRule = AnimatorTestRule(this)
 
+    // TODO: b/438808570 - Support controlling desktop mode through TaskbarUnitTestRule.
     @get:Rule(order = 5)
+    val enableDesktopModeRule =
+        object : ExternalResource() {
+            override fun before() {
+                whenever(desktopVisibilityController.isInDesktopMode(context.displayId))
+                    .thenReturn(true)
+            }
+        }
+
+    @get:Rule(order = 6)
     val taskbarUnitTestRule = TaskbarUnitTestRule(this, context, this::onControllersInitialized)
 
     @InjectController lateinit var taskbarViewController: TaskbarViewController
@@ -169,7 +180,6 @@ class TaskbarOverflowTest {
 
     @Before
     fun ensureRunningAppsShowing() {
-        whenever(desktopVisibilityController.isInDesktopMode(context.displayId)).thenReturn(true)
         runOnMainSync { recentsModel.resolvePendingTaskRequests() }
     }
 

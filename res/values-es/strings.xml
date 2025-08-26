@@ -84,7 +84,7 @@
     <string name="all_apps_no_search_results" msgid="3200346862396363786">"No se han encontrado aplicaciones que contengan \"<xliff:g id="QUERY">%1$s</xliff:g>\""</string>
     <string name="label_application" msgid="8531721983832654978">"Aplicación"</string>
     <string name="all_apps_label" msgid="5015784846527570951">"Todas las aplicaciones"</string>
-    <string name="all_apps_list_label" msgid="5106226764073070906">"Lista de aplicaciones"</string>
+    <string name="all_apps_list_label" msgid="5106226764073070906">"Lista de apps"</string>
     <string name="notifications_header" msgid="1404149926117359025">"Notificaciones"</string>
     <string name="long_press_shortcut_to_add" msgid="5405328730817637737">"Mantén pulsado un acceso directo para moverlo."</string>
     <string name="long_accessible_way_to_add_shortcut" msgid="2199537273817090740">"Toca dos veces y mantén pulsado un acceso directo para moverlo o usar acciones personalizadas."</string>
@@ -136,7 +136,7 @@
     <string name="folder_name_format_exact" msgid="8626242716117004803">"Carpeta: <xliff:g id="NAME">%1$s</xliff:g> (<xliff:g id="SIZE">%2$d</xliff:g> elementos)"</string>
     <string name="folder_name_format_overflow" msgid="4270108890534995199">"Carpeta: <xliff:g id="NAME">%1$s</xliff:g> (<xliff:g id="SIZE">%2$d</xliff:g> o más elementos)"</string>
     <string name="unnamed_folder" msgid="2420192029474044442">"Carpeta sin nombre"</string>
-    <string name="app_pair_name_format" msgid="8134106404716224054">"Aplicaciones emparejadas: <xliff:g id="APP1">%1$s</xliff:g> y <xliff:g id="APP2">%2$s</xliff:g>"</string>
+    <string name="app_pair_name_format" msgid="8134106404716224054">"Apps emparejadas: <xliff:g id="APP1">%1$s</xliff:g> y <xliff:g id="APP2">%2$s</xliff:g>"</string>
     <string name="styles_wallpaper_button_text" msgid="8216961355289236794">"Fondo de pantalla y estilo"</string>
     <string name="edit_home_screen" msgid="8947858375782098427">"Editar pantalla de inicio"</string>
     <string name="settings_button_text" msgid="8873672322605444408">"Ajustes de la pantalla de inicio"</string>
@@ -199,19 +199,19 @@
     <string name="accessibility_close" msgid="2277148124685870734">"Cerrar"</string>
     <string name="all_apps_personal_tab" msgid="4190252696685155002">"Personal"</string>
     <string name="all_apps_work_tab" msgid="4884822796154055118">"Trabajo"</string>
-    <string name="all_apps_personal_tab_content_description" msgid="6286808898381807242">"Pestaña Aplicaciones personales"</string>
-    <string name="all_apps_work_tab_content_description" msgid="3835637212347968316">"Pestaña Aplicaciones de trabajo"</string>
+    <string name="all_apps_personal_tab_content_description" msgid="6286808898381807242">"Pestaña Apps personales"</string>
+    <string name="all_apps_work_tab_content_description" msgid="3835637212347968316">"Pestaña Apps de trabajo"</string>
     <string name="work_profile_toggle_label" msgid="3081029915775481146">"Perfil de trabajo"</string>
     <string name="work_profile_edu_work_apps" msgid="7895468576497746520">"Las aplicaciones de trabajo tienen una insignia, y tu administrador de TI las puede ver"</string>
     <string name="work_apps_paused_title" msgid="3040901117349444598">"Las aplicaciones de trabajo están en pausa"</string>
-    <string name="work_apps_paused_info_body" msgid="1687828929959237477">"No recibirás notificaciones de tus aplicaciones de trabajo"</string>
+    <string name="work_apps_paused_info_body" msgid="1687828929959237477">"No recibirás notificaciones de tus apps de trabajo"</string>
     <string name="work_apps_paused_body" msgid="261634750995824906">"Tus aplicaciones de trabajo no pueden enviarte notificaciones, usar batería ni acceder a tu ubicación"</string>
-    <string name="work_apps_paused_telephony_unavailable_body" msgid="8358872357502756790">"No recibirás llamadas, mensajes de texto ni notificaciones de tus aplicaciones de trabajo"</string>
+    <string name="work_apps_paused_telephony_unavailable_body" msgid="8358872357502756790">"No recibirás llamadas, mensajes de texto ni notificaciones de tus apps de trabajo"</string>
     <string name="work_apps_paused_edu_banner" msgid="8872412121608402058">"Las aplicaciones de trabajo tienen una insignia y tu administrador de TI las puede ver"</string>
     <string name="work_apps_paused_edu_accept" msgid="6377476824357318532">"Entendido"</string>
     <string name="work_apps_pause_btn_text" msgid="4669288269140620646">"Pausar aplicaciones de trabajo"</string>
     <string name="work_apps_enable_btn_text" msgid="1736198302467317371">"Reanudar"</string>
-    <string name="work_scheduler_button_content_description" msgid="917340740986764967">"Horario de aplicaciones de trabajo"</string>
+    <string name="work_scheduler_button_content_description" msgid="917340740986764967">"Horario de apps de trabajo"</string>
     <string name="developer_options_filter_hint" msgid="5896817443635989056">"Filtro"</string>
     <string name="remote_action_failed" msgid="1383965239183576790">"Se ha producido un error: <xliff:g id="WHAT">%1$s</xliff:g>"</string>
     <string name="private_space_label" msgid="2359721649407947001">"Espacio privado"</string>
@@ -224,7 +224,7 @@
     <string name="ps_container_transition" msgid="8667331812048014412">"Cambiar a espacio privado"</string>
     <string name="ps_add_button_label" msgid="8127988716897128773">"Instalar"</string>
     <string name="ps_app_label_override" msgid="6876160706011676804">"Añadir"</string>
-    <string name="ps_add_button_content_description" msgid="3254274107740952556">"Descargar aplicaciones en el espacio privado"</string>
+    <string name="ps_add_button_content_description" msgid="3254274107740952556">"Descargar apps en el espacio privado"</string>
     <string name="ps_app_content_description" msgid="1129133475892816226">"Añade archivos y más al espacio privado"</string>
     <string name="circle_shape_title" msgid="3582075061179674565">"Círculo"</string>
     <string name="square_shape_title" msgid="3085320803149569308">"Cuadrado"</string>

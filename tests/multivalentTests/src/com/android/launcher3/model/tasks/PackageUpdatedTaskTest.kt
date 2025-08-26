@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.launcher3.model
+package com.android.launcher3.model.tasks
 
 import android.content.ComponentName
 import android.content.pm.ActivityInfo
@@ -32,19 +32,16 @@ import com.android.launcher3.LauncherSettings
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.icons.IconCache
+import com.android.launcher3.model.AllAppsList
+import com.android.launcher3.model.ModelTaskController
+import com.android.launcher3.model.TestableModelState
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.WorkspaceData
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.model.repository.AppsListRepository
 import com.android.launcher3.model.tasks.ModelRepoTestEx.trackUpdate
 import com.android.launcher3.model.tasks.ModelRepoTestEx.verifyAndGetItemsUpdated
-import com.android.launcher3.model.tasks.ModelRepoTestEx.verifyDelete
-import com.android.launcher3.model.tasks.PackageUpdatedTask
 import com.android.launcher3.model.tasks.PackageUpdatedTask.OP_ADD
-import com.android.launcher3.model.tasks.PackageUpdatedTask.OP_REMOVE
-import com.android.launcher3.model.tasks.PackageUpdatedTask.OP_SUSPEND
-import com.android.launcher3.model.tasks.PackageUpdatedTask.OP_UNAVAILABLE
-import com.android.launcher3.model.tasks.PackageUpdatedTask.OP_UNSUSPEND
 import com.android.launcher3.model.tasks.PackageUpdatedTask.OP_UPDATE
 import com.android.launcher3.model.tasks.PackageUpdatedTask.OP_USER_AVAILABILITY_CHANGE
 import com.android.launcher3.util.AllModulesForTest
@@ -61,7 +58,6 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.any
-import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -180,81 +176,6 @@ class PackageUpdatedTaskTest {
             .isEqualTo(AppInfo(context, expectedActivityInfo, mUser).componentName)
         assertThat(modelState.appsRepo.appsListStateRef.value.apps.firstOrNull()?.componentName)
             .isEqualTo(AppInfo(context, expectedActivityInfo, mUser).componentName)
-    }
-
-    @Test
-    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
-    fun `OP_REMOVE triggers model callbacks and removes packages and icons`() {
-        modelState.appsList.add(AppInfo(context, expectedActivityInfo, mUser), expectedActivityInfo)
-        modelState.appsList.getAndResetChangeFlag()
-        modelState.dataModel.addItem(context, expectedWorkspaceItem)
-        val appUpdates = modelState.appsRepo.appsListStateRef.trackUpdate()
-        val workspaceUpdates = modelState.homeRepo.workspaceState.trackUpdate()
-
-        executeTask(OP_REMOVE)
-
-        verify(mockIconCache).removeIconsForPkg(expectedPackage, mUser)
-        assertThat(appUpdates).hasSize(2)
-        workspaceUpdates.verifyItemUpdated(updateIndex = 1, totalUpdates = 3)
-        workspaceUpdates.verifyDelete(deleteIndex = 2, totalUpdates = 3)
-
-        verify(modelState.appsList).removePackage(expectedPackage, mUser)
-        verify(mockTaskController).bindUpdatedWorkspaceItems(listOf(expectedWorkspaceItem))
-
-        assertThat(modelState.appsList.data).isEmpty()
-        assertThat(modelState.appsRepo.appsListStateRef.value.apps).isEmpty()
-    }
-
-    @Test
-    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
-    fun `OP_UNAVAILABLE triggers model callbacks and removes package from AllAppsList`() {
-        modelState.dataModel.addItem(context, expectedWorkspaceItem)
-        val workspaceUpdates = modelState.homeRepo.workspaceState.trackUpdate()
-        executeTask(OP_UNAVAILABLE)
-
-        workspaceUpdates.verifyItemUpdated()
-        verify(modelState.appsList).removePackage(expectedPackage, mUser)
-        verify(mockTaskController).bindUpdatedWorkspaceItems(listOf(expectedWorkspaceItem))
-
-        assertThat(modelState.appsList.data).isEmpty()
-        assertThat(modelState.appsRepo.appsListStateRef.value.apps).isEmpty()
-    }
-
-    @Test
-    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
-    fun `OP_SUSPEND triggers model callbacks and updates flags in AllAppsList`() {
-        modelState.dataModel.addItem(context, expectedWorkspaceItem)
-        modelState.appsList.add(AppInfo(context, expectedActivityInfo, mUser), expectedActivityInfo)
-        modelState.appsList.getAndResetChangeFlag()
-        doAnswer {}.whenever(mockTaskController).bindApplicationsIfNeeded()
-        val workspaceUpdates = modelState.homeRepo.workspaceState.trackUpdate()
-
-        executeTask(OP_SUSPEND)
-
-        workspaceUpdates.verifyItemUpdated()
-        verify(mockTaskController).bindUpdatedWorkspaceItems(listOf(expectedWorkspaceItem))
-
-        verify(modelState.appsList).updateDisabledFlags(any(), any())
-        assertThat(modelState.appsList.getAndResetChangeFlag()).isTrue()
-        assertThat(modelState.appsRepo.appsListStateRef.value.apps).isNotEmpty()
-    }
-
-    @Test
-    @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
-    fun `OP_UNSUSPEND triggers no callbacks when app not suspended`() {
-        modelState.dataModel.addItem(context, expectedWorkspaceItem)
-        modelState.appsList.getAndResetChangeFlag()
-        doAnswer {}.whenever(mockTaskController).bindApplicationsIfNeeded()
-        val workspaceUpdates = modelState.homeRepo.workspaceState.trackUpdate()
-
-        executeTask(OP_UNSUSPEND)
-
-        verify(mockTaskController).bindUpdatedWorkspaceItems(emptyList())
-        assertThat(workspaceUpdates).hasSize(1)
-
-        verify(modelState.appsList).updateDisabledFlags(any(), any())
-        assertThat(modelState.appsList.getAndResetChangeFlag()).isFalse()
-        assertThat(modelState.appsRepo.appsListStateRef.value.apps).isEmpty()
     }
 
     @Test
