@@ -68,7 +68,7 @@ class DropTargetHandler(launcher: Launcher) {
         AbstractFloatingView.closeOpenViews(
             mLauncher,
             false,
-            AbstractFloatingView.TYPE_WIDGET_RESIZE_FRAME,
+            AbstractFloatingView.TYPE_WIDGET_RESIZE_FRAME or AbstractFloatingView.TYPE_FOLDER,
         )
         var pageItem: ItemInfo = item
         if (item.container >= 0) {
