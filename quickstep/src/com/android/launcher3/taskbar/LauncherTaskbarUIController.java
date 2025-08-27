@@ -34,7 +34,6 @@ import static com.android.quickstep.interaction.AllSetActivity.ALL_SET_SWIPE_THR
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
-import android.content.Context;
 import android.os.SystemProperties;
 import android.window.RemoteTransition;
 
@@ -54,7 +53,6 @@ import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.logging.InstanceId;
 import com.android.launcher3.logging.InstanceIdSequence;
 import com.android.launcher3.model.data.ItemInfo;
-import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.taskbar.bubbles.BubbleBarController;
 import com.android.launcher3.taskbar.bubbles.BubbleControllers;
 import com.android.launcher3.util.DisplayController;
@@ -74,11 +72,11 @@ import com.android.quickstep.window.RecentsWindowManager;
 import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags;
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation;
 
+import kotlin.Unit;
+
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.concurrent.Executor;
-
-import kotlin.Unit;
 
 /**
  * A data source which integrates with a Launcher instance
@@ -562,12 +560,9 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
 
     @Override
     protected void toggleAllApps(boolean focusSearch) {
-        final Context context = mControllers.taskbarActivityContext;
-        final boolean areDesktopTasksVisible = DesktopVisibilityController.INSTANCE.get(context)
-                .isInDesktopModeAndNotInOverview(context.getDisplayId());
         final boolean canToggleHomeAllApps = isLauncherResumed()
                 && !mTaskbarLauncherStateController.isInOverviewUi()
-                && !areDesktopTasksVisible;
+                && mLauncher.isTopResumedActivity();
         if (canToggleHomeAllApps) {
             mLauncher.toggleAllApps(focusSearch);
             return;
