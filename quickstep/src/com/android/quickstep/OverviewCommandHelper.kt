@@ -490,7 +490,7 @@ constructor(
                 // when overview is triggered via the keyboard overview button or Action+Tab
                 // keys (Not Alt+Tab which is KQS). The overview button on-screen in 3-button
                 // nav is TYPE_TOGGLE.
-                keyboardFocusTask = KeyboardFocusTask.CurrentPageTaskView
+                keyboardFocusTask = KeyboardFocusTask.ExpectedCurrentTask
 
             TOGGLE,
             TOGGLE_OVERVIEW_PREVIOUS -> {}
