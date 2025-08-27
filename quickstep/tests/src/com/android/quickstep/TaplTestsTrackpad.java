@@ -123,6 +123,22 @@ public class TaplTestsTrackpad extends AbstractQuickStepTest {
     @Test
     @PortraitLandscape
     @NavigationModeSwitch
+    public void testQuickSwitchFromApp() throws Exception {
+        assumeTrue("Ignoring test because device is not a tablet",
+                mLauncher.isTablet());
+
+        startTestActivity(2);
+        startTestActivity(3);
+        mLauncher.setTrackpadGestureType(TrackpadGestureType.FOUR_FINGER);
+        mLauncher.getLaunchedAppState().quickSwitchToPreviousApp();
+        assertTestActivityIsRunning(2,
+                "The most recent task is not running after quick switching from app");
+        getAndAssertLaunchedApp();
+    }
+
+    @Test
+    @PortraitLandscape
+    @NavigationModeSwitch
     public void testQuickSwitchFromHome() throws Exception {
         assumeTrue("Ignoring test because device is not a tablet",
             mLauncher.isTablet());
