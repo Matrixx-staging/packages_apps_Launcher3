@@ -785,6 +785,8 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
         when (val keyboardFocusTask = keyboardFocusTask) {
             is KeyboardFocusTask.Unfocused -> null
             is KeyboardFocusTask.CurrentPageTaskView -> recentsView.currentPageTaskView
+            is KeyboardFocusTask.ExpectedCurrentTask ->
+                getExpectedCurrentTask(recentsView.runningTaskView, recentsView.focusedTaskView)
             is KeyboardFocusTask.TaskViewWithIds ->
                 recentsView.getTaskViewByTaskIds(keyboardFocusTask.taskIds.toIntArray())
         }

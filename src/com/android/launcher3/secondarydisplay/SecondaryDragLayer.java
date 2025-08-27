@@ -37,6 +37,7 @@ import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.dragndrop.DragOptions;
 import com.android.launcher3.dragndrop.DragView;
 import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.popup.PopupContainer;
 import com.android.launcher3.popup.PopupContainerWithArrow;
 import com.android.launcher3.popup.PopupDataProvider;
 import com.android.launcher3.popup.SystemShortcut;
@@ -242,7 +243,7 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
         if (!(v instanceof BubbleTextView)) {
             return false;
         }
-        if (PopupContainerWithArrow.getOpen(mContainer) != null) {
+        if (PopupContainer.getOpen(mContainer) != null) {
             // There is already an items container open, so don't open this one.
             v.clearFocus();
             return false;

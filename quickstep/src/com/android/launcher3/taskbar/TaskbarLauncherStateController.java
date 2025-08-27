@@ -979,7 +979,8 @@ public class TaskbarLauncherStateController {
                 @Override
                 public void onAnimationStart(Animator animation) {
                     float hotseatIconsAlpha =
-                            mLauncher.getHotseatIconsAlpha(ALPHA_CHANNEL_TASKBAR_ALIGNMENT);
+                            LauncherUiStateUtil.getTaskbarAlignmentChannelAlpha(
+                                    mLauncher, mLauncherUiState);
                     if (hotseatIconsAlpha > 0) {
                         updateIconAlphaForHome(hotseatIconsAlpha, ALPHA_CHANNEL_TASKBAR_ALIGNMENT);
                     }

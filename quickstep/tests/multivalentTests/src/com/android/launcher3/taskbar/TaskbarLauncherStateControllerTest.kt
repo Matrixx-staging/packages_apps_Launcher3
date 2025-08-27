@@ -132,17 +132,19 @@ class TaskbarLauncherStateControllerTest {
                 on { state } doReturn mock<LauncherState>()
             }
         val dp = taskbarUnitTestRule.activityContext.deviceProfile
+        val mockedLauncherUiState =
+            mock<LauncherUiState> {
+                on { deviceProfileRef } doReturn MutableListenableRef(dp)
+                on { isSplitSelectActiveRef } doReturn MutableListenableRef(false)
+                on { launcherStateRef } doReturn MutableListenableRef(LauncherState.NORMAL)
+                on { taskbarAlignmentChannelAlpha } doReturn MutableListenableRef(0f)
+            }
         val quickstepLauncher =
             mock<QuickstepLauncher> {
                 on { deviceProfile } doReturn dp
                 on { hotseat } doReturn mock<Hotseat>()
                 on { stateManager } doReturn launcherStateManager
-            }
-        val launcherUiState =
-            mock<LauncherUiState> {
-                on { deviceProfileRef } doReturn MutableListenableRef(dp)
-                on { isSplitSelectActiveRef } doReturn MutableListenableRef(false)
-                on { launcherStateRef } doReturn MutableListenableRef(LauncherState.NORMAL)
+                on { launcherUiState } doReturn mockedLauncherUiState
             }
         val controllers = taskbarUnitTestRule.activityContext.controllers
         val immediateExecutor = Executor { r -> r.run() }
@@ -154,7 +156,7 @@ class TaskbarLauncherStateControllerTest {
             taskbarLauncherStateController.init(
                 controllers,
                 LauncherInteractor(quickstepLauncher, launcherExecutor),
-                launcherUiState,
+                mockedLauncherUiState,
                 sysUiStateFlags,
                 taskbarExecutor,
             )

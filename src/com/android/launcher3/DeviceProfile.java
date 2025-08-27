@@ -511,8 +511,6 @@ public class DeviceProfile {
                 /*hotseatQsbSpace*/hotseatQsbSpace
         );
 
-        updateIconSize(mWorkspaceProfile.getScale(), context);
-
         if (mIsScalableGrid && !mIsResponsiveGrid) {
             mWorkspaceProfile = mWorkspaceProfile.calculateAndSetWorkspaceVerticalPadding(
                     context,
@@ -540,6 +538,7 @@ public class DeviceProfile {
             );
         }
 
+        updateIconSize(mWorkspaceProfile.getScale(), context);
 
         mBottomSheetProfile = BottomSheetProfile.Factory.createBottomSheetProfile(
                 getDeviceProperties(),

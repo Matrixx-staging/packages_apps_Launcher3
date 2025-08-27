@@ -174,6 +174,7 @@ import com.android.launcher3.debug.TestEventEmitter.TestEvent;
 import com.android.launcher3.dragndrop.DragLayer;
 import com.android.launcher3.dragndrop.DragView;
 import com.android.launcher3.dragndrop.LauncherDragController;
+import com.android.launcher3.dragndrop.SystemDragController;
 import com.android.launcher3.folder.Folder;
 import com.android.launcher3.folder.FolderIcon;
 import com.android.launcher3.keyboard.ViewGroupFocusHelper;
@@ -234,6 +235,7 @@ import com.android.launcher3.util.TraceHelper;
 import com.android.launcher3.util.WallpaperThemeManager;
 import com.android.launcher3.views.FloatingIconView;
 import com.android.launcher3.views.FloatingSurfaceView;
+import com.android.launcher3.views.ListenerView;
 import com.android.launcher3.views.OptionsPopupView;
 import com.android.launcher3.views.ScrimView;
 import com.android.launcher3.views.UpdateDeferrableView;
@@ -312,7 +314,7 @@ public class Launcher extends StatefulActivity<LauncherState>
 
     private final ModelCallbacks mModelCallbacks = createModelCallbacks();
 
-    public final LauncherUiState launcherUiState = new LauncherUiState();
+    protected final LauncherUiState mLauncherUiState = new LauncherUiState();
 
     private final KeyboardShortcutsDelegate mKeyboardShortcutsDelegate =
             new KeyboardShortcutsDelegate(this);
@@ -443,7 +445,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         mAllAppsController = new AllAppsTransitionController(this);
         mStateManager = new StateManager<>(this, NORMAL);
         if (refactorTaskbarUiState()) {
-            mStateManager.setLauncherUiState(launcherUiState);
+            mStateManager.setLauncherUiState(mLauncherUiState);
         }
 
         mAppWidgetManager = new WidgetManagerHelper(this);
@@ -467,6 +469,8 @@ public class Launcher extends StatefulActivity<LauncherState>
                 .createPopupController();
         mWidgetPickerDataProvider = new WidgetPickerDataProvider();
         PillColorProvider.getInstance(mWorkspace.getContext()).registerObserver();
+
+        SystemDragController.INSTANCE.get(this).setLauncher(this);
 
         boolean internalStateHandled = ACTIVITY_TRACKER.handleCreate(this);
         if (internalStateHandled) {
@@ -714,7 +718,7 @@ public class Launcher extends StatefulActivity<LauncherState>
 
         mDeviceProfile = deviceProfile;
         if (refactorTaskbarUiState()) {
-            launcherUiState.setDeviceProfile(deviceProfile);
+            mLauncherUiState.setDeviceProfile(deviceProfile);
         }
 
         if (FOLDABLE_SINGLE_PAGE.get() && mDeviceProfile.getDeviceProperties().isTwoPanels()) {
@@ -2564,8 +2568,9 @@ public class Launcher extends StatefulActivity<LauncherState>
         LauncherRootView rv = getRootView();
         if (rv != null) {
             boolean isSplitSelectionEnabled = isSplitSelectionActive();
+            View topOpenFloatingView = AbstractFloatingView.getTopOpenView(this);
             boolean disableBack = getStateManager().getState() == NORMAL
-                    && AbstractFloatingView.getTopOpenView(this) == null
+                    && (topOpenFloatingView == null || topOpenFloatingView instanceof ListenerView)
                     && !isSplitSelectionEnabled;
             rv.setDisallowBackGesture(disableBack);
         }
@@ -2635,6 +2640,10 @@ public class Launcher extends StatefulActivity<LauncherState>
                 mDeviceProfile.getBottomSheetProfile().getBottomSheetWorkspaceScale(), EMPHASIZED);
         WORKSPACE_WIDGET_SCALE.set(getWorkspace(), scale);
         HOTSEAT_WIDGET_SCALE.set(getHotseat(), scale);
+    }
+
+    public LauncherUiState getLauncherUiState() {
+        return mLauncherUiState;
     }
 
     private static class NonConfigInstance {

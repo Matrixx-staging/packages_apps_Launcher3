@@ -165,6 +165,13 @@ public class LauncherSettings {
          * {@link com.android.launcher3.model.data.ItemViewProvider}.
          */
         public static final int ITEM_TYPE_CUSTOM_VIEW = 14;
+
+        /**
+         * Type for a temporary item that exists during a system drag-and-drop sequence before being
+         * replaced with N-many items of more appropriate types during drop handling.
+         */
+        public static final int ITEM_TYPE_SYSTEM_DRAG = 15;
+
         /**
          * The custom icon bitmap.
          * <P>Type: BLOB</P>
@@ -236,6 +243,7 @@ public class LauncherSettings {
                 case ITEM_TYPE_APP_PAIR: return "APP_PAIR";
                 case ITEM_TYPE_PRIVATE_SPACE_INSTALL_APP_BUTTON:
                     return "PRIVATE_SPACE_INSTALL_APP_BUTTON";
+                case ITEM_TYPE_SYSTEM_DRAG: return "SYSTEM_DRAG";
                 default: return String.valueOf(type);
             }
         }

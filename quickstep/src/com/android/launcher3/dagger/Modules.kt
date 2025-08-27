@@ -27,10 +27,13 @@ import com.android.launcher3.concurrent.annotations.ThreadPool
 import com.android.launcher3.dragndrop.SystemDragController
 import com.android.launcher3.dragndrop.SystemDragControllerImpl
 import com.android.launcher3.dragndrop.SystemDragControllerStub
+import com.android.launcher3.dragndrop.SystemDragListener
+import com.android.launcher3.dragndrop.SystemDragListenerFactory
 import com.android.launcher3.homescreenfiles.HomeScreenFilesMediaStoreProvider
 import com.android.launcher3.homescreenfiles.HomeScreenFilesNoOpProvider
 import com.android.launcher3.homescreenfiles.HomeScreenFilesProvider
 import com.android.launcher3.homescreenfiles.HomeScreenFilesUtils
+import com.android.launcher3.icons.IconCache
 import com.android.launcher3.icons.LauncherIconProvider
 import com.android.launcher3.icons.LauncherIconProviderImpl
 import com.android.launcher3.logging.StatsLogManager.StatsLogManagerFactory
@@ -55,9 +58,12 @@ import com.android.quickstep.util.SystemWindowManagerProxy
 import com.android.systemui.shared.system.ActivityManagerWrapper
 import com.android.wm.shell.shared.desktopmode.DesktopState
 import dagger.Binds
+import dagger.BindsOptionalOf
+import dagger.Lazy
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.ElementsIntoSet
+import java.util.Optional
 import java.util.concurrent.ExecutorService
 import javax.inject.Named
 
@@ -145,11 +151,25 @@ object StaticObjectModule {
 }
 
 @Module
+interface SystemDragOptionalDependenciesModule {
+    @BindsOptionalOf fun bindSystemDragListenerFactory(): SystemDragListenerFactory
+}
+
+@Module(includes = [SystemDragOptionalDependenciesModule::class])
 object SystemDragModule {
     @Provides
     @LauncherAppSingleton
-    fun provideSystemDragController(): SystemDragController =
-        if (enableSystemDrag()) SystemDragControllerImpl() else SystemDragControllerStub()
+    fun provideSystemDragController(
+        iconCache: Lazy<IconCache>,
+        systemDragListenerFactory: Optional<SystemDragListenerFactory>,
+    ): SystemDragController =
+        if (enableSystemDrag())
+            SystemDragControllerImpl(
+                systemDragListenerFactory.orElse { launcher ->
+                    SystemDragListener(launcher, iconCache)
+                }
+            )
+        else SystemDragControllerStub()
 }
 
 /** A dagger module responsible for managing files on the home screen. */

@@ -18,9 +18,7 @@ package com.android.launcher3.popup
 
 import android.content.Context
 import android.view.View
-import android.view.ViewGroup
 import com.android.launcher3.AppWidgetResizeFrame
-import com.android.launcher3.LauncherSettings.Favorites
 import com.android.launcher3.R
 import com.android.launcher3.dragndrop.LauncherDragController
 import com.android.launcher3.model.data.ItemInfo
@@ -33,43 +31,38 @@ import com.android.launcher3.widget.LauncherAppWidgetHostView
  * handle apps or app shortcuts. This controller handles actions for the popups such as showing and
  * dismissing them.
  */
-class PopupControllerForHomeScreenItems<T>(
+class PopupControllerForExtraHomeScreenItems<T>(
     private val popupDataRepository: PopupDataRepository,
     private val dragController: LauncherDragController,
 ) : PopupController<T> where T : Context, T : ActivityContext {
     override fun show(view: View): Popup {
         val itemInfo = view.tag as ItemInfo
         val activityContext: ActivityContext = ActivityContext.lookupContext<T>(view.context)
-        val container =
-            PopupContainerWithArrow.create<T>(context = view.context, originalView = view)
+        val container = PopupContainer.create<T>(context = view.context, originalView = view)
         dragController.addDragListener(container)
         addSystemShortcuts(container, itemInfo, itemView = view, activityContext)
         container.show()
 
         val cellLayout = activityContext.getCellLayout(itemInfo.container, itemInfo.screenId)
-        if (
-            itemInfo.container == Favorites.CONTAINER_DESKTOP &&
-                cellLayout != null &&
-                itemInfo.itemType == Favorites.ITEM_TYPE_APPWIDGET &&
-                view is LauncherAppWidgetHostView
-        ) {
-            AppWidgetResizeFrame.showForWidget(view, cellLayout)
+        val resizeStrategy = DefaultPopupResizeStrategy()
+        if (resizeStrategy.shouldShowResizeFrame(itemInfo, view, cellLayout)) {
+            AppWidgetResizeFrame.showForWidget(view as LauncherAppWidgetHostView?, cellLayout)
         }
         return container
     }
 
     private fun addSystemShortcuts(
-        popup: PopupContainerWithArrow<T>,
+        popup: PopupContainer<T>,
         itemInfo: ItemInfo,
         itemView: View,
         activityContext: ActivityContext,
     ) {
-        val systemShortcutContainer: ViewGroup =
+        popup.systemShortcutContainer =
             popup.inflateAndAdd(R.layout.system_shortcut_rows_container, popup)
         val popupData = popupDataRepository.getPopupDataByItemInfo(itemInfo)?.toList()
         popupData?.forEach { systemShortcut ->
             val view: DeepShortcutView =
-                popup.inflateAndAdd(R.layout.system_shortcut, systemShortcutContainer)
+                popup.inflateAndAdd(R.layout.system_shortcut, popup.systemShortcutContainer)
 
             view.iconView.setBackgroundResource(systemShortcut.iconResId)
             view.bubbleText.setText(systemShortcut.labelResId)
