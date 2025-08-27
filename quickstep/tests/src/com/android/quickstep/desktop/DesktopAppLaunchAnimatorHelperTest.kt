@@ -39,6 +39,7 @@ import com.android.app.animation.Interpolators
 import com.android.internal.jank.Cuj
 import com.android.launcher3.desktop.DesktopAppLaunchAnimatorHelper
 import com.android.launcher3.desktop.DesktopAppLaunchTransition.AppLaunchType
+import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.window.flags.Flags
 import com.google.common.truth.Truth.assertThat
@@ -57,6 +58,11 @@ class DesktopAppLaunchAnimatorHelperTest {
 
     private val context = mock<Context>()
     private val resources = mock<Resources>()
+    private val displayContext = mock<Context>()
+    private val displayResources = mock<Resources>()
+
+    private val displayController = mock<DisplayController>()
+    private val displayInfo = mock<DisplayController.Info>()
     private val transaction = mock<SurfaceControl.Transaction>()
     private val transactionSupplier = mock<Supplier<SurfaceControl.Transaction>>()
 
@@ -65,11 +71,18 @@ class DesktopAppLaunchAnimatorHelperTest {
     @Before
     fun setUp() {
         whenever(context.resources).thenReturn(resources)
-        whenever(resources.getDimensionPixelSize(any())).thenReturn(42)
+        whenever(resources.getDimensionPixelSize(any())).thenReturn(CONTEXT_CORNER_RADIUS)
+
+        whenever(displayController.getInfoForDisplay(any())).thenReturn(displayInfo)
+        whenever(displayInfo.getContext()).thenReturn(displayContext)
+        whenever(displayContext.resources).thenReturn(displayResources)
+        whenever(displayResources.getDimensionPixelSize(any()))
+            .thenReturn(DISPLAY_CONTEXT_CORNER_RADIUS)
 
         helper =
             DesktopAppLaunchAnimatorHelper(
                 context = context,
+                displayController = displayController,
                 launchType = AppLaunchType.LAUNCH,
                 cujType = Cuj.CUJ_DESKTOP_MODE_APP_LAUNCH_FROM_INTENT,
                 transactionSupplier = transactionSupplier,
@@ -216,6 +229,41 @@ class DesktopAppLaunchAnimatorHelperTest {
             assertMinimizeAnimator(actual[1])
         }
 
+    @Test
+    fun createLaunchAnimator_usesDisplayContextResources() = runOnUiThread {
+        whenever(displayController.getInfoForDisplay(OPEN_CHANGE.endDisplayId))
+            .thenReturn(displayInfo)
+        whenever(displayInfo.getContext()).thenReturn(displayContext)
+        val transitionInfo = createTransitionInfo(listOf(OPEN_CHANGE))
+
+        helper.createAnimators(transitionInfo, finishCallback = {})
+
+        verify(transaction)
+            .setCornerRadius(OPEN_CHANGE.leash, DISPLAY_CONTEXT_CORNER_RADIUS.toFloat())
+    }
+
+    @Test
+    fun createLaunchAnimator_displayInfoNull_usesFallbackContextResources() = runOnUiThread {
+        whenever(displayController.getInfoForDisplay(OPEN_CHANGE.endDisplayId)).thenReturn(null)
+        val transitionInfo = createTransitionInfo(listOf(OPEN_CHANGE))
+
+        helper.createAnimators(transitionInfo, finishCallback = {})
+
+        verify(transaction).setCornerRadius(OPEN_CHANGE.leash, CONTEXT_CORNER_RADIUS.toFloat())
+    }
+
+    @Test
+    fun createLaunchAnimator_displayContextNull_usesFallbackContextResources() = runOnUiThread {
+        whenever(displayController.getInfoForDisplay(OPEN_CHANGE.endDisplayId))
+            .thenReturn(displayInfo)
+        whenever(displayInfo.getContext()).thenReturn(null)
+        val transitionInfo = createTransitionInfo(listOf(OPEN_CHANGE))
+
+        helper.createAnimators(transitionInfo, finishCallback = {})
+
+        verify(transaction).setCornerRadius(OPEN_CHANGE.leash, CONTEXT_CORNER_RADIUS.toFloat())
+    }
+
     private fun assertLaunchAnimator(animator: Animator) {
         assertThat(animator).isInstanceOf(AnimatorSet::class.java)
         assertThat((animator as AnimatorSet).childAnimations.size).isEqualTo(2)
@@ -265,6 +313,9 @@ class DesktopAppLaunchAnimatorHelperTest {
     }
 
     private companion object {
+        const val CONTEXT_CORNER_RADIUS = 42
+        const val DISPLAY_CONTEXT_CORNER_RADIUS = 99
+
         val TASK_INFO_FREEFORM =
             ActivityManager.RunningTaskInfo().apply {
                 baseIntent =

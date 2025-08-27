@@ -792,7 +792,8 @@ public class TouchInteractionService extends Service {
                 mRecentsWindowManagerRepository, mDisplaysWithDecorationsRepositoryCompat,
                     mCoroutineDispatcher));
         mDesktopAppLaunchTransitionManager =
-                new DesktopAppLaunchTransitionManager(this, SystemUiProxy.INSTANCE.get(this));
+                new DesktopAppLaunchTransitionManager(this, SystemUiProxy.INSTANCE.get(this),
+                        DisplayController.INSTANCE.get(this));
         mDesktopAppLaunchTransitionManager.registerTransitions();
         mInputConsumer = InputConsumerController.getRecentsAnimationInputConsumer();
 

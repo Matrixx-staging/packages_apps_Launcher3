@@ -630,6 +630,11 @@ public class DisplayController {
         public boolean showDesktopTaskbarForFreeformDisplay() {
             return mShowDesktopTaskbarForFreeformDisplay;
         }
+
+        @VisibleForTesting
+        public Context getContext() {
+            return context;
+        }
     }
 
     /**
