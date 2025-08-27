@@ -703,7 +703,8 @@ constructor(
         if (
             command.type != SHOW_ALT_TAB &&
                 command.type != HIDE_ALT_TAB &&
-                command.type != SHOW_WITH_FOCUS
+                command.type != SHOW_WITH_FOCUS &&
+                command.type != TOGGLE_WITH_FOCUS
         ) {
             return
         }
