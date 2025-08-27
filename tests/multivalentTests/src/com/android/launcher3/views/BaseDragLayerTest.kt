@@ -24,6 +24,7 @@ import androidx.test.filters.SmallTest
 import com.android.launcher3.Flags.FLAG_ENABLE_SYSTEM_DRAG
 import com.android.launcher3.dragndrop.DragController
 import com.android.launcher3.util.LauncherMultivalentJUnit
+import com.android.launcher3.util.ReflectionHelpers
 import com.android.launcher3.util.TestActivityContext
 import org.junit.Before
 import org.junit.Rule
@@ -60,10 +61,7 @@ class BaseDragLayerTest {
         // Initialize drag event.
         // NOTE: Reflection is necessary because `ViewGroup` inspects the `DragEvent.mAction` field
         // during event dispatching rather than using the mockable `DragEvent.getAction()` method.
-        DragEvent::class.java.getDeclaredField("mAction").apply {
-            isAccessible = true
-            set(mockDragEvent, DragEvent.ACTION_DRAG_STARTED)
-        }
+        ReflectionHelpers.setField(mockDragEvent, "mAction", DragEvent.ACTION_DRAG_STARTED)
     }
 
     @Test
