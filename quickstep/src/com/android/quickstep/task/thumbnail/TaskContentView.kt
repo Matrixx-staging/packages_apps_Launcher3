@@ -403,13 +403,14 @@ class TaskContentView @JvmOverloads constructor(context: Context, attrs: Attribu
                 is Uninitialized -> return
                 is TaskAppTimerUiState.NoTimer -> state.taskDescription
                 is TaskAppTimerUiState.Timer ->
-                    timerTextHelper?.let {
+                    context.getString(
+                        R.string.task_contents_description_with_remaining_time,
+                        state.taskDescription,
                         context.getString(
-                            R.string.task_contents_description_with_remaining_time,
-                            state.taskDescription,
-                            context.getString(R.string.time_left_for_app, it.formattedDuration),
-                        )
-                    }
+                            R.string.time_left_for_app,
+                            taskAppTimerViewModel.getFormattedDuration(state.timeRemaining, context),
+                        ),
+                    )
             }
     }
 
