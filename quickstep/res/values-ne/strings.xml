@@ -46,7 +46,7 @@
     <string name="hotseat_tip_no_empty_slots" msgid="1325212677738179185">"एपसम्बन्धी सिफारिस प्राप्त गर्न फेदको रोमा रहेका एपहरू ड्र्याग गरी हटाउनुहोस्"</string>
     <string name="hotseat_tip_gaps_filled" msgid="3035673010274223538">"खाली ठाउँमा सिफारिस गरिएका एपहरू थपिए"</string>
     <string name="hotsaet_tip_prediction_enabled" msgid="2233554377501347650">"सिफारिस गरिएका एप देखाउने सुविधा अन गरिएको छ"</string>
-    <string name="hotsaet_tip_prediction_disabled" msgid="1506426298884658491">"सिफारिस गरिएका एपहरू देखाउने सुविधा असक्षम पारिएको छ"</string>
+    <string name="hotsaet_tip_prediction_disabled" msgid="1506426298884658491">"सिफारिस गरिएका एपहरू देखाउने सुविधा अफ गरिएको छ"</string>
     <string name="gesture_tutorial_title" msgid="2750751261768388354">"जेस्चर नेभिगेसनसम्बन्धी ट्युटोरियल"</string>
     <string name="gesture_tutorial_rotation_prompt_title" msgid="7537946781362766964">"आफ्नो डिभाइस रोटेट गर्नुहोस्"</string>
     <string name="gesture_tutorial_rotation_prompt" msgid="1664493449851960691">"जेस्चर नेभिगेसनको ट्युटोरियल पूरा गर्न कृपया आफ्नो डिभाइस रोटेट गर्नुहोस्"</string>
