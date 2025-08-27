@@ -234,6 +234,7 @@ import com.android.launcher3.util.TraceHelper;
 import com.android.launcher3.util.WallpaperThemeManager;
 import com.android.launcher3.views.FloatingIconView;
 import com.android.launcher3.views.FloatingSurfaceView;
+import com.android.launcher3.views.ListenerView;
 import com.android.launcher3.views.OptionsPopupView;
 import com.android.launcher3.views.ScrimView;
 import com.android.launcher3.views.UpdateDeferrableView;
@@ -2564,8 +2565,9 @@ public class Launcher extends StatefulActivity<LauncherState>
         LauncherRootView rv = getRootView();
         if (rv != null) {
             boolean isSplitSelectionEnabled = isSplitSelectionActive();
+            View topOpenFloatingView = AbstractFloatingView.getTopOpenView(this);
             boolean disableBack = getStateManager().getState() == NORMAL
-                    && AbstractFloatingView.getTopOpenView(this) == null
+                    && (topOpenFloatingView == null || topOpenFloatingView instanceof ListenerView)
                     && !isSplitSelectionEnabled;
             rv.setDisallowBackGesture(disableBack);
         }
