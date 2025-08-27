@@ -27,9 +27,12 @@ import android.view.View
 import android.widget.RemoteViews
 import androidx.annotation.VisibleForTesting
 import androidx.core.net.toUri
+import com.android.launcher3.LauncherSettings.Favorites
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
+import com.android.launcher3.model.data.ItemInfo
+import com.android.launcher3.model.data.LauncherAppWidgetInfo
 import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.RunnableList
 import com.android.launcher3.views.ActivityContext
@@ -49,6 +52,10 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     private val oseWidgetManager = context.appComponent.oseWidgetManager
     @VisibleForTesting val closeActions = RunnableList()
     private val activityContext: ActivityContext = ActivityContext.lookupContext(context)
+
+    init {
+        activityContext.appWidgetHolder?.onViewCreationCallback?.accept(this)
+    }
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
@@ -70,6 +77,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         closeActions.add(
             oseWidgetManager.providerInfo.forEach(MAIN_EXECUTOR) {
                 setAppWidget(INVALID_APPWIDGET_ID, it)
+                tag = getTagInfo(it)
             }::close
         )
         closeActions.add(
@@ -147,8 +155,23 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         OptionsPopupView.showNoReturn(activityContext, bounds, optionItems, true)
     }
 
+    private class QsbItemInfo : ItemInfo() {
+
+        override fun getStableId() = STABLE_ID
+    }
+
     companion object {
         private const val TAG = "OseWidgetView"
-        private const val DEBUG = false
+
+        private val STABLE_ID = Object()
+
+        private fun getTagInfo(provider: AppWidgetProviderInfo?): ItemInfo {
+            val info =
+                provider?.let { LauncherAppWidgetInfo(INVALID_APPWIDGET_ID, it.provider) }
+                    ?: QsbItemInfo()
+            info.id = R.id.search_container_hotseat
+            info.container = Favorites.CONTAINER_HOTSEAT
+            return info
+        }
     }
 }

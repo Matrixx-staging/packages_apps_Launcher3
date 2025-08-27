@@ -40,7 +40,9 @@ import androidx.annotation.Nullable;
 
 import com.android.launcher3.ShortcutAndWidgetContainer.TranslationProvider;
 import com.android.launcher3.celllayout.CellLayoutLayoutParams;
+import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.util.HorizontalInsettableView;
+import com.android.launcher3.util.LauncherBindableItemsContainer.ItemOperator;
 import com.android.launcher3.util.MultiPropertyFactory;
 import com.android.launcher3.util.MultiPropertyFactory.MultiProperty;
 import com.android.launcher3.util.MultiTranslateDelegate;
@@ -374,6 +376,18 @@ public class Hotseat extends CellLayout implements Insettable {
      */
     public View getQsb() {
         return mQsb;
+    }
+
+    @Nullable
+    @Override
+    public View mapOverItems(ItemOperator op) {
+        if (Flags.enableQsbOnHotseat()
+                && mQsb != null
+                && mQsb.getTag() instanceof ItemInfo info
+                && op.evaluate(info, mQsb)) {
+            return mQsb;
+        }
+        return super.mapOverItems(op);
     }
 
     /** Dumps the Hotseat internal state */
