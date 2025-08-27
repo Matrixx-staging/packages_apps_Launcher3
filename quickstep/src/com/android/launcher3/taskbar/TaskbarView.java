@@ -634,6 +634,12 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             mTaskbarPinnedOverflowView.clearItems();
         }
 
+        // if there are ignore icons and make sure we are not removing more icons than we have.
+        // mainly problem for tests.
+        if (onTaskbarEndIdx - mIgnoreTaskbarIconCount >= 0) {
+            onTaskbarEndIdx -= mIgnoreTaskbarIconCount;
+        }
+
         for (ItemInfo hotseatItemInfo : Arrays.asList(hotseatItemInfos).subList(onTaskbarStartIdx,
                 onTaskbarEndIdx)) {
             // Replace any Hotseat views with the appropriate type if it's not already that type.
@@ -1015,14 +1021,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         }
         Rect iconsBounds = getTransientTaskbarIconLayoutBoundsInParent();
 
-        int translateXFromIgnoredIcons =
-                mIgnoreTaskbarIconCount * (mIconTouchSize + mItemMarginLeftRight);
-        // If bubble bar or right translate in opposite direction.
-        if (!location.isOnLeft(isLayoutRtl())) {
-            translateXFromIgnoredIcons *= -1;
-        }
-        return getTaskBarIconsEndForBubbleBarLocation(location) - iconsBounds.right
-                + translateXFromIgnoredIcons;
+        return getTaskBarIconsEndForBubbleBarLocation(location) - iconsBounds.right;
     }
 
     @Override
@@ -1095,16 +1094,6 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         // translation.
         if (layoutRtl) {
             iconEnd += mAllAppsButtonTranslationOffset;
-        }
-
-        if (mActivityContext.isThreeButtonNav()) {
-            boolean navbarOnLeft = mBubbleBarLocation != null && !mBubbleBarLocation.isOnLeft(
-                    layoutRtl);
-            if (navbarOnLeft && layoutRtl) {
-                iconEnd -= (mIconTouchSize + mItemMarginLeftRight) * mIgnoreTaskbarIconCount;
-            } else if (!navbarOnLeft && !layoutRtl) {
-                iconEnd += (mIconTouchSize + mItemMarginLeftRight) * mIgnoreTaskbarIconCount;
-            }
         }
 
         mControllerCallbacks.onPreLayoutChildren();
