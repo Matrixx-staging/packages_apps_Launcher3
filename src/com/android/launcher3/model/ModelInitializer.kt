@@ -45,6 +45,7 @@ import com.android.launcher3.util.SettingsCache
 import com.android.launcher3.util.SettingsCache.NOTIFICATION_BADGING_URI
 import com.android.launcher3.util.SettingsCache.PRIVATE_SPACE_HIDE_WHEN_LOCKED_URI
 import com.android.launcher3.util.SimpleBroadcastReceiver
+import com.android.launcher3.util.SimpleBroadcastReceiver.Companion.actionsFilter
 import com.android.launcher3.widget.custom.CustomWidgetManager
 import javax.inject.Inject
 
@@ -91,18 +92,22 @@ constructor(
 
         // Device profile policy changes
         val dpUpdateReceiver =
-            SimpleBroadcastReceiver(context, UI_HELPER_EXECUTOR) {
+            SimpleBroadcastReceiver(
+                context = context,
+                executor = UI_HELPER_EXECUTOR,
+                callbackExecutor = MODEL_EXECUTOR,
+            ) {
                 model.enqueueModelUpdateTask(ReloadStringCacheTask())
             }
-        dpUpdateReceiver.register(ACTION_DEVICE_POLICY_RESOURCE_UPDATED)
-        lifeCycle.addCloseable { dpUpdateReceiver.unregisterReceiverSafely() }
+        dpUpdateReceiver.register(actionsFilter(ACTION_DEVICE_POLICY_RESOURCE_UPDATED))
+        lifeCycle.addCloseable(dpUpdateReceiver)
 
         // Development helper
         if (BuildConfig.IS_STUDIO_BUILD) {
             val reloadReceiver =
                 SimpleBroadcastReceiver(context, UI_HELPER_EXECUTOR) { model.forceReload() }
-            reloadReceiver.register(Context.RECEIVER_EXPORTED, ACTION_FORCE_RELOAD)
-            lifeCycle.addCloseable { reloadReceiver.unregisterReceiverSafely() }
+            reloadReceiver.register(actionsFilter(ACTION_FORCE_RELOAD), Context.RECEIVER_EXPORTED)
+            lifeCycle.addCloseable(reloadReceiver)
         }
 
         // User changes
@@ -152,14 +157,11 @@ constructor(
 
         // Shape changes
         lifeCycle.addCloseable(
-            themeManager.iconShapeData.forEach(MAIN_EXECUTOR) {
-            model.rebindCallbacks()
-        })
+            themeManager.iconShapeData.forEach(MAIN_EXECUTOR) { model.rebindCallbacks() }
+        )
 
         // Theme changes
-        val themeChangeListener = ThemeChangeListener {
-            refreshAndReloadLauncher()
-        }
+        val themeChangeListener = ThemeChangeListener { refreshAndReloadLauncher() }
         themeManager.addChangeListener(themeChangeListener)
         lifeCycle.addCloseable { themeManager.removeChangeListener(themeChangeListener) }
 

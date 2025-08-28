@@ -43,6 +43,7 @@ import static com.android.launcher3.util.DisplayController.CHANGE_TASKBAR_PINNIN
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 import static com.android.launcher3.util.FlagDebugUtils.formatFlagChange;
+import static com.android.launcher3.util.SimpleBroadcastReceiver.actionsFilter;
 import static com.android.quickstep.util.SystemActionConstants.ACTION_SHOW_TASKBAR;
 import static com.android.quickstep.util.SystemActionConstants.SYSTEM_ACTION_ID_TASKBAR;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_NAVIGATION_BAR_DISABLED;
@@ -87,6 +88,7 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherAppState;
+import com.android.launcher3.LauncherInteractor;
 import com.android.launcher3.LauncherPrefChangeListener;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.R;
@@ -96,7 +98,6 @@ import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.statemanager.StatefulActivity;
 import com.android.launcher3.taskbar.TaskbarNavButtonController.TaskbarNavButtonCallbacks;
 import com.android.launcher3.taskbar.unfold.NonDestroyableScopedUnfoldTransitionProgressProvider;
-import com.android.launcher3.LauncherInteractor;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.LockedUserState;
@@ -449,18 +450,24 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
                     .registerDisplayDecorationListener(this);
             addSystemDecorationForDisplaysAtBoot();
         }
-        mShutdownReceiver =
-                new SimpleBroadcastReceiver(
-                        mPrimaryWindowContext, UI_HELPER_EXECUTOR, i -> destroyAllTaskbars());
+        mShutdownReceiver = new SimpleBroadcastReceiver(
+                mPrimaryWindowContext,
+                UI_HELPER_EXECUTOR,
+                MAIN_EXECUTOR,
+                i -> destroyAllTaskbars());
 
-        mShutdownReceiver.register(Intent.ACTION_SHUTDOWN);
+        mShutdownReceiver.register(actionsFilter(Intent.ACTION_SHUTDOWN));
         if (enableGrowthNudge()) {
             // TODO: b/397739323 - Add permission to limit access to Growth Framework.
-            mGrowthBroadcastReceiver =
-                    new SimpleBroadcastReceiver(
-                            mPrimaryWindowContext, UI_HELPER_EXECUTOR, this::showGrowthNudge);
-            mGrowthBroadcastReceiver.register(null, GROWTH_NUDGE_PERMISSION, RECEIVER_EXPORTED,
-                    BROADCAST_SHOW_NUDGE);
+            mGrowthBroadcastReceiver = new SimpleBroadcastReceiver(
+                    mPrimaryWindowContext,
+                    UI_HELPER_EXECUTOR,
+                    MAIN_EXECUTOR,
+                    this::showGrowthNudge);
+            mGrowthBroadcastReceiver.register(
+                    actionsFilter(BROADCAST_SHOW_NUDGE),
+                    RECEIVER_EXPORTED,
+                    GROWTH_NUDGE_PERMISSION);
         } else {
             mGrowthBroadcastReceiver = null;
         }
@@ -1166,7 +1173,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
         removeActivityCallbacksAndListeners();
         destroySharedStateForAllDisplays();
         if (mGrowthBroadcastReceiver != null) {
-            mGrowthBroadcastReceiver.unregisterReceiverSafely();
+            mGrowthBroadcastReceiver.close();
         }
 
         removeRecreationListener(mPrimaryDisplayId);
@@ -1183,7 +1190,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
         }
         debugPrimaryTaskbar("destroy: unregistering component callbacks");
         removeAndUnregisterComponentCallbacks(mPrimaryDisplayId);
-        mShutdownReceiver.unregisterReceiverSafely();
+        mShutdownReceiver.close();
 
         debugPrimaryTaskbar("destroy: destroying all taskbars!");
         removeWindowContextFromMap(mPrimaryDisplayId);
@@ -1318,8 +1325,11 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
             debugTaskbarManager("getSharedStateForDisplay: initialising shared state", displayId);
 
             Context windowContext = mWindowContexts.get(displayId);
-            SimpleBroadcastReceiver broadcastReceiver = new SimpleBroadcastReceiver(windowContext,
-                    UI_HELPER_EXECUTOR, (intent) -> showTaskbarFromBroadcast(intent, displayId));
+            SimpleBroadcastReceiver broadcastReceiver = new SimpleBroadcastReceiver(
+                    windowContext,
+                    UI_HELPER_EXECUTOR,
+                    MAIN_EXECUTOR,
+                    (intent) -> showTaskbarFromBroadcast(intent, displayId));
             mTaskbarBroadcastReceivers.put(displayId, broadcastReceiver);
 
             sharedState.taskbarSystemActionPendingIntent = PendingIntent.getBroadcast(windowContext,
@@ -1327,8 +1337,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
                     new Intent(ACTION_SHOW_TASKBAR).setPackage(windowContext.getPackageName()),
                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-            UI_HELPER_EXECUTOR.execute(
-                    () -> broadcastReceiver.register(RECEIVER_NOT_EXPORTED, ACTION_SHOW_TASKBAR));
+            broadcastReceiver.register(actionsFilter(ACTION_SHOW_TASKBAR), RECEIVER_NOT_EXPORTED);
         }
 
         return sharedState;
@@ -1340,7 +1349,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
                 /* verbose= */ false);
 
         for (SimpleBroadcastReceiver broadcastReceiver : mTaskbarBroadcastReceivers.values()) {
-            broadcastReceiver.unregisterReceiverSafely();
+            broadcastReceiver.close();
         }
 
         mTaskbarBroadcastReceivers.clear();
@@ -1352,7 +1361,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
         debugTaskbarManager("getSharedStateForDisplay: destroying shared state", displayId);
         SimpleBroadcastReceiver broadcastReceiver = mTaskbarBroadcastReceivers.remove(displayId);
         if (broadcastReceiver != null) {
-            broadcastReceiver.unregisterReceiverSafely();
+            broadcastReceiver.close();
         }
 
         mTaskbarSharedStates.remove(displayId);

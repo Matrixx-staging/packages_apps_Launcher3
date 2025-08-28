@@ -19,7 +19,9 @@ import static android.content.Intent.ACTION_SCREEN_OFF;
 import static android.content.Intent.ACTION_SCREEN_ON;
 import static android.content.Intent.ACTION_USER_PRESENT;
 
+import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
+import static com.android.launcher3.util.SimpleBroadcastReceiver.actionsFilter;
 
 import android.content.Context;
 import android.content.Intent;
@@ -38,7 +40,7 @@ import javax.inject.Inject;
  * Utility class for tracking if the screen is currently on or off
  */
 @LauncherAppSingleton
-public class ScreenOnTracker implements SafeCloseable {
+public class ScreenOnTracker {
 
     public static final DaggerSingletonObject<ScreenOnTracker> INSTANCE =
             new DaggerSingletonObject<>(LauncherBaseAppComponent::getScreenOnTracker);
@@ -51,26 +53,23 @@ public class ScreenOnTracker implements SafeCloseable {
     @Inject
     ScreenOnTracker(@ApplicationContext Context context, DaggerSingletonTracker tracker) {
         // Assume that the screen is on to begin with
-        mReceiver = new SimpleBroadcastReceiver(context, UI_HELPER_EXECUTOR, this::onReceive);
+        mReceiver = new SimpleBroadcastReceiver(
+                context, UI_HELPER_EXECUTOR, MAIN_EXECUTOR, this::onReceive);
         init(tracker);
     }
 
     @VisibleForTesting
-    ScreenOnTracker(@ApplicationContext Context context, SimpleBroadcastReceiver receiver,
-            DaggerSingletonTracker tracker) {
+    ScreenOnTracker(SimpleBroadcastReceiver receiver, DaggerSingletonTracker tracker) {
         mReceiver = receiver;
         init(tracker);
     }
 
     private void init(DaggerSingletonTracker tracker) {
         mIsScreenOn = true;
-        mReceiver.register(ACTION_SCREEN_ON, ACTION_SCREEN_OFF, ACTION_USER_PRESENT);
-        tracker.addCloseable(this);
-    }
-
-    @Override
-    public void close() {
-        mReceiver.unregisterReceiverSafely();
+        mReceiver.register(
+                actionsFilter(ACTION_SCREEN_ON, ACTION_SCREEN_OFF, ACTION_USER_PRESENT),
+                0, null, null); // Add all arguments to allow argument matcher
+        tracker.addCloseable(mReceiver);
     }
 
     @VisibleForTesting

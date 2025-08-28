@@ -24,8 +24,6 @@ import android.content.Intent.ACTION_PACKAGE_CHANGED
 import android.content.Intent.ACTION_PACKAGE_REMOVED
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageInstaller
-import android.os.Handler
-import android.os.Looper
 import android.os.Process.myUserHandle
 import android.os.UserHandle
 import androidx.annotation.VisibleForTesting
@@ -44,6 +42,7 @@ import com.android.launcher3.util.PackageUserKey
 import com.android.launcher3.util.Preconditions
 import com.android.launcher3.util.SecureStringObserver
 import com.android.launcher3.util.SimpleBroadcastReceiver
+import com.android.launcher3.util.SimpleBroadcastReceiver.Companion.packageFilter
 import javax.inject.Inject
 
 /**
@@ -56,12 +55,11 @@ class OSEManager(
     private val context: Context,
     private val settingsObserver: SecureStringObserver,
     private val installhelper: InstallSessionHelper,
-    private val handlerLooper: Looper = OSE_LOOPER,
+    private val executor: LooperExecutor = OSE_LOOPER,
 ) {
 
-    private val handler = Handler(handlerLooper)
     private val packageAvailableReceiver =
-        SimpleBroadcastReceiver(context, handler) { handler.post { reloadOse() } }
+        SimpleBroadcastReceiver(context, executor) { reloadOse() }
     @VisibleForTesting var tracker: InstallSessionTracker? = null
     private val mutableOSEInfoRef = MutableListenableRef(OSEInfo())
 
@@ -81,11 +79,11 @@ class OSEManager(
         installhelper: InstallSessionHelper,
     ) : this(
         context,
-        SecureStringObserver(context, Handler(OSE_LOOPER), SEARCH_ENGINE_SETTINGS_KEY),
+        SecureStringObserver(context, OSE_LOOPER.handler, SEARCH_ENGINE_SETTINGS_KEY),
         installhelper,
     ) {
         settingsObserver.callback = Runnable { reloadOse() }
-        handler.post { reloadOse() }
+        executor.execute { reloadOse() }
         tracker.addCloseable(this::close)
     }
 
@@ -155,24 +153,28 @@ class OSEManager(
                 oldOseInfo.overlayPackage != newOseInfo.overlayPackage ||
                 oldOseInfo.installPending != newOseInfo.installPending
         ) {
-            packageAvailableReceiver.unregisterReceiverSafely()
+            packageAvailableReceiver.close()
             // Listen for ose changes
             if (osePkg != null) {
-                packageAvailableReceiver.registerPkgActions(
-                    osePkg,
-                    ACTION_PACKAGE_ADDED,
-                    ACTION_PACKAGE_CHANGED,
-                    ACTION_PACKAGE_REMOVED,
+                packageAvailableReceiver.register(
+                    packageFilter(
+                        osePkg,
+                        ACTION_PACKAGE_ADDED,
+                        ACTION_PACKAGE_CHANGED,
+                        ACTION_PACKAGE_REMOVED,
+                    )
                 )
             }
 
             // Listen for overlay changes
             if (overlayPkg != null && osePkg != overlayPkg) {
-                packageAvailableReceiver.registerPkgActions(
-                    overlayPkg,
-                    ACTION_PACKAGE_ADDED,
-                    ACTION_PACKAGE_CHANGED,
-                    ACTION_PACKAGE_REMOVED,
+                packageAvailableReceiver.register(
+                    packageFilter(
+                        overlayPkg,
+                        ACTION_PACKAGE_ADDED,
+                        ACTION_PACKAGE_CHANGED,
+                        ACTION_PACKAGE_REMOVED,
+                    )
                 )
             }
 
@@ -188,8 +190,8 @@ class OSEManager(
     @VisibleForTesting
     fun close() {
         settingsObserver.close()
-        packageAvailableReceiver.unregisterReceiverSafely()
-        handler.post { unregisterInstallSessionTracker() }
+        packageAvailableReceiver.close()
+        executor.execute { unregisterInstallSessionTracker() }
     }
 
     /** Object representing properties of the on-device search engine */
@@ -206,9 +208,7 @@ class OSEManager(
 
         const val SEARCH_ENGINE_SETTINGS_KEY = "selected_search_engine"
 
-        val OSE_LOOPER = LooperExecutor.createAndStartNewLooper("OSEManager")
-
-        private const val TAG = "OSEManager"
+        val OSE_LOOPER = LooperExecutor("OSEManager")
 
         const val OVERLAY_ACTION = "com.android.launcher3.WINDOW_OVERLAY"
     }
@@ -247,7 +247,7 @@ class OSEManager(
         }
 
         private fun postInstallSessionUpdate() {
-            handler.post { reloadOse() }
+            executor.execute { reloadOse() }
         }
     }
 }

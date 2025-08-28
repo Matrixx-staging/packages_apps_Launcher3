@@ -22,13 +22,11 @@ import android.appwidget.AppWidgetProviderInfo
 import android.appwidget.AppWidgetProviderInfo.WIDGET_CATEGORY_SEARCHBOX
 import android.appwidget.AppWidgetProviderInfo.WIDGET_FEATURE_CONFIGURATION_OPTIONAL
 import android.content.ComponentName
-import android.os.Process
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.android.launcher3.qsb.OSEManager.Companion.OSE_LOOPER
 import com.android.launcher3.qsb.OSEManager.OSEInfo
 import com.android.launcher3.util.DaggerSingletonTracker
-import com.android.launcher3.util.LooperExecutor
 import com.android.launcher3.util.MutableListenableRef
 import com.android.launcher3.util.SandboxApplication
 import com.android.launcher3.util.TestUtil
@@ -65,7 +63,7 @@ class OseWidgetManagerTest {
     private lateinit var widgetManager: AppWidgetManager
 
     private val mockOseInfo = MutableListenableRef(OSEInfo(TEST_PKG))
-    private val executor = LooperExecutor(OSE_LOOPER, Process.THREAD_PRIORITY_DEFAULT)
+    private val executor = OSE_LOOPER
 
     @Before
     fun setup() {
