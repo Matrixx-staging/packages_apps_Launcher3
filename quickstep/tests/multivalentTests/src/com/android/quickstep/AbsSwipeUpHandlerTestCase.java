@@ -70,6 +70,7 @@ import android.view.ViewTreeObserver;
 import androidx.annotation.NonNull;
 import androidx.test.platform.app.InstrumentationRegistry;
 
+import com.android.app.displaylib.fakes.FakePerDisplayRepository;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.LauncherRootView;
 import com.android.launcher3.anim.AnimationSuccessListener;
@@ -279,8 +280,12 @@ public abstract class AbsSwipeUpHandlerTestCase<
     @Before
     public void setUpRecentsContainer() {
         DisplayController displayController = DisplayController.INSTANCE.get(mContext);
-        mTaskAnimationManager = spy(
-                new TaskAnimationManager(mContext, mDisplayId, displayController));
+        FakePerDisplayRepository<TaskAnimationManager> fakePerDisplayRepository =
+                new FakePerDisplayRepository<>();
+        TaskAnimationManager taskAnimationManager = new TaskAnimationManager(mContext, mDisplayId,
+                displayController, fakePerDisplayRepository);
+        fakePerDisplayRepository.add(mDisplayId, taskAnimationManager);
+        mTaskAnimationManager = spy(taskAnimationManager);
         RECENTS_CONTAINER recentsContainer = getRecentsContainer();
         RECENTS_VIEW recentsView = getRecentsView();
 
