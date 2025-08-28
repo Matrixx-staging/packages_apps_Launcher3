@@ -55,7 +55,11 @@ class PopupControllerForAppIcon<T> : PopupController<T> where T : Context, T : A
                 .collect(Collectors.toList())
 
         val container =
-            PopupContainerWithArrow.create<Launcher>(context = launcher, originalView = icon)
+            PopupContainerWithArrow.create<Launcher>(
+                context = launcher,
+                originalView = icon,
+                itemInfo = item,
+            )
         container.configureForLauncher(launcher, item)
         container.populateAndShowRows(deepShortcutCount, systemShortcuts)
         launcher.refreshAndBindWidgetsForPackageUser(PackageUserKey.fromItemInfo(item))

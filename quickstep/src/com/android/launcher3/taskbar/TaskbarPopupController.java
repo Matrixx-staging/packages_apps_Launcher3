@@ -242,9 +242,9 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
         }
 
         container = PopupContainerWithArrow.create(context, /* originalView */ icon,
+                /*itemInfo */ itemInfo,
                 /* updateIconUi */ false);
         // TODO (b/198438631): configure for taskbar/context
-        icon.setTag(itemInfo);
         container.populateAndShowRows(deepShortcutCount, systemShortcuts);
         container.setPopupItemDragHandler(new TaskbarPopupItemDragHandler());
         context.getDragController().addDragListener(container);
