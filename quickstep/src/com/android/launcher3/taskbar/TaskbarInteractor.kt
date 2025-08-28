@@ -25,12 +25,14 @@ import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
 import com.android.launcher3.Flags.enableTaskbarUiThread
 import com.android.launcher3.LauncherState
-import com.android.launcher3.taskbar.TaskbarManagerImpl.INSTANT_EXECUTOR
 import com.android.launcher3.taskbar.TaskbarManagerImpl.TASKBAR_UI_THREAD
 import com.android.launcher3.taskbar.customization.TaskbarFeatureEvaluator
 import com.android.launcher3.taskbar.customization.TaskbarSpecsEvaluator
+import com.android.launcher3.util.ImmediateExecutorService
 import com.android.quickstep.GestureState
 import com.android.quickstep.RecentsAnimationCallbacks
+import java.util.concurrent.AbstractExecutorService
+import java.util.concurrent.Future
 import javax.annotation.concurrent.ThreadSafe
 
 /**
@@ -40,7 +42,8 @@ import javax.annotation.concurrent.ThreadSafe
 @ThreadSafe
 class TaskbarInteractor(private val taskbarUIController: TaskbarUIController) {
 
-    private val executor = if (enableTaskbarUiThread()) TASKBAR_UI_THREAD else INSTANT_EXECUTOR
+    private val executor: AbstractExecutorService =
+        if (enableTaskbarUiThread()) TASKBAR_UI_THREAD else ImmediateExecutorService
 
     @AnyThread
     fun setUserIsNotGoingHome(isNotGoingHome: Boolean) {
@@ -165,8 +168,19 @@ class TaskbarInteractor(private val taskbarUIController: TaskbarUIController) {
         }
     }
 
-    // TODO(b/404636836): expose focused task id to TaskbarUiState
-    @MainThread fun launchFocusedTask(): Set<Int>? = taskbarUIController.launchFocusedTask()
+    /**
+     * This API both launches focused tasks and returns focused task ids, so it cannot be converted
+     * to a one-way API where caller can just fire and forget.
+     *
+     * We decided to return a [Future] so that caller can call [Future.get] to wait for (and be
+     * blocked by) taskbar thread to finish the task due to 2 reasons:
+     * 1. caller is keyboard switch handling which is a low use cases
+     * 2. caller can be moved off main thread in the future, so blocking a bg thread is less a
+     *    performance issue.
+     */
+    @AnyThread
+    fun launchFocusedTask(): Future<Set<Int>?> =
+        executor.submit<Set<Int>?> { taskbarUIController.launchFocusedTask() }
 
     // TODO(b/404636836): refactor maxPinnableCount to TaskbarUiState
     @MainThread fun getRootView(): View = taskbarUIController.rootView

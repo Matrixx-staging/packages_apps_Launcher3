@@ -120,7 +120,7 @@ class OverviewCommandHelperTest {
         whenever(launcher.getOverviewPanel<RecentsView<*, *>>()).thenReturn(recentView)
         whenever(containerInterface.createdContainer).thenReturn(launcher)
         whenever(containerInterface.taskbarInteractor).thenReturn(taskbarInteractor)
-        whenever(taskbarInteractor.launchFocusedTask())
+        whenever(taskbarInteractor.launchFocusedTask().get())
             .thenReturn(REQUESTED_KEYBOARD_FOCUS_TASK_IDS)
         whenever(taskbarManager.getUIControllerForDisplay(anyInt())).thenReturn(taskbarUIController)
 
