@@ -1429,7 +1429,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
      * To be called when the given Task is updated, so that we can tell TaskbarView to also update.
      * @param task The Task whose e.g. icon changed.
      */
-    public void onTaskUpdated(Task task) {
+    public void onTaskUpdated(Task task, GroupTask parentGroupTask) {
         // Find the icon view(s) that changed.
         for (View view : mTaskbarView.getIconViews()) {
             if (view instanceof BubbleTextView btv
@@ -1441,8 +1441,9 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
                     && view.getTag() instanceof SplitTask st
                     && st.containsTask(task.key.id)) {
                 appPairIcon.updateInfo(st.toAppPairInfo());
-            } else if (view instanceof TaskbarOverflowView overflowButton) {
-                overflowButton.updateTaskIsShown(task);
+            } else if (view instanceof TaskbarOverflowView overflowButton
+                        && parentGroupTask instanceof SingleTask singleTask) {
+                overflowButton.updateTaskIsShown(singleTask);
             }
         }
     }

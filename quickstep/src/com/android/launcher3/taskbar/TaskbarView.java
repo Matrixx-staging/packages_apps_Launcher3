@@ -63,7 +63,6 @@ import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.icons.BitmapInfo;
 import com.android.launcher3.icons.BitmapInfo.DrawableCreationFlags;
 import com.android.launcher3.icons.IconShape;
-import com.android.launcher3.taskbar.handoff.HandoffSuggestion;
 import com.android.launcher3.model.data.AppPairInfo;
 import com.android.launcher3.model.data.CollectionInfo;
 import com.android.launcher3.model.data.FolderInfo;
@@ -72,6 +71,7 @@ import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.taskbar.customization.TaskbarAllAppsButtonContainer;
 import com.android.launcher3.taskbar.customization.TaskbarDividerContainer;
 import com.android.launcher3.taskbar.customization.TaskbarIconsContainer;
+import com.android.launcher3.taskbar.handoff.HandoffSuggestion;
 import com.android.launcher3.util.LauncherBindableItemsContainer.ItemOperator;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
@@ -84,8 +84,8 @@ import com.android.systemui.shared.recents.model.Task;
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -849,7 +849,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
             final List<GroupTask> overflownRecents = recentTasks.subList(startIndex, endIndex);
             mTaskbarRecentsOverflowView.setItems(
                     overflownRecents.stream().map(
-                            t -> new TaskWrapper(((SingleTask) t).getTask())).toList());
+                            t -> new TaskWrapper(mActivityContext, ((SingleTask) t))).toList());
             overflownRecentsSet = new ArraySet<>(overflownRecents);
         } else {
             overflownRecentsSet = Collections.emptySet();
