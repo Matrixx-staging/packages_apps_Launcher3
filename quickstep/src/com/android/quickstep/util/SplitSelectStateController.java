@@ -19,6 +19,7 @@ package com.android.quickstep.util;
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_HOME;
 import static android.view.Display.DEFAULT_DISPLAY;
 
+import static com.android.internal.jank.Cuj.CUJ_DESKTOP_MODE_MOVE_TO_SPLIT_SCREEN;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_DESKTOP_MODE_SPLIT_LEFT_TOP;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_DESKTOP_MODE_SPLIT_RIGHT_BOTTOM;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SPLIT_SELECTED_SECOND_APP;
@@ -28,7 +29,6 @@ import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCH
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT;
-import static com.android.internal.jank.Cuj.CUJ_DESKTOP_MODE_MOVE_TO_SPLIT_SCREEN;
 import static com.android.quickstep.util.SplitSelectDataHolder.SPLIT_PENDINGINTENT_PENDINGINTENT;
 import static com.android.quickstep.util.SplitSelectDataHolder.SPLIT_PENDINGINTENT_TASK;
 import static com.android.quickstep.util.SplitSelectDataHolder.SPLIT_SHORTCUT_TASK;
@@ -87,8 +87,7 @@ import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.statehandlers.DepthController;
 import com.android.launcher3.statemanager.StateManager;
-import com.android.launcher3.taskbar.LauncherTaskbarUIController;
-import com.android.launcher3.taskbar.TaskbarUIController;
+import com.android.launcher3.taskbar.TaskbarInteractor;
 import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.TestProtocol;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
@@ -951,12 +950,11 @@ public class SplitSelectStateController {
 
             final DesktopSplitRecentsAnimation animation = new DesktopSplitRecentsAnimation(
                     splitPosition, taskBounds);
-            final TaskbarUIController taskbarUIController = mContainer.getTaskbarUIController();
+            final TaskbarInteractor taskbarInteractor = mContainer.getTaskbarInteractor();
 
             final Runnable updateTaskbarRunnable = () -> {
-                if (taskbarUIController instanceof LauncherTaskbarUIController) {
-                    ((LauncherTaskbarUIController) taskbarUIController)
-                            .updateTaskbarLauncherStateGoingHome();
+                if (taskbarInteractor != null) {
+                    taskbarInteractor.updateTaskbarLauncherStateGoingHome();
                 }
             };
             if (startRecents) {

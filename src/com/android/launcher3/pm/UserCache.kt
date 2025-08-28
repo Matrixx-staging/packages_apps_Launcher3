@@ -35,10 +35,12 @@ import com.android.launcher3.icons.BitmapInfo
 import com.android.launcher3.icons.UserBadgeDrawable
 import com.android.launcher3.util.DaggerSingletonObject
 import com.android.launcher3.util.DaggerSingletonTracker
-import com.android.launcher3.util.Executors
+import com.android.launcher3.util.Executors.MAIN_EXECUTOR
+import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import com.android.launcher3.util.FlagOp
 import com.android.launcher3.util.SafeCloseable
 import com.android.launcher3.util.SimpleBroadcastReceiver
+import com.android.launcher3.util.SimpleBroadcastReceiver.Companion.actionsFilter
 import com.android.launcher3.util.UserIconInfo
 import java.util.function.BiConsumer
 import javax.inject.Inject
@@ -49,10 +51,6 @@ class UserCache
 @Inject
 constructor(@ApplicationContext private val context: Context, tracker: DaggerSingletonTracker) {
     private val userEventListeners = ArrayList<BiConsumer<UserHandle, String>>()
-    private val userChangeReceiver =
-        SimpleBroadcastReceiver(context, Executors.MODEL_EXECUTOR) { intent: Intent ->
-            this.onUsersChanged(intent)
-        }
 
     private val userManager = context.getSystemService(UserManager::class.java)!!
 
@@ -64,33 +62,37 @@ constructor(@ApplicationContext private val context: Context, tracker: DaggerSin
         get() = _userInfoMap ?: rebuildUserCache()
 
     init {
-        Executors.MODEL_EXECUTOR.execute { this.initAsync() }
-        tracker.addCloseable {
-            closed = true
-            userChangeReceiver.unregisterReceiverSafely()
-        }
-    }
-
-    @WorkerThread
-    private fun initAsync() {
+        val userChangeReceiver =
+            SimpleBroadcastReceiver(
+                context = context,
+                executor = MODEL_EXECUTOR,
+                callbackExecutor = MAIN_EXECUTOR,
+            ) {
+                onUsersChanged(it)
+            }
         userChangeReceiver.register(
-            Intent.ACTION_MANAGED_PROFILE_AVAILABLE,
-            Intent.ACTION_MANAGED_PROFILE_UNAVAILABLE,
-            Intent.ACTION_MANAGED_PROFILE_REMOVED,
-            ACTION_PROFILE_ADDED,
-            ACTION_PROFILE_REMOVED,
-            ACTION_PROFILE_UNLOCKED,
-            ACTION_PROFILE_LOCKED,
-            ACTION_PROFILE_AVAILABLE,
-            ACTION_PROFILE_UNAVAILABLE,
-        )
-        rebuildUserCache()
+            actionsFilter(
+                Intent.ACTION_MANAGED_PROFILE_AVAILABLE,
+                Intent.ACTION_MANAGED_PROFILE_UNAVAILABLE,
+                Intent.ACTION_MANAGED_PROFILE_REMOVED,
+                ACTION_PROFILE_ADDED,
+                ACTION_PROFILE_REMOVED,
+                ACTION_PROFILE_UNLOCKED,
+                ACTION_PROFILE_LOCKED,
+                ACTION_PROFILE_AVAILABLE,
+                ACTION_PROFILE_UNAVAILABLE,
+            )
+        ) {
+            MODEL_EXECUTOR.execute { rebuildUserCache() }
+        }
+        tracker.addCloseable { closed = true }
+        tracker.addCloseable(userChangeReceiver)
     }
 
     @AnyThread
     private fun onUsersChanged(intent: Intent) {
         if (closed) return
-        Executors.MODEL_EXECUTOR.execute { rebuildUserCache() }
+        MODEL_EXECUTOR.execute { rebuildUserCache() }
         val user = intent.getParcelableExtra<UserHandle>(Intent.EXTRA_USER) ?: return
         val action = intent.action ?: return
         userEventListeners.forEach { it.accept(user, action) }

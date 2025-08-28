@@ -132,8 +132,8 @@ import com.android.launcher3.logging.StatsLogManager.StatsLogger;
 import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.statemanager.BaseState;
 import com.android.launcher3.statemanager.StatefulContainer;
+import com.android.launcher3.taskbar.TaskbarInteractor;
 import com.android.launcher3.taskbar.TaskbarThresholdUtils;
-import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.taskbar.TaskbarUiState;
 import com.android.launcher3.taskbar.TaskbarUiStateMonitor;
 import com.android.launcher3.taskbar.customization.TaskbarFeatureEvaluator;
@@ -472,7 +472,7 @@ public abstract class AbsSwipeUpHandler<
     }
 
     private boolean legacyIsTaskbarStashed() {
-        TaskbarUIController controller = mContainerInterface.getTaskbarController();
+        TaskbarInteractor controller = mContainerInterface.getTaskbarInteractor();
         return controller != null && controller.isTaskbarStashed();
     }
 
@@ -496,8 +496,8 @@ public abstract class AbsSwipeUpHandler<
     }
 
     private boolean legacyIsTaskbarAllAppsOpen() {
-        TaskbarUIController controller = mContainerInterface.getTaskbarController();
-        return controller != null && controller.isTaskbarAllAppsOpen();
+        TaskbarInteractor interactor = mContainerInterface.getTaskbarInteractor();
+        return interactor != null && interactor.isTaskbarAllAppsOpen();
     }
 
     @Nullable
@@ -823,8 +823,8 @@ public abstract class AbsSwipeUpHandler<
             public void onMotionPauseDetected() {
                 mHasMotionEverBeenPaused = true;
                 maybeUpdateRecentsAttachedState(true/* animate */, true/* moveRunningTask */);
-                Optional.ofNullable(mContainerInterface.getTaskbarController())
-                        .ifPresent(TaskbarUIController::startTranslationSpring);
+                Optional.ofNullable(mContainerInterface.getTaskbarInteractor())
+                        .ifPresent(TaskbarInteractor::startTranslationSpring);
                 performHapticFeedback();
             }
 
@@ -1344,9 +1344,9 @@ public abstract class AbsSwipeUpHandler<
                 mStateCallback.setState(STATE_REJECT_HOME);
                 break;
         }
-        if (mContainerInterface.getTaskbarController() != null) {
+        if (mContainerInterface.getTaskbarInteractor() != null) {
             // Resets this value as the gesture is now complete.
-            mContainerInterface.getTaskbarController().setUserIsNotGoingHome(false);
+            mContainerInterface.getTaskbarInteractor().setUserIsNotGoingHome(false);
         }
         ActiveGestureProtoLogProxy.logOnSettledOnEndTarget(endTarget.name());
     }
@@ -1573,8 +1573,8 @@ public abstract class AbsSwipeUpHandler<
         mGestureState.setEndTarget(endTarget, false /* isAtomic */);
         mAnimationFactory.setEndTarget(endTarget);
 
-        if (mIsTransientTaskbar && mContainerInterface.getTaskbarController() != null) {
-            mContainerInterface.getTaskbarController()
+        if (mIsTransientTaskbar && mContainerInterface.getTaskbarInteractor() != null) {
+            mContainerInterface.getTaskbarInteractor()
                     .setUserIsNotGoingHome(endTarget != HOME);
         }
 
@@ -3142,9 +3142,9 @@ public abstract class AbsSwipeUpHandler<
     }
 
     private boolean legacyShouldAllowTaskbarToAutoStash() {
-        return mContainerInterface.getTaskbarController() == null
+        return mContainerInterface.getTaskbarInteractor() == null
                 ? mIsTransientTaskbar
-                : mContainerInterface.getTaskbarController().shouldAllowTaskbarToAutoStash();
+                : mContainerInterface.getTaskbarInteractor().shouldAllowTaskbarToAutoStash();
     }
 
     private boolean newShouldAllowTaskbarToAutoStash() {

@@ -78,7 +78,7 @@ class OSEManagerTest {
     private val mockInstallSessionInfo: PackageInstaller.SessionInfo = mock()
     private val appInfoInstalled = ApplicationInfo()
     private val oseManager: OSEManager by lazy {
-        OSEManager(context, settingsObserver, installSessionHelper, UI_HELPER_EXECUTOR.looper)
+        OSEManager(context, settingsObserver, installSessionHelper, UI_HELPER_EXECUTOR)
     }
     val sessionTrackerCaptor = argumentCaptor<OSEManager.SessionTrackerCallback>()
     val res = spy(context.resources)

@@ -27,8 +27,7 @@ import com.android.launcher3.logging.InstanceId
 import com.android.launcher3.logging.StatsLogManager
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.statemanager.StateManager.StateListener
-import com.android.launcher3.taskbar.LauncherTaskbarUIController
-import com.android.launcher3.taskbar.TaskbarUIController
+import com.android.launcher3.taskbar.TaskbarInteractor
 import com.android.launcher3.taskbar.bubbles.BubbleBarView
 import com.android.launcher3.uioverrides.QuickstepLauncher
 import com.android.launcher3.util.SafeCloseable
@@ -145,8 +144,8 @@ class LauncherInteractor(private val launcher: QuickstepLauncher, val executor: 
     }
 
     @AnyThread
-    fun setTaskbarUiController(controller: TaskbarUIController?) {
-        launcher.taskbarUIController = controller as LauncherTaskbarUIController?
+    fun setTaskbarInteractor(taskbarInteractor: TaskbarInteractor?) {
+        launcher.taskbarInteractor = taskbarInteractor
     }
 
     @AnyThread

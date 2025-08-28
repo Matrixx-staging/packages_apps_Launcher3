@@ -23,7 +23,6 @@ import android.appwidget.AppWidgetProviderInfo.WIDGET_CATEGORY_SEARCHBOX
 import android.appwidget.AppWidgetProviderInfo.WIDGET_FEATURE_CONFIGURATION_OPTIONAL
 import android.content.ActivityNotFoundException
 import android.content.Context
-import android.os.Process
 import android.os.Process.myUserHandle
 import android.util.Log
 import android.widget.RemoteViews
@@ -40,7 +39,6 @@ import com.android.launcher3.qsb.OSEManager.Companion.OSE_LOOPER
 import com.android.launcher3.qsb.OSEManager.OSEInfo
 import com.android.launcher3.qsb.QsbAppWidgetHost.Callbacks
 import com.android.launcher3.util.DaggerSingletonTracker
-import com.android.launcher3.util.LooperExecutor
 import com.android.launcher3.util.MutableListenableRef
 import com.android.launcher3.util.PackageUserKey
 import com.android.launcher3.widget.WidgetManagerHelper
@@ -70,7 +68,7 @@ constructor(
     private val mutableViews = MutableListenableRef<RemoteViews?>(null)
     val views = mutableViews.asListenable()
 
-    private val executor = LooperExecutor(OSE_LOOPER, Process.THREAD_PRIORITY_DEFAULT)
+    private val executor = OSE_LOOPER
 
     init {
         widgetHost.setCallbacks(

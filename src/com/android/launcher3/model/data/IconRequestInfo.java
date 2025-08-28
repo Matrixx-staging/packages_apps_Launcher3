@@ -19,7 +19,6 @@ import static android.graphics.BitmapFactory.decodeByteArray;
 
 import android.content.Context;
 import android.content.pm.LauncherActivityInfo;
-import android.graphics.Bitmap;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -41,6 +40,7 @@ public class IconRequestInfo<T extends ItemInfoWithIcon> {
     @NonNull public final T itemInfo;
     @Nullable public final LauncherActivityInfo launcherActivityInfo;
     @Nullable public final byte[] iconBlob;
+    public final boolean isBlobFullBleed;
     public final CacheLookupFlag lookupFlag;
 
     public IconRequestInfo(
@@ -51,6 +51,7 @@ public class IconRequestInfo<T extends ItemInfoWithIcon> {
                 itemInfo,
                 launcherActivityInfo,
                 /* iconBlob= */ null,
+                /* isBlobFullBleed= */ false,
                 lookupFlag);
     }
 
@@ -58,15 +59,18 @@ public class IconRequestInfo<T extends ItemInfoWithIcon> {
             @NonNull T itemInfo,
             @Nullable LauncherActivityInfo launcherActivityInfo,
             @Nullable byte[] iconBlob,
+            boolean isBlobFullBleed,
             CacheLookupFlag lookupFlag) {
         this.itemInfo = itemInfo;
         this.launcherActivityInfo = launcherActivityInfo;
         this.iconBlob = iconBlob;
+        this.isBlobFullBleed = isBlobFullBleed;
         this.lookupFlag = lookupFlag;
     }
 
     /**
      * Loads this request's item info's title and icon from given iconBlob from Launcher.db.
+     * Generally used for restoring Promise Icons and pre-archived icons from backup.
      * This method should only be used on {@link IconRequestInfo} for {@link WorkspaceItemInfo}
      *  or {@link AppInfo}.
      */
@@ -84,13 +88,10 @@ public class IconRequestInfo<T extends ItemInfoWithIcon> {
                         + info.getTargetComponent());
                 return false;
             }
-            Bitmap parsedIcon = decodeByteArray(iconBlob, 0, iconBlob.length);
-            if (parsedIcon == null) {
-                Log.d(TAG, "loadIconFromDb: icon parsing failed, returning. Component="
-                        + info.getTargetComponent());
-                return false;
-            }
-            info.bitmap = li.createIconBitmap(parsedIcon);
+            info.bitmap = li.createIconBitmap(
+                    decodeByteArray(iconBlob, 0, iconBlob.length),
+                    /* isFullBleed **/ isBlobFullBleed
+            );
             return true;
         } catch (Exception e) {
             Log.e(TAG, "Failed to decode byte array for info " + itemInfo, e);

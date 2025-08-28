@@ -64,7 +64,7 @@ import com.android.launcher3.LauncherState;
 import com.android.launcher3.QuickstepTransitionManager;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
-import com.android.launcher3.taskbar.LauncherTaskbarUIController;
+import com.android.launcher3.taskbar.TaskbarInteractor;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.NavigationMode;
@@ -483,9 +483,9 @@ public class LauncherBackAnimationController {
             return;
         }
         mLauncher.setPredictiveBackToHomeInProgress(true);
-        LauncherTaskbarUIController taskbarUIController = mLauncher.getTaskbarUIController();
-        if (taskbarUIController != null) {
-            taskbarUIController.onLauncherVisibilityChanged(true);
+        TaskbarInteractor taskbarInteractor = mLauncher.getTaskbarInteractor();
+        if (taskbarInteractor != null) {
+            taskbarInteractor.onLauncherVisibilityChanged(true);
         }
         // TODO: Catch the moment when launcher becomes visible after the top app un-occludes
         //  launcher and start animating afterwards. Currently we occasionally get a flicker from

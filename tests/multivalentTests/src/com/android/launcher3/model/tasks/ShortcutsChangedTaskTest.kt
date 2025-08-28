@@ -44,6 +44,7 @@ import com.android.launcher3.util.LauncherModelHelper.TEST_ACTIVITY
 import com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE
 import com.android.launcher3.util.LayoutResource
 import com.android.launcher3.util.ModelTestExtensions.countPersistedModelItems
+import com.android.launcher3.util.RoboApiWrapper
 import com.android.launcher3.util.SandboxApplication
 import com.android.launcher3.util.TestUtil
 import com.google.common.truth.Truth.assertThat
@@ -71,6 +72,7 @@ class ShortcutsChangedTaskTest {
     @get:Rule val context = SandboxApplication().withModelDependency()
     @get:Rule var layout = LayoutResource(context)
     @get:Rule val mockito = MockitoJUnit.rule()
+    @get:Rule val shortcutAccessRule = RoboApiWrapper.grantShortcutsPermissionRule()
 
     private lateinit var launcherApps: LauncherApps
 

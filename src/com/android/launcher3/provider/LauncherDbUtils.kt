@@ -43,6 +43,7 @@ import com.android.launcher3.LauncherSettings.Favorites._ID
 import com.android.launcher3.Utilities
 import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
 import com.android.launcher3.homescreenfiles.HomeScreenFilesUtils
+import com.android.launcher3.icons.GraphicsUtils
 import com.android.launcher3.icons.GraphicsUtils.flattenBitmap
 import com.android.launcher3.icons.IconCache
 import com.android.launcher3.logging.FileLog
@@ -261,7 +262,7 @@ object LauncherDbUtils {
 
     @JvmStatic
     @WorkerThread
-    fun updateBackupIcons(context: Context, db: SQLiteDatabase) {
+    fun updateBackupIcons(context: Context, db: SQLiteDatabase, useDefaultShape: Boolean) {
         val cursor =
             db.query(
                 TABLE_NAME,
@@ -298,7 +299,14 @@ object LauncherDbUtils {
                     if (itemInfo == null) continue
                     val update =
                         ContentValues().apply {
-                            put(Favorites.ICON, flattenBitmap(itemInfo.bitmap.icon))
+                            put(
+                                Favorites.ICON,
+                                if (useDefaultShape) {
+                                    GraphicsUtils.createDefaultFlatBitmap(itemInfo.bitmap)
+                                } else {
+                                    flattenBitmap(itemInfo.bitmap.icon)
+                                },
+                            )
                         }
                     db.update(TABLE_NAME, update, "_id = ?", arrayOf(loaderCursor.id.toString()))
                 }

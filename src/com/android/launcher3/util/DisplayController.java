@@ -26,6 +26,7 @@ import static com.android.launcher3.InvariantDeviceProfile.TYPE_TABLET;
 import static com.android.launcher3.Utilities.dpiFromPx;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.FlagDebugUtils.appendFlag;
+import static com.android.launcher3.util.SimpleBroadcastReceiver.packageFilter;
 import static com.android.launcher3.util.window.WindowManagerProxy.MIN_TABLET_WIDTH;
 
 import android.annotation.SuppressLint;
@@ -142,7 +143,7 @@ public class DisplayController {
 
         // Initialize navigation mode change listener
         mReceiver = new SimpleBroadcastReceiver(context, MAIN_EXECUTOR, this::onIntent);
-        mReceiver.registerPkgActions(TARGET_OVERLAY_PACKAGE, ACTION_OVERLAY_CHANGED);
+        mReceiver.register(packageFilter(TARGET_OVERLAY_PACKAGE, ACTION_OVERLAY_CHANGED));
 
         FileLog.i(TAG, "(CTOR) perDisplayBounds: "
                 + defaultPerDisplayInfo.mInfo.mPerDisplayBounds);
@@ -181,7 +182,7 @@ public class DisplayController {
         lifecycle.addCloseable(() -> {
             mDestroyed = true;
             defaultPerDisplayInfo.cleanup();
-            mReceiver.unregisterReceiverSafely();
+            mReceiver.close();
         });
     }
 
@@ -629,6 +630,11 @@ public class DisplayController {
          */
         public boolean showDesktopTaskbarForFreeformDisplay() {
             return mShowDesktopTaskbarForFreeformDisplay;
+        }
+
+        @VisibleForTesting
+        public Context getContext() {
+            return context;
         }
     }
 

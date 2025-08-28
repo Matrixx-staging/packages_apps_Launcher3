@@ -19,7 +19,6 @@ package com.android.quickstep.views;
 import static android.app.ActivityTaskManager.INVALID_TASK_ID;
 import static android.os.Trace.traceBegin;
 import static android.os.Trace.traceEnd;
-import static android.view.MotionEvent.CLASSIFICATION_TWO_FINGER_SWIPE;
 import static android.view.View.MeasureSpec.EXACTLY;
 import static android.view.View.MeasureSpec.makeMeasureSpec;
 
@@ -150,6 +149,7 @@ import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.BuildConfig;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Insettable;
+import com.android.launcher3.MotionEventsUtils;
 import com.android.launcher3.PagedView;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
@@ -1919,7 +1919,8 @@ public abstract class RecentsView<
 
     private boolean shouldAllowDrag(MotionEvent ev) {
         return !ev.isFromSource(InputDevice.SOURCE_MOUSE)
-                || ev.getClassification() == CLASSIFICATION_TWO_FINGER_SWIPE;
+                || MotionEventsUtils.isTrackpadScroll(ev)
+                || MotionEventsUtils.isTrackpadFourFingerSwipe(ev);
     }
 
     /**
@@ -6963,12 +6964,12 @@ public abstract class RecentsView<
         public void onExpandPip() {
             MAIN_EXECUTOR.execute(() -> {
                 if (mRecentsView == null
-                        || mRecentsView.mContainerInterface.getTaskbarController() == null) {
+                        || mRecentsView.mContainerInterface.getTaskbarInteractor() == null) {
                     return;
                 }
                 // Hide the task bar when leaving PiP to prevent it from flickering once
                 // the app settles in full-screen mode.
-                mRecentsView.mContainerInterface.getTaskbarController().onExpandPip();
+                mRecentsView.mContainerInterface.getTaskbarInteractor().onExpandPip();
             });
         }
     }

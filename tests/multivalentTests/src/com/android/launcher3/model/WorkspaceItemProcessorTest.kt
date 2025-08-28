@@ -60,6 +60,7 @@ import com.android.launcher3.shortcuts.ShortcutKey
 import com.android.launcher3.util.ContentWriter
 import com.android.launcher3.util.PackageManagerHelper
 import com.android.launcher3.util.PackageUserKey
+import com.android.launcher3.util.RoboApiWrapper
 import com.android.launcher3.util.SandboxApplication
 import com.android.launcher3.util.UserIconInfo
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo
@@ -73,8 +74,6 @@ import org.junit.runner.RunWith
 import org.mockito.Answers
 import org.mockito.ArgumentCaptor
 import org.mockito.Mock
-import org.mockito.Mockito.RETURNS_DEEP_STUBS
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnit
@@ -92,6 +91,7 @@ class WorkspaceItemProcessorTest {
     @get:Rule val mockitoRule = MockitoJUnit.rule()
     @get:Rule val setFlagsRule: SetFlagsRule = SetFlagsRule()
     @get:Rule val mContext = SandboxApplication().withModelDependency()
+    @get:Rule val shortcutAccessRule = RoboApiWrapper.grantShortcutsPermissionRule()
 
     @Mock private lateinit var mockIconRequestInfo: IconRequestInfo<WorkspaceItemInfo>
     @Mock private lateinit var mockWorkspaceInfo: WorkspaceItemInfo
