@@ -41,7 +41,7 @@ import com.android.launcher3.LauncherState;
 import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.statehandlers.DepthController;
 import com.android.launcher3.statemanager.StateManager;
-import com.android.launcher3.taskbar.LauncherTaskbarUIController;
+import com.android.launcher3.taskbar.TaskbarInteractor;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.NavigationMode;
@@ -167,12 +167,12 @@ public final class LauncherActivityInterface extends
 
     @Nullable
     @Override
-    public LauncherTaskbarUIController getTaskbarController() {
+    public TaskbarInteractor getTaskbarInteractor() {
         QuickstepLauncher launcher = getCreatedContainer();
         if (launcher == null) {
             return null;
         }
-        return launcher.getTaskbarUIController();
+        return launcher.getTaskbarInteractor();
     }
 
     @Nullable
@@ -310,13 +310,13 @@ public final class LauncherActivityInterface extends
     @Override
     public @Nullable Animator getParallelAnimationToGestureEndTarget(GestureEndTarget endTarget,
             long duration, RecentsAnimationCallbacks callbacks) {
-        LauncherTaskbarUIController uiController = getTaskbarController();
+        TaskbarInteractor interactor = getTaskbarInteractor();
         Animator superAnimator = super.getParallelAnimationToGestureEndTarget(
                 endTarget, duration, callbacks);
-        if (uiController == null || callbacks == null) {
+        if (interactor == null || callbacks == null) {
             return superAnimator;
         }
-        Animator taskbarAnimator = uiController.getParallelAnimationToGestureEndTarget(endTarget,
+        Animator taskbarAnimator = interactor.getParallelAnimationToGestureEndTarget(endTarget,
                 duration, callbacks);
         if (superAnimator == null) {
             return taskbarAnimator;

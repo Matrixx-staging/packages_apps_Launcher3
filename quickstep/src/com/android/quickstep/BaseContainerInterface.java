@@ -56,7 +56,7 @@ import com.android.launcher3.R;
 import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.statemanager.BaseState;
 import com.android.launcher3.statemanager.StatefulContainer;
-import com.android.launcher3.taskbar.TaskbarUIController;
+import com.android.launcher3.taskbar.TaskbarInteractor;
 import com.android.launcher3.taskbar.TaskbarUiStateMonitor;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.TaskbarModeUtil;
@@ -109,11 +109,11 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
     public abstract boolean isStarted();
     public boolean deferStartingActivity(
             @NonNull RecentsAnimationDeviceState deviceState, MotionEvent ev) {
-        TaskbarUIController controller = getTaskbarController();
+        TaskbarInteractor interactor = getTaskbarInteractor();
         boolean isEventOverBubbleBarStashHandle =
-                controller != null && controller.isEventOverBubbleBarViews(ev);
+                interactor != null && interactor.isEventOverBubbleBarViews(ev);
         boolean isEventOverAnyTaskbarItem =
-                controller != null && controller.isEventOverAnyTaskbarItem(ev);
+                interactor != null && interactor.isEventOverAnyTaskbarItem(ev);
         return deviceState.isInDeferredGestureRegion(ev)
                 || deviceState.isImeRenderingNavButtons()
                 || isTrackpadMultiFingerSwipe(ev)
@@ -133,7 +133,7 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
             RecentsPagedOrientationHandler orientationHandler);
 
     @Nullable
-    public abstract TaskbarUIController getTaskbarController();
+    public abstract TaskbarInteractor getTaskbarInteractor();
 
     public interface AnimationFactory<STATE_TYPE extends BaseState<STATE_TYPE>,
             CONTAINER_TYPE extends RecentsViewContainer & StatefulContainer<STATE_TYPE>> {
@@ -271,8 +271,8 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
     }
 
     private boolean legacyIsDraggingItem() {
-        TaskbarUIController uiController = getTaskbarController();
-        return uiController != null && uiController.isDraggingItem();
+        TaskbarInteractor taskbarInteractor = getTaskbarInteractor();
+        return taskbarInteractor != null && taskbarInteractor.isDraggingItem();
     }
 
     private boolean newIsDraggingItem(int displayId) {
@@ -326,9 +326,9 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
      * (This is a hack to ensure Taskbar draws its background first to avoid flickering.)
      */
     public @Nullable View onSettledOnEndTarget(GestureState.GestureEndTarget endTarget) {
-        TaskbarUIController taskbarUIController = getTaskbarController();
-        if (taskbarUIController != null) {
-            return taskbarUIController.getRootView();
+        TaskbarInteractor taskbarInteractor = getTaskbarInteractor();
+        if (taskbarInteractor != null) {
+            return taskbarInteractor.getRootView();
         }
         return null;
     }

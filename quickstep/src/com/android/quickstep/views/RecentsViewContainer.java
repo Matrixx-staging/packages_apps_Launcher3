@@ -29,7 +29,7 @@ import androidx.annotation.Nullable;
 
 import com.android.launcher3.BaseActivity;
 import com.android.launcher3.logger.LauncherAtom;
-import com.android.launcher3.taskbar.TaskbarUIController;
+import com.android.launcher3.taskbar.TaskbarInteractor;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.ScrimView;
 import com.android.quickstep.BaseContainerInterface;
@@ -184,9 +184,9 @@ public interface RecentsViewContainer extends ActivityContext {
                         .build());
     }
 
-    void setTaskbarUIController(@Nullable TaskbarUIController taskbarUIController);
+    void setTaskbarInteractor(@Nullable TaskbarInteractor taskbarInteractor);
 
-    @Nullable TaskbarUIController getTaskbarUIController();
+    @Nullable TaskbarInteractor getTaskbarInteractor();
 
     /**
      * Returns the Split Select State Controller

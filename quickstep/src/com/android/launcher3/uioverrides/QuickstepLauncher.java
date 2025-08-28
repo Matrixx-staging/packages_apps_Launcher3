@@ -50,7 +50,6 @@ import static com.android.launcher3.compat.AccessibilityManagerCompat.sendCustom
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_APP_LAUNCH_TAP;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SPLIT_SELECTION_EXIT_HOME;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SPLIT_SELECTION_EXIT_INTERRUPTED;
-import static com.android.launcher3.taskbar.PinToTaskbarShortcut.PIN_ITEM_FROM_LAUNCHER;
 import static com.android.launcher3.popup.QuickstepSystemShortcut.getSplitSelectShortcutByPosition;
 import static com.android.launcher3.popup.SystemShortcut.APP_INFO;
 import static com.android.launcher3.popup.SystemShortcut.BUBBLE_SHORTCUT;
@@ -63,6 +62,7 @@ import static com.android.launcher3.popup.SystemShortcut.WIDGETS;
 import static com.android.launcher3.taskbar.LauncherTaskbarUIController.ALL_APPS_PAGE_PROGRESS_INDEX;
 import static com.android.launcher3.taskbar.LauncherTaskbarUIController.MINUS_ONE_PAGE_PROGRESS_INDEX;
 import static com.android.launcher3.taskbar.LauncherTaskbarUIController.WIDGETS_PAGE_PROGRESS_INDEX;
+import static com.android.launcher3.taskbar.PinToTaskbarShortcut.PIN_ITEM_FROM_LAUNCHER;
 import static com.android.launcher3.testing.shared.TestProtocol.HINT_STATE_ORDINAL;
 import static com.android.launcher3.testing.shared.TestProtocol.HINT_STATE_TWO_BUTTON_ORDINAL;
 import static com.android.launcher3.testing.shared.TestProtocol.OVERVIEW_STATE_ORDINAL;
@@ -150,9 +150,8 @@ import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.statemanager.StateManager;
 import com.android.launcher3.statemanager.StateManager.AtomicAnimationFactory;
 import com.android.launcher3.statemanager.StateManager.StateHandler;
-import com.android.launcher3.taskbar.LauncherTaskbarUIController;
+import com.android.launcher3.taskbar.TaskbarInteractor;
 import com.android.launcher3.taskbar.TaskbarManager;
-import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.taskbar.TaskbarUiState;
 import com.android.launcher3.taskbar.TaskbarUiStateMonitor;
 import com.android.launcher3.taskbar.bubbles.BubbleActivityStarter;
@@ -264,7 +263,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
     private OverviewActionsView<?> mActionsView;
     private TISBindHelper mTISBindHelper;
-    private @Nullable LauncherTaskbarUIController mTaskbarUIController;
+    private @Nullable TaskbarInteractor mTaskbarInteractor;
     // Will be updated when dragging from taskbar.
     private @Nullable UnfoldTransitionProgressProvider mUnfoldTransitionProgressProvider;
     private @Nullable LauncherUnfoldAnimationController mLauncherUnfoldAnimationController;
@@ -467,8 +466,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         }
 
         if ((changeBits & ACTIVITY_STATE_RESUMED) != 0) {
-            if (!FeatureFlags.enableHomeTransitionListener() && mTaskbarUIController != null) {
-                mTaskbarUIController.onLauncherVisibilityChanged(hasBeenResumed());
+            if (!FeatureFlags.enableHomeTransitionListener() && mTaskbarInteractor != null) {
+                mTaskbarInteractor.onLauncherVisibilityChanged(hasBeenResumed());
             }
         }
 
@@ -571,8 +570,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     }
 
     private boolean legacyCanPinAppWithContextMenu() {
-        return mTaskbarUIController != null
-                && mTaskbarUIController.canPinAppWithContextMenu();
+        return mTaskbarInteractor != null
+                && mTaskbarInteractor.canPinAppWithContextMenu();
     }
 
     /** Mimic the impl of {@link TaskbarPopupController#canPinAppWithContextMenu}. */
@@ -914,8 +913,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
     @Override
     public void onStateTransitionCompletedAfterSwipeToHome(LauncherState finalState) {
-        if (mTaskbarUIController != null) {
-            mTaskbarUIController.onStateTransitionCompletedAfterSwipeToHome(finalState);
+        if (mTaskbarInteractor != null) {
+            mTaskbarInteractor.onStateTransitionCompletedAfterSwipeToHome(finalState);
         }
     }
 
@@ -927,8 +926,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
             mLauncherUnfoldAnimationController.onResume();
         }
 
-        if (mTaskbarUIController != null && FeatureFlags.enableHomeTransitionListener()) {
-            mTaskbarUIController.onLauncherResume();
+        if (mTaskbarInteractor != null && FeatureFlags.enableHomeTransitionListener()) {
+            mTaskbarInteractor.onLauncherResume();
         }
     }
 
@@ -949,16 +948,16 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
                     .playPlaceholderDismissAnim(this, LAUNCHER_SPLIT_SELECTION_EXIT_INTERRUPTED);
         }
 
-        if (mTaskbarUIController != null && FeatureFlags.enableHomeTransitionListener()) {
-            mTaskbarUIController.onLauncherPause();
+        if (mTaskbarInteractor != null && FeatureFlags.enableHomeTransitionListener()) {
+            mTaskbarInteractor.onLauncherPause();
         }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        if (mTaskbarUIController != null && FeatureFlags.enableHomeTransitionListener()) {
-            mTaskbarUIController.onLauncherStop();
+        if (mTaskbarInteractor != null && FeatureFlags.enableHomeTransitionListener()) {
+            mTaskbarInteractor.onLauncherStop();
         }
     }
 
@@ -1122,10 +1121,10 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         TaskbarManager taskbarManager = mTISBindHelper.getTaskbarManager();
         if (taskbarManager == null
                 || taskbarManager.getCurrentActivityContext() == null
-                || mTaskbarUIController == null) {
+                || mTaskbarInteractor == null) {
             return;
         }
-        mTaskbarUIController.onTaskbarInAppDisplayProgressUpdate(progress, flag);
+        mTaskbarInteractor.onTaskbarInAppDisplayProgressUpdate(progress, flag);
     }
 
     @Override
@@ -1256,13 +1255,12 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     }
 
     @Override
-    public void setTaskbarUIController(@Nullable TaskbarUIController taskbarUIController) {
-        mTaskbarUIController = (LauncherTaskbarUIController) taskbarUIController;
+    public void setTaskbarInteractor(@Nullable TaskbarInteractor taskbarInteractor) {
+        mTaskbarInteractor = taskbarInteractor;
     }
 
-    @Override
-    public @Nullable LauncherTaskbarUIController getTaskbarUIController() {
-        return mTaskbarUIController;
+    public @Nullable TaskbarInteractor getTaskbarInteractor() {
+        return mTaskbarInteractor;
     }
 
     /** Offset [targetRect] to account for the hotseat translation if applicable. */
@@ -1526,8 +1524,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         mSplitSelectStateController.getAppPairsController().launchAppPair(appPairIcon,
                 CUJ_LAUNCHER_LAUNCH_APP_PAIR_FROM_WORKSPACE,
                 (success) -> {
-                    if (success && mTaskbarUIController != null) {
-                        mTaskbarUIController.showEduOnAppLaunch();
+                    if (success && mTaskbarInteractor != null) {
+                        mTaskbarInteractor.showEduOnAppLaunch();
                     }
                 });
     }
@@ -1555,7 +1553,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
     @Override
     public boolean isBubbleBarEnabled() {
-        return (mTaskbarUIController != null && BubbleBarController.isBubbleBarEnabled());
+        return (mTaskbarInteractor != null && BubbleBarController.isBubbleBarEnabled());
     }
 
     @Override
@@ -1576,7 +1574,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     }
 
     private boolean legacyHasBubbles() {
-        return mTaskbarUIController != null && mTaskbarUIController.hasBubbles();
+        return mTaskbarInteractor != null && mTaskbarInteractor.hasBubbles();
     }
 
     @Override

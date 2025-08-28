@@ -220,8 +220,8 @@ constructor(
         val PIN_ITEM_FROM_LAUNCHER: Factory<QuickstepLauncher> =
             Factory { context, itemInfo, originalView ->
                 val taskbarInfoList =
-                    context.taskbarUIController
-                        ?.mControllers
+                    context.taskbarInteractor
+                        ?.getControllers()
                         ?.taskbarPopupController
                         ?.taskbarInfoList ?: return@Factory null
 
@@ -267,7 +267,8 @@ constructor(
                 when (context) {
                     is TaskbarActivityContext -> context.taskbarSpecsEvaluator
                     is TaskbarOverlayContext -> context.specsEvaluator
-                    is QuickstepLauncher -> context.taskbarUIController?.taskbarSpecsEvaluator
+                    // TODO(b/404636836) maxPinnableCount can be acquired from DeviceProfile
+                    is QuickstepLauncher -> context.taskbarInteractor?.getTaskbarSpecsEvaluator()
                     else -> null
                 }
 

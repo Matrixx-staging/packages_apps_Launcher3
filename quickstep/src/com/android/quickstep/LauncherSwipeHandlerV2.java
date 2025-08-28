@@ -136,9 +136,9 @@ public class LauncherSwipeHandlerV2 extends AbsSwipeUpHandler<
             View workspaceView, @Nullable TaskView targetTaskView) {
         RectF iconLocation = new RectF();
         FloatingIconView floatingIconView = getFloatingIconView(mContainer, workspaceView, null,
-                mContainer.getTaskbarUIController() == null
+                mContainer.getTaskbarInteractor() == null
                         ? null
-                        : mContainer.getTaskbarUIController().findMatchingView(workspaceView),
+                        : mContainer.getTaskbarInteractor().findMatchingView(workspaceView),
                 true /* hideOriginal */, iconLocation, false /* isOpening */);
 
         // We want the window alpha to be 0 once this threshold is met, so that the

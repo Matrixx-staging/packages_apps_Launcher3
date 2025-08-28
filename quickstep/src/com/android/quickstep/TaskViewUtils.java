@@ -24,7 +24,6 @@ import static com.android.app.animation.Interpolators.LINEAR;
 import static com.android.app.animation.Interpolators.TOUCH_RESPONSE;
 import static com.android.app.animation.Interpolators.clampToProgress;
 import static com.android.launcher3.Flags.enableDesktopExplodedView;
-import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 import static com.android.launcher3.LauncherAnimUtils.VIEW_ALPHA;
 import static com.android.launcher3.LauncherAnimUtils.VIEW_TRANSLATE_X;
 import static com.android.launcher3.LauncherAnimUtils.VIEW_TRANSLATE_Y;
@@ -40,6 +39,7 @@ import static com.android.launcher3.QuickstepTransitionManager.SPLIT_DIVIDER_ANI
 import static com.android.launcher3.QuickstepTransitionManager.SPLIT_LAUNCH_DURATION;
 import static com.android.launcher3.Utilities.getDescendantCoordRelativeToAncestor;
 import static com.android.launcher3.util.MultiPropertyFactory.MULTI_PROPERTY_VALUE;
+import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 import static com.android.quickstep.BaseContainerInterface.getTaskDimension;
 import static com.android.quickstep.util.AnimUtils.clampToDuration;
 import static com.android.wm.shell.shared.TransitionUtil.TYPE_SPLIT_SCREEN_DIM_LAYER;
@@ -79,7 +79,7 @@ import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.statehandlers.DepthController;
 import com.android.launcher3.statemanager.StateManager;
 import com.android.launcher3.statemanager.StatefulContainer;
-import com.android.launcher3.taskbar.TaskbarUIController;
+import com.android.launcher3.taskbar.TaskbarInteractor;
 import com.android.launcher3.util.DisplayController;
 import com.android.quickstep.RemoteTargetGluer.RemoteTargetHandle;
 import com.android.quickstep.util.MultiValueUpdateListener;
@@ -710,17 +710,17 @@ public final class TaskViewUtils {
                             // We may have notified launcher is not visible so that taskbar can
                             // stash immediately. Now that the animation is over, we can update
                             // that launcher is still visible.
-                            TaskbarUIController controller = recentsView.getContainerInterface()
-                                    .getTaskbarController();
+                            TaskbarInteractor interactor = recentsView.getContainerInterface()
+                                    .getTaskbarInteractor();
                             // If we're launching the desktop tile in Overview, no need to change
                             // the launcher visibility and taskbar visibility below.
-                            if (controller != null && !(v instanceof DesktopTaskView)) {
+                            if (interactor != null && !(v instanceof DesktopTaskView)) {
                                 boolean launcherVisible = true;
                                 for (RemoteAnimationTarget target : appTargets) {
                                     launcherVisible &= target.isTranslucent;
                                 }
                                 if (launcherVisible) {
-                                    controller.onLauncherVisibilityChanged(true);
+                                    interactor.onLauncherVisibilityChanged(true);
                                 }
                             }
                         });

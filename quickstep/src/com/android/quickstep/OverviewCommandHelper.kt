@@ -40,8 +40,8 @@ import com.android.launcher3.logging.StatsLogManager
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_OVERVIEW_SHOW_OVERVIEW_FROM_3_BUTTON
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_OVERVIEW_SHOW_OVERVIEW_FROM_KEYBOARD_QUICK_SWITCH
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_OVERVIEW_SHOW_OVERVIEW_FROM_KEYBOARD_SHORTCUT
+import com.android.launcher3.taskbar.TaskbarInteractor
 import com.android.launcher3.taskbar.TaskbarManager
-import com.android.launcher3.taskbar.TaskbarUIController
 import com.android.launcher3.util.OverviewCommandHelperProtoLogProxy
 import com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview
 import com.android.launcher3.util.RunnableList
@@ -409,16 +409,18 @@ constructor(
         val recentsViewContainer = containerInterface.getCreatedContainer()
         val recentsView: RecentsView<*, *>? = recentsViewContainer?.getOverviewPanel()
         val deviceProfile = recentsViewContainer?.getDeviceProfile()
-        val taskbarUIController: TaskbarUIController? =
+        val taskbarInteractor: TaskbarInteractor? =
             if (
                 command.displayId != DEFAULT_DISPLAY &&
                     recentsViewContainer !is RecentsWindowManager
             ) {
                 // When recentsViewContainer is not RecentsWindowManager, get TaskbarUiController
                 // from TaskbarManager as a workaround.
-                taskbarManager.getUIControllerForDisplay(command.displayId)
+                taskbarManager.getUIControllerForDisplay(command.displayId)?.let {
+                    TaskbarInteractor(it)
+                }
             } else {
-                containerInterface.getTaskbarController()
+                containerInterface.getTaskbarInteractor()
             }
 
         val taskAnimationManager = taskAnimationManagerRepository[command.displayId]
@@ -431,12 +433,12 @@ constructor(
         when (command.type) {
             HIDE_ALT_TAB -> {
                 if (
-                    taskbarUIController == null ||
+                    taskbarInteractor == null ||
                         !shouldShowAltTabKqs(deviceProfile, command.displayId)
                 ) {
                     return true
                 }
-                val focusedTaskIds = taskbarUIController.launchFocusedTask()
+                val focusedTaskIds = taskbarInteractor.launchFocusedTask()
                 keyboardFocusTask =
                     if (focusedTaskIds == null) KeyboardFocusTask.Unfocused
                     else KeyboardFocusTask.TaskViewWithIds(focusedTaskIds)
@@ -446,10 +448,10 @@ constructor(
 
             SHOW_ALT_TAB ->
                 if (
-                    taskbarUIController != null &&
+                    taskbarInteractor != null &&
                         shouldShowAltTabKqs(deviceProfile, command.displayId)
                 ) {
-                    taskbarUIController.openQuickSwitchView()
+                    taskbarInteractor.openQuickSwitchView()
                     return true
                 } else {
                     keyboardFocusTask = KeyboardFocusTask.CurrentPageTaskView

@@ -169,6 +169,8 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
     public static final LooperExecutor TASKBAR_UI_THREAD =
             new LooperExecutor("TASKBAR_UI_THREAD", THREAD_PRIORITY_FOREGROUND);
 
+    public static final Executor INSTANT_EXECUTOR = Runnable::run;
+
     private final Context mBaseContext;
     private final WindowManager mBaseWindowManager;
     private final int mPrimaryDisplayId;

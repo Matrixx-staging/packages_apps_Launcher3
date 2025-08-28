@@ -81,14 +81,14 @@ public class FallbackTaskbarUIController
     @Override
     protected void init(TaskbarControllers taskbarControllers) {
         super.init(taskbarControllers);
-        mRecentsContainer.setTaskbarUIController(this);
+        mRecentsContainer.setTaskbarInteractor(new TaskbarInteractor(this));
         mRecentsContainer.getStateManager().addStateListener(mStateListener);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mRecentsContainer.setTaskbarUIController(null);
+        mRecentsContainer.setTaskbarInteractor(null);
         mRecentsContainer.getStateManager().removeStateListener(mStateListener);
     }
 
