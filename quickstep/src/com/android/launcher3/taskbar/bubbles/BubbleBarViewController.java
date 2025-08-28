@@ -1041,7 +1041,8 @@ public class BubbleBarViewController {
             boolean suppressAnimation, boolean addOverflowToo) {
         BubbleView bubbleToSelectView = bubbleToSelect == null ? null : bubbleToSelect.getView();
         mBarView.addBubbleAndRemoveBubble(addedBubble.getView(), removedBubble.getView(),
-                bubbleToSelectView, addOverflowToo ? () -> showOverflow(true) : null);
+                bubbleToSelectView, suppressAnimation,
+                addOverflowToo ? () -> showOverflow(true) : null);
         addedBubble.getView().setOnClickListener(mBubbleClickListener);
         addedBubble.getView().setController(mBubbleViewController);
         removedBubble.getView().setController(null);
@@ -1078,7 +1079,7 @@ public class BubbleBarViewController {
         mOverflowAdded = true;
         BubbleView bubbleToSelectView = bubbleToSelect == null ? null : bubbleToSelect.getView();
         mBarView.addBubbleAndRemoveBubble(mOverflowBubble.getView(), removedBubble.getView(),
-                bubbleToSelectView, null /* onEndRunnable */);
+                bubbleToSelectView, false /* suppressAnimation */, null /* onEndRunnable */);
         mOverflowBubble.getView().setOnClickListener(mBubbleClickListener);
         mOverflowBubble.getView().setController(mBubbleViewController);
         removedBubble.getView().setController(null);
@@ -1091,7 +1092,7 @@ public class BubbleBarViewController {
         mOverflowAdded = false;
         BubbleView bubbleToSelectView = bubbleToSelect == null ? null : bubbleToSelect.getView();
         mBarView.addBubbleAndRemoveBubble(addedBubble.getView(), mOverflowBubble.getView(),
-                bubbleToSelectView, null /* onEndRunnable */);
+                bubbleToSelectView, false /* suppressAnimation */, null /* onEndRunnable */);
         addedBubble.getView().setOnClickListener(mBubbleClickListener);
         addedBubble.getView().setController(mBubbleViewController);
         mOverflowBubble.getView().setController(null);
