@@ -25,6 +25,7 @@ import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_DEEP_SH
 import static com.android.launcher3.Utilities.qsbOnFirstScreen;
 import static com.android.launcher3.icons.cache.CacheLookupFlag.DEFAULT_LOOKUP_FLAG;
 import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_ARCHIVED;
+import static com.android.launcher3.model.data.WorkspaceItemInfo.FLAG_RESTORED_FULL_BLEED;
 
 import android.content.ComponentName;
 import android.content.ContentValues;
@@ -237,6 +238,7 @@ public class LoaderCursor extends CursorWrapper {
                 || (wai.isInactiveArchive() && Flags.restoreArchivedAppIconsFromDb())
                 ? getIconBlob() : null;
         return new IconRequestInfo<>(wai, mActivityInfo, iconBlob,
+                wai.hasStatusFlag(FLAG_RESTORED_FULL_BLEED),
                 DESKTOP_ICON_FLAG.withUseLowRes(useLowResIcon));
     }
 

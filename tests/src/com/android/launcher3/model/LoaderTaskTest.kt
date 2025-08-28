@@ -362,6 +362,7 @@ class LoaderTaskTest {
                     },
                     activityInfo,
                     expectedIconBlob,
+                    /* isBlobFullBleed **/ false,
                     DEFAULT_LOOKUP_FLAG.withUseLowRes(false),
                 )
             )
@@ -398,6 +399,7 @@ class LoaderTaskTest {
                     },
                     activityInfo,
                     expectedIconBlob,
+                    /* isBlobFullBleed **/ false,
                     DEFAULT_LOOKUP_FLAG.withUseLowRes(false),
                 )
             )
@@ -434,6 +436,7 @@ class LoaderTaskTest {
                     },
                     activityInfo,
                     expectedIconBlob,
+                    /* isBlobFullBleed **/ false,
                     DEFAULT_LOOKUP_FLAG.withUseLowRes(false),
                 )
             )
@@ -470,6 +473,7 @@ class LoaderTaskTest {
                     },
                     activityInfo,
                     expectedIconBlob,
+                    /* isBlobFullBleed **/ false,
                     DEFAULT_LOOKUP_FLAG.withUseLowRes(false),
                 )
             )
@@ -504,6 +508,7 @@ class LoaderTaskTest {
                     WorkspaceItemInfo(),
                     activityInfo,
                     expectedIconBlob,
+                    /* isBlobFullBleed **/ false,
                     DEFAULT_LOOKUP_FLAG.withUseLowRes(false),
                 )
             )

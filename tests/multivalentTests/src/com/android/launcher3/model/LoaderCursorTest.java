@@ -263,7 +263,8 @@ public class LoaderCursorTest {
         WorkspaceItemInfo itemInfo = new WorkspaceItemInfo();
         itemInfo.runtimeStatusFlags |= FLAG_ARCHIVED;
         Bitmap expectedBitmap = LauncherIcons.obtain(mContext)
-                .createIconBitmap(decodeByteArray(sTestBlob, 0, sTestBlob.length))
+                .createIconBitmap(
+                        decodeByteArray(sTestBlob, 0, sTestBlob.length), /* isFullBleed **/ false)
                 .icon;
 
         // When
