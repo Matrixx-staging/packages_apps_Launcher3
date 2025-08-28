@@ -118,6 +118,8 @@ class OSEManager(
                 else -> false
             }
 
+        val oseConfigured = oseSettingsValue != null && (oseApkInstalled || activeInstallSession)
+
         unregisterInstallSessionTracker()
         if (!oseApkInstalled) {
             // Register to track ose package being installed.
@@ -148,12 +150,13 @@ class OSEManager(
                 }
 
         val oldOseInfo = mutableOSEInfoRef.value
-        val newOseInfo = OSEInfo(osePkg, overlayTarget, oseApkInstallPending)
+        val newOseInfo = OSEInfo(osePkg, overlayTarget, oseApkInstallPending, oseConfigured)
 
         if (
             oldOseInfo.pkg != newOseInfo.pkg ||
                 oldOseInfo.overlayPackage != newOseInfo.overlayPackage ||
-                oldOseInfo.installPending != newOseInfo.installPending
+                oldOseInfo.installPending != newOseInfo.installPending ||
+                oldOseInfo.isOseConfigured != newOseInfo.isOseConfigured
         ) {
             packageAvailableReceiver.unregisterReceiverSafely()
             // Listen for ose changes
@@ -197,6 +200,7 @@ class OSEManager(
         val pkg: String? = null,
         val overlayTarget: ActivityInfo? = null,
         val installPending: Boolean = false,
+        val isOseConfigured: Boolean = false,
     ) {
         val overlayPackage: String?
             get() = overlayTarget?.packageName ?: pkg
