@@ -27,6 +27,7 @@ import android.hardware.input.KeyGestureEvent.ACTION_GESTURE_COMPLETE
 import android.hardware.input.KeyGestureEvent.KEY_GESTURE_TYPE_ALL_APPS
 import android.hardware.input.KeyGestureEvent.KEY_GESTURE_TYPE_RECENT_APPS
 import android.hardware.input.KeyGestureEvent.KEY_GESTURE_TYPE_RECENT_APPS_SWITCHER
+import android.hardware.input.KeyGestureEvent.KEY_GESTURE_TYPE_REJECT_HOME_ON_EXTERNAL_DISPLAY
 import android.net.Uri
 import android.os.IBinder
 import android.provider.Settings
@@ -38,6 +39,7 @@ import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.util.DaggerSingletonObject
 import com.android.launcher3.util.SettingsCache
 import com.android.launcher3.util.SettingsCache.OnChangeListener
+import com.android.quickstep.OverviewCommandHelper
 import com.android.quickstep.dagger.QuickstepBaseAppComponent
 import com.android.quickstep.input.QuickstepKeyGestureEventsManager.OverviewGestureHandler.OverviewType.ALT_TAB
 import com.android.quickstep.input.QuickstepKeyGestureEventsManager.OverviewGestureHandler.OverviewType.UNDEFINED
@@ -60,6 +62,7 @@ constructor(
     private val inputManager = requireNotNull(context.getSystemService(InputManager::class.java))
     private var allAppsPendingIntent: PendingIntent? = null
     private var overviewGestureHandler: OverviewGestureHandler? = null
+    private var overviewCommandHelper: OverviewCommandHelper? = null
     private var isUserSetupCompleted: Boolean = settingsCache.getValue(USER_SETUP_COMPLETE_URI)
 
     init {
@@ -121,6 +124,29 @@ constructor(
                         )
                     }
                 }
+            }
+        }
+
+    @VisibleForTesting
+    val homeKeyGestureEventHandler =
+        object : KeyGestureEventHandler {
+            override fun handleKeyGestureEvent(event: KeyGestureEvent, focusedToken: IBinder?) {
+                if (!isManageKeyGesturesGrantedToRecents()) {
+                    return
+                }
+                if (!isUserSetupCompleted) {
+                    return
+                }
+
+                if (event.keyGestureType != KEY_GESTURE_TYPE_REJECT_HOME_ON_EXTERNAL_DISPLAY) {
+                    Log.e(TAG, "Ignore unsupported key gesture event type: ${event.keyGestureType}")
+                    return
+                }
+
+                overviewCommandHelper?.addCommand(
+                    OverviewCommandHelper.CommandType.HOME,
+                    event.displayId,
+                )
             }
         }
 
@@ -186,10 +212,39 @@ constructor(
         }
     }
 
+    fun registerHomeKeyGestureEvent(overviewCommandHelper: OverviewCommandHelper) {
+        if (!isManageKeyGesturesGrantedToRecents()) {
+            return
+        }
+        synchronized(this) {
+            if (this.overviewCommandHelper != null) {
+                Log.w(TAG, "Overview command helper has already been registered. Ignored.")
+                return
+            }
+            this.overviewCommandHelper = overviewCommandHelper
+            inputManager.registerKeyGestureEventHandler(
+                listOf(KEY_GESTURE_TYPE_REJECT_HOME_ON_EXTERNAL_DISPLAY),
+                homeKeyGestureEventHandler,
+            )
+        }
+    }
+
+    /** Unregisters the home key gesture events. */
+    @VisibleForTesting
+    fun unregisterHomeKeyGestureEvent() {
+        if (!isManageKeyGesturesGrantedToRecents()) {
+            return
+        }
+        synchronized(this) {
+            inputManager.unregisterKeyGestureEventHandler(homeKeyGestureEventHandler)
+        }
+    }
+
     fun onDestroy() {
         settingsCache.unregister(USER_SETUP_COMPLETE_URI, onUserSetupCompleteListener)
         unregisterOverviewKeyGestureEvent()
         unregisterAllAppsKeyGestureEvent()
+        unregisterHomeKeyGestureEvent()
     }
 
     private fun isManageKeyGesturesGrantedToRecents(): Boolean =

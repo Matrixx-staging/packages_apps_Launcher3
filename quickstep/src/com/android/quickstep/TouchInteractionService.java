@@ -66,6 +66,7 @@ import android.view.Display;
 import android.view.InputDevice;
 import android.view.InputEvent;
 import android.view.MotionEvent;
+import android.window.DesktopExperienceFlags;
 import android.window.DesktopExperienceFlags.DesktopExperienceFlag;
 
 import androidx.annotation.BinderThread;
@@ -909,6 +910,10 @@ public class TouchInteractionService extends Service {
         mAllAppsActionManager.onUserUnlocked();
         mQuickstepKeyGestureEventsHandler.registerOverviewKeyGestureEvent(
                 createOverviewGestureHandler());
+        if (DesktopExperienceFlags.ENABLE_LAUNCHER_HANDLE_GO_HOME_KEYBOARD_SHORTCUT.isTrue()) {
+            mQuickstepKeyGestureEventsHandler.registerHomeKeyGestureEvent(
+                    getOverviewCommandHelper());
+        }
     }
 
     public OverviewCommandHelper getOverviewCommandHelper() {
