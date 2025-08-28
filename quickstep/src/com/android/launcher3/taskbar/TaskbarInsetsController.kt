@@ -334,8 +334,10 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
      * @see ViewTreeObserver.InternalInsetsInfo.setTouchableInsets
      */
     fun updateInsetsTouchability(insetsInfo: ViewTreeObserver.InternalInsetsInfo) {
+        val isImeVisible = controllers.navbarButtonsViewController.isImeVisible
         /** Whether bubble bar bounds should be included in the touchable region. */
         fun includeBubbleBarBounds(): Boolean {
+            if (isImeVisible) return false
             val bubbleControllers = controllers.bubbleControllers.getOrNull() ?: return false
             if (bubbleControllers.bubbleBarViewController.isAnimatingNewBubble) return true
             val bubbleBarVisible = bubbleControllers.bubbleStashController.isBubbleBarVisible()
@@ -350,8 +352,7 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
         if (
             context.isPhoneButtonNavMode &&
                 context.isUserSetupComplete &&
-                (!controllers.navbarButtonsViewController.isImeVisible ||
-                    !controllers.navbarButtonsViewController.isImeRenderingNavButtons)
+                (!isImeVisible || !controllers.navbarButtonsViewController.isImeRenderingNavButtons)
         ) {
             touchableInsets = TOUCHABLE_INSETS_FRAME
             debugTouchableRegion.lastSetTouchableReason = PHONE_MODE
