@@ -195,6 +195,7 @@ import com.android.systemui.shared.system.QuickStepContract.SystemUiStateFlags;
 import com.android.systemui.unfold.updates.RotationChangeProvider;
 import com.android.systemui.unfold.util.ScopedUnfoldTransitionProgressProvider;
 import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource;
+import com.android.wm.shell.shared.desktopmode.DesktopState;
 import com.android.wm.shell.shared.desktopmode.DesktopTaskToFrontReason;
 
 import java.io.PrintWriter;
@@ -500,6 +501,13 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     @Override
     public void notifyConfigChanged() {
         DisplayController.INSTANCE.get(this).notifyConfigChange();
+    }
+
+    /**
+     * Used to confirm we are on AL device.
+     */
+    public boolean shouldShowHomeBehindDesktop() {
+        return DesktopState.getInstance(this).getShouldShowHomeBehindDesktop();
     }
 
     /**
