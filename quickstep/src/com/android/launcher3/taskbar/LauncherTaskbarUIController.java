@@ -562,7 +562,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
     protected void toggleAllApps(boolean focusSearch) {
         final boolean canToggleHomeAllApps = isLauncherResumed()
                 && !mTaskbarLauncherStateController.isInOverviewUi()
-                && mLauncher.isTopResumedActivity();
+                && isLauncherTopResumedActivity();
         if (canToggleHomeAllApps) {
             mLauncher.toggleAllApps(focusSearch);
             return;
@@ -579,6 +579,18 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
             return ret;
         } else {
             return mLauncher.isResumed();
+        }
+    }
+
+    private boolean isLauncherTopResumedActivity() {
+        if (refactorTaskbarUiState()) {
+            final boolean ret = mLauncherUiState.isTopResumedActivityRef().getValue();
+            if (BuildConfig.IS_STUDIO_BUILD && ret != mLauncher.isTopResumedActivity()) {
+                throw new IllegalStateException("isTopResumedActivity doesn't match");
+            }
+            return ret;
+        } else {
+            return mLauncher.isTopResumedActivity();
         }
     }
 
