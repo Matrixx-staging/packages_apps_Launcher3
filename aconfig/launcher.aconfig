@@ -612,6 +612,16 @@ flag {
   namespace: "launcher"
   description: "Enables custom height for all apps on CD"
   bug: "416220478"
+   metadata {
+       purpose: PURPOSE_BUGFIX
+     }
+ }
+
+ flag {
+  name: "enable_auto_stash_connected_display_taskbar"
+  namespace: "launcher"
+  description: "Enables auto stashing of connected display taskbar when in full or split screen"
+  bug: "394486228"
   metadata {
     purpose: PURPOSE_BUGFIX
   }
