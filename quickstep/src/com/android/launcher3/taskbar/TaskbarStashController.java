@@ -674,10 +674,6 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
      * @return if we should allow taskbar to auto stash
      */
     public boolean shouldAllowTaskbarToAutoStash() {
-        if (!mActivity.isPrimaryDisplay()) {
-            return false;
-        }
-
         if (mActivity.isTransientTaskbar()) {
             return true;
         }
