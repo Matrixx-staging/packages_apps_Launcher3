@@ -210,6 +210,11 @@ class LauncherInteractor(private val launcher: QuickstepLauncher, val executor: 
     @MainThread
     fun hasBeenResumed() = launcher.hasBeenResumed()
 
+    @Deprecated(
+        "Should be removed once we turned on [refactorTaskbarUiState()] flag",
+        ReplaceWith("LauncherUiState.isTopResumedActivityRef.value()"),
+    )
+    @MainThread
     fun isTopResumedActivity() = launcher.isTopResumedActivity
 
     @Deprecated(

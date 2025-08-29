@@ -3000,6 +3000,7 @@ public class Launcher extends StatefulActivity<LauncherState>
     @Override
     public void onTopResumedActivityChanged(boolean isResumed) {
         mIsTopResumedActivity = isResumed;
+        mLauncherUiState.setIsTopResumedActivity(isResumed);
     }
 
 
