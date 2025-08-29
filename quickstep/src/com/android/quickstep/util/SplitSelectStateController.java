@@ -922,6 +922,17 @@ public class SplitSelectStateController {
         }
 
         /**
+         * Return whether this instance of {@link SplitSelectStateController} is capable of running
+         * the animation for this {@link android.app.ActivityManager.RunningTaskInfo}. Certain
+         * controllers can only run animations for tasks on selected displays.
+         */
+        public boolean ableToStartSplitSelectAnimation(ActivityManager.RunningTaskInfo taskInfo) {
+            int displayId = ExternalDisplaysKt.getSafeDisplayId(taskInfo);
+            return (displayId == DEFAULT_DISPLAY && mLauncher != null)
+                    || (displayId != DEFAULT_DISPLAY && mRecentsWindowManager != null);
+        }
+
+        /**
          * Enter split select from desktop mode.
          * @param taskInfo the desktop task to move to split stage
          * @param splitPosition the stage position used for this transition
@@ -1203,6 +1214,12 @@ public class SplitSelectStateController {
         public boolean onRequestSplitSelect(ActivityManager.RunningTaskInfo taskInfo,
                 int splitPosition, Rect taskBounds, boolean startRecents,
                 @Nullable WindowContainerTransaction withRecentsWct) {
+
+            if (mController == null || !mController.ableToStartSplitSelectAnimation(taskInfo)) {
+                Log.v(TAG, "onRequestSplitSelect, controller not able to start "
+                        + "animation for taskId: " + taskInfo.taskId);
+                return false;
+            }
             MAIN_EXECUTOR.execute(() -> {
                 if (mController != null) {
                     mController.enterSplitSelect(taskInfo, splitPosition, taskBounds,
