@@ -87,6 +87,10 @@ constructor(
             return TaskbarIconsContainer(context).apply {
                 this.iconTouchSize = iconTouchSize
                 this.itemMarginLeftRight = itemMarginLeftRight
+                // App icon views draw running state indicators outside of the icon view bounds, and
+                // thus outside the icons container bounds - don't clip the children so running
+                // state indicators remain visible.
+                this.clipChildren = false
             }
         }
     }
