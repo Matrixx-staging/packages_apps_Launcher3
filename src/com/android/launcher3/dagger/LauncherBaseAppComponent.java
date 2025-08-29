@@ -43,6 +43,7 @@ import com.android.launcher3.notification.NotificationRepository;
 import com.android.launcher3.pm.InstallSessionHelper;
 import com.android.launcher3.pm.UserCache;
 import com.android.launcher3.popup.PopupDataRepository;
+import com.android.launcher3.qsb.OSEManager;
 import com.android.launcher3.qsb.OseWidgetManager;
 import com.android.launcher3.qsb.QsbAppWidgetHost;
 import com.android.launcher3.testing.TestInformationHandler;
@@ -118,6 +119,7 @@ public interface LauncherBaseAppComponent {
     WidgetSizeHandler getWidgetSizeHandler();
     MainProcessInitializer getMainProcessInitializer();
     OseWidgetManager getOseWidgetManager();
+    OSEManager getOseManager();
     QsbAppWidgetHost getQsbAppWidgetHost();
     TestInformationHandler getTestInformationHandler();
     TaskbarModeUtil getTaskbarModeUtil();
