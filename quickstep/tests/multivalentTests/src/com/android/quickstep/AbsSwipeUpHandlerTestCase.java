@@ -82,6 +82,7 @@ import com.android.launcher3.util.Executors;
 import com.android.launcher3.util.MSDLPlayerWrapper;
 import com.android.launcher3.util.SandboxApplication;
 import com.android.launcher3.util.SystemUiController;
+import com.android.quickstep.util.ActiveGestureLog;
 import com.android.quickstep.util.ContextInitListener;
 import com.android.quickstep.util.MotionPauseDetector;
 import com.android.quickstep.util.RecentsOrientedState;
@@ -709,11 +710,14 @@ public abstract class AbsSwipeUpHandlerTestCase<
         ArgumentCaptor<Runnable> finishCallback = ArgumentCaptor.forClass(Runnable.class);
         // Check if the 2 parameter method is called.
         verify(mRecentsAnimationController, atLeast(0)).finish(
-                anyBoolean(), finishCallback.capture());
+                anyBoolean(), finishCallback.capture(), any(ActiveGestureLog.CompoundString.class));
         if (finishCallback.getAllValues().isEmpty()) {
             // Check if the 3 parameter method is called.
             verify(mRecentsAnimationController).finish(
-                    anyBoolean(), finishCallback.capture(), anyBoolean());
+                    anyBoolean(),
+                    finishCallback.capture(),
+                    anyBoolean(),
+                    any(ActiveGestureLog.CompoundString.class));
         }
         if (finishCallback.getValue() != null) {
             finishCallback.getValue().run();

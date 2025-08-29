@@ -36,6 +36,7 @@ import androidx.annotation.UiThread;
 
 import com.android.launcher3.Utilities;
 import com.android.launcher3.util.Preconditions;
+import com.android.quickstep.util.ActiveGestureLog;
 import com.android.quickstep.util.ActiveGestureProtoLogProxy;
 import com.android.quickstep.views.RecentsViewContainer;
 import com.android.quickstep.window.RecentsWindowManager;
@@ -117,8 +118,10 @@ public class RecentsAnimationCallbacks implements
         mController = new RecentsAnimationController(animationController,
                 this::onAnimationFinished);
         if (mCancelled) {
-            Utilities.postAsyncCallback(MAIN_EXECUTOR.getHandler(),
-                    mController::finishAnimationToApp);
+            Utilities.postAsyncCallback(
+                    MAIN_EXECUTOR.getHandler(),
+                    () -> mController.finishAnimationToApp(new ActiveGestureLog.CompoundString(
+                            "RecentsAnimationCallback.onAnimationStart: mCancelled=true")));
         } else {
             RemoteAnimationTarget[] nonAppTargets;
             final ArrayList<RemoteAnimationTarget> apps = new ArrayList<>();
