@@ -276,14 +276,16 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
             }
         }
 
-        mTaskbarView.init(TaskbarViewCallbacksFactory.newInstance(mActivity).create(
-                mActivity, mControllers, mTaskbarView));
+        TaskbarViewCallbacks viewCallbacks = TaskbarViewCallbacksFactory.newInstance(
+                mActivity).create(mActivity, mControllers, mTaskbarView);
+        mTaskbarView.init(viewCallbacks);
         // Pinning popup feature availability depends on taskbar controllers, wait for the
         // controllers state initialization before evaluating the feature.
         mControllers.runAfterInit(mTaskbarView::updatePinningPopupEventHandlers);
         mTaskbarView.getLayoutParams().height = mActivity.isPhoneMode()
                 ? mActivity.getResources().getDimensionPixelSize(R.dimen.taskbar_phone_size)
                 : mActivity.getDeviceProfile().getTaskbarProfile().getHeight();
+        mOverflownAppsContainerController.init(viewCallbacks);
 
         mTaskbarIconScaleForStash.updateValue(1f);
         float pinningValue =
