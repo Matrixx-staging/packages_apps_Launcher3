@@ -172,23 +172,28 @@ public class TaskbarViewCallbacks {
     }
 
     /** Returns on click listener for the taskbar overflow view. */
-    public View.OnClickListener getOverflowOnClickListener() {
-        return new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggleKeyboardQuickSwitchView();
-            }
-        };
+    public View.OnClickListener getRecentsOverflowOnClickListener() {
+        return v -> toggleKeyboardQuickSwitchView();
     }
 
     /** Returns on long click listener for the taskbar overflow view. */
-    public View.OnLongClickListener getOverflowOnLongClickListener() {
-        return new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                toggleKeyboardQuickSwitchView();
-                return true;
-            }
+    public View.OnLongClickListener getRecentsOverflowOnLongClickListener() {
+        return v -> {
+            toggleKeyboardQuickSwitchView();
+            return true;
+        };
+    }
+
+    /** Returns on click listener for the taskbar overflow view. */
+    public View.OnClickListener getPinnedOverflowOnClickListener() {
+        return this::togglePinnedOverflowView;
+    }
+
+    /** Returns on long click listener for the taskbar overflow view. */
+    public View.OnLongClickListener getPinnedOverflowOnLongClickListener() {
+        return v -> {
+            togglePinnedOverflowView(v);
+            return true;
         };
     }
 
@@ -208,6 +213,31 @@ public class TaskbarViewCallbacks {
     private void onKeyboardQuickSwitchViewClosed() {
         if (mTaskbarView.getTaskbarRecentsOverflowView() != null) {
             mTaskbarView.getTaskbarRecentsOverflowView().setIsActive(false);
+        }
+        mControllers.taskbarAutohideSuspendController.updateFlag(
+                FLAG_AUTOHIDE_SUSPEND_TASKBAR_OVERFLOW, false);
+    }
+
+    private void togglePinnedOverflowView(View view) {
+        if (!(view instanceof TaskbarOverflowView overflowIcon)
+                || mTaskbarView.getTaskbarPinnedOverflowView() == null) {
+            return;
+        }
+        mTaskbarView.getTaskbarPinnedOverflowView().setIsActive(
+                !mTaskbarView.getTaskbarPinnedOverflowView().getIsActive());
+        mControllers.taskbarAutohideSuspendController
+                .updateFlag(FLAG_AUTOHIDE_SUSPEND_TASKBAR_OVERFLOW,
+                        mTaskbarView.getTaskbarPinnedOverflowView().getIsActive());
+        mControllers.taskbarViewController.getOverflownAppsContainerController()
+                .toggleOverflownAppsView(
+                        overflowIcon,
+                        mTaskbarView.getTaskbarPinnedOverflowView().getOverflowInfoList(),
+                        this::onOverflownAppsContainerClosed);
+    }
+
+    private void onOverflownAppsContainerClosed() {
+        if (mTaskbarView.getTaskbarPinnedOverflowView() != null) {
+            mTaskbarView.getTaskbarPinnedOverflowView().setIsActive(false);
         }
         mControllers.taskbarAutohideSuspendController.updateFlag(
                 FLAG_AUTOHIDE_SUSPEND_TASKBAR_OVERFLOW, false);
