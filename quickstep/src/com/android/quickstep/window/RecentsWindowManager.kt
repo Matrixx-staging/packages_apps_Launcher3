@@ -18,9 +18,12 @@ package com.android.quickstep.window
 
 import android.animation.AnimatorSet
 import android.app.ActivityOptions
+import android.content.ComponentCallbacks
 import android.content.ComponentName
 import android.content.Context
 import android.content.LocusId
+import android.content.pm.ActivityInfo.CONFIG_ORIENTATION
+import android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE
 import android.content.res.Configuration
 import android.os.Bundle
 import android.os.IBinder
@@ -48,6 +51,7 @@ import com.android.launcher3.BaseActivity
 import com.android.launcher3.Flags.enablePredictiveBackInOverview
 import com.android.launcher3.LauncherAnimationRunner
 import com.android.launcher3.LauncherAnimationRunner.RemoteAnimationFactory
+import com.android.launcher3.LauncherRootView
 import com.android.launcher3.R
 import com.android.launcher3.compat.AccessibilityManagerCompat
 import com.android.launcher3.dagger.LauncherAppSingleton
@@ -69,6 +73,7 @@ import com.android.launcher3.util.ScreenOnTracker
 import com.android.launcher3.util.ScreenOnTracker.ScreenOnListener
 import com.android.launcher3.util.SystemUiController
 import com.android.launcher3.util.WallpaperColorHints
+import com.android.launcher3.util.window.WindowManagerProxy
 import com.android.launcher3.views.BaseDragLayer
 import com.android.launcher3.views.ScrimView
 import com.android.quickstep.BaseContainerInterface
@@ -126,10 +131,12 @@ constructor(
     private val recentsModel: RecentsModel,
     private val screenOnTracker: ScreenOnTracker,
     private val desktopState: DesktopState,
+    private val displayController: DisplayController,
 ) :
     RecentsWindowContext(windowContext, wallpaperColorHints.hints),
     RecentsViewContainer,
-    StatefulContainer<RecentsState> {
+    StatefulContainer<RecentsState>,
+    ComponentCallbacks {
 
     companion object {
         private const val HOME_APPEAR_DURATION: Long = 250
@@ -170,6 +177,9 @@ constructor(
     private var callbacks: RecentsAnimationCallbacks? = null
 
     private var taskbarInteractor: TaskbarInteractor? = null
+
+    private var oldConfiguration: Configuration? = null
+    private var oldRotation: Int = -1
 
     private val tisBindHelper: TISBindHelper = TISBindHelper(this) {}
     private val splitSelectStateController: SplitSelectStateController =
@@ -311,6 +321,7 @@ constructor(
             onViewCreated()
         }
         systemUiController = SystemUiController(windowView)
+        registerComponentCallbacks(this)
     }
 
     init {
@@ -326,9 +337,22 @@ constructor(
         ) {
             splitSelectStateController.initSplitFromDesktopController(this)
         }
+
+        displayController.addChangeListenerForDisplay(this, displayId)
     }
 
-    override fun handleConfigurationChanged(configuration: Configuration?) {
+    override fun handleConfigurationChanged(newConfiguration: Configuration?) {
+        val diff = oldConfiguration?.let { newConfiguration?.diff(it) } ?: -1
+        val rotation = WindowManagerProxy.INSTANCE[this].getRotation(this)
+        if ((diff and (CONFIG_ORIENTATION or CONFIG_SCREEN_SIZE)) != 0 || rotation != oldRotation) {
+            onHandleConfigurationChanged(newConfiguration)
+        }
+
+        oldConfiguration = newConfiguration
+        oldRotation = rotation
+    }
+
+    fun onHandleConfigurationChanged(configuration: Configuration?) {
         initDeviceProfile()
         AbstractFloatingView.closeOpenViews(
             this,
@@ -336,6 +360,10 @@ constructor(
             AbstractFloatingView.TYPE_ALL and AbstractFloatingView.TYPE_REBIND_SAFE.inv(),
         )
         dispatchDeviceProfileChanged()
+
+        (windowView as LauncherRootView?)?.dispatchInsets()
+        getStateManager().reapplyState(true /* cancelCurrentAnimation */)
+        dragLayer?.recreateControllers()
     }
 
     override fun onDisplayInfoChanged(
@@ -349,6 +377,7 @@ constructor(
 
     override fun destroy() {
         super.destroy()
+        displayController.removeChangeListenerForDisplay(this, displayId)
         fallbackWindowInterface.setRecentsWindowManager(null)
         tisBindHelper.onDestroy()
         Executors.MAIN_EXECUTOR.execute {
@@ -371,6 +400,7 @@ constructor(
             if (displayId == DEFAULT_DISPLAY) {
                 homeVisibilityState.removeListener(homeVisibilityListener)
             }
+            unregisterComponentCallbacks(this)
             recentsWindowTracker.onContextDestroyed(this)
             recentsView?.destroy()
             recentsView = null
@@ -398,6 +428,15 @@ constructor(
         this.callbacks = callbacks
         callbacks?.addListener(recentsAnimationListener)
         screenOnTracker.addListener(screenChangedListener)
+    }
+
+    override fun onConfigurationChanged(newConfiguration: Configuration) {
+        Log.d(TAG, "onConfigurationChanged: $newConfiguration")
+        handleConfigurationChanged(newConfiguration)
+    }
+
+    override fun onLowMemory() {
+        // Do nothing
     }
 
     override fun startHome(animated: Boolean, onHomeAnimationComplete: Runnable?) {

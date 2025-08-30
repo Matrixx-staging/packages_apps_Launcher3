@@ -365,6 +365,14 @@ public class TopTaskTracker extends ISplitScreenListener.Stub implements TaskSta
                 // same.
                 TaskInfo[] tasks = TraceHelper.allowIpcs("getCachedTopTask.true", () ->
                         ActivityManagerWrapper.getInstance().getRunningTasks(true));
+
+                // `tasks` ends up as null in launcher robo tests, so fixing the symptom here for
+                //  now instead of introducing a mock / stub.
+                // TODO: b/441128304 - Fix this through changes in non-prod code.
+                if (tasks == null) {
+                    tasks = new TaskInfo[0];
+                }
+
                 if (enableOverviewOnConnectedDisplays()) {
                     return new CachedTaskInfo(Arrays.stream(tasks).filter(
                             info -> ExternalDisplaysKt.getSafeDisplayId(info)
@@ -469,7 +477,7 @@ public class TopTaskTracker extends ISplitScreenListener.Stub implements TaskSta
          * TODO(346588978): Try to remove all usage of this if possible
          */
         @Nullable
-        private TaskInfo getLegacyBaseTask() {
+        public TaskInfo getLegacyBaseTask() {
             if (enableShellTopTaskTracking()) {
                 return mVisibleTasks != null
                         ? mVisibleTasks.getBaseGroupedTask().getTaskInfo1()

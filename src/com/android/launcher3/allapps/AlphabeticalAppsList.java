@@ -17,6 +17,7 @@ package com.android.launcher3.allapps;
 
 import static android.multiuser.Flags.enableMovingContentIntoPrivateSpace;
 
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_PRIVATESPACE;
 import static com.android.launcher3.allapps.BaseAllAppsAdapter.VIEW_TYPE_BOTTOM_VIEW_TO_SCROLL_TO;
 import static com.android.launcher3.allapps.BaseAllAppsAdapter.VIEW_TYPE_MASK_PRIVATE_SPACE_HEADER;
 import static com.android.launcher3.allapps.SectionDecorationInfo.ROUND_BOTTOM_LEFT;
@@ -438,6 +439,7 @@ public class AlphabeticalAppsList implements AllAppsStore.OnUpdateListener {
                     currentItem.itemInfo.title = mPrivateProviderManager.getPSAppTitleOverride();
                     currentItem.itemInfo.contentDescription =
                             mPrivateProviderManager.getPsAppContentDesc();
+                    currentItem.itemInfo.container = CONTAINER_PRIVATESPACE;
                     privateSpaceAppIndex = i;
                 }
             }

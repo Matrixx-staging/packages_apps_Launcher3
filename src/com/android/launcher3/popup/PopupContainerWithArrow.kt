@@ -57,10 +57,17 @@ import kotlin.math.max
  * @param <T> The activity on with the popup shows </T>
  */
 class PopupContainerWithArrow<T>
-private constructor(context: Context?, originalView: View, private val updateIconUi: Boolean) :
-    PopupContainer<T>(context, originalView), DragSource, DragController.DragListener, Popup where
-T : Context,
-T : ActivityContext {
+private constructor(
+    context: Context?,
+    originalView: View,
+    itemInfo: ItemInfo,
+    private val updateIconUi: Boolean,
+) :
+    PopupContainer<T>(context, originalView, itemInfo),
+    DragSource,
+    DragController.DragListener,
+    Popup where T : Context, T : ActivityContext {
+
     private val deepShortcuts: MutableList<DeepShortcutView> = ArrayList()
     private val interceptTouchDown = PointF()
     private val shortcutHeight: Float =
@@ -127,7 +134,7 @@ T : ActivityContext {
      * @param systemShortcuts List of SystemShortcuts to add to container
      */
     fun populateAndShowRows(deepShortcutCount: Int, systemShortcuts: List<SystemShortcut<*>>) {
-        populateAndShowRows(originalView.tag as ItemInfo, deepShortcutCount, systemShortcuts)
+        populateAndShowRows(itemInfo, deepShortcutCount, systemShortcuts)
     }
 
     /**
@@ -467,7 +474,8 @@ T : ActivityContext {
             val deepShortcutCount =
                 activityContext.activityComponent.popupDataProvider.getShortcutCountForItem(item)
 
-            val container = create<Launcher>(context = icon.context, originalView = icon)
+            val container =
+                create<Launcher>(context = icon.context, originalView = icon, itemInfo = item)
             container.populateAndShowRows(deepShortcutCount, emptyList())
             container.requestFocus()
         }
@@ -530,9 +538,11 @@ T : ActivityContext {
         fun <T> create(
             context: Context,
             originalView: View,
+            itemInfo: ItemInfo,
             updateIconUi: Boolean = true,
         ): PopupContainerWithArrow<T> where T : Context, T : ActivityContext {
-            val container = PopupContainerWithArrow<T>(context, originalView, updateIconUi)
+            val container =
+                PopupContainerWithArrow<T>(context, originalView, itemInfo, updateIconUi)
             container.id = R.id.popup_container
             container.clipChildren = false
             container.clipToPadding = false

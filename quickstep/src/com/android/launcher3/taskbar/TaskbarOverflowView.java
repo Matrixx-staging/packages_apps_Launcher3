@@ -43,6 +43,7 @@ import com.android.launcher3.R;
 import com.android.launcher3.Reorderable;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.icons.IconNormalizer;
+import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.util.MultiTranslateDelegate;
 import com.android.launcher3.util.Themes;
 import com.android.systemui.shared.recents.model.Task;
@@ -320,6 +321,10 @@ public class TaskbarOverflowView extends FrameLayout implements Reorderable {
     @VisibleForTesting
     public List<Integer> getItemIds() {
         return mItems.stream().map(TaskbarOverflowItem::getItemId).toList();
+    }
+
+    List<ItemInfo> getOverflowInfoList() {
+        return mItems.stream().map(item -> ((ItemInfoWrapper) item).getItemInfo()).toList();
     }
 
     /**

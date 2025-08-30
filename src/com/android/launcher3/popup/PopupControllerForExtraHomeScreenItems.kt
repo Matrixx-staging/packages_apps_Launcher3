@@ -38,7 +38,12 @@ class PopupControllerForExtraHomeScreenItems<T>(
     override fun show(view: View): Popup {
         val itemInfo = view.tag as ItemInfo
         val activityContext: ActivityContext = ActivityContext.lookupContext<T>(view.context)
-        val container = PopupContainer.create<T>(context = view.context, originalView = view)
+        val container =
+            PopupContainer.create<T>(
+                context = view.context,
+                originalView = view,
+                itemInfo = itemInfo,
+            )
         dragController.addDragListener(container)
         addSystemShortcuts(container, itemInfo, itemView = view, activityContext)
         container.show()

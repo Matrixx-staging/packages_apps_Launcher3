@@ -21,6 +21,7 @@ import androidx.annotation.VisibleForTesting
 import com.android.launcher3.anim.AnimatedFloat
 import com.android.launcher3.statemanager.BaseState
 import com.android.launcher3.statemanager.StatefulContainer
+import com.android.launcher3.taskbar.TaskbarDesktopExperienceFlags.enableAutoStashConnectedDisplayTaskbar
 import com.android.launcher3.taskbar.TaskbarManager
 import com.android.launcher3.util.LockedUserState.Companion.get
 import com.android.quickstep.inputconsumers.AccessibilityInputConsumer
@@ -76,7 +77,7 @@ object InputConsumerUtils {
         rotationTouchHelper: RotationTouchHelper,
         desktopState: DesktopState,
     ): InputConsumer where T : RecentsViewContainer, T : StatefulContainer<S> {
-        val tac = taskbarManager.getCurrentActivityContext()
+        val tac = taskbarManager.getTaskbarForDisplay(event.displayId)
         val bubbleControllers = tac?.bubbleControllers
         if (bubbleControllers != null && BubbleBarInputConsumer.isEventOnBubbles(tac, event)) {
             val consumer: InputConsumer =
@@ -196,7 +197,11 @@ object InputConsumerUtils {
         if (deviceState.isGesturalNavMode || gestureState.isTrackpadGesture) {
             handleOrientationSetup(base)
         }
-        if (deviceState.isFullyGesturalNavMode || gestureState.isTrackpadGesture) {
+        if (
+            deviceState.isFullyGesturalNavMode ||
+                gestureState.isTrackpadGesture ||
+                (enableAutoStashConnectedDisplayTaskbar.isTrue && tac?.isPrimaryDisplay == false)
+        ) {
             val reasonPrefix =
                 "device is in gesture navigation mode or 3-button mode with a trackpad gesture"
             if (deviceState.canTriggerAssistantAction(event)) {
@@ -236,7 +241,6 @@ object InputConsumerUtils {
                     )
                     base =
                         TaskbarUnstashInputConsumer(
-                            context,
                             base,
                             inputMonitorCompat,
                             tac,

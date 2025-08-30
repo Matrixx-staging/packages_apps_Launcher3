@@ -267,6 +267,7 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
                 PopupContainerWithArrow.create(
                         /* context */ mContainer,
                         /* originalView */ v,
+                        /* itemInfo */ item,
                         /* updateIconUi */ false
                 );
         container.populateAndShowRows(deepShortcutCount,

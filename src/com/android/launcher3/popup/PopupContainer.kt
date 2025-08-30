@@ -39,10 +39,9 @@ import com.android.launcher3.views.ActivityContext
  * @param context The context in which the popup is created.
  * @param originalView The view from which this popup was opened.
  */
-open class PopupContainer<T>(context: Context?, val originalView: View) :
-    ArrowPopup<T>(context), DragSource, DragController.DragListener, Popup where
-T : Context,
-T : ActivityContext {
+open class PopupContainer<T>(context: Context?, val originalView: View, val itemInfo: ItemInfo) :
+    ArrowPopup<T>(context), DragSource, DragController.DragListener, Popup
+    where T : Context, T : ActivityContext {
     /** Here we hold the system shortcuts that we show for the Popup. */
     // TODO b/441320297
     var systemShortcutContainer: ViewGroup? = null
@@ -137,11 +136,10 @@ T : ActivityContext {
         fun <T> dismissInvalidPopup(activity: T) where T : Context?, T : ActivityContext? {
             val popup = getOpen(activity)
             val originalView = popup?.originalView
-            val originalViewTag = originalView?.tag as? ItemInfo
             if (
                 originalView != null &&
                     (!originalView.isAttachedToWindow ||
-                        !ShortcutUtil.supportsShortcuts(originalViewTag))
+                        !ShortcutUtil.supportsShortcuts(popup?.itemInfo))
             ) {
                 popup.animateClose()
             }
@@ -155,10 +153,9 @@ T : ActivityContext {
          * @return A new instance of [PopupContainer].
          */
         @JvmStatic
-        fun <T> create(context: Context, originalView: View): PopupContainer<T> where
-        T : Context,
-        T : ActivityContext {
-            val container = PopupContainer<T>(context, originalView)
+        fun <T> create(context: Context, originalView: View, itemInfo: ItemInfo): PopupContainer<T>
+            where T : Context, T : ActivityContext {
+            val container = PopupContainer<T>(context, originalView, itemInfo)
             container.id = R.id.popup_container
             container.clipChildren = false
             container.clipToPadding = false

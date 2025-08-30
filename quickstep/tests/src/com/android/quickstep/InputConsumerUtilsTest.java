@@ -162,11 +162,12 @@ public class InputConsumerUtilsTest {
 
         when(mTaskbarActivityContext.getDeviceProfile()).thenReturn(new DeviceProfile());
         when(mTaskbarActivityContext.getNavHandle()).thenReturn(navHandle);
+        when(mTaskbarActivityContext.getResources()).thenReturn(mContext.getResources());
     }
 
     @Before
     public void setUpTaskbarManager() {
-        when(mTaskbarManager.getCurrentActivityContext()).thenReturn(mTaskbarActivityContext);
+        when(mTaskbarManager.getTaskbarForDisplay(mDisplayId)).thenReturn(mTaskbarActivityContext);
     }
 
     @Before
@@ -498,6 +499,7 @@ public class InputConsumerUtilsTest {
 
     private InputConsumer createInputConsumer() {
         MotionEvent event = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 0, 0, 0);
+        event.setDisplayId(mDisplayId);
         InputConsumer inputConsumer = newConsumer(
                 mContext,
                 mUserUnlocked,
