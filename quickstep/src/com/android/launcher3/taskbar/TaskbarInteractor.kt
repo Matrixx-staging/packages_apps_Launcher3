@@ -26,8 +26,8 @@ import androidx.annotation.MainThread
 import com.android.launcher3.Flags.enableTaskbarUiThread
 import com.android.launcher3.LauncherState
 import com.android.launcher3.taskbar.TaskbarManagerImpl.TASKBAR_UI_THREAD
+import com.android.launcher3.taskbar.customization.TASKBAR_OVERFLOW_PIN_LIMIT
 import com.android.launcher3.taskbar.customization.TaskbarFeatureEvaluator
-import com.android.launcher3.taskbar.customization.TaskbarSpecsEvaluator
 import com.android.launcher3.util.ImmediateExecutorService
 import com.android.quickstep.GestureState
 import com.android.quickstep.RecentsAnimationCallbacks
@@ -188,10 +188,16 @@ class TaskbarInteractor(private val taskbarUIController: TaskbarUIController) {
     // TODO(b/404636836): remove after revert ag/34711156
     @MainThread fun getControllers(): TaskbarControllers? = taskbarUIController.mControllers
 
-    // TODO(b/404636836): Remove and expose maxPinnableCount from DeviceProfile
-    @MainThread
-    fun getTaskbarSpecsEvaluator(): TaskbarSpecsEvaluator =
-        taskbarUIController.taskbarSpecsEvaluator
+    @AnyThread
+    fun getMaxPinnableCount() =
+        if (TaskbarPopupController.canPinAppsOverflow()) {
+            TASKBAR_OVERFLOW_PIN_LIMIT
+        } else {
+            taskbarUIController.mControllers
+                ?.taskbarActivityContext
+                ?.deviceProfile
+                ?.numShownHotseatIcons ?: -1
+        }
 
     // TODO(fengjial): refactor isTransient to TaskbarUiState
     @MainThread
