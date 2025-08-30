@@ -44,7 +44,6 @@ import android.graphics.Rect;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.RemoteAnimationTarget;
-import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -74,6 +73,7 @@ import com.android.wm.shell.shared.desktopmode.DesktopState;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -321,16 +321,19 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
     }
 
     /**
-     * Called when the animation to the target has finished, but right before updating the state.
-     * @return A View that needs to draw before ending the recents animation to LAST_TASK.
-     * (This is a hack to ensure Taskbar draws its background first to avoid flickering.)
+     * Schedule a {@link FrameHandler} on taskbar's root view before ending the recents animation to
+     * LAST_TASK. This method is called when the animation to the target has finished, but right
+     * before updating the state. (This is a hack to ensure Taskbar draws its background first to
+     * avoid flickering.)
+     *
+     * @return true if {@link FrameHandler} is successfully posted and vice versa.
      */
-    public @Nullable View onSettledOnEndTarget(GestureState.GestureEndTarget endTarget) {
+    public boolean onSettledOnEndTarget(Runnable callback, Executor executor) {
         TaskbarInteractor taskbarInteractor = getTaskbarInteractor();
         if (taskbarInteractor != null) {
-            return taskbarInteractor.getRootView();
+            return taskbarInteractor.postOnRootViewDraw(callback, executor);
         }
-        return null;
+        return false;
     }
 
     /**
