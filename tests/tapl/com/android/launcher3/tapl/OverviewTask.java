@@ -275,10 +275,14 @@ public final class OverviewTask {
                 }
             } else {
                 final Pattern event;
-                if (isDesktopTask) {
+                if (mOverview.isLiveTile(mTask)) {
+                    if (isDesktopTask && hasDesktopTasks) {
+                        event = TASK_START_EVENT_DESKTOP;
+                    } else {
+                        event = TASK_START_EVENT_LIVE_TILE;
+                    }
+                } else if (isDesktopTask) {
                     event = TASK_START_EVENT_DESKTOP;
-                } else if (mOverview.isLiveTile(mTask)) {
-                    event = TASK_START_EVENT_LIVE_TILE;
                 } else {
                     event = TASK_START_EVENT;
                 }
