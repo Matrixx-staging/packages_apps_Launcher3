@@ -514,10 +514,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         });
         mRecentsButton.addOnLayoutChangeListener(
                 (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
-                    int[] location = v.getLocationOnScreen();
-                    Rect bounds = new Rect(location[0], location[1], location[0] + v.getWidth(),
-                            location[1] + v.getHeight());
-                    navButtonController.onRecentsButtonLayoutChanged(bounds);
+                    notifyRecentsButtonPosition();
                 });
         mPropertyHolders.add(new StatePropertyHolder(mRecentsButton,
                 flags -> (flags & FLAG_KEYGUARD_VISIBLE) == 0 && (flags & FLAG_DISABLE_RECENTS) == 0
@@ -539,6 +536,20 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         if (android.view.accessibility.Flags.navbarFlipOrderOption()) {
             SettingsCache.INSTANCE.get(mContext).register(
                     mButtonOrderChangedUri, mButtonOrderListener);
+        }
+    }
+
+    private void notifyRecentsButtonPosition() {
+        if (mRecentsButton != null && mControllers != null
+                && mControllers.navButtonController != null) {
+            int[] location = mRecentsButton.getLocationOnScreen();
+            Rect bounds = new Rect(
+                    location[0],
+                    location[1],
+                    location[0] + mRecentsButton.getWidth(),
+                    location[1] + mRecentsButton.getHeight()
+            );
+            mControllers.navButtonController.onRecentsButtonLayoutChanged(bounds);
         }
     }
 
@@ -861,6 +872,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
                 + imeAdjustmentTranslationY
                 + inAppDisplayAdjustmentTranslationY;
         mNavButtonsView.setTranslationY(mLastSetNavButtonTranslationY);
+        notifyRecentsButtonPosition();
     }
 
     /**
@@ -1421,6 +1433,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         }
         mNavButtonContainer.setTranslationX(getNavBarTranslationX(location));
         mBubbleBarTargetLocation = location;
+        notifyRecentsButtonPosition();
     }
 
     /** Animates navigation buttons accordingly to the bubble bar position. */

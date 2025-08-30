@@ -27,12 +27,14 @@ class LauncherUiState {
     private val _activityFlagsRef = MutableListenableRef(0)
     private val _isSplitSelectActiveRef = MutableListenableRef(false)
     private val _isOverlayShown = MutableListenableRef(false)
-    private val _taskbarAlignmentChannelAlpha = MutableListenableRef(0f)
+    private val _taskbarAlignmentChannelAlphaRef = MutableListenableRef(0f)
+    private val _isTopResumedActivityRef = MutableListenableRef(false)
 
     val deviceProfileRef = _deviceProfileRef.asListenable()
     val isSplitSelectActiveRef = _isSplitSelectActiveRef.asListenable()
     val launcherStateRef = _launcherStateRef.asListenable()
-    val taskbarAlignmentChannelAlpha = _taskbarAlignmentChannelAlpha.asListenable()
+    val taskbarAlignmentChannelAlpha = _taskbarAlignmentChannelAlphaRef.asListenable()
+    val isTopResumedActivityRef = _isTopResumedActivityRef.asListenable()
 
     val isResumed: Boolean
         get() = (_activityFlagsRef.value and BaseActivity.ACTIVITY_STATE_RESUMED) != 0
@@ -72,7 +74,11 @@ class LauncherUiState {
     }
 
     fun setTaskbarAlignmentChannelAlpha(alpha: Float) {
-        _taskbarAlignmentChannelAlpha.diffAndDispatch(alpha)
+        _taskbarAlignmentChannelAlphaRef.diffAndDispatch(alpha)
+    }
+
+    fun setIsTopResumedActivity(isTopResumedActivity: Boolean) {
+        _isTopResumedActivityRef.diffAndDispatch(isTopResumedActivity)
     }
 
     private fun updateIsSplitSelectActiveRef() {

@@ -26,6 +26,7 @@ import android.util.Log
 import android.view.View
 import android.widget.RemoteViews
 import androidx.annotation.VisibleForTesting
+import androidx.core.net.toUri
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
@@ -76,12 +77,6 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         )
     }
 
-    override fun setPadding(left: Int, top: Int, right: Int, bottom: Int) {
-        // Prevent default padding being set on the view based on provider info. Launcher manages
-        // its own widget spacing.
-        // Do Nothing
-    }
-
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         detachedFromWindow()
@@ -101,15 +96,36 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     override fun getErrorView(): View =
         View.inflate(context, R.layout.ose_default_layout, null).apply {
             setOnClickListener {
-                context.startActivity(
-                    Intent(Intent.ACTION_SEARCH)
-                        .addFlags(
-                            Intent.FLAG_ACTIVITY_NEW_TASK or
-                                Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
-                        )
-                )
+                val oseManager = context.appComponent.getOseManager()
+                val oseInfo = oseManager.oseInfo.value
+                val osePkg: String? =
+                    when {
+                        oseInfo.isOseConfigured -> oseInfo.pkg
+                        else -> null
+                    }
+                osePkg?.run {
+                    val searchIntent =
+                        Intent(Intent.ACTION_SEARCH)
+                            .addFlags(
+                                Intent.FLAG_ACTIVITY_NEW_TASK or
+                                    Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+                            )
+                            .setPackage(this)
+                    activityContext.startActivitySafely(it, searchIntent, null)
+                } ?: openDefaultBrowser(it)
             }
         }
+
+    fun openDefaultBrowser(view: View) {
+        val browserIntent =
+            Intent(Intent.ACTION_VIEW)
+                .addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+                )
+        // Set the data to a blank page uri
+        browserIntent.setData("about:blank".toUri())
+        activityContext.startActivitySafely(view, browserIntent, /* item= */ null)
+    }
 
     override fun onLongClick(view: View?): Boolean {
         val oseWidgetOptionsProvider =
