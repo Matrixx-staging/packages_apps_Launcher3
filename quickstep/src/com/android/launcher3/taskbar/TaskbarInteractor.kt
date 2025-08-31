@@ -27,7 +27,6 @@ import com.android.launcher3.Flags.enableTaskbarUiThread
 import com.android.launcher3.LauncherState
 import com.android.launcher3.taskbar.TaskbarManagerImpl.TASKBAR_UI_THREAD
 import com.android.launcher3.taskbar.customization.TASKBAR_OVERFLOW_PIN_LIMIT
-import com.android.launcher3.taskbar.customization.TaskbarFeatureEvaluator
 import com.android.launcher3.util.ImmediateExecutorService
 import com.android.quickstep.GestureState
 import com.android.quickstep.RecentsAnimationCallbacks
@@ -210,11 +209,6 @@ class TaskbarInteractor(private val taskbarUIController: TaskbarUIController) {
                 ?.deviceProfile
                 ?.numShownHotseatIcons ?: -1
         }
-
-    // TODO(fengjial): refactor isTransient to TaskbarUiState
-    @MainThread
-    fun getTaskbarFeatureEvaluator(): TaskbarFeatureEvaluator =
-        taskbarUIController.taskbarFeatureEvaluator
 
     // TODO(b/404636836): expose taskbar view rect and offset vai [TaskbarUiState]
     @MainThread
