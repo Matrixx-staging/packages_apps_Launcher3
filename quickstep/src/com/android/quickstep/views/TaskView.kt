@@ -333,6 +333,8 @@ constructor(
     var isBeingDraggedForDismissal = false
     var isBeingDismissed: Boolean = false
 
+    private val systemGestureExclusionRectList = listOf(Rect()) // We only need 1 exclusion Rect
+
     var sysUiStatusNavFlags: Int = 0
         get() =
             if (enableRefactorTaskThumbnail()) field
@@ -734,11 +736,10 @@ constructor(
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
         updatePivots()
-        systemGestureExclusionRects =
-            SYSTEM_GESTURE_EXCLUSION_RECT.onEach {
-                it.right = width
-                it.bottom = height
-            }
+        systemGestureExclusionRectList[0].apply {
+            this.right = width
+            this.bottom = height
+        }
         getThumbnailBounds(thumbnailBounds)
     }
 
@@ -882,6 +883,11 @@ constructor(
         super.onFinishInflate()
         inflateViewStubs()
         taskDismissButton = findViewById(R.id.task_dismiss_button)
+    }
+
+    fun onIntersectScreenEdgeChanged(intersectsScreenEdge: Boolean) {
+        systemGestureExclusionRects =
+            if (intersectsScreenEdge) systemGestureExclusionRectList else emptyList()
     }
 
     protected open fun inflateViewStubs() {
@@ -2194,7 +2200,6 @@ constructor(
                 1f,
             )!!
         private val FADE_IN_ICON_INTERPOLATOR = Interpolators.LINEAR
-        private val SYSTEM_GESTURE_EXCLUSION_RECT = listOf(Rect())
 
         private val SETTLED_PROGRESS: FloatProperty<TaskView> =
             KFloatProperty(TaskView::settledProgress)
