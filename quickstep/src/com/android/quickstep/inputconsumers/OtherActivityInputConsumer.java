@@ -64,6 +64,7 @@ import com.android.quickstep.util.MotionPauseDetector;
 import com.android.quickstep.util.NavBarPosition;
 import com.android.systemui.shared.system.InputChannelCompat.InputEventReceiver;
 import com.android.systemui.shared.system.InputMonitorCompat;
+import com.android.wm.shell.shared.desktopmode.DesktopState;
 
 import java.util.function.Consumer;
 
@@ -102,6 +103,8 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
     private final FinishImmediatelyHandler mCleanupHandler = new FinishImmediatelyHandler();
 
     private final boolean mIsDeferredDownTarget;
+    // TODO: 432133436 - Remove mIsDeferredDownDevice when a proper fix is merged.
+    private final boolean mIsDeferredDownDevice;
     private final PointF mDownPos = new PointF();
     private final PointF mLastPos = new PointF();
     private int mActivePointerId = INVALID_POINTER_ID;
@@ -137,7 +140,8 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
             InputEventReceiver inputEventReceiver,
             boolean disableHorizontalSwipe,
             Factory handlerFactory,
-            RotationTouchHelper rotationTouchHelper) {
+            RotationTouchHelper rotationTouchHelper,
+            DesktopState desktopState) {
         super(base);
         mDeviceState = deviceState;
         mNavBarPosition = mDeviceState.getNavBarPosition();
@@ -157,7 +161,8 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
 
         boolean continuingPreviousGesture = mTaskAnimationManager.isRecentsAnimationRunning();
         mIsDeferredDownTarget = !continuingPreviousGesture && isDeferredDownTarget;
-
+        // TODO: 432133436 - Remove mIsDeferredDownDevice when a proper fix is merged.
+        mIsDeferredDownDevice = desktopState.canEnterDesktopMode();
         mTouchSlop = mDeviceState.getTouchSlop();
         mSquaredTouchSlop = mDeviceState.getSquaredTouchSlop();
 
@@ -250,7 +255,7 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
                 if (DEBUG) {
                     Log.d(TAG, "ACTION_DOWN: mIsDeferredDownTarget=" + mIsDeferredDownTarget);
                 }
-                if (!mIsDeferredDownTarget) {
+                if (!needDeferDown()) {
                     startTouchTrackingForWindowAnimation(ev.getEventTime());
                 }
 
@@ -291,7 +296,7 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
                 float displacementY = mLastPos.y - mDownPos.y;
 
                 if (!mPassedWindowMoveSlop) {
-                    if (!mIsDeferredDownTarget) {
+                    if (!needDeferDown()) {
                         // Normal gesture, ensure we pass the drag slop before we start tracking
                         // the gesture
                         if (mGestureState.isTrackpadGesture() || Math.abs(displacement)
@@ -359,7 +364,7 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
 
                         mPassedPilferInputSlop = true;
 
-                        if (mIsDeferredDownTarget) {
+                        if (needDeferDown()) {
                             // Deferred gesture, start the animation and gesture tracking once
                             // we pass the actual touch slop
                             startTouchTrackingForWindowAnimation(ev.getEventTime());
@@ -577,6 +582,10 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
     @Override
     public boolean allowInterceptByParent() {
         return !mPassedPilferInputSlop;
+    }
+
+    private boolean needDeferDown() {
+        return mIsDeferredDownTarget || mIsDeferredDownDevice;
     }
 
     /**
