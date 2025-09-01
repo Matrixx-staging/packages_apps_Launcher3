@@ -2545,6 +2545,8 @@ public abstract class RecentsView<
 
             // After scrolling, update the visible task's data
             loadVisibleTaskData(TaskView.FLAG_UPDATE_ALL);
+
+            recalculateTaskViewScreenEdgeIntersections();
         }
 
         // Update ActionsView's visibility when scroll changes.
@@ -2553,6 +2555,28 @@ public abstract class RecentsView<
         // Update the high res thumbnail loader state
         mModel.getThumbnailCache().getHighResLoadingState().setFlingingFast(isFlingingFast);
         return scrolling;
+    }
+
+    private void recalculateTaskViewScreenEdgeIntersections() {
+        RecentsPagedOrientationHandler pagedOrientationHandler = getPagedOrientationHandler();
+        final int pageOrientedSize = pagedOrientationHandler.getMeasuredSize(this);
+        final int screenStart = pagedOrientationHandler.getPrimaryScroll(this);
+        final int screenEnd = screenStart + pageOrientedSize;
+        final boolean showAsGrid = showAsGrid();
+        final boolean showAsFullscreen = showAsFullscreen();
+
+        getTaskViews().forEachWithIndexInParent((index, taskView) -> {
+            float taskSize = pagedOrientationHandler.getMeasuredSize(taskView)
+                    * taskView.getSizeAdjustment(showAsFullscreen);
+            float taskStart = (pagedOrientationHandler.getChildStart(taskView)
+                    + taskView.getOffsetAdjustment(showAsGrid));
+            float taskEnd = taskStart + taskSize;
+
+            boolean intersectsEndOfScreen = taskStart < screenEnd && screenEnd < taskEnd;
+            boolean intersectsStartOfScreen = taskStart < screenStart && screenStart < taskEnd;
+            boolean intersectsEdgeOfScreen = intersectsEndOfScreen || intersectsStartOfScreen;
+            taskView.onIntersectScreenEdgeChanged(intersectsEdgeOfScreen);
+        });
     }
 
     protected void updateActionsViewFocusedScroll() {
@@ -4933,6 +4957,7 @@ public abstract class RecentsView<
                         .setScroll(getScrollOffset()));
         setImportantForAccessibility(isModal() ? IMPORTANT_FOR_ACCESSIBILITY_NO
                 : IMPORTANT_FOR_ACCESSIBILITY_AUTO);
+        recalculateTaskViewScreenEdgeIntersections();
     }
 
     private void updatePivots() {

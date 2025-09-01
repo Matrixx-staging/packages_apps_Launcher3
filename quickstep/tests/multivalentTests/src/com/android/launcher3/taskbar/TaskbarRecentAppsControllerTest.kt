@@ -1274,7 +1274,7 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
             runningTasks = emptyList(),
             recentTaskPackages = listOf(RECENT_PACKAGE_1),
         )
-        assertThat(recentAppsController.hasSingleTask(ItemInfo())).isFalse()
+        assertThat(recentAppsController.getSingleTask(ItemInfo())).isNull()
     }
 
     @Test
@@ -1285,7 +1285,7 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
             recentTaskPackages = emptyList(),
         )
         val itemInfo = createItemInfo(RECENT_PACKAGE_1)
-        assertThat(recentAppsController.hasSingleTask(itemInfo)).isFalse()
+        assertThat(recentAppsController.getSingleTask(itemInfo)).isNull()
     }
 
     @Test
@@ -1296,7 +1296,7 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
             recentTaskPackages = listOf(RECENT_PACKAGE_1),
         )
         val itemInfo = createItemInfo(RECENT_PACKAGE_2)
-        assertThat(recentAppsController.hasSingleTask(itemInfo)).isFalse()
+        assertThat(recentAppsController.getSingleTask(itemInfo)).isNull()
     }
 
     @Test
@@ -1307,7 +1307,7 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
             recentTaskPackages = listOf(RECENT_PACKAGE_1, RECENT_PACKAGE_2),
         )
         val itemInfo = createItemInfo(RECENT_PACKAGE_1)
-        assertThat(recentAppsController.hasSingleTask(itemInfo)).isTrue()
+        assertThat(recentAppsController.getSingleTask(itemInfo)).isNotNull()
     }
 
     @Test
@@ -1319,7 +1319,7 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
         )
         // RECENT_PACKAGE_1 is created with myUserHandle in createRecentTasksFromPackageNames
         val itemInfo = createItemInfo(RECENT_PACKAGE_1, USER_HANDLE_1)
-        assertThat(recentAppsController.hasSingleTask(itemInfo)).isFalse()
+        assertThat(recentAppsController.getSingleTask(itemInfo)).isNull()
     }
 
     @Test

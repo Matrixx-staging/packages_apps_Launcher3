@@ -357,7 +357,7 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
             // In the case where home is always shown behind desktop, ensure that we reset to
             // Normal home state, and set `activityVisible` to false so we don't animate home
             // because home is already showing.
-            if (DesktopState.fromContext(context).getShouldShowHomeBehindDesktop()) {
+            if (DesktopState.getInstance(context).getShouldShowHomeBehindDesktop()) {
                 endTarget = HOME;
                 activityVisible = false;
             }
