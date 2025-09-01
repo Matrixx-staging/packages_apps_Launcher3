@@ -332,7 +332,9 @@ class TaskbarRecentAppsController(
                     allRecentTasks
                         .filterIsInstance<DesktopTask>()
                         .flatMap { it.tasks }
-                        .filterNot { it.key.isTopActivityTransparent }
+                        .filterNot {
+                            it.key.isTopActivityTransparent && it.key.isActivityStackTransparent
+                        }
                 val runningTasksChanged = oldRunningTaskdIds != runningTaskIds
                 val minimizedTasksChanged = oldMinimizedTaskIds != minimizedTaskIds
 
