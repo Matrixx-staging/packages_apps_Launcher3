@@ -43,7 +43,6 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
-import com.android.launcher3.Flags.enableCursorHoverStates
 import com.android.launcher3.Flags.enableRefactorDigitalWellbeingToast
 import com.android.launcher3.R
 import com.android.launcher3.util.KFloatProperty
@@ -176,7 +175,7 @@ class TaskContentView @JvmOverloads constructor(context: Context, attrs: Attribu
     var isHoverable: Boolean = false
 
     init {
-        setWillNotDraw(!enableCursorHoverStates())
+        setWillNotDraw(false)
         context.obtainStyledAttributes(attrs, R.styleable.TaskContentView).use {
             focusBorderColor =
                 it.getColor(R.styleable.TaskContentView_focusBorderColor, DEFAULT_BORDER_COLOR)

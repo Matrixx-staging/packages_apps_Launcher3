@@ -32,7 +32,6 @@ import static com.android.launcher3.AbstractFloatingView.TYPE_ALL;
 import static com.android.launcher3.AbstractFloatingView.TYPE_ON_BOARD_POPUP;
 import static com.android.launcher3.AbstractFloatingView.TYPE_REBIND_SAFE;
 import static com.android.launcher3.AbstractFloatingView.TYPE_TASKBAR_OVERLAY_PROXY;
-import static com.android.launcher3.Flags.enableCursorHoverStates;
 import static com.android.launcher3.Flags.refactorTaskbarUiState;
 import static com.android.launcher3.Utilities.calculateTextHeight;
 import static com.android.launcher3.Utilities.isRunningInTestHarness;
@@ -1503,12 +1502,11 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                 isTransientTaskbar() || (enableTaskbarPinning()
                         && mTaskbarFeatureEvaluator.getSupportsTransitionToTransientTaskbar());
 
-        int extraHeightForTaskbarTooltips = enableCursorHoverStates()
-                ? resources.getDimensionPixelSize(R.dimen.arrow_toast_arrow_height)
+        int extraHeightForTaskbarTooltips = resources.getDimensionPixelSize(
+                R.dimen.arrow_toast_arrow_height)
                 + (resources.getDimensionPixelSize(R.dimen.taskbar_tooltip_vertical_padding) * 2)
                 + calculateTextHeight(
-                resources.getDimensionPixelSize(R.dimen.arrow_toast_text_size))
-                : 0;
+                resources.getDimensionPixelSize(R.dimen.arrow_toast_text_size));
 
         // Return transient taskbar window height when pinning feature is enabled, so taskbar view
         // does not get cut off during pinning animation.

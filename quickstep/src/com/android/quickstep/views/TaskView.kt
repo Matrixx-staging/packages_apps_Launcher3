@@ -50,7 +50,6 @@ import androidx.core.view.updateLayoutParams
 import com.android.app.animation.Interpolators
 import com.android.app.tracing.traceSection
 import com.android.launcher3.AbstractFloatingView
-import com.android.launcher3.Flags.enableCursorHoverStates
 import com.android.launcher3.Flags.enableDesktopExplodedView
 import com.android.launcher3.Flags.enableRefactorDigitalWellbeingToast
 import com.android.launcher3.Flags.enableRefactorTaskContentView
@@ -299,25 +298,18 @@ constructor(
 
     private val hoverBorderAnimator: BorderAnimator? =
         hoverBorderAnimator
-            ?: if (enableCursorHoverStates())
-                createSimpleBorderAnimator(
-                    TaskCornerRadius.get(context).toInt(),
-                    context.resources.getDimensionPixelSize(R.dimen.task_hover_border_width),
-                    this::getThumbnailBounds,
-                    this,
-                    context
-                        .obtainStyledAttributes(
-                            attrs,
-                            R.styleable.TaskView,
-                            defStyleAttr,
-                            defStyleRes,
-                        )
-                        .getColor(
-                            R.styleable.TaskView_hoverBorderColor,
-                            BorderAnimator.DEFAULT_BORDER_COLOR,
-                        ),
-                )
-            else null
+            ?: createSimpleBorderAnimator(
+                TaskCornerRadius.get(context).toInt(),
+                context.resources.getDimensionPixelSize(R.dimen.task_hover_border_width),
+                this::getThumbnailBounds,
+                this,
+                context
+                    .obtainStyledAttributes(attrs, R.styleable.TaskView, defStyleAttr, defStyleRes)
+                    .getColor(
+                        R.styleable.TaskView_hoverBorderColor,
+                        BorderAnimator.DEFAULT_BORDER_COLOR,
+                    ),
+            )
 
     private val rootViewDisplayId: Int
         get() = rootView.display?.displayId ?: Display.DEFAULT_DISPLAY
@@ -616,7 +608,7 @@ constructor(
     init {
         setOnClickListener { _ -> onClick() }
 
-        setWillNotDraw(!enableCursorHoverStates())
+        setWillNotDraw(false)
     }
 
     @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
