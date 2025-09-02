@@ -1953,16 +1953,22 @@ public class Launcher extends StatefulActivity<LauncherState>
     public boolean removeItem(View v, final ItemInfo itemInfo, boolean deleteFromDb,
             @Nullable final String reason) {
         if (itemInfo instanceof WorkspaceItemInfo) {
-            if (!removeItemFromCollectionIfNecessary(itemInfo, deleteFromDb)) {
+            View collectionIcon = mWorkspace.getViewByItemId(itemInfo.container);
+            if (collectionIcon instanceof FolderIcon folderIcon) {
+                // Remove the shortcut from the folder before removing it from launcher
+                Folder folder = folderIcon.getFolder();
+                folder.removeFolderContent(true, itemInfo);
+            } else if (collectionIcon instanceof AppPairIcon appPairIcon) {
+                removeItem(appPairIcon, appPairIcon.getInfo(), deleteFromDb,
+                        "removing app pair because one of its member apps was removed");
+            } else {
                 mWorkspace.removeWorkspaceItem(v);
             }
             if (deleteFromDb) {
                 getModelWriter().deleteItemFromDatabase(itemInfo, reason);
             }
         } else if (itemInfo instanceof CollectionInfo ci) {
-            if (!removeItemFromCollectionIfNecessary(itemInfo, deleteFromDb)) {
-                mWorkspace.removeWorkspaceItem(v);
-            }
+            mWorkspace.removeWorkspaceItem(v);
             if (deleteFromDb) {
                 getModelWriter().deleteCollectionAndContentsFromDatabase(ci);
             }
@@ -1973,31 +1979,6 @@ public class Launcher extends StatefulActivity<LauncherState>
                 getModelWriter().deleteWidgetInfo(widgetInfo, getAppWidgetHolder(), reason);
             }
         } else {
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Removes an item from a collection if the item is in a collection. In the case of collection
-     * being folder, we simply remove the item from the folder. In the case of collection being an
-     * app pair, we remove the app pair entirely as one of the apps in the pair was removed.
-     *
-     * @param itemInfo the {@link ItemInfo} for the view we're looking to remove from a collection
-     * @param deleteFromDb whether or not to delete this item from the db.
-     *
-     * @return true if we removed an item from a collection, false otherwise.
-     */
-    private boolean removeItemFromCollectionIfNecessary(ItemInfo itemInfo, boolean deleteFromDb) {
-        View collectionIcon = mWorkspace.getViewByItemId(itemInfo.container);
-        if (collectionIcon instanceof FolderIcon folderIcon) {
-            // Remove the shortcut from the folder before removing it from launcher
-            Folder folder = folderIcon.getFolder();
-            folder.removeFolderContent(true, itemInfo);
-            return false;
-        } else if (collectionIcon instanceof AppPairIcon appPairIcon) {
-            removeItem(appPairIcon, appPairIcon.getInfo(), deleteFromDb,
-                    "removing app pair because one of its member apps was removed");
             return false;
         }
         return true;
