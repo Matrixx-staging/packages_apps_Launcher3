@@ -40,8 +40,6 @@ import com.android.launcher3.dagger.SettingsModule
 import com.android.launcher3.dagger.StaticObjectModule
 import com.android.launcher3.dagger.SystemDragModule
 import com.android.launcher3.dagger.WindowManagerProxyModule
-import com.android.launcher3.model.LayoutParserFactory
-import com.android.launcher3.model.LayoutParserFactory.XmlLayoutParserFactory
 import com.android.launcher3.model.ModelInitializer
 import com.android.launcher3.model.data.LoaderParams
 import com.android.launcher3.provider.LauncherDbUtils.selectionForWorkspaceScreen
@@ -112,18 +110,16 @@ constructor(
 
         if (layoutXml.isNullOrEmpty() || !Flags.extendibleThemeManager()) {
             mDbDir = null
-            builder
-                .bindParserFactory(LayoutParserFactory(this))
-                .bindWidgetsFactory(base.appComponent.widgetHolderFactory)
+            initDaggerComponent(builder.bindWidgetsFactory(base.appComponent.widgetHolderFactory))
         } else {
             mDbDir = File(base.filesDir, randomUid)
             emptyDbDir()
             mDbDir.mkdirs()
-            builder.bindParserFactory(XmlLayoutParserFactory(this, layoutXml)).bindWidgetsFactory {
-                NonPrimaryWidgetHolder(it, widgetHostId)
-            }
+            initDaggerComponent(
+                builder.bindWidgetsFactory { NonPrimaryWidgetHolder(it, widgetHostId) }
+            )
+            appComponent.layoutParserFactory.overrideXmlLayout(layoutXml)
         }
-        initDaggerComponent(builder)
 
         if (!TextUtils.isEmpty(layoutXml)) {
             // Use null the DB file so that we use a new in-memory DB
@@ -210,8 +206,6 @@ constructor(
         @Component.Builder
         interface Builder : LauncherAppComponent.Builder {
             @BindsInstance fun bindPrefs(prefs: LauncherPrefs): Builder
-
-            @BindsInstance fun bindParserFactory(parserFactory: LayoutParserFactory): Builder
 
             @BindsInstance fun bindWidgetsFactory(holderFactory: WidgetHolderFactory): Builder
 
