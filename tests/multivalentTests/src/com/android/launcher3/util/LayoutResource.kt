@@ -17,9 +17,13 @@
 package com.android.launcher3.util
 
 import android.content.Context
-import com.android.launcher3.LauncherAppState
+import android.database.sqlite.SQLiteReadOnlyDatabaseException
+import android.util.Log
+import com.android.launcher3.LauncherModel
 import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
 import com.android.launcher3.model.BgDataModel
+import com.android.launcher3.util.Executors.MAIN_EXECUTOR
+import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import org.junit.rules.ExternalResource
 
 /**
@@ -30,6 +34,9 @@ class LayoutResource(private val ctx: Context) : ExternalResource() {
     // data model. This will short-circuit (and not load the new data) if called without callbacks.
     private var callbacks: BgDataModel.Callbacks? = null
 
+    private val model: LauncherModel
+        get() = ctx.appComponent.testableModelState.model
+
     override fun before() {
         // Internally LayoutExportImportHelper uses a secure setting to set the launcher's layout
         TestUtil.grantWriteSecurePermission()
@@ -37,11 +44,10 @@ class LayoutResource(private val ctx: Context) : ExternalResource() {
 
     override fun after() {
         set("")
-        callbacks?.let { LauncherAppState.getInstance(ctx).model.removeCallbacks(it) }
+        callbacks?.let { model.removeCallbacks(it) }
     }
 
     fun withCallbacks(cb: BgDataModel.Callbacks): LayoutResource {
-        val model = LauncherAppState.getInstance(ctx).model
         callbacks?.let { model.removeCallbacks(it) }
         model.addCallbacks(cb)
         callbacks = cb
@@ -52,10 +58,26 @@ class LayoutResource(private val ctx: Context) : ExternalResource() {
 
     private fun set(xmlRepresentation: String) {
         callbacks ?: withCallbacks(NO_OP_CALLBACKS)
+        ctx.appComponent.layoutParserFactory.overrideXmlLayout(xmlRepresentation).use {
+            TestUtil.runOnExecutorSync(MODEL_EXECUTOR) {
+                try {
+                    model.modelDbController.createEmptyDB()
+                } catch (e: SQLiteReadOnlyDatabaseException) {
+                    // This issue has only been observed in tests so far, likely due
+                    // to less strict threading for accessing and writing to the
+                    // launcher test DB.
+                    Log.w(TAG, "Failed to clear Launcher DB. It was already deleted.", e)
+                }
+            }
+            TestUtil.runOnExecutorSync(MAIN_EXECUTOR) { model.forceReload() }
+            TestUtil.runOnExecutorSync(MODEL_EXECUTOR) {}
+        }
+
         ctx.appComponent.layoutImportExportHelper.importModelFromXml(xmlRepresentation)
     }
 
     companion object {
+        private const val TAG = "LayoutResource"
         @JvmStatic val NO_OP_CALLBACKS = object : BgDataModel.Callbacks {}
     }
 }
