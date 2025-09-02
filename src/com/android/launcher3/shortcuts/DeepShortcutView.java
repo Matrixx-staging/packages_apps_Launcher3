@@ -31,12 +31,16 @@ import android.view.View;
 import android.widget.FrameLayout;
 
 import com.android.launcher3.BubbleTextView;
+import com.android.launcher3.Flags;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
+import com.android.launcher3.accessibility.LauncherAccessibilityDelegate;
+import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.popup.PopupContainerWithArrow;
 import com.android.launcher3.util.Themes;
+import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.BubbleTextHolder;
 
 /**
@@ -52,6 +56,7 @@ public class DeepShortcutView extends FrameLayout implements BubbleTextHolder {
 
     private BubbleTextView mBubbleText;
     private View mIconView;
+    private FrameLayout mAddButton;
 
     private WorkspaceItemInfo mInfo;
     private ShortcutInfo mDetail;
@@ -74,6 +79,7 @@ public class DeepShortcutView extends FrameLayout implements BubbleTextHolder {
         mBubbleText = findViewById(R.id.bubble_text);
         mBubbleText.setHideBadge(true);
         mIconView = findViewById(R.id.icon);
+        mAddButton = findViewById(R.id.deep_shortcut_add_button);
         tryUpdateTextBackground();
     }
 
@@ -139,7 +145,7 @@ public class DeepShortcutView extends FrameLayout implements BubbleTextHolder {
 
     /** package private **/
     public void applyShortcutInfo(WorkspaceItemInfo info, ShortcutInfo detail,
-            PopupContainerWithArrow container) {
+            PopupContainerWithArrow container, ActivityContext ac) {
         mInfo = info;
         mDetail = detail;
         mBubbleText.applyFromWorkspaceItem(info);
@@ -157,6 +163,30 @@ public class DeepShortcutView extends FrameLayout implements BubbleTextHolder {
         mBubbleText.setOnClickListener(container.getItemClickListener());
         mBubbleText.setOnLongClickListener(container.getItemDragHandler());
         mBubbleText.setOnTouchListener(container.getItemDragHandler());
+        if (Flags.homeScreenEditImprovements()
+                && ac instanceof Launcher launcher) {
+            mAddButton.setVisibility(VISIBLE);
+            mBubbleText.setPadding(
+                    mBubbleText.getPaddingStart(),
+                    mBubbleText.getPaddingTop(),
+                    (int) getResources().getDimension(R.dimen.deep_shortcut_text_end_padding),
+                    mBubbleText.getPaddingBottom());
+
+            mAddButton.setOnClickListener(v -> {
+                LauncherAccessibilityDelegate launcherAccessibilityDelegate =
+                        launcher.getAccessibilityDelegate();
+                launcherAccessibilityDelegate.addToWorkspace(info,
+                                /*accessibility=*/ false,
+                                /*finishCallback=*/ (success) -> {
+                                    launcher.getStatsLogManager()
+                                            .logger()
+                                            .withItemInfo(info)
+                                            .log(StatsLogManager.LauncherEvent
+                                                    .LAUNCHER_TAP_TO_ADD_DEEP_SHORTCUT);
+                        });
+                container.close(true);
+            });
+        }
     }
 
     /**

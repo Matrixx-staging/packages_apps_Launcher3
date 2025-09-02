@@ -645,6 +645,8 @@ open class StatsLogManager protected constructor(@JvmField protected val mContex
         LAUNCHER_QSB_WIDGET_SETTINGS_TAP(2415),
         @UiEvent(doc = "User tapped to add an icon to home screen from all apps")
         LAUNCHER_TAP_TO_ADD_TO_HOME_SCREEN_FROM_ALL_APPS(2445),
+        @UiEvent(doc = "User tapped to add a deep shortcut from the long press menu")
+        LAUNCHER_TAP_TO_ADD_DEEP_SHORTCUT(2446),
         // ADD MORE
     }
 
