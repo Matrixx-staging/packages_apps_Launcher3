@@ -609,6 +609,7 @@ object WorkspaceProfileNonResponsiveFactory {
         hotseatProfile: HotseatProfile,
         hotseatBarBottomSpacePx: Int,
         hotseatQsbSpace: Int,
+        hotseatBarSizePx: Int,
     ): WorkspaceProfile {
         var workspaceProfile =
             internalCreateWorkspaceProfileNonResponsive(
@@ -677,6 +678,28 @@ object WorkspaceProfileNonResponsiveFactory {
             extraHeight =
                 max(0, (maxHeight - workspaceProfile.cellLayoutHeightSpecification)).toFloat()
         }
-        return workspaceProfile.copy(extraSpace = Math.round(extraHeight))
+        workspaceProfile = workspaceProfile.copy(extraSpace = Math.round(extraHeight))
+
+        if (isScalableGrid) {
+            workspaceProfile =
+                workspaceProfile.calculateAndSetWorkspaceVerticalPadding(context, inv)
+        }
+
+        // We also need to update WorkspacePadding and CellLayoutPadding, keeping it in a
+        // different method to make it easier to keep track
+        return workspaceProfile.recalculateWorkspacePadding(
+            isVerticalLayout,
+            isSeascape,
+            inv.isFixedLandscape,
+            isScalableGrid,
+            hotseatProfile,
+            hotseatBarSizePx,
+            insets,
+            deviceProperties,
+            res,
+            hotseatBarBottomSpacePx,
+            hotseatQsbSpace,
+            inv,
+        )
     }
 }

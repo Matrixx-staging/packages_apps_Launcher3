@@ -96,7 +96,6 @@ data class WorkspaceProfile(
     fun calculateAndSetWorkspaceVerticalPadding(
         context: Context,
         inv: InvariantDeviceProfile,
-        extraSpace: Int,
     ): WorkspaceProfile {
         if (inv.devicePaddingId != ResourceUtils.INVALID_RESOURCE_HANDLE) {
             // Paddings were created assuming no scaling, so we first unscale the extra space.
@@ -557,6 +556,7 @@ data class WorkspaceProfile(
             hotseatProfile: HotseatProfile,
             hotseatBarBottomSpacePx: Int,
             hotseatQsbSpace: Int,
+            hotseatBarSizePx: Int,
         ): WorkspaceProfile {
             // Icon scale should never exceed 1, otherwise pixellation may occur.
             val iconScale = min(1f, scale)
@@ -607,6 +607,7 @@ data class WorkspaceProfile(
                         hotseatProfile = hotseatProfile,
                         hotseatBarBottomSpacePx = hotseatBarBottomSpacePx,
                         hotseatQsbSpace = hotseatQsbSpace,
+                        hotseatBarSizePx = hotseatBarSizePx,
                     )
             }
         }

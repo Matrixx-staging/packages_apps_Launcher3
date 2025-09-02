@@ -508,35 +508,9 @@ public class DeviceProfile {
                 /*isSeascape*/ isSeascape(),
                 /*hotseatProfile*/ hotseatProfile,
                 /*hotseatBarBottomSpacePx*/ hotseatBarBottomSpacePx,
-                /*hotseatQsbSpace*/hotseatQsbSpace
+                /*hotseatQsbSpace*/hotseatQsbSpace,
+                /*hotseatBarSizePx*/hotseatBarSizePx
         );
-
-        if (mIsScalableGrid && !mIsResponsiveGrid) {
-            mWorkspaceProfile = mWorkspaceProfile.calculateAndSetWorkspaceVerticalPadding(
-                    context,
-                    inv,
-                    mWorkspaceProfile.getExtraSpace()
-            );
-        }
-
-        if (!mIsResponsiveGrid) {
-            // We also need to update WorkspacePadding and CellLayoutPadding, keeping it in a
-            // different method to make it easier to keep track
-            mWorkspaceProfile = mWorkspaceProfile.recalculateWorkspacePadding(
-                    isVerticalBarLayout(),
-                    isSeascape(),
-                    inv.isFixedLandscape,
-                    mIsScalableGrid,
-                    hotseatProfile,
-                    hotseatBarSizePx,
-                    mInsets,
-                    mDeviceProperties,
-                    res,
-                    hotseatBarBottomSpacePx,
-                    hotseatQsbSpace,
-                    inv
-            );
-        }
 
         updateIconSize(mWorkspaceProfile.getScale(), context);
 
