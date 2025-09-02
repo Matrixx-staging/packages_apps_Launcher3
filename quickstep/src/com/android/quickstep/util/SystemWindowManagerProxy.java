@@ -16,8 +16,10 @@
 package com.android.quickstep.util;
 
 import static android.app.WindowConfiguration.WINDOWING_MODE_FREEFORM;
+import static android.content.Context.DEVICE_ID_DEFAULT;
 import static android.view.Display.DEFAULT_DISPLAY;
 
+import android.companion.virtual.VirtualDeviceManager;
 import android.content.Context;
 import android.graphics.Rect;
 import android.util.ArrayMap;
@@ -166,5 +168,16 @@ public class SystemWindowManagerProxy extends WindowManagerProxy {
     @Override
     public boolean enableOverviewOnConnectedDisplays() {
         return RecentsWindowFlags.enableOverviewOnConnectedDisplays();
+    }
+
+    @Override
+    public boolean isVirtualDeviceDisplay(Context displayContext) {
+        int displayId = getDisplayId(displayContext);
+        VirtualDeviceManager virtualDeviceManager = displayContext.getSystemService(
+                VirtualDeviceManager.class);
+        if (virtualDeviceManager != null) {
+            return virtualDeviceManager.getDeviceIdForDisplayId(displayId) != DEVICE_ID_DEFAULT;
+        }
+        return false;
     }
 }
