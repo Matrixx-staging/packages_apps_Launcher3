@@ -261,6 +261,7 @@ class TaplTestsOverviewDesktop : AbstractQuickStepTest() {
         val desk3Id = overview.currentTask.deskId
 
         // Start from Desk 3
+        overview = mLauncher.goHome().switchToOverview().apply { flingBackward() }
         var launchedDesk = overview.currentTask.open()
         assertWithMessage("The active desk should be Desk 3")
             .that(mLauncher.activeDeskId)
