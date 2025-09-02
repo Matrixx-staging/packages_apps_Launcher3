@@ -26,7 +26,9 @@ import static android.view.RemoteAnimationTarget.MODE_CLOSING;
 import static android.view.RemoteAnimationTarget.MODE_OPENING;
 import static android.view.Surface.ROTATION_0;
 import static android.view.Surface.ROTATION_180;
+import static android.view.Display.DEFAULT_DISPLAY;
 import static android.view.WindowManager.TRANSIT_CLOSE;
+import static android.view.WindowManager.TRANSIT_CHANGE;
 import static android.view.WindowManager.TRANSIT_FLAG_KEYGUARD_GOING_AWAY;
 import static android.view.WindowManager.TRANSIT_OPEN;
 import static android.view.WindowManager.TRANSIT_TO_BACK;
@@ -90,6 +92,10 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.IRemoteCallback;
 import android.os.Looper;
+import android.os.RemoteException;
+import android.view.IRemoteAnimationRunner;
+import android.window.IRemoteTransitionFinishedCallback;
+import android.window.TransitionInfo;
 import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.provider.Settings;
@@ -109,6 +115,8 @@ import android.view.animation.AnimationUtils;
 import android.view.animation.Interpolator;
 import android.view.animation.PathInterpolator;
 import android.window.DesktopModeFlags;
+import android.window.IRemoteTransition;
+import android.window.RemoteTransitionStub;
 import android.window.RemoteTransition;
 import android.window.TransitionFilter;
 import android.window.WindowAnimationState;
@@ -146,6 +154,7 @@ import com.android.quickstep.TaskViewUtils;
 import com.android.quickstep.util.AlreadyStartedBackAnimState;
 import com.android.quickstep.util.AnimatorBackState;
 import com.android.quickstep.util.BackAnimState;
+import com.android.quickstep.util.CrossDisplayMoveTransition;
 import com.android.quickstep.util.MultiValueUpdateListener;
 import com.android.quickstep.util.RectFSpringAnim;
 import com.android.quickstep.util.RectFSpringAnim.DefaultSpringConfig;
@@ -163,6 +172,7 @@ import com.android.systemui.animation.DelegateTransitionAnimatorController;
 import com.android.systemui.animation.LaunchableView;
 import com.android.systemui.animation.RemoteAnimationDelegate;
 import com.android.systemui.animation.RemoteAnimationRunnerCompat;
+import com.android.systemui.animation.RemoteTransitionDelegate;
 import com.android.systemui.shared.system.BlurUtils;
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
 import com.android.systemui.shared.system.QuickStepContract;
@@ -176,6 +186,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Manages the opening and closing app transitions from Launcher
@@ -256,6 +267,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
 
     private RemoteAnimationFactory mWallpaperOpenTransitionRunner;
     private RemoteTransition mLauncherOpenTransition;
+    private RemoteTransition mMoveDisplayTransition;
 
     private final RemoteAnimationCoordinateTransfer mCoordinateTransfer;
     private final LatencyTracker mLatencyTracker;
@@ -322,6 +334,26 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         mDeviceProfile = dp;
     }
 
+    private void startCrossDisplayMoveAnimation(TransitionInfo info, SurfaceControl.Transaction t,
+            IRemoteTransitionFinishedCallback finishCallback) {
+        mHandler.post(() -> {
+            new CrossDisplayMoveTransition(mLauncher, APP_LAUNCH_DURATION,
+                    CLOSING_TRANSITION_DURATION_MS)
+                    .startCrossDisplayMoveAnimation(info, t, finishCallback);
+        });
+    }
+
+    /**
+     * A {@link RemoteTransitionStub} that handles cross display move animations.
+     */
+    private class MoveDisplayChangeRunner extends RemoteTransitionStub {
+        @Override
+        public void startAnimation(IBinder token, TransitionInfo info, SurfaceControl.Transaction t,
+                IRemoteTransitionFinishedCallback finishCallback) throws RemoteException {
+            startCrossDisplayMoveAnimation(info, t, finishCallback);
+        }
+    }
+
     /**
      * @return ActivityOptions with remote animations that controls how the window of the opening
      * targets are displayed.
@@ -343,7 +375,10 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
             }
         });
 
-        RemoteAnimationRunnerCompat runner = createAppLaunchRunner(v, onEndCallback);
+        RemoteAnimationRunnerCompat appLaunchRunner = createAppLaunchRunner(
+                v, onEndCallback);
+        IRemoteTransition appLaunchRemoteTransition = createAppLaunchRemoteTransition(
+                appLaunchRunner);
 
         // Note that this duration is a guess as we do not know if the animation will be a
         // recents launch or not for sure until we know the opening app targets.
@@ -353,10 +388,10 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
 
         long statusBarTransitionDelay = duration - STATUS_BAR_TRANSITION_DURATION
                 - STATUS_BAR_TRANSITION_PRE_DELAY;
-        ActivityOptions options = ActivityOptions.makeRemoteAnimation(
-                new RemoteAnimationAdapter(runner, duration, statusBarTransitionDelay),
-                new RemoteTransition(runner.toRemoteTransition(),
-                        mLauncher.getIApplicationThread(), "QuickstepLaunch"));
+      ActivityOptions options = ActivityOptions.makeRemoteAnimation(
+              new RemoteAnimationAdapter(appLaunchRunner, duration, statusBarTransitionDelay),
+              new RemoteTransition(appLaunchRemoteTransition, mLauncher.getIApplicationThread(),
+                    "QuickstepLaunch"));
         IRemoteCallback endCallback = completeRunnableListCallback(onEndCallback, mLauncher);
         options.setOnAnimationAbortListener(endCallback);
         options.setOnAnimationFinishedListener(endCallback);
@@ -396,6 +431,41 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 ? containerRunner : new AppLaunchAnimationRunner(v, onEndCallback);
         return new LauncherAnimationRunner(
                 mHandler, mAppLaunchRunner, true /* startAtFrontOfQueue */);
+    }
+
+    /**
+     * Creates a remote transition for app launches.
+     *
+     * The app launch runner picks an animation based on the view type (e.g. icon, widget).
+     *
+     * However, for cross-display moves, we need to pick a different animation based on the
+     * (dynamic) TransitionInfo content. This is controlled by the
+     * enableCrossDisplaysAppLaunchTransition flag.
+     *
+     * If the flag is enabled, the returned transition will:
+     * 1. Check if the transition is a cross-display move, and if so, use the cross-display
+     *    animation.
+     * 2. Otherwise, use the default app launch animation from the runner.
+     *
+     * If the flag is disabled, this will always return the default app launch animation.
+     */
+    private IRemoteTransition createAppLaunchRemoteTransition(
+            RemoteAnimationRunnerCompat appLaunchRunner) {
+        IRemoteTransition defaultAppLaunchTransition = appLaunchRunner.toRemoteTransition();
+        if (!com.android.window.flags.Flags.enableCrossDisplaysAppLaunchTransition()) {
+            return defaultAppLaunchTransition;
+        }
+
+        IRemoteTransition crossDisplayMoveTransition = new MoveDisplayChangeRunner();
+        return new RemoteTransitionDelegate(
+                (info) -> {
+                    if (CrossDisplayMoveTransition.isCrossDisplayMove(info)) {
+                        Log.d(TAG, "Handling launch as a cross display move transition");
+                        return crossDisplayMoveTransition;
+                    } else {
+                        return defaultAppLaunchTransition;
+                    }
+                });
     }
 
     /**
@@ -1278,6 +1348,28 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 mBackAnimationController.registerBackCallbacks(mHandler);
             }
         }
+
+        /*
+         * For cross-display moves, moving to the default display is handled by the LaunchOptions
+         * transition setup, which forwards to AppLaunchRemoteAnimationRunner. However, if the
+         * launch happens via a different means (e.g. desktop mode), we also need to handle the
+         * cross-display move via a remote transition.
+         */
+        if (com.android.window.flags.Flags.enableCrossDisplaysAppLaunchTransition()) {
+            mMoveDisplayTransition = new RemoteTransition(new MoveDisplayChangeRunner(),
+                    mLauncher.getIApplicationThread(), "QuickstepDisplayMove");
+            TransitionFilter changeCheck = new TransitionFilter();
+            changeCheck.mRequirements = new TransitionFilter.Requirement[]{
+                    new TransitionFilter.Requirement()};
+            changeCheck.mRequirements[0].mModes = new int[]{TRANSIT_CHANGE};
+            changeCheck.mRequirements[0].mMustBeTask = true;
+            // (TRANSIT_CHANGE is never independent.)
+            changeCheck.mRequirements[0].mMustBeIndependent = false;
+            changeCheck.mRequirements[0].mActivityType = ACTIVITY_TYPE_STANDARD;
+            changeCheck.mRequirements[0].mIsCrossDisplayMove = true;
+            SystemUiProxy.INSTANCE.get(mLauncher)
+                    .registerRemoteTransition(mMoveDisplayTransition, changeCheck);
+        }
     }
 
     public void onActivityDestroyed() {
@@ -1331,6 +1423,11 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 mLauncherOpenTransition);
         mLauncherOpenTransition = null;
         mWallpaperOpenTransitionRunner = null;
+        if (mMoveDisplayTransition != null) {
+            SystemUiProxy.INSTANCE.get(mLauncher)
+                    .unregisterRemoteTransition(mMoveDisplayTransition);
+            mMoveDisplayTransition = null;
+        }
         if (mBackAnimationController != null) {
             mBackAnimationController.unregisterBackCallbacks();
             mBackAnimationController.unregisterComponentCallbacks();
