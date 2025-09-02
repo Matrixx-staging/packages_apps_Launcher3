@@ -35,7 +35,6 @@ import static com.android.launcher3.AbstractFloatingView.TYPE_TASKBAR_OVERLAY_PR
 import static com.android.launcher3.Flags.enableCursorHoverStates;
 import static com.android.launcher3.Utilities.calculateTextHeight;
 import static com.android.launcher3.Utilities.isRunningInTestHarness;
-import static com.android.launcher3.config.FeatureFlags.enableTaskbarNoRecreate;
 import static com.android.launcher3.config.FeatureFlags.enableTaskbarPinning;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_FOLDER_OPEN;
 import static com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_DRAGGING;
@@ -598,14 +597,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         // This entire class gets re-created, which resets the value of mIsDestroyed. We re-use the
         // class for small-screen, so we explicitly have to mark this class as non-destroyed
         mIsDestroyed = false;
-
-        if (!enableTaskbarNoRecreate() && !mAddedWindow) {
-            mWindowManager.addView(mDragLayer, mWindowLayoutParams);
-            mAddedWindow = true;
-        } else {
-            notifyUpdateLayoutParams();
-        }
-
+        notifyUpdateLayoutParams();
 
         if (recreateAnim != null) {
             recreateAnim.start();
@@ -2328,11 +2320,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             if (changes == 0) {
                 return;
             }
-            if (enableTaskbarNoRecreate()) {
-                mWindowManager.updateViewLayout(mDragLayer.getRootView(), mWindowLayoutParams);
-            } else {
-                mWindowManager.updateViewLayout(mDragLayer, mWindowLayoutParams);
-            }
+            mWindowManager.updateViewLayout(mDragLayer.getRootView(), mWindowLayoutParams);
         }
     }
 

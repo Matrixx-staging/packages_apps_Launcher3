@@ -83,17 +83,6 @@ public final class FeatureFlags {
     public static final BooleanFlag NOTIFY_CRASHES = getDebugFlag(270393108, "NOTIFY_CRASHES",
             DISABLED, "Sends a notification whenever launcher encounters an uncaught exception.");
 
-    // Aconfig migration complete for ENABLE_TASKBAR_NO_RECREATION.
-    public static final BooleanFlag ENABLE_TASKBAR_NO_RECREATION = getDebugFlag(299193589,
-            "ENABLE_TASKBAR_NO_RECREATION", DISABLED,
-            "Enables taskbar with no recreation from lifecycle changes of TaskbarActivityContext.");
-    public static boolean enableTaskbarNoRecreate() {
-        return ENABLE_TASKBAR_NO_RECREATION.get() || Flags.enableTaskbarNoRecreate()
-                // Task bar pinning and task bar nav bar unification are both dependent on
-                // ENABLE_TASKBAR_NO_RECREATION. We want to turn ENABLE_TASKBAR_NO_RECREATION on
-                // when either of the dependent features is turned on.
-                || enableTaskbarPinning();
-    }
 
     // TODO(Block 16): Clean up flags
     // Aconfig migration complete for ENABLE_EXPANDING_PAUSE_WORK_BUTTON.

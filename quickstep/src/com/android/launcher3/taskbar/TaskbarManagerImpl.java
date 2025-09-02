@@ -30,7 +30,6 @@ import static com.android.launcher3.Flags.enableUnfoldStateAnimation;
 import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING;
 import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING_IN_DESKTOP_MODE;
 import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING_KEY;
-import static com.android.launcher3.config.FeatureFlags.enableTaskbarNoRecreate;
 import static com.android.launcher3.statehandlers.DesktopVisibilityController.INACTIVE_DESK_ID;
 import static com.android.launcher3.taskbar.TaskbarDesktopExperienceFlags.enableAutoStashConnectedDisplayTaskbar;
 import static com.android.launcher3.taskbar.growth.GrowthConstants.BROADCAST_SHOW_NUDGE;
@@ -825,19 +824,14 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
             }
 
             TaskbarActivityContext taskbar = getTaskbarForDisplay(displayId);
-            if (enableTaskbarNoRecreate() || taskbar == null) {
-                debugTaskbarManager("recreateTaskbarForDisplay: creating taskbar", displayId);
-                taskbar = createTaskbarActivityContext(dp, displayId);
-                if (taskbar == null) {
-                    debugTaskbarManager(
-                            "recreateTaskbarForDisplay: new taskbar instance is null!", displayId);
-                    return;
-                }
-            } else {
-                debugTaskbarManager("recreateTaskbarForDisplay: updating taskbar device profile",
-                        displayId);
-                taskbar.updateDeviceProfile(dp);
+            debugTaskbarManager("recreateTaskbarForDisplay: creating taskbar", displayId);
+            taskbar = createTaskbarActivityContext(dp, displayId);
+            if (taskbar == null) {
+                debugTaskbarManager(
+                        "recreateTaskbarForDisplay: new taskbar instance is null!", displayId);
+                return;
             }
+
             TaskbarSharedState sharedState = getSharedStateForDisplay(displayId);
             sharedState.startTaskbarVariantIsTransient = taskbar.isTransientTaskbar();
             sharedState.allAppsVisible = sharedState.allAppsVisible && isLargeScreenTaskbar;
@@ -853,19 +847,17 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
                                 mPrimaryDisplayId));
             }
 
-            if (enableTaskbarNoRecreate()) {
-                debugTaskbarManager("recreateTaskbarForDisplay: adding rootView", displayId);
-                addTaskbarRootViewToWindow(taskbar);
-                FrameLayout taskbarRootLayout = getTaskbarRootLayoutForDisplay(displayId);
-                if (taskbarRootLayout != null) {
-                    debugTaskbarManager("recreateTaskbarForDisplay: adding root layout", displayId);
-                    taskbarRootLayout.removeAllViews();
-                    taskbarRootLayout.addView(taskbar.getDragLayer());
-                    taskbar.notifyUpdateLayoutParams();
-                } else {
-                    debugTaskbarManager("recreateTaskbarForDisplay: taskbarRootLayout is null!",
-                            displayId);
-                }
+            debugTaskbarManager("recreateTaskbarForDisplay: adding rootView", displayId);
+            addTaskbarRootViewToWindow(taskbar);
+            FrameLayout taskbarRootLayout = getTaskbarRootLayoutForDisplay(displayId);
+            if (taskbarRootLayout != null) {
+                debugTaskbarManager("recreateTaskbarForDisplay: adding root layout", displayId);
+                taskbarRootLayout.removeAllViews();
+                taskbarRootLayout.addView(taskbar.getDragLayer());
+                taskbar.notifyUpdateLayoutParams();
+            } else {
+                debugTaskbarManager("recreateTaskbarForDisplay: taskbarRootLayout is null!",
+                        displayId);
             }
         } finally {
             Trace.endSection();
@@ -1243,10 +1235,6 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
     private void addTaskbarRootViewToWindow(@NonNull TaskbarActivityContext taskbar) {
         int displayId = taskbar.getDisplayId();
         debugTaskbarManager("addTaskbarRootViewToWindow:", displayId);
-        if (!enableTaskbarNoRecreate()) {
-            debugTaskbarManager("addTaskbarRootViewToWindow: taskbar null", displayId);
-            return;
-        }
 
         if (getDisplay(displayId) == null) {
             debugTaskbarManager("addTaskbarRootViewToWindow: display null", displayId);
@@ -1276,7 +1264,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
     private void removeTaskbarRootViewFromWindow(int displayId) {
         debugTaskbarManager("removeTaskbarRootViewFromWindow", displayId);
         FrameLayout rootLayout = getTaskbarRootLayoutForDisplay(displayId);
-        if (!enableTaskbarNoRecreate() || rootLayout == null) {
+        if (rootLayout == null) {
             return;
         }
 
@@ -1652,10 +1640,6 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
      */
     private void createTaskbarRootLayout(int displayId) {
         debugTaskbarManager("createTaskbarRootLayout: ", displayId);
-        if (!enableTaskbarNoRecreate()) {
-            return;
-        }
-
         FrameLayout newTaskbarRootLayout = new FrameLayout(getWindowContext(displayId)) {
             @Override
             public boolean dispatchTouchEvent(MotionEvent ev) {
