@@ -464,7 +464,7 @@ public class LoaderTask implements Runnable {
             mShortcutKeyToPinnedShortcuts = new HashMap<>();
             final LoaderCursor c = mLoaderCursorFactory.createLoaderCursor(
                     dbController.query(null, selection, null,
-                            LauncherDbUtils.getLoaderCursorQuerySortOrder(mContext)),
+                            LauncherDbUtils.getLoaderCursorQuerySortOrder()),
                     mUserManagerState,
                     mIsRestoreFromBackup ? restoreEventLogger : null);
             final Bundle extras = c.getExtras();
