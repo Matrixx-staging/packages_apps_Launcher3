@@ -331,7 +331,7 @@ public class PredictedAppIcon extends DoubleShadowBubbleTextView {
         mRingPath.addPath(mShapePath, mTmpMatrix);
 
         FastBitmapDrawable icon = getIcon();
-        if (icon != null && icon.getBadge() != null) {
+        if (icon != null && icon.getBadge() != null && !Flags.enableLauncherIconShapes()) {
             float outlineSize = mNormalizedIconSize * RING_EFFECT_RATIO;
             float iconSize = getIconSize() * (1 - 2 * RING_EFFECT_RATIO);
             float badgeSize = LauncherIcons.getBadgeSizeForIconSize((int) iconSize) + outlineSize;
