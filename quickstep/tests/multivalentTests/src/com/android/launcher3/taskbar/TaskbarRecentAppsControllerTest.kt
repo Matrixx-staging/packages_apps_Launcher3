@@ -1327,6 +1327,7 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
         setInDesktopMode(true)
         val transparentTask = createTask(id = 1, "transparentPackage")
         transparentTask.key.isTopActivityTransparent = true
+        transparentTask.key.isActivityStackTransparent = true
         val regularTask = createTask(id = 2, RUNNING_APP_PACKAGE_1)
 
         prepareHotseatAndRunningAndRecentApps(

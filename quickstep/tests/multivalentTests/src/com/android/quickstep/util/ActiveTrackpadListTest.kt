@@ -88,47 +88,72 @@ class ActiveTrackpadListTest {
 
     @Test
     fun `update called on add only once`() {
-        var updateCalled = false
-        val list = ActiveTrackpadList(context) { updateCalled = true }
+        var updateCalled = 0
+        val list = ActiveTrackpadList(context) { updateCalled++ }
         TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {}
 
-        assertFalse(updateCalled)
+        assertEquals(0, updateCalled)
         assertEquals(0, list.size())
 
         list.onInputDeviceAdded(1)
         TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {}
-        assertFalse(updateCalled)
+        assertEquals(0, updateCalled)
         assertEquals(0, list.size())
 
         list.onInputDeviceAdded(2)
         TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {}
-        assertTrue(updateCalled)
+        assertEquals(1, updateCalled)
         assertEquals(1, list.size())
 
-        updateCalled = false
         list.onInputDeviceAdded(3)
         TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {}
-        assertFalse(updateCalled)
+        assertEquals(1, updateCalled)
         assertEquals(2, list.size())
     }
 
     @Test
     fun `update called on remove only once`() {
-        var updateCalled = false
+        var updateCalled = 0
         inputDeviceIds.addAll(IntArray.wrap(1, 2, 3, 4))
-        val list = ActiveTrackpadList(context) { updateCalled = true }
+        val list = ActiveTrackpadList(context) { updateCalled++ }
         TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {}
         assertEquals(2, list.size())
 
         list.onInputDeviceRemoved(2)
         TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {}
         assertEquals(1, list.size())
-        assertFalse(updateCalled)
+        assertEquals(0, updateCalled)
 
         list.onInputDeviceRemoved(3)
         TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {}
         assertEquals(0, list.size())
-        assertTrue(updateCalled)
+        assertEquals(1, updateCalled)
+
+        // Removing non-trackpad device should have no effect.
+        list.onInputDeviceRemoved(4)
+        TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {}
+        assertEquals(0, list.size())
+        assertEquals(1, updateCalled)
+    }
+
+    @Test
+    fun `update not called on add and remove non-trackpad device`() {
+        var updateCalled = 0
+        val list = ActiveTrackpadList(context) { updateCalled++ }
+        TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {}
+
+        assertEquals(0, updateCalled)
+        assertEquals(0, list.size())
+
+        list.onInputDeviceAdded(1)
+        TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {}
+        assertEquals(0, updateCalled)
+        assertEquals(0, list.size())
+
+        list.onInputDeviceRemoved(1)
+        TestUtil.runOnExecutorSync(MAIN_EXECUTOR) {}
+        assertEquals(0, updateCalled)
+        assertEquals(0, list.size())
     }
 
     private fun mockDevice(sources: Int) =
