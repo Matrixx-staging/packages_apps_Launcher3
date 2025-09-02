@@ -33,6 +33,7 @@ import com.android.launcher3.tapl.HomeAppIcon;
 import com.android.launcher3.tapl.Workspace;
 import com.android.launcher3.util.TestUtil;
 import com.android.launcher3.util.Wait;
+import com.android.launcher3.util.rule.ScreenRecordRule;
 import com.android.launcher3.util.ui.AbstractLauncherUiTest;
 import com.android.launcher3.util.ui.PortraitLandscapeRunner.PortraitLandscape;
 
@@ -126,6 +127,7 @@ public class TaplUninstallRemoveTest extends AbstractLauncherUiTest<Launcher, Vi
      */
     @Test
     @PlatinumTest(focusArea = "launcher")
+    @ScreenRecordRule.ScreenRecord // TODO(b/425692064): remove when closing bug
     public void uninstallWorkspaceIcon() throws IOException {
         Point[] gridPositions = TestUtil.getCornersAndCenterPositions(mLauncher);
         StringBuilder sb = new StringBuilder();
