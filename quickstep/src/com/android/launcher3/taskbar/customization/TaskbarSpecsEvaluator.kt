@@ -18,10 +18,9 @@ package com.android.launcher3.taskbar.customization
 
 import com.android.launcher3.taskbar.TaskbarActivityContext
 import com.android.launcher3.taskbar.TaskbarPopupController
-import com.google.common.annotations.VisibleForTesting
 
 /** The maximum number of icons that can be pinned with the taskbar overflow. */
-@VisibleForTesting const val TASKBAR_OVERFLOW_PIN_LIMIT = 16
+const val TASKBAR_OVERFLOW_PIN_LIMIT = 16
 
 /** Evaluates the taskbar specs based on the taskbar grid size and the taskbar icon size. */
 class TaskbarSpecsEvaluator(
