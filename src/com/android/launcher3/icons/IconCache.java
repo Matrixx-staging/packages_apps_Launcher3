@@ -179,10 +179,13 @@ public class IconCache extends BaseIconCache {
      * Closes the cache DB. This will clear any in-memory cache.
      */
     public void close() {
-        // This will clear all pending updates
-        getUpdateHandler();
+        // Close the actual DB on the same thread where the cache is used.
+        MODEL_EXECUTOR.execute(() -> {
+            // This will clear all pending updates
+            getUpdateHandler();
 
-        iconDb.close();
+            iconDb.close();
+        });
     }
 
     /**
