@@ -30,7 +30,6 @@ import static com.android.launcher3.Flags.enableUnfoldStateAnimation;
 import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING;
 import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING_IN_DESKTOP_MODE;
 import static com.android.launcher3.LauncherPrefs.TASKBAR_PINNING_KEY;
-import static com.android.launcher3.config.FeatureFlags.ENABLE_TASKBAR_NAVBAR_UNIFICATION;
 import static com.android.launcher3.config.FeatureFlags.enableTaskbarNoRecreate;
 import static com.android.launcher3.statehandlers.DesktopVisibilityController.INACTIVE_DESK_ID;
 import static com.android.launcher3.taskbar.TaskbarDesktopExperienceFlags.enableAutoStashConnectedDisplayTaskbar;
@@ -809,7 +808,6 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
             boolean isTaskbarEnabled = dp != null && isTaskbarEnabled(displayId, dp);
             debugTaskbarManager("recreateTaskbarForDisplay: isTaskbarEnabled=" + isTaskbarEnabled
                     + " [dp != null (i.e. mUserUnlocked)]=" + (dp != null)
-                    + " FLAG_HIDE_NAVBAR_WINDOW=" + ENABLE_TASKBAR_NAVBAR_UNIFICATION
                     + " dp.isTaskbarPresent=" + (dp == null ? "null" : dp.isTaskbarPresent)
                     + " isTaskbarEnabled=" + isTaskbarEnabled
                     + " displayExists=" + displayExists, displayId);
@@ -972,8 +970,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
         if (taskbarDisallowedByDisplayPolicy) {
             debugTaskbarManager("No taskbar due to SYSUI_STATE_NAVIGATION_BAR_DISABLED", displayId);
         }
-        return !taskbarDisallowedByDisplayPolicy
-                && (ENABLE_TASKBAR_NAVBAR_UNIFICATION || deviceProfile.isTaskbarPresent);
+        return !taskbarDisallowedByDisplayPolicy;
     }
 
     public void onRotationProposal(int rotation, boolean isValid) {
@@ -1404,11 +1401,8 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
             return null;
         }
 
-        Context navigationBarPanelContext = null;
-        if (ENABLE_TASKBAR_NAVBAR_UNIFICATION) {
-            navigationBarPanelContext = mBaseContext.createWindowContext(display,
-                    TYPE_NAVIGATION_BAR_PANEL, null);
-        }
+        Context navigationBarPanelContext = mBaseContext.createWindowContext(display,
+                TYPE_NAVIGATION_BAR_PANEL, null);
 
         Context windowContext = getWindowContext(displayId);
         if (mBootAppContext != null) {
@@ -1549,18 +1543,11 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
                         destroyTaskbarForDisplay(displayId);
                     } else {
                         debugPrimaryTaskbar("onConfigurationChanged: isTaskbarEnabled(dp)=True");
-                        if (ENABLE_TASKBAR_NAVBAR_UNIFICATION) {
-                            // Re-initialize for screen size change? Should this be done
-                            // by looking at screen-size change flag in configDiff in the
-                            // block above?
-                            debugPrimaryTaskbar("onConfigurationChanged: call recreateTaskbars");
-                            recreateTaskbarForDisplay(displayId, /* duration= */ 0);
-                        } else {
-                            debugPrimaryTaskbar(
-                                    "onConfigurationChanged: updateDeviceProfile for current "
-                                            + "taskbar.");
-                            taskbar.updateDeviceProfile(dp);
-                        }
+                        // Re-initialize for screen size change? Should this be done
+                        // by looking at screen-size change flag in configDiff in the
+                        // block above?
+                        debugPrimaryTaskbar("onConfigurationChanged: call recreateTaskbars");
+                        recreateTaskbarForDisplay(displayId, /* duration= */ 0);
                     }
                 } else {
                     taskbar.onConfigurationChanged(configDiff);
@@ -1755,7 +1742,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
         }
 
         int windowType = TYPE_NAVIGATION_BAR_PANEL;
-        if (ENABLE_TASKBAR_NAVBAR_UNIFICATION && !isExternalDisplay(displayId)) {
+        if (!isExternalDisplay(displayId)) {
             windowType = TYPE_NAVIGATION_BAR;
         }
         debugTaskbarManager(

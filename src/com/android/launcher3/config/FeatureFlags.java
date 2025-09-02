@@ -83,21 +83,6 @@ public final class FeatureFlags {
     public static final BooleanFlag NOTIFY_CRASHES = getDebugFlag(270393108, "NOTIFY_CRASHES",
             DISABLED, "Sends a notification whenever launcher encounters an uncaught exception.");
 
-    public static final boolean ENABLE_TASKBAR_NAVBAR_UNIFICATION =
-            (!isPhone() || enableTaskbarOnPhones());
-
-    private static boolean isPhone() {
-        final boolean isPhone;
-        int foldedDeviceStatesId = Resources.getSystem().getIdentifier(
-                "config_foldedDeviceStates", "array", "android");
-        if (foldedDeviceStatesId != 0) {
-            isPhone = Resources.getSystem().getIntArray(foldedDeviceStatesId).length == 0;
-        } else {
-            isPhone = true;
-        }
-        return isPhone;
-    }
-
     // Aconfig migration complete for ENABLE_TASKBAR_NO_RECREATION.
     public static final BooleanFlag ENABLE_TASKBAR_NO_RECREATION = getDebugFlag(299193589,
             "ENABLE_TASKBAR_NO_RECREATION", DISABLED,
@@ -107,7 +92,7 @@ public final class FeatureFlags {
                 // Task bar pinning and task bar nav bar unification are both dependent on
                 // ENABLE_TASKBAR_NO_RECREATION. We want to turn ENABLE_TASKBAR_NO_RECREATION on
                 // when either of the dependent features is turned on.
-                || enableTaskbarPinning() || ENABLE_TASKBAR_NAVBAR_UNIFICATION;
+                || enableTaskbarPinning();
     }
 
     // TODO(Block 16): Clean up flags

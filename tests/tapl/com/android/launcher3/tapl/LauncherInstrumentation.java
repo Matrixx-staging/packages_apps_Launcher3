@@ -484,11 +484,6 @@ public final class LauncherInstrumentation {
                 .getBoolean(TestProtocol.TEST_INFO_RESPONSE_FIELD);
     }
 
-    public boolean isTaskbarNavbarUnificationEnabled() {
-        return getTestInfo(TestProtocol.REQUEST_ENABLE_TASKBAR_NAVBAR_UNIFICATION)
-                .getBoolean(TestProtocol.TEST_INFO_RESPONSE_FIELD);
-    }
-
     public boolean isTwoPanels() {
         return getTestInfo(TestProtocol.REQUEST_IS_TWO_PANELS)
                 .getBoolean(TestProtocol.TEST_INFO_RESPONSE_FIELD);
@@ -984,7 +979,7 @@ public final class LauncherInstrumentation {
     public String getNavigationModeMismatchError(boolean waitForCorrectState) {
         final int waitTime = waitForCorrectState ? WAIT_TIME_MS : 0;
         final NavigationModel navigationModel = getNavigationModel();
-        String resPackage = getNavigationButtonResPackage();
+        String resPackage = getLauncherPackageName();
         final BySelector recentAppsSelector = By.res(resPackage, "recent_apps");
         final BySelector homeSelector = By.res(resPackage, "home");
         recentAppsSelector.displayId(mDisplayId);
@@ -1010,11 +1005,6 @@ public final class LauncherInstrumentation {
             }
         }
         return null;
-    }
-
-    private String getNavigationButtonResPackage() {
-        return isTablet() || isTaskbarNavbarUnificationEnabled()
-                ? getLauncherPackageName() : SYSTEMUI_PACKAGE;
     }
 
     UiObject2 verifyContainerType(ContainerType containerType) {
@@ -1428,9 +1418,7 @@ public final class LauncherInstrumentation {
 
     void pressBackImpl() {
         waitForLauncherInitialized();
-        final boolean launcherVisible =
-                (isTablet() || isTaskbarNavbarUnificationEnabled()) ? isLauncherContainerVisible()
-                        : isLauncherVisible();
+        final boolean launcherVisible = isLauncherContainerVisible();
         boolean isThreeFingerTrackpadGesture =
                 mTrackpadGestureType == TrackpadGestureType.THREE_FINGER;
         if (getNavigationModel() == NavigationModel.ZERO_BUTTON
@@ -1454,16 +1442,6 @@ public final class LauncherInstrumentation {
 
     private static BySelector getAnyObjectSelector() {
         return By.textStartsWith("");
-    }
-
-    boolean isLauncherVisible() {
-        try {
-            Trace.beginSection("isLauncherVisible");
-            mDevice.waitForIdle();
-            return hasLauncherObject(getAnyObjectSelector());
-        } finally {
-            Trace.endSection();
-        }
     }
 
     boolean isLauncherContainerVisible() {
@@ -1637,7 +1615,7 @@ public final class LauncherInstrumentation {
 
     @NonNull
     UiObject2 waitForNavigationUiObject(String resId) {
-        String resPackage = getNavigationButtonResPackage();
+        String resPackage = getLauncherPackageName();
         final UiObject2 object = mDevice.wait(
                 Until.findObject(By.res(resPackage, resId).displayId(mDisplayId)), WAIT_TIME_MS);
         assertNotNull("Can't find a navigation UI object with id: " + resId, object);

@@ -25,7 +25,6 @@ import static com.android.internal.jank.InteractionJankMonitor.Configuration;
 import static com.android.launcher3.Flags.refactorTaskbarUiState;
 import static com.android.launcher3.Flags.syncAppLaunchWithTaskbarStash;
 import static com.android.launcher3.QuickstepTransitionManager.PINNED_TASKBAR_TRANSITION_DURATION;
-import static com.android.launcher3.config.FeatureFlags.ENABLE_TASKBAR_NAVBAR_UNIFICATION;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TRANSIENT_TASKBAR_HIDE;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TRANSIENT_TASKBAR_SHOW;
 import static com.android.launcher3.statehandlers.DesktopVisibilityController.INACTIVE_DESK_ID;
@@ -371,12 +370,9 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
 
         boolean isTransientTaskbar = mActivity.isTransientTaskbar();
         boolean isInSetup = !mActivity.isUserSetupComplete() || setupUIVisible;
-        boolean isStashedInAppAuto =
-                isTransientTaskbar && !mTaskbarSharedState.getTaskbarWasPinned();
-
-        if (ENABLE_TASKBAR_NAVBAR_UNIFICATION) {
-            isStashedInAppAuto = isStashedInAppAuto && mTaskbarSharedState.taskbarWasStashedAuto;
-        }
+        boolean isStashedInAppAuto = isTransientTaskbar
+                && !mTaskbarSharedState.getTaskbarWasPinned()
+                && mTaskbarSharedState.taskbarWasStashedAuto;
 
         if (!mActivity.isPrimaryDisplay() && enableAutoStashConnectedDisplayTaskbar.isTrue()) {
             updateFlagForDesktopModeOnCD(/* fromInit= */ true);
