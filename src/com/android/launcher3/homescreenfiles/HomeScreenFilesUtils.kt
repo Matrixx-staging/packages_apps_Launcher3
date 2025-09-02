@@ -16,16 +16,15 @@
 
 package com.android.launcher3.homescreenfiles
 
-import android.content.Context
+import android.os.Environment
 import com.android.launcher3.Flags.showFilesOnHomeScreen
 
 /** Other utility methods related to managing files on the home screen. */
 class HomeScreenFilesUtils {
     companion object {
         /** Returns `true` if the feature to show files on the home screen is enabled. */
-        fun isFeatureEnabled(context: Context): Boolean {
-            // TODO(b/424465906): also check `R.bool.desktop_form_factor`.
-            return showFilesOnHomeScreen()
+        val isFeatureEnabled: Boolean by lazy {
+            showFilesOnHomeScreen() && Environment.isExternalStorageManager()
         }
     }
 }

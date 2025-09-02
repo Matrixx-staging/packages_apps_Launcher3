@@ -181,7 +181,7 @@ object HomeScreenFilesModule {
         @ApplicationContext context: Context,
         @ThreadPool executorService: ExecutorService,
     ): HomeScreenFilesProvider {
-        return if (HomeScreenFilesUtils.isFeatureEnabled(context)) {
+        return if (HomeScreenFilesUtils.isFeatureEnabled) {
             HomeScreenFilesMediaStoreProvider(context, executorService)
         } else {
             HomeScreenFilesNoOpProvider()
