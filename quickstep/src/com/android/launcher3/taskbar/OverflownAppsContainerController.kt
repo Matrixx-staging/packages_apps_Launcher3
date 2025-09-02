@@ -24,6 +24,11 @@ import com.android.launcher3.model.data.ItemInfo
  */
 class OverflownAppsContainerController(private val activityContext: TaskbarActivityContext) {
     private var overflownAppsViewController: OverflownAppsViewController? = null
+    private lateinit var viewCallbacks: TaskbarViewCallbacks
+
+    fun init(callbacks: TaskbarViewCallbacks) {
+        viewCallbacks = callbacks
+    }
 
     fun toggleOverflownAppsView(
         overflowIcon: TaskbarOverflowView,
@@ -35,7 +40,7 @@ class OverflownAppsContainerController(private val activityContext: TaskbarActiv
         }
 
         overflownAppsViewController =
-            OverflownAppsViewController(activityContext, overflowIcon) {
+            OverflownAppsViewController(activityContext, viewCallbacks, overflowIcon) {
                 overflownAppsViewController = null
                 onClosed.run()
             }
