@@ -39,6 +39,9 @@ import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.popup.SystemShortcut
 import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.taskbar.TaskbarControllerTestUtil.runOnMainSync
+import com.android.launcher3.taskbar.TaskbarIconType.ALL_APPS
+import com.android.launcher3.taskbar.TaskbarIconType.HOTSEAT
+import com.android.launcher3.taskbar.TaskbarIconType.OVERFLOW
 import com.android.launcher3.taskbar.TaskbarViewTestUtil.createHotseatItems
 import com.android.launcher3.taskbar.bubbles.BubbleBarViewController
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController
@@ -69,6 +72,7 @@ import com.android.quickstep.util.SlideInRemoteTransition
 import com.android.systemui.shared.recents.model.Task
 import com.android.window.flags.Flags.FLAG_ENABLE_DESKTOP_WINDOWING_MODE
 import com.android.window.flags.Flags.FLAG_ENABLE_DESKTOP_WINDOWING_TASKBAR_RUNNING_APPS
+import com.android.window.flags.Flags.FLAG_ENABLE_OVERFLOW_BUTTON_FOR_TASKBAR_PINNED_ITEMS
 import com.android.window.flags.Flags.FLAG_ENABLE_PINNING_APP_WITH_CONTEXT_MENU
 import com.android.window.flags.Flags.FLAG_ENABLE_TASKBAR_OVERFLOW
 import com.android.wm.shell.Flags.FLAG_ENABLE_BUBBLE_BAR
@@ -283,6 +287,25 @@ class TaskbarOverflowTest {
         assertThat(maxNumIconViews).isLessThan(initialMaxNumIconViews)
 
         assertThat(taskbarIconsCentered).isTrue()
+    }
+
+    @Test
+    @TaskbarMode(PINNED)
+    @EnableFlags(FLAG_ENABLE_OVERFLOW_BUTTON_FOR_TASKBAR_PINNED_ITEMS)
+    fun testTaskbarWithPinAppsOverflow_pinned() {
+        val numHotseatIcons = taskbarContext.deviceProfile.numShownHotseatIcons
+
+        val taskbarView = getOnUiThread {
+            val view = taskbarContext.dragLayer.findViewById<TaskbarView>(R.id.taskbar_view)
+            view.updateItems(createHotseatItems(numHotseatIcons + 2), emptyList(), emptyList())
+            view
+        }
+
+        TaskbarViewTestUtil.assertThat(taskbarView)
+            .hasIconTypes(ALL_APPS, *HOTSEAT * (numHotseatIcons - 1), OVERFLOW)
+        assertThat(taskbarOverflowIconIndex).isEqualTo(numHotseatIcons)
+        assertThat(overflowItems)
+            .containsExactlyElementsIn(numHotseatIcons - 1..numHotseatIcons + 1)
     }
 
     @Test
