@@ -1994,13 +1994,13 @@ public class Launcher extends StatefulActivity<LauncherState>
             // Remove the shortcut from the folder before removing it from launcher
             Folder folder = folderIcon.getFolder();
             folder.removeFolderContent(true, itemInfo);
-            return false;
+            return true;
         } else if (collectionIcon instanceof AppPairIcon appPairIcon) {
             removeItem(appPairIcon, appPairIcon.getInfo(), deleteFromDb,
                     "removing app pair because one of its member apps was removed");
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     @Override
