@@ -87,7 +87,7 @@ class TaskbarPopupControllerTest {
         popupController.setTaskbarInfoList(SparseArray())
         val recentItems = createRecents(2)
         runOnMainSync {
-            taskbarView.updateItems(hotseatItems, recentItems)
+            taskbarView.updateItems(hotseatItems, recentItems, emptyList())
             hotseatIcon =
                 taskbarView.iconViews.filterIsInstance<BubbleTextView>().first {
                     it.tag is WorkspaceItemInfo
