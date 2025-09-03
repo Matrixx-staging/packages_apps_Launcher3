@@ -28,6 +28,7 @@ import android.os.UserHandle
 import android.platform.test.annotations.DisableFlags
 import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
+import android.provider.DocumentsContract
 import android.util.LongSparseArray
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.launcher3.Flags
@@ -867,6 +868,17 @@ class WorkspaceItemProcessorTest {
         assertThat(items.get(0).screenId).isEqualTo(0)
         assertThat(items.get(0).cellX).isEqualTo(0)
         assertThat(items.get(0).cellY).isEqualTo(0)
+        assertThat(items.get(0).intent).isNotNull()
+        assertThat(items.get(0).intent!!.action).isEqualTo(Intent.ACTION_VIEW)
+        assertThat(items.get(0).intent!!.flags)
+            .isEqualTo(
+                Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+        assertThat(items.get(0).intent!!.data)
+            .isEqualTo(Uri.parse("content://media/external/file/1"))
+        assertThat(items.get(0).intent!!.type).isEqualTo("image/png")
 
         assertThat(items.get(1).id).isEqualTo(1)
         assertThat(items.get(1).title).isEqualTo("folder_a")
@@ -877,5 +889,15 @@ class WorkspaceItemProcessorTest {
         assertThat(items.get(1).screenId).isEqualTo(0)
         assertThat(items.get(1).cellX).isEqualTo(1)
         assertThat(items.get(1).cellY).isEqualTo(1)
+        assertThat(items.get(1).intent!!.action).isEqualTo(Intent.ACTION_VIEW)
+        assertThat(items.get(1).intent!!.flags)
+            .isEqualTo(
+                Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+        assertThat(items.get(1).intent!!.data)
+            .isEqualTo(Uri.parse("content://media/external/file/2"))
+        assertThat(items.get(1).intent!!.type).isEqualTo(DocumentsContract.Document.MIME_TYPE_DIR)
     }
 }
