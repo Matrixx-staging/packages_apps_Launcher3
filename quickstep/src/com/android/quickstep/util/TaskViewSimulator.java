@@ -198,7 +198,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
             // Task rect will represent the scaled down thumbnail position and is placed inside
             // full task size as it is on the home screen.
             PointF fullscreenTaskDimension = new PointF();
-            BaseActivityInterface.getTaskDimension(mContext, mDp, fullscreenTaskDimension);
+            BaseActivityInterface.getTaskDimension(mDp, fullscreenTaskDimension);
             // Calculate the scale down factor used in recents
             float scale = mFullTaskSize.width() / fullscreenTaskDimension.x;
             mTaskRect.set(mThumbnailPosition);

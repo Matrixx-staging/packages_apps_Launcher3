@@ -811,7 +811,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
 
     /** Returns the dimensions of the screen. */
     private fun getScreenRect(): Rect {
-        BaseContainerInterface.getTaskDimension(mContext, container.deviceProfile, tempPointF)
+        BaseContainerInterface.getTaskDimension(container.deviceProfile, tempPointF)
         return Rect(0, 0, tempPointF.x.toInt(), tempPointF.y.toInt())
     }
 

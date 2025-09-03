@@ -59,7 +59,6 @@ import com.android.launcher3.statemanager.StatefulContainer;
 import com.android.launcher3.taskbar.TaskbarInteractor;
 import com.android.launcher3.taskbar.TaskbarUiStateMonitor;
 import com.android.launcher3.util.DisplayController;
-import com.android.launcher3.util.TaskbarModeUtil;
 import com.android.launcher3.util.WindowBounds;
 import com.android.launcher3.views.ScrimColors;
 import com.android.launcher3.views.ScrimColorsEvaluator;
@@ -397,7 +396,7 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
         float maxScale = res.getFloat(R.dimen.overview_max_scale);
         Rect gridRect = new Rect();
         calculateGridSize(dp, context, gridRect);
-        calculateTaskSizeInternal(context, dp, gridRect, maxScale, Gravity.CENTER, outRect);
+        calculateTaskSizeInternal(dp, gridRect, maxScale, Gravity.CENTER, outRect);
     }
 
     private void calculateTaskSizeInternal(Context context, DeviceProfile dp, int claimedSpaceAbove,
@@ -439,12 +438,12 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
         orientationHandler.rotateInsets(outRect, outRect);
         potentialTaskRect.inset(outRect);
 
-        calculateTaskSizeInternal(context, dp, potentialTaskRect, maxScale, gravity, outRect);
+        calculateTaskSizeInternal(dp, potentialTaskRect, maxScale, gravity, outRect);
     }
 
-    private void calculateTaskSizeInternal(Context context, DeviceProfile dp,
+    private void calculateTaskSizeInternal(DeviceProfile dp,
             Rect potentialTaskRect, float targetScale, int gravity, Rect outRect) {
-        PointF taskDimension = getTaskDimension(context, dp);
+        PointF taskDimension = getTaskDimension(dp);
 
         float scale = Math.min(
                 potentialTaskRect.width() / taskDimension.x,
@@ -456,20 +455,20 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
         Gravity.apply(gravity, outWidth, outHeight, potentialTaskRect, outRect);
     }
 
-    private static PointF getTaskDimension(Context context, DeviceProfile dp) {
+    private static PointF getTaskDimension(DeviceProfile dp) {
         PointF dimension = new PointF();
-        getTaskDimension(context, dp, dimension);
+        getTaskDimension(dp, dimension);
         return dimension;
     }
 
     /**
      * Gets the dimension of the task in the current system state.
      */
-    public static void getTaskDimension(Context context, DeviceProfile dp, PointF out) {
+    public static void getTaskDimension(DeviceProfile dp, PointF out) {
         out.x = dp.getDeviceProperties().getWidthPx();
         out.y = dp.getDeviceProperties().getHeightPx();
         if (dp.getDeviceProperties().isTablet()
-                && !TaskbarModeUtil.INSTANCE.get(context).isTransient()) {
+                && !dp.getTaskbarProfile().isTransientTaskbar()) {
             out.y -= dp.getTaskbarProfile().getHeight();
         }
     }
@@ -501,7 +500,7 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
                 + dp.getOverviewProfile().getTaskThumbnailTopMarginPx()
                 - dp.getOverviewProfile().getRowSpacing()) / 2f;
 
-        PointF taskDimension = getTaskDimension(context, dp);
+        PointF taskDimension = getTaskDimension(dp);
         float scale = (rowHeight - dp.getOverviewProfile().getTaskThumbnailTopMarginPx())
                 / taskDimension.y;
         int outWidth = Math.round(scale * taskDimension.x);
