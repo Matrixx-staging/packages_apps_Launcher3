@@ -26,10 +26,12 @@ import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.taskbar.TaskbarControllerTestUtil.runOnMainSync
 import com.android.launcher3.taskbar.TaskbarIconType.ALL_APPS
 import com.android.launcher3.taskbar.TaskbarIconType.DIVIDER
+import com.android.launcher3.taskbar.TaskbarIconType.HANDOFF_SUGGESTION
 import com.android.launcher3.taskbar.TaskbarIconType.HOTSEAT
 import com.android.launcher3.taskbar.TaskbarIconType.OVERFLOW
 import com.android.launcher3.taskbar.TaskbarIconType.RECENT
 import com.android.launcher3.taskbar.TaskbarViewTestUtil.assertThat
+import com.android.launcher3.taskbar.TaskbarViewTestUtil.createHandoffSuggestions
 import com.android.launcher3.taskbar.TaskbarViewTestUtil.createHotseatItems
 import com.android.launcher3.taskbar.TaskbarViewTestUtil.createRecents
 import com.android.launcher3.taskbar.TaskbarViewTestUtil.createSplitTask
@@ -80,27 +82,27 @@ class TaskbarViewTest {
 
     @Test
     fun testUpdateItems_noItems_hasOnlyAllApps() {
-        runOnMainSync { taskbarView.updateItems(emptyArray(), emptyList()) }
+        runOnMainSync { taskbarView.updateItems(emptyArray(), emptyList(), emptyList()) }
         assertThat(taskbarView).hasIconTypes(ALL_APPS)
     }
 
     @Test
     fun testUpdateItems_hotseatItems_hasDividerBetweenAllAppsAndHotseat() {
-        runOnMainSync { taskbarView.updateItems(createHotseatItems(2), emptyList()) }
+        runOnMainSync { taskbarView.updateItems(createHotseatItems(2), emptyList(), emptyList()) }
         assertThat(taskbarView).hasIconTypes(ALL_APPS, DIVIDER, HOTSEAT, HOTSEAT)
     }
 
     @Test
     @ForceRtl
     fun testUpdateItems_rtlWithHotseatItems_hasDividerBetweenHotseatAndAllApps() {
-        runOnMainSync { taskbarView.updateItems(createHotseatItems(2), emptyList()) }
+        runOnMainSync { taskbarView.updateItems(createHotseatItems(2), emptyList(), emptyList()) }
         assertThat(taskbarView).hasIconTypes(HOTSEAT, HOTSEAT, DIVIDER, ALL_APPS)
     }
 
     @Test
     fun testUpdateItems_withNullHotseatItem_filtersNullItem() {
         runOnMainSync {
-            taskbarView.updateItems(arrayOf(*createHotseatItems(2), null), emptyList())
+            taskbarView.updateItems(arrayOf(*createHotseatItems(2), null), emptyList(), emptyList())
         }
         assertThat(taskbarView).hasIconTypes(ALL_APPS, DIVIDER, HOTSEAT, HOTSEAT)
     }
@@ -109,55 +111,117 @@ class TaskbarViewTest {
     @ForceRtl
     fun testUpdateItems_rtlWithNullHotseatItem_filtersNullItem() {
         runOnMainSync {
-            taskbarView.updateItems(arrayOf(*createHotseatItems(2), null), emptyList())
+            taskbarView.updateItems(arrayOf(*createHotseatItems(2), null), emptyList(), emptyList())
         }
         assertThat(taskbarView).hasIconTypes(HOTSEAT, HOTSEAT, DIVIDER, ALL_APPS)
     }
 
     @Test
     fun testUpdateItems_recentsItems_hasDividerBetweenAllAppsAndRecents() {
-        runOnMainSync { taskbarView.updateItems(emptyArray(), createRecents(4)) }
+        runOnMainSync { taskbarView.updateItems(emptyArray(), createRecents(4), emptyList()) }
         assertThat(taskbarView).hasIconTypes(ALL_APPS, DIVIDER, *RECENT * 4)
     }
 
     @Test
     fun testUpdateItems_hotseatItemsAndRecents_hasDividerBetweenHotseatAndRecents() {
-        runOnMainSync { taskbarView.updateItems(createHotseatItems(3), createRecents(2)) }
+        runOnMainSync {
+            taskbarView.updateItems(createHotseatItems(3), createRecents(2), emptyList())
+        }
         assertThat(taskbarView).hasIconTypes(ALL_APPS, *HOTSEAT * 3, DIVIDER, *RECENT * 2)
     }
 
     @Test
     fun testUpdateItems_addHotseatItem_updatesHotseat() {
         runOnMainSync {
-            taskbarView.updateItems(createHotseatItems(1), createRecents(1))
-            taskbarView.updateItems(createHotseatItems(2), createRecents(1))
+            taskbarView.updateItems(
+                createHotseatItems(1),
+                createRecents(1),
+                createHandoffSuggestions(1),
+            )
+            taskbarView.updateItems(
+                createHotseatItems(2),
+                createRecents(1),
+                createHandoffSuggestions(1),
+            )
         }
-        assertThat(taskbarView).hasIconTypes(ALL_APPS, *HOTSEAT * 2, DIVIDER, RECENT)
+        assertThat(taskbarView)
+            .hasIconTypes(ALL_APPS, *HOTSEAT * 2, DIVIDER, RECENT, HANDOFF_SUGGESTION)
     }
 
     @Test
     fun testUpdateItems_removeHotseatItem_updatesHotseat() {
         runOnMainSync {
-            taskbarView.updateItems(createHotseatItems(2), createRecents(1))
-            taskbarView.updateItems(createHotseatItems(1), createRecents(1))
+            taskbarView.updateItems(
+                createHotseatItems(2),
+                createRecents(1),
+                createHandoffSuggestions(1),
+            )
+            taskbarView.updateItems(
+                createHotseatItems(1),
+                createRecents(1),
+                createHandoffSuggestions(1),
+            )
         }
-        assertThat(taskbarView).hasIconTypes(ALL_APPS, HOTSEAT, DIVIDER, RECENT)
+        assertThat(taskbarView).hasIconTypes(ALL_APPS, HOTSEAT, DIVIDER, RECENT, HANDOFF_SUGGESTION)
     }
 
     @Test
     fun testUpdateItems_addRecentsItem_updatesRecents() {
         runOnMainSync {
-            taskbarView.updateItems(createHotseatItems(1), createRecents(1))
-            taskbarView.updateItems(createHotseatItems(1), createRecents(2))
+            taskbarView.updateItems(
+                createHotseatItems(1),
+                createRecents(1),
+                createHandoffSuggestions(1),
+            )
+            taskbarView.updateItems(
+                createHotseatItems(1),
+                createRecents(2),
+                createHandoffSuggestions(1),
+            )
         }
-        assertThat(taskbarView).hasIconTypes(ALL_APPS, HOTSEAT, DIVIDER, *RECENT * 2)
+        assertThat(taskbarView)
+            .hasIconTypes(ALL_APPS, HOTSEAT, DIVIDER, *RECENT * 2, HANDOFF_SUGGESTION)
     }
 
     @Test
     fun testUpdateItems_removeRecentsItem_updatesRecents() {
         runOnMainSync {
-            taskbarView.updateItems(createHotseatItems(1), createRecents(2))
-            taskbarView.updateItems(createHotseatItems(1), createRecents(1))
+            taskbarView.updateItems(
+                createHotseatItems(1),
+                createRecents(2),
+                createHandoffSuggestions(1),
+            )
+            taskbarView.updateItems(
+                createHotseatItems(1),
+                createRecents(1),
+                createHandoffSuggestions(1),
+            )
+        }
+        assertThat(taskbarView).hasIconTypes(ALL_APPS, HOTSEAT, DIVIDER, RECENT, HANDOFF_SUGGESTION)
+    }
+
+    @Test
+    fun testUpdateItems_addHandoffSuggestion_updatesHandoffSuggestions() {
+        runOnMainSync {
+            taskbarView.updateItems(createHotseatItems(1), createRecents(1), emptyList())
+            taskbarView.updateItems(
+                createHotseatItems(1),
+                createRecents(1),
+                createHandoffSuggestions(1),
+            )
+        }
+        assertThat(taskbarView).hasIconTypes(ALL_APPS, HOTSEAT, DIVIDER, RECENT, HANDOFF_SUGGESTION)
+    }
+
+    @Test
+    fun testUpdateItems_removeHandoffSuggestion_updatesHandoffSuggestions() {
+        runOnMainSync {
+            taskbarView.updateItems(
+                createHotseatItems(1),
+                createRecents(1),
+                createHandoffSuggestions(1),
+            )
+            taskbarView.updateItems(createHotseatItems(1), createRecents(1), emptyList())
         }
         assertThat(taskbarView).hasIconTypes(ALL_APPS, HOTSEAT, DIVIDER, RECENT)
     }
@@ -165,8 +229,8 @@ class TaskbarViewTest {
     @Test
     fun testUpdateItem_addHotseatItemAfterRecentsItem_hotseatItemBeforeDivider() {
         runOnMainSync {
-            taskbarView.updateItems(emptyArray(), createRecents(1))
-            taskbarView.updateItems(createHotseatItems(1), createRecents(1))
+            taskbarView.updateItems(emptyArray(), createRecents(1), emptyList())
+            taskbarView.updateItems(createHotseatItems(1), createRecents(1), emptyList())
         }
         assertThat(taskbarView).hasIconTypes(ALL_APPS, HOTSEAT, DIVIDER, RECENT)
     }
@@ -174,28 +238,30 @@ class TaskbarViewTest {
     @Test
     @ForceRtl
     fun testUpdateItems_rtl_hotseatItems_hasDividerBetweenHotseatAndAllApps() {
-        runOnMainSync { taskbarView.updateItems(createHotseatItems(2), emptyList()) }
+        runOnMainSync { taskbarView.updateItems(createHotseatItems(2), emptyList(), emptyList()) }
         assertThat(taskbarView).hasIconTypes(*HOTSEAT * 2, DIVIDER, ALL_APPS)
     }
 
     @Test
     @ForceRtl
     fun testUpdateItems_rtl_recentsItems_hasDividerBetweenRecentsAndAllApps() {
-        runOnMainSync { taskbarView.updateItems(emptyArray(), createRecents(4)) }
+        runOnMainSync { taskbarView.updateItems(emptyArray(), createRecents(4), emptyList()) }
         assertThat(taskbarView).hasIconTypes(*RECENT * 4, DIVIDER, ALL_APPS)
     }
 
     @Test
     @ForceRtl
     fun testUpdateItems_rtl_recentsItems_recentsAreReversed() {
-        runOnMainSync { taskbarView.updateItems(emptyArray(), createRecents(4)) }
+        runOnMainSync { taskbarView.updateItems(emptyArray(), createRecents(4), emptyList()) }
         assertThat(taskbarView).hasRecentsOrder(startIndex = 0, expectedIds = listOf(3, 2, 1, 0))
     }
 
     @Test
     @ForceRtl
     fun testUpdateItems_rtl_hotseatItemsAndRecents_hasDividerBetweenRecentsAndHotseat() {
-        runOnMainSync { taskbarView.updateItems(createHotseatItems(3), createRecents(2)) }
+        runOnMainSync {
+            taskbarView.updateItems(createHotseatItems(3), createRecents(2), emptyList())
+        }
         assertThat(taskbarView).hasIconTypes(*RECENT * 2, DIVIDER, *HOTSEAT * 3, ALL_APPS)
     }
 
@@ -203,8 +269,8 @@ class TaskbarViewTest {
     @ForceRtl
     fun testUpdateItems_rtl_addHotseatItemWithoutRecents_updatesHotseat() {
         runOnMainSync {
-            taskbarView.updateItems(createHotseatItems(1), emptyList())
-            taskbarView.updateItems(createHotseatItems(2), emptyList())
+            taskbarView.updateItems(createHotseatItems(1), emptyList(), emptyList())
+            taskbarView.updateItems(createHotseatItems(2), emptyList(), emptyList())
         }
         assertThat(taskbarView).hasIconTypes(*HOTSEAT * 2, DIVIDER, ALL_APPS)
     }
@@ -213,8 +279,8 @@ class TaskbarViewTest {
     @ForceRtl
     fun testUpdateItems_rtl_addHotseatItemWithRecents_updatesHotseat() {
         runOnMainSync {
-            taskbarView.updateItems(createHotseatItems(1), createRecents(1))
-            taskbarView.updateItems(createHotseatItems(2), createRecents(1))
+            taskbarView.updateItems(createHotseatItems(1), createRecents(1), emptyList())
+            taskbarView.updateItems(createHotseatItems(2), createRecents(1), emptyList())
         }
         assertThat(taskbarView).hasIconTypes(RECENT, DIVIDER, *HOTSEAT * 2, ALL_APPS)
     }
@@ -223,8 +289,8 @@ class TaskbarViewTest {
     @ForceRtl
     fun testUpdateItems_rtl_removeHotseatItem_updatesHotseat() {
         runOnMainSync {
-            taskbarView.updateItems(createHotseatItems(2), createRecents(1))
-            taskbarView.updateItems(createHotseatItems(1), createRecents(1))
+            taskbarView.updateItems(createHotseatItems(2), createRecents(1), emptyList())
+            taskbarView.updateItems(createHotseatItems(1), createRecents(1), emptyList())
         }
         assertThat(taskbarView).hasIconTypes(RECENT, DIVIDER, HOTSEAT, ALL_APPS)
     }
@@ -233,8 +299,8 @@ class TaskbarViewTest {
     @ForceRtl
     fun testUpdateItems_rtl_addRecentsItem_updatesRecents() {
         runOnMainSync {
-            taskbarView.updateItems(createHotseatItems(1), createRecents(1))
-            taskbarView.updateItems(createHotseatItems(1), createRecents(2))
+            taskbarView.updateItems(createHotseatItems(1), createRecents(1), emptyList())
+            taskbarView.updateItems(createHotseatItems(1), createRecents(2), emptyList())
         }
         assertThat(taskbarView).hasIconTypes(*RECENT * 2, DIVIDER, HOTSEAT, ALL_APPS)
     }
@@ -243,8 +309,8 @@ class TaskbarViewTest {
     @ForceRtl
     fun testUpdateItems_rtl_removeRecentsItem_updatesRecents() {
         runOnMainSync {
-            taskbarView.updateItems(createHotseatItems(1), createRecents(2))
-            taskbarView.updateItems(createHotseatItems(1), createRecents(1))
+            taskbarView.updateItems(createHotseatItems(1), createRecents(2), emptyList())
+            taskbarView.updateItems(createHotseatItems(1), createRecents(1), emptyList())
         }
         assertThat(taskbarView).hasIconTypes(RECENT, DIVIDER, HOTSEAT, ALL_APPS)
     }
@@ -252,11 +318,11 @@ class TaskbarViewTest {
     @Test
     fun testUpdateItems_addRecentsItem_viewAddedOnRight() {
         runOnMainSync {
-            taskbarView.updateItems(emptyArray(), createRecents(1))
+            taskbarView.updateItems(emptyArray(), createRecents(1), emptyList())
             val prevIconViews = iconViews
 
             val newRecents = createRecents(2)
-            taskbarView.updateItems(emptyArray(), newRecents)
+            taskbarView.updateItems(emptyArray(), newRecents, emptyList())
 
             assertThat(taskbarView).hasRecentsOrder(startIndex = 2, expectedIds = listOf(0, 1))
             Truth.assertThat(iconViews[2]).isSameInstanceAs(prevIconViews[2])
@@ -268,11 +334,11 @@ class TaskbarViewTest {
     @ForceRtl
     fun testUpdateItems_rtl_addRecentsItem_viewAddedOnLeft() {
         runOnMainSync {
-            taskbarView.updateItems(emptyArray(), createRecents(1))
+            taskbarView.updateItems(emptyArray(), createRecents(1), emptyList())
             val prevIconViews = iconViews
 
             val newRecents = createRecents(2)
-            taskbarView.updateItems(emptyArray(), newRecents)
+            taskbarView.updateItems(emptyArray(), newRecents, emptyList())
 
             assertThat(taskbarView).hasRecentsOrder(startIndex = 0, expectedIds = listOf(1, 0))
             Truth.assertThat(iconViews[1]).isSameInstanceAs(prevIconViews.first())
@@ -284,12 +350,12 @@ class TaskbarViewTest {
     fun testUpdateItems_removeFirstRecentsItem_correspondingViewRemoved() {
         runOnMainSync {
             val recents = createRecents(2)
-            taskbarView.updateItems(emptyArray(), recents)
+            taskbarView.updateItems(emptyArray(), recents, emptyList())
 
             val expectedViewToRemove = iconViews[2]
             Truth.assertThat(expectedViewToRemove.tag).isEqualTo(recents.first())
 
-            taskbarView.updateItems(emptyArray(), listOf(recents.last()))
+            taskbarView.updateItems(emptyArray(), listOf(recents.last()), emptyList())
             Truth.assertThat(expectedViewToRemove in iconViews).isFalse()
         }
     }
@@ -298,12 +364,12 @@ class TaskbarViewTest {
     fun testUpdateItems_removeLastRecentsItem_correspondingViewRemoved() {
         runOnMainSync {
             val recents = createRecents(2)
-            taskbarView.updateItems(emptyArray(), recents)
+            taskbarView.updateItems(emptyArray(), recents, emptyList())
 
             val expectedViewToRemove = iconViews[3]
             Truth.assertThat(expectedViewToRemove.tag).isEqualTo(recents.last())
 
-            taskbarView.updateItems(emptyArray(), listOf(recents.first()))
+            taskbarView.updateItems(emptyArray(), listOf(recents.first()), emptyList())
             Truth.assertThat(expectedViewToRemove in iconViews).isFalse()
         }
     }
@@ -313,12 +379,12 @@ class TaskbarViewTest {
     fun testUpdateItems_rtl_removeFirstRecentsItem_correspondingViewRemoved() {
         runOnMainSync {
             val recents = createRecents(2)
-            taskbarView.updateItems(emptyArray(), recents)
+            taskbarView.updateItems(emptyArray(), recents, emptyList())
 
             val expectedViewToRemove = iconViews[1]
             Truth.assertThat(expectedViewToRemove.tag).isEqualTo(recents.first())
 
-            taskbarView.updateItems(emptyArray(), listOf(recents.last()))
+            taskbarView.updateItems(emptyArray(), listOf(recents.last()), emptyList())
             Truth.assertThat(expectedViewToRemove in iconViews).isFalse()
         }
     }
@@ -328,12 +394,12 @@ class TaskbarViewTest {
     fun testUpdateItems_rtl_removeLastRecentsItem_correspondingViewRemoved() {
         runOnMainSync {
             val recents = createRecents(2)
-            taskbarView.updateItems(emptyArray(), recents)
+            taskbarView.updateItems(emptyArray(), recents, emptyList())
 
             val expectedViewToRemove = iconViews[0]
             Truth.assertThat(expectedViewToRemove.tag).isEqualTo(recents.last())
 
-            taskbarView.updateItems(emptyArray(), listOf(recents.first()))
+            taskbarView.updateItems(emptyArray(), listOf(recents.first()), emptyList())
             Truth.assertThat(expectedViewToRemove in iconViews).isFalse()
         }
     }
@@ -341,7 +407,7 @@ class TaskbarViewTest {
     @Test
     fun testUpdateItems_desktopMode_hotseatItem_noDivider() {
         whenever(desktopVisibilityController.isInDesktopMode(context.displayId)).thenReturn(true)
-        runOnMainSync { taskbarView.updateItems(createHotseatItems(1), emptyList()) }
+        runOnMainSync { taskbarView.updateItems(createHotseatItems(1), emptyList(), emptyList()) }
         assertThat(taskbarView).hasIconTypes(ALL_APPS, HOTSEAT)
     }
 
@@ -349,10 +415,10 @@ class TaskbarViewTest {
     @Ignore("b/435259563")
     fun testUpdateItems_desktopMode_hotseatItem_noDividerAfterDesktopModeChange() {
         whenever(desktopVisibilityController.isInDesktopMode(context.displayId)).thenReturn(false)
-        runOnMainSync { taskbarView.updateItems(createHotseatItems(1), emptyList()) }
+        runOnMainSync { taskbarView.updateItems(createHotseatItems(1), emptyList(), emptyList()) }
 
         whenever(desktopVisibilityController.isInDesktopMode(context.displayId)).thenReturn(true)
-        runOnMainSync { taskbarView.updateItems(createHotseatItems(2), emptyList()) }
+        runOnMainSync { taskbarView.updateItems(createHotseatItems(2), emptyList(), emptyList()) }
 
         assertThat(taskbarView).hasIconTypes(ALL_APPS, HOTSEAT, HOTSEAT)
     }
@@ -361,14 +427,14 @@ class TaskbarViewTest {
     @ForceRtl
     fun testUpdateItems_rtlAndDesktopMode_hotseatItem_noDivider() {
         whenever(desktopVisibilityController.isInDesktopMode(context.displayId)).thenReturn(true)
-        runOnMainSync { taskbarView.updateItems(createHotseatItems(1), emptyList()) }
+        runOnMainSync { taskbarView.updateItems(createHotseatItems(1), emptyList(), emptyList()) }
         assertThat(taskbarView).hasIconTypes(HOTSEAT, ALL_APPS)
     }
 
     @Test
     fun testUpdateItems_desktopMode_recentItem_hasDivider() {
         whenever(desktopVisibilityController.isInDesktopMode(context.displayId)).thenReturn(true)
-        runOnMainSync { taskbarView.updateItems(emptyArray(), createRecents(1)) }
+        runOnMainSync { taskbarView.updateItems(emptyArray(), createRecents(1), emptyList()) }
         assertThat(taskbarView).hasIconTypes(ALL_APPS, DIVIDER, RECENT)
     }
 
@@ -376,20 +442,24 @@ class TaskbarViewTest {
     @ForceRtl
     fun testUpdateItems_rtlAndDesktopMode_recentItem_hasDivider() {
         whenever(desktopVisibilityController.isInDesktopMode(context.displayId)).thenReturn(true)
-        runOnMainSync { taskbarView.updateItems(emptyArray(), createRecents(1)) }
+        runOnMainSync { taskbarView.updateItems(emptyArray(), createRecents(1), emptyList()) }
         assertThat(taskbarView).hasIconTypes(RECENT, DIVIDER, ALL_APPS)
     }
 
     @Test
     fun testUpdateItems_maxRecents_noOverflow() {
-        runOnMainSync { taskbarView.updateItems(emptyArray(), createRecents(maxShownRecents)) }
+        runOnMainSync {
+            taskbarView.updateItems(emptyArray(), createRecents(maxShownRecents), emptyList())
+        }
         assertThat(taskbarView).hasIconTypes(ALL_APPS, DIVIDER, *RECENT * maxShownRecents)
     }
 
     @Test
     fun testUpdateItems_moreThanMaxRecents_overflowShownBeforeRecents() {
         val recentsSize = maxShownRecents + 2
-        runOnMainSync { taskbarView.updateItems(emptyArray(), createRecents(recentsSize)) }
+        runOnMainSync {
+            taskbarView.updateItems(emptyArray(), createRecents(recentsSize), emptyList())
+        }
 
         val expectedNumRecents = RECENT * getExpectedNumRecentsWithOverflow()
         assertThat(taskbarView).hasIconTypes(ALL_APPS, DIVIDER, OVERFLOW, *expectedNumRecents)
@@ -399,8 +469,8 @@ class TaskbarViewTest {
     fun testUpdateItems_clearAllRecentsAfterOverflow_recentsEmpty() {
         val recentsSize = maxShownRecents + 2
         runOnMainSync {
-            taskbarView.updateItems(emptyArray(), createRecents(recentsSize))
-            taskbarView.updateItems(emptyArray(), emptyList())
+            taskbarView.updateItems(emptyArray(), createRecents(recentsSize), emptyList())
+            taskbarView.updateItems(emptyArray(), emptyList(), emptyList())
         }
 
         assertThat(taskbarView).hasIconTypes(ALL_APPS)
@@ -410,7 +480,9 @@ class TaskbarViewTest {
     @ForceRtl
     fun testUpdateItems_rtl_moreThanMaxRecents_overflowShownAfterRecents() {
         val recentsSize = maxShownRecents + 2
-        runOnMainSync { taskbarView.updateItems(emptyArray(), createRecents(recentsSize)) }
+        runOnMainSync {
+            taskbarView.updateItems(emptyArray(), createRecents(recentsSize), emptyList())
+        }
 
         val expectedRecents = RECENT * getExpectedNumRecentsWithOverflow()
         assertThat(taskbarView).hasIconTypes(*expectedRecents, OVERFLOW, DIVIDER, ALL_APPS)
@@ -421,7 +493,11 @@ class TaskbarViewTest {
         val hotseatSize = 4
         val recentsSize = maxShownRecents + 2
         runOnMainSync {
-            taskbarView.updateItems(createHotseatItems(hotseatSize), createRecents(recentsSize))
+            taskbarView.updateItems(
+                createHotseatItems(hotseatSize),
+                createRecents(recentsSize),
+                emptyList(),
+            )
         }
 
         val expectedRecents = RECENT * getExpectedNumRecentsWithOverflow(hotseatSize)
@@ -435,7 +511,11 @@ class TaskbarViewTest {
         val hotseatSize = 4
         val recentsSize = maxShownRecents + 2
         runOnMainSync {
-            taskbarView.updateItems(createHotseatItems(hotseatSize), createRecents(recentsSize))
+            taskbarView.updateItems(
+                createHotseatItems(hotseatSize),
+                createRecents(recentsSize),
+                emptyList(),
+            )
         }
 
         val expectedRecents = RECENT * getExpectedNumRecentsWithOverflow(hotseatSize)
@@ -446,7 +526,9 @@ class TaskbarViewTest {
     @Test
     fun testUpdateItems_moreThanMaxRecents_verifyShownRecentsOrder() {
         val recentsSize = maxShownRecents + 2
-        runOnMainSync { taskbarView.updateItems(emptyArray(), createRecents(recentsSize)) }
+        runOnMainSync {
+            taskbarView.updateItems(emptyArray(), createRecents(recentsSize), emptyList())
+        }
 
         val expectedNumRecents = getExpectedNumRecentsWithOverflow()
         assertThat(taskbarView)
@@ -460,7 +542,9 @@ class TaskbarViewTest {
     @ForceRtl
     fun testUpdateItems_rtl_moreThanMaxRecents_verifyShownRecentsReversed() {
         val recentsSize = maxShownRecents + 2
-        runOnMainSync { taskbarView.updateItems(emptyArray(), createRecents(recentsSize)) }
+        runOnMainSync {
+            taskbarView.updateItems(emptyArray(), createRecents(recentsSize), emptyList())
+        }
 
         val expectedNumRecents = getExpectedNumRecentsWithOverflow()
         assertThat(taskbarView)
@@ -472,7 +556,10 @@ class TaskbarViewTest {
 
     @Test
     fun testUpdateItems_splitTask_addsAppPairIconToTaskbar() {
-        runOnMainSync { taskbarView.updateItems(emptyArray(), listOf(createSplitTask())) }
+        runOnMainSync {
+            taskbarView.updateItems(emptyArray(), listOf(createSplitTask()), emptyList())
+        }
+
         val icon = taskbarView.children.last()
         Truth.assertThat(icon).isInstanceOf(AppPairIcon::class.java)
     }
@@ -480,10 +567,10 @@ class TaskbarViewTest {
     @Test
     fun testUpdateItems_withExistingSplitTask_appPairIconIsSameInstance() {
         val splitTask = createSplitTask()
-        runOnMainSync { taskbarView.updateItems(emptyArray(), listOf(splitTask)) }
+        runOnMainSync { taskbarView.updateItems(emptyArray(), listOf(splitTask), emptyList()) }
         val appPairIcon1 = taskbarView.children.last()
 
-        runOnMainSync { taskbarView.updateItems(emptyArray(), listOf(splitTask)) }
+        runOnMainSync { taskbarView.updateItems(emptyArray(), listOf(splitTask), emptyList()) }
         val appPairIcon2 = taskbarView.children.last()
 
         Truth.assertThat(appPairIcon1).isSameInstanceAs(appPairIcon2)
@@ -491,10 +578,16 @@ class TaskbarViewTest {
 
     @Test
     fun testUpdateItems_splitTaskReplaced_appPairIconReplaced() {
-        runOnMainSync { taskbarView.updateItems(emptyArray(), listOf(createSplitTask(0))) }
+        runOnMainSync {
+            taskbarView.updateItems(emptyArray(), listOf(createSplitTask(0)), emptyList())
+        }
+
         val appPairIcon1 = taskbarView.children.last()
 
-        runOnMainSync { taskbarView.updateItems(emptyArray(), listOf(createSplitTask(1))) }
+        runOnMainSync {
+            taskbarView.updateItems(emptyArray(), listOf(createSplitTask(1)), emptyList())
+        }
+
         val appPairIcon2 = taskbarView.children.last()
 
         Truth.assertThat(appPairIcon1).isNotSameInstanceAs(appPairIcon2)
@@ -510,7 +603,7 @@ class TaskbarViewTest {
                 splitTask.topLeftTask.title,
                 splitTask.bottomRightTask.title,
             )
-        runOnMainSync { taskbarView.updateItems(emptyArray(), listOf(splitTask)) }
+        runOnMainSync { taskbarView.updateItems(emptyArray(), listOf(splitTask), emptyList()) }
 
         val icon = taskbarView.children.last() as AppPairIcon
         Truth.assertThat(icon.titleTextView.text).isEqualTo(expectedTitle1)
@@ -532,7 +625,11 @@ class TaskbarViewTest {
     @EnableFlags(FLAG_ENABLE_OVERFLOW_BUTTON_FOR_TASKBAR_PINNED_ITEMS)
     fun testUpdateItems_hotseatOverflow_noRecents() {
         runOnMainSync {
-            taskbarView.updateItems(createHotseatItems(maxShownHotseat + 1), emptyList())
+            taskbarView.updateItems(
+                createHotseatItems(maxShownHotseat + 1),
+                emptyList(),
+                emptyList(),
+            )
         }
         assertThat(taskbarView)
             .hasIconTypes(ALL_APPS, DIVIDER, *HOTSEAT * (maxShownHotseat - 1), OVERFLOW)
@@ -543,7 +640,11 @@ class TaskbarViewTest {
     @ForceRtl
     fun testUpdateItems_rtl_hotseatOverflow_noRecents() {
         runOnMainSync {
-            taskbarView.updateItems(createHotseatItems(maxShownHotseat + 1), emptyList())
+            taskbarView.updateItems(
+                createHotseatItems(maxShownHotseat + 1),
+                emptyList(),
+                emptyList(),
+            )
         }
         assertThat(taskbarView)
             .hasIconTypes(OVERFLOW, *HOTSEAT * (maxShownHotseat - 1), DIVIDER, ALL_APPS)
@@ -557,6 +658,7 @@ class TaskbarViewTest {
             taskbarView.updateItems(
                 createHotseatItems(maxShownHotseat + 1),
                 createRecents(recentsSize),
+                emptyList(),
             )
         }
         assertThat(taskbarView)
@@ -579,6 +681,7 @@ class TaskbarViewTest {
             taskbarView.updateItems(
                 createHotseatItems(maxShownHotseat + 1),
                 createRecents(recentsSize),
+                emptyList(),
             )
         }
         assertThat(taskbarView)

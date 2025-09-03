@@ -88,6 +88,7 @@ import com.android.launcher3.taskbar.bubbles.BubbleControllers;
 import com.android.launcher3.taskbar.customization.TaskbarAllAppsButtonContainer;
 import com.android.launcher3.taskbar.customization.TaskbarDividerContainer;
 import com.android.launcher3.taskbar.customization.TaskbarIconsContainer;
+import com.android.launcher3.taskbar.handoff.HandoffSuggestion;
 import com.android.launcher3.util.ItemInfoMatcher;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
 import com.android.launcher3.util.MultiPropertyFactory;
@@ -1321,6 +1322,15 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
         }
     }
 
+    /** Called when there's a change in handoff suggestions to update the UI. */
+    public void commitHandoffSuggestionsToUI() {
+        if (!android.companion.Flags.enableTaskContinuity()) {
+            return;
+        }
+
+        mModelCallbacks.commitHandoffSuggestionsToUI();
+    }
+
     private LayoutTransition createLayoutTransitionForRunningApps() {
         LayoutTransition layoutTransition = new LayoutTransition();
         layoutTransition.setDuration(TRANSITION_DEFAULT_DURATION);
@@ -1433,6 +1443,17 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
                 appPairIcon.updateInfo(st.toAppPairInfo());
             } else if (view instanceof TaskbarOverflowView overflowButton) {
                 overflowButton.updateTaskIsShown(task);
+            }
+        }
+    }
+
+    public void onHandoffSuggestionUpdated(HandoffSuggestion suggestion) {
+        // Find the icon view(s) that changed.
+        for (View view : mTaskbarView.getIconViews()) {
+            if (view instanceof BubbleTextView btv
+                    && view.getTag() instanceof HandoffSuggestion handoffSuggestion
+                    && handoffSuggestion.equals(suggestion)) {
+                mTaskbarView.applyHandoffSuggestionToBubbleTextView(btv, suggestion);
             }
         }
     }

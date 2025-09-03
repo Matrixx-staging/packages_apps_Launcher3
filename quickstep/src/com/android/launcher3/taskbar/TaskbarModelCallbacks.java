@@ -33,6 +33,7 @@ import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.PredictedContainerInfo;
 import com.android.launcher3.model.data.WorkspaceData;
+import com.android.launcher3.taskbar.handoff.HandoffSuggestion;
 import com.android.launcher3.taskbar.TaskbarView.TaskbarLayoutParams;
 import com.android.launcher3.util.ItemInfoMatcher;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
@@ -41,6 +42,7 @@ import com.android.launcher3.util.Preconditions;
 import com.android.quickstep.util.GroupTask;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -181,19 +183,31 @@ public class TaskbarModelCallbacks implements
                 mControllers.taskbarRecentAppsController;
         hotseatItemInfos = recentAppsController.updateHotseatItemInfos(hotseatItemInfos);
 
+        final List<HandoffSuggestion> handoffSuggestions
+            = android.companion.Flags.enableTaskContinuity()
+                ? mControllers.taskbarHandoffController.getSuggestions()
+                : Collections.emptyList();
+
         if (mDeferUpdatesForSUW) {
             ItemInfo[] finalHotseatItemInfos = hotseatItemInfos;
             mDeferredUpdates = () ->
                     commitHotseatItemUpdates(finalHotseatItemInfos,
-                            recentAppsController.getShownTasks());
+                            recentAppsController.getShownTasks(),
+                            handoffSuggestions);
         } else {
-            commitHotseatItemUpdates(hotseatItemInfos, recentAppsController.getShownTasks());
+            commitHotseatItemUpdates(
+                hotseatItemInfos,
+                recentAppsController.getShownTasks(),
+                handoffSuggestions);
         }
     }
 
     private void commitHotseatItemUpdates(
-            ItemInfo[] hotseatItemInfos, List<GroupTask> recentTasks) {
-        mContainer.updateItems(hotseatItemInfos, recentTasks);
+            ItemInfo[] hotseatItemInfos,
+            List<GroupTask> recentTasks,
+            List<HandoffSuggestion> handoffSuggestions) {
+
+        mContainer.updateItems(hotseatItemInfos, recentTasks, handoffSuggestions);
         mControllers.taskbarViewController.updateIconViewsRunningStates();
         mControllers.taskbarPopupController.setTaskbarInfoList(mHotseatItems);
     }
@@ -216,6 +230,15 @@ public class TaskbarModelCallbacks implements
 
     /** Called when there's a change in running apps to update the UI. */
     public void commitRunningAppsToUI() {
+        commitItemsToUI();
+    }
+
+    /** Called when there's a change in handoff suggestions to update the UI. */
+    public void commitHandoffSuggestionsToUI() {
+        if (!android.companion.Flags.enableTaskContinuity()) {
+            return;
+        }
+
         commitItemsToUI();
     }
 
