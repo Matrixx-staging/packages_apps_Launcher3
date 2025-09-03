@@ -212,11 +212,6 @@ class TaskbarInteractor(private val taskbarUIController: TaskbarUIController) {
 
     // TODO(b/404636836): expose taskbar view rect and offset vai [TaskbarUiState]
     @MainThread
-    fun isEventOverBubbleBarViews(ev: MotionEvent) =
-        taskbarUIController.isEventOverBubbleBarViews(ev)
-
-    // TODO(b/404636836): expose taskbar view rect and offset vai [TaskbarUiState]
-    @MainThread
     fun isEventOverAnyTaskbarItem(ev: MotionEvent) =
         taskbarUIController.isEventOverAnyTaskbarItem(ev)
 
@@ -231,6 +226,13 @@ class TaskbarInteractor(private val taskbarUIController: TaskbarUIController) {
         callbacks: RecentsAnimationCallbacks,
     ): Animator? =
         taskbarUIController.getParallelAnimationToGestureEndTarget(endTarget, duration, callbacks)
+
+    @Deprecated(
+        "Should be removed once we turned on [refactorTaskbarUiState()] flag",
+        ReplaceWith("TaskbarUiState.isEventOverBubbleBarViews()"),
+    )
+    fun isEventOverBubbleBarViews(ev: MotionEvent) =
+        taskbarUIController.isEventOverBubbleBarViews(ev)
 
     @Deprecated(
         "Should be removed once we turned on [refactorTaskbarUiState()] flag",
