@@ -32,6 +32,8 @@ import android.util.SparseArray
 import com.android.launcher3.Flags
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherSettings.Favorites
+import com.android.launcher3.Utilities.qsbOnFirstScreen
+import com.android.launcher3.WorkspaceLayoutManager
 import com.android.launcher3.backuprestore.LauncherRestoreEventLogger.RestoreError
 import com.android.launcher3.folder.Folder
 import com.android.launcher3.folder.FolderGridOrganizer.createFolderGridOrganizer
@@ -636,6 +638,22 @@ class WorkspaceItemProcessor(
         val knownDesktopContainerItems =
             ArrayList(loadedItems.filter { it.container == Favorites.CONTAINER_DESKTOP })
         val excludedScreens = IntSet()
+
+        if (qsbOnFirstScreen()) {
+            // Reserve layout space for the search container. Note that this is not required when
+            // [Flags.FLAG_INJECTABLE_MODEL_ITEMS] is enabled as injected items will already be
+            // accounted for in [knownDesktopContainerItems].
+            knownDesktopContainerItems.add(
+                WorkspaceItemInfo().apply {
+                    cellX = 0
+                    cellY = 0
+                    container = Favorites.CONTAINER_DESKTOP
+                    screenId = WorkspaceLayoutManager.FIRST_SCREEN_ID
+                    spanX = idp.numSearchContainerColumns
+                    spanY = 1
+                }
+            )
+        }
 
         for ((uri, file) in homeScreenFiles.value) {
             // TODO(b/424466810): ignore normally restored items.
