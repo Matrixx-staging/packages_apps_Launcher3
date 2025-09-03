@@ -5751,7 +5751,7 @@ public abstract class RecentsView<
                 @Override
                 public void onAnimationStart(@NonNull Animator animation) {
                     taskView.getThumbnailBounds(mTempRect, /*relativeToDragLayer=*/true);
-                    getTaskDimension(mContext, mContainer.getDeviceProfile(), mTempPointF);
+                    getTaskDimension(mContainer.getDeviceProfile(), mTempPointF);
                     Rect fullscreenBounds = new Rect(0, 0, (int) mTempPointF.x,
                             (int) mTempPointF.y);
                     Utilities.getPivotsForScalingRectToRect(mTempRect, fullscreenBounds,
