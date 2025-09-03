@@ -33,7 +33,9 @@ import com.android.launcher3.LauncherSettings;
 import com.android.launcher3.R;
 import com.android.launcher3.SecondaryDropTarget;
 import com.android.launcher3.Utilities;
+import com.android.launcher3.accessibility.LauncherAccessibilityDelegate;
 import com.android.launcher3.allapps.PrivateProfileManager;
+import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
@@ -266,6 +268,33 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
                     ActivityContext.lookupContext(view.getContext()).getDropTargetHandler();
             dropTargetHandler.prepareToUndoDelete();
             dropTargetHandler.onDeleteComplete(mItemInfo, mOriginalView);
+        }
+    }
+
+
+    public static final Factory<ActivityContext> ADD_TO_HOME_SCREEN = AddToHomeScreen::new;
+
+    public static class AddToHomeScreen<T extends ActivityContext> extends SystemShortcut<T> {
+
+        public AddToHomeScreen(T target, ItemInfo itemInfo, @NonNull View originalView) {
+            super(R.drawable.ic_plus, R.string.action_add_to_workspace, target,
+                    itemInfo, originalView, false);
+        }
+
+        @Override
+        public void onClick(View view) {
+            AbstractFloatingView.closeAllOpenViews(mTarget);
+            LauncherAccessibilityDelegate launcherAccessibilityDelegate =
+                    (LauncherAccessibilityDelegate) ActivityContext.lookupContext(view.getContext())
+                            .getAccessibilityDelegate();
+            launcherAccessibilityDelegate.addToWorkspace(mItemInfo,
+                    /*accessibility=*/ false,
+                    /*finishCallback=*/ (success) -> {
+                        mTarget.getStatsLogManager().logger()
+                                .withItemInfo(mItemInfo)
+                                .log(StatsLogManager.LauncherEvent
+                                        .LAUNCHER_TAP_TO_ADD_TO_HOME_SCREEN_FROM_ALL_APPS);
+                    });
         }
     }
 
