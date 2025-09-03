@@ -52,6 +52,7 @@ import com.android.quickstep.RecentsAnimationCallbacks;
 import com.android.quickstep.RecentsAnimationController;
 import com.android.quickstep.RecentsAnimationTargets;
 import com.android.quickstep.TaskAnimationManager;
+import com.android.quickstep.util.ActiveGestureLog;
 import com.android.quickstep.util.SurfaceTransaction;
 import com.android.quickstep.util.SurfaceTransaction.SurfaceProperties;
 import com.android.systemui.shared.recents.model.ThumbnailData;
@@ -240,8 +241,12 @@ public class ProgressDelegateInputConsumer implements InputConsumer,
     private void onFlingFinished() {
         boolean endToHome = mFlingEndsOnHome == null ? true : mFlingEndsOnHome;
         if (mRecentsAnimationController != null) {
-            mRecentsAnimationController.finishController(endToHome /* toHome */,
-                    null /* callback */, false /* sendUserLeaveHint */);
+            mRecentsAnimationController.finishController(
+                    /* toHome= */ endToHome,
+                    /* callback= */ null,
+                    /* sendUserLeaveHint= */ false,
+                    /* reason= */ new ActiveGestureLog.CompoundString(
+                            "ProgressDelegateInputConsumer.onFlingFinished"));
         } else if (endToHome) {
             startHomeIntentSafely(mContext, null, TAG, getDisplayId());
         }

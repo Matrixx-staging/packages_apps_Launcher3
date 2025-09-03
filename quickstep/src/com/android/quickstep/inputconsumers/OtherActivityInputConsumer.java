@@ -58,6 +58,7 @@ import com.android.quickstep.RecentsAnimationDeviceState;
 import com.android.quickstep.RecentsAnimationTargets;
 import com.android.quickstep.RotationTouchHelper;
 import com.android.quickstep.TaskAnimationManager;
+import com.android.quickstep.util.ActiveGestureLog;
 import com.android.quickstep.util.ActiveGestureProtoLogProxy;
 import com.android.quickstep.util.CachedEventDispatcher;
 import com.android.quickstep.util.MotionPauseDetector;
@@ -513,8 +514,14 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
                     // The animation started, but with no movement, in this case, there will be no
                     // animateToProgress so we have to manually finish here. In the case of
                     // ACTION_CANCEL, someone else may be doing something so finish synchronously.
-                    mTaskAnimationManager.finishRunningRecentsAnimation(false /* toHome */,
-                            isCanceled /* forceFinish */, mForceFinishRecentsTransitionCallback);
+                    mTaskAnimationManager.finishRunningRecentsAnimation(
+                            /* toHome= */ false,
+                            /* forceFinish= */ isCanceled,
+                            mForceFinishRecentsTransitionCallback,
+                            /* reason= */ new ActiveGestureLog.CompoundString(
+                                    "OtherActivityInputConsumer.finishTouchTracking: "
+                                            + "recents animation started, but window move touch "
+                                            + "slop not passed"));
                 } else {
                     // The animation hasn't started yet, so insert a replacement handler into the
                     // callbacks which immediately finishes the animation after it starts.
@@ -613,7 +620,11 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
                 if (DEBUG) {
                     Log.d(TAG, "FinishImmediatelyHandler: running callback");
                 }
-                controller.finish(false /* toRecents */, null);
+                controller.finish(
+                        /* toHome= */ false,
+                        /* onFinishComplete= */ null,
+                        /* reason= */ new ActiveGestureLog.CompoundString(
+                                "OtherActivityInputConsumer.FinishImmediatelyHandler"));
             });
         }
     }
