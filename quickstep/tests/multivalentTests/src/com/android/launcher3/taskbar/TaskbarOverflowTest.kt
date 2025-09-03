@@ -234,6 +234,7 @@ class TaskbarOverflowTest {
             taskbarView.updateItems(
                 createHotseatItems(maxNumberOfTaskbarIcons - initialIconCount),
                 recentAppsController.shownTasks,
+                emptyList(),
             )
         }
 
@@ -260,6 +261,7 @@ class TaskbarOverflowTest {
             taskbarView.updateItems(
                 recentAppsController.updateHotseatItemInfos(hotseatItems as Array<ItemInfo?>),
                 recentAppsController.shownTasks,
+                emptyList(),
             )
         }
 
@@ -477,6 +479,7 @@ class TaskbarOverflowTest {
             taskbarView.updateItems(
                 recentAppsController.updateHotseatItemInfos(hotseatItems as Array<ItemInfo?>),
                 recentAppsController.shownTasks,
+                emptyList(),
             )
         }
 
@@ -510,6 +513,7 @@ class TaskbarOverflowTest {
             taskbarView.updateItems(
                 recentAppsController.updateHotseatItemInfos(hotseatItems as Array<ItemInfo?>),
                 recentAppsController.shownTasks,
+                emptyList(),
             )
         }
 
@@ -562,6 +566,7 @@ class TaskbarOverflowTest {
             taskbarView.updateItems(
                 recentAppsController.updateHotseatItemInfos(hotseatItems as Array<ItemInfo?>),
                 recentAppsController.shownTasks,
+                emptyList(),
             )
         }
 
@@ -691,7 +696,7 @@ class TaskbarOverflowTest {
     private fun setUpTaskbarAndModelCallback(hotseatItems: Array<WorkspaceItemInfo>): TaskbarView {
         val taskbarView: TaskbarView =
             taskbarUnitTestRule.activityContext.dragLayer.findViewById(R.id.taskbar_view)
-        taskbarView.updateItems(hotseatItems, recentAppsController.shownTasks)
+        taskbarView.updateItems(hotseatItems, recentAppsController.shownTasks, emptyList())
         modelCallback.recentAppsController = recentAppsController
         context.baseContext.appComponent.launcherAppState.model.addCallbacks(modelCallback)
         modelCallback.bindItemsAdded(hotseatItems.toList())

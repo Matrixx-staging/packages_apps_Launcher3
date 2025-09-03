@@ -700,6 +700,10 @@ public class AllSetActivity extends Activity implements UIControllerChangeListen
             }
         } else {
             mBackground.setProgress(mSwipeProgress.value);
+
+            float alpha = getContentViewAlphaForSwipeProgress();
+            mRootView.setAlpha(alpha);
+            mRootView.setTranslationY((alpha - 1) * mSwipeUpShift);
         }
         if (mLauncherStartAnim != null) {
             mLauncherStartAnim.setPlayFraction(

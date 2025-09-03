@@ -337,8 +337,8 @@ object LauncherDbUtils {
      * processing regular items.
      */
     @JvmStatic
-    fun getLoaderCursorQuerySortOrder(context: Context): String? {
-        if (HomeScreenFilesUtils.isFeatureEnabled(context)) {
+    fun getLoaderCursorQuerySortOrder(): String? {
+        if (HomeScreenFilesUtils.isFeatureEnabled) {
             val inClause =
                 intArrayOf(ITEM_TYPE_FILE_SYSTEM_FILE, ITEM_TYPE_FILE_SYSTEM_FOLDER).joinToString()
             return "CASE WHEN $ITEM_TYPE IN ($inClause) THEN 1 ELSE 0 END, $_ID"

@@ -23,6 +23,7 @@ import com.android.launcher3.model.data.ItemInfo
  */
 class OverflownAppsViewController(
     private val activityContext: TaskbarActivityContext,
+    viewCallbacks: TaskbarViewCallbacks,
     overflowIcon: TaskbarOverflowView,
     onClose: Runnable,
 ) {
@@ -34,7 +35,7 @@ class OverflownAppsViewController(
         ) as OverflownAppsContainerView<*>
 
     init {
-        overflownAppsContainerView.init(overflowIcon)
+        overflownAppsContainerView.init(overflowIcon, viewCallbacks)
         overflownAppsContainerView.addOnCloseCallback(onClose)
     }
 

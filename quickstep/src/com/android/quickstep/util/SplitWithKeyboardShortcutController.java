@@ -154,16 +154,17 @@ public class SplitWithKeyboardShortcutController {
                 @Override
                 public void onAnimationStart(Animator animation) {
                     controller.finish(
-                            true /* toRecents */,
-                            () -> {
+                            /* toHome= */ true,
+                            /* onFinishComplete= */ () -> {
                                 TaskbarInteractor taskbarInteractor =
                                         mLauncher.getTaskbarInteractor();
                                 if (taskbarInteractor != null) {
                                     taskbarInteractor.updateTaskbarLauncherStateGoingHome();
                                 }
-
                             },
-                            false /* sendUserLeaveHint */);
+                            /* sendUserLeaveHint= */ false,
+                            /* reason= */ new ActiveGestureLog.CompoundString(
+                                    "SplitWithKeyboardShortcutRecentsAnimationListener"));
                 }
 
                 @Override

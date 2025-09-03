@@ -435,7 +435,7 @@ public class RecentsOrientedState implements LauncherPrefChangeListener {
      * Returns the scale and pivot so that the provided taskRect can fit the provided full size
      */
     public float getFullScreenScaleAndPivot(Rect taskView, DeviceProfile dp, PointF outPivot) {
-        getTaskDimension(mContext, dp, outPivot);
+        getTaskDimension(dp, outPivot);
         float scale = Math.min(outPivot.x / taskView.width(), outPivot.y / taskView.height());
         if (scale == 1) {
             outPivot.set(taskView.centerX(), taskView.centerY());

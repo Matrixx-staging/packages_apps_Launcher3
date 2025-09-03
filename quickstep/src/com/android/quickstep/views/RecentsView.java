@@ -220,6 +220,7 @@ import com.android.quickstep.recents.data.RecentsRotationStateRepositoryImpl;
 import com.android.quickstep.recents.di.RecentsDependencies;
 import com.android.quickstep.recents.viewmodel.RecentsViewData;
 import com.android.quickstep.recents.viewmodel.RecentsViewModel;
+import com.android.quickstep.util.ActiveGestureLog;
 import com.android.quickstep.util.ActiveGestureProtoLogProxy;
 import com.android.quickstep.util.AnimUtils;
 import com.android.quickstep.util.DesktopTask;
@@ -5776,7 +5777,7 @@ public abstract class RecentsView<
                 @Override
                 public void onAnimationStart(@NonNull Animator animation) {
                     taskView.getThumbnailBounds(mTempRect, /*relativeToDragLayer=*/true);
-                    getTaskDimension(mContext, mContainer.getDeviceProfile(), mTempPointF);
+                    getTaskDimension(mContainer.getDeviceProfile(), mTempPointF);
                     Rect fullscreenBounds = new Rect(0, 0, (int) mTempPointF.x,
                             (int) mTempPointF.y);
                     Utilities.getPivotsForScalingRectToRect(mTempRect, fullscreenBounds,
@@ -6124,7 +6125,9 @@ public abstract class RecentsView<
      * NOTE: Whatever value gets passed through to the toHome param may need to also be set on
      * {@link #mRecentsAnimationController#setWillFinishToHome}.
      */
-    public void finishRecentsAnimation(boolean toHome, boolean shouldPip,
+    public void finishRecentsAnimation(
+            boolean toHome,
+            boolean shouldPip,
             @Nullable Runnable onFinishComplete) {
         Log.d(TAG, "finishRecentsAnimation - mRecentsAnimationController: "
                 + mRecentsAnimationController + ", toHome: " + toHome + ", shouldPip: " + shouldPip
@@ -6163,12 +6166,17 @@ public abstract class RecentsView<
         if (enableOverviewBackgroundWallpaperBlur()) {
             mBlurUtils.setDrawLiveTileBelowRecents(false);
         }
-        mRecentsAnimationController.finish(toHome, () -> {
-            if (onFinishComplete != null) {
-                onFinishComplete.run();
-            }
-            onRecentsAnimationComplete();
-        }, sendUserLeaveHint);
+        mRecentsAnimationController.finish(
+                toHome,
+                /* onFinishComplete= */ () -> {
+                    if (onFinishComplete != null) {
+                        onFinishComplete.run();
+                    }
+                    onRecentsAnimationComplete();
+                },
+                sendUserLeaveHint,
+                /* reason= */ new ActiveGestureLog.CompoundString(
+                        "RecentsView.finishRecentsAnimation"));
     }
 
     /**

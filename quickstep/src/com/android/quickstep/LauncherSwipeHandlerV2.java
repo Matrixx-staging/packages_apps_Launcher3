@@ -48,6 +48,7 @@ import com.android.launcher3.views.ClipIconView;
 import com.android.launcher3.views.FloatingIconView;
 import com.android.launcher3.views.FloatingView;
 import com.android.launcher3.widget.LauncherAppWidgetHostView;
+import com.android.quickstep.util.ActiveGestureLog;
 import com.android.quickstep.util.RectFSpringAnim;
 import com.android.quickstep.util.ScalingWorkspaceRevealAnim;
 import com.android.quickstep.util.TaskViewSimulator;
@@ -318,7 +319,11 @@ public class LauncherSwipeHandlerV2 extends AbsSwipeUpHandler<
             mRecentsView.cleanupRemoteTargets();
         }
         mRecentsAnimationController.finish(
-                true /* toRecents */, callback, true /* sendUserLeaveHint */);
+                /* toHome= */true,
+                callback,
+                /* sendUserLeaveHint= */ true,
+                /* reason= */ new ActiveGestureLog.CompoundString(
+                        "LauncherSwipeHandlerV2.finishRecentsControllerToHome"));
     }
 
     private class FloatingViewHomeAnimationFactory extends LauncherHomeAnimationFactory {

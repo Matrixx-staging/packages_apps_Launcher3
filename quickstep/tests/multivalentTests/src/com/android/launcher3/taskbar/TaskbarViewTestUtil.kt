@@ -16,6 +16,7 @@
 
 package com.android.launcher3.taskbar
 
+import android.companion.datatransfer.continuity.RemoteTask
 import android.content.ComponentName
 import android.content.Intent
 import android.graphics.Bitmap
@@ -28,8 +29,10 @@ import com.android.launcher3.model.data.AppPairInfo
 import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
+import com.android.launcher3.taskbar.handoff.HandoffSuggestion
 import com.android.launcher3.taskbar.TaskbarIconType.ALL_APPS
 import com.android.launcher3.taskbar.TaskbarIconType.DIVIDER
+import com.android.launcher3.taskbar.TaskbarIconType.HANDOFF_SUGGESTION
 import com.android.launcher3.taskbar.TaskbarIconType.HOTSEAT
 import com.android.launcher3.taskbar.TaskbarIconType.OVERFLOW
 import com.android.launcher3.taskbar.TaskbarIconType.RECENT
@@ -116,6 +119,15 @@ object TaskbarViewTestUtil {
     fun createSplitTask(id: Int = 0): SplitTask =
         SplitTask(createTask(id), createTask(id + 1), splitBounds = null)
 
+    fun createHandoffSuggestions(size: Int): List<HandoffSuggestion> {
+        return List(size) { createHandoffSuggestion(it) }
+    }
+
+    fun createHandoffSuggestion(id: Int = 0): HandoffSuggestion {
+        val remoteTask = RemoteTask.Builder(1).setDeviceId(id).build()
+        return HandoffSuggestion(remoteTask)
+    }
+
     private fun createTask(id: Int): Task {
         return Task().apply {
             title = "Task$id"
@@ -149,6 +161,7 @@ class TaskbarViewSubject(failureMetadata: FailureMetadata, private val view: Tas
                         when (it.tag) {
                             is ItemInfo -> HOTSEAT
                             is GroupTask -> RECENT
+                            is HandoffSuggestion -> HANDOFF_SUGGESTION
                             else -> throw IllegalStateException("Unknown type for $it")
                         }
                 }
@@ -173,7 +186,8 @@ enum class TaskbarIconType {
     DIVIDER,
     HOTSEAT,
     RECENT,
-    OVERFLOW;
+    OVERFLOW,
+    HANDOFF_SUGGESTION;
 
     operator fun times(size: Int) = Array(size) { this }
 }

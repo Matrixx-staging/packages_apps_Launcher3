@@ -43,6 +43,7 @@ import com.android.launcher3.uioverrides.QuickstepWidgetHolder.QuickstepWidgetHo
 import com.android.launcher3.uioverrides.SystemApiWrapper
 import com.android.launcher3.uioverrides.plugins.PluginManagerWrapperImpl
 import com.android.launcher3.util.ApiWrapper
+import com.android.launcher3.util.DaggerSingletonTracker
 import com.android.launcher3.util.InstantAppResolver
 import com.android.launcher3.util.PluginManagerWrapper
 import com.android.launcher3.util.window.RefreshRateTracker
@@ -180,9 +181,10 @@ object HomeScreenFilesModule {
     fun provideHomeScreenFilesProvider(
         @ApplicationContext context: Context,
         @ThreadPool executorService: ExecutorService,
+        tracker: DaggerSingletonTracker,
     ): HomeScreenFilesProvider {
-        return if (HomeScreenFilesUtils.isFeatureEnabled(context)) {
-            HomeScreenFilesMediaStoreProvider(context, executorService)
+        return if (HomeScreenFilesUtils.isFeatureEnabled) {
+            HomeScreenFilesMediaStoreProvider(context, executorService, tracker)
         } else {
             HomeScreenFilesNoOpProvider()
         }

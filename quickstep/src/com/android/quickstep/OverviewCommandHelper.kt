@@ -438,7 +438,12 @@ constructor(
                 ) {
                     return true
                 }
-                val focusedTaskIds = taskbarInteractor.launchFocusedTask()
+                val focusedTaskIds =
+                    try {
+                        taskbarInteractor.launchFocusedTask().get()
+                    } catch (e: Exception) {
+                        null
+                    }
                 keyboardFocusTask =
                     if (focusedTaskIds == null) KeyboardFocusTask.Unfocused
                     else KeyboardFocusTask.TaskViewWithIds(focusedTaskIds)

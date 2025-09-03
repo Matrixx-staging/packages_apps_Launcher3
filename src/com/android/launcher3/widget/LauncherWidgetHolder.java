@@ -244,6 +244,12 @@ public class LauncherWidgetHolder {
         mOnViewCreationCallback = callback;
     }
 
+    /** Returns a previously set view creation callback */
+    @Nullable
+    public Consumer<LauncherAppWidgetHostView> getOnViewCreationCallback() {
+        return mOnViewCreationCallback;
+    }
+
     /** Sets a callback for listening app widget removals */
     public void setAppWidgetRemovedCallback(@Nullable IntConsumer callback) {
         mAppWidgetRemovedCallback = callback;

@@ -28,6 +28,7 @@ import com.android.launcher3.LauncherConstants
 import com.android.launcher3.R
 import com.android.launcher3.SecondaryDropTarget
 import com.android.launcher3.Utilities
+import com.android.launcher3.accessibility.LauncherAccessibilityDelegate
 import com.android.launcher3.allapps.PrivateProfileManager
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent
@@ -60,6 +61,30 @@ class PopupDataSource @Inject constructor() {
             iconResId = R.drawable.ic_remove_no_shadow,
             labelResId = R.string.remove_drop_target_label,
             popupAction = handleRemove,
+            category = PopupCategory.SYSTEM_SHORTCUT_FIXED,
+        )
+
+    private val handleAddToHomeScreenFromAllApps =
+        { activityContext: ActivityContext, itemInfo: ItemInfo, view: View ->
+            AbstractFloatingView.closeAllOpenViews(activityContext)
+            val launcherAccessibilityDelegate =
+                activityContext.accessibilityDelegate as LauncherAccessibilityDelegate
+            launcherAccessibilityDelegate.addToWorkspace(itemInfo, /* accessibility= */ false)
+            /*finishCallback=*/ {
+                activityContext.statsLogManager
+                    .logger()
+                    .withItemInfo(itemInfo)
+                    .log(LauncherEvent.LAUNCHER_TAP_TO_ADD_TO_HOME_SCREEN_FROM_ALL_APPS)
+            }
+            Unit
+        }
+
+    // Popup data for add to home screen from all apps shortcut.
+    val addToHomeScreenFromAllAppsPopupData =
+        PopupData(
+            iconResId = R.drawable.ic_plus,
+            labelResId = R.string.action_add_to_workspace,
+            popupAction = handleAddToHomeScreenFromAllApps,
             category = PopupCategory.SYSTEM_SHORTCUT_FIXED,
         )
 

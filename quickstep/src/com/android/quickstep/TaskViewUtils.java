@@ -303,7 +303,7 @@ public final class TaskViewUtils {
                     if (enableGridOnlyOverview()) {
                         taskView.getThumbnailBounds(TEMP_THUMBNAIL_BOUNDS, /*relativeToDragLayer=*/
                                 true);
-                        getTaskDimension(context, container.getDeviceProfile(),
+                        getTaskDimension(container.getDeviceProfile(),
                                 TEMP_TASK_DIMENSION);
                         TEMP_FULLSCREEN_BOUNDS.set(0, 0, (int) TEMP_TASK_DIMENSION.x,
                                 (int) TEMP_TASK_DIMENSION.y);

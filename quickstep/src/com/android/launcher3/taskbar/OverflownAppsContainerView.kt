@@ -34,13 +34,15 @@ class OverflownAppsContainerView<T : TaskbarActivityContext>
 constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0) :
     ArrowPopup<T>(context, attrs, defStyleAttr) {
     private lateinit var overflowIcon: TaskbarOverflowView
+    private lateinit var viewCallbacks: TaskbarViewCallbacks
     private lateinit var content: LinearLayout
     private var overflownApps = emptyList<ItemInfo>()
     private val spacing: Int =
         resources.getDimensionPixelSize(R.dimen.overflown_apps_container_spacing)
 
-    fun init(icon: TaskbarOverflowView) {
+    fun init(icon: TaskbarOverflowView, callbacks: TaskbarViewCallbacks) {
         overflowIcon = icon
+        viewCallbacks = callbacks
         content = findViewById(R.id.overflown_content)
         // Set the horizontal padding to the half of the expected spacing for the children to
         // complement the other half
@@ -70,6 +72,9 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 
             if (icon is BubbleTextView && item is WorkspaceItemInfo) {
                 icon.applyFromWorkspaceItem(item)
+                icon.setOnClickListener(viewCallbacks.iconOnClickListener)
+                icon.setOnLongClickListener(viewCallbacks.iconOnLongClickListener)
+
                 val lp =
                     LayoutParams(iconSize, iconSize).apply {
                         marginStart = iconSpacing

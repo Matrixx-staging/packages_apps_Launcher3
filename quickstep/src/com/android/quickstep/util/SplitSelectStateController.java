@@ -978,9 +978,11 @@ public class SplitSelectStateController {
                         mRecentsAnimationController = controller;
                         animation.start(targets, () ->
                             controller.finish(
-                                    true /* toRecents */,
+                                    /* toHome= */ true,
                                     updateTaskbarRunnable,
-                                    false /* sendUserLeaveHint */));
+                                    /* sendUserLeaveHint= */ false,
+                                    /* reason= */ new ActiveGestureLog.CompoundString(
+                                            "SplitSelectStateController.enterSplitController")));
                     }
                 });
 

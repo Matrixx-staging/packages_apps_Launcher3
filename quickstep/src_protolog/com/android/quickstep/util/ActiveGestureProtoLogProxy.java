@@ -257,12 +257,17 @@ public class ActiveGestureProtoLogProxy {
                 taskIndex);
     }
 
-    public static void logFinishRecentsAnimation(boolean toRecents) {
+    public static void logFinishRecentsAnimation(
+            boolean toHome, @NonNull ActiveGestureLog.CompoundString reason) {
         ActiveGestureLog.INSTANCE.addLog(new ActiveGestureLog.CompoundString(
-                "finishRecentsAnimation: %b", toRecents),
+                "RecentsAnimationController.finishRecentsAnimation: toHome=%b, reason=", toHome)
+                        .append(reason),
                 /* gestureEvent= */ FINISH_RECENTS_ANIMATION);
         if (!isProtoLogInitialized()) return;
-        ProtoLog.d(ACTIVE_GESTURE_LOG, "finishRecentsAnimation: %b", toRecents);
+        ProtoLog.d(ACTIVE_GESTURE_LOG,
+                "RecentsAnimationController.finishRecentsAnimation: toHome=%b, reason=%s",
+                toHome,
+                reason.toString());
     }
 
     public static void logSetEndTarget(@NonNull String target) {
@@ -397,11 +402,16 @@ public class ActiveGestureProtoLogProxy {
                         + "received unknown event %s", displayId, event);
     }
 
-    public static void logFinishRunningRecentsAnimation(boolean toHome) {
+    public static void logFinishRunningRecentsAnimation(
+            boolean toHome, @NonNull ActiveGestureLog.CompoundString reason) {
         ActiveGestureLog.INSTANCE.addLog(new ActiveGestureLog.CompoundString(
-                "finishRunningRecentsAnimation: %b", toHome));
+                "TaskAnimationManager.finishRunningRecentsAnimation: toHome=%b, reason=", toHome)
+                .append(reason));
         if (!isProtoLogInitialized()) return;
-        ProtoLog.d(ACTIVE_GESTURE_LOG, "finishRunningRecentsAnimation: %b", toHome);
+        ProtoLog.d(ACTIVE_GESTURE_LOG,
+                "TaskAnimationManager.finishRunningRecentsAnimation: toHome=%b, reason=%s",
+                toHome,
+                reason.toString());
     }
 
     public static void logOnRecentsAnimationStartCancelled() {

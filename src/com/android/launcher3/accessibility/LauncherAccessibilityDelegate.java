@@ -21,6 +21,7 @@ import android.util.Log;
 import android.util.Pair;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewParent;
 import android.view.accessibility.AccessibilityEvent;
 
 import androidx.annotation.Nullable;
@@ -34,6 +35,7 @@ import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherSettings;
 import com.android.launcher3.PendingAddItemInfo;
 import com.android.launcher3.R;
+import com.android.launcher3.ShortcutAndWidgetContainer;
 import com.android.launcher3.Workspace;
 import com.android.launcher3.celllayout.CellLayoutLayoutParams;
 import com.android.launcher3.dragndrop.DragOptions;
@@ -260,11 +262,15 @@ public class LauncherAccessibilityDelegate extends BaseAccessibilityDelegate<Lau
             return actions;
         }
 
+        ViewParent contentParent = host.getParent() instanceof DragView dragView
+                ? dragView.getContentViewParent()
+                : host.getParent();
         CellLayout layout;
-        if (host.getParent() instanceof DragView) {
-            layout = (CellLayout) ((DragView) host.getParent()).getContentViewParent().getParent();
+        if (contentParent instanceof ShortcutAndWidgetContainer
+                && contentParent.getParent() instanceof CellLayout cl) {
+            layout = cl;
         } else {
-            layout = (CellLayout) host.getParent().getParent();
+            return actions;
         }
         if ((providerInfo.resizeMode & AppWidgetProviderInfo.RESIZE_HORIZONTAL) != 0) {
             if (layout.isRegionVacant(info.cellX + info.spanX, info.cellY, 1, info.spanY) ||

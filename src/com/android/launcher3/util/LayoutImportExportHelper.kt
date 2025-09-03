@@ -20,6 +20,7 @@ import android.app.blob.BlobStoreManager
 import android.content.Context
 import android.database.sqlite.SQLiteReadOnlyDatabaseException
 import android.os.ParcelFileDescriptor.AutoCloseOutputStream
+import android.provider.Settings.Secure
 import android.util.Log
 import com.android.launcher3.AutoInstallsLayout
 import com.android.launcher3.GridSizeUtil
@@ -117,41 +118,34 @@ constructor(
         val blobManager = context.getSystemService(BlobStoreManager::class.java)!!
         val syncLatch = CountDownLatch(1)
 
+        val resolver = context.contentResolver
         blobManager.openSession(blobManager.createSession(handle)).use { session ->
             AutoCloseOutputStream(session.openWrite(0, -1)).use { it.write(data) }
             session.allowPublicAccess()
             session.commit(backgroundExecutor) {
-                settingsCache
-                    .applyLocalSecureStringOverride(
-                        LAYOUT_PROVIDER_KEY,
-                        createBlobProviderKey(digest),
-                    )
-                    .use {
-                        val xmlString = data.toString(StandardCharsets.UTF_8)
-                        GridSizeUtil(context).parseAndSetGridSize(xmlString)
-                        FileLog.i(TAG, "Importing XML as Home Screen Layout:\n$xmlString")
-                        MODEL_EXECUTOR.submit {
-                                try {
-                                    model.modelDbController.createEmptyDB()
-                                } catch (e: SQLiteReadOnlyDatabaseException) {
-                                    // This issue has only been observed in tests so far, likely due
-                                    // to less strict threading for accessing and writing to the
-                                    // launcher test DB.
-                                    Log.w(
-                                        TAG,
-                                        "Failed to clear Launcher DB. It was already deleted.",
-                                        e,
-                                    )
-                                }
-                            }
-                            .get()
-                        uiExecutor.submit { model.forceReload() }.get()
-                        MODEL_EXECUTOR.submit {}.get()
-                        syncLatch.countDown()
-                    }
+                Secure.putString(resolver, LAYOUT_PROVIDER_KEY, createBlobProviderKey(digest))
+                val xmlString = data.toString(StandardCharsets.UTF_8)
+                GridSizeUtil(context).parseAndSetGridSize(xmlString)
+                FileLog.i(TAG, "Importing XML as Home Screen Layout:\n$xmlString")
+                MODEL_EXECUTOR.submit { createEmptyDbSafe() }.get()
+                uiExecutor.submit { model.forceReload() }.get()
+                MODEL_EXECUTOR.submit {}.get()
+                Secure.putString(resolver, LAYOUT_PROVIDER_KEY, null)
+                syncLatch.countDown()
             }
         }
         syncLatch.await()
+    }
+
+    private fun createEmptyDbSafe() {
+        try {
+            model.modelDbController.createEmptyDB()
+        } catch (e: SQLiteReadOnlyDatabaseException) {
+            // This issue has only been observed in tests so far, likely due
+            // to less strict threading for accessing and writing to the
+            // launcher test DB.
+            Log.w(TAG, "Failed to clear Launcher DB. It was already deleted.", e)
+        }
     }
 
     private fun LauncherLayoutBuilder.ItemTarget.addItem(context: Context, info: ItemInfo) {

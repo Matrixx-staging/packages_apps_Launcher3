@@ -24,6 +24,7 @@ import android.content.pm.LauncherApps.ShortcutQuery
 import android.content.pm.PackageInstaller
 import android.content.pm.ShortcutInfo
 import android.net.Uri
+import android.provider.DocumentsContract
 import android.text.TextUtils
 import android.util.Log
 import android.util.LongSparseArray
@@ -636,7 +637,7 @@ class WorkspaceItemProcessor(
             ArrayList(loadedItems.filter { it.container == Favorites.CONTAINER_DESKTOP })
         val excludedScreens = IntSet()
 
-        for ((_, file) in homeScreenFiles.value) {
+        for ((uri, file) in homeScreenFiles.value) {
             // TODO(b/424466810): ignore normally restored items.
 
             val item = WorkspaceItemInfo()
@@ -646,6 +647,19 @@ class WorkspaceItemProcessor(
             item.itemType =
                 if (file.isDirectory) Favorites.ITEM_TYPE_FILE_SYSTEM_FOLDER
                 else Favorites.ITEM_TYPE_FILE_SYSTEM_FILE
+            item.intent =
+                Intent(Intent.ACTION_VIEW).apply {
+                    addFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK or
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    )
+                    setDataAndType(
+                        uri,
+                        if (file.isDirectory) DocumentsContract.Document.MIME_TYPE_DIR
+                        else file.mimeType,
+                    )
+                }
 
             // TODO(b/424466144, b/424466406): add MIME-type-based icons or thumbnails.
             item.bitmap = iconCache.getDefaultIcon(item.user)

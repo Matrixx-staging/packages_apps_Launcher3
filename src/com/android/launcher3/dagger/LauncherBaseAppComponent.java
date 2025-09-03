@@ -37,6 +37,7 @@ import com.android.launcher3.logging.DumpManager;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.model.GridSizeMigrationLogic;
 import com.android.launcher3.model.ItemInstallQueue;
+import com.android.launcher3.model.LayoutParserFactory;
 import com.android.launcher3.model.LoaderCursor.LoaderCursorFactory;
 import com.android.launcher3.model.TestableModelState;
 import com.android.launcher3.notification.NotificationRepository;
@@ -127,6 +128,8 @@ public interface LauncherBaseAppComponent {
 
     /** Utility class for importing/exporting launcher layout */
     LayoutImportExportHelper getLayoutImportExportHelper();
+    /** Returns the layout parser factory for default layout parsing */
+    LayoutParserFactory getLayoutParserFactory();
 
     @VisibleForTesting
     GridSizeMigrationLogic createNewGridSizeMigrationLogic();

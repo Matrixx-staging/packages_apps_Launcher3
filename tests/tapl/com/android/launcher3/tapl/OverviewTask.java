@@ -276,11 +276,7 @@ public final class OverviewTask {
             } else {
                 final Pattern event;
                 if (mOverview.isLiveTile(mTask)) {
-                    if (isDesktopTask && hasDesktopTasks) {
-                        event = TASK_START_EVENT_DESKTOP;
-                    } else {
-                        event = TASK_START_EVENT_LIVE_TILE;
-                    }
+                    event = TASK_START_EVENT_LIVE_TILE;
                 } else if (isDesktopTask) {
                     event = TASK_START_EVENT_DESKTOP;
                 } else {
