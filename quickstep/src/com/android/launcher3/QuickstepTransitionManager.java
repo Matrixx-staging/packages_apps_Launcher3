@@ -1562,8 +1562,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         // Get floating view and target rect.
         boolean isInHotseat = false;
         if (launcherView instanceof LauncherAppWidgetHostView) {
-            Size windowSize = new Size(mDeviceProfile.getDeviceProperties().getAvailableWidthPx(),
-                    mDeviceProfile.getDeviceProperties().getAvailableHeightPx());
+            Size windowSize = new Size(mDeviceProfile.getDeviceProperties().getWidthPx(),
+                    mDeviceProfile.getDeviceProperties().getHeightPx());
             int fallbackBackgroundColor =
                     FloatingWidgetView.getDefaultBackgroundColor(mLauncher, runningTaskTarget);
             floatingWidget = FloatingWidgetView.getFloatingWidgetView(mLauncher,

@@ -3433,17 +3433,8 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
     public static View mapOverCellLayouts(CellLayout[] layouts, ItemOperator op) {
         for (CellLayout layout : layouts) {
             // TODO(b/128460496) Potential race condition where layout is not yet loaded
-            if (layout == null) continue;
-
-            ShortcutAndWidgetContainer container = layout.getShortcutsAndWidgets();
-            // map over all the shortcuts on the layout
-            final int itemCount = container.getChildCount();
-            for (int itemIdx = 0; itemIdx < itemCount; itemIdx++) {
-                View item = container.getChildAt(itemIdx);
-                if (op.evaluate((ItemInfo) item.getTag(), item)) {
-                    return item;
-                }
-            }
+            View result = layout == null ? null : layout.mapOverItems(op);
+            if (result != null) return result;
         }
         return null;
     }
