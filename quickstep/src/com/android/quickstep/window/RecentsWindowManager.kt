@@ -269,6 +269,7 @@ constructor(
                                 systemUiProxy,
                                 iApplicationThread,
                                 /* depthController= */ null,
+                                desktopState,
                             ),
                         )
                     }

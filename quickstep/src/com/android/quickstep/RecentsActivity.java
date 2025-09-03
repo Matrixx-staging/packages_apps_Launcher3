@@ -91,6 +91,7 @@ import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
 import com.android.quickstep.views.TaskView;
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
+import com.android.wm.shell.shared.desktopmode.DesktopState;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
@@ -152,7 +153,7 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
         if (DesktopModeStatus.canEnterDesktopMode(this)) {
             mDesktopRecentsTransitionController = new DesktopRecentsTransitionController(
                     getStateManager(), systemUiProxy, getIApplicationThread(),
-                    null /* depthController */
+                    null /* depthController */, DesktopState.getInstance(this)
             );
         }
         mFallbackRecentsView.init(mActionsView, mSplitSelectStateController,

@@ -338,7 +338,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         if (DesktopModeStatus.canEnterDesktopMode(this)) {
             mDesktopRecentsTransitionController = new DesktopRecentsTransitionController(
                     getStateManager(), systemUiProxy, getIApplicationThread(),
-                    getDepthController());
+                    getDepthController(), DesktopState.getInstance(this));
         }
         overviewPanel.init(mActionsView, mSplitSelectStateController,
                 mDesktopRecentsTransitionController);
