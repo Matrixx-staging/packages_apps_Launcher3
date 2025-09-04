@@ -16,25 +16,40 @@
 
 package com.android.launcher3.homescreenfiles
 
+import android.content.ContentProviderClient
 import android.content.ContentResolver
+import android.content.ContentValues
 import android.content.Context
 import android.database.ContentObserver
 import android.database.MatrixCursor
 import android.net.Uri
+import android.os.Bundle
 import android.os.Process
+import android.provider.DocumentsContract
+import android.provider.DocumentsContract.EXTERNAL_STORAGE_PROVIDER_AUTHORITY
+import android.provider.DocumentsContract.EXTRA_URI
 import android.provider.MediaStore
+import android.provider.MediaStore.Files.FileColumns.RELATIVE_PATH
+import androidx.core.net.toUri
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.android.launcher3.homescreenfiles.HomeScreenFilesProvider.Companion.HOME_SCREEN_FOLDER_RELATIVE_PATH
 import com.android.launcher3.util.DaggerSingletonTracker
 import com.android.launcher3.util.SafeCloseable
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doAnswer
@@ -47,8 +62,13 @@ import org.mockito.kotlin.whenever
 
 @RunWith(AndroidJUnit4::class)
 class HomeScreenFilesProviderTest {
+
+    @get:Rule val mockito = MockitoJUnit.rule()
+
     @Mock private lateinit var context: Context
     @Mock private lateinit var contentResolver: ContentResolver
+    @Mock private lateinit var contentProviderClient: ContentProviderClient
+
     private val lifeCycleTracker: DaggerSingletonTracker =
         mock() {
             on { addCloseable(any()) } doAnswer
@@ -66,7 +86,6 @@ class HomeScreenFilesProviderTest {
 
     @Before
     fun setUp() {
-        MockitoAnnotations.openMocks(this)
         whenever(context.contentResolver).thenReturn(contentResolver)
         provider =
             HomeScreenFilesMediaStoreProvider(
@@ -74,6 +93,83 @@ class HomeScreenFilesProviderTest {
                 MoreExecutors.newDirectExecutorService(),
                 lifeCycleTracker,
             )
+    }
+
+    @Test
+    fun testCanMoveToHomeScreen() {
+        val espUri = createExternalStoreProviderUri("externalRelativePath", "externalDisplayName")
+        val mediaStoreUri = createMediaStoreUri("mediaStoreId")
+        val testUri = createTestUri("testId")
+
+        assertFalse(provider.canMoveToHomeScreen(null))
+        assertFalse(provider.canMoveToHomeScreen(emptyList()))
+        assertTrue(provider.canMoveToHomeScreen(listOf(espUri)))
+        assertTrue(provider.canMoveToHomeScreen(listOf(espUri, mediaStoreUri)))
+        assertFalse(provider.canMoveToHomeScreen(listOf(espUri, mediaStoreUri, testUri)))
+    }
+
+    @Test
+    fun testMoveToHomeScreen() {
+        val espUri = createExternalStoreProviderUri("externalRelativePath", "externalDisplayName")
+        val mediaStoreUri = createMediaStoreUri("mediaStoreId")
+        val mediaStoreUriResolvedFromEsp = createMediaStoreUri("externalId")
+        val testUri = createTestUri("testId")
+
+        // Mock attempts to resolve media store URIs.
+        whenever(contentProviderClient.call(eq(GET_MEDIA_URI_CALL), anyOrNull(), any()))
+            .thenAnswer { invocation ->
+                Bundle().apply {
+                    putParcelable(
+                        EXTRA_URI,
+                        when (
+                            invocation
+                                .getArgument<Bundle>(2)
+                                .getParcelable(EXTRA_URI, Uri::class.java)
+                        ) {
+                            espUri -> mediaStoreUriResolvedFromEsp
+                            mediaStoreUri -> mediaStoreUri
+                            else -> null
+                        },
+                    )
+                }
+            }
+
+        // Associate media store content provider client with content resolver.
+        whenever(contentResolver.acquireContentProviderClient(MediaStore.AUTHORITY))
+            .thenReturn(contentProviderClient)
+
+        // Mock attempts to update media store.
+        whenever(
+                contentResolver.update(
+                    /*uri=*/ anyOrNull(),
+                    /*contentValues=*/ eq(
+                        ContentValues().apply {
+                            put(RELATIVE_PATH, HOME_SCREEN_FOLDER_RELATIVE_PATH)
+                        }
+                    ),
+                    /*where=*/ eq("$RELATIVE_PATH != ?"),
+                    /*selectionArgs=*/ eq(arrayOf(HOME_SCREEN_FOLDER_RELATIVE_PATH)),
+                )
+            )
+            .thenAnswer { invocation ->
+                when (invocation.getArgument<Uri>(0)) {
+                    mediaStoreUri,
+                    mediaStoreUriResolvedFromEsp -> 1
+                    else -> throw RuntimeException()
+                }
+            }
+
+        // Attempt to move URIs to home screen.
+        assertEquals(
+            listOf(
+                /*expectedEspUriResult=*/ true,
+                /*expectedMediaStoreUriResult=*/ true,
+                /*expectedTestUriResult=*/ false,
+            ),
+            provider
+                .moveToHomeScreen(listOf(espUri, mediaStoreUri, testUri))
+                .map(CompletableFuture<Boolean>::get),
+        )
     }
 
     @Test
@@ -192,5 +288,19 @@ class HomeScreenFilesProviderTest {
             .unregisterContentObserver(eq(underlyingContentObserverCaptor.firstValue))
 
         unregisterChangeCallback.close()
+    }
+
+    private fun createExternalStoreProviderUri(relativePath: String, displayName: String) =
+        DocumentsContract.buildDocumentUri(
+            /*authority=*/ EXTERNAL_STORAGE_PROVIDER_AUTHORITY,
+            /*documentId=*/ "primary:$relativePath%3F$displayName",
+        )
+
+    private fun createMediaStoreUri(id: String) = MediaStore.Files.getContentUri(id)
+
+    private fun createTestUri(id: String) = "content://test/path/$id".toUri()
+
+    companion object {
+        private const val GET_MEDIA_URI_CALL = "get_media_uri"
     }
 }

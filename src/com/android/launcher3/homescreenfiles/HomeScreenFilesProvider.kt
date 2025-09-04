@@ -21,7 +21,11 @@ import android.content.ContentResolver.NOTIFY_INSERT
 import android.content.ContentResolver.NOTIFY_UPDATE
 import android.net.Uri
 import android.os.UserHandle
+import androidx.annotation.VisibleForTesting
+import com.android.launcher3.dagger.LauncherAppComponent
+import com.android.launcher3.util.DaggerSingletonObject
 import com.android.launcher3.util.ListenableStream
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 
 /** Represents a single file or folder item queried by [HomeScreenFilesProvider]. */
@@ -29,6 +33,23 @@ data class HomeScreenFile(val displayName: String, val mimeType: String?, val is
 
 /** An interface for managing file items to be shown on the home screen. */
 interface HomeScreenFilesProvider {
+    /**
+     * Returns whether all URIs in the specified list can be moved to the home screen.
+     *
+     * @param uriList The list of URIs to consider.
+     * @return Whether all URIs in the list can be moved.
+     */
+    fun canMoveToHomeScreen(uriList: List<Uri>?): Boolean
+
+    /**
+     * Attempts to asynchronously move all URIs in the specified list to the home screen.
+     *
+     * @param uriList The list of URIs to move.
+     * @return List of futures indicating the success or failure of each move attempt. Futures are
+     *   provided in the same order as the original list of URIs.
+     */
+    fun moveToHomeScreen(uriList: List<Uri>): List<CompletableFuture<Boolean>>
+
     /** Returns all eligible file items to be shown on the home screen. */
     fun query(): Lazy<Map<Uri, HomeScreenFile>>
 
@@ -50,4 +71,13 @@ interface HomeScreenFilesProvider {
 
     /** A stream of changes to file items shown on the home screen. */
     val fileChanges: ListenableStream<FileChange>
+
+    companion object {
+        @JvmField
+        @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+        val HOME_SCREEN_FOLDER_RELATIVE_PATH = "Home screen/"
+
+        @JvmField
+        val INSTANCE = DaggerSingletonObject(LauncherAppComponent::getHomeScreenFilesProvider)
+    }
 }

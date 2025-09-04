@@ -19,6 +19,7 @@ package com.android.launcher3.dragndrop
 import android.content.ClipData
 import android.graphics.Point
 import android.graphics.Rect
+import android.util.Log
 import android.view.DragEvent
 import com.android.launcher3.Launcher
 import com.android.launcher3.icons.IconCache
@@ -66,13 +67,20 @@ class SystemDragListener(launcher: Launcher, private val iconCache: Lazy<IconCac
 
     override fun onDrag(event: DragEvent): Boolean {
         if (event.action == DragEvent.ACTION_DROP) {
-            itemInfo?.uriList =
-                event.clipData?.let { clipData ->
-                    (0 until clipData.itemCount)
-                        .mapNotNull(clipData::getItemAt)
-                        .mapNotNull(ClipData.Item::getUri)
-                        .distinct()
+            try {
+                itemInfo?.apply {
+                    permissions = mLauncher.requestDragAndDropPermissions(event)
+                    uriList =
+                        event.clipData?.let { clipData ->
+                            (0 until clipData.itemCount)
+                                .mapNotNull(clipData::getItemAt)
+                                .mapNotNull(ClipData.Item::getUri)
+                                .distinct()
+                        }
                 }
+            } catch (e: Exception) {
+                Log.e(TAG, "Unable to obtain URI permissions", e)
+            }
         }
         return super.onDrag(event)
     }
@@ -108,5 +116,9 @@ class SystemDragListener(launcher: Launcher, private val iconCache: Lazy<IconCac
     override fun postCleanup() {
         super.postCleanup()
         cleanupCallback?.run()
+    }
+
+    companion object {
+        private const val TAG = "SystemDragListener"
     }
 }
