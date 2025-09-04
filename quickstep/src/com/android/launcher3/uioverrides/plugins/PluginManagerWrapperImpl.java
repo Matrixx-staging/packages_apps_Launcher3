@@ -37,6 +37,7 @@ import com.android.systemui.shared.plugins.PluginActionManager;
 import com.android.systemui.shared.plugins.PluginInstance;
 import com.android.systemui.shared.plugins.PluginManagerImpl;
 import com.android.systemui.shared.plugins.PluginPrefs;
+import com.android.systemui.shared.plugins.VersionCheckerImpl;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -59,9 +60,8 @@ public class PluginManagerWrapperImpl extends PluginManagerWrapper {
         mPluginEnabler = new PluginEnablerImpl(launcherPrefs);
         List<String> privilegedPlugins = Collections.emptyList();
         PluginInstance.Factory instanceFactory = new PluginInstance.Factory(
-                getClass().getClassLoader(), new PluginInstance.InstanceFactory<>(),
-                new PluginInstance.VersionCheckerImpl(), privilegedPlugins,
-                BuildConfig.IS_DEBUG_DEVICE);
+                new VersionCheckerImpl(), getClass().getClassLoader(),
+                privilegedPlugins);
         PluginActionManager.Factory instanceManagerFactory = new PluginActionManager.Factory(
                 c, c.getPackageManager(), c.getMainExecutor(), MODEL_EXECUTOR,
                 c.getSystemService(NotificationManager.class), mPluginEnabler,
