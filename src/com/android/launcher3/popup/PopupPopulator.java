@@ -133,7 +133,7 @@ public class PopupPopulator {
                 si.container = CONTAINER_SHORTCUTS;
 
                 final DeepShortcutView view = shortcutViews.get(i);
-                uiHandler.post(() -> view.applyShortcutInfo(si, shortcut, container));
+                uiHandler.post(() -> view.applyShortcutInfo(si, shortcut, container, context));
             }
         };
     }
