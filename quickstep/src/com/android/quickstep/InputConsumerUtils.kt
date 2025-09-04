@@ -658,7 +658,6 @@ object InputConsumerUtils {
                 event,
                 runningTask.isHomeTask,
                 rotationTouchHelper,
-                desktopState,
             )
         }
     }
@@ -823,7 +822,6 @@ object InputConsumerUtils {
         event: MotionEvent,
         isHomeTask: Boolean,
         rotationTouchHelper: RotationTouchHelper,
-        desktopState: DesktopState,
     ): InputConsumer where T : RecentsViewContainer, T : StatefulContainer<S> {
         val containerInterface = gestureState.getContainerInterface<S, T>()
         val shouldDefer =
@@ -844,7 +842,6 @@ object InputConsumerUtils {
             disableHorizontalSwipe,
             swipeUpHandlerFactory,
             rotationTouchHelper,
-            desktopState
         )
     }
 
