@@ -328,17 +328,27 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
                         !mPassedSlopOnThisGesture && mPassedPilferInputSlop;
                 double degrees = Math.toDegrees(Math.atan(upDist / horizontalDist));
 
-                // Regarding degrees >= -OVERVIEW_MIN_DEGREES - Trackpad gestures can start anywhere
-                // on the screen, allowing downward swipes. We want to impose the same angle in that
-                // scenario.
-                boolean swipeWithinQuickSwitchRange = degrees <= OVERVIEW_MIN_DEGREES
-                        && (!mGestureState.isTrackpadGesture() || degrees >= -OVERVIEW_MIN_DEGREES);
+                boolean swipeWithinQuickSwitchRange = degrees <= OVERVIEW_MIN_DEGREES;
                 boolean isLikelyToStartNewTask =
                         haveNotPassedSlopOnContinuedGesture || swipeWithinQuickSwitchRange;
 
                 if (DEBUG) {
                     Log.d(TAG, "ACTION_MOVE: mPassedPilferInputSlop=" + mPassedPilferInputSlop);
                 }
+
+                // Downwards three finger swipe gesture on trackpad will have degrees == -90.
+                boolean isDownwardsThreeFingerTrackpadGesture =
+                        mGestureState.isThreeFingerTrackpadGesture()
+                                && degrees < -OVERVIEW_MIN_DEGREES;
+                if (isDownwardsThreeFingerTrackpadGesture) {
+                    if (DEBUG) {
+                        Log.d(TAG,
+                                "early break to prevent blocking downwards three finger trackpad "
+                                        + "gesture");
+                    }
+                    break;
+                }
+
                 if (!mPassedPilferInputSlop) {
                     if (passedSlop) {
                         // Horizontal gesture is not allowed in this region
