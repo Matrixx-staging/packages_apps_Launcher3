@@ -260,14 +260,10 @@ class TaskbarRecentAppsController(
             controllers.sharedState?.recentOrderedRunningTaskIds?.addAll(orderedRunningTaskIds)
         }
         recentsModel.unregisterRecentTasksChangedListener(recentTasksChangedListener)
-        cancelIconLoadRequests()
+        iconLoadRequests.forEach { it.cancel() }
+        iconLoadRequests.clear()
         iconShapeDataCloseable?.close()
         themeChangeListener?.let { themeManager.removeChangeListener(it) }
-    }
-
-    private fun cancelIconLoadRequests() {
-        for (it in iconLoadRequests) it.cancel()
-        iconLoadRequests.clear()
     }
 
     /** Called to update hotseatItems, in order to de-dupe them from Recent/Running tasks later. */
@@ -369,7 +365,6 @@ class TaskbarRecentAppsController(
     }
 
     private fun fetchIcons() {
-        cancelIconLoadRequests() // Cancel any previous requests.
         for (groupTask in shownTasks) {
             for ((i, task) in groupTask.tasks.withIndex()) {
                 val cancellableTask =
