@@ -45,6 +45,7 @@ import com.android.quickstep.util.AnimatorControllerWithResistance;
 import com.android.quickstep.util.ContextInitListener;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.window.RecentsWindowManager;
+import com.android.quickstep.window.RecentsWindowTracker;
 
 import dagger.assisted.AssistedInject;
 
@@ -63,11 +64,13 @@ public final class FallbackWindowInterface extends BaseWindowInterface {
             REPOSITORY_INSTANCE = new DaggerSingletonObject<>(
             QuickstepBaseAppComponent::getFallbackWindowInterfaceRepository);
 
+    @NonNull private final RecentsWindowTracker mRecentsWindowTracker;
     @Nullable private RecentsWindowManager mRecentsWindowManager = null;
 
     @AssistedInject
-    public FallbackWindowInterface() {
+    public FallbackWindowInterface(@NonNull RecentsWindowTracker recentsWindowTracker) {
         super(DEFAULT, BACKGROUND_APP);
+        mRecentsWindowTracker = recentsWindowTracker;
     }
 
     public void setRecentsWindowManager(@Nullable RecentsWindowManager recentsWindowManager) {
@@ -110,7 +113,7 @@ public final class FallbackWindowInterface extends BaseWindowInterface {
             Predicate<Boolean> onInitListener) {
         return new ContextInitListener<>(
                 (activity, alreadyOnHome) -> onInitListener.test(alreadyOnHome),
-                RecentsWindowManager.getRecentsWindowTracker());
+                mRecentsWindowTracker);
     }
 
     @Nullable

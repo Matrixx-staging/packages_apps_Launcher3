@@ -64,7 +64,6 @@ import com.android.launcher3.taskbar.TaskbarInteractor
 import com.android.launcher3.testing.TestLogging
 import com.android.launcher3.testing.shared.TestProtocol.LAUNCHER_ACTIVITY_STOPPED_MESSAGE
 import com.android.launcher3.testing.shared.TestProtocol.SEQUENCE_MAIN
-import com.android.launcher3.util.ContextTracker
 import com.android.launcher3.util.DaggerSingletonObject
 import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.Executors
@@ -126,6 +125,7 @@ class RecentsWindowManager
 constructor(
     @Assisted windowContext: Context,
     @Assisted private val fallbackWindowInterface: FallbackWindowInterface,
+    @Assisted private val recentsWindowTracker: RecentsWindowTracker,
     wallpaperColorHints: WallpaperColorHints,
     private val systemUiProxy: SystemUiProxy,
     private val recentsModel: RecentsModel,
@@ -147,17 +147,6 @@ constructor(
             DaggerSingletonObject<PerDisplayRepository<RecentsWindowManager>>(
                 QuickstepBaseAppComponent::getRecentsWindowManagerRepository
             )
-
-        class RecentsWindowTracker : ContextTracker<RecentsWindowManager?>() {
-            override fun isHomeStarted(context: RecentsWindowManager?): Boolean {
-                // if we need to change this block to use context in some way, we will need to
-                // refactor RecentsWindowTracker to be an instance (instead of a singleton) managed
-                // by PerDisplayRepository. Otherwise bad things will occur.
-                return true
-            }
-        }
-
-        @JvmStatic val recentsWindowTracker = RecentsWindowTracker()
     }
 
     protected var recentsView: FallbackRecentsView<RecentsWindowManager>? = null
@@ -715,6 +704,7 @@ constructor(
         fun create(
             @WindowContext context: Context,
             fallbackWindowInterface: FallbackWindowInterface,
+            recentsWindowTracker: RecentsWindowTracker,
         ): RecentsWindowManager
     }
 }
@@ -726,11 +716,14 @@ constructor(
     private val factory: RecentsWindowManager.Factory,
     @WindowContext private val windowContextRepository: PerDisplayRepository<Context>,
     private val fallbackWindowInterfaceRepository: PerDisplayRepository<FallbackWindowInterface>,
+    private val recentsWindowTrackerRepository: PerDisplayRepository<RecentsWindowTracker>,
 ) : PerDisplayInstanceProviderWithTeardown<RecentsWindowManager> {
     override fun createInstance(displayId: Int) =
         windowContextRepository[displayId]?.let { windowContext ->
             fallbackWindowInterfaceRepository[displayId]?.let { fallbackWindowInterface ->
-                factory.create(windowContext, fallbackWindowInterface)
+                recentsWindowTrackerRepository[displayId]?.let { recentsWindowTracker ->
+                    factory.create(windowContext, fallbackWindowInterface, recentsWindowTracker)
+                }
             }
         }
 

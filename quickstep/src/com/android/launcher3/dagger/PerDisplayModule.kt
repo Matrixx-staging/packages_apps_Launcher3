@@ -41,6 +41,7 @@ import com.android.quickstep.TaskAnimationManager
 import com.android.quickstep.window.RecentsWindowFlags.enableOverviewOnConnectedDisplays
 import com.android.quickstep.window.RecentsWindowManager
 import com.android.quickstep.window.RecentsWindowManagerInstanceProvider
+import com.android.quickstep.window.RecentsWindowTracker
 import com.android.systemui.dagger.qualifiers.Background
 import dagger.Binds
 import dagger.Module
@@ -126,15 +127,21 @@ object PerDisplayRepositoriesModule {
     @Provides
     @LauncherAppSingleton
     fun provideFallbackWindowInterfaceRepo(
-        repositoryFactory: PerDisplayInstanceRepositoryImpl.Factory<FallbackWindowInterface>
+        repositoryFactory: PerDisplayInstanceRepositoryImpl.Factory<FallbackWindowInterface>,
+        recentsWindowTrackerRepository: PerDisplayRepository<RecentsWindowTracker>,
     ): PerDisplayRepository<FallbackWindowInterface> {
         return if (enableOverviewOnConnectedDisplays()) {
             repositoryFactory.create(
                 "FallbackWindowInterfaceRepo",
-                { _ -> FallbackWindowInterface() },
+                { displayId ->
+                    recentsWindowTrackerRepository[displayId]?.let { FallbackWindowInterface(it) }
+                },
             )
         } else {
-            SingleInstanceRepositoryImpl("FallbackWindowInterfaceRepo", FallbackWindowInterface())
+            SingleInstanceRepositoryImpl(
+                "FallbackWindowInterfaceRepo",
+                FallbackWindowInterface(recentsWindowTrackerRepository[DEFAULT_DISPLAY]!!),
+            )
         }
     }
 
@@ -148,6 +155,21 @@ object PerDisplayRepositoriesModule {
             repositoryFactory.create("RecentsWindowManagerRepo", instanceProvider)
         } else {
             DefaultDisplayOnlyInstanceRepositoryImpl("RecentsWindowManagerRepo", instanceProvider)
+        }
+    }
+
+    @Provides
+    @LauncherAppSingleton
+    fun provideRecentsWindowTrackerRepo(
+        repositoryFactory: PerDisplayInstanceRepositoryImpl.Factory<RecentsWindowTracker>
+    ): PerDisplayRepository<RecentsWindowTracker> {
+        return if (enableOverviewOnConnectedDisplays()) {
+            repositoryFactory.create("RecentsWindowTrackerRepo", { _ -> RecentsWindowTracker() })
+        } else {
+            DefaultDisplayOnlyInstanceRepositoryImpl(
+                "RecentsWindowTrackerRepo",
+                { _ -> RecentsWindowTracker() },
+            )
         }
     }
 
