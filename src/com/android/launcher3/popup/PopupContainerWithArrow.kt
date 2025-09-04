@@ -36,8 +36,6 @@ import com.android.launcher3.Flags
 import com.android.launcher3.Launcher
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
-import com.android.launcher3.accessibility.LauncherAccessibilityDelegate
-import com.android.launcher3.accessibility.ShortcutMenuAccessibilityDelegate
 import com.android.launcher3.dragndrop.DragController
 import com.android.launcher3.dragndrop.DragOptions.PreDragCondition
 import com.android.launcher3.model.data.ItemInfo
@@ -80,7 +78,6 @@ private constructor(
 
     private var containerWidth: Int = resources.getDimensionPixelSize(R.dimen.bg_popup_item_width)
     private var deepShortcutContainer: ViewGroup? = null
-    private var accessibilityDelegate: LauncherAccessibilityDelegate? = null
     private var currentHeight = 0f
 
     val originalIcon = originalView as BubbleTextView
@@ -92,10 +89,6 @@ private constructor(
 
     override fun getAccessibilityInitialFocusView(): View {
         return systemShortcutContainer?.getChildAt(0) ?: super.getAccessibilityInitialFocusView()
-    }
-
-    override fun getAccessibilityDelegate(): LauncherAccessibilityDelegate? {
-        return accessibilityDelegate
     }
 
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
@@ -122,7 +115,6 @@ private constructor(
         ) {
             itemDragHandler = LauncherPopupItemDragHandler(launcher, this)
         }
-        accessibilityDelegate = ShortcutMenuAccessibilityDelegate(launcher)
         launcher.dragController.addDragListener(this)
     }
 

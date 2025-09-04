@@ -346,6 +346,7 @@ public class TouchInteractionService extends Service {
 
         @BinderThread
         public void onSystemUiStateChanged(@SystemUiStateFlags long stateFlags, int displayId) {
+            if (!enableOverviewOnConnectedDisplays() && displayId != DEFAULT_DISPLAY) return;
             MAIN_EXECUTOR.execute(() -> executeForTouchInteractionService(tis -> {
                 // Last flags is only used for the default display case.
                 RecentsAnimationDeviceState deviceState = tis.mDeviceStateRepository.get(displayId);

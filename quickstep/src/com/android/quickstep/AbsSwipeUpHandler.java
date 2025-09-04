@@ -1302,8 +1302,6 @@ public abstract class AbsSwipeUpHandler<
         // Fast-finish the attaching animation if it's still running.
         maybeUpdateRecentsAttachedState(false);
         final GestureEndTarget endTarget = mGestureState.getEndTarget();
-        // Wait until the given View (if supplied) draws before resuming the last task.
-        View postResumeLastTask = mContainerInterface.onSettledOnEndTarget(endTarget);
 
         // TODO(b/378443899): Add a CUJ for REJECT_HOME
         if (endTarget != NEW_TASK) {
@@ -1338,10 +1336,9 @@ public abstract class AbsSwipeUpHandler<
                 mStateCallback.setState(STATE_START_NEW_TASK | STATE_CAPTURE_SCREENSHOT);
                 break;
             case LAST_TASK:
-                if (postResumeLastTask != null) {
-                    ViewUtils.postFrameDrawn(postResumeLastTask,
-                            () -> mStateCallback.setState(STATE_RESUME_LAST_TASK));
-                } else {
+                // Wait until the given View (if supplied) draws before resuming the last task.
+                if (!mContainerInterface.onSettledOnEndTarget(
+                        () -> mStateCallback.setState(STATE_RESUME_LAST_TASK), MAIN_EXECUTOR)) {
                     mStateCallback.setState(STATE_RESUME_LAST_TASK);
                 }
                 // Restore the divider as it resumes the last top-tasks.

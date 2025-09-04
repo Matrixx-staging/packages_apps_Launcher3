@@ -27,11 +27,12 @@ import com.android.launcher3.Flags.enableTaskbarUiThread
 import com.android.launcher3.LauncherState
 import com.android.launcher3.taskbar.TaskbarManagerImpl.TASKBAR_UI_THREAD
 import com.android.launcher3.taskbar.customization.TASKBAR_OVERFLOW_PIN_LIMIT
-import com.android.launcher3.taskbar.customization.TaskbarFeatureEvaluator
 import com.android.launcher3.util.ImmediateExecutorService
 import com.android.quickstep.GestureState
 import com.android.quickstep.RecentsAnimationCallbacks
+import com.android.quickstep.ViewUtils
 import java.util.concurrent.AbstractExecutorService
+import java.util.concurrent.Executor
 import java.util.concurrent.Future
 import javax.annotation.concurrent.ThreadSafe
 
@@ -182,8 +183,18 @@ class TaskbarInteractor(private val taskbarUIController: TaskbarUIController) {
     fun launchFocusedTask(): Future<Set<Int>?> =
         executor.submit<Set<Int>?> { taskbarUIController.launchFocusedTask() }
 
-    // TODO(b/404636836): refactor maxPinnableCount to TaskbarUiState
-    @MainThread fun getRootView(): View = taskbarUIController.rootView
+    @AnyThread
+    fun postOnRootViewDraw(callback: Runnable, callbackExecutor: Executor): Boolean {
+        val rootView = taskbarUIController.rootView
+        return if (rootView != null) {
+            executor.execute {
+                ViewUtils.postFrameDrawn(rootView) { callbackExecutor.execute(callback) }
+            }
+            true
+        } else {
+            false
+        }
+    }
 
     // TODO(b/404636836): remove after revert ag/34711156
     @MainThread fun getControllers(): TaskbarControllers? = taskbarUIController.mControllers
@@ -198,11 +209,6 @@ class TaskbarInteractor(private val taskbarUIController: TaskbarUIController) {
                 ?.deviceProfile
                 ?.numShownHotseatIcons ?: -1
         }
-
-    // TODO(fengjial): refactor isTransient to TaskbarUiState
-    @MainThread
-    fun getTaskbarFeatureEvaluator(): TaskbarFeatureEvaluator =
-        taskbarUIController.taskbarFeatureEvaluator
 
     // TODO(b/404636836): expose taskbar view rect and offset vai [TaskbarUiState]
     @MainThread
