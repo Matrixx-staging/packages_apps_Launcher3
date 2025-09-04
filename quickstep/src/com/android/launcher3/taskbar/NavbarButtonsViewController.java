@@ -1300,8 +1300,9 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
             return;
         }
 
-        if (mIsImeRenderingNavButtons) {
-            // IME is rendering the nav buttons, so we don't need to create a new layer for them.
+        if (mIsImeRenderingNavButtons || !mContext.isPrimaryDisplay()) {
+            // When either IME or the Taskbar on CD is rendering the nav buttons, we don't need to
+            // create a new layer for them.
             return;
         }
 
