@@ -125,7 +125,7 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
     private boolean mDisallowGlobalDrag;
     private boolean mDisallowLongClick;
 
-    private TaskbarUiState mTaskbarUiState;
+    private @Nullable TaskbarUiState mTaskbarUiState;
 
     private boolean mIsTaskbarDragging;
     private @Nullable DragToBubbleController mDragToBubbleController;
@@ -139,7 +139,7 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
         mDragIconSize = resources.getDimensionPixelSize(R.dimen.taskbar_icon_drag_icon_size);
     }
 
-    public void init(TaskbarControllers controllers, TaskbarUiState taskbarUiState) {
+    public void init(TaskbarControllers controllers, @Nullable TaskbarUiState taskbarUiState) {
         mControllers = controllers;
         mControllers.runAfterInit(() ->
                 mControllers.bubbleControllers
@@ -185,7 +185,7 @@ public class TaskbarDragController extends DragController<BaseTaskbarContext> im
     private void updateIsDragging() {
         mIsTaskbarDragging = TaskbarDragController.super.isDragging()
                 || mIsSystemDragInProgress;
-        if (refactorTaskbarUiState()) {
+        if (refactorTaskbarUiState() && mTaskbarUiState != null) {
             mTaskbarUiState.setIsTaskbarDragging(mIsTaskbarDragging);
         }
     }

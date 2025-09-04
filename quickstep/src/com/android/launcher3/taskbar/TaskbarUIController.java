@@ -236,6 +236,10 @@ public class TaskbarUIController implements BubbleBarController.BubbleBarLocatio
         }
     }
 
+    /**
+     * Return true only if drags originating from taskbar window is dragging an item. Drag
+     * originating from all apps using {@link TaskbarOverlayContext} is excluded.
+     */
     public boolean isDraggingItem() {
         boolean bubblesDragging = false;
         if (mControllers.bubbleControllers.isPresent()) {

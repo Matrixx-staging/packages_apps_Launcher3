@@ -72,7 +72,10 @@ public class TaskbarOverlayContext extends BaseTaskbarContext {
         mOverlayController = controllers.taskbarOverlayController;
         mDragToBubbleController = controllers.bubbleControllers.map(c -> c.dragToBubbleController);
         mDragController = new TaskbarDragController(this);
-        mDragController.init(controllers, taskbarContext.getTaskbarUiState());
+        // We don't query isDragging from DragController attached to TaskbarOverlayContext. Instead
+        // we only query it from DragController attached to TaskbarControllers. Thus we don't pass
+        // TaskbarUiState to DragController here.
+        mDragController.init(controllers, null);
         mDragLayer = new TaskbarOverlayDragLayer(this);
         mStashedTaskbarHeight = controllers.taskbarStashController.getStashedHeight();
         updateBlurStyle();
