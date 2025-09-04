@@ -63,7 +63,6 @@ constructor(
     private val idp: InvariantDeviceProfile,
     @Background private val backgroundExecutor: ExecutorService,
     @Ui private val uiExecutor: ExecutorService,
-    private val settingsCache: SettingsCache,
 ) {
 
     fun exportModelDbAsXmlFuture(): CompletableFuture<String> {
@@ -130,7 +129,6 @@ constructor(
                 MODEL_EXECUTOR.submit { createEmptyDbSafe() }.get()
                 uiExecutor.submit { model.forceReload() }.get()
                 MODEL_EXECUTOR.submit {}.get()
-                Secure.putString(resolver, LAYOUT_PROVIDER_KEY, null)
                 syncLatch.countDown()
             }
         }

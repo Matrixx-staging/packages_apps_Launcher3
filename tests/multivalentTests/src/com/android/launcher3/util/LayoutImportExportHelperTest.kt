@@ -269,6 +269,7 @@ class LayoutImportExportHelperTest {
 
         // To test the exported XML, we merely clear the DB and re-load it. If the XML is
         // well-formatted, it will be loaded into the DB properly. Otherwise, it will be rejected.
+        layout.set(LauncherLayoutBuilder())
         MODEL_EXECUTOR.submit {
                 try {
                     model.modelDbController.createEmptyDB()
