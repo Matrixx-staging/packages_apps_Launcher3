@@ -133,7 +133,11 @@
     <string name="folder_closed" msgid="4100806530910930934">"Kansio on suljettu"</string>
     <string name="folder_renamed" msgid="1794088362165669656">"Kansion nimeksi vaihdettiin <xliff:g id="NAME">%1$s</xliff:g>"</string>
     <string name="folder_name_format_exact" msgid="8626242716117004803">"Kansio: <xliff:g id="NAME">%1$s</xliff:g>, <xliff:g id="SIZE">%2$d</xliff:g> kohdetta"</string>
+    <!-- no translation found for folder_name_format_exact_with_dot (30828041991324911) -->
+    <skip />
     <string name="folder_name_format_overflow" msgid="4270108890534995199">"Kansio: <xliff:g id="NAME">%1$s</xliff:g>, ainakin <xliff:g id="SIZE">%2$d</xliff:g> kohdetta"</string>
+    <!-- no translation found for folder_name_format_overflow_with_dot (9174809519194154156) -->
+    <skip />
     <string name="unnamed_folder" msgid="2420192029474044442">"Nimeämätön kansio"</string>
     <string name="app_pair_name_format" msgid="8134106404716224054">"Sovelluspari: <xliff:g id="APP1">%1$s</xliff:g> ja <xliff:g id="APP2">%2$s</xliff:g>"</string>
     <string name="styles_wallpaper_button_text" msgid="8216961355289236794">"Taustakuva ja tyyli"</string>

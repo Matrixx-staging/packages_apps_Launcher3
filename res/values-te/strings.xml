@@ -121,7 +121,7 @@
     <string name="paginate_right" msgid="6701038155201975878">"పేజీని కుడి వైపునకు స్క్రోల్ చేయండి"</string>
     <string name="disabled_app_label" msgid="6673129024321402780">"<xliff:g id="APP_NAME">%1$s</xliff:g> నిలిపివేయబడింది"</string>
     <string name="dotted_app_label" msgid="1865617679843363410">"{count,plural, =1{{app_name}లో # నోటిఫికేషన్ ఉంది}other{{app_name}లో # నోటిఫికేషన్‌లు ఉన్నాయి}}"</string>
-    <string name="hotseat_prediction_content_description" msgid="7680403232742709704">"సూచించిన యాప్: <xliff:g id="TITLE">%1$s</xliff:g>"</string>
+    <string name="hotseat_prediction_content_description" msgid="7680403232742709704">"అంచనా వేయబడిన యాప్: <xliff:g id="TITLE">%1$s</xliff:g>"</string>
     <string name="default_scroll_format" msgid="7475544710230993317">"%2$dలో %1$dవ పేజీ"</string>
     <string name="workspace_scroll_format" msgid="8458889198184077399">"%2$dలో %1$dవ హోమ్ స్క్రీన్"</string>
     <string name="workspace_new_page" msgid="257366611030256142">"కొత్త హోమ్ స్క్రీన్ పేజీ"</string>
@@ -133,7 +133,11 @@
     <string name="folder_closed" msgid="4100806530910930934">"ఫోల్డర్ మూసివేయబడింది"</string>
     <string name="folder_renamed" msgid="1794088362165669656">"ఫోల్డర్ పేరు <xliff:g id="NAME">%1$s</xliff:g>గా మార్చబడింది"</string>
     <string name="folder_name_format_exact" msgid="8626242716117004803">"ఫోల్డర్: <xliff:g id="NAME">%1$s</xliff:g>, <xliff:g id="SIZE">%2$d</xliff:g> ఐటెమ్‌లు"</string>
+    <!-- no translation found for folder_name_format_exact_with_dot (30828041991324911) -->
+    <skip />
     <string name="folder_name_format_overflow" msgid="4270108890534995199">"ఫోల్డర్: <xliff:g id="NAME">%1$s</xliff:g>, <xliff:g id="SIZE">%2$d</xliff:g> లేదా అంతకంటే ఎక్కువ ఐటెమ్‌లు"</string>
+    <!-- no translation found for folder_name_format_overflow_with_dot (9174809519194154156) -->
+    <skip />
     <string name="unnamed_folder" msgid="2420192029474044442">"పేరు లేని ఫోల్డర్"</string>
     <string name="app_pair_name_format" msgid="8134106404716224054">"యాప్ పెయిర్: <xliff:g id="APP1">%1$s</xliff:g>, <xliff:g id="APP2">%2$s</xliff:g>"</string>
     <string name="styles_wallpaper_button_text" msgid="8216961355289236794">"వాల్‌పేపర్ &amp; స్టయిల్"</string>
