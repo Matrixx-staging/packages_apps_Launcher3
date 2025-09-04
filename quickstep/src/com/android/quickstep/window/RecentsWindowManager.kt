@@ -249,6 +249,23 @@ constructor(
         }
     }
 
+    init {
+        fallbackWindowInterface.setRecentsWindowManager(this)
+        if (displayId == DEFAULT_DISPLAY) {
+            homeVisibilityState.addListener(homeVisibilityListener)
+        }
+
+        if (
+            DesktopExperienceFlags.ENABLE_NON_DEFAULT_DISPLAY_SPLIT_BUGFIX.isTrue &&
+            displayId != DEFAULT_DISPLAY &&
+            desktopState.canEnterDesktopModeOrShowAppHandle
+        ) {
+            splitSelectStateController.initSplitFromDesktopController(this)
+        }
+
+        displayController.addChangeListenerForDisplay(this, displayId)
+    }
+
     fun createWindowView() {
         if (windowView != null) {
             return
@@ -256,7 +273,7 @@ constructor(
 
         theme.applyStyle(overviewBlurStyleResId, true)
         windowView = layoutInflater.inflate(R.layout.fallback_recents_activity, null)
-        windowView?.let { it ->
+        windowView?.let {
             actionsView = it.findViewById(R.id.overview_actions_view)
             recentsView =
                 it.findViewById<FallbackRecentsView<RecentsWindowManager>?>(R.id.overview_panel)
@@ -325,21 +342,37 @@ constructor(
         registerComponentCallbacks(this)
     }
 
-    init {
-        fallbackWindowInterface.setRecentsWindowManager(this)
-        if (displayId == DEFAULT_DISPLAY) {
-            homeVisibilityState.addListener(homeVisibilityListener)
+    override fun destroy() {
+        super.destroy()
+        displayController.removeChangeListenerForDisplay(this, displayId)
+        fallbackWindowInterface.setRecentsWindowManager(null)
+        tisBindHelper.onDestroy()
+        Executors.MAIN_EXECUTOR.execute {
+            onViewDestroyed()
+            hideRecentsWindow()
+            if (windowView?.parent != null) {
+                surfaceControlViewHost?.release()
+                surfaceControlViewHost = null
+            }
+            windowView
+                ?.findOnBackInvokedDispatcher()
+                ?.unregisterOnBackInvokedCallback(
+                    if (enablePredictiveBackInOverview()) {
+                        onBackAnimationCallback
+                    } else {
+                        onBackInvokedCallback
+                    }
+                )
+            callbacks?.removeListener(recentsAnimationListener)
+            if (displayId == DEFAULT_DISPLAY) {
+                homeVisibilityState.removeListener(homeVisibilityListener)
+            }
+            unregisterComponentCallbacks(this)
+            recentsWindowTracker.onContextDestroyed(this)
+            recentsView?.destroy()
+            recentsView = null
+            windowView = null
         }
-
-        if (
-            DesktopExperienceFlags.ENABLE_NON_DEFAULT_DISPLAY_SPLIT_BUGFIX.isTrue &&
-                displayId != DEFAULT_DISPLAY &&
-                desktopState.canEnterDesktopModeOrShowAppHandle
-        ) {
-            splitSelectStateController.initSplitFromDesktopController(this)
-        }
-
-        displayController.addChangeListenerForDisplay(this, displayId)
     }
 
     override fun handleConfigurationChanged(newConfiguration: Configuration?) {
@@ -374,39 +407,6 @@ constructor(
     ) {
         initDeviceProfile()
         surfaceControlViewHost?.relayout(getWindowLayoutParams())
-    }
-
-    override fun destroy() {
-        super.destroy()
-        displayController.removeChangeListenerForDisplay(this, displayId)
-        fallbackWindowInterface.setRecentsWindowManager(null)
-        tisBindHelper.onDestroy()
-        Executors.MAIN_EXECUTOR.execute {
-            onViewDestroyed()
-            hideRecentsWindow()
-            if (windowView?.parent != null) {
-                surfaceControlViewHost?.release()
-                surfaceControlViewHost = null
-            }
-            windowView
-                ?.findOnBackInvokedDispatcher()
-                ?.unregisterOnBackInvokedCallback(
-                    if (enablePredictiveBackInOverview()) {
-                        onBackAnimationCallback
-                    } else {
-                        onBackInvokedCallback
-                    }
-                )
-            callbacks?.removeListener(recentsAnimationListener)
-            if (displayId == DEFAULT_DISPLAY) {
-                homeVisibilityState.removeListener(homeVisibilityListener)
-            }
-            unregisterComponentCallbacks(this)
-            recentsWindowTracker.onContextDestroyed(this)
-            recentsView?.destroy()
-            recentsView = null
-            windowView = null
-        }
     }
 
     fun getOverviewOverlay(): SurfaceControl? {
