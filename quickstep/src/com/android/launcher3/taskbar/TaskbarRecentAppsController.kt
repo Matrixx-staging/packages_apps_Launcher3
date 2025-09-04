@@ -230,22 +230,14 @@ class TaskbarRecentAppsController(
         }
         orderedRunningTaskIds =
             controllers.sharedState?.recentOrderedRunningTaskIds?.filterNotNull() ?: emptyList()
-        controllers.runAfterInit {
-            val showDesktopTasks =
-                controllers.taskbarDesktopModeController.shouldShowDesktopTasksInTaskbar()
-            val isTaskbarPresent = controllers.taskbarActivityContext.deviceProfile.isTaskbarPresent
-            if (
-                (canShowRunningApps && showDesktopTasks) || (canShowRecentApps && isTaskbarPresent)
-            ) {
-                recentsModel.registerRecentTasksChangedListener(recentTasksChangedListener)
-                reloadRecentTasksIfNeeded()
-                if (enableTaskbarRecentsThemedIcons()) {
-                    iconShapeDataCloseable =
-                        themeManager.iconShapeData.forEach(MAIN_EXECUTOR) { fetchIcons() }
-                    themeChangeListener =
-                        ThemeChangeListener { fetchIcons() }
-                            .also { themeManager.addChangeListener(it) }
-                }
+        if (canShowRunningApps || canShowRecentApps) {
+            recentsModel.registerRecentTasksChangedListener(recentTasksChangedListener)
+            controllers.runAfterInit { reloadRecentTasksIfNeeded() }
+            if (enableTaskbarRecentsThemedIcons()) {
+                iconShapeDataCloseable =
+                    themeManager.iconShapeData.forEach(MAIN_EXECUTOR) { fetchIcons() }
+                themeChangeListener =
+                    ThemeChangeListener { fetchIcons() }.also { themeManager.addChangeListener(it) }
             }
         }
     }
