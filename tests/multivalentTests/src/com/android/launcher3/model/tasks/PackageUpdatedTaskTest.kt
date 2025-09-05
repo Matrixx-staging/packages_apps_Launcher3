@@ -35,10 +35,10 @@ import com.android.launcher3.model.AllAppsList
 import com.android.launcher3.model.ModelTaskController
 import com.android.launcher3.model.TestableModelState
 import com.android.launcher3.model.data.AppInfo
-import com.android.launcher3.model.data.WorkspaceData
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.model.repository.AppsListRepository
 import com.android.launcher3.model.tasks.ModelRepoTestEx.trackUpdate
+import com.android.launcher3.model.tasks.ModelRepoTestEx.trackUpdateAndChanges
 import com.android.launcher3.model.tasks.ModelRepoTestEx.verifyAndGetItemsUpdated
 import com.android.launcher3.model.tasks.PackageUpdatedTask.OP_ADD
 import com.android.launcher3.model.tasks.PackageUpdatedTask.OP_UPDATE
@@ -134,7 +134,7 @@ class PackageUpdatedTaskTest {
         modelState.dataModel.addItem(context, expectedWorkspaceItem)
         val appUpdates = modelState.appsRepo.appsListStateRef.trackUpdate()
         val widgetsUpdates = modelState.homeRepo.allWidgets.trackUpdate()
-        val workspaceUpdates = modelState.homeRepo.workspaceState.trackUpdate()
+        val workspaceUpdates = modelState.homeRepo.workspaceState.trackUpdateAndChanges()
 
         executeTask(OP_ADD)
 
@@ -158,7 +158,7 @@ class PackageUpdatedTaskTest {
     fun `OP_UPDATE triggers model callbacks and updates items in AllAppsList`() {
         modelState.dataModel.addItem(context, expectedWorkspaceItem)
         val appUpdates = modelState.appsRepo.appsListStateRef.trackUpdate()
-        val workspaceUpdates = modelState.homeRepo.workspaceState.trackUpdate()
+        val workspaceUpdates = modelState.homeRepo.workspaceState.trackUpdateAndChanges()
 
         executeTask(OP_UPDATE)
 
@@ -175,7 +175,10 @@ class PackageUpdatedTaskTest {
             .isEqualTo(AppInfo(context, expectedActivityInfo, mUser).componentName)
     }
 
-    private fun List<WorkspaceData>.verifyItemUpdated(updateIndex: Int = 1, totalUpdates: Int = 2) =
+    private fun TrackedWorkspaceUpdates.verifyItemUpdated(
+        updateIndex: Int = 1,
+        totalUpdates: Int = 2,
+    ) =
         assertThat(verifyAndGetItemsUpdated(updateIndex, totalUpdates))
             .containsExactly(expectedWorkspaceItem)
 

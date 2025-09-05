@@ -29,8 +29,8 @@ import com.android.launcher3.model.TestableModelState
 import com.android.launcher3.model.WorkspaceItemSpaceFinder
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.ItemInfo
+import com.android.launcher3.model.data.WorkspaceChangeEvent
 import com.android.launcher3.model.data.WorkspaceChangeEvent.AddEvent
-import com.android.launcher3.model.data.WorkspaceData
 import com.android.launcher3.model.data.WorkspaceItemCoordinates
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.util.Executors
@@ -205,18 +205,17 @@ class AddWorkspaceItemsTaskTest {
         val task = newTask(*itemsToAdd)
 
         runOnExecutorSync(MODEL_EXECUTOR) {
-            val workspaceUpdates = mutableListOf<WorkspaceData>()
-            modelState.homeRepo.workspaceState.forEach(MODEL_EXECUTOR) { workspaceUpdates.add(it) }
+            val workspaceUpdates = mutableListOf<WorkspaceChangeEvent?>()
+            modelState.homeRepo.workspaceState.changes.forEach(MODEL_EXECUTOR) {
+                workspaceUpdates.add(it)
+            }
 
             mDataModelCallbacks.addedItems.clear()
             modelState.model.enqueueModelUpdateTask(task)
 
             // Verify that only one workspace update was pushed
-            assertThat(workspaceUpdates).hasSize(2)
-            val initialState = workspaceUpdates[0]
-            val finalState = workspaceUpdates[1]
-            assertThat(finalState.diff(initialState)!!).hasSize(1)
-            val addEvent = finalState.diff(initialState)!![0] as AddEvent
+            assertThat(workspaceUpdates).hasSize(1)
+            val addEvent = workspaceUpdates[0] as AddEvent
             verification.invoke(addEvent.items)
 
             // Verify the legacy callback behavior

@@ -36,6 +36,9 @@ import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.LauncherAppWidgetInfo
 import com.android.launcher3.model.data.PredictedContainerInfo
+import com.android.launcher3.model.data.WorkspaceChangeEvent.AddEvent
+import com.android.launcher3.model.data.WorkspaceChangeEvent.RemoveEvent
+import com.android.launcher3.model.data.WorkspaceChangeEvent.UpdateEvent
 import com.android.launcher3.model.data.WorkspaceData
 import com.android.launcher3.model.data.WorkspaceData.MutableWorkspaceData
 import com.android.launcher3.model.data.WorkspaceItemInfo
@@ -47,6 +50,7 @@ import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.DaggerSingletonTracker
 import com.android.launcher3.util.Executors
 import com.android.launcher3.util.IntSparseArrayMap
+import com.android.launcher3.util.ItemInfoMatcher
 import com.android.launcher3.util.PackageUserKey
 import com.android.launcher3.widget.model.WidgetsListBaseEntry
 import java.io.PrintWriter
@@ -148,20 +152,22 @@ constructor(
                 }
         }
 
-        mutableWorkspaceData.removeItems(items, owner)
+        mutableWorkspaceData.modifyItems { items.forEach { remove(it.id) } }
+
+        if (Flags.modelRepository()) {
+            repo
+                .get()
+                .dispatchWorkspaceDataChange(
+                    mutableWorkspaceData.copy(),
+                    RemoveEvent(ItemInfoMatcher.ofItems(items), owner),
+                )
+        }
+
         items
             .asSequence()
             .map { it.user }
             .distinct()
             .forEach { updateShortcutPinnedState(context, it) }
-
-        updateHomeRepository()
-    }
-
-    private fun updateHomeRepository() {
-        if (Flags.modelRepository()) {
-            repo.get().dispatchWorkspaceDataChange(mutableWorkspaceData.copy())
-        }
     }
 
     @JvmOverloads
@@ -172,31 +178,49 @@ constructor(
     @Synchronized
     @JvmOverloads
     fun addItems(context: Context, items: List<ItemInfo>, owner: Any? = null) {
-        mutableWorkspaceData.addItems(items, owner)
+        mutableWorkspaceData.modifyItems { items.forEach { put(it.id, it) } }
+
+        if (Flags.modelRepository()) {
+            repo
+                .get()
+                .dispatchWorkspaceDataChange(mutableWorkspaceData.copy(), AddEvent(items, owner))
+        }
         items
             .filter { it.itemType == ITEM_TYPE_DEEP_SHORTCUT }
             .map { it.user }
             .distinct()
             .forEach { updateShortcutPinnedState(context, it) }
-        updateHomeRepository()
     }
 
     @Synchronized
     fun updateAndDispatchItem(item: ItemInfo, owner: Any?) {
-        mutableWorkspaceData.replaceItem(item, owner)
-        updateHomeRepository()
+        mutableWorkspaceData.modifyItems { put(item.id, item) }
+        if (Flags.modelRepository()) {
+            repo
+                .get()
+                .dispatchWorkspaceDataChange(
+                    mutableWorkspaceData.copy(),
+                    UpdateEvent(listOf(item), owner),
+                )
+        }
     }
 
     @Synchronized
     fun updateItems(items: List<ItemInfo>, owner: Any?) {
-        mutableWorkspaceData.notifyItemsUpdated(items, owner)
-        updateHomeRepository()
+        mutableWorkspaceData.modifyItems {}
+        if (Flags.modelRepository()) {
+            repo
+                .get()
+                .dispatchWorkspaceDataChange(mutableWorkspaceData.copy(), UpdateEvent(items, owner))
+        }
     }
 
     @Synchronized
     fun dataLoadComplete(allItems: SparseArray<ItemInfo>) {
         mutableWorkspaceData.replaceDataMap(allItems)
-        updateHomeRepository()
+        if (Flags.modelRepository()) {
+            repo.get().dispatchWorkspaceDataChange(mutableWorkspaceData.copy(), null)
+        }
     }
 
     /**
