@@ -56,6 +56,7 @@ import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.statemanager.BaseState;
 import com.android.launcher3.statemanager.StatefulContainer;
 import com.android.launcher3.taskbar.TaskbarInteractor;
+import com.android.launcher3.taskbar.TaskbarUiState;
 import com.android.launcher3.taskbar.TaskbarUiStateMonitor;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.WindowBounds;
@@ -108,9 +109,14 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
     public abstract boolean isStarted();
     public boolean deferStartingActivity(
             @NonNull RecentsAnimationDeviceState deviceState, MotionEvent ev) {
-        TaskbarInteractor interactor = getTaskbarInteractor();
+        final TaskbarInteractor interactor = getTaskbarInteractor();
+        final CONTAINER_TYPE container = getCreatedContainer();
+        final TaskbarUiState taskbarUiState = container != null
+                ? TaskbarUiStateMonitor.INSTANCE.get(container.asContext())
+                .getTaskbarUiState(ev.getDisplayId())
+                : null;
         boolean isEventOverBubbleBarStashHandle =
-                interactor != null && interactor.isEventOverBubbleBarViews(ev);
+                isEventOverBubbleBarView(interactor, taskbarUiState, ev);
         boolean isEventOverAnyTaskbarItem =
                 interactor != null && interactor.isEventOverAnyTaskbarItem(ev);
         return deviceState.isInDeferredGestureRegion(ev)
@@ -537,6 +543,22 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
                 Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM,
                 outRect,
                 orientationHandler);
+    }
+
+    private boolean isEventOverBubbleBarView(
+            @Nullable TaskbarInteractor interactor,
+            @Nullable TaskbarUiState taskbarUiState, MotionEvent ev) {
+        if (refactorTaskbarUiState()) {
+            final boolean ret = taskbarUiState != null
+                    && taskbarUiState.isEventOverBubbleBarViews(ev);
+            if (BuildConfig.IS_STUDIO_BUILD && ret
+                    != (interactor != null && interactor.isEventOverBubbleBarViews(ev))) {
+                throw new IllegalStateException("isEventOverBubbleBarView doesn't match");
+            }
+            return ret;
+        } else {
+            return interactor != null && interactor.isEventOverBubbleBarViews(ev);
+        }
     }
 
     private static int getModalClaimedSpaceBelow(DeviceProfile dp, Rect outRect,
