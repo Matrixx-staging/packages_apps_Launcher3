@@ -617,7 +617,7 @@ class TaskbarViewTest {
                 newTitle,
             )
 
-        runOnMainSync { viewController.onTaskUpdated(splitTask.bottomRightTask) }
+        runOnMainSync { viewController.onTaskUpdated(splitTask.bottomRightTask, splitTask) }
         Truth.assertThat(icon.titleTextView.text).isEqualTo(expectedTitle2)
     }
 

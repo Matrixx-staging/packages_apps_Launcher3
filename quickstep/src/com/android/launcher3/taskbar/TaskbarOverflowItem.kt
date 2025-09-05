@@ -16,11 +16,12 @@
 
 package com.android.launcher3.taskbar
 
+import android.app.ActivityTaskManager.INVALID_TASK_ID
 import android.content.Context
 import android.graphics.drawable.Drawable
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.ItemInfoWithIcon
-import com.android.systemui.shared.recents.model.Task
+import com.android.quickstep.util.SingleTask
 
 internal interface TaskbarOverflowItem {
     /** The drawable icon for the item. */
@@ -31,12 +32,13 @@ internal interface TaskbarOverflowItem {
 }
 
 // Wrapper for [Task]
-internal class TaskWrapper(private val task: Task?) : TaskbarOverflowItem {
+internal class TaskWrapper(private val context: Context, private val singleTask: SingleTask?) :
+    TaskbarOverflowItem {
     override val drawableIcon: Drawable?
-        get() = task?.icon
+        get() = singleTask?.task?.icon ?: singleTask?.bitmapInfos?.firstOrNull()?.newIcon(context)
 
     override val itemId: Int
-        get() = task?.key?.id ?: -1
+        get() = singleTask?.task?.key?.id ?: INVALID_TASK_ID
 }
 
 // Wrapper for [ItemInfo]
@@ -46,5 +48,5 @@ internal class ItemInfoWrapper(val itemInfo: ItemInfo?, private val context: Con
         get() = (itemInfo as? ItemInfoWithIcon)?.bitmap?.newIcon(context)
 
     override val itemId: Int
-        get() = itemInfo?.id ?: -1
+        get() = itemInfo?.id ?: ItemInfo.NO_ID
 }
