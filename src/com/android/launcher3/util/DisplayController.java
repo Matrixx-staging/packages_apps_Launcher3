@@ -466,8 +466,6 @@ public class DisplayController {
         private final boolean mShowDesktopTaskbarForFreeformDisplay;
 
         private final boolean mIsNightModeActive;
-        private final boolean mIsVirtualDeviceDisplay;
-
 
         public Info(Context displayInfoContext, WindowManagerProxy wmProxy) {
             this(displayInfoContext, enableScalabilityForDesktopExperience()
@@ -543,12 +541,6 @@ public class DisplayController {
                     displayInfoContext);
             mIsHomeVisible = wmProxy.isHomeVisible();
             mIsDesktopFormFactor = isDesktopFormFactor;
-
-            mIsVirtualDeviceDisplay = wmProxy.isVirtualDeviceDisplay(displayInfoContext);
-        }
-
-        public boolean isVirtualDeviceDisplay() {
-            return mIsVirtualDeviceDisplay;
         }
 
         /**

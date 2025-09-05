@@ -50,7 +50,6 @@ import androidx.test.filters.SmallTest;
 
 import com.android.internal.R;
 import com.android.launcher3.util.DaggerSingletonTracker;
-import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.Executors;
 import com.android.launcher3.util.LooperExecutor;
 import com.android.quickstep.util.DesktopTask;
@@ -91,8 +90,6 @@ public class RecentTasksListTest {
     private TopTaskTracker mTopTaskTracker;
     @Mock
     private KeyguardManager mKeyguardManager;
-    @Mock
-    private DisplayController mDisplayController;
 
     // Class under test
     private RecentTasksList mRecentTasksList;
@@ -110,7 +107,7 @@ public class RecentTasksListTest {
 
         mRecentTasksList = new RecentTasksList(mContext, mainThreadExecutor,
                 mKeyguardManager, mSystemUiProxy, mTopTaskTracker,
-                mock(DaggerSingletonTracker.class), mDisplayController);
+                mock(DaggerSingletonTracker.class));
     }
 
     @Test
@@ -137,27 +134,6 @@ public class RecentTasksListTest {
 
         assertEquals(1, taskList.size());
         taskList.get(0).getTasks().forEach(t -> assertNull(t.taskDescription.getLabel()));
-    }
-
-    @Test
-    public void loadTasksInBackground_VdmDisplay() throws Exception  {
-        int vdmDisplayId = 10;
-        DisplayController.Info mockInfoForVdmDisplay = mock(DisplayController.Info.class);
-        when(mockInfoForVdmDisplay.isVirtualDeviceDisplay()).thenReturn(true);
-        when(mDisplayController.getInfoForDisplay(vdmDisplayId)).thenReturn(mockInfoForVdmDisplay);
-
-        GroupedTaskInfo recentTaskInfos = GroupedTaskInfo.forFullscreenTasks(
-                createRecentTaskInfo(/* taskId = */ 1, /* displayId = */ vdmDisplayId));
-        when(mSystemUiProxy.getRecentTasks(anyInt(), anyInt())).thenReturn(
-                new ArrayList<>(List.of(recentTaskInfos)));
-        List<GroupTask> taskList = mRecentTasksList.loadTasksInBackground(Integer.MAX_VALUE, -1,
-                false);
-
-        assertThat(taskList).hasSize(1);
-        assertThat(taskList.get(0).taskViewType).isEqualTo(TaskViewType.SINGLE);
-        List<Task> actualTasks = taskList.get(0).getTasks();
-        assertThat(actualTasks).hasSize(1);
-        assertThat(actualTasks.get(0).key.displayId).isEqualTo(DEFAULT_DISPLAY);
     }
 
     @Test

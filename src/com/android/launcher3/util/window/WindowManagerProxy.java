@@ -31,8 +31,6 @@ import static com.android.launcher3.util.RotationUtils.deltaRotation;
 import static com.android.launcher3.util.RotationUtils.rotateRect;
 import static com.android.launcher3.util.RotationUtils.rotateSize;
 
-import android.companion.virtual.VirtualDevice;
-import android.companion.virtual.VirtualDeviceManager;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -63,7 +61,6 @@ import com.android.launcher3.util.NavigationMode;
 import com.android.launcher3.util.WindowBounds;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -483,7 +480,7 @@ public class WindowManagerProxy {
                 DEFAULT_DISPLAY);
     }
 
-    protected int getDisplayId(Context displayInfoContext) {
+    private int getDisplayId(Context displayInfoContext) {
         try {
             return displayInfoContext.getDisplay().getDisplayId();
         } catch (UnsupportedOperationException e) {
@@ -538,22 +535,6 @@ public class WindowManagerProxy {
     public static Rect getSafeInsets(DisplayCutout cutout) {
         return new Rect(cutout.getSafeInsetLeft(), cutout.getSafeInsetTop(),
                 cutout.getSafeInsetRight(), cutout.getSafeInsetBottom());
-    }
-
-    /**
-     * Return whether the given displayContext is associated with a Virtual Device Manager display.
-     */
-    public boolean isVirtualDeviceDisplay(Context displayContext) {
-        int displayId = getDisplayId(displayContext);
-        VirtualDeviceManager virtualDeviceManager = displayContext.getSystemService(
-                VirtualDeviceManager.class);
-        if (virtualDeviceManager != null) {
-            for (VirtualDevice virtualDevice : virtualDeviceManager.getVirtualDevices()) {
-                return Arrays.stream(virtualDevice.getDisplayIds()).anyMatch(
-                        (virtualDisplayId) -> virtualDisplayId == displayId);
-            }
-        }
-        return false;
     }
 
     /** Registers a listener for Taskbar changes in Desktop Mode.  */
