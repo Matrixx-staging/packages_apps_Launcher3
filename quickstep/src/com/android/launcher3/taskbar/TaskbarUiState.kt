@@ -33,7 +33,9 @@ import com.android.launcher3.util.MutableListenableRef
  *   is not even created.
  * - [_shouldShowEduOnAppLaunchRef]: when DeviceProfile, TaskbarUIController or tooltip steps is
  *   changed
- * - [_isDraggingItemRef]: when ether bubble or taskbar is dragging item
+ * - [_isDraggingItemRef]: when ether bubble or taskbar is dragging item. Note that this flag only
+ *   represents drags originating from the main Taskbar window and does NOT represents drags
+ *   originating from all apps using TaskbarOverlayContext.
  * - [_isTaskbarStashedRef]: when [TaskbarStashController.mIsStashed] has changed
  * - [_isTaskbarAllAppsOpenRef]: when [TaskbarAllAppsController.isOpen] has changed
  * - [_isTaskbarOnHomeRef]: when [TaskbarStashController.mState] is changed
