@@ -38,7 +38,6 @@ import com.android.launcher3.model.ModelInitializer
 import com.android.launcher3.model.ModelLauncherCallbacks
 import com.android.launcher3.model.ModelTaskController
 import com.android.launcher3.model.ModelWriter
-import com.android.launcher3.model.UserManagerState
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.model.tasks.CacheDataUpdatedTask
 import com.android.launcher3.model.tasks.PackageUpdatedTask
@@ -286,7 +285,7 @@ constructor(
                     launcherBinder.bindWidgets()
                     return true
                 } else {
-                    val task = loaderFactory.newLoaderTask(launcherBinder, UserManagerState())
+                    val task = loaderFactory.newLoaderTask(launcherBinder)
                     mLoaderTask = task
 
                     // Always post the loader task, instead of running directly

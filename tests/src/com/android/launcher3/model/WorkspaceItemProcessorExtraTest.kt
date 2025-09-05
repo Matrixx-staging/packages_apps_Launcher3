@@ -42,7 +42,7 @@ import com.android.launcher3.model.data.LauncherAppWidgetInfo
 import com.android.launcher3.model.data.LauncherAppWidgetInfo.FLAG_RESTORE_STARTED
 import com.android.launcher3.model.data.LauncherAppWidgetInfo.FLAG_UI_NOT_READY
 import com.android.launcher3.model.data.WorkspaceItemInfo
-import com.android.launcher3.pm.UserCache
+import com.android.launcher3.pm.UserManagerState
 import com.android.launcher3.shortcuts.ShortcutKey
 import com.android.launcher3.util.PackageManagerHelper
 import com.android.launcher3.util.PackageUserKey
@@ -70,13 +70,11 @@ class WorkspaceItemProcessorExtraTest {
 
     @Mock private lateinit var mockIconRequestInfo: IconRequestInfo<WorkspaceItemInfo>
     @Mock private lateinit var mockWorkspaceInfo: WorkspaceItemInfo
-    @Mock private lateinit var mockBgDataModel: BgDataModel
     @Mock private lateinit var mockContext: Context
     @Mock private lateinit var mockIconCache: IconCache
     @Mock private lateinit var mockPmHelper: PackageManagerHelper
     @Mock private lateinit var mockLauncherApps: LauncherApps
     @Mock(answer = Answers.RETURNS_DEEP_STUBS) private lateinit var mockCursor: LoaderCursor
-    @Mock private lateinit var mockUserCache: UserCache
     @Mock private lateinit var mockUserManagerState: UserManagerState
     @Mock private lateinit var mockWidgetInflater: WidgetInflater
     @Mock private lateinit var mockWorkspaceItemSpaceFinder: WorkspaceItemSpaceFinder
@@ -133,7 +131,7 @@ class WorkspaceItemProcessorExtraTest {
         }
 
         val mockUserInfo = mock<UserIconInfo>().apply { whenever(isPrivate).thenReturn(false) }
-        whenever(mockUserCache.getUserInfo(any())).thenReturn(mockUserInfo)
+        whenever(mockUserManagerState.getUserInfo(any())).thenReturn(mockUserInfo)
 
         mKeyToPinnedShortcutsMap = mutableMapOf()
         mInstallingPkgs = hashMapOf()
@@ -257,7 +255,6 @@ class WorkspaceItemProcessorExtraTest {
     private fun createWorkspaceItemProcessorUnderTest(
         cursor: LoaderCursor = mockCursor,
         memoryLogger: LoaderMemoryLogger? = null,
-        userCache: UserCache = mockUserCache,
         userManagerState: UserManagerState = mockUserManagerState,
         launcherApps: LauncherApps = mockLauncherApps,
         shortcutKeyToPinnedShortcuts: Map<ShortcutKey, ShortcutInfo> = mKeyToPinnedShortcutsMap,
@@ -275,7 +272,6 @@ class WorkspaceItemProcessorExtraTest {
             c = cursor,
             context = context,
             memoryLogger = memoryLogger,
-            userCache = userCache,
             userManagerState = userManagerState,
             launcherApps = launcherApps,
             widgetInflater = widgetInflater,

@@ -23,7 +23,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.LauncherActivityInfo;
 import android.os.UserHandle;
-import android.os.UserManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,6 +33,7 @@ import com.android.launcher3.LauncherSettings;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.pm.PackageInstallInfo;
 import com.android.launcher3.pm.UserCache;
+import com.android.launcher3.pm.UserCache.CachedUserInfo;
 import com.android.launcher3.util.ApiWrapper;
 import com.android.launcher3.util.ApplicationInfoWrapper;
 import com.android.launcher3.util.PackageManagerHelper;
@@ -89,23 +89,23 @@ public class AppInfo extends ItemInfoWithIcon implements WorkspaceItemFactory {
      * Must not hold the Context.
      */
     public AppInfo(Context context, LauncherActivityInfo info, UserHandle user) {
-        this(info, UserCache.INSTANCE.get(context).getUserInfo(user),
-                ApiWrapper.INSTANCE.get(context), PackageManagerHelper.INSTANCE.get(context),
-                context.getSystemService(UserManager.class).isQuietModeEnabled(user));
+        this(info, UserCache.INSTANCE.get(context).getUserManagerState().getCachedInfo(user),
+                ApiWrapper.INSTANCE.get(context), PackageManagerHelper.INSTANCE.get(context));
     }
 
-    public AppInfo(LauncherActivityInfo info, UserIconInfo userIconInfo,
-            ApiWrapper apiWrapper, PackageManagerHelper pmHelper, boolean quietModeEnabled) {
+    public AppInfo(LauncherActivityInfo info, CachedUserInfo cachedUserInfo,
+            ApiWrapper apiWrapper, PackageManagerHelper pmHelper) {
         this.componentName = info.getComponentName();
         this.container = CONTAINER_ALL_APPS;
-        this.user = userIconInfo.user;
+        this.user = cachedUserInfo.getIconInfo().user;
         intent = makeLaunchIntent(info);
 
-        if (quietModeEnabled) {
+        if (cachedUserInfo.isQuietModeEnabled()) {
             runtimeStatusFlags |= FLAG_DISABLED_QUIET_USER;
         }
         uid = info.getApplicationInfo().uid;
-        updateRuntimeFlagsForActivityTarget(this, info, userIconInfo, apiWrapper, pmHelper);
+        updateRuntimeFlagsForActivityTarget(
+                this, info, cachedUserInfo.getIconInfo(), apiWrapper, pmHelper);
     }
 
     public AppInfo(AppInfo info) {
