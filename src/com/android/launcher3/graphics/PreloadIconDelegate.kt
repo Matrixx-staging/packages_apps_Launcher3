@@ -43,8 +43,11 @@ import com.android.launcher3.icons.GraphicsUtils.transformed
 import com.android.launcher3.icons.IconNormalizer.ICON_VISIBLE_AREA_FACTOR
 import com.android.launcher3.icons.IconShape
 import com.android.launcher3.model.data.ItemInfoWithIcon
+import com.android.launcher3.R
+
 import kotlin.math.max
 import kotlin.math.min
+
 
 /** Extension of [FastBitmapDrawable] which shows a progress bar around the icon. */
 class PreloadIconDelegate(
@@ -53,6 +56,10 @@ class PreloadIconDelegate(
     private val iconShape: IconShape,
     private val host: FastBitmapDrawable,
     private val parentDelegate: FastBitmapDrawableDelegate,
+    private val themedSeedColor: Int,
+    private val themedSeedColorDark: Int,
+    private val themedProgressColor: Int,
+    private val themedProgressColorDark: Int,
 ) : FastBitmapDrawableDelegate by parentDelegate {
 
     private val pathMeasure =
@@ -88,27 +95,51 @@ class PreloadIconDelegate(
         private set
 
     init {
-        // Progress color
         val m3HCT = FloatArray(3)
-        ColorUtils.colorToM3HCT(item.bitmap.color, m3HCT)
-        progressColor =
-            ColorUtils.M3HCTToColor(
-                m3HCT[0],
-                m3HCT[1],
-                if (isDarkMode) max(m3HCT[2].toDouble(), 55.0).toFloat()
-                else min(m3HCT[2].toDouble(), 40.0).toFloat(),
-            )
+        if (isThemed()) {
+            // colorInverseSurface maps to the surface colors in light and dark
+            // used by the themed icons
+            val seedColor = if (isDarkMode) themedSeedColorDark else themedSeedColor
+            ColorUtils.colorToM3HCT(seedColor, m3HCT)
+            // progress color is primary token in light mode and secondary token in dark mode
+            progressColor = if (isDarkMode) themedProgressColorDark else themedProgressColor
+            plateColor =
+                ColorUtils.M3HCTToColor(
+                    m3HCT[0],
+                    if (isDarkMode) 36f else 24f, // 36 chroma (dark) / 24 chroma (light)
+                    if (isDarkMode) 10f else 80f // 10 tone (dark) / 80 tone (light)
+                )
 
-        // Track color
-        trackColor = ColorUtils.M3HCTToColor(m3HCT[0], 16f, (if (isDarkMode) 30 else 90).toFloat())
-        // Plate color
-        plateColor =
-            ColorUtils.M3HCTToColor(
-                m3HCT[0],
-                (if (isDarkMode) 36 else 24).toFloat(),
-                (if (isDarkMode) (if (isThemed()) 10 else 20) else 80).toFloat(),
-            )
+            trackColor =
+                ColorUtils.M3HCTToColor(
+                    m3HCT[0],
+                    16f, // 16 chroma for both
+                    if (isDarkMode) 30f else 90f // 30 tone (dark) / 90 tone (light)
+                )
+        } else {
+            val m3HCT = FloatArray(3)
+            ColorUtils.colorToM3HCT(item.bitmap.color, m3HCT)
+            // Progress color
+            progressColor =
+                ColorUtils.M3HCTToColor(
+                    m3HCT[0],
+                    m3HCT[1],
+                    if (isDarkMode) max(m3HCT[2].toDouble(), 55.0).toFloat()
+                    else min(m3HCT[2].toDouble(), 40.0).toFloat(),
+                )
 
+            // Track color
+            trackColor =
+                ColorUtils.M3HCTToColor(m3HCT[0], 16f, (if (isDarkMode) 30 else 90).toFloat())
+
+            // Plate color
+            plateColor =
+                ColorUtils.M3HCTToColor(
+                    m3HCT[0],
+                    (if (isDarkMode) 36 else 24).toFloat(),
+                    (if (isDarkMode) 20 else 80).toFloat(),
+                )
+        }
         // If it's a pending app we will animate scale and alpha when it's no longer pending.
         iconScaleMultiplier.updateValue((if (item.progressLevel == 0) 0 else 1).toFloat())
     }
@@ -410,6 +441,9 @@ class PreloadIconDelegate(
             @DrawableCreationFlags creationFlags: Int = 0,
         ): FastBitmapDrawable {
             val originalState = newIcon(context, creationFlags).constantState
+            val themedSeedColor = context.resources.getColor(R.color.materialColorInverseSurface)
+            val themedProgressColor = context.resources.getColor(R.color.materialColorPrimary)
+            val themedProgressColorDark = context.resources.getColor(R.color.materialColorSecondary)
             val newState =
                 originalState.copy(
                     // Set a disabled icon color if the app is suspended or is pending download
@@ -420,6 +454,10 @@ class PreloadIconDelegate(
                             info = this,
                             isDarkTheme = Utilities.isDarkTheme(context),
                             parentFactory = originalState.delegateFactory,
+                            themedSeedColor = themedSeedColor,
+                            themedSeedColorDark = themedSeedColor,
+                            themedProgressColor = themedProgressColor,
+                            themedProgressColorDark = themedProgressColorDark,
                         ),
                 )
             return newState.newDrawable()
@@ -438,6 +476,10 @@ class PreloadIconDelegate(
         private val info: ItemInfoWithIcon,
         private val isDarkTheme: Boolean,
         private val parentFactory: DelegateFactory,
+        private val themedSeedColor: Int,
+        private val themedSeedColorDark: Int,
+        private val themedProgressColor: Int,
+        private val themedProgressColorDark: Int,
     ) : DelegateFactory {
 
         override fun newDelegate(
@@ -453,6 +495,10 @@ class PreloadIconDelegate(
                 iconShape,
                 host,
                 parentFactory.newDelegate(bitmapInfo, iconShape, paint, host),
+                themedSeedColor,
+                themedSeedColorDark,
+                themedProgressColor,
+                themedProgressColorDark,
             )
         }
     }
