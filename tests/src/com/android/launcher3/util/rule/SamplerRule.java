@@ -43,7 +43,7 @@ import java.util.Map;
 public class SamplerRule implements TestRule {
     private static final int TOO_LONG_TEST_MS = 180000;
     private static final int SAMPLE_INTERVAL_MS = 3000;
-    private static final int MAX_THREADS_WITH_SAME_NAME = 2;
+    private static final int MAX_THREADS_WITH_SAME_NAME = 1;
     private static boolean sTooManyThreadsAssertionThrown = false;
 
     // Individual thread limits.
@@ -52,6 +52,9 @@ public class SamplerRule implements TestRule {
     static {
         // System thread that we don't control.
         THREAD_LIMITS.put("process reaper", 3);
+        // Temporarily having 2 OSEManager threads. The one in nexuslauncher will be deleted once
+        // the flag rollout is complete
+        THREAD_LIMITS.put("OSEManager", 2);
     }
 
     private static Thread startThread(Description description) {
