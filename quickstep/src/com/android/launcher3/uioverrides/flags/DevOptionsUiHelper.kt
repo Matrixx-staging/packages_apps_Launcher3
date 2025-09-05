@@ -62,7 +62,7 @@ import com.android.launcher3.util.StartActivityParams
 import com.android.quickstep.util.DeviceConfigHelper
 import com.android.quickstep.util.DeviceConfigHelper.Companion.NAMESPACE_LAUNCHER
 import com.android.quickstep.util.DeviceConfigHelper.DebugInfo
-import com.android.systemui.shared.plugins.PluginEnabler
+import com.android.systemui.shared.plugins.PluginEnabler.DisableReason
 import com.android.systemui.shared.plugins.PluginPrefs
 import java.nio.charset.StandardCharsets
 import java.util.Locale
@@ -286,8 +286,8 @@ class DevOptionsUiHelper(c: Context, attr: AttributeSet?) : PreferenceGroup(c, a
 
                         setOnPreferenceChangeListener { _, newVal ->
                             val disabledState =
-                                if (newVal as Boolean) PluginEnabler.ENABLED
-                                else PluginEnabler.DISABLED_MANUALLY
+                                if (newVal as Boolean) DisableReason.ENABLED
+                                else DisableReason.DISABLED_MANUALLY
                             infoList.forEach {
                                 manager.pluginEnabler.setDisabled(
                                     it.serviceInfo.componentName,
