@@ -36,7 +36,7 @@ import org.junit.runner.RunWith
 @ScreenRecordRule.ScreenRecord
 @LargeTest
 @RunWith(AndroidJUnit4::class)
-@RequiresFlagsEnabled(Flags.FLAG_ENABLE_BUBBLE_ANYTHING)
+@RequiresFlagsEnabled(Flags.FLAG_ENABLE_CREATE_ANY_BUBBLE)
 class TaplTestTaskbarIconDrag : AbstractQuickStepTest() {
 
     @get:Rule val checkFlagsRule = DeviceFlagsValueProvider.createCheckFlagsRule()
@@ -122,10 +122,8 @@ class TaplTestTaskbarIconDrag : AbstractQuickStepTest() {
 
     private fun dismissExpandedBubbleBar() {
         val bubbleBar = this.bubbleBar!!
-        bubbleBar.verifyExpanded()
         // close expanded bubble bar
-        mLauncher.pressBack()
-        bubbleBar.verifyCollapsed()
+        bubbleBar.collapse()
         // at this moment the bubble bar will be hidden, so need to show it again
         mLauncher.showBubbleBarIfHidden()
         // dismiss bubble bar
