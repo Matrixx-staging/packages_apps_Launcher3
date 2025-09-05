@@ -17,7 +17,6 @@
 package com.android.quickstep;
 
 import static android.content.Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS;
-import static android.view.Display.DEFAULT_DISPLAY;
 
 import static com.android.launcher3.Flags.enableLaterIsLockedCheck;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
@@ -27,12 +26,14 @@ import static com.android.wm.shell.shared.GroupedTaskInfo.TYPE_SPLIT;
 import android.app.ActivityManager.RunningTaskInfo;
 import android.app.KeyguardManager;
 import android.app.TaskInfo;
+import android.companion.virtual.VirtualDeviceManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.os.Process;
 import android.os.RemoteException;
 import android.util.Log;
 import android.util.SparseBooleanArray;
+import android.view.Display;
 import android.window.DesktopExperienceFlags;
 
 import androidx.annotation.Nullable;
@@ -40,7 +41,6 @@ import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.util.DaggerSingletonTracker;
-import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.LooperExecutor;
 import com.android.quickstep.util.DesktopTask;
 import com.android.quickstep.util.ExternalDisplaysKt;
@@ -76,10 +76,10 @@ import java.util.stream.Collectors;
 public class RecentTasksList {
 
     private static final TaskLoadResult INVALID_RESULT = new TaskLoadResult(-1, false, 0);
-    private static final  String TAG = "RecentTasksList";
 
     private final Context mContext;
     private final KeyguardManager mKeyguardManager;
+    private final VirtualDeviceManager mVirtualDeviceManager;
     private final LooperExecutor mMainThreadExecutor;
     private final SystemUiProxy mSysUiProxy;
 
@@ -96,19 +96,35 @@ public class RecentTasksList {
     private @Nullable RecentsModel.RecentTasksChangedListener mRecentTasksChangedListener;
     // Tasks are stored in order of least recently launched to most recently launched.
     private ArrayList<RunningTaskInfo> mRunningTasks;
-    private DisplayController mDisplayController;
+
+    // Track displays that belong to virtual devices. Tasks on such displays are treated as if
+    // they are running on the default display.
+    // TODO(b/443015666): Move this logic upstream to WM Shell or WM Core.
+    private final SparseBooleanArray mVirtualDeviceDisplays = new SparseBooleanArray() {
+        @Override
+        public boolean get(int displayId) {
+            if (indexOfKey(displayId) < 0) {
+                final boolean isVirtualDeviceDisplay =
+                        mVirtualDeviceManager != null
+                                && mVirtualDeviceManager.getDeviceIdForDisplayId(displayId)
+                                != Context.DEVICE_ID_DEFAULT;
+                put(displayId, isVirtualDeviceDisplay);
+            }
+            return super.get(displayId);
+        }
+    };
 
     public RecentTasksList(Context context, LooperExecutor mainThreadExecutor,
-            KeyguardManager keyguardManager, SystemUiProxy sysUiProxy,
+            KeyguardManager keyguardManager, VirtualDeviceManager virtualDeviceManager,
+            SystemUiProxy sysUiProxy,
             TopTaskTracker topTaskTracker,
-            DaggerSingletonTracker tracker,
-            DisplayController displayController) {
+            DaggerSingletonTracker tracker) {
         mContext = context;
         mMainThreadExecutor = mainThreadExecutor;
         mKeyguardManager = keyguardManager;
+        mVirtualDeviceManager = virtualDeviceManager;
         mChangeId = 1;
         mSysUiProxy = sysUiProxy;
-        mDisplayController = displayController;
         final IRecentTasksListener recentTasksListener = new IRecentTasksListener.Stub() {
             @Override
             public void onRecentTasksChanged() throws RemoteException {
@@ -474,12 +490,6 @@ public class RecentTasksList {
         return allTasks;
     }
 
-    private Task.TaskKey createTaskKey(TaskInfo taskInfo) {
-        Task.TaskKey taskKey = new Task.TaskKey(taskInfo,
-                mapDisplayIdConsideringVdmDisplays(taskInfo.displayId));
-        return taskKey;
-    }
-
     private Task createTask(TaskInfo taskInfo, Set<Integer> minimizedTaskIds) {
         Task.TaskKey key = createTaskKey(taskInfo);
         Task task = Task.from(key, taskInfo, false);
@@ -488,6 +498,13 @@ public class RecentTasksList {
         task.isVisible = taskInfo.isVisible;
         task.isMinimized = minimizedTaskIds.contains(taskInfo.taskId);
         return task;
+    }
+
+    private Task.TaskKey createTaskKey(TaskInfo taskInfo) {
+        final int displayId = mVirtualDeviceDisplays.get(taskInfo.displayId)
+                ? Display.DEFAULT_DISPLAY
+                : taskInfo.displayId;
+        return new Task.TaskKey(taskInfo, displayId);
     }
 
     private List<DesktopTask> createDesktopTasks(GroupedTaskInfo recentTaskInfo) {
@@ -546,15 +563,6 @@ public class RecentTasksList {
             writer.println(prefix + task);
         }
         writer.println(prefix + "  ]");
-    }
-
-    private int mapDisplayIdConsideringVdmDisplays(int displayId) {
-        DisplayController.Info info = mDisplayController.getInfoForDisplay(displayId);
-        if (info != null && info.isVirtualDeviceDisplay()) {
-            return DEFAULT_DISPLAY;
-        } else {
-            return displayId;
-        }
     }
 
     @VisibleForTesting

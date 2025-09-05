@@ -38,6 +38,7 @@ import android.app.ActivityManager;
 import android.app.ActivityManager.RecentTaskInfo;
 import android.app.KeyguardManager;
 import android.app.TaskInfo;
+import android.companion.virtual.VirtualDeviceManager;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Rect;
@@ -50,7 +51,6 @@ import androidx.test.filters.SmallTest;
 
 import com.android.internal.R;
 import com.android.launcher3.util.DaggerSingletonTracker;
-import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.Executors;
 import com.android.launcher3.util.LooperExecutor;
 import com.android.quickstep.util.DesktopTask;
@@ -92,7 +92,7 @@ public class RecentTasksListTest {
     @Mock
     private KeyguardManager mKeyguardManager;
     @Mock
-    private DisplayController mDisplayController;
+    private VirtualDeviceManager mVirtualDeviceManager;
 
     // Class under test
     private RecentTasksList mRecentTasksList;
@@ -107,10 +107,12 @@ public class RecentTasksListTest {
         when(mResources.getBoolean(R.bool.config_isDesktopModeSupported)).thenReturn(true);
         when(mResources.getBoolean(R.bool.config_canInternalDisplayHostDesktops))
                 .thenReturn(true);
+        when(mVirtualDeviceManager.getDeviceIdForDisplayId(anyInt()))
+                .thenReturn(Context.DEVICE_ID_DEFAULT);
 
         mRecentTasksList = new RecentTasksList(mContext, mainThreadExecutor,
-                mKeyguardManager, mSystemUiProxy, mTopTaskTracker,
-                mock(DaggerSingletonTracker.class), mDisplayController);
+                mKeyguardManager, mVirtualDeviceManager, mSystemUiProxy, mTopTaskTracker,
+                mock(DaggerSingletonTracker.class));
     }
 
     @Test
@@ -141,23 +143,42 @@ public class RecentTasksListTest {
 
     @Test
     public void loadTasksInBackground_VdmDisplay() throws Exception  {
-        int vdmDisplayId = 10;
-        DisplayController.Info mockInfoForVdmDisplay = mock(DisplayController.Info.class);
-        when(mockInfoForVdmDisplay.isVirtualDeviceDisplay()).thenReturn(true);
-        when(mDisplayController.getInfoForDisplay(vdmDisplayId)).thenReturn(mockInfoForVdmDisplay);
+        int virtualDeviceDisplayId = 10;
+        int nonVirtualDeviceDisplayId = 11;
+        int virtualDeviceId = 42;
+        when(mVirtualDeviceManager.getDeviceIdForDisplayId(virtualDeviceDisplayId))
+                .thenReturn(virtualDeviceId);
+        when(mVirtualDeviceManager.getDeviceIdForDisplayId(nonVirtualDeviceDisplayId))
+                .thenReturn(Context.DEVICE_ID_DEFAULT);
 
-        GroupedTaskInfo recentTaskInfos = GroupedTaskInfo.forFullscreenTasks(
-                createRecentTaskInfo(/* taskId = */ 1, /* displayId = */ vdmDisplayId));
+        GroupedTaskInfo virtualDeviceDisplayTaskInfo = GroupedTaskInfo.forFullscreenTasks(
+                createRecentTaskInfo(/* taskId= */ 1, /* displayId= */ virtualDeviceDisplayId));
+        GroupedTaskInfo nonVirtualDeviceDisplayTaskInfo = GroupedTaskInfo.forFullscreenTasks(
+                createRecentTaskInfo(/* taskId= */ 2, /* displayId= */ nonVirtualDeviceDisplayId));
         when(mSystemUiProxy.getRecentTasks(anyInt(), anyInt())).thenReturn(
-                new ArrayList<>(List.of(recentTaskInfos)));
+                new ArrayList<>(List.of(virtualDeviceDisplayTaskInfo,
+                        nonVirtualDeviceDisplayTaskInfo)));
         List<GroupTask> taskList = mRecentTasksList.loadTasksInBackground(Integer.MAX_VALUE, -1,
                 false);
 
-        assertThat(taskList).hasSize(1);
+        assertThat(taskList).hasSize(2);
         assertThat(taskList.get(0).taskViewType).isEqualTo(TaskViewType.SINGLE);
-        List<Task> actualTasks = taskList.get(0).getTasks();
-        assertThat(actualTasks).hasSize(1);
-        assertThat(actualTasks.get(0).key.displayId).isEqualTo(DEFAULT_DISPLAY);
+        assertThat(taskList.get(1).taskViewType).isEqualTo(TaskViewType.SINGLE);
+
+        List<Task> virtualDeviceTasks = taskList.get(1).getTasks();
+        assertThat(virtualDeviceTasks).hasSize(1);
+        assertThat(virtualDeviceTasks.get(0).key.displayId).isEqualTo(DEFAULT_DISPLAY);
+
+        List<Task> nonVirtualDeviceTasks = taskList.get(0).getTasks();
+        assertThat(nonVirtualDeviceTasks).hasSize(1);
+        assertThat(nonVirtualDeviceTasks.get(0).key.displayId).isEqualTo(nonVirtualDeviceDisplayId);
+
+        // The displayIds are cached and there are no more calls to VDM.
+        mRecentTasksList.loadTasksInBackground(Integer.MAX_VALUE, -1, false);
+        verify(mVirtualDeviceManager, times(1))
+                .getDeviceIdForDisplayId(virtualDeviceDisplayId);
+        verify(mVirtualDeviceManager, times(1))
+                .getDeviceIdForDisplayId(nonVirtualDeviceDisplayId);
     }
 
     @Test
