@@ -26,6 +26,7 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.ActivityManager;
 import android.app.KeyguardManager;
+import android.companion.virtual.VirtualDeviceManager;
 import android.content.ComponentCallbacks;
 import android.content.ComponentCallbacks2;
 import android.content.Context;
@@ -141,6 +142,7 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
                         context,
                         MAIN_EXECUTOR,
                         context.getSystemService(KeyguardManager.class),
+                        context.getSystemService(VirtualDeviceManager.class),
                         systemUiProxy,
                         topTaskTracker, tracker),
                 new TaskIconCache(context, RECENTS_MODEL_EXECUTOR, iconProvider, displayController,

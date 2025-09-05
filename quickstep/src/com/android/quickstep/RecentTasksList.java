@@ -26,12 +26,14 @@ import static com.android.wm.shell.shared.GroupedTaskInfo.TYPE_SPLIT;
 import android.app.ActivityManager.RunningTaskInfo;
 import android.app.KeyguardManager;
 import android.app.TaskInfo;
+import android.companion.virtual.VirtualDeviceManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.os.Process;
 import android.os.RemoteException;
 import android.util.Log;
 import android.util.SparseBooleanArray;
+import android.view.Display;
 import android.window.DesktopExperienceFlags;
 
 import androidx.annotation.Nullable;
@@ -77,6 +79,7 @@ public class RecentTasksList {
 
     private final Context mContext;
     private final KeyguardManager mKeyguardManager;
+    private final VirtualDeviceManager mVirtualDeviceManager;
     private final LooperExecutor mMainThreadExecutor;
     private final SystemUiProxy mSysUiProxy;
 
@@ -94,13 +97,32 @@ public class RecentTasksList {
     // Tasks are stored in order of least recently launched to most recently launched.
     private ArrayList<RunningTaskInfo> mRunningTasks;
 
+    // Track displays that belong to virtual devices. Tasks on such displays are treated as if
+    // they are running on the default display.
+    // TODO(b/443015666): Move this logic upstream to WM Shell or WM Core.
+    private final SparseBooleanArray mVirtualDeviceDisplays = new SparseBooleanArray() {
+        @Override
+        public boolean get(int displayId) {
+            if (indexOfKey(displayId) < 0) {
+                final boolean isVirtualDeviceDisplay =
+                        mVirtualDeviceManager != null
+                                && mVirtualDeviceManager.getDeviceIdForDisplayId(displayId)
+                                != Context.DEVICE_ID_DEFAULT;
+                put(displayId, isVirtualDeviceDisplay);
+            }
+            return super.get(displayId);
+        }
+    };
+
     public RecentTasksList(Context context, LooperExecutor mainThreadExecutor,
-            KeyguardManager keyguardManager, SystemUiProxy sysUiProxy,
+            KeyguardManager keyguardManager, VirtualDeviceManager virtualDeviceManager,
+            SystemUiProxy sysUiProxy,
             TopTaskTracker topTaskTracker,
             DaggerSingletonTracker tracker) {
         mContext = context;
         mMainThreadExecutor = mainThreadExecutor;
         mKeyguardManager = keyguardManager;
+        mVirtualDeviceManager = virtualDeviceManager;
         mChangeId = 1;
         mSysUiProxy = sysUiProxy;
         final IRecentTasksListener recentTasksListener = new IRecentTasksListener.Stub() {
@@ -411,13 +433,13 @@ public class RecentTasksList {
             // [getTaskInfo1] will not be null for types below beside [TYPE_DESK].
             if (Flags.enableShellTopTaskTracking()) {
                 final TaskInfo taskInfo1 = rawTask.getBaseGroupedTask().getTaskInfo1();
-                final Task.TaskKey task1Key = new Task.TaskKey(taskInfo1);
+                final Task.TaskKey task1Key = createTaskKey(taskInfo1);
                 final Task task1 = Task.from(task1Key, taskInfo1,
                         tmpLockedUsers.get(task1Key.userId) /* isLocked */);
 
                 if (rawTask.isBaseType(TYPE_SPLIT)) {
                     final TaskInfo taskInfo2 = rawTask.getBaseGroupedTask().getTaskInfo2();
-                    final Task.TaskKey task2Key = new Task.TaskKey(taskInfo2);
+                    final Task.TaskKey task2Key = createTaskKey(taskInfo2);
                     final Task task2 = Task.from(task2Key, taskInfo2,
                             tmpLockedUsers.get(task2Key.userId) /* isLocked */);
                     allTasks.add(new SplitTask(task1, task2,
@@ -428,7 +450,7 @@ public class RecentTasksList {
             } else {
                 TaskInfo taskInfo1 = rawTask.getTaskInfo1();
                 TaskInfo taskInfo2 = rawTask.getTaskInfo2();
-                Task.TaskKey task1Key = new Task.TaskKey(taskInfo1);
+                Task.TaskKey task1Key = createTaskKey(taskInfo1);
                 Task task1 = loadKeysOnly
                         ? new Task(task1Key)
                         : Task.from(task1Key, taskInfo1,
@@ -436,7 +458,7 @@ public class RecentTasksList {
                 Task task2 = null;
                 if (taskInfo2 != null) {
                     // Is split task
-                    Task.TaskKey task2Key = new Task.TaskKey(taskInfo2);
+                    Task.TaskKey task2Key = createTaskKey(taskInfo2);
                     task2 = loadKeysOnly
                             ? new Task(task2Key)
                             : Task.from(task2Key, taskInfo2,
@@ -469,13 +491,20 @@ public class RecentTasksList {
     }
 
     private Task createTask(TaskInfo taskInfo, Set<Integer> minimizedTaskIds) {
-        Task.TaskKey key = new Task.TaskKey(taskInfo);
+        Task.TaskKey key = createTaskKey(taskInfo);
         Task task = Task.from(key, taskInfo, false);
         task.positionInParent = taskInfo.positionInParent;
         task.appBounds = taskInfo.configuration.windowConfiguration.getAppBounds();
         task.isVisible = taskInfo.isVisible;
         task.isMinimized = minimizedTaskIds.contains(taskInfo.taskId);
         return task;
+    }
+
+    private Task.TaskKey createTaskKey(TaskInfo taskInfo) {
+        final int displayId = mVirtualDeviceDisplays.get(taskInfo.displayId)
+                ? Display.DEFAULT_DISPLAY
+                : taskInfo.displayId;
+        return new Task.TaskKey(taskInfo, displayId);
     }
 
     private List<DesktopTask> createDesktopTasks(GroupedTaskInfo recentTaskInfo) {
