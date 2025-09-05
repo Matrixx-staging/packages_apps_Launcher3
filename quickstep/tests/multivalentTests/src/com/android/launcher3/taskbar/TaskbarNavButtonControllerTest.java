@@ -53,12 +53,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 @RunWith(AndroidJUnit4.class)
 public class TaskbarNavButtonControllerTest {
 
     private final static int DISPLAY_ID = 2;
+
+
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     SystemUiProxy mockSystemUiProxy;
@@ -103,7 +107,6 @@ public class TaskbarNavButtonControllerTest {
 
     @Before
     public void setup() {
-        MockitoAnnotations.initMocks(this);
         when(mockService.getDisplayId()).thenReturn(DISPLAY_ID);
         when(mockService.getApplicationContext())
                 .thenReturn(InstrumentationRegistry.getInstrumentation().getTargetContext()

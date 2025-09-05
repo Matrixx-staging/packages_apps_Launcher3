@@ -52,11 +52,13 @@ import com.android.launcher3.util.Executors;
 import com.android.systemui.shared.system.RecentsAnimationControllerCompat;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.util.concurrent.ExecutionException;
 
@@ -67,6 +69,9 @@ public class TaskAnimationManagerTest {
     protected final Context mContext =
             InstrumentationRegistry.getInstrumentation().getTargetContext();
 
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     @Mock
     private SystemUiProxy mSystemUiProxy;
 
@@ -75,7 +80,6 @@ public class TaskAnimationManagerTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
         DisplayController displayController = DisplayController.INSTANCE.get(mContext);
         mTaskAnimationManager = new TaskAnimationManager(mContext, Display.DEFAULT_DISPLAY,
                 displayController) {

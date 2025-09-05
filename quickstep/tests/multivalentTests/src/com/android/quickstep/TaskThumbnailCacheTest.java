@@ -36,16 +36,21 @@ import com.android.launcher3.util.coroutines.ProductionDispatchers;
 import com.android.quickstep.util.TaskKeyCache;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.util.concurrent.Executor;
 
 @SmallTest
 @RunWith(AndroidJUnit4.class)
 public class TaskThumbnailCacheTest {
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
     @Mock
     private Context mContext;
 
@@ -57,7 +62,6 @@ public class TaskThumbnailCacheTest {
 
     @Before
     public void setup() throws NoSuchFieldException {
-        MockitoAnnotations.initMocks(this);
         when(mContext.getResources()).thenReturn(mResource);
     }
 
