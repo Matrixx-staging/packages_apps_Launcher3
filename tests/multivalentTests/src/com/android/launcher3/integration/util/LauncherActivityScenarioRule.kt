@@ -74,6 +74,7 @@ open class LauncherActivityScenarioRule<LAUNCHER_TYPE : Launcher>(
         activity.moveToState(Lifecycle.State.RESUMED)
         onLauncherCreateWaiter.waitForSignal()
         TestUtil.runOnExecutorSync(Executors.MODEL_EXECUTOR) {}
+        TestUtil.runOnExecutorSync(Executors.UI_HELPER_EXECUTOR) {}
         InstrumentationRegistry.getInstrumentation().waitForIdleSync()
     }
 
