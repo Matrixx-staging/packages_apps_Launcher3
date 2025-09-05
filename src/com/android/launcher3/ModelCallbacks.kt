@@ -48,7 +48,7 @@ import java.util.function.Predicate
 
 class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
 
-    private var activeBindTask = AtomicReference(CancellationSignal())
+    @VisibleForTesting var activeBindTask = AtomicReference(CancellationSignal())
 
     var synchronouslyBoundPages = IntSet()
     var pagesToBindSynchronously = IntSet()
