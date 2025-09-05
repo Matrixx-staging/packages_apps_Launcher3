@@ -42,6 +42,7 @@ import com.android.wm.shell.shared.bubbles.DraggedObject
 import com.android.wm.shell.shared.bubbles.DraggedObject.LauncherIcon
 import com.android.wm.shell.shared.bubbles.DropTargetManager
 import com.android.wm.shell.shared.bubbles.DropTargetManager.DragZoneChangedListener
+import com.android.wm.shell.shared.bubbles.logging.EntryPoint
 import com.google.common.annotations.VisibleForTesting
 import kotlin.math.min
 
@@ -257,9 +258,15 @@ class DragToBubbleController(
                     } else {
                         BubbleBarLocation.RIGHT
                     }
+                val entryPoint =
+                    if (itemInfo.isInAllApps) {
+                        EntryPoint.ALL_APPS_ICON_DRAG
+                    } else {
+                        EntryPoint.TASKBAR_ICON_DRAG
+                    }
                 if (hasShortcutInfo(itemInfo)) {
                     val si = (itemInfo as WorkspaceItemInfo).deepShortcutInfo
-                    bubbleActivityStarter.showShortcutBubble(si, location)
+                    bubbleActivityStarter.showShortcutBubble(si, entryPoint, location)
                     return true
                 }
                 if (itemInfo.intent == null) {
@@ -268,7 +275,7 @@ class DragToBubbleController(
                 val itemIntent = Intent(itemInfo.intent)
                 val packageName = itemIntent.component?.packageName ?: return false
                 itemIntent.setPackage(packageName)
-                bubbleActivityStarter.showAppBubble(itemIntent, itemInfo.user, location)
+                bubbleActivityStarter.showAppBubble(itemIntent, itemInfo.user, entryPoint, location)
                 return true
             }
         }

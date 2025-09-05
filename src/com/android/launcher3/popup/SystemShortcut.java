@@ -50,6 +50,7 @@ import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.Snackbar;
 import com.android.launcher3.widget.WidgetsBottomSheet;
 import com.android.launcher3.widget.picker.model.data.WidgetPickerData;
+import com.android.wm.shell.shared.bubbles.logging.EntryPoint;
 
 import java.util.Arrays;
 
@@ -196,6 +197,7 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
                 return R.drawable.ic_info_no_shadow;
             }
         }
+
         /**
          * Constructor used by overview for staged split to provide custom A11y information.
          *
@@ -425,11 +427,12 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
                     .withItemInfo(mItemInfo)
                     .log(LAUNCHER_SYSTEM_SHORTCUT_DONT_SUGGEST_APP_TAP);
             Snackbar.show(mTarget,
-                    view.getContext().getString(R.string.item_removed), R.string.undo,
-                    () -> { }, () ->
-                        mTarget.getStatsLogManager().logger()
-                                .withItemInfo(mItemInfo)
-                                .log(LAUNCHER_DISMISS_PREDICTION_UNDO));
+                    view.getContext().getString(R.string.item_removed),
+                    R.string.undo,
+                    () -> {},
+                    () -> mTarget.getStatsLogManager().logger()
+                            .withItemInfo(mItemInfo)
+                            .log(LAUNCHER_DISMISS_PREDICTION_UNDO));
         }
     }
 
@@ -457,7 +460,8 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
             };
 
     private static class UninstallApp<T extends ActivityContext> extends SystemShortcut<T> {
-        @NonNull ComponentName mComponentName;
+        @NonNull
+        ComponentName mComponentName;
 
         UninstallApp(T target, ItemInfo itemInfo, @NonNull View originalView,
                 @NonNull ComponentName cn) {
@@ -506,15 +510,19 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
 
     public interface BubbleActivityStarter {
         /** Tell SysUI to show the provided shortcut in a bubble. */
-        void showShortcutBubble(ShortcutInfo info);
+        void showShortcutBubble(ShortcutInfo info, EntryPoint entryPoint);
 
         /** Tell SysUI to show the provided intent in a bubble. */
-        void showAppBubble(Intent intent, UserHandle user);
+        void showAppBubble(Intent intent, UserHandle user, EntryPoint entryPoint);
     }
+
+    /** Marker interface for identifying bubbles starting from taskbar. */
+    public interface TaskbarBubbleActivityStarter extends BubbleActivityStarter {}
 
     public static class BubbleShortcut<T extends ActivityContext> extends SystemShortcut<T> {
 
         private BubbleActivityStarter mStarter;
+        private final boolean mInTaskbar;
 
         public BubbleShortcut(T target, ItemInfo itemInfo, View originalView) {
             super(R.drawable.ic_bubble_button, R.string.bubble, target,
@@ -522,6 +530,17 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
             if (target instanceof BubbleActivityStarter) {
                 mStarter = (BubbleActivityStarter) target;
             }
+            mInTaskbar = target instanceof TaskbarBubbleActivityStarter;
+        }
+
+        private EntryPoint getEntryPoint() {
+            if (mItemInfo.isInAllApps()) {
+                return EntryPoint.ALL_APPS_ICON_MENU;
+            }
+            if (mItemInfo.isInHotseat()) {
+                return mInTaskbar ? EntryPoint.TASKBAR_ICON_MENU : EntryPoint.HOTSEAT_ICON_MENU;
+            }
+            return EntryPoint.LAUNCHER_ICON_MENU;
         }
 
         @Override
@@ -536,7 +555,7 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
                 WorkspaceItemInfo workspaceItemInfo = (WorkspaceItemInfo) mItemInfo;
                 ShortcutInfo shortcutInfo = workspaceItemInfo.getDeepShortcutInfo();
                 if (shortcutInfo != null) {
-                    mStarter.showShortcutBubble(shortcutInfo);
+                    mStarter.showShortcutBubble(shortcutInfo, getEntryPoint());
                     return;
                 }
             }
@@ -546,7 +565,7 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
                 if (intent.getPackage() == null) {
                     intent.setPackage(mItemInfo.getTargetPackage());
                 }
-                mStarter.showAppBubble(intent, mItemInfo.user);
+                mStarter.showAppBubble(intent, mItemInfo.user, getEntryPoint());
             } else {
                 Log.w(TAG, "unable to bubble, no intent: " + mItemInfo);
             }
