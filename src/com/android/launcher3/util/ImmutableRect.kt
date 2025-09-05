@@ -70,7 +70,7 @@ data class ImmutableRect(val left: Int, val top: Int, val right: Int, val bottom
      * @param y The Y coordinate of the point.
      * @return True if the point is within the rectangle, false otherwise.
      */
-    fun contains(x: Int, y: Int): Boolean {
+    fun contains(x: Float, y: Float): Boolean {
         return x >= left && x < right && y >= top && y < bottom
     }
 

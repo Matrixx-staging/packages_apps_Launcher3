@@ -210,11 +210,6 @@ class TaskbarInteractor(private val taskbarUIController: TaskbarUIController) {
                 ?.numShownHotseatIcons ?: -1
         }
 
-    // TODO(b/404636836): expose taskbar view rect and offset vai [TaskbarUiState]
-    @MainThread
-    fun isEventOverAnyTaskbarItem(ev: MotionEvent) =
-        taskbarUIController.isEventOverAnyTaskbarItem(ev)
-
     // TODO(b/404636836): return AsyncView and post alpha and decor change to executor
     @MainThread fun findMatchingView(v: View) = taskbarUIController.findMatchingView(v)
 
@@ -233,6 +228,13 @@ class TaskbarInteractor(private val taskbarUIController: TaskbarUIController) {
     )
     fun isEventOverBubbleBarViews(ev: MotionEvent) =
         taskbarUIController.isEventOverBubbleBarViews(ev)
+
+    @Deprecated(
+        "Should be removed once we turned on [refactorTaskbarUiState()] flag",
+        ReplaceWith("TaskbarUiState.isEventOverAnyTaskbarView()"),
+    )
+    fun isEventOverAnyTaskbarItem(ev: MotionEvent) =
+        taskbarUIController.isEventOverAnyTaskbarItem(ev)
 
     @Deprecated(
         "Should be removed once we turned on [refactorTaskbarUiState()] flag",

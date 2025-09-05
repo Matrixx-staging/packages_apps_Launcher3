@@ -80,6 +80,11 @@ class TaskbarUiState {
     private var _stashedBubbleBarHeightPx = Int.MAX_VALUE
     private var _isStashedHandlerViewVisible = true
     private var _stashedHandlerViewRect = ImmutableRect.EMPTY_RECT
+
+    private var _isTaskbarViewShown = false
+    private var _taskbarIconsActualBounds = ImmutableRect.EMPTY_RECT
+    private var _navbarFloatingRotationButtonsBounds = ImmutableRect.EMPTY_RECT
+
     private var _deviceProfile = DeviceProfile.DEFAULT_DEVICE_PROFILE
 
     fun setHasBubble(hasBubbles: Boolean) {
@@ -138,7 +143,7 @@ class TaskbarUiState {
         if (!_isBubbleBarViewVisible) {
             false
         } else {
-            _bubbleBarViewRect.contains(e.x.toInt(), e.y.toInt())
+            _bubbleBarViewRect.contains(e.x, e.y)
         }
 
     private fun isEventOverStashedHandler(ev: MotionEvent): Boolean {
@@ -169,6 +174,26 @@ class TaskbarUiState {
 
     fun setStashedHandlerViewRect(rect: Rect) {
         _stashedHandlerViewRect = ImmutableRect.from(rect)
+    }
+
+    fun isEventOverAnyTaskbarItem(ev: MotionEvent) = isEventOnTaskbarView(ev) || isEventOnNavbar(ev)
+
+    private fun isEventOnTaskbarView(ev: MotionEvent) =
+        _isTaskbarViewShown and _taskbarIconsActualBounds.contains(ev.rawX, ev.rawY)
+
+    fun setTaskbarViewIsShown(isShown: Boolean) {
+        _isTaskbarViewShown = isShown
+    }
+
+    fun setTaskbarIconsActualBounds(rect: Rect) {
+        _taskbarIconsActualBounds = ImmutableRect.from(rect)
+    }
+
+    private fun isEventOnNavbar(ev: MotionEvent) =
+        _navbarFloatingRotationButtonsBounds.contains(ev.x, ev.y)
+
+    fun setNavbarFloatingRotationButtonsBounds(rect: Rect) {
+        _navbarFloatingRotationButtonsBounds = ImmutableRect.from(rect)
     }
 
     fun setDeviceProfile(dp: DeviceProfile) {

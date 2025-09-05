@@ -21,6 +21,7 @@ import static com.android.launcher3.BubbleTextView.DISPLAY_TASKBAR;
 import static com.android.launcher3.Flags.enableLauncherIconShapes;
 import static com.android.launcher3.Flags.enableRecentsInTaskbar;
 import static com.android.launcher3.Flags.enableTaskbarRecentsThemedIcons;
+import static com.android.launcher3.Flags.refactorTaskbarUiState;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APP_PAIR;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_FOLDER;
 import static com.android.launcher3.config.FeatureFlags.enableTaskbarPinning;
@@ -96,14 +97,16 @@ import java.util.Set;
 public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconParent, Insettable,
         DeviceProfile.OnDeviceProfileChangeListener {
     private static final Rect sTmpRect = new Rect();
-
-    private final int[] mTempOutLocation = new int[2];
     private final Rect mIconLayoutBounds;
     private final int mIconTouchSize;
     private final int mItemMarginLeftRight;
     private final int mItemPadding;
     private final int mFolderLeaveBehindColor;
+    private final int[] mFirstIconViewLocation = new int[2];
+    private final int[] mLastIconViewLocation = new int[2];
     private final boolean mIsRtl;
+
+    private final TaskbarUiState mTaskbarUiState;
 
     private final TaskbarActivityContext mActivityContext;
     @Nullable private BubbleBarLocation mBubbleBarLocation = null;
@@ -188,6 +191,11 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         mIconLayoutBounds = mActivityContext.getTransientTaskbarBounds();
         Resources resources = getResources();
         mIsRtl = Utilities.isRtl(resources);
+        mTaskbarUiState = TaskbarUiStateMonitor.INSTANCE.get(context)
+                .getTaskbarUiState(context.getDisplayId());
+        if (refactorTaskbarUiState()) {
+            mTaskbarUiState.setTaskbarViewIsShown(isShown());
+        }
         mTransientTaskbarMinWidth = resources.getDimension(R.dimen.transient_taskbar_min_width);
 
         onDeviceProfileChanged(mActivityContext.getDeviceProfile());
@@ -1212,9 +1220,8 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
      * touch bounds.
      */
     public boolean isEventOverAnyItem(MotionEvent ev) {
-        getLocationOnScreen(mTempOutLocation);
-        int xInOurCoordinates = (int) ev.getRawX() - mTempOutLocation[0];
-        int yInOurCoordinates = (int) ev.getRawY() - mTempOutLocation[1];
+        int xInOurCoordinates = (int) ev.getRawX();
+        int yInOurCoordinates = (int) ev.getRawY();
         return isShown() && getTaskbarIconsActualBounds().contains(xInOurCoordinates,
                 yInOurCoordinates);
     }
@@ -1223,19 +1230,27 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
      * Returns the current visual taskbar icons bounds (unlike `mIconLayoutBounds` which contains
      * bounds for transient mode only).
      */
-    private Rect getTaskbarIconsActualBounds() {
+    Rect getTaskbarIconsActualBounds() {
         View[] iconViews = getIconViews();
         if (iconViews.length == 0) {
             return new Rect();
         }
+        iconViews[0].getLocationOnScreen(mFirstIconViewLocation);
+        iconViews[iconViews.length - 1].getLocationOnScreen(mLastIconViewLocation);
 
-        int[] firstIconViewLocation = new int[2];
-        int[] lastIconViewLocation = new int[2];
-        iconViews[0].getLocationOnScreen(firstIconViewLocation);
-        iconViews[iconViews.length - 1].getLocationOnScreen(lastIconViewLocation);
+        return new Rect(
+                mFirstIconViewLocation[0],
+                mFirstIconViewLocation[1],
+                mLastIconViewLocation[0] + mIconTouchSize,
+                mLastIconViewLocation[1] + mIconTouchSize);
+    }
 
-        return new Rect(firstIconViewLocation[0], 0, lastIconViewLocation[0] + mIconTouchSize,
-                getHeight());
+    @Override
+    public void onVisibilityAggregated(boolean isVisible) {
+        super.onVisibilityAggregated(isVisible);
+        if (refactorTaskbarUiState()) {
+            mTaskbarUiState.setTaskbarViewIsShown(isShown());
+        }
     }
 
     /**

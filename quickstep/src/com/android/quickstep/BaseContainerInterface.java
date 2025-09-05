@@ -118,7 +118,7 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
         boolean isEventOverBubbleBarStashHandle =
                 isEventOverBubbleBarView(interactor, taskbarUiState, ev);
         boolean isEventOverAnyTaskbarItem =
-                interactor != null && interactor.isEventOverAnyTaskbarItem(ev);
+                isEventOverAnyTaskbarView(interactor, taskbarUiState, ev);
         return deviceState.isInDeferredGestureRegion(ev)
                 || deviceState.isImeRenderingNavButtons()
                 || isTrackpadMultiFingerSwipe(ev)
@@ -558,6 +558,21 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
             return ret;
         } else {
             return interactor != null && interactor.isEventOverBubbleBarViews(ev);
+        }
+    }
+
+    private boolean isEventOverAnyTaskbarView(@Nullable TaskbarInteractor interactor,
+            @Nullable TaskbarUiState taskbarUiState, MotionEvent ev) {
+        if (refactorTaskbarUiState()) {
+            final boolean ret = taskbarUiState != null
+                    && taskbarUiState.isEventOverAnyTaskbarItem(ev);
+            if (BuildConfig.IS_STUDIO_BUILD && ret
+                    != (interactor != null && interactor.isEventOverAnyTaskbarItem(ev))) {
+                throw new IllegalStateException("isEventOverAnyTaskbarView doesn't match");
+            }
+            return ret;
+        } else {
+            return interactor != null && interactor.isEventOverAnyTaskbarItem(ev);
         }
     }
 
