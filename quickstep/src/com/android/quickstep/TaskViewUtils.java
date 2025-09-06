@@ -59,6 +59,7 @@ import android.graphics.RectF;
 import android.util.Log;
 import android.util.Pair;
 import android.view.RemoteAnimationTarget;
+import android.view.Surface;
 import android.view.SurfaceControl;
 import android.view.View;
 import android.window.TransitionInfo;
@@ -906,8 +907,18 @@ public final class TaskViewUtils {
             PendingAnimation out) {
         // RecentsView never updates the display rotation until swipe-up so the value may
         // be stale. Use the display value instead.
-        int displayRotation = DisplayController.INSTANCE.get(taskView.getContext()).getInfo()
-                .rotation;
+        int displayId = taskView.getDisplayId();
+        DisplayController.Info infoForDisplay =
+                DisplayController.INSTANCE.get(taskView.getContext()).getInfoForDisplay(displayId);
+        final int displayRotation;
+        if (infoForDisplay != null) {
+            displayRotation = infoForDisplay.rotation;
+        } else {
+            // Fallback to portrait orientation if we don't have info for the display.
+            // This should never happen - we get displayId from the taskView being launched.
+            Log.e(TAG, "Could not get info for displayId " + displayId, new Exception());
+            displayRotation = Surface.ROTATION_0;
+        }
         int scrollOffset = recentsView.getScrollOffset(
                 recentsView.indexOfChild(taskView));
         int gridTranslationY = deviceProfile.getDeviceProperties().isTablet()

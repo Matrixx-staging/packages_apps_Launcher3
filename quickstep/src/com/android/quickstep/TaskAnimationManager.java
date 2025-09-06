@@ -108,7 +108,9 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
                 return;
             }
             BaseContainerInterface containerInterface = mLastGestureState.getContainerInterface();
-            if (containerInterface.isInLiveTileMode()
+            Log.d(TAG, "onActivityRestartAttempt - displayId: " + mDisplayId + ", task: " + task);
+            if (mDisplayId == task.displayId
+                    && containerInterface.isInLiveTileMode()
                     && containerInterface.getCreatedContainer() != null) {
                 RecentsView recentsView = containerInterface.getCreatedContainer()
                         .getOverviewPanel();
