@@ -284,6 +284,9 @@ constructor(
                     // issues that arise from that.
                     launcherBinder.bindAllApps()
                     launcherBinder.bindWidgets()
+
+                    if (Flags.simplifiedLauncherModelBinding())
+                        installQueue.resumeModelPush(ItemInstallQueue.FLAG_LOADER_RUNNING)
                     return true
                 } else {
                     val task = loaderFactory.newLoaderTask(launcherBinder, UserManagerState())
@@ -356,6 +359,8 @@ constructor(
                 // Everything loaded bind the data.
                 mModelLoaded = true
             }
+            if (Flags.simplifiedLauncherModelBinding())
+                installQueue.resumeModelPush(ItemInstallQueue.FLAG_LOADER_RUNNING)
         }
 
         override fun close() {

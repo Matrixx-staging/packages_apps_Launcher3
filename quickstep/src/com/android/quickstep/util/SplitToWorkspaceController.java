@@ -145,7 +145,7 @@ public class SplitToWorkspaceController {
         // Check for background task matching this tag; if we find one, set second task
         // via task instead of intent so the bounds and windowing mode will be corrected.
         mController.findLastActiveTasksAndRunCallback(
-                Collections.singletonList(((ItemInfo) tag).getComponentKey()),
+                Collections.singletonList(((ItemInfo) tag).getResolvedTargetInfo()),
                 false /* findExactPairMatch */,
                 foundTasks -> {
                     Task foundTask = foundTasks[0];

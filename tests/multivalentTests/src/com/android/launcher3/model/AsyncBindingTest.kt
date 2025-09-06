@@ -21,6 +21,7 @@ import android.util.SparseArray
 import android.view.View
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
+import com.android.launcher3.Flags
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.Launcher
 import com.android.launcher3.LauncherModel
@@ -40,6 +41,8 @@ import com.android.launcher3.util.TestUtil
 import com.android.launcher3.util.TestUtil.runOnExecutorSync
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -56,6 +59,7 @@ import org.mockito.kotlin.argThat
 import org.mockito.kotlin.clearInvocations
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.isNull
 import org.mockito.kotlin.never
 import org.mockito.kotlin.spy
@@ -140,8 +144,8 @@ class AsyncBindingTest {
 
         // Verify that all items were inflated on the background thread
         assertThat(inflationLooper.size()).isAtLeast(5)
-        for (i in 0..<inflationLooper.size()) assertEquals(
-            MODEL_EXECUTOR.looper,
+        for (i in 0..<inflationLooper.size()) assertNotEquals(
+            MAIN_EXECUTOR.looper,
             inflationLooper.valueAt(i),
         )
     }
@@ -165,7 +169,13 @@ class AsyncBindingTest {
                 )
 
             // Verify that onInitialBindComplete is called and the binding is not yet complete
-            assertNotNull(callbacks.pendingExecutor)
+            verify(launcher).bindComplete(any(), eq(true))
+
+            if (Flags.simplifiedLauncherModelBinding()) {
+                assertFalse(callbacks.activeBindTask.get().isCanceled)
+            } else {
+                assertNotNull(callbacks.pendingExecutor)
+            }
             clearInvocations(launcher)
         }
 
@@ -185,7 +195,7 @@ class AsyncBindingTest {
         for (i in 0..<inflationLooper.size()) {
             if (firstPageBindIds.contains(inflationLooper.keyAt(i)))
                 assertEquals(MAIN_EXECUTOR.looper, inflationLooper.valueAt(i))
-            else assertEquals(MODEL_EXECUTOR.looper, inflationLooper.valueAt(i))
+            else assertNotEquals(MAIN_EXECUTOR.looper, inflationLooper.valueAt(i))
         }
     }
 

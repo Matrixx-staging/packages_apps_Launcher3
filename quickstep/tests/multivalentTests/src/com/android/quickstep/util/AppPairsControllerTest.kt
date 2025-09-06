@@ -24,6 +24,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.launcher3.apppairs.AppPairIcon
 import com.android.launcher3.logging.StatsLogManager
 import com.android.launcher3.model.data.ItemInfo
+import com.android.launcher3.model.data.ResolvedTargetInfo
 import com.android.launcher3.taskbar.TaskbarActivityContext
 import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT
 import com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_TOP_OR_LEFT
@@ -91,6 +92,8 @@ class AppPairsControllerTest {
     @Mock lateinit var mockCachedTaskInfo: CachedTaskInfo
     @Mock lateinit var mockItemInfo1: ItemInfo
     @Mock lateinit var mockItemInfo2: ItemInfo
+    @Mock lateinit var mockResolvedTargetInfo1: ResolvedTargetInfo
+    @Mock lateinit var mockResolvedTargetInfo2: ResolvedTargetInfo
     @Mock lateinit var mockTask1: Task
     @Mock lateinit var mockTask2: Task
     @Mock lateinit var mockTaskKey1: TaskKey
@@ -114,6 +117,8 @@ class AppPairsControllerTest {
         whenever(mockTopTaskTracker.getCachedTopTask(any(), any())).thenReturn(mockCachedTaskInfo)
         whenever(mockTask1.getKey()).thenReturn(mockTaskKey1)
         whenever(mockTask2.getKey()).thenReturn(mockTaskKey2)
+        whenever(mockItemInfo1.resolvedTargetInfo).thenReturn(mockResolvedTargetInfo1)
+        whenever(mockItemInfo2.resolvedTargetInfo).thenReturn(mockResolvedTargetInfo2)
         doNothing().whenever(spyAppPairsController).launchAppPair(any(), any())
         doNothing()
             .whenever(spyAppPairsController)
