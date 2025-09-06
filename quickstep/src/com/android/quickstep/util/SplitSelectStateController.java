@@ -85,6 +85,7 @@ import com.android.launcher3.apppairs.AppPairIcon;
 import com.android.launcher3.icons.IconProvider;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.model.data.ResolvedTargetInfo;
 import com.android.launcher3.statehandlers.DepthController;
 import com.android.launcher3.statemanager.StateManager;
 import com.android.launcher3.taskbar.TaskbarInteractor;
@@ -255,27 +256,44 @@ public class SplitSelectStateController {
      * Given a list of task keys, searches through active Tasks in RecentsModel to find the last
      * active instances of these tasks. Returns an empty array if there is no such running task.
      *
-     * @param componentKeys The list of ComponentKeys to search for.
+     * @param resolvedTargetInfos The list of the target Activity if one is
+     *                                             explicitly set. Otherwise, the ComponentKey of
+     *                                             the Activity that the associated Intent.
      * @param callback The callback that will be executed on the list of found tasks.
      * @param findExactPairMatch If {@code true}, only finds tasks that contain BOTH of the wanted
      *                           tasks (i.e. searching for a running pair of tasks.)
      */
-    public void findLastActiveTasksAndRunCallback(@Nullable List<ComponentKey> componentKeys,
+    public void findLastActiveTasksAndRunCallback(
+            @Nullable List<ResolvedTargetInfo> resolvedTargetInfos,
             boolean findExactPairMatch, Consumer<Task[]> callback) {
         mRecentTasksModel.getTasks(taskGroups -> {
-            if (componentKeys == null || componentKeys.isEmpty()) {
+            if (resolvedTargetInfos == null
+                    || resolvedTargetInfos.isEmpty()) {
                 callback.accept(new Task[]{});
                 return;
             }
 
-            Task[] lastActiveTasks = new Task[componentKeys.size()];
+            Task[] lastActiveTasks = new Task[resolvedTargetInfos.size()];
 
             if (findExactPairMatch) {
+                if (resolvedTargetInfos.size() < 2) {
+                    callback.accept(new Task[]{});
+                    return;
+                }
+
+                ComponentKey key1 = resolvedTargetInfos.get(0).getTargetComponentKey();
+                ComponentKey key2 = resolvedTargetInfos.get(1).getTargetComponentKey();
+                if (key1 == null || key2 == null) {
+                    Log.e(TAG, "findLastActiveTasksAndRunCallback ComponentKey are null key1= "
+                            + key1 + " key2= " + key2);
+                    callback.accept(new Task[]{});
+                    return;
+                }
+
                 // Loop through tasks in reverse, since they are ordered with most-recent tasks last
                 for (int i = taskGroups.size() - 1; i >= 0; i--) {
                     GroupTask groupTask = taskGroups.get(i);
-                    if (isInstanceOfAppPair(
-                            groupTask, componentKeys.get(0), componentKeys.get(1))) {
+                    if (isInstanceOfAppPair(groupTask, key1, key2)) {
                         lastActiveTasks[0] = ((SplitTask) groupTask).getTopLeftTask();
                         break;
                     }
@@ -283,8 +301,13 @@ public class SplitSelectStateController {
             } else {
                 // For each key we are looking for, add to lastActiveTasks with the corresponding
                 // Task (or do nothing if not found).
-                for (int i = 0; i < componentKeys.size(); i++) {
-                    ComponentKey key = componentKeys.get(i);
+                for (int i = 0; i < resolvedTargetInfos.size(); i++) {
+                    ComponentKey key = resolvedTargetInfos.get(i).getTargetComponentKey();
+                    if (key == null) {
+                        Log.e(TAG, "findLastActiveTasksAndRunCallback ComponentKey is null");
+                        callback.accept(new Task[]{});
+                        return;
+                    }
                     Task lastActiveTask = null;
                     // Loop through tasks in reverse, since they are ordered with recent tasks last
                     for (int j = taskGroups.size() - 1; j >= 0; j--) {

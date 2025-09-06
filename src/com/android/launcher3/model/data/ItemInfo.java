@@ -197,6 +197,12 @@ public class ItemInfo {
     @NonNull
     private List<Attribute> mAttributeList = Collections.EMPTY_LIST;
 
+    /**
+     * Non-null if the associated info is for an activity alias, and will refer to the target
+     * activity of the alias.
+     */
+    private ComponentName mTargetActivityComponentName;
+
     public ItemInfo() {
         user = Process.myUserHandle();
     }
@@ -222,6 +228,7 @@ public class ItemInfo {
         user = info.user;
         contentDescription = info.contentDescription;
         mComponentName = info.getTargetComponent();
+        mTargetActivityComponentName = info.mTargetActivityComponentName;
     }
 
     @Nullable
@@ -229,15 +236,37 @@ public class ItemInfo {
         return null;
     }
 
+    /**
+     * Returns the Activity TargetComponent of the item that an Intent is trying to start.
+     */
     @Nullable
     public ComponentName getTargetComponent() {
         return Optional.ofNullable(getIntent()).map(Intent::getComponent).orElse(mComponentName);
     }
 
+    /**
+     * Returns the {@link ComponentKey} of the Activity that this Intent is trying to start.
+     */
     @Nullable
     public final ComponentKey getComponentKey() {
         ComponentName targetComponent = getTargetComponent();
         return targetComponent == null ? null : new ComponentKey(targetComponent, user);
+    }
+
+    /**
+     * Sets the target activity that this activity alias info points to.
+     */
+    void setTargetActivityComponentName(@Nullable ComponentName targetActivityComponentName) {
+        mTargetActivityComponentName = targetActivityComponentName;
+    }
+
+    /**
+     * Returns the resolved target info for the activity.
+     * This object contains the alias target activity component and activity component.
+     */
+    @NonNull
+    public ResolvedTargetInfo getResolvedTargetInfo() {
+        return new ResolvedTargetInfo(mTargetActivityComponentName, getTargetComponent(), user);
     }
 
     /**
@@ -305,6 +334,7 @@ public class ItemInfo {
                 + " type=" + LauncherSettings.Favorites.itemTypeToString(itemType)
                 + " container=" + getContainerInfo()
                 + " targetComponent=" + getTargetComponent()
+                + " ResolvedTargetInfo=" + getResolvedTargetInfo()
                 + " screen=" + screenId
                 + " cell(" + cellX + "," + cellY + ")"
                 + " span(" + spanX + "," + spanY + ")"

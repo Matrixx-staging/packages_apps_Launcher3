@@ -845,7 +845,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         // Check if there is already an instance of this app running, if so, initiate the split
         // using that.
         mSplitSelectStateController.findLastActiveTasksAndRunCallback(
-                Collections.singletonList(splitSelectSource.getItemInfo().getComponentKey()),
+                Collections.singletonList(splitSelectSource.getItemInfo().getResolvedTargetInfo()),
                 false /* findExactPairMatch */,
                 foundTasks -> {
                     @Nullable Task foundTask = foundTasks[0];
