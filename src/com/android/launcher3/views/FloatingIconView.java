@@ -64,6 +64,7 @@ import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.popup.SystemShortcut;
 import com.android.launcher3.shortcuts.DeepShortcutView;
+import com.android.launcher3.util.AsyncView;
 
 import java.util.function.Supplier;
 
@@ -99,10 +100,10 @@ public class FloatingIconView extends FrameLayout implements
     private @Nullable Drawable mBadge;
 
     // A view whose visibility should update in sync with mOriginalIcon.
-    private @Nullable View mMatchVisibilityView;
+    private @Nullable AsyncView mMatchVisibilityView;
 
     // A view that will fade out as the animation progresses.
-    private @Nullable View mFadeOutView;
+    private @Nullable AsyncView mFadeOutView;
 
     private View mOriginalIcon;
     private RectF mPositionOut;
@@ -177,10 +178,11 @@ public class FloatingIconView extends FrameLayout implements
         mClipIconView.update(rect, progress, shapeProgressStart, cornerRadius, isOpening, this,
                 mLauncher.getDeviceProfile(), taskViewDrawAlpha);
 
+        // The alpha goes from 1 to 0 when progress is 0 and 0.15 respectively.
+        // This value minimizes view display time while still allowing the view to fade out.
         if (mFadeOutView != null) {
-            // The alpha goes from 1 to 0 when progress is 0 and 0.15 respectively.
-            // This value minimizes view display time while still allowing the view to fade out.
-            mFadeOutView.setAlpha(1 - Math.min(1f, mapToRange(progress, 0, 0.15f, 0, 1, LINEAR)));
+            mFadeOutView.postAlpha(
+                    1 - Math.min(1f, mapToRange(progress, 0, 0.15f, 0, 1, LINEAR)));
         }
     }
 
@@ -521,9 +523,8 @@ public class FloatingIconView extends FrameLayout implements
             // When closing an app, we want the item on the workspace to be invisible immediately
             updateViewsVisibility(false  /* isVisible */);
         }
-        if (mFadeOutView instanceof FloatingIconViewCompanion fivc) {
-            fivc.setForceHideDot(true);
-            fivc.setForceHideRing(true);
+        if (mFadeOutView != null) {
+            mFadeOutView.postForceHideDotRingAsFloatingIconViewCompanion(true);
         }
     }
 
@@ -622,8 +623,8 @@ public class FloatingIconView extends FrameLayout implements
      * @param isOpening True if this view replaces the icon for app open animation.
      */
     public static FloatingIconView getFloatingIconView(Launcher launcher, View originalView,
-            @Nullable View visibilitySyncView, @Nullable View fadeOutView, boolean hideOriginal,
-            RectF positionOut, boolean isOpening) {
+            @Nullable AsyncView visibilitySyncView, @Nullable AsyncView fadeOutView,
+            boolean hideOriginal, RectF positionOut, boolean isOpening) {
         final DragLayer dragLayer = launcher.getDragLayer();
         ViewGroup parent = (ViewGroup) dragLayer.getParent();
         FloatingIconView view = launcher.getViewCache().getView(R.layout.floating_icon_view,
@@ -664,11 +665,8 @@ public class FloatingIconView extends FrameLayout implements
             view.mEndRunnable = null;
 
             if (view.mFadeOutView != null) {
-                view.mFadeOutView.setAlpha(1f);
-            }
-            if (view.mFadeOutView instanceof FloatingIconViewCompanion fivc) {
-                fivc.setForceHideDot(false);
-                fivc.setForceHideRing(false);
+                view.mFadeOutView.postAlpha(1f);
+                view.mFadeOutView.postForceHideDotRingAsFloatingIconViewCompanion(false);
             }
 
             if (hideOriginal) {
@@ -694,7 +692,7 @@ public class FloatingIconView extends FrameLayout implements
             setPropertiesVisible(mOriginalIcon, isVisible);
         }
         if (mMatchVisibilityView != null) {
-            setPropertiesVisible(mMatchVisibilityView, isVisible);
+            mMatchVisibilityView.postVisibilityAsFloatingIconViewCompanion(isVisible);
         }
     }
 

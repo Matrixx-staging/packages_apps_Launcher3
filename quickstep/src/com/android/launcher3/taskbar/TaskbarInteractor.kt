@@ -27,6 +27,8 @@ import com.android.launcher3.Flags.enableTaskbarUiThread
 import com.android.launcher3.LauncherState
 import com.android.launcher3.taskbar.TaskbarManagerImpl.TASKBAR_UI_THREAD
 import com.android.launcher3.taskbar.customization.TASKBAR_OVERFLOW_PIN_LIMIT
+import com.android.launcher3.util.AsyncView
+import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.ImmediateExecutorService
 import com.android.quickstep.GestureState
 import com.android.quickstep.RecentsAnimationCallbacks
@@ -210,8 +212,12 @@ class TaskbarInteractor(private val taskbarUIController: TaskbarUIController) {
                 ?.numShownHotseatIcons ?: -1
         }
 
-    // TODO(b/404636836): return AsyncView and post alpha and decor change to executor
-    @MainThread fun findMatchingView(v: View) = taskbarUIController.findMatchingView(v)
+    @AnyThread
+    fun findMatchingAsyncView(v: View): AsyncView {
+        return AsyncView(if (enableTaskbarUiThread()) TASKBAR_UI_THREAD else MAIN_EXECUTOR) {
+            taskbarUIController.findMatchingView(v)
+        }
+    }
 
     // TODO(b/404636836): start this animation within taskbar.
     @MainThread
