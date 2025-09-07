@@ -67,7 +67,10 @@ constructor(
 
     val isPinned: Boolean
         get() =
-            if (desktopVisibilityController.isInDesktopModeAndNotInOverview(primaryDisplayId)) {
+            if (
+                desktopVisibilityController.isInDesktopModeAndNotInOverview(primaryDisplayId) ||
+                    displayController.info.showDesktopTaskbarForFreeformDisplay()
+            ) {
                 true
             } else if (desktopVisibilityController.isInDesktopMode(primaryDisplayId)) {
                 launcherPrefs.get(TASKBAR_PINNING_IN_DESKTOP_MODE)
