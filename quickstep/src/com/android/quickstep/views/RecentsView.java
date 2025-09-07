@@ -2871,6 +2871,7 @@ public abstract class RecentsView<
         if (enableRefactorTaskThumbnail()) {
             mRecentsViewModel.onReset();
         }
+        executeSideTaskLaunchCallback();
     }
 
     public int getRunningTaskViewId() {
@@ -6189,7 +6190,6 @@ public abstract class RecentsView<
         setCurrentTask(-1);
         mRecentsAnimationController = null;
         mSplitSelectStateController.setRecentsAnimationRunning(false);
-        executeSideTaskLaunchCallback();
         if (enableOverviewBackgroundWallpaperBlur()) {
             mBlurUtils.setDrawLiveTileBelowRecents(false);
         }
