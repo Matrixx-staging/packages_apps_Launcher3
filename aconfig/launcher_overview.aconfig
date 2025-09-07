@@ -121,3 +121,13 @@ flag {
     description: "Enables showing a button to close the task in Overview when the TaskView is hovered."
     bug: "426125944"
 }
+
+flag {
+    name: "enable_prevent_overview_mouse_drag"
+    namespace: "launcher_overview"
+    description: "Prevents the user from scrolling overview with a mouse via click and drag"
+    bug: "433705336"
+    metadata {
+        purpose: PURPOSE_BUGFIX
+    }
+}
