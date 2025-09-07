@@ -98,7 +98,10 @@ public abstract class BaseItemDragListener implements DragController.SystemDragH
             postCleanup();
             return false;
         }
-        if (event.getAction() == DragEvent.ACTION_DRAG_STARTED || !mDragController.isDragging()) {
+
+        if (event.getAction() == DragEvent.ACTION_DRAG_STARTED
+                || (!mDragController.isDragging()
+                        && event.getAction() == DragEvent.ACTION_DRAG_ENTERED)) {
             if (onDragStart(event)) {
                 return true;
             } else {
