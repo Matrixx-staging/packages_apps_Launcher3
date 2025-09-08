@@ -58,7 +58,6 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 
 /**
@@ -79,7 +78,6 @@ public class DatabaseHelper extends SQLiteOpenHelper implements
     private static final String DOWNGRADE_SCHEMA_FILE = "downgrade_schema.json";
 
     private final Context mContext;
-    private final ToLongFunction<UserHandle> mUserSerialProvider;
     private final Runnable mOnEmptyDbCreateCallback;
     private final AtomicInteger mMaxItemId = new AtomicInteger(-1);
 
@@ -88,11 +86,9 @@ public class DatabaseHelper extends SQLiteOpenHelper implements
     /**
      * Constructor used in tests and for restore.
      */
-    public DatabaseHelper(Context context, String dbName,
-            ToLongFunction<UserHandle> userSerialProvider, Runnable onEmptyDbCreateCallback) {
+    public DatabaseHelper(Context context, String dbName, Runnable onEmptyDbCreateCallback) {
         super(context, dbName, SCHEMA_VERSION, createNoLocaleParams());
         mContext = context;
-        mUserSerialProvider = userSerialProvider;
         mOnEmptyDbCreateCallback = onEmptyDbCreateCallback;
     }
 
@@ -123,7 +119,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements
     }
 
     private long getDefaultUserSerial() {
-        return mUserSerialProvider.applyAsLong(Process.myUserHandle());
+        return UserCache.INSTANCE.get(mContext).getSerialNumberForUser(Process.myUserHandle());
     }
 
     @Override

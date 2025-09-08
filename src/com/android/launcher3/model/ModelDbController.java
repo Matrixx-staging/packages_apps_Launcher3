@@ -125,8 +125,8 @@ public class ModelDbController {
         Runnable onEmptyDbCreateCallback = forMigration ? () -> { }
                 : () -> mPrefs.putSync(getEmptyDbCreatedKey(dbFile).to(true));
 
-        DatabaseHelper databaseHelper = new DatabaseHelper(mContext, dbFile,
-                this::getSerialNumberForUser, onEmptyDbCreateCallback);
+        DatabaseHelper databaseHelper = new DatabaseHelper(
+                mContext, dbFile, onEmptyDbCreateCallback);
         // Table creation sometimes fails silently, which leads to a crash loop.
         // This way, we will try to create a table every time after crash, so the device
         // would eventually be able to recover.

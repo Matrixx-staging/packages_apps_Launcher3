@@ -27,7 +27,6 @@ import com.android.launcher3.InvariantDeviceProfile.TYPE_PHONE
 import com.android.launcher3.LauncherSettings.Favorites.TABLE_NAME
 import com.android.launcher3.celllayout.board.CellLayoutBoard
 import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
-import com.android.launcher3.pm.UserCache
 import com.android.launcher3.util.Executors
 import com.android.launcher3.util.TestUtil
 import com.android.launcher3.util.rule.TestToPhoneFileCopier
@@ -61,13 +60,7 @@ data class EntryData(
  */
 class GridMigrationData(dbFileName: String?, val gridState: DeviceGridState) {
 
-    val dbHelper: DatabaseHelper =
-        DatabaseHelper(
-            phoneContext,
-            dbFileName,
-            { UserCache.INSTANCE.get(phoneContext).getSerialNumberForUser(it) },
-            {},
-        )
+    val dbHelper: DatabaseHelper = DatabaseHelper(phoneContext, dbFileName) {}
 
     fun readEntries(): List<DbEntry> =
         GridSizeMigrationDBController.readAllEntries(

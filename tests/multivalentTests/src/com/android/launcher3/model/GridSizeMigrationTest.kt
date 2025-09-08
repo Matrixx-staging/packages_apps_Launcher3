@@ -71,12 +71,7 @@ class GridSizeMigrationTest {
     @Before
     fun setUp() {
         context.initDaggerComponent(DaggerGridSizeMigrationTest_TestComponent.builder())
-        dbHelper =
-            DatabaseHelper(
-                context,
-                null,
-                UserCache.INSTANCE.get(context)::getSerialNumberForUser,
-            ) {}
+        dbHelper = DatabaseHelper(context, null) {}
         db = dbHelper.writableDatabase
 
         idp = InvariantDeviceProfile.INSTANCE[context]
