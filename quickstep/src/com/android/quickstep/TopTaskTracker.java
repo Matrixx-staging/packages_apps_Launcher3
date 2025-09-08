@@ -31,7 +31,6 @@ import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITIO
 import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_TYPE_A;
 import static com.android.wm.shell.Flags.enableShellTopTaskTracking;
 import static com.android.wm.shell.Flags.enableFlexibleSplit;
-import static com.android.wm.shell.Flags.fixBubblesToRecents;
 import static com.android.wm.shell.shared.GroupedTaskInfo.TYPE_DESK;
 import static com.android.wm.shell.shared.GroupedTaskInfo.TYPE_SPLIT;
 import static com.android.launcher3.statehandlers.DesktopVisibilityController.INACTIVE_DESK_ID;
@@ -404,9 +403,7 @@ public class TopTaskTracker extends ISplitScreenListener.Stub implements TaskSta
                 taskStream = taskStream.filter(
                         taskInfo -> !DesksUtils.isDesktopWallpaperTask(taskInfo));
             }
-            if (fixBubblesToRecents()) {
-                taskStream = taskStream.filter(taskInfo -> !isBubbleTask(taskInfo));
-            }
+            taskStream = taskStream.filter(taskInfo -> !isBubbleTask(taskInfo));
 
             return new CachedTaskInfo(taskStream.toList(), mContext, displayId, activeDeskId);
         }

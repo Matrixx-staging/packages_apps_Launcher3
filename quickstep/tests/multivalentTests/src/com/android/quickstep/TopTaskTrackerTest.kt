@@ -40,7 +40,6 @@ import com.android.quickstep.TopTaskTracker.HISTORY_SIZE
 import com.android.window.flags.Flags.FLAG_ENABLE_MULTIPLE_DESKTOPS_BACKEND
 import com.android.window.flags.Flags.FLAG_ENABLE_MULTIPLE_DESKTOPS_FRONTEND
 import com.android.wm.shell.Flags.FLAG_ENABLE_SHELL_TOP_TASK_TRACKING
-import com.android.wm.shell.Flags.FLAG_FIX_BUBBLES_TO_RECENTS
 import com.android.wm.shell.shared.GroupedTaskInfo
 import com.android.wm.shell.shared.GroupedTaskInfo.TYPE_DESK
 import com.android.wm.shell.shared.GroupedTaskInfo.TYPE_FULLSCREEN
@@ -214,7 +213,6 @@ class TopTaskTrackerTest {
     }
 
     @Test
-    @EnableFlags(FLAG_FIX_BUBBLES_TO_RECENTS)
     @DisableFlags(FLAG_ENABLE_SHELL_TOP_TASK_TRACKING)
     fun getCachedTopTask_filtersOutBubbleTask() {
         val appBubbleTask = createBubbleTaskInfo(taskId = 100, appBubble = true)
@@ -232,7 +230,6 @@ class TopTaskTrackerTest {
     }
 
     @Test
-    @EnableFlags(FLAG_FIX_BUBBLES_TO_RECENTS)
     @DisableFlags(FLAG_ENABLE_SHELL_TOP_TASK_TRACKING)
     fun getCachedTopTask_allBubbles_noTopTask() {
         val convoBubbleTask = createBubbleTaskInfo(taskId = 100, appBubble = false)
