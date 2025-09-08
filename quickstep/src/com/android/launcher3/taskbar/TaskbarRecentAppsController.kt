@@ -15,6 +15,7 @@
  */
 package com.android.launcher3.taskbar
 
+import android.app.WindowConfiguration.WINDOWING_MODE_FULLSCREEN
 import android.content.Context
 import android.util.Log
 import android.window.DesktopExperienceFlags
@@ -333,7 +334,9 @@ class TaskbarRecentAppsController(
                         .filterIsInstance<DesktopTask>()
                         .flatMap { it.tasks }
                         .filterNot {
-                            it.key.isTopActivityTransparent && it.key.isActivityStackTransparent
+                            it.key.isTopActivityTransparent &&
+                                it.key.isActivityStackTransparent &&
+                                it.key.windowingMode == WINDOWING_MODE_FULLSCREEN
                         }
                 val runningTasksChanged = oldRunningTaskdIds != runningTaskIds
                 val minimizedTasksChanged = oldMinimizedTaskIds != minimizedTaskIds
