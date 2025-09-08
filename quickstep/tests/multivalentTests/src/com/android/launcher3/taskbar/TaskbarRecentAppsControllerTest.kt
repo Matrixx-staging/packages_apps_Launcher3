@@ -66,7 +66,6 @@ import org.junit.runner.Description
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
 import org.mockito.Mock
-import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doAnswer
@@ -80,7 +79,6 @@ import org.mockito.kotlin.whenever
 @EnableFlags(Flags.FLAG_ENABLE_MULTI_INSTANCE_MENU_TASKBAR)
 class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
 
-    @get:Rule val mockitoRule = MockitoJUnit.rule()
     @get:Rule val setFlagsRule = SetFlagsRule()
     @get:Rule
     val disableControllerForCertainTestsWatcher =

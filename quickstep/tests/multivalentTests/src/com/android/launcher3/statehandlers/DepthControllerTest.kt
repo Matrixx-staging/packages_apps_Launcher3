@@ -32,6 +32,7 @@ import java.util.Collections
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
@@ -40,13 +41,14 @@ import org.mockito.Mockito.same
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.Mockito.`when`
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
 
 @SmallTest
 @RunWith(AndroidJUnit4::class)
 class DepthControllerTest {
 
     private lateinit var underTest: DepthController
+    @get:Rule val mockito = MockitoJUnit.rule()
     @Mock private lateinit var launcher: QuickstepLauncher
     @Mock private lateinit var stateManager: StateManager<LauncherState, Launcher>
     @Mock private lateinit var resource: Resources
@@ -55,7 +57,6 @@ class DepthControllerTest {
 
     @Before
     fun setUp() {
-        MockitoAnnotations.initMocks(this)
         `when`(launcher.resources).thenReturn(resource)
         `when`(resource.getInteger(R.integer.max_depth_blur_radius)).thenReturn(30)
         `when`(launcher.dragLayer).thenReturn(dragLayer)

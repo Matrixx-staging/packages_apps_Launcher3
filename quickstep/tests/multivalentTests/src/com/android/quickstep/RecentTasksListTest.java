@@ -66,7 +66,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -78,6 +79,9 @@ import java.util.stream.Collectors;
 @SmallTest
 @RunWith(AndroidJUnit4.class)
 public class RecentTasksListTest {
+
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     @Rule
     public final SetFlagsRule mSetFlagsRule = new SetFlagsRule();
 
@@ -99,7 +103,6 @@ public class RecentTasksListTest {
 
     @Before
     public void setup() {
-        MockitoAnnotations.initMocks(this);
         LooperExecutor mainThreadExecutor = Executors.MAIN_EXECUTOR;
 
         // Set desktop mode supported

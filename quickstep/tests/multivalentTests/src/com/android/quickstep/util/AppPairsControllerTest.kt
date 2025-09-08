@@ -40,12 +40,14 @@ import com.android.wm.shell.shared.split.SplitScreenConstants.SNAP_TO_2_66_33
 import java.util.function.Consumer
 import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
 import org.mockito.Captor
 import org.mockito.Mock
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
+import org.mockito.junit.MockitoRule
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doNothing
@@ -85,6 +87,8 @@ class AppPairsControllerTest {
         appPairsController.encodeRank(STAGE_POSITION_BOTTOM_OR_RIGHT, SNAP_TO_2_66_33)
     }
 
+    @get:Rule var mockitoRule: MockitoRule = MockitoJUnit.rule()
+
     @Mock lateinit var mockAppPairIcon: AppPairIcon
     @Mock lateinit var mockDisplay: Display
     @Mock lateinit var mockTaskbarActivityContext: TaskbarActivityContext
@@ -104,7 +108,6 @@ class AppPairsControllerTest {
 
     @Before
     fun setup() {
-        MockitoAnnotations.initMocks(this)
         appPairsController =
             AppPairsController(context, splitSelectStateController, statsLogManager)
 
