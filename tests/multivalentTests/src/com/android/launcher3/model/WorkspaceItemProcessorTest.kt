@@ -56,7 +56,7 @@ import com.android.launcher3.model.data.WorkspaceItemCoordinates
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo.FLAG_RESTORED_ICON
 import com.android.launcher3.model.data.WorkspaceItemInfo.FLAG_RESTORE_STARTED
-import com.android.launcher3.pm.UserCache
+import com.android.launcher3.pm.UserManagerState
 import com.android.launcher3.shortcuts.ShortcutKey
 import com.android.launcher3.util.ContentWriter
 import com.android.launcher3.util.PackageManagerHelper
@@ -98,7 +98,6 @@ class WorkspaceItemProcessorTest {
     @Mock private lateinit var mockWorkspaceInfo: WorkspaceItemInfo
     @Mock private lateinit var mockPmHelper: PackageManagerHelper
     @Mock(answer = Answers.RETURNS_DEEP_STUBS) private lateinit var mockCursor: LoaderCursor
-    @Mock private lateinit var mockUserCache: UserCache
     @Mock private lateinit var mockUserManagerState: UserManagerState
     @Mock private lateinit var mockWidgetInflater: WidgetInflater
     @Mock private lateinit var mockIconCache: IconCache
@@ -148,7 +147,7 @@ class WorkspaceItemProcessorTest {
             whenever(getAppShortcutInfo(any(), any(), any(), any())).thenReturn(mockWorkspaceInfo)
             whenever(createIconRequestInfo(any(), any())).thenReturn(mockIconRequestInfo)
         }
-        mockUserCache.apply {
+        mockUserManagerState.apply {
             val userIconInfo = mock<UserIconInfo>().apply { whenever(isPrivate).thenReturn(false) }
             whenever(getUserInfo(any())).thenReturn(userIconInfo)
         }
@@ -168,7 +167,6 @@ class WorkspaceItemProcessorTest {
     private fun createWorkspaceItemProcessorUnderTest(
         cursor: LoaderCursor = mockCursor,
         memoryLogger: LoaderMemoryLogger? = null,
-        userCache: UserCache = mockUserCache,
         userManagerState: UserManagerState = mockUserManagerState,
         launcherApps: LauncherApps = mLauncherApps,
         shortcutKeyToPinnedShortcuts: Map<ShortcutKey, ShortcutInfo> = mKeyToPinnedShortcutsMap,
@@ -185,7 +183,6 @@ class WorkspaceItemProcessorTest {
         WorkspaceItemProcessor(
             c = cursor,
             memoryLogger = memoryLogger,
-            userCache = userCache,
             userManagerState = userManagerState,
             launcherApps = launcherApps,
             context = mContext,

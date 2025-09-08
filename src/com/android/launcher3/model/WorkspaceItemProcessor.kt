@@ -49,7 +49,7 @@ import com.android.launcher3.model.data.ItemInfoWithIcon
 import com.android.launcher3.model.data.LauncherAppWidgetInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.pm.PackageInstallInfo
-import com.android.launcher3.pm.UserCache
+import com.android.launcher3.pm.UserManagerState
 import com.android.launcher3.shortcuts.ShortcutKey
 import com.android.launcher3.shortcuts.ShortcutRequest
 import com.android.launcher3.util.ApiWrapper
@@ -74,7 +74,6 @@ import com.android.launcher3.widget.util.WidgetSizeHandler
 class WorkspaceItemProcessor(
     private val c: LoaderCursor,
     private val memoryLogger: LoaderMemoryLogger?,
-    private val userCache: UserCache,
     private val userManagerState: UserManagerState,
     private val launcherApps: LauncherApps,
     private val pendingPackages: MutableSet<PackageUserKey>,
@@ -390,7 +389,7 @@ class WorkspaceItemProcessor(
                 AppInfo.updateRuntimeFlagsForActivityTarget(
                     info,
                     activityInfo,
-                    userCache.getUserInfo(c.user),
+                    userManagerState.getUserInfo(c.user),
                     ApiWrapper.INSTANCE[context],
                     pmHelper,
                 )

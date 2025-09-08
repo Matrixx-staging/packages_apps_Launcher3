@@ -31,7 +31,6 @@ import android.content.pm.LauncherActivityInfo;
 import android.content.pm.LauncherApps;
 import android.content.pm.ShortcutInfo;
 import android.os.UserHandle;
-import android.os.UserManager;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -45,12 +44,12 @@ import com.android.launcher3.model.AllAppsList;
 import com.android.launcher3.model.BgDataModel;
 import com.android.launcher3.model.ItemInstallQueue;
 import com.android.launcher3.model.ModelTaskController;
-import com.android.launcher3.model.UserManagerState;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.LauncherAppWidgetInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.pm.PackageInstallInfo;
 import com.android.launcher3.pm.UserCache;
+import com.android.launcher3.pm.UserManagerState;
 import com.android.launcher3.shortcuts.ShortcutRequest;
 import com.android.launcher3.util.ApiWrapper;
 import com.android.launcher3.util.FlagOp;
@@ -147,9 +146,7 @@ public class PackageUpdatedTask implements ModelUpdateTask {
                 flagOp = FlagOp.NO_OP.removeFlag(WorkspaceItemInfo.FLAG_DISABLED_NOT_AVAILABLE);
                 break;
             case OP_USER_AVAILABILITY_CHANGE: {
-                UserManagerState ums = new UserManagerState();
-                UserManager userManager = context.getSystemService(UserManager.class);
-                ums.init(UserCache.INSTANCE.get(context), userManager);
+                UserManagerState ums = UserCache.INSTANCE.get(context).getUserManagerState();
                 boolean isUserQuiet =  ums.isUserQuiet(mUser);
                 flagOp = FlagOp.NO_OP.setFlag(
                         WorkspaceItemInfo.FLAG_DISABLED_QUIET_USER, isUserQuiet);

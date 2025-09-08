@@ -29,6 +29,7 @@ import com.android.launcher3.util.UserIconInfo.Companion.TYPE_CLONED
 import com.android.launcher3.util.UserIconInfo.Companion.TYPE_PRIVATE
 import com.android.launcher3.util.UserIconInfo.Companion.TYPE_WORK
 import com.android.launcher3.util.UserIconInfo.UserType
+import com.android.launcher3.util.rule.MockUsersRule.MockUser
 import kotlin.annotation.AnnotationRetention.RUNTIME
 import kotlin.annotation.AnnotationTarget.CLASS
 import kotlin.annotation.AnnotationTarget.FUNCTION
@@ -74,6 +75,7 @@ class MockUsersRule(private val app: SandboxApplication) : TestRule {
 
     private fun setupMockUsers(users: List<MockUser>) {
         val launcherApps = app.spyService(LauncherApps::class.java)
+        val userManager = app.spyService(UserManager::class.java)
 
         val userList = mutableListOf<UserHandle>()
         var startUserId = UserHandle.myUserId()
@@ -99,13 +101,15 @@ class MockUsersRule(private val app: SandboxApplication) : TestRule {
                 .whenever(launcherApps)
                 .getPreInstalledSystemPackages(user)
 
+            doReturn(mockUser.isUserUnlocked).whenever(userManager).isUserUnlocked(user)
+            doReturn(mockUser.isQuietModeEnabled).whenever(userManager).isQuietModeEnabled(user)
+
             generatedUsers.add(
                 UserIconInfo(user = user, type = mockUser.userType, userSerial = serial.toLong())
             )
             userList.add(user)
         }
 
-        val userManager = app.spyService(UserManager::class.java)
         doReturn(userList).whenever(userManager).userProfiles
     }
 
@@ -117,6 +121,8 @@ class MockUsersRule(private val app: SandboxApplication) : TestRule {
         @UserType val userType: Int,
         val userSerial: Int = -1, // If not specified, userHandle's hashCode is used
         val preinstalledApps: Array<String> = [],
+        val isUserUnlocked: Boolean = true,
+        val isQuietModeEnabled: Boolean = false,
     )
 
     @Retention(RUNTIME)

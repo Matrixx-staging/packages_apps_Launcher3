@@ -24,7 +24,6 @@ import android.graphics.BitmapFactory
 import android.graphics.drawable.Icon
 import android.os.PersistableBundle
 import android.os.Process
-import android.os.UserManager
 import android.text.TextUtils
 import androidx.annotation.WorkerThread
 import com.android.launcher3.LauncherSettings
@@ -47,7 +46,6 @@ import com.android.launcher3.icons.GraphicsUtils
 import com.android.launcher3.icons.GraphicsUtils.flattenBitmap
 import com.android.launcher3.icons.IconCache
 import com.android.launcher3.logging.FileLog
-import com.android.launcher3.model.UserManagerState
 import com.android.launcher3.pm.PinRequestHelper
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.shortcuts.ShortcutKey
@@ -170,10 +168,7 @@ object LauncherDbUtils {
     @JvmStatic
     fun migrateLegacyShortcuts(context: Context, db: SQLiteDatabase) {
         val c = db.query(TABLE_NAME, null, "itemType = 1", null, null, null, null)
-        val ums = UserManagerState()
-        ums.run {
-            init(UserCache.INSTANCE[context], context.getSystemService(UserManager::class.java))
-        }
+        val ums = UserCache.INSTANCE[context].userManagerState
         val lc = context.appComponent.loaderCursorFactory.createLoaderCursor(c, ums, null)
         val deletedShortcuts = IntSet()
 
@@ -276,10 +271,7 @@ object LauncherDbUtils {
                 null,
                 null,
             )
-        val userManagerState = UserManagerState()
-        userManagerState.run {
-            init(UserCache.INSTANCE[context], context.getSystemService(UserManager::class.java))
-        }
+        val userManagerState = UserCache.INSTANCE[context].userManagerState
         val loaderCursor =
             context.appComponent.loaderCursorFactory.createLoaderCursor(
                 cursor,
