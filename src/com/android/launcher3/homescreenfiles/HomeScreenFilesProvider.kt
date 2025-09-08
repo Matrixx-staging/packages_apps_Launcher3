@@ -16,8 +16,13 @@
 
 package com.android.launcher3.homescreenfiles
 
+import android.content.ContentResolver.NOTIFY_DELETE
+import android.content.ContentResolver.NOTIFY_INSERT
+import android.content.ContentResolver.NOTIFY_UPDATE
 import android.net.Uri
+import android.os.UserHandle
 import com.android.launcher3.util.ListenableStream
+import java.util.concurrent.Future
 
 /** Represents a single file or folder item queried by [HomeScreenFilesProvider]. */
 data class HomeScreenFile(val displayName: String, val mimeType: String?, val isDirectory: Boolean)
@@ -31,11 +36,17 @@ interface HomeScreenFilesProvider {
      * Information about a change to a file item shown on the home screen.
      *
      * @param uri The URI of the item that was changed and
-     * @param flags The bitmask describing the type of the file change (one of
-     *   [ContentResolver.NOTIFY_INSERT], [ContentResolver.NOTIFY_UPDATE],
-     *   [ContentResolver.NOTIFY_DELETE]).
+     * @param flags The bitmask describing the type of the file change (one of [NOTIFY_INSERT],
+     *   [NOTIFY_UPDATE], [NOTIFY_DELETE]).
+     * @param file Complete information about the file that is being changed.
+     * @param user The user associated with this change event.
      */
-    data class FileChange(val uri: Uri, val flags: Int)
+    data class FileChange(
+        val uri: Uri,
+        val flags: Int,
+        val file: Future<HomeScreenFile?>,
+        val user: UserHandle,
+    )
 
     /** A stream of changes to file items shown on the home screen. */
     val fileChanges: ListenableStream<FileChange>

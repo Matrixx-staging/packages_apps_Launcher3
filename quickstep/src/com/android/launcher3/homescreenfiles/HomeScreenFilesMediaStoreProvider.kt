@@ -16,9 +16,11 @@
 
 package com.android.launcher3.homescreenfiles
 
+import android.content.ContentResolver
 import android.content.Context
 import android.database.ContentObserver
 import android.net.Uri
+import android.os.Process
 import android.provider.MediaStore
 import androidx.core.database.getStringOrNull
 import com.android.launcher3.homescreenfiles.HomeScreenFilesProvider.FileChange
@@ -26,7 +28,9 @@ import com.android.launcher3.util.DaggerSingletonTracker
 import com.android.launcher3.util.MutableListenableStream
 import java.io.File
 import java.util.concurrent.Callable
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.Future
 
 /** MediaStore-based implementation of [HomeScreenFilesProvider]. */
 class HomeScreenFilesMediaStoreProvider(
@@ -42,7 +46,9 @@ class HomeScreenFilesMediaStoreProvider(
             object : ContentObserver(null) {
                 override fun onChange(selfChange: Boolean, uri: Uri?, flags: Int) {
                     if (!selfChange && uri != null) {
-                        fileChanges.dispatchValue(FileChange(uri, flags))
+                        fileChanges.dispatchValue(
+                            FileChange(uri, flags, query(uri), Process.myUserHandle())
+                        )
                     }
                 }
             }
@@ -53,20 +59,17 @@ class HomeScreenFilesMediaStoreProvider(
 
     /** Returns all file items presented in [HOME_SCREEN_FOLDER_RELATIVE_PATH]. */
     override fun query(): Lazy<Map<Uri, HomeScreenFile>> {
-        val uri = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
-        val projection =
-            arrayOf(
-                MediaStore.Files.FileColumns._ID,
-                MediaStore.Files.FileColumns.DISPLAY_NAME,
-                MediaStore.Files.FileColumns.MIME_TYPE,
-                MediaStore.Files.FileColumns.DATA,
-            )
-        val selection = "${MediaStore.Files.FileColumns.RELATIVE_PATH} = ?"
-        val selectionArgs = arrayOf(HOME_SCREEN_FOLDER_RELATIVE_PATH)
         val query: Callable<Map<Uri, HomeScreenFile>> = Callable {
             val result = mutableMapOf<Uri, HomeScreenFile>()
             context.contentResolver
-                .query(uri, projection, selection, selectionArgs, null, null)
+                .query(
+                    MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL),
+                    arrayOf(MediaStore.Files.FileColumns._ID).plus(QUERY_DEFAULT_PROJECTION),
+                    QUERY_DEFAULT_SELECTION,
+                    QUERY_DEFAULT_SELECTION_ARGS,
+                    null,
+                    null,
+                )
                 ?.use {
                     val idColumnIndex = it.getColumnIndex(MediaStore.Files.FileColumns._ID)
                     val displayNameColumnIndex =
@@ -90,7 +93,55 @@ class HomeScreenFilesMediaStoreProvider(
         return lazy { future.get() }
     }
 
+    /** Queries a single file from MediaStore by its URI. */
+    private fun query(uri: Uri): Future<HomeScreenFile?> {
+        if (!isMediaStoreUri(uri)) {
+            return CompletableFuture.completedFuture(null)
+        }
+        val query: Callable<HomeScreenFile?> = Callable {
+            context.contentResolver
+                .query(
+                    uri,
+                    QUERY_DEFAULT_PROJECTION,
+                    QUERY_DEFAULT_SELECTION,
+                    QUERY_DEFAULT_SELECTION_ARGS,
+                    null,
+                    null,
+                )
+                ?.use {
+                    if (it.count == 1) {
+                        it.moveToFirst()
+                        val displayNameColumnIndex =
+                            it.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME)
+                        val mimeTypeColumnIndex =
+                            it.getColumnIndex(MediaStore.Files.FileColumns.MIME_TYPE)
+                        val dataColumnIndex = it.getColumnIndex(MediaStore.Files.FileColumns.DATA)
+                        HomeScreenFile(
+                            it.getString(displayNameColumnIndex),
+                            it.getStringOrNull(mimeTypeColumnIndex),
+                            File(it.getString(dataColumnIndex)).isDirectory,
+                        )
+                    } else {
+                        null
+                    }
+                }
+        }
+        return executorService.submit(query)
+    }
+
     companion object {
         private const val HOME_SCREEN_FOLDER_RELATIVE_PATH = "Home screen/"
+        private val QUERY_DEFAULT_PROJECTION =
+            arrayOf(
+                MediaStore.Files.FileColumns.DISPLAY_NAME,
+                MediaStore.Files.FileColumns.MIME_TYPE,
+                MediaStore.Files.FileColumns.DATA,
+            )
+        private const val QUERY_DEFAULT_SELECTION =
+            "${MediaStore.Files.FileColumns.RELATIVE_PATH} = ?"
+        private val QUERY_DEFAULT_SELECTION_ARGS = arrayOf(HOME_SCREEN_FOLDER_RELATIVE_PATH)
+
+        private fun isMediaStoreUri(uri: Uri) =
+            uri.scheme == ContentResolver.SCHEME_CONTENT && uri.authority == MediaStore.AUTHORITY
     }
 }

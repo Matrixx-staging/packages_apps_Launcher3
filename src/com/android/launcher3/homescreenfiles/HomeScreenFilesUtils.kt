@@ -16,7 +16,10 @@
 
 package com.android.launcher3.homescreenfiles
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Environment
+import android.provider.DocumentsContract.Document.MIME_TYPE_DIR
 import com.android.launcher3.Flags.showFilesOnHomeScreen
 
 /** Other utility methods related to managing files on the home screen. */
@@ -26,5 +29,21 @@ class HomeScreenFilesUtils {
         val isFeatureEnabled: Boolean by lazy {
             showFilesOnHomeScreen() && Environment.isExternalStorageManager()
         }
+
+        /**
+         * Creates an [Intent] to open [homeScreenFile] in the app associated with its MIME type.
+         */
+        fun buildLaunchIntent(uri: Uri, homeScreenFile: HomeScreenFile) =
+            Intent(Intent.ACTION_VIEW).apply {
+                addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+                setDataAndType(
+                    uri,
+                    if (homeScreenFile.isDirectory) MIME_TYPE_DIR else homeScreenFile.mimeType,
+                )
+            }
     }
 }
