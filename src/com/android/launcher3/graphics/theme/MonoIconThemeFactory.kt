@@ -18,6 +18,8 @@ package com.android.launcher3.graphics.theme
 
 import com.android.launcher3.icons.IconThemeController
 import com.android.launcher3.icons.mono.MonoIconThemeController
+import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_THEMED_ICON_ENABLED
+import com.android.launcher3.logging.StatsLogManager.StatsLogger
 
 /**
  * A factory for creating [IconThemeController] instances. Each factory is associated with a
@@ -30,6 +32,9 @@ interface IconThemeFactory {
      * matched.
      */
     fun createController(themeId: String): IconThemeController?
+
+    /** Logs the theme information corresponding to the provided [themeId] */
+    fun logThemeEvent(themeId: String, logger: StatsLogger)
 }
 
 object MonoIconThemeFactory : IconThemeFactory {
@@ -41,4 +46,8 @@ object MonoIconThemeFactory : IconThemeFactory {
 
     // Use a constant to allow equality check in verifyIconState
     val MONO_THEME_CONTROLLER = MonoIconThemeController(shouldForceThemeIcon = true)
+
+    override fun logThemeEvent(themeId: String, logger: StatsLogger) {
+        logger.log(LAUNCHER_THEMED_ICON_ENABLED)
+    }
 }
