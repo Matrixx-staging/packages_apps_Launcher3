@@ -237,6 +237,7 @@ constructor(
         }
         synchronized(this) {
             inputManager.unregisterKeyGestureEventHandler(homeKeyGestureEventHandler)
+            this.overviewCommandHelper = null
         }
     }
 
