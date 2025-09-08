@@ -100,6 +100,7 @@ import com.android.wm.shell.shared.GroupedTaskInfo
 import com.android.wm.shell.shared.IShellTransitions
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation.UpdateSource
+import com.android.wm.shell.shared.bubbles.logging.EntryPoint
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus
 import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource
 import com.android.wm.shell.shared.desktopmode.DesktopTaskToFrontReason
@@ -736,12 +737,17 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
      * [BubbleActivityStarter.showShortcutBubble] instead.
      *
      * @param info the shortcut info used to create or identify the bubble.
+     * @param entryPoint indicates how the bubble was created.
      * @param bubbleBarLocation the optional location of the bubble bar.
      */
     @JvmOverloads
-    fun showShortcutBubble(info: ShortcutInfo?, bubbleBarLocation: BubbleBarLocation? = null) =
+    fun showShortcutBubble(
+        info: ShortcutInfo?,
+        entryPoint: EntryPoint,
+        bubbleBarLocation: BubbleBarLocation? = null,
+    ) =
         executeWithErrorLog({ "Failed call showShortcutBubble" }) {
-            bubbles?.showShortcutBubble(info, bubbleBarLocation)
+            bubbles?.showShortcutBubble(info, entryPoint, bubbleBarLocation)
         }
 
     /**
@@ -751,16 +757,18 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
      * instead.
      *
      * @param intent the intent used to create the bubble.
+     * @param entryPoint indicates how the bubble was created.
      * @param bubbleBarLocation the optional location of the bubble bar.
      */
     @JvmOverloads
     fun showAppBubble(
         intent: Intent?,
         user: UserHandle,
+        entryPoint: EntryPoint,
         bubbleBarLocation: BubbleBarLocation? = null,
     ) =
         executeWithErrorLog({ "Failed call showAppBubble" }) {
-            bubbles?.showAppBubble(intent, user, bubbleBarLocation)
+            bubbles?.showAppBubble(intent, user, entryPoint, bubbleBarLocation)
         }
 
     /** Tells SysUI to show the expanded view. */
