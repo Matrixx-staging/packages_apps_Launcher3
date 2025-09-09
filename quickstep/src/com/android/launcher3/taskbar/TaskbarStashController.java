@@ -774,8 +774,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
                 ? FLAG_AUTO_STASHED_ON_HOME
                 : FLAG_STASHED_IN_APP_AUTO;
 
-        if (hasAnyFlag(stashFlag) != isStashed
-                && !mActivity.shouldShowHomeBehindDesktop()) {
+        if (hasAnyFlag(stashFlag) != isStashed) {
             mControllers.bubbleControllers
                     .map(c -> c.bubbleStashController)
                     .ifPresent(bSC -> bSC.setStashedInPersistentTaskBar(isStashed));
