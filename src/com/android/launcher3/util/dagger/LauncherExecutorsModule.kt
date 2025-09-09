@@ -53,6 +53,13 @@ abstract class LauncherExecutorsModule {
         @Ui executor: LooperExecutor
     ): ListeningExecutorService
 
+    @Binds
+    @LauncherAppSingleton
+    @LightweightBackground(LightweightBackgroundPriority.UI)
+    abstract fun provideUiExecutorService(
+        @Ui executor: LooperExecutor
+    ): ListeningExecutorService
+
     companion object {
         @Provides
         @LauncherAppSingleton
@@ -64,7 +71,7 @@ abstract class LauncherExecutorsModule {
         @Provides
         @LauncherAppSingleton
         @LightweightBackground(LightweightBackgroundPriority.UI)
-        fun provideUiExecutorService(): ListeningExecutorService {
+        fun provideUiHelperLooperExecutor(): LooperExecutor {
             return Executors.UI_HELPER_EXECUTOR
         }
 

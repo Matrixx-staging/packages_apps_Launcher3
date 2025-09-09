@@ -32,11 +32,11 @@ import static com.android.launcher3.util.DisplayController.CHANGE_DESKTOP_MODE;
 import static com.android.launcher3.util.DisplayController.CHANGE_NAVIGATION_MODE;
 import static com.android.launcher3.util.DisplayController.CHANGE_SUPPORTED_BOUNDS;
 import static com.android.launcher3.util.DisplayController.CHANGE_TASKBAR_PINNING;
-import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.SimpleBroadcastReceiver.actionsFilter;
 
 import android.content.Context;
 import android.content.Intent;
+import com.android.launcher3.concurrent.annotations.Ui;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.content.res.XmlResourceParser;
@@ -73,6 +73,7 @@ import com.android.launcher3.util.DaggerSingletonObject;
 import com.android.launcher3.util.DaggerSingletonTracker;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.DisplayController.Info;
+import com.android.launcher3.util.LooperExecutor;
 import com.android.launcher3.util.Partner;
 import com.android.launcher3.util.ResourceHelper;
 import com.android.launcher3.util.SimpleBroadcastReceiver;
@@ -93,6 +94,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -270,6 +272,7 @@ public class InvariantDeviceProfile {
     private final List<OnIDPChangeListener> mChangeListeners = new CopyOnWriteArrayList<>();
 
     public TaskbarModeUtil taskbarModeUtil;
+    private final LooperExecutor mMainExecutor;
 
     @Inject
     InvariantDeviceProfile(
@@ -279,12 +282,14 @@ public class InvariantDeviceProfile {
             WindowManagerProxy wmProxy,
             ThemeManager themeManager,
             DaggerSingletonTracker lifeCycle,
-            TaskbarModeUtil taskbarModeUtil) {
+            TaskbarModeUtil taskbarModeUtil,
+            @Ui final LooperExecutor mainExecutor) {
         mDisplayController = dc;
         mWMProxy = wmProxy;
         this.taskbarModeUtil = taskbarModeUtil;
         mPrefs = prefs;
         mThemeManager = themeManager;
+        mMainExecutor = mainExecutor;
 
         String gridName = prefs.get(GRID_NAME);
         initGrid(gridName);
@@ -321,7 +326,7 @@ public class InvariantDeviceProfile {
                 FIXED_LANDSCAPE_MODE, ENABLE_TWOLINE_ALLAPPS_TOGGLE));
 
         SimpleBroadcastReceiver localeReceiver = new SimpleBroadcastReceiver(context,
-                MAIN_EXECUTOR, i -> onConfigChanged());
+                mMainExecutor, i -> onConfigChanged());
         localeReceiver.register(actionsFilter(Intent.ACTION_LOCALE_CHANGED));
         lifeCycle.addCloseable(localeReceiver);
     }
@@ -529,7 +534,7 @@ public class InvariantDeviceProfile {
     public void setCurrentGrid(String newGridName) {
         if (TextUtils.equals(mPrefs.get(GRID_NAME), newGridName)) return;
         mPrefs.put(GRID_NAME, newGridName);
-        MAIN_EXECUTOR.execute(() -> {
+        mMainExecutor.execute(() -> {
             Trace.beginSection("InvariantDeviceProfile#setCurrentGrid");
             onConfigChanged();
             Trace.endSection();

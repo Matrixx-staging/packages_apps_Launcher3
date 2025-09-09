@@ -54,6 +54,7 @@ import com.android.launcher3.taskbar.rules.TaskbarSandboxComponent
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.InjectController
 import com.android.launcher3.taskbar.rules.TaskbarWindowSandboxContext
+import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.LauncherMultivalentJUnit.EmulatedDevices
@@ -111,7 +112,11 @@ class TaskbarOverflowTest {
         TaskbarWindowSandboxContext.create(
             SandboxParams(
                 {
-                    spy(SystemUiProxy(ApplicationProvider.getApplicationContext())) { proxy ->
+                    spy(SystemUiProxy(
+                            ApplicationProvider.getApplicationContext(),
+                            MAIN_EXECUTOR,
+                            UI_HELPER_EXECUTOR
+                        )) { proxy ->
                         systemUiProxySpy = proxy
                         doAnswer { desktopTaskListener = it.getArgument(0) }
                             .whenever(proxy)

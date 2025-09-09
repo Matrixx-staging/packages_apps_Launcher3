@@ -26,6 +26,8 @@ import android.view.Display.DEFAULT_DISPLAY
 import android.view.WindowManager
 import android.window.DesktopExperienceFlags
 import androidx.test.core.app.ApplicationProvider
+import com.android.launcher3.util.Executors.MAIN_EXECUTOR
+import com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR
 import com.android.launcher3.util.SandboxApplication
 import com.android.launcher3.util.SettingsCacheSandbox
 import com.android.launcher3.util.VirtualDisplaysRule
@@ -123,6 +125,6 @@ private constructor(
 
 /** Include additional bindings when building a [TaskbarSandboxComponent]. */
 data class SandboxParams(
-    val systemUiProxyProvider: (Context) -> SystemUiProxy = { SystemUiProxy(it) },
+    val systemUiProxyProvider: (Context) -> SystemUiProxy = { SystemUiProxy(it, MAIN_EXECUTOR, UI_HELPER_EXECUTOR) },
     val builderBase: TaskbarSandboxComponent.Builder = DaggerTaskbarSandboxComponent.builder(),
 )

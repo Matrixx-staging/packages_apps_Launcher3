@@ -17,9 +17,8 @@ package com.android.quickstep;
 
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 
-import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 import static com.android.launcher3.Flags.enableRefactorTaskThumbnail;
-import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
+import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 import static com.android.quickstep.TaskUtils.checkCurrentOrManagedUserId;
 
 import android.annotation.SuppressLint;
@@ -46,9 +45,11 @@ import com.android.launcher3.icons.IconProvider;
 import com.android.launcher3.util.DaggerSingletonObject;
 import com.android.launcher3.util.DaggerSingletonTracker;
 import com.android.launcher3.util.DisplayController;
+import com.android.launcher3.concurrent.annotations.Ui;
 import com.android.launcher3.util.Executors.SimpleThreadFactory;
 import com.android.launcher3.util.LockedUserState;
 import com.android.launcher3.util.SafeCloseable;
+import com.android.launcher3.util.LooperExecutor;
 import com.android.launcher3.util.coroutines.DispatcherProvider;
 import com.android.quickstep.dagger.QuickstepBaseAppComponent;
 import com.android.quickstep.recents.data.RecentTasksDataSource;
@@ -109,6 +110,7 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
     private final RecentTasksList mTaskList;
     private final TaskIconCache mIconCache;
     private final TaskThumbnailCache mThumbnailCache;
+    private final LooperExecutor mUiExecutor;
 
     @Inject
      public RecentsModel(@ApplicationContext Context context,
@@ -118,12 +120,14 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
             LockedUserState lockedUserState,
             Lazy<ThemeManager> themeManagerLazy,
             DaggerSingletonTracker tracker,
-            DispatcherProvider dispatcherProvider
+            DispatcherProvider dispatcherProvider,
+            @Ui LooperExecutor uiExecutor
             ) {
         // Lazily inject the ThemeManager and access themeManager once the device is
         // unlocked. See b/393248495 for details.
         this(context, new IconProvider(context), systemUiProxy, topTaskTracker,
-                displayController, lockedUserState, themeManagerLazy, tracker, dispatcherProvider);
+                displayController, lockedUserState, themeManagerLazy, tracker, dispatcherProvider,
+                uiExecutor);
     }
 
     @SuppressLint("VisibleForTests")
@@ -135,11 +139,12 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
             LockedUserState lockedUserState,
             Lazy<ThemeManager> themeManagerLazy,
             DaggerSingletonTracker tracker,
-            DispatcherProvider dispatcherProvider) {
+            DispatcherProvider dispatcherProvider,
+            @Ui LooperExecutor uiExecutor) {
         this(context,
                 new RecentTasksList(
                         context,
-                        MAIN_EXECUTOR,
+                        uiExecutor,
                         context.getSystemService(KeyguardManager.class),
                         systemUiProxy,
                         topTaskTracker, tracker, displayController),
@@ -150,7 +155,8 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
                 TaskStackChangeListeners.getInstance(),
                 lockedUserState,
                 themeManagerLazy,
-                tracker);
+                tracker,
+                uiExecutor);
     }
 
     @VisibleForTesting
@@ -162,13 +168,15 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
             TaskStackChangeListeners taskStackChangeListeners,
             LockedUserState lockedUserState,
             Lazy<ThemeManager> themeManagerLazy,
-            DaggerSingletonTracker tracker) {
+            DaggerSingletonTracker tracker,
+            @Ui LooperExecutor uiExecutor) {
         mContext = context;
         mTaskList = taskList;
         mTaskList.registerRecentTasksChangedListener(mRecentTasksListObserver);
         mIconCache = iconCache;
         mIconCache.registerTaskVisualsChangeListener(this);
         mThumbnailCache = thumbnailCache;
+        mUiExecutor = uiExecutor;
         if (isCachePreloadingEnabled()) {
             ComponentCallbacks componentCallbacks = new ComponentCallbacks() {
                 @Override
@@ -186,7 +194,7 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
 
         taskStackChangeListeners.registerTaskStackListener(this);
         SafeCloseable iconChangeCloseable = iconProvider.registerIconChangeListener(
-                this::onAppIconChanged, MAIN_EXECUTOR.getHandler());
+                this::onAppIconChanged, mUiExecutor.getHandler());
 
         Runnable unlockCallback = () -> themeManagerLazy.get().addChangeListener(this);
         lockedUserState.runOnUserUnlocked(unlockCallback);
