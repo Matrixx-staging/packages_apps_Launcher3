@@ -47,7 +47,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Trace;
 import android.os.UserHandle;
-import android.os.UserManager;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -150,11 +149,11 @@ public class PrivateProfileManager extends UserProfileManager {
     private final String mUnLockedStateContentDesc;
     private final String mPSAppTitleOverride;
 
-    public PrivateProfileManager(UserManager userManager,
+    public PrivateProfileManager(
             ActivityAllAppsContainerView<?> allApps,
             StatsLogManager statsLogManager,
             UserCache userCache) {
-        super(userManager, statsLogManager, userCache);
+        super(statsLogManager, userCache);
         mAllApps = allApps;
         mPrivateProfileMatcher = (user) -> userCache.getUserInfo(user).isPrivate();
 

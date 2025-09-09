@@ -35,6 +35,7 @@ import com.android.launcher3.logging.StatsLogManager.LauncherEvent
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.popup.SystemShortcut.BubbleActivityStarter
+import com.android.launcher3.popup.SystemShortcut.TaskbarBubbleActivityStarter
 import com.android.launcher3.util.ActivityOptionsWrapper
 import com.android.launcher3.util.ApiWrapper
 import com.android.launcher3.util.PackageManagerHelper
@@ -43,6 +44,7 @@ import com.android.launcher3.views.ActivityContext
 import com.android.launcher3.views.Snackbar
 import com.android.launcher3.widget.LauncherAppWidgetHostView
 import com.android.launcher3.widget.WidgetsBottomSheet
+import com.android.wm.shell.shared.bubbles.logging.EntryPoint
 import javax.inject.Inject
 
 @LauncherAppSingleton
@@ -281,7 +283,7 @@ class PopupDataSource @Inject constructor() {
 
     // Handles action when tapping bubble shortcut.
     private val handleBubbleShortcut =
-        { activityContext: ActivityContext, itemInfo: ItemInfo, view: View ->
+        { activityContext: ActivityContext, itemInfo: ItemInfo, _: View ->
             val starter: BubbleActivityStarter = activityContext as BubbleActivityStarter
 
             dismissTaskMenuView(activityContext)
@@ -289,12 +291,23 @@ class PopupDataSource @Inject constructor() {
         }
 
     private fun showBubbleShortcut(starter: BubbleActivityStarter, itemInfo: ItemInfo) {
+        fun ItemInfo.getEntryPoint() =
+            when {
+                isInAllApps -> EntryPoint.ALL_APPS_ICON_MENU
+                isInHotseat ->
+                    if (starter is TaskbarBubbleActivityStarter) {
+                        EntryPoint.TASKBAR_ICON_MENU
+                    } else {
+                        EntryPoint.HOTSEAT_ICON_MENU
+                    }
+                else -> EntryPoint.LAUNCHER_ICON_MENU
+            }
+
         // TODO: handle GroupTask (single) items so that recent items in taskbar work
         if (itemInfo is WorkspaceItemInfo) {
-            val workspaceItemInfo = itemInfo
-            val shortcutInfo = workspaceItemInfo.deepShortcutInfo
+            val shortcutInfo = itemInfo.deepShortcutInfo
             if (shortcutInfo != null) {
-                starter.showShortcutBubble(shortcutInfo)
+                starter.showShortcutBubble(shortcutInfo, itemInfo.getEntryPoint())
                 return
             }
         }
@@ -305,7 +318,7 @@ class PopupDataSource @Inject constructor() {
             if (intent.getPackage() == null) {
                 intent.setPackage(itemInfo.getTargetPackage())
             }
-            starter.showAppBubble(intent, itemInfo.user)
+            starter.showAppBubble(intent, itemInfo.user, itemInfo.getEntryPoint())
         } else {
             Log.w(TAG, "unable to bubble, no intent: $itemInfo")
         }

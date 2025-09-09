@@ -34,7 +34,7 @@ import org.mockito.Mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
 
 /** Unit tests for [QuickstepModelDelegate]. */
 @RunWith(AndroidJUnit4::class)
@@ -44,6 +44,7 @@ class QuickstepModelDelegateTest {
 
     private lateinit var underTest: QuickstepModelDelegate
 
+    @get:Rule val mockito = MockitoJUnit.rule()
     @Mock private lateinit var target: AppTarget
     @Mock private lateinit var mockedAppTargetEvent: AppTargetEvent
     @Mock private lateinit var allAppsPredictor: AppPredictor
@@ -53,7 +54,6 @@ class QuickstepModelDelegateTest {
 
     @Before
     fun setUp() {
-        MockitoAnnotations.initMocks(this)
         underTest =
             QuickstepModelDelegate(
                 context,

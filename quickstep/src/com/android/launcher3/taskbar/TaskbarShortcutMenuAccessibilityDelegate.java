@@ -41,6 +41,7 @@ import com.android.launcher3.util.ShortcutUtil;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.util.LogUtils;
 import com.android.wm.shell.shared.bubbles.BubbleAnythingFlagHelper;
+import com.android.wm.shell.shared.bubbles.logging.EntryPoint;
 
 import java.util.List;
 
@@ -94,14 +95,16 @@ public class TaskbarShortcutMenuAccessibilityDelegate
             mContext.showPopupMenuForIcon((BubbleTextView) host);
             return true;
         } else if (action == CREATE_APPLICATION_BUBBLE) {
+            EntryPoint entryPoint = EntryPoint.TASKBAR_ICON_MENU;
             if (item.itemType == LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT
                     && item instanceof WorkspaceItemInfo) {
                 ShortcutInfo shortcutInfo = ((WorkspaceItemInfo) item).getDeepShortcutInfo();
-                BubbleActivityStarter.INSTANCE.get(mContext).showShortcutBubble(shortcutInfo);
+                BubbleActivityStarter.INSTANCE.get(mContext)
+                        .showShortcutBubble(shortcutInfo, entryPoint);
                 return true;
             } else if (item.getIntent() != null && item.getIntent().getPackage() != null) {
                 BubbleActivityStarter.INSTANCE.get(mContext).showAppBubble(item.getIntent(),
-                        item.user);
+                        item.user, entryPoint);
                 return true;
             }
         } else if (item instanceof ItemInfoWithIcon

@@ -32,7 +32,6 @@ import static com.android.launcher3.LauncherAnimUtils.VIEW_TRANSLATE_Y;
 import static com.android.launcher3.Utilities.mapRange;
 import static com.android.launcher3.anim.AnimatedFloat.VALUE;
 import static com.android.launcher3.anim.AnimatorListeners.forEndCallback;
-import static com.android.launcher3.config.FeatureFlags.ENABLE_TASKBAR_NAVBAR_UNIFICATION;
 import static com.android.launcher3.config.FeatureFlags.enableTaskbarPinning;
 import static com.android.launcher3.taskbar.TaskbarPinningController.PINNING_PERSISTENT;
 import static com.android.launcher3.taskbar.TaskbarPinningController.PINNING_TRANSIENT;
@@ -309,12 +308,10 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
         mDragLayerController = controllers.taskbarDragLayerController;
         mActivity.addOnDeviceProfileChangeListener(mDeviceProfileChangeListener);
 
-        if (ENABLE_TASKBAR_NAVBAR_UNIFICATION) {
-            // This gets modified in NavbarButtonsViewController, but the initial value it reads
-            // may be incorrect since it's state gets destroyed on taskbar recreate, so reset here
-            mTaskbarIconAlpha.get(ALPHA_INDEX_SMALL_SCREEN).setValue(
-                    mActivity.isPhoneMode() ? 0 : 1);
-        }
+        // This gets modified in NavbarButtonsViewController, but the initial value it reads
+        // may be incorrect since it's state gets destroyed on taskbar recreate, so reset here
+        mTaskbarIconAlpha.get(ALPHA_INDEX_SMALL_SCREEN).setValue(mActivity.isPhoneMode() ? 0 : 1);
+
         if (enableTaskbarPinning()) {
             mTaskbarView.addOnLayoutChangeListener(mTaskbarViewLayoutChangeListener);
         }

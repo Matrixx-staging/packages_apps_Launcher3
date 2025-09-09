@@ -148,6 +148,7 @@ public class BubbleBarController {
         Point expandedViewDropTargetSize;
         boolean showOverflow;
         boolean showOverflowChanged;
+        boolean suppressAnimation;
 
         // These need to be loaded in the background
         BubbleBarBubble addedBubble;
@@ -168,6 +169,7 @@ public class BubbleBarController {
             expandedViewDropTargetSize = update.expandedViewDropTargetSize;
             showOverflow = update.showOverflow;
             showOverflowChanged = update.showOverflowChanged;
+            suppressAnimation = update.suppressAnimation;
         }
     }
 
@@ -377,7 +379,8 @@ public class BubbleBarController {
         // enabling gesture nav. also suppress animation if the bubble bar is hidden for sysui e.g.
         // the shade is open, or we're locked.
         final boolean suppressAnimation =
-                update.initialState || mBubbleBarViewController.isHiddenForSysui() || mIsImeVisible;
+                update.initialState || update.suppressAnimation
+                        || mBubbleBarViewController.isHiddenForSysui() || mIsImeVisible;
 
         if (update.initialState && mSharedState.hasSavedBubbles()) {
             // clear restored state

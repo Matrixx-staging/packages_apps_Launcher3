@@ -18,7 +18,6 @@ package com.android.launcher3.widgetpicker.repository
 
 import android.content.Context
 import android.os.UserHandle
-import android.os.UserManager
 import com.android.launcher3.concurrent.annotations.BackgroundContext
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.model.StringCache
@@ -52,7 +51,6 @@ constructor(
     private val userCache: UserCache,
     @BackgroundContext private val backgroundContext: CoroutineContext,
 ) : WidgetUsersRepository {
-    private val userManagerService = appContext.getSystemService(UserManager::class.java)
     private var stringCache: StringCache = StringCache.EMPTY
     private var closableUseChangeListener: SafeCloseable? = null
     private val _userProfiles = MutableStateFlow<WidgetUserProfiles?>(null)
@@ -89,15 +87,13 @@ constructor(
     }
 
     private fun maybeUpdate(changedUser: UserHandle?) {
-        check(userManagerService != null)
 
         workProfileUser = userCache.userProfiles.firstOrNull { userCache.getUserInfo(it).isWork }
         val needsUpdate = changedUser == null || changedUser == workProfileUser
 
         if (needsUpdate) {
             val isUserQuiet =
-                workProfileUser?.let { userManagerService.isQuietModeEnabled(workProfileUser) }
-                    ?: false
+                workProfileUser?.let { userCache.userManagerState.isUserQuiet(it) } ?: false
 
             _userProfiles.update {
                 WidgetUserProfiles(

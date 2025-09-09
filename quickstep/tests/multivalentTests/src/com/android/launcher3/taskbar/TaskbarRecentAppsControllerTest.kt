@@ -17,6 +17,7 @@
 package com.android.launcher3.taskbar
 
 import android.app.WindowConfiguration.WINDOWING_MODE_FREEFORM
+import android.app.WindowConfiguration.WINDOWING_MODE_FULLSCREEN
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -66,7 +67,6 @@ import org.junit.runner.Description
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
 import org.mockito.Mock
-import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doAnswer
@@ -80,7 +80,6 @@ import org.mockito.kotlin.whenever
 @EnableFlags(Flags.FLAG_ENABLE_MULTI_INSTANCE_MENU_TASKBAR)
 class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
 
-    @get:Rule val mockitoRule = MockitoJUnit.rule()
     @get:Rule val setFlagsRule = SetFlagsRule()
     @get:Rule
     val disableControllerForCertainTestsWatcher =
@@ -1328,6 +1327,7 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
         val transparentTask = createTask(id = 1, "transparentPackage")
         transparentTask.key.isTopActivityTransparent = true
         transparentTask.key.isActivityStackTransparent = true
+        transparentTask.key.windowingMode = WINDOWING_MODE_FULLSCREEN
         val regularTask = createTask(id = 2, RUNNING_APP_PACKAGE_1)
 
         prepareHotseatAndRunningAndRecentApps(

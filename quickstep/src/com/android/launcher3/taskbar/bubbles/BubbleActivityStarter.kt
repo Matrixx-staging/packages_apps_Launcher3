@@ -24,6 +24,7 @@ import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.util.DaggerSingletonObject
 import com.android.quickstep.SystemUiProxy
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation
+import com.android.wm.shell.shared.bubbles.logging.EntryPoint
 import javax.inject.Inject
 
 /** Utility class to request WMShell to launch an app into a bubble and open that bubble. */
@@ -34,7 +35,11 @@ class BubbleActivityStarter @Inject constructor(private val systemUiProxy: Syste
 
     /** Tell SysUI to show the provided shortcut in a bubble. */
     @JvmOverloads
-    fun showShortcutBubble(info: ShortcutInfo?, bubbleBarLocation: BubbleBarLocation? = null) {
+    fun showShortcutBubble(
+        info: ShortcutInfo?,
+        entryPoint: EntryPoint,
+        bubbleBarLocation: BubbleBarLocation? = null,
+    ) {
         systemUiProxy.showShortcutBubble(info, bubbleBarLocation)
         notifyListeners()
     }
@@ -44,6 +49,7 @@ class BubbleActivityStarter @Inject constructor(private val systemUiProxy: Syste
     fun showAppBubble(
         intent: Intent?,
         user: UserHandle,
+        entryPoint: EntryPoint,
         bubbleBarLocation: BubbleBarLocation? = null,
     ) {
         systemUiProxy.showAppBubble(intent, user, bubbleBarLocation)

@@ -34,13 +34,16 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.mock
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
+import org.mockito.junit.MockitoRule
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
 
 @RunWith(AndroidJUnit4::class)
 class ActiveTrackpadListTest {
+
+    @get:Rule var mockitoRule: MockitoRule = MockitoJUnit.rule()
 
     @get:Rule val context = SandboxApplication()
 
@@ -49,8 +52,6 @@ class ActiveTrackpadListTest {
 
     @Before
     fun setup() {
-        MockitoAnnotations.initMocks(this)
-
         inputManager = context.spyService(InputManager::class.java)
         doAnswer { inputDeviceIds.toArray() }.whenever(inputManager).inputDeviceIds
 

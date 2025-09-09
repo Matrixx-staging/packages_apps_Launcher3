@@ -58,7 +58,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
@@ -91,12 +92,13 @@ public class RecentsModelTest {
 
     private Resources mResource;
 
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     @Rule
     public final SetFlagsRule mSetFlagsRule = new SetFlagsRule();
 
     @Before
     public void setup() throws NoSuchFieldException {
-        MockitoAnnotations.initMocks(this);
         mSetFlagsRule.enableFlags(Flags.FLAG_ENABLE_GRID_ONLY_OVERVIEW);
         mTaskResult = getTaskResult();
         doAnswer(invocation-> {

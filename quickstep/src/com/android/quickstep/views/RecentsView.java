@@ -38,6 +38,7 @@ import static com.android.launcher3.Flags.enableDesktopExplodedView;
 import static com.android.launcher3.Flags.enableExpressiveDismissTaskMotion;
 import static com.android.launcher3.Flags.enableOverviewBackgroundWallpaperBlur;
 import static com.android.launcher3.Flags.enableOverviewDesktopTileWallpaperBackground;
+import static com.android.launcher3.Flags.enablePreventOverviewMouseDrag;
 import static com.android.launcher3.Flags.enableRefactorTaskThumbnail;
 import static com.android.launcher3.LauncherAnimUtils.SUCCESS_TRANSITION_PROGRESS;
 import static com.android.launcher3.LauncherAnimUtils.VIEW_ALPHA;
@@ -1919,9 +1920,10 @@ public abstract class RecentsView<
     }
 
     private boolean shouldAllowDrag(MotionEvent ev) {
-        return !ev.isFromSource(InputDevice.SOURCE_MOUSE)
-                || MotionEventsUtils.isTrackpadScroll(ev)
-                || MotionEventsUtils.isTrackpadFourFingerSwipe(ev);
+        boolean isMouseDrag = ev.isFromSource(InputDevice.SOURCE_MOUSE)
+                && !MotionEventsUtils.isTrackpadScroll(ev)
+                && !MotionEventsUtils.isTrackpadFourFingerSwipe(ev);
+        return !(enablePreventOverviewMouseDrag() && isMouseDrag);
     }
 
     /**
@@ -2872,6 +2874,7 @@ public abstract class RecentsView<
         if (enableRefactorTaskThumbnail()) {
             mRecentsViewModel.onReset();
         }
+        executeSideTaskLaunchCallback();
     }
 
     public int getRunningTaskViewId() {
@@ -6197,7 +6200,6 @@ public abstract class RecentsView<
         setCurrentTask(-1);
         mRecentsAnimationController = null;
         mSplitSelectStateController.setRecentsAnimationRunning(false);
-        executeSideTaskLaunchCallback();
         if (enableOverviewBackgroundWallpaperBlur()) {
             mBlurUtils.setDrawLiveTileBelowRecents(false);
         }

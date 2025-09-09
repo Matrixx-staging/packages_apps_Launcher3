@@ -58,11 +58,13 @@ import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 /**
  * Robolectric unit tests for {@link ContextualSearchInvoker}
@@ -73,6 +75,8 @@ public class ContextualSearchInvokerTest {
 
     private static final int CONTEXTUAL_SEARCH_ENTRY_POINT = 123;
 
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
     private @Mock PackageManager mMockPackageManager;
     private @Mock ContextualSearchStateManager mMockStateManager;
     private @Mock TopTaskTracker mMockTopTaskTracker;
@@ -88,7 +92,6 @@ public class ContextualSearchInvokerTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
         when(mMockPackageManager.hasSystemFeature(FEATURE_CONTEXTUAL_SEARCH)).thenReturn(true);
         Context context = spy(getApplicationContext());
         doReturn(mMockPackageManager).when(context).getPackageManager();

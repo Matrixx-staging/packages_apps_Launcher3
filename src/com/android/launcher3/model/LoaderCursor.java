@@ -39,7 +39,6 @@ import android.os.UserHandle;
 import android.provider.BaseColumns;
 import android.text.TextUtils;
 import android.util.Log;
-import android.util.LongSparseArray;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
@@ -63,6 +62,7 @@ import com.android.launcher3.model.data.IconRequestInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.pm.UserCache;
+import com.android.launcher3.pm.UserManagerState;
 import com.android.launcher3.shortcuts.ShortcutKey;
 import com.android.launcher3.util.ApiWrapper;
 import com.android.launcher3.util.ContentWriter;
@@ -86,7 +86,7 @@ public class LoaderCursor extends CursorWrapper {
 
     private static final String TAG = "LoaderCursor";
 
-    private final LongSparseArray<UserHandle> allUsers;
+    private final UserManagerState mUserManagerState;
 
     private final Context mContext;
     private final LauncherModel mModel;
@@ -153,7 +153,7 @@ public class LoaderCursor extends CursorWrapper {
         mModel = model;
         mPmHelper = pmHelper;
 
-        allUsers = userManagerState.allUsers;
+        mUserManagerState = userManagerState;
         mRestoreEventLogger = restoreEventLogger;
 
         // Init column indices
@@ -190,7 +190,7 @@ public class LoaderCursor extends CursorWrapper {
             container = getInt(mContainerIndex);
             id = getInt(mIdIndex);
             serialNumber = getInt(mProfileIdIndex);
-            user = allUsers.get(serialNumber);
+            user = mUserManagerState.getUser(serialNumber);
             restoreFlag = getInt(mRestoredIndex);
         }
         return result;

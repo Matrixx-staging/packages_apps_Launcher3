@@ -18,7 +18,6 @@ package com.android.launcher3.taskbar;
 import static android.window.DesktopModeFlags.ENABLE_TASKBAR_OVERFLOW;
 
 import static com.android.launcher3.BubbleTextView.DISPLAY_TASKBAR;
-import static com.android.launcher3.Flags.enableCursorHoverStates;
 import static com.android.launcher3.Flags.enableLauncherIconShapes;
 import static com.android.launcher3.Flags.enableRecentsInTaskbar;
 import static com.android.launcher3.Flags.enableTaskbarRecentsThemedIcons;
@@ -390,9 +389,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                     mControllerCallbacks.getRecentsOverflowOnClickListener());
             mTaskbarRecentsOverflowView.setOnLongClickListener(
                     mControllerCallbacks.getRecentsOverflowOnLongClickListener());
-            if (enableCursorHoverStates()) {
-                setHoverListenerForIcon(mTaskbarRecentsOverflowView);
-            }
+            setHoverListenerForIcon(mTaskbarRecentsOverflowView);
         }
 
         if (mTaskbarPinnedOverflowView != null) {
@@ -400,9 +397,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                     mControllerCallbacks.getPinnedOverflowOnClickListener());
             mTaskbarPinnedOverflowView.setOnLongClickListener(
                     mControllerCallbacks.getPinnedOverflowOnLongClickListener());
-            if (enableCursorHoverStates()) {
-                setHoverListenerForIcon(mTaskbarPinnedOverflowView);
-            }
+            setHoverListenerForIcon(mTaskbarPinnedOverflowView);
         }
 
         if (ENABLE_TASKBAR_OVERFLOW.isTrue()) {
@@ -753,9 +748,8 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                 }
             }
             setClickAndLongClickListenersForIcon(hotseatView);
-            if (enableCursorHoverStates()) {
-                setHoverListenerForIcon(hotseatView);
-            }
+            setHoverListenerForIcon(hotseatView);
+
             mNextHotseatIndex++;
             if (!hasHotseatContainer) {
                 mNextViewIndex = mNextHotseatIndex;
@@ -917,9 +911,7 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
                 applyGroupTaskToBubbleTextView(btv, task);
             }
             setClickAndLongClickListenersForIcon(recentIcon);
-            if (enableCursorHoverStates()) {
-                setHoverListenerForIcon(recentIcon);
-            }
+            setHoverListenerForIcon(recentIcon);
             mNextViewIndex++;
         }
 

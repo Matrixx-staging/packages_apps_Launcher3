@@ -20,7 +20,6 @@ import static androidx.lifecycle.Lifecycle.State.DESTROYED;
 import static com.android.launcher3.Flags.enableFallbackOverviewInWindow;
 import static com.android.launcher3.Flags.enableLauncherOverviewInWindow;
 import static com.android.launcher3.allapps.AllAppsStore.DEFER_UPDATES_TEST;
-import static com.android.launcher3.config.FeatureFlags.ENABLE_TASKBAR_NAVBAR_UNIFICATION;
 import static com.android.launcher3.config.FeatureFlags.FOLDABLE_SINGLE_PAGE;
 import static com.android.launcher3.testing.shared.TestProtocol.TEST_INFO_RESPONSE_FIELD;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
@@ -226,10 +225,6 @@ public class TestInformationHandler {
             case TestProtocol.REQUEST_IS_PREDICTIVE_BACK_SWIPE_ENABLED:
                 response.putBoolean(TestProtocol.TEST_INFO_RESPONSE_FIELD,
                         mDeviceProfile.isPredictiveBackSwipe);
-                return response;
-            case TestProtocol.REQUEST_ENABLE_TASKBAR_NAVBAR_UNIFICATION:
-                response.putBoolean(TestProtocol.TEST_INFO_RESPONSE_FIELD,
-                        ENABLE_TASKBAR_NAVBAR_UNIFICATION);
                 return response;
 
             case TestProtocol.REQUEST_TASKBAR_SHOWN_ON_HOME: {

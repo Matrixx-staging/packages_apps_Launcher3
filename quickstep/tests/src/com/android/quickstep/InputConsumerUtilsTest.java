@@ -44,6 +44,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 
+import com.android.app.displaylib.fakes.FakePerDisplayRepository;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.R;
 import com.android.launcher3.anim.AnimatedFloat;
@@ -141,7 +142,11 @@ public class InputConsumerUtilsTest {
     @Before
     public void setupTaskAnimationManager() {
         DisplayController displayController = DisplayController.INSTANCE.get(mContext);
-        mTaskAnimationManager = new TaskAnimationManager(mContext, mDisplayId, displayController);
+        FakePerDisplayRepository<TaskAnimationManager> fakePerDisplayRepository =
+                new FakePerDisplayRepository<>();
+        mTaskAnimationManager = new TaskAnimationManager(mContext, mDisplayId, displayController,
+                fakePerDisplayRepository);
+        fakePerDisplayRepository.add(mDisplayId, mTaskAnimationManager);
     }
 
     @Before

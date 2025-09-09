@@ -32,12 +32,9 @@ import static com.android.launcher3.AbstractFloatingView.TYPE_ALL;
 import static com.android.launcher3.AbstractFloatingView.TYPE_ON_BOARD_POPUP;
 import static com.android.launcher3.AbstractFloatingView.TYPE_REBIND_SAFE;
 import static com.android.launcher3.AbstractFloatingView.TYPE_TASKBAR_OVERLAY_PROXY;
-import static com.android.launcher3.Flags.enableCursorHoverStates;
 import static com.android.launcher3.Flags.refactorTaskbarUiState;
 import static com.android.launcher3.Utilities.calculateTextHeight;
 import static com.android.launcher3.Utilities.isRunningInTestHarness;
-import static com.android.launcher3.config.FeatureFlags.ENABLE_TASKBAR_NAVBAR_UNIFICATION;
-import static com.android.launcher3.config.FeatureFlags.enableTaskbarNoRecreate;
 import static com.android.launcher3.config.FeatureFlags.enableTaskbarPinning;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_FOLDER_OPEN;
 import static com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_DRAGGING;
@@ -609,20 +606,10 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         setWallpaperVisible(sharedState.wallpaperVisible);
         onTransitionModeUpdated(sharedState.barMode, true /* checkBarModes */);
 
-        if (ENABLE_TASKBAR_NAVBAR_UNIFICATION) {
-            // W/ the flag not set this entire class gets re-created, which resets the value of
-            // mIsDestroyed. We re-use the class for small-screen, so we explicitly have to mark
-            // this class as non-destroyed
-            mIsDestroyed = false;
-        }
-
-        if (!enableTaskbarNoRecreate() && !mAddedWindow) {
-            mWindowManager.addView(mDragLayer, mWindowLayoutParams);
-            mAddedWindow = true;
-        } else {
-            notifyUpdateLayoutParams();
-        }
-
+        // This entire class gets re-created, which resets the value of mIsDestroyed. We re-use the
+        // class for small-screen, so we explicitly have to mark this class as non-destroyed
+        mIsDestroyed = false;
+        notifyUpdateLayoutParams();
 
         if (recreateAnim != null) {
             recreateAnim.start();
@@ -656,9 +643,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
      * single window for taskbar and navbar.
      */
     public boolean isPhoneMode() {
-        return ENABLE_TASKBAR_NAVBAR_UNIFICATION
-                && mDeviceProfile.getDeviceProperties().isPhone()
-                && !mDeviceProfile.isTaskbarPresent;
+        return mDeviceProfile.getDeviceProperties().isPhone() && !mDeviceProfile.isTaskbarPresent;
     }
 
     public boolean isTaskbarInMinimalState() {
@@ -833,9 +818,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
      * for taskbar
      */
     private WindowManager.LayoutParams createAllWindowParams() {
-        final int windowType =
-                (ENABLE_TASKBAR_NAVBAR_UNIFICATION && isPrimaryDisplay()) ? TYPE_NAVIGATION_BAR
-                        : TYPE_NAVIGATION_BAR_PANEL;
+        final int windowType = isPrimaryDisplay() ? TYPE_NAVIGATION_BAR : TYPE_NAVIGATION_BAR_PANEL;
         WindowManager.LayoutParams windowLayoutParams =
                 createDefaultWindowLayoutParams(windowType, TaskbarActivityContext.WINDOW_TITLE);
 
@@ -1161,10 +1144,6 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         mIsDestroyed = true;
         setUIController(TaskbarUIController.DEFAULT);
         mControllers.onDestroy();
-        if (!enableTaskbarNoRecreate() && !ENABLE_TASKBAR_NAVBAR_UNIFICATION) {
-            mWindowManager.removeViewImmediate(mDragLayer);
-            mAddedWindow = false;
-        }
     }
 
     public boolean isDestroyed() {
@@ -1503,12 +1482,11 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                 isTransientTaskbar() || (enableTaskbarPinning()
                         && mTaskbarFeatureEvaluator.getSupportsTransitionToTransientTaskbar());
 
-        int extraHeightForTaskbarTooltips = enableCursorHoverStates()
-                ? resources.getDimensionPixelSize(R.dimen.arrow_toast_arrow_height)
+        int extraHeightForTaskbarTooltips = resources.getDimensionPixelSize(
+                R.dimen.arrow_toast_arrow_height)
                 + (resources.getDimensionPixelSize(R.dimen.taskbar_tooltip_vertical_padding) * 2)
                 + calculateTextHeight(
-                resources.getDimensionPixelSize(R.dimen.arrow_toast_text_size))
-                : 0;
+                resources.getDimensionPixelSize(R.dimen.arrow_toast_text_size));
 
         // Return transient taskbar window height when pinning feature is enabled, so taskbar view
         // does not get cut off during pinning animation.
@@ -2353,11 +2331,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             if (changes == 0) {
                 return;
             }
-            if (enableTaskbarNoRecreate()) {
-                mWindowManager.updateViewLayout(mDragLayer.getRootView(), mWindowLayoutParams);
-            } else {
-                mWindowManager.updateViewLayout(mDragLayer, mWindowLayoutParams);
-            }
+            mWindowManager.updateViewLayout(mDragLayer.getRootView(), mWindowLayoutParams);
         }
     }
 
