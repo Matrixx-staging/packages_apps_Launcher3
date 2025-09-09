@@ -33,6 +33,7 @@ import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.LauncherMultivalentJUnit.EmulatedDevices
 import com.android.launcher3.util.TestUtil.getOnUiThread
 import com.android.systemui.shared.system.TaskStackChangeListeners
+import com.android.wm.shell.shared.bubbles.logging.EntryPoint
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
@@ -185,7 +186,8 @@ class TaskbarOverlayControllerTest {
         assertThat(bubbleStashController.isStashed).isFalse()
 
         runOnMainSync { TestOverlayView.show(overlayController.requestWindow()) }
-        BubbleActivityStarter.INSTANCE.get(taskbarContext).showAppBubble(null, mock())
+        BubbleActivityStarter.INSTANCE.get(taskbarContext)
+            .showAppBubble(null, mock(), EntryPoint.TASKBAR_ICON_MENU)
         TaskStackChangeListeners.getInstance().listenerImpl.onTaskMovedToFront(RunningTaskInfo())
 
         // Make sure TaskStackChangeListeners' Handler posts the callback before checking state.

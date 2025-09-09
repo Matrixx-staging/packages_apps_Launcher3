@@ -38,6 +38,7 @@ import com.android.wm.shell.shared.bubbles.DragZoneFactory
 import com.android.wm.shell.shared.bubbles.DragZoneFactory.BubbleBarPropertiesProvider
 import com.android.wm.shell.shared.bubbles.DragZoneFactory.SplitScreenModeChecker.SplitScreenMode
 import com.android.wm.shell.shared.bubbles.DropTargetView
+import com.android.wm.shell.shared.bubbles.logging.EntryPoint
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -295,8 +296,8 @@ class DragToBubbleControllerTest {
         }
 
         assertThat(dragToBubbleController.isItemDropHandled).isFalse()
-        verify(bubbleActivityStarter, never()).showAppBubble(any(), any(), any())
-        verify(bubbleActivityStarter, never()).showShortcutBubble(any(), any())
+        verify(bubbleActivityStarter, never()).showAppBubble(any(), any(), any(), any())
+        verify(bubbleActivityStarter, never()).showShortcutBubble(any(), any(), any())
     }
 
     @Test
@@ -319,8 +320,12 @@ class DragToBubbleControllerTest {
         // Intent does not implement equals() so we need to capture and compare the intents manually
         val intentCaptor = argumentCaptor<Intent>()
         verify(bubbleActivityStarter)
-            .showAppBubble(intentCaptor.capture(), eq(appInfo.user),
-            eq(BubbleBarLocation.LEFT))
+            .showAppBubble(
+                intentCaptor.capture(),
+                eq(appInfo.user),
+                eq(EntryPoint.TASKBAR_ICON_DRAG),
+                eq(BubbleBarLocation.LEFT),
+            )
         assertThat(intentCaptor.firstValue.filterEquals(itemIntent)).isTrue()
     }
 
