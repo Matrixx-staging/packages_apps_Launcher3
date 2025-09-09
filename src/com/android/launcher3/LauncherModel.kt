@@ -42,6 +42,7 @@ import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.model.tasks.CacheDataUpdatedTask
 import com.android.launcher3.model.tasks.PackageUpdatedTask
 import com.android.launcher3.model.tasks.ShortcutsChangedTask
+import com.android.launcher3.model.tasks.UserAvailabilityChangedTask
 import com.android.launcher3.model.tasks.UserLockStateChangedTask
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.shortcuts.ShortcutRequest
@@ -166,17 +167,13 @@ constructor(
                 if (mShouldReloadWorkProfile) {
                     forceReload()
                 } else {
-                    enqueueModelUpdateTask(
-                        PackageUpdatedTask(PackageUpdatedTask.OP_USER_AVAILABILITY_CHANGE, user)
-                    )
+                    enqueueModelUpdateTask(UserAvailabilityChangedTask(user))
                 }
                 mShouldReloadWorkProfile = false
             }
             Intent.ACTION_MANAGED_PROFILE_UNAVAILABLE -> {
                 mShouldReloadWorkProfile = false
-                enqueueModelUpdateTask(
-                    PackageUpdatedTask(PackageUpdatedTask.OP_USER_AVAILABILITY_CHANGE, user)
-                )
+                enqueueModelUpdateTask(UserAvailabilityChangedTask(user))
             }
             UserCache.ACTION_PROFILE_LOCKED ->
                 enqueueModelUpdateTask(UserLockStateChangedTask(user, false))
@@ -194,9 +191,7 @@ constructor(
                 // set. For Work-profile this broadcast will be sent in addition to
                 // ACTION_MANAGED_PROFILE_AVAILABLE/UNAVAILABLE. So effectively, this if block only
                 // handles the non-work profile case.
-                enqueueModelUpdateTask(
-                    PackageUpdatedTask(PackageUpdatedTask.OP_USER_AVAILABILITY_CHANGE, user)
-                )
+                enqueueModelUpdateTask(UserAvailabilityChangedTask(user))
             }
         }
     }

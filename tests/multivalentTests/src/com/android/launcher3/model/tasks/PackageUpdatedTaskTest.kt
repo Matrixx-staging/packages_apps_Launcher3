@@ -27,7 +27,6 @@ import android.platform.test.flag.junit.SetFlagsRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.launcher3.AppFilter
 import com.android.launcher3.Flags
-import com.android.launcher3.Flags.FLAG_ENABLE_PRIVATE_SPACE
 import com.android.launcher3.LauncherSettings
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
@@ -43,7 +42,6 @@ import com.android.launcher3.model.tasks.ModelRepoTestEx.trackUpdate
 import com.android.launcher3.model.tasks.ModelRepoTestEx.verifyAndGetItemsUpdated
 import com.android.launcher3.model.tasks.PackageUpdatedTask.OP_ADD
 import com.android.launcher3.model.tasks.PackageUpdatedTask.OP_UPDATE
-import com.android.launcher3.model.tasks.PackageUpdatedTask.OP_USER_AVAILABILITY_CHANGE
 import com.android.launcher3.util.AllModulesForTest
 import com.android.launcher3.util.Executors
 import com.android.launcher3.util.SandboxApplication
@@ -57,7 +55,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnit
-import org.mockito.kotlin.any
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -176,23 +173,6 @@ class PackageUpdatedTaskTest {
             .isEqualTo(AppInfo(context, expectedActivityInfo, mUser).componentName)
         assertThat(modelState.appsRepo.appsListStateRef.value.apps.firstOrNull()?.componentName)
             .isEqualTo(AppInfo(context, expectedActivityInfo, mUser).componentName)
-    }
-
-    @Test
-    @EnableFlags(FLAG_ENABLE_PRIVATE_SPACE, Flags.FLAG_MODEL_REPOSITORY)
-    fun `OP_USER_AVAILABILITY_CHANGE triggers no callbacks if current user not work or private`() {
-        modelState.dataModel.addItem(context, expectedWorkspaceItem)
-        modelState.dataModel.addItem(context, expectedWorkspaceItem)
-        modelState.appsList.getAndResetChangeFlag()
-        val workspaceUpdates = modelState.homeRepo.workspaceState.trackUpdate()
-
-        executeTask(OP_USER_AVAILABILITY_CHANGE)
-        assertThat(workspaceUpdates).hasSize(1)
-
-        verify(modelState.appsList).updateDisabledFlags(any(), any())
-        verify(mockTaskController).bindUpdatedWorkspaceItems(emptyList())
-        assertThat(modelState.appsList.data).isEmpty()
-        assertThat(modelState.appsRepo.appsListStateRef.value.apps).isEmpty()
     }
 
     private fun List<WorkspaceData>.verifyItemUpdated(updateIndex: Int = 1, totalUpdates: Int = 2) =
