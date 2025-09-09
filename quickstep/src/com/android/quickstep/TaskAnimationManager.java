@@ -54,6 +54,7 @@ import com.android.quickstep.util.ActiveGestureLog;
 import com.android.quickstep.util.ActiveGestureProtoLogProxy;
 import com.android.quickstep.util.SystemUiFlagUtils;
 import com.android.quickstep.views.RecentsView;
+import com.android.quickstep.views.RecentsViewContainer;
 import com.android.quickstep.window.RecentsWindowManager;
 import com.android.systemui.shared.recents.model.ThumbnailData;
 import com.android.systemui.shared.system.QuickStepContract;
@@ -65,8 +66,11 @@ import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAnimationListener {
 
@@ -98,6 +102,8 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
             REPOSITORY_INSTANCE = new DaggerSingletonObject<>(
             QuickstepBaseAppComponent::getTaskAnimationManagerRepository);
 
+    private final PerDisplayRepository<TaskAnimationManager> mPerDisplayRepository;
+
     private final TaskStackChangeListener mLiveTileRestartListener = new TaskStackChangeListener() {
         @Override
         public void onActivityRestartAttempt(ActivityManager.RunningTaskInfo task,
@@ -127,10 +133,12 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
     public TaskAnimationManager(
             @ApplicationContext Context ctx,
             @Assisted int displayId,
-            DisplayController displayController) {
+            DisplayController displayController,
+            PerDisplayRepository<TaskAnimationManager> perDisplayRepository) {
         mCtx = ctx;
         mDisplayId = displayId;
         mDisplayController = displayController;
+        mPerDisplayRepository = perDisplayRepository;
     }
 
     SystemUiProxy getSystemUiProxy() {
@@ -167,6 +175,11 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
                 Log.e(TAG, msg, new Exception());
             }
         }
+
+        final BaseContainerInterface containerInterface = gestureState.getContainerInterface();
+        RecentsAnimationCallbacks newCallbacks = new RecentsAnimationCallbacks(
+                containerInterface.getCreatedContainer());
+
         // Notify if recents animation is still running
         if (mController != null) {
             String msg = "New recents animation started before old animation completed";
@@ -176,26 +189,84 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
                 Log.e(TAG, msg, new Exception());
             }
         }
-        // But force-finish it anyways
-        finishRunningRecentsAnimation(
-                /* toHome= */ false,
-                /* forceFinish= */ true,
-                /* forceFinishCb= */ null,
-                /* reason= */ new ActiveGestureLog.CompoundString(
-                        "TaskAnimationManager.startRecentsAnimation: "
-                                + "force finishing previous animation"));
 
-        if (mCallbacks != null) {
-            // If mCallbacks still != null, that means we are getting this startRecentsAnimation()
-            // before the previous one got onRecentsAnimationStart(). In that case, cleanup the
-            // previous animation so it doesn't mess up/listen to state changes in this animation.
-            cleanUpRecentsAnimation(mCallbacks);
+        List<TaskAnimationManager> runningTaskAnimationManagers = new ArrayList<>();
+        mPerDisplayRepository.forEach(false, taskAnimationManager -> {
+            if (taskAnimationManager.isRecentsAnimationRunning()) {
+                runningTaskAnimationManagers.add(taskAnimationManager);
+            }
+        });
+
+        Runnable onRunningRecentsAnimationFinished = () -> startRecentsAnimationInternal(
+                gestureState, intent, listener, newCallbacks);
+
+        AtomicInteger runningAnimationCount = new AtomicInteger(
+                runningTaskAnimationManagers.size());
+        Log.d(TAG, "startRecentsAnimation - running TaskAnimationMnaager count: "
+                + runningAnimationCount.get());
+        if (runningAnimationCount.get() == 0) {
+            onRunningRecentsAnimationFinished.run();
+            return newCallbacks;
         }
+        for (TaskAnimationManager taskAnimationManager : runningTaskAnimationManagers) {
+            Log.d(TAG, "startRecentsAnimation - finishRunningRecentsAnimation for display "
+                    + taskAnimationManager.mDisplayId);
+            BaseContainerInterface baseContainerInterface;
+            RecentsViewContainer container;
+            RecentsView<?, ?> recentsView;
+            if (taskAnimationManager.mLastGestureState != null
+                    && (baseContainerInterface =
+                    taskAnimationManager.mLastGestureState.getContainerInterface()) != null
+                    && (container = baseContainerInterface.getCreatedContainer()) != null
+                    && (recentsView = container.getOverviewPanel()) != null
+                    && baseContainerInterface.isInLiveTileMode()
+                    && recentsView.getRecentsAnimationController() != null) {
+                recentsView.switchToScreenshot(/* thumbnailDatas= */ null,
+                        /* onFinishRunnable= */ () -> recentsView.finishRecentsAnimation(
+                                /* toHome= */ true,
+                                /* shouldPip= */ false,
+                                /* onFinishComplete= */ () -> {
+                                    Log.d(TAG, "startRecentsAnimation - finished Recents "
+                                            + "animation via RecentsView for display "
+                                            + taskAnimationManager.mDisplayId);
+                                    if (runningAnimationCount.decrementAndGet() == 0) {
+                                        onRunningRecentsAnimationFinished.run();
+                                    }
+                                }));
+            } else {
+                taskAnimationManager.finishRunningRecentsAnimation(
+                        /* toHome= */ false ,
+                        /* forceFinish= */ true,
+                        /* forceFinishCb= */ () -> {
+                            Log.d(TAG, "startRecentsAnimation - finishRunningRecentsAnimation "
+                                    + "for display " + taskAnimationManager.mDisplayId);
+                            if (runningAnimationCount.decrementAndGet() == 0) {
+                                onRunningRecentsAnimationFinished.run();
+                            }
+                        },
+                        /* reason= */ new ActiveGestureLog.CompoundString(
+                                "TaskAnimationManager.startRecentsAnimation: "
+                                        + "force finishing previous animation on display %d",
+                                taskAnimationManager.mDisplayId));
+            }
 
+            if (taskAnimationManager.mCallbacks != null) {
+                // If mCallbacks still != null, that means we are getting this
+                // startRecentsAnimation() before the previous one got
+                // onRecentsAnimationStart(). In that case, cleanup the previous animation so it
+                // doesn't mess up/listen to state changes in this animation.
+                taskAnimationManager.cleanUpRecentsAnimation(taskAnimationManager.mCallbacks);
+            }
+        }
+        return newCallbacks;
+    }
+
+    private void startRecentsAnimationInternal(
+            @NonNull GestureState gestureState, Intent intent,
+            RecentsAnimationCallbacks.RecentsAnimationListener listener,
+            RecentsAnimationCallbacks newCallbacks) {
         final BaseContainerInterface containerInterface = gestureState.getContainerInterface();
         mLastGestureState = gestureState;
-        RecentsAnimationCallbacks newCallbacks = new RecentsAnimationCallbacks(
-                containerInterface.getCreatedContainer());
         mCallbacks = newCallbacks;
         mLauncherDestroyCallbackSet = false;
         final Runnable recentsAnimationStartTimeoutCallback = () -> {
@@ -396,7 +467,6 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
         ActiveGestureProtoLogProxy.logSettingRecentsAnimationStartPending(
                 mRecentsAnimationStartPending);
         gestureState.setState(STATE_RECENTS_ANIMATION_INITIALIZED);
-        return mCallbacks;
     }
 
     /**
