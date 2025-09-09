@@ -31,7 +31,6 @@ import android.view.View;
 import android.widget.FrameLayout;
 
 import com.android.launcher3.BubbleTextView;
-import com.android.launcher3.Flags;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
@@ -143,7 +142,6 @@ public class DeepShortcutView extends FrameLayout implements BubbleTextHolder {
         return sTempPoint;
     }
 
-    /** package private **/
     public void applyShortcutInfo(WorkspaceItemInfo info, ShortcutInfo detail,
             PopupContainerWithArrow container, ActivityContext ac) {
         mInfo = info;
@@ -163,29 +161,45 @@ public class DeepShortcutView extends FrameLayout implements BubbleTextHolder {
         mBubbleText.setOnClickListener(container.getItemClickListener());
         mBubbleText.setOnLongClickListener(container.getItemDragHandler());
         mBubbleText.setOnTouchListener(container.getItemDragHandler());
-        if (Flags.homeScreenEditImprovements()
-                && ac instanceof Launcher launcher) {
-            mAddButton.setVisibility(VISIBLE);
-            mBubbleText.setPadding(
-                    mBubbleText.getPaddingStart(),
-                    mBubbleText.getPaddingTop(),
-                    (int) getResources().getDimension(R.dimen.deep_shortcut_text_end_padding),
-                    mBubbleText.getPaddingBottom());
+        if (ac instanceof Launcher launcher) {
+            setupAddButton();
+            setAddButtonClickListener(launcher, info, container);
+        }
+    }
 
-            mAddButton.setOnClickListener(v -> {
-                LauncherAccessibilityDelegate launcherAccessibilityDelegate =
-                        launcher.getAccessibilityDelegate();
-                launcherAccessibilityDelegate.addToWorkspace(info,
-                                /*accessibility=*/ false,
-                                /*finishCallback=*/ (success) -> {
-                                    launcher.getStatsLogManager()
-                                            .logger()
-                                            .withItemInfo(info)
-                                            .log(StatsLogManager.LauncherEvent
-                                                    .LAUNCHER_TAP_TO_ADD_DEEP_SHORTCUT);
-                        });
-                container.close(true);
-            });
+    private void setupAddButton() {
+        mAddButton.setVisibility(VISIBLE);
+        mBubbleText.setPadding(
+                mBubbleText.getPaddingStart(),
+                mBubbleText.getPaddingTop(),
+                (int) getResources().getDimension(R.dimen.deep_shortcut_text_end_padding),
+                mBubbleText.getPaddingBottom());
+    }
+
+    private void setAddButtonClickListener(Launcher launcher, WorkspaceItemInfo info,
+            PopupContainerWithArrow<Launcher> container) {
+        LauncherAccessibilityDelegate launcherAccessibilityDelegate =
+                launcher.getAccessibilityDelegate();
+        StatsLogManager statsLogManager = launcher.getStatsLogManager();
+        mAddButton.setOnClickListener(v -> {
+            launcherAccessibilityDelegate.addToWorkspace(info,
+                    /*accessibility=*/ false,
+                    /*finishCallback=*/ (success) -> {
+                        statsLogManager
+                                .logger()
+                                .withItemInfo(info)
+                                .log(StatsLogManager.LauncherEvent
+                                        .LAUNCHER_TAP_TO_ADD_DEEP_SHORTCUT);
+                    });
+            container.close(true);
+        });
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        if (mAddButton != null) {
+            mAddButton.setOnClickListener(null);
         }
     }
 
