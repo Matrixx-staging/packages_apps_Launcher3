@@ -222,6 +222,8 @@ class TaskbarRecentAppsController(
 
     fun init(taskbarControllers: TaskbarControllers, previousShownTasks: List<GroupTask>) {
         controllers = taskbarControllers
+        if (!controllers.taskbarActivityContext.deviceProfile.isTaskbarPresent) return
+
         if (previousShownTasks.isNotEmpty()) {
             shownTasks = previousShownTasks
             fetchIcons()

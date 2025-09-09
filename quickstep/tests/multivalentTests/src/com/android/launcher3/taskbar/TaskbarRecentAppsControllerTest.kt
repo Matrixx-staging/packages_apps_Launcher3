@@ -32,6 +32,7 @@ import android.view.Display.DEFAULT_DISPLAY
 import androidx.test.annotation.UiThreadTest
 import com.android.internal.R
 import com.android.launcher3.BubbleTextView.RunningAppState
+import com.android.launcher3.DeviceProfile
 import com.android.launcher3.Flags
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION
@@ -96,6 +97,7 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
     @Mock private lateinit var mockThemeManager: ThemeManager
     @Mock private lateinit var mockContext: Context
     @Mock private lateinit var mockResources: Resources
+    @Mock private lateinit var mockDeviceProfile: DeviceProfile
 
     private var taskListChangeId: Int = 1
 
@@ -118,6 +120,8 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
         // Set desktop mode supported
         whenever(mockContext.getResources()).thenReturn(mockResources)
         whenever(mockResources.getBoolean(R.bool.config_isDesktopModeSupported)).thenReturn(true)
+        whenever(taskbarActivityContext.deviceProfile).thenReturn(mockDeviceProfile)
+        mockDeviceProfile.isTaskbarPresent = true
 
         whenever(mockRecentsModel.iconCache).thenReturn(mockIconCache)
         whenever(mockRecentsModel.unregisterRecentTasksChangedListener(any())).then {
