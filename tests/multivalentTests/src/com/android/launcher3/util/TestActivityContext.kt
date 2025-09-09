@@ -72,6 +72,9 @@ constructor(
     override fun getStatsLogManager() = super.getStatsLogManager()
 
     /** Override required to allow spying */
+    override fun getAccessibilityDelegate() = super.getAccessibilityDelegate()
+
+    /** Override required to allow spying */
     override fun <T : DragController<*>?> getDragController(): T = super.getDragController()
 
     /** Override required to allow spying */
