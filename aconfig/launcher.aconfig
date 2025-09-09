@@ -617,7 +617,7 @@ flag {
      }
  }
 
- flag {
+flag {
   name: "enable_auto_stash_connected_display_taskbar"
   namespace: "launcher"
   description: "Enables auto stashing of connected display taskbar when in full or split screen"
@@ -625,4 +625,11 @@ flag {
   metadata {
     purpose: PURPOSE_BUGFIX
   }
+}
+
+flag {
+    name: "expandable_long_press_menu"
+    namespace: "launcher"
+    description: "Enables expandable long press menu"
+    bug: "444003708"
 }
