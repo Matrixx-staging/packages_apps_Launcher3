@@ -49,8 +49,6 @@ import com.android.app.tracing.traceSection
 import com.android.internal.policy.GestureNavigationSettingsObserver
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.anim.AlphaUpdateListener
-import com.android.launcher3.config.FeatureFlags.ENABLE_TASKBAR_NAVBAR_UNIFICATION
-import com.android.launcher3.config.FeatureFlags.enableTaskbarNoRecreate
 import com.android.launcher3.taskbar.TaskbarControllers.LoggableTaskbarController
 import com.android.launcher3.taskbar.TaskbarInsetsController.DebugTouchableRegion.Companion.DEFAULT_TOUCH_REGION
 import com.android.launcher3.taskbar.TaskbarInsetsController.DebugTouchableRegion.Companion.DRAG_LAYER_INVISIBLE
@@ -125,7 +123,7 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
                 }
 
             windowLayoutParams.providedInsets =
-                if (enableTaskbarNoRecreate() && controllers.sharedState != null) {
+                if (controllers.sharedState != null) {
                     getProvidedInsets(
                         controllers.sharedState!!.insetsFrameProviders,
                         insetsRoundedCornerFlag,
@@ -279,10 +277,7 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
                     visInsetsSizeForTappableElement,
                 )
             )
-        if (
-            (context.isGestureNav || ENABLE_TASKBAR_NAVBAR_UNIFICATION) &&
-                provider.type == tappableElement()
-        ) {
+        if (provider.type == tappableElement()) {
             provider.insetsSizeOverrides = insetsSizeOverrideForTappableElement
         }
     }

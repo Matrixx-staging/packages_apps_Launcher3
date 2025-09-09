@@ -34,7 +34,6 @@ import static com.android.launcher3.BaseActivity.STATE_HANDLER_INVISIBILITY_FLAG
 import static com.android.launcher3.Flags.msdlFeedback;
 import static com.android.launcher3.Flags.refactorTaskbarUiState;
 import static com.android.launcher3.PagedView.INVALID_PAGE;
-import static com.android.launcher3.config.FeatureFlags.ENABLE_TASKBAR_NAVBAR_UNIFICATION;
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_BACKGROUND;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.IGNORE;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_HOME_GESTURE;
@@ -3185,8 +3184,7 @@ public abstract class AbsSwipeUpHandler<
                 .getTaskbarUiState(displayId);
 
         // Mimic TaskbarActivityContext.isTransientTaskbar
-        final boolean isInPhoneMode = ENABLE_TASKBAR_NAVBAR_UNIFICATION
-                && mDp.getDeviceProperties().isPhone() && !mDp.isTaskbarPresent;
+        final boolean isInPhoneMode = mDp.getDeviceProperties().isPhone() && !mDp.isTaskbarPresent;
         if (mIsTransientTaskbar
                 && taskbarUiState.isPrimaryDisplayRef().getValue() && !isInPhoneMode) {
             return true;
