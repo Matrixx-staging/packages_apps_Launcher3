@@ -15,6 +15,7 @@
  */
 package com.android.launcher3.pm
 
+import android.os.Process
 import android.os.UserHandle
 import android.os.UserManager
 import com.android.launcher3.pm.UserCache.CachedUserInfo
@@ -32,7 +33,8 @@ class UserManagerState(private val userMap: Map<UserHandle, CachedUserInfo>) {
     fun isUserQuiet(user: UserHandle): Boolean = userMap[user]?.isQuietModeEnabled ?: false
 
     /** Returns the [UserHandle] corresponding to the [serialNo] */
-    fun getUser(serialNo: Long): UserHandle? = userSerialMap[serialNo]?.iconInfo?.user
+    fun getUser(serialNo: Long): UserHandle =
+        userSerialMap[serialNo]?.iconInfo?.user ?: Process.myUserHandle()
 
     /** Returns the user locked state */
     fun isUserUnlocked(user: UserHandle) = userMap[user]?.isUnlocked ?: true

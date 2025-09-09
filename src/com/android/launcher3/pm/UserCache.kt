@@ -19,7 +19,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.LauncherApps
 import android.graphics.drawable.ColorDrawable
-import android.os.Process
 import android.os.UserHandle
 import android.os.UserManager
 import android.os.UserManager.USER_TYPE_PROFILE_CLONE
@@ -169,7 +168,7 @@ constructor(@ApplicationContext private val context: Context, tracker: DaggerSin
 
     /** @see UserManager.getUserForSerialNumber */
     fun getUserForSerialNumber(serialNumber: Long): UserHandle =
-        userManagerState.getUser(serialNumber) ?: Process.myUserHandle()
+        userManagerState.getUser(serialNumber)
 
     /** @see UserManager.getUserProfiles */
     val userProfiles: List<UserHandle>
