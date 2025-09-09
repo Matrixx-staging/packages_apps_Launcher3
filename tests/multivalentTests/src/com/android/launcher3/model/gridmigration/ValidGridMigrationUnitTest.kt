@@ -125,13 +125,7 @@ class ValidGridMigrationUnitTest {
 
     private fun migrate(srcGrid: Grid, dstGrid: Grid): List<WorkspaceItem> {
         val userSerial = UserCache.INSTANCE[context].getSerialNumberForUser(Process.myUserHandle())
-        val dbHelper =
-            DatabaseHelper(
-                context,
-                null,
-                { UserCache.INSTANCE.get(context).getSerialNumberForUser(it) },
-                {},
-            )
+        val dbHelper = DatabaseHelper(context, null) {}
 
         dbHelper.writableDatabase.use { writableDb ->
             Favorites.addTableToDb(writableDb, userSerial, false, srcGrid.tableName)
