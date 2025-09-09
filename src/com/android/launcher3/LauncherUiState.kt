@@ -39,7 +39,8 @@ class LauncherUiState {
     val isResumed: Boolean
         get() = (_activityFlagsRef.value and BaseActivity.ACTIVITY_STATE_RESUMED) != 0
 
-    val isDeviceProfileInitialized = _deviceProfileRef.value !== DEFAULT_DEVICE_PROFILE
+    val isDeviceProfileInitialized: Boolean
+        get() = _deviceProfileRef.value !== DEFAULT_DEVICE_PROFILE
 
     val isOverlayShownRef = _isOverlayShown.asListenable()
 
