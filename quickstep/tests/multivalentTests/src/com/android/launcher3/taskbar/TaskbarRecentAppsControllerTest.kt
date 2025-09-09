@@ -17,6 +17,7 @@
 package com.android.launcher3.taskbar
 
 import android.app.WindowConfiguration.WINDOWING_MODE_FREEFORM
+import android.app.WindowConfiguration.WINDOWING_MODE_FULLSCREEN
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -1326,6 +1327,7 @@ class TaskbarRecentAppsControllerTest : TaskbarBaseTestCase() {
         val transparentTask = createTask(id = 1, "transparentPackage")
         transparentTask.key.isTopActivityTransparent = true
         transparentTask.key.isActivityStackTransparent = true
+        transparentTask.key.windowingMode = WINDOWING_MODE_FULLSCREEN
         val regularTask = createTask(id = 2, RUNNING_APP_PACKAGE_1)
 
         prepareHotseatAndRunningAndRecentApps(
