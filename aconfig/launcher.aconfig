@@ -23,13 +23,6 @@ flag {
 }
 
 flag {
-    name: "enable_cursor_hover_states"
-    namespace: "launcher"
-    description: "Enables cursor hover states for certain elements."
-    bug: "243191650"
-}
-
-flag {
     name: "enable_responsive_workspace"
     namespace: "launcher"
     description: "Enables new workspace grid calculations method."

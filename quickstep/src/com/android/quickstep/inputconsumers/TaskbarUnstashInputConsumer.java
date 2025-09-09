@@ -20,7 +20,6 @@ import static android.view.MotionEvent.INVALID_POINTER_ID;
 import static android.view.RoundedCorner.POSITION_BOTTOM_LEFT;
 import static android.view.RoundedCorner.POSITION_BOTTOM_RIGHT;
 
-import static com.android.launcher3.Flags.enableCursorHoverStates;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMotionEvent;
 import static com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_TOUCHING;
 import static com.android.systemui.shared.Flags.cursorHotCorner;
@@ -284,7 +283,7 @@ public class TaskbarUnstashInputConsumer extends DelegateInputConsumer {
      */
     @Override
     public void onHoverEvent(MotionEvent ev) {
-        if (!enableCursorHoverStates() || mTaskbarActivityContext == null
+        if (mTaskbarActivityContext == null
                 || !mTaskbarActivityContext.isTaskbarStashed()) {
             return;
         }
@@ -362,8 +361,7 @@ public class TaskbarUnstashInputConsumer extends DelegateInputConsumer {
 
     private boolean isStashedTaskbarHovered(int x, int y) {
         if (!mTaskbarActivityContext.isTaskbarStashed()
-                || mTaskbarActivityContext.isTaskbarAllAppsOpen()
-                || !enableCursorHoverStates()) {
+                || mTaskbarActivityContext.isTaskbarAllAppsOpen()) {
             return false;
         }
         DeviceProfile dp = mTaskbarActivityContext.getDeviceProfile();
