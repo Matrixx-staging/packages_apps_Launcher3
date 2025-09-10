@@ -243,7 +243,9 @@ public class AlphabeticalAppsList implements AllAppsStore.OnUpdateListener {
         mApps.clear();
         mPrivateApps.clear();
 
-        Stream<AppInfo> appSteam = Stream.of(mAllAppsStore.getApps());
+        // Filter against private space app that may show outside of Private Profile.
+        Stream<AppInfo> appSteam = Stream.of(mAllAppsStore.getApps()).filter(
+                info -> !isPrivateSpaceApp(info));
         Stream<AppInfo> privateAppStream = Stream.of(mAllAppsStore.getApps());
 
         if (!hasSearchResults() && mItemFilter != null) {
@@ -492,7 +494,7 @@ public class AlphabeticalAppsList implements AllAppsStore.OnUpdateListener {
     }
 
     private boolean isPrivateSpaceApp(AppInfo appInfo) {
-        return Objects.equals(appInfo.getTargetPackage(), PRIVATE_SPACE_PACKAGE);
+        return appInfo != null && Objects.equals(appInfo.getTargetPackage(), PRIVATE_SPACE_PACKAGE);
     }
 
     /**
