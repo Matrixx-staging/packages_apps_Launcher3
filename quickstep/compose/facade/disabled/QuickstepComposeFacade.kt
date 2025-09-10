@@ -32,6 +32,8 @@ object QuickstepComposeFacade : BaseComposeFacade, QuickstepComposeFeatures {
 
     override fun initComposeView(appContext: Context) = ComposeFacade.initComposeView(appContext)
 
+    override fun disposeComposition(view: View) = ComposeFacade.disposeComposition(view)
+
     override fun startIconAppChip(
         composeView: TaskViewIcon,
         viewModel: TaskViewModel,
