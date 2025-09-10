@@ -61,7 +61,7 @@ import java.util.stream.Stream;
 public class AlphabeticalAppsList implements AllAppsStore.OnUpdateListener {
 
     public static final String TAG = "AlphabeticalAppsList";
-    private static final String PRIVATE_SPACE_PACKAGE = "com.android.privatespace";
+    public static final String PRIVATE_SPACE_PACKAGE = "com.android.privatespace";
 
     private final WorkProfileManager mWorkProviderManager;
 
