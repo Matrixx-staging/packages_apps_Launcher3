@@ -26,6 +26,7 @@ import com.android.launcher3.widgetpicker.domain.usecase.FilterWidgetsForHostUse
 import com.android.launcher3.widgetpicker.domain.usecase.GroupWidgetAppsByProfileUseCase
 import com.android.launcher3.widgetpicker.shared.model.PickableWidget
 import com.android.launcher3.widgetpicker.shared.model.WidgetApp
+import com.android.launcher3.widgetpicker.shared.model.WidgetAppId
 import com.android.launcher3.widgetpicker.shared.model.WidgetId
 import com.android.launcher3.widgetpicker.shared.model.WidgetPreview
 import com.android.launcher3.widgetpicker.shared.model.WidgetUserProfile
@@ -72,6 +73,13 @@ constructor(
                     )
                 } ?: emptyMap()
             }
+            .distinctUntilChanged()
+            .flowOn(backgroundContext)
+
+    /** Returns the widget app with the widgets that it hosts. */
+    fun getWidgetApp(widgetAppId: WidgetAppId): Flow<WidgetApp?> =
+        widgetsRepository
+            .observeWidgetApp(widgetAppId)
             .distinctUntilChanged()
             .flowOn(backgroundContext)
 
