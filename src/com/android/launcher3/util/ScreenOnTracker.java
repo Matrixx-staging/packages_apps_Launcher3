@@ -19,8 +19,6 @@ import static android.content.Intent.ACTION_SCREEN_OFF;
 import static android.content.Intent.ACTION_SCREEN_ON;
 import static android.content.Intent.ACTION_USER_PRESENT;
 
-import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
-import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 import static com.android.launcher3.util.SimpleBroadcastReceiver.actionsFilter;
 
 import android.content.Context;
@@ -31,8 +29,13 @@ import androidx.annotation.VisibleForTesting;
 import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.dagger.LauncherBaseAppComponent;
+import com.android.launcher3.concurrent.annotations.LightweightBackground;
+import static com.android.launcher3.concurrent.annotations.LightweightBackgroundPriority.UI;
+import com.android.launcher3.concurrent.annotations.Ui;
+import com.android.launcher3.util.LooperExecutor;
 
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executor;
 
 import javax.inject.Inject;
 
@@ -51,10 +54,12 @@ public class ScreenOnTracker {
     private boolean mIsScreenOn;
 
     @Inject
-    ScreenOnTracker(@ApplicationContext Context context, DaggerSingletonTracker tracker) {
+    ScreenOnTracker(@ApplicationContext Context context, DaggerSingletonTracker tracker,
+            @Ui LooperExecutor uiExecutor,
+            @LightweightBackground(priority = UI) LooperExecutor lightweightBackgroundExecutor) {
         // Assume that the screen is on to begin with
         mReceiver = new SimpleBroadcastReceiver(
-                context, UI_HELPER_EXECUTOR, MAIN_EXECUTOR, this::onReceive);
+                context, lightweightBackgroundExecutor, uiExecutor, this::onReceive);
         init(tracker);
     }
 
