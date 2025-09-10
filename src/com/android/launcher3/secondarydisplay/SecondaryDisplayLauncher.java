@@ -49,7 +49,6 @@ import com.android.launcher3.LauncherModel;
 import com.android.launcher3.R;
 import com.android.launcher3.allapps.ActivityAllAppsContainerView;
 import com.android.launcher3.allapps.AllAppsStore;
-import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.deviceprofile.AllAppsProfile;
 import com.android.launcher3.dragndrop.DragController;
 import com.android.launcher3.dragndrop.DragOptions;
@@ -458,9 +457,8 @@ public class SecondaryDisplayLauncher extends BaseActivity
     protected void onActivityFlagsChanged(int changeBits) {
         super.onActivityFlagsChanged(changeBits);
 
-        int displayId = getDisplay().getDisplayId();
-        if (displayId != Display.DEFAULT_DISPLAY && (changeBits & ACTIVITY_STATE_RESUMED) != 0) {
-            mSecondaryDisplayDelegate.updateStashControllerStateFlags(displayId, hasBeenResumed());
+        if (mDisplayId != Display.DEFAULT_DISPLAY && (changeBits & ACTIVITY_STATE_RESUMED) != 0) {
+            mSecondaryDisplayDelegate.updateStashControllerStateFlags(mDisplayId, hasBeenResumed());
         }
     }
 }
