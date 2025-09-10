@@ -33,7 +33,7 @@ class DatabaseHelperTest {
 
     @Before
     fun setUp() {
-        db = ModelTestExtensions.createInMemoryDb(INSERTION_SQL)
+        db = ModelTestExtensions.createInMemoryDb(context, INSERTION_SQL)
     }
 
     @After
