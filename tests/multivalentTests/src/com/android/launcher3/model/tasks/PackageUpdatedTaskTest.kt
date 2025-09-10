@@ -55,6 +55,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnit
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -143,7 +145,7 @@ class PackageUpdatedTaskTest {
         assertThat(widgetsUpdates).hasSize(2)
         workspaceUpdates.verifyItemUpdated()
 
-        verify(modelState.appsList).addPackage(context, expectedPackage, mUser)
+        verify(modelState.appsList).updatePackage(any(), eq(expectedPackage), eq(mUser), any())
         verify(mockTaskController).bindUpdatedWorkspaceItems(listOf(expectedWorkspaceItem))
         verify(mockTaskController).bindUpdatedWidgets(modelState.dataModel)
 
@@ -166,7 +168,7 @@ class PackageUpdatedTaskTest {
         assertThat(appUpdates).hasSize(2)
         workspaceUpdates.verifyItemUpdated()
 
-        verify(modelState.appsList).updatePackage(context, expectedPackage, mUser)
+        verify(modelState.appsList).updatePackage(any(), eq(expectedPackage), eq(mUser), any())
         verify(mockTaskController).bindUpdatedWorkspaceItems(listOf(expectedWorkspaceItem))
 
         assertThat(modelState.appsList.data.firstOrNull()?.componentName)
