@@ -124,7 +124,7 @@ class PackageUpdatedTaskTest {
         }
     }
 
-    private fun executeTask(op: Int) =
+    private fun executeTask(op: Boolean) =
         TestUtil.runOnExecutorSync(Executors.MODEL_EXECUTOR) {
             PackageUpdatedTask(op, mUser, expectedPackage)
                 .execute(mockTaskController, modelState.dataModel, modelState.appsList)
