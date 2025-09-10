@@ -42,6 +42,8 @@ import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_FILE_SYSTEM_FI
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_FILE_SYSTEM_FOLDER
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_FOLDER
 import com.android.launcher3.Utilities.EMPTY_PERSON_ARRAY
+import com.android.launcher3.Utilities.qsbOnFirstScreen
+import com.android.launcher3.WorkspaceLayoutManager
 import com.android.launcher3.backuprestore.LauncherRestoreEventLogger.RestoreError
 import com.android.launcher3.homescreenfiles.HomeScreenFile
 import com.android.launcher3.icons.BitmapInfo
@@ -80,6 +82,7 @@ import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.argThat
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
@@ -838,9 +841,23 @@ class WorkspaceItemProcessorTest {
                         HomeScreenFile("folder_a", null, true),
                 )
             )
+        val maybeReservesSpaceForQsb: (ArrayList<WorkspaceItemInfo>) -> Boolean = { addItemsFinal ->
+            val idp = InvariantDeviceProfile.INSTANCE.get(mContext)
+            !qsbOnFirstScreen() ||
+                addItemsFinal.any {
+                    with(it) {
+                        cellX == 0 &&
+                            cellY == 0 &&
+                            container == CONTAINER_DESKTOP &&
+                            screenId == WorkspaceLayoutManager.FIRST_SCREEN_ID &&
+                            spanX == idp.numSearchContainerColumns &&
+                            spanY == 1
+                    }
+                }
+        }
         mockIconCache.apply { whenever(getDefaultIcon(any())).thenReturn(BitmapInfo.LOW_RES_INFO) }
         mockWorkspaceItemSpaceFinder.apply {
-            whenever(findSpaceForItem(any(), any(), any(), any()))
+            whenever(findSpaceForItem(argThat(maybeReservesSpaceForQsb), any(), any(), any()))
                 .thenAnswer { WorkspaceItemCoordinates(0, 0, 0) }
                 .thenAnswer { WorkspaceItemCoordinates(0, 1, 1) }
         }

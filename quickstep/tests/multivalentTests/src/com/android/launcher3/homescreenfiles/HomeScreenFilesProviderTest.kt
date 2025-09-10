@@ -21,6 +21,7 @@ import android.content.Context
 import android.database.ContentObserver
 import android.database.MatrixCursor
 import android.net.Uri
+import android.os.Process
 import android.provider.MediaStore
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.launcher3.util.DaggerSingletonTracker
@@ -133,10 +134,35 @@ class HomeScreenFilesProviderTest {
 
     @Test
     fun testRegistersChangeCallback() {
-        val callback = mock<(Uri, Int) -> Unit>()
+        whenever(
+                contentResolver.query(
+                    eq(Uri.parse("content://media/external/file/1")),
+                    any(),
+                    any(),
+                    any(),
+                    isNull(),
+                    isNull(),
+                )
+            )
+            .thenAnswer {
+                val answer =
+                    MatrixCursor(
+                        arrayOf(
+                            MediaStore.Files.FileColumns.DISPLAY_NAME,
+                            MediaStore.Files.FileColumns.MIME_TYPE,
+                            MediaStore.Files.FileColumns.DATA,
+                        )
+                    )
+                answer.addRow(
+                    arrayOf("NEW_test.png", "image/png", "/storage/emulated/0/Desktop/test.png")
+                )
+                return@thenAnswer answer
+            }
+
+        val callback = mock<(HomeScreenFilesProvider.FileChange) -> Unit>()
         val immediateExecutor = Executor { r -> r.run() }
         val unregisterChangeCallback =
-            provider.fileChanges.forEach(immediateExecutor) { callback(it.uri, it.flags) }
+            provider.fileChanges.forEach(immediateExecutor) { callback(it) }
         val underlyingContentObserverCaptor = argumentCaptor<ContentObserver>()
         verify(contentResolver, times(1))
             .registerContentObserver(
@@ -150,10 +176,16 @@ class HomeScreenFilesProviderTest {
             Uri.parse("content://media/external/file/1"),
             ContentResolver.NOTIFY_INSERT,
         )
-        verify(callback, times(1))(
-            Uri.parse("content://media/external/file/1"),
-            ContentResolver.NOTIFY_INSERT,
-        )
+
+        val fileChangeCaptor = argumentCaptor<HomeScreenFilesProvider.FileChange>()
+        verify(callback, times(1))(fileChangeCaptor.capture())
+        val fileChange = fileChangeCaptor.firstValue
+        assertThat(fileChange.uri).isEqualTo(Uri.parse("content://media/external/file/1"))
+        assertThat(fileChange.flags).isEqualTo(ContentResolver.NOTIFY_INSERT)
+        assertThat(fileChange.file.get()!!.displayName).isEqualTo("NEW_test.png")
+        assertThat(fileChange.file.get()!!.mimeType).isEqualTo("image/png")
+        assertThat(fileChange.file.get()!!.isDirectory).isFalse()
+        assertThat(fileChange.user).isEqualTo(Process.myUserHandle())
 
         lifeCycleTracker.close()
         verify(contentResolver, times(1))

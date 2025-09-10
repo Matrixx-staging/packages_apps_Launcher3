@@ -44,6 +44,7 @@ import android.os.Process;
 import android.os.RemoteException;
 import android.platform.test.rule.ExtendedLongPressTimeoutRule;
 
+import androidx.annotation.Nullable;
 import androidx.test.filters.LargeTest;
 import androidx.test.runner.AndroidJUnit4;
 import androidx.test.uiautomator.By;
@@ -70,6 +71,7 @@ import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
 import com.android.quickstep.window.RecentsWindowFlags;
 import com.android.quickstep.window.RecentsWindowManager;
+import com.android.quickstep.window.RecentsWindowTracker;
 
 import org.junit.After;
 import org.junit.Before;
@@ -113,6 +115,8 @@ public class FallbackRecentsTest {
 
     @Rule(order = -1000) // This should be the outermost rule
     public SkipAfterTimeOutRule mSkipAfterTimeOutRule = new SkipAfterTimeOutRule();
+
+    private int mDisplayId = DEFAULT_DISPLAY;
 
     public FallbackRecentsTest() throws RemoteException {
         Instrumentation instrumentation = getInstrumentation();
@@ -210,13 +214,20 @@ public class FallbackRecentsTest {
         });
     }
 
+    @Nullable
+    private RecentsWindowManager getRecentsWindowManager() {
+        RecentsWindowTracker recentsWindowTracker = RecentsWindowTracker.REPOSITORY_INSTANCE
+                .get(getInstrumentation().getTargetContext()).get(mDisplayId);
+        return recentsWindowTracker == null ? null : recentsWindowTracker.getCreatedContext();
+    }
+
     protected <T> T getFromRecents(Function<RecentsViewContainer, T> f) {
         if (!TestHelpers.isInLauncherProcess()) return null;
         Object[] result = new Object[1];
         Wait.atMost("Failed to get from recents", () -> MAIN_EXECUTOR.submit(() -> {
             RecentsViewContainer recentsViewContainer =
                     RecentsWindowFlags.enableFallbackOverviewInWindow.isTrue()
-                            ? RecentsWindowManager.getRecentsWindowTracker().getCreatedContext()
+                            ? getRecentsWindowManager()
                             : RecentsActivity.ACTIVITY_TRACKER.getCreatedContext();
             if (recentsViewContainer == null) {
                 return false;
@@ -242,7 +253,7 @@ public class FallbackRecentsTest {
             final boolean isRecentsContainerNUll = MAIN_EXECUTOR.submit(() -> {
                 RecentsViewContainer recentsViewContainer =
                         RecentsWindowFlags.enableFallbackOverviewInWindow.isTrue()
-                                ? RecentsWindowManager.getRecentsWindowTracker().getCreatedContext()
+                                ? getRecentsWindowManager()
                                 : RecentsActivity.ACTIVITY_TRACKER.getCreatedContext();
 
                 return recentsViewContainer == null;
@@ -347,7 +358,7 @@ public class FallbackRecentsTest {
             Context ctx = getInstrumentation().getTargetContext();
             mObserver = OverviewComponentObserver.INSTANCE.get(ctx);
             mChangeCounter = new CountDownLatch(1);
-            if (mObserver.getHomeIntent(DEFAULT_DISPLAY).getComponent()
+            if (mObserver.getHomeIntent(mDisplayId).getComponent()
                     .getPackageName().equals(mOtherLauncherActivity.packageName)) {
                 // Home already same
                 mChangeCounter.countDown();

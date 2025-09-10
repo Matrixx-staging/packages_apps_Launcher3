@@ -22,10 +22,12 @@ import static com.android.dx.mockito.inline.extended.ExtendedMockito.spyOn;
 import static com.android.launcher3.AbstractFloatingView.TYPE_SNACKBAR;
 import static com.android.launcher3.Flags.FLAG_ENABLE_PRIVATE_SPACE;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS;
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPLICATION;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_DISMISS_PREDICTION_UNDO;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SYSTEM_SHORTCUT_DONT_SUGGEST_APP_TAP;
+import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_TAP_TO_ADD_TO_HOME_SCREEN_FROM_ALL_APPS;
 import static com.android.launcher3.model.data.WorkspaceItemInfo.FLAG_SUPPORTS_WEB_UI;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 
@@ -36,6 +38,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
@@ -59,6 +62,7 @@ import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.R;
+import com.android.launcher3.accessibility.LauncherAccessibilityDelegate;
 import com.android.launcher3.allapps.PrivateProfileManager;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.logging.StatsLogManager.StatsLogger;
@@ -87,6 +91,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.util.function.Consumer;
+
 @SmallTest
 @RunWith(LauncherMultivalentJUnit.class)
 public class SystemShortcutTest {
@@ -108,9 +114,12 @@ public class SystemShortcutTest {
     @Mock Intent mIntent;
     @Mock StatsLogManager mStatsLogManager;
     @Mock(answer = Answers.RETURNS_SELF) StatsLogger mStatsLogger;
+    @Mock LauncherAccessibilityDelegate mLauncherAccessibilityDelegate;
 
     @Before
     public void setUp() {
+        doReturn(mLauncherAccessibilityDelegate).when(mTestContext).getAccessibilityDelegate();
+
         doReturn(mStatsLogManager).when(mTestContext).getStatsLogManager();
 
         doReturn(mStatsLogger).when(mStatsLogManager).logger();
@@ -365,5 +374,40 @@ public class SystemShortcutTest {
 
         systemShortcut.onClick(mView);
         verify(mSandboxContext).startActivity(any());
+    }
+
+    @Test
+    public void testAddToHomeScreenShortcutFromAllApps() {
+        mAppInfo = new AppInfo();
+        mAppInfo.itemType = ITEM_TYPE_APPLICATION;
+        mAppInfo.container = CONTAINER_ALL_APPS;
+        SystemShortcut systemShortcut = SystemShortcut.ADD_TO_HOME_SCREEN.getShortcut(
+                mTestContext, mAppInfo, mView);
+
+        assertNotNull(systemShortcut);
+
+        // Mock the addToWorkspace method to execute the callback immediately
+        doAnswer(invocation -> {
+            // The callback is the third argument to the method
+            Consumer<Boolean> callback = invocation.getArgument(2);
+            // Execute the callback with a 'success' value of true
+            callback.accept(true);
+            return null; // The method returns void
+        }).when(mLauncherAccessibilityDelegate).addToWorkspace(any(), eq(false), any());
+
+        systemShortcut.onClick(mView);
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+        verify(mStatsLogger).log(eq(LAUNCHER_TAP_TO_ADD_TO_HOME_SCREEN_FROM_ALL_APPS));
+    }
+
+    @Test
+    public void testAddToHomeScreenShortcutFromWorkspaceShouldBeNull() {
+        mAppInfo = new AppInfo();
+        mAppInfo.itemType = ITEM_TYPE_APPLICATION;
+        mAppInfo.container = CONTAINER_DESKTOP;
+        SystemShortcut systemShortcut = SystemShortcut.ADD_TO_HOME_SCREEN.getShortcut(
+                mTestContext, mAppInfo, mView);
+
+        assertNull(systemShortcut);
     }
 }

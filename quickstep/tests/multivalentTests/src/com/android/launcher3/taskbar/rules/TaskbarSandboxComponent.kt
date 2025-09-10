@@ -55,6 +55,7 @@ import com.android.quickstep.RotationTouchHelper
 import com.android.quickstep.SystemUiProxy
 import com.android.quickstep.TaskAnimationManager
 import com.android.quickstep.window.RecentsWindowManager
+import com.android.quickstep.window.RecentsWindowTracker
 import dagger.Binds
 import dagger.BindsInstance
 import dagger.Component
@@ -247,6 +248,10 @@ object TaskbarPerDisplayReposModule {
     @Provides
     @LauncherAppSingleton
     fun provideRecentsWindowManagerRepo(): PerDisplayRepository<RecentsWindowManager> = mock()
+
+    @Provides
+    @LauncherAppSingleton
+    fun provideRecentsWindowTrackerRepo(): PerDisplayRepository<RecentsWindowTracker> = mock()
 
     @Provides
     @LauncherAppSingleton

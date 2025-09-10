@@ -379,7 +379,7 @@ public interface ActivityContext extends SavedStateRegistryOwner {
      * Hides the keyboard if it is visible
      */
     default void hideKeyboard() {
-        Log.d(TAG, "hideKeyboard: ", new Exception());
+        Log.d(TAG, "hideKeyboard");
         View root = getDragLayer();
         if (root == null) {
             Log.d(TAG, "hideKeyboard: getDragLayer() is null, returning early");

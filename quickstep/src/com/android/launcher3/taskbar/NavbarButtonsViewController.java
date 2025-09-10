@@ -19,6 +19,7 @@ import static android.view.View.AccessibilityDelegate;
 import static android.view.ViewTreeObserver.InternalInsetsInfo.TOUCHABLE_INSETS_REGION;
 import static android.view.WindowManager.LayoutParams.TYPE_NAVIGATION_BAR_PANEL;
 
+import static com.android.launcher3.Flags.refactorTaskbarUiState;
 import static com.android.launcher3.LauncherAnimUtils.ROTATION_DRAWABLE_PERCENT;
 import static com.android.launcher3.LauncherAnimUtils.VIEW_TRANSLATE_X;
 import static com.android.launcher3.Utilities.getDescendantCoordRelativeToAncestor;
@@ -190,6 +191,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
     private final WindowManagerProxy mWindowManagerProxy;
     private final NearestTouchFrame mNavButtonsView;
     private final Handler mHandler;
+    private final TaskbarUiState mTaskbarUiState;
     private final LinearLayout mNavButtonContainer;
     // Used for IME+A11Y buttons
     private final ViewGroup mEndContextualContainer;
@@ -268,12 +270,13 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
 
     public NavbarButtonsViewController(TaskbarActivityContext context,
             @Nullable Context navigationBarPanelContext, NearestTouchFrame navButtonsView,
-            Handler handler) {
+            Handler handler, TaskbarUiState taskbarUiState) {
         mContext = context;
         mNavigationBarPanelContext = navigationBarPanelContext;
         mWindowManagerProxy = WindowManagerProxy.INSTANCE.get(mContext);
         mNavButtonsView = navButtonsView;
         mHandler = handler;
+        mTaskbarUiState = taskbarUiState;
         mNavButtonContainer = mNavButtonsView.findViewById(R.id.end_nav_buttons);
         mEndContextualContainer = mNavButtonsView.findViewById(R.id.end_contextual_buttons);
         mStartContextualContainer = mNavButtonsView.findViewById(R.id.start_contextual_buttons);
@@ -1401,6 +1404,10 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
                         .getBoundsOnScreen(mFloatingRotationButtonBounds);
             } else {
                 mFloatingRotationButtonBounds.setEmpty();
+            }
+            if (refactorTaskbarUiState()) {
+                mTaskbarUiState.setNavbarFloatingRotationButtonsBounds(
+                        mFloatingRotationButtonBounds);
             }
         }
     }

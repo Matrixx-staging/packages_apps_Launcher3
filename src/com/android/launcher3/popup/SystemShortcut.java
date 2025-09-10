@@ -1,6 +1,8 @@
 package com.android.launcher3.popup;
 
 import static com.android.launcher3.AbstractFloatingView.TYPE_FOLDER;
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS;
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS_PREDICTION;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_DISMISS_PREDICTION_UNDO;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_PRIVATE_SPACE_INSTALL_SYSTEM_SHORTCUT_TAP;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_PRIVATE_SPACE_UNINSTALL_SYSTEM_SHORTCUT_TAP;
@@ -274,8 +276,14 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
     }
 
 
-    public static final Factory<ActivityContext> ADD_TO_HOME_SCREEN = AddToHomeScreen::new;
-
+    public static final Factory<ActivityContext> ADD_TO_HOME_SCREEN =
+            (activity, itemInfo, originalView) -> {
+                if (itemInfo.container != CONTAINER_ALL_APPS
+                        && itemInfo.container != CONTAINER_ALL_APPS_PREDICTION) {
+                    return null;
+                }
+                return new AddToHomeScreen<>(activity, itemInfo, originalView);
+            };
     public static class AddToHomeScreen<T extends ActivityContext> extends SystemShortcut<T> {
 
         public AddToHomeScreen(T target, ItemInfo itemInfo, @NonNull View originalView) {
@@ -287,8 +295,7 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
         public void onClick(View view) {
             AbstractFloatingView.closeAllOpenViews(mTarget);
             LauncherAccessibilityDelegate launcherAccessibilityDelegate =
-                    (LauncherAccessibilityDelegate) ActivityContext.lookupContext(view.getContext())
-                            .getAccessibilityDelegate();
+                    (LauncherAccessibilityDelegate) mTarget.getAccessibilityDelegate();
             launcherAccessibilityDelegate.addToWorkspace(mItemInfo,
                     /*accessibility=*/ false,
                     /*finishCallback=*/ (success) -> {

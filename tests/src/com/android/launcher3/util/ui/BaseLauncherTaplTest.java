@@ -18,6 +18,7 @@ package com.android.launcher3.util.ui;
 
 import static android.os.Process.myUserHandle;
 import static android.platform.test.flag.junit.SetFlagsRule.DefaultInitValueType.DEVICE_DEFAULT;
+import static android.view.Display.DEFAULT_DISPLAY;
 
 import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
 
@@ -111,6 +112,8 @@ public abstract class BaseLauncherTaplTest {
     private final ActivityManager.MemoryInfo mMemoryInfo = new ActivityManager.MemoryInfo();
     private final ActivityManager mActivityManager;
     private long mMemoryBefore;
+
+    protected int mDisplayId = DEFAULT_DISPLAY;
 
     /** Detects UI surface leaks and throws an exception if a leak is found. */
     public static void checkDetectedLeaks(LauncherInstrumentation launcher) {

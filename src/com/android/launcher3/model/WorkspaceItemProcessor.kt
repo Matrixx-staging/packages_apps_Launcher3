@@ -24,7 +24,6 @@ import android.content.pm.LauncherApps.ShortcutQuery
 import android.content.pm.PackageInstaller
 import android.content.pm.ShortcutInfo
 import android.net.Uri
-import android.provider.DocumentsContract
 import android.text.TextUtils
 import android.util.Log
 import android.util.LongSparseArray
@@ -32,10 +31,13 @@ import android.util.SparseArray
 import com.android.launcher3.Flags
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherSettings.Favorites
+import com.android.launcher3.Utilities.qsbOnFirstScreen
+import com.android.launcher3.WorkspaceLayoutManager
 import com.android.launcher3.backuprestore.LauncherRestoreEventLogger.RestoreError
 import com.android.launcher3.folder.Folder
 import com.android.launcher3.folder.FolderGridOrganizer.createFolderGridOrganizer
 import com.android.launcher3.homescreenfiles.HomeScreenFile
+import com.android.launcher3.homescreenfiles.HomeScreenFilesUtils
 import com.android.launcher3.icons.CacheableShortcutInfo
 import com.android.launcher3.icons.IconCache
 import com.android.launcher3.icons.cache.CacheLookupFlag.Companion.DEFAULT_LOOKUP_FLAG
@@ -636,6 +638,22 @@ class WorkspaceItemProcessor(
             ArrayList(loadedItems.filter { it.container == Favorites.CONTAINER_DESKTOP })
         val excludedScreens = IntSet()
 
+        if (qsbOnFirstScreen()) {
+            // Reserve layout space for the search container. Note that this is not required when
+            // [Flags.FLAG_INJECTABLE_MODEL_ITEMS] is enabled as injected items will already be
+            // accounted for in [knownDesktopContainerItems].
+            knownDesktopContainerItems.add(
+                WorkspaceItemInfo().apply {
+                    cellX = 0
+                    cellY = 0
+                    container = Favorites.CONTAINER_DESKTOP
+                    screenId = WorkspaceLayoutManager.FIRST_SCREEN_ID
+                    spanX = idp.numSearchContainerColumns
+                    spanY = 1
+                }
+            )
+        }
+
         for ((uri, file) in homeScreenFiles.value) {
             // TODO(b/424466810): ignore normally restored items.
 
@@ -646,19 +664,7 @@ class WorkspaceItemProcessor(
             item.itemType =
                 if (file.isDirectory) Favorites.ITEM_TYPE_FILE_SYSTEM_FOLDER
                 else Favorites.ITEM_TYPE_FILE_SYSTEM_FILE
-            item.intent =
-                Intent(Intent.ACTION_VIEW).apply {
-                    addFlags(
-                        Intent.FLAG_ACTIVITY_NEW_TASK or
-                            Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                    )
-                    setDataAndType(
-                        uri,
-                        if (file.isDirectory) DocumentsContract.Document.MIME_TYPE_DIR
-                        else file.mimeType,
-                    )
-                }
+            item.intent = HomeScreenFilesUtils.buildLaunchIntent(uri, file)
 
             // TODO(b/424466144, b/424466406): add MIME-type-based icons or thumbnails.
             item.bitmap = iconCache.getDefaultIcon(item.user)

@@ -222,28 +222,22 @@ class TaskbarRecentAppsController(
 
     fun init(taskbarControllers: TaskbarControllers, previousShownTasks: List<GroupTask>) {
         controllers = taskbarControllers
+        if (!controllers.taskbarActivityContext.deviceProfile.isTaskbarPresent) return
+
         if (previousShownTasks.isNotEmpty()) {
             shownTasks = previousShownTasks
             fetchIcons()
         }
         orderedRunningTaskIds =
             controllers.sharedState?.recentOrderedRunningTaskIds?.filterNotNull() ?: emptyList()
-        controllers.runAfterInit {
-            val showDesktopTasks =
-                controllers.taskbarDesktopModeController.shouldShowDesktopTasksInTaskbar()
-            val isTaskbarPresent = controllers.taskbarActivityContext.deviceProfile.isTaskbarPresent
-            if (
-                (canShowRunningApps && showDesktopTasks) || (canShowRecentApps && isTaskbarPresent)
-            ) {
-                recentsModel.registerRecentTasksChangedListener(recentTasksChangedListener)
-                reloadRecentTasksIfNeeded()
-                if (enableTaskbarRecentsThemedIcons()) {
-                    iconShapeDataCloseable =
-                        themeManager.iconShapeData.forEach(MAIN_EXECUTOR) { fetchIcons() }
-                    themeChangeListener =
-                        ThemeChangeListener { fetchIcons() }
-                            .also { themeManager.addChangeListener(it) }
-                }
+        if (canShowRunningApps || canShowRecentApps) {
+            recentsModel.registerRecentTasksChangedListener(recentTasksChangedListener)
+            controllers.runAfterInit { reloadRecentTasksIfNeeded() }
+            if (enableTaskbarRecentsThemedIcons()) {
+                iconShapeDataCloseable =
+                    themeManager.iconShapeData.forEach(MAIN_EXECUTOR) { fetchIcons() }
+                themeChangeListener =
+                    ThemeChangeListener { fetchIcons() }.also { themeManager.addChangeListener(it) }
             }
         }
     }
@@ -375,7 +369,10 @@ class TaskbarRecentAppsController(
     }
 
     private fun fetchIcons() {
-        cancelIconLoadRequests() // Cancel any previous requests.
+        if (enableRecentsInTaskbar()) {
+            cancelIconLoadRequests() // Cancel any previous requests.
+        }
+
         for (groupTask in shownTasks) {
             for ((i, task) in groupTask.tasks.withIndex()) {
                 val cancellableTask =

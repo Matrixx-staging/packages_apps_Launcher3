@@ -67,6 +67,7 @@ constructor(
     private val installSessionHelper: InstallSessionHelper,
     private val homeScreenFilesProvider: HomeScreenFilesProvider,
     private val lifeCycle: DaggerSingletonTracker,
+    private val homeScreenFilesChangedTask: HomeScreenFilesChangedTask.Factory,
 ) {
 
     fun initialize(model: LauncherModel) {
@@ -146,7 +147,7 @@ constructor(
         // Monitor changes to files shown on homescreen.
         lifeCycle.addCloseable(
             homeScreenFilesProvider.fileChanges.forEach(MODEL_EXECUTOR) {
-                model.enqueueModelUpdateTask(HomeScreenFilesChangedTask(it.uri, it.flags))
+                model.enqueueModelUpdateTask(homeScreenFilesChangedTask.create(it))
             }
         )
     }

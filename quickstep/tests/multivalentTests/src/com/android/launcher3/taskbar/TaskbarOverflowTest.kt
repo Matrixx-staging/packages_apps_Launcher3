@@ -57,6 +57,7 @@ import com.android.launcher3.taskbar.rules.TaskbarSandboxComponent
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.InjectController
 import com.android.launcher3.taskbar.rules.TaskbarWindowSandboxContext
+import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.LauncherMultivalentJUnit.EmulatedDevices
@@ -85,7 +86,6 @@ import java.util.function.Predicate
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.ExternalResource
 import org.junit.runner.RunWith
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
@@ -115,7 +115,11 @@ class TaskbarOverflowTest {
         TaskbarWindowSandboxContext.create(
             SandboxParams(
                 {
-                    spy(SystemUiProxy(ApplicationProvider.getApplicationContext())) { proxy ->
+                    spy(SystemUiProxy(
+                            ApplicationProvider.getApplicationContext(),
+                            MAIN_EXECUTOR,
+                            UI_HELPER_EXECUTOR
+                        )) { proxy ->
                         systemUiProxySpy = proxy
                         doAnswer { desktopTaskListener = it.getArgument(0) }
                             .whenever(proxy)
@@ -133,17 +137,7 @@ class TaskbarOverflowTest {
 
     @get:Rule(order = 4) val animatorTestRule = AnimatorTestRule(this)
 
-    // TODO: b/438808570 - Support controlling desktop mode through TaskbarUnitTestRule.
     @get:Rule(order = 5)
-    val enableDesktopModeRule =
-        object : ExternalResource() {
-            override fun before() {
-                whenever(desktopVisibilityController.isInDesktopMode(context.displayId))
-                    .thenReturn(true)
-            }
-        }
-
-    @get:Rule(order = 6)
     val taskbarUnitTestRule = TaskbarUnitTestRule(this, context, this::onControllersInitialized)
 
     @InjectController lateinit var taskbarViewController: TaskbarViewController
@@ -184,6 +178,7 @@ class TaskbarOverflowTest {
 
     @Before
     fun ensureRunningAppsShowing() {
+        whenever(desktopVisibilityController.isInDesktopMode(context.displayId)).thenReturn(true)
         runOnMainSync { recentsModel.resolvePendingTaskRequests() }
     }
 

@@ -35,6 +35,7 @@ import com.android.launcher3.util.ui.AbstractLauncherUiTest;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.window.RecentsWindowFlags;
 import com.android.quickstep.window.RecentsWindowManager;
+import com.android.quickstep.window.RecentsWindowTracker;
 
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
@@ -69,6 +70,13 @@ public abstract class AbstractQuickStepTest
         }
     }
 
+    @Nullable
+    private RecentsWindowManager getRecentsWindowManager() {
+        RecentsWindowTracker recentsWindowTracker =
+                RecentsWindowTracker.REPOSITORY_INSTANCE.get(mTargetContext).get(mDisplayId);
+        return recentsWindowTracker == null ? null : recentsWindowTracker.getCreatedContext();
+    }
+
     // Cannot be used in TaplTests after injecting any gesture using Tapl because this can hide
     // flakiness.
     protected void waitForRecentsWindowCondition(String
@@ -93,8 +101,7 @@ public abstract class AbstractQuickStepTest
 
     protected <T> T getFromRecentsWindow(Function<RecentsWindowManager, T> f) {
         if (!TestHelpers.isInLauncherProcess()) return null;
-        return getOnUiThread(() ->
-                f.apply(RecentsWindowManager.getRecentsWindowTracker().getCreatedContext()));
+        return getOnUiThread(() -> f.apply(getRecentsWindowManager()));
     }
 
     protected void executeOnRecentsWindowIfPresent(Consumer<RecentsWindowManager> f) {
@@ -124,7 +131,7 @@ public abstract class AbstractQuickStepTest
         if (!RecentsWindowFlags.enableLauncherOverviewInWindow.isTrue()
                 || !hasEquivalentRecentsState(state.get())
                 || (forInitialization
-                && RecentsWindowManager.getRecentsWindowTracker().getCreatedContext() == null)) {
+                && getRecentsWindowManager() == null)) {
             super.waitForState(forInitialization, message, state);
             return;
         }

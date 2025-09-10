@@ -51,6 +51,7 @@ import com.android.quickstep.util.ContextualSearchHapticManager;
 import com.android.quickstep.util.ContextualSearchStateManager;
 import com.android.quickstep.views.RecentsDismissUtils;
 import com.android.quickstep.window.RecentsWindowManager;
+import com.android.quickstep.window.RecentsWindowTracker;
 
 import java.util.Set;
 
@@ -89,6 +90,8 @@ public interface QuickstepBaseAppComponent extends LauncherBaseAppComponent {
     PerDisplayRepository<RotationTouchHelper> getRotationTouchHelperRepository();
 
     PerDisplayRepository<RecentsWindowManager> getRecentsWindowManagerRepository();
+
+    PerDisplayRepository<RecentsWindowTracker> getRecentsWindowTrackerRepository();
 
     PerDisplayRepository<FallbackWindowInterface> getFallbackWindowInterfaceRepository();
 

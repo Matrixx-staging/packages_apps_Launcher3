@@ -2944,8 +2944,7 @@ public class Launcher extends StatefulActivity<LauncherState>
     public Stream<SystemShortcut.Factory> getSupportedShortcuts(int container) {
         if (container == CONTAINER_DESKTOP || container == CONTAINER_HOTSEAT) {
             return Stream.of(APP_INFO, WIDGETS, INSTALL, REMOVE);
-        } else if (Flags.homeScreenEditImprovements() && (container == CONTAINER_ALL_APPS
-                || container == CONTAINER_ALL_APPS_PREDICTION)) {
+        } else if (container == CONTAINER_ALL_APPS || container == CONTAINER_ALL_APPS_PREDICTION) {
             Stream.of(APP_INFO, WIDGETS, INSTALL, ADD_TO_HOME_SCREEN);
         }
         return Stream.of(APP_INFO, WIDGETS, INSTALL);
