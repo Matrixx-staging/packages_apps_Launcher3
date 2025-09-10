@@ -1417,6 +1417,10 @@ public final class LauncherInstrumentation {
     }
 
     void pressBackImpl() {
+        pressBackImpl(true);
+    }
+
+    void pressBackImpl(boolean expectBackEvent) {
         waitForLauncherInitialized();
         final boolean launcherVisible = isLauncherContainerVisible();
         boolean isThreeFingerTrackpadGesture =
@@ -1431,7 +1435,7 @@ public final class LauncherInstrumentation {
         } else {
             waitForNavigationUiObject("back").click();
         }
-        if (launcherVisible) {
+        if (expectBackEvent && launcherVisible) {
             if (isPredictiveBackSwipeEnabled()) {
                 expectEvent(TestProtocol.SEQUENCE_MAIN, EVENT_ON_BACK_INVOKED);
             } else {
