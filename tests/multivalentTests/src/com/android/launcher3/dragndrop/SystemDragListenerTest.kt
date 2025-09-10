@@ -22,6 +22,7 @@ import android.content.Intent
 import android.graphics.Point
 import android.graphics.Rect
 import android.net.Uri
+import android.os.Looper
 import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
 import android.view.DragEvent
@@ -34,6 +35,8 @@ import com.android.launcher3.icons.BitmapInfo
 import com.android.launcher3.icons.FastBitmapDrawable
 import com.android.launcher3.icons.IconCache
 import com.android.launcher3.util.LauncherMultivalentJUnit
+import com.android.launcher3.util.RoboApiWrapper
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -84,6 +87,13 @@ class SystemDragListenerTest {
         // tests below don't need to be mindful of constructor-related interactions.
         verify(mockLauncher.dragController).addSystemDragHandler(listener)
         clearInvocations(mockLauncher.dragController)
+    }
+
+    @After
+    fun tearDown() {
+        // NOTE: Ensure that any tasks posted by the system drag listener under test have a chance
+        // to run prior to test completion. Failure to do so may negatively impact subsequent tests.
+        RoboApiWrapper.waitForLooperSync(Looper.getMainLooper())
     }
 
     @Test
