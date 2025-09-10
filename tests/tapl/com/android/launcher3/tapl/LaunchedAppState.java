@@ -58,6 +58,8 @@ public final class LaunchedAppState extends Background {
 
     private static final int STASHED_TASKBAR_BOTTOM_EDGE_DP = 1;
 
+    private static final String DESKTOP_WINDOW_SPECIFIC_VIEW_RES_ID = "close_window";
+
     private final Condition<UiDevice, Boolean> mStashedTaskbarHintScaleCondition =
             device -> Math.abs(mLauncher.getTestInfo(REQUEST_STASHED_TASKBAR_SCALE).getFloat(
                     TestProtocol.TEST_INFO_RESPONSE_FIELD) - UNSTASHED_TASKBAR_HANDLE_HINT_SCALE)
@@ -195,8 +197,7 @@ public final class LaunchedAppState extends Background {
         BySelector activitySelector = By.pkg(packageName).text(activityText);
         try (LauncherInstrumentation.Closable c1 = mLauncher.addContextLayer(
                 "Verify test activity active")) {
-            mLauncher.waitForSystemUiObject("desktop_mode_caption");
-            mLauncher.waitForObjectBySelector(activitySelector);
+            waitForFreeformWindow(activitySelector);
         }
 
         try (LauncherInstrumentation.Closable c2 = mLauncher.addContextLayer(
@@ -206,9 +207,18 @@ public final class LaunchedAppState extends Background {
             mLauncher.unpressKeyCode(KeyEvent.KEYCODE_DPAD_UP,
                     KeyEvent.META_CTRL_ON | KeyEvent.META_META_ON);
 
-            mLauncher.waitUntilSystemUiObjectGone("desktop_mode_caption");
-            mLauncher.waitForObjectBySelector(activitySelector);
+            waitForFullscreenWindow(activitySelector);
         }
+    }
+
+    private void waitForFreeformWindow(BySelector activitySelector) {
+        mLauncher.waitForObjectBySelector(activitySelector);
+        mLauncher.waitForSystemUiObject(DESKTOP_WINDOW_SPECIFIC_VIEW_RES_ID);
+    }
+
+    private void waitForFullscreenWindow(BySelector activitySelector) {
+        mLauncher.waitForObjectBySelector(activitySelector);
+        mLauncher.waitUntilSystemUiObjectGone(DESKTOP_WINDOW_SPECIFIC_VIEW_RES_ID);
     }
 
     /**
