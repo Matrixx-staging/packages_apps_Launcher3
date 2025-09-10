@@ -633,3 +633,13 @@ flag {
     description: "Enables expandable long press menu"
     bug: "444003708"
 }
+
+flag {
+  name: "enable_app_widget_picker_refactor"
+  namespace: "launcher"
+  description: "Migrates the small widget pickers to compose"
+  bug: "436344835"
+  metadata {
+    purpose: PURPOSE_BUGFIX
+  }
+}
