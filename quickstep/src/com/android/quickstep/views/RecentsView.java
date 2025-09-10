@@ -17,6 +17,7 @@
 package com.android.quickstep.views;
 
 import static android.app.ActivityTaskManager.INVALID_TASK_ID;
+import static android.app.WindowConfiguration.WINDOWING_MODE_FULLSCREEN;
 import static android.os.Trace.traceBegin;
 import static android.os.Trace.traceEnd;
 import static android.view.View.MeasureSpec.EXACTLY;
@@ -1468,7 +1469,9 @@ public abstract class RecentsView<
             @Nullable TransitionInfo transitionInfo) {
         AnimatorSet anim = new AnimatorSet();
         TaskView taskView = getTaskViewByTaskId(taskId);
-        if (taskView == null || !isTaskViewVisible(taskView)) {
+        if (taskView == null
+                || !isTaskViewVisible(taskView)
+                || isTaskOnDesktopLaunchingFullscreen(taskId, taskView, apps)) {
             // TODO: Refine this animation.
             SurfaceTransactionApplier surfaceApplier =
                     new SurfaceTransactionApplier(mContainer.getDragLayer());
@@ -1524,6 +1527,15 @@ public abstract class RecentsView<
                     getDepthController(), transitionInfo, /* appearedTaskId= */ taskId);
         }
         anim.start();
+    }
+
+    private static boolean isTaskOnDesktopLaunchingFullscreen(
+            int taskId, TaskView taskView, RemoteAnimationTarget[] apps) {
+        if (!(taskView instanceof DesktopTaskView)) {
+            return false;
+        }
+        return Arrays.stream(apps).anyMatch(t -> t.taskId == taskId
+                && t.windowConfiguration.getWindowingMode() == WINDOWING_MODE_FULLSCREEN);
     }
 
     public boolean isTaskViewVisible(TaskView tv) {
