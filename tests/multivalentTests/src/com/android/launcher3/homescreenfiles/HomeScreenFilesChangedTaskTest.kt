@@ -145,15 +145,14 @@ class HomeScreenFilesChangedTaskTest {
 
     @Test
     fun updatesWorkspaceItemForUpdatedFile() {
-        wsData.addItems(
-            listOf(
+        wsData.modifyItems {
+            val item =
                 WorkspaceItemInfo().apply {
                     title = "old_file.png"
                     intent = HomeScreenFilesUtils.buildLaunchIntent(testUri, testFile)
                 }
-            ),
-            null,
-        )
+            put(item.id, item)
+        }
         val task =
             HomeScreenFilesChangedTask(
                 HomeScreenFilesProvider.FileChange(

@@ -35,10 +35,10 @@ import com.android.launcher3.model.AllAppsList
 import com.android.launcher3.model.ModelTaskController
 import com.android.launcher3.model.TestableModelState
 import com.android.launcher3.model.data.AppInfo
-import com.android.launcher3.model.data.WorkspaceData
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.model.repository.AppsListRepository
 import com.android.launcher3.model.tasks.ModelRepoTestEx.trackUpdate
+import com.android.launcher3.model.tasks.ModelRepoTestEx.trackUpdateAndChanges
 import com.android.launcher3.model.tasks.ModelRepoTestEx.verifyAndGetItemsUpdated
 import com.android.launcher3.model.tasks.ModelRepoTestEx.verifyDelete
 import com.android.launcher3.util.AllModulesForTest
@@ -133,7 +133,7 @@ class PackageTaskFactoryTest {
         modelState.appsList.getAndResetChangeFlag()
         modelState.dataModel.addItem(context, expectedWorkspaceItem)
         val appUpdates = modelState.appsRepo.appsListStateRef.trackUpdate()
-        val workspaceUpdates = modelState.homeRepo.workspaceState.trackUpdate()
+        val workspaceUpdates = modelState.homeRepo.workspaceState.trackUpdateAndChanges()
 
         PackageTaskFactory.appsRemoved(myUser, setOf(expectedPackage)).executeSync()
 
@@ -152,7 +152,7 @@ class PackageTaskFactoryTest {
     @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun unavailability_triggers_package_removal_from_all_apps_list() {
         modelState.dataModel.addItem(context, expectedWorkspaceItem)
-        val workspaceUpdates = modelState.homeRepo.workspaceState.trackUpdate()
+        val workspaceUpdates = modelState.homeRepo.workspaceState.trackUpdateAndChanges()
 
         PackageTaskFactory.appsUnavailable(myUser, setOf(expectedPackage)).executeSync()
 
@@ -174,7 +174,7 @@ class PackageTaskFactoryTest {
         )
         modelState.appsList.getAndResetChangeFlag()
         doAnswer {}.whenever(mockTaskController).bindApplicationsIfNeeded()
-        val workspaceUpdates = modelState.homeRepo.workspaceState.trackUpdate()
+        val workspaceUpdates = modelState.homeRepo.workspaceState.trackUpdateAndChanges()
 
         PackageTaskFactory.appsSuspended(myUser, setOf(expectedPackage)).executeSync()
 
@@ -192,19 +192,22 @@ class PackageTaskFactoryTest {
         modelState.dataModel.addItem(context, expectedWorkspaceItem)
         modelState.appsList.getAndResetChangeFlag()
         doAnswer {}.whenever(mockTaskController).bindApplicationsIfNeeded()
-        val workspaceUpdates = modelState.homeRepo.workspaceState.trackUpdate()
+        val workspaceUpdates = modelState.homeRepo.workspaceState.trackUpdateAndChanges()
 
         PackageTaskFactory.appsUnsuspended(myUser, setOf(expectedPackage)).executeSync()
 
         verify(mockTaskController).bindUpdatedWorkspaceItems(emptyList())
-        assertThat(workspaceUpdates).hasSize(1)
+        assertThat(workspaceUpdates.changes).isEmpty()
 
         verify(modelState.appsList).updateDisabledFlags(any(), any())
         assertThat(modelState.appsList.getAndResetChangeFlag()).isFalse()
         assertThat(modelState.appsRepo.appsListStateRef.value.apps).isEmpty()
     }
 
-    private fun List<WorkspaceData>.verifyItemUpdated(updateIndex: Int = 1, totalUpdates: Int = 2) =
+    private fun TrackedWorkspaceUpdates.verifyItemUpdated(
+        updateIndex: Int = 1,
+        totalUpdates: Int = 2,
+    ) =
         assertThat(verifyAndGetItemsUpdated(updateIndex, totalUpdates))
             .containsExactly(expectedWorkspaceItem)
 

@@ -26,7 +26,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.android.launcher3.Flags
 import com.android.launcher3.model.TestableModelState
-import com.android.launcher3.model.tasks.ModelRepoTestEx.trackUpdate
+import com.android.launcher3.model.tasks.ModelRepoTestEx.trackUpdateAndChanges
 import com.android.launcher3.model.tasks.ModelRepoTestEx.verifyAndGetItemsUpdated
 import com.android.launcher3.model.tasks.ModelRepoTestEx.verifyDelete
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
@@ -101,7 +101,7 @@ class UserLockStateChangedTaskTest {
     @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun `items updated on user enabled`() {
         TestUtil.runOnExecutorSync(MODEL_EXECUTOR) {
-            val workspaceUpdate = modelState.homeRepo.workspaceState.trackUpdate()
+            val workspaceUpdate = modelState.homeRepo.workspaceState.trackUpdateAndChanges()
             executeTask(true)
             workspaceUpdate.verifyAndGetItemsUpdated()
         }
@@ -111,7 +111,7 @@ class UserLockStateChangedTaskTest {
     @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun `items removed on user enabled and shortcut missing`() {
         TestUtil.runOnExecutorSync(MODEL_EXECUTOR) {
-            val workspaceUpdate = modelState.homeRepo.workspaceState.trackUpdate()
+            val workspaceUpdate = modelState.homeRepo.workspaceState.trackUpdateAndChanges()
             executeTask(isUserUnlocked = true, hasShortcuts = false)
             workspaceUpdate.verifyDelete()
         }
@@ -121,7 +121,7 @@ class UserLockStateChangedTaskTest {
     @EnableFlags(Flags.FLAG_MODEL_REPOSITORY)
     fun `items updated on user disabled`() {
         TestUtil.runOnExecutorSync(MODEL_EXECUTOR) {
-            val workspaceUpdate = modelState.homeRepo.workspaceState.trackUpdate()
+            val workspaceUpdate = modelState.homeRepo.workspaceState.trackUpdateAndChanges()
             executeTask(false)
             workspaceUpdate.verifyAndGetItemsUpdated()
         }
