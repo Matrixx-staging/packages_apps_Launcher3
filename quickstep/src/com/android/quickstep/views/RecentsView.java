@@ -1319,13 +1319,9 @@ public abstract class RecentsView<
             if (enableOverviewDesktopTileWallpaperBackground()) {
                 reset();
             }
-            try {
-                mTaskViewPool.killOngoingInitializations();
-                mGroupedTaskViewPool.killOngoingInitializations();
-                mDesktopTaskViewPool.killOngoingInitializations();
-            } catch (InterruptedException e) {
-                Log.e(TAG, "Ongoing initializations could not be killed", e);
-            }
+            mTaskViewPool.cancelOngoingInitializations();
+            mGroupedTaskViewPool.cancelOngoingInitializations();
+            mDesktopTaskViewPool.cancelOngoingInitializations();
             mHelper.onDestroy();
             RecentsDependencies.destroy(getContext());
         }
