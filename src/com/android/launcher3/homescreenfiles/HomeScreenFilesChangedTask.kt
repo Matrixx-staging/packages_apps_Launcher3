@@ -50,7 +50,7 @@ constructor(
     ) {
         val isInsert = fileChange.flags and NOTIFY_INSERT == NOTIFY_INSERT
         val isUpdate = fileChange.flags and NOTIFY_UPDATE == NOTIFY_UPDATE
-        val file = fileChange.file.get()
+        val file = kotlin.runCatching { fileChange.file.get() }.getOrNull()
 
         if (isInsert && file != null) {
             processInsert(fileChange.uri, file, taskController)
