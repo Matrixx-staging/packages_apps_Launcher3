@@ -458,9 +458,8 @@ public class SecondaryDisplayLauncher extends BaseActivity
     protected void onActivityFlagsChanged(int changeBits) {
         super.onActivityFlagsChanged(changeBits);
 
-        int displayId = getDisplay().getDisplayId();
-        if (displayId != Display.DEFAULT_DISPLAY && (changeBits & ACTIVITY_STATE_RESUMED) != 0) {
-            mSecondaryDisplayDelegate.updateStashControllerStateFlags(displayId, hasBeenResumed());
+        if (mDisplayId != Display.DEFAULT_DISPLAY && (changeBits & ACTIVITY_STATE_RESUMED) != 0) {
+            mSecondaryDisplayDelegate.updateStashControllerStateFlags(mDisplayId, hasBeenResumed());
         }
     }
 
