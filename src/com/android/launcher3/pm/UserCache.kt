@@ -95,30 +95,30 @@ constructor(@ApplicationContext private val context: Context, tracker: DaggerSin
     @WorkerThread
     private fun rebuildUserCache(): UserManagerState =
         UserManagerState(
-                buildMap { userManager.userProfiles?.forEach { put(it, buildCachedUserInfo(it)) } }
+                fetchSafe(emptyList<UserHandle>()) { userProfiles }
+                    .mapNotNull { buildCachedUserInfo(it) }
+                    .associateBy { it.iconInfo.user }
             )
             .also { _userInfoMap = it }
 
-    private fun buildCachedUserInfo(user: UserHandle): CachedUserInfo {
-        val info = buildCachedUserInfoAndroidV(user)
-        if (info != null) return info
+    private fun buildCachedUserInfo(user: UserHandle): CachedUserInfo? {
+        if (!ATLEAST_V) {
+            return fetchSafe(null) {
+                // Simple check to check if the provided user is work profile
+                val isWork =
+                    NoopDrawable().let { it !== context.packageManager.getUserBadgedIcon(it, user) }
+                CachedUserInfo(
+                    UserIconInfo(
+                        user = user,
+                        type = if (isWork) UserIconInfo.TYPE_WORK else UserIconInfo.TYPE_MAIN,
+                        userSerial = getSerialNumberForUser(user),
+                    ),
+                    isUnlocked = isUserUnlocked(user),
+                    isQuietModeEnabled = isQuietModeEnabled(user),
+                )
+            }
+        }
 
-        // Simple check to check if the provided user is work profile
-        val isWork =
-            NoopDrawable().let { it !== context.packageManager.getUserBadgedIcon(it, user) }
-        return CachedUserInfo(
-            UserIconInfo(
-                user = user,
-                type = if (isWork) UserIconInfo.TYPE_WORK else UserIconInfo.TYPE_MAIN,
-                userSerial = userManager.getSerialNumberForUser(user),
-            ),
-            isUnlocked = fetchSafe { isUserUnlocked(user) },
-            isQuietModeEnabled = fetchSafe { isQuietModeEnabled(user) },
-        )
-    }
-
-    private fun buildCachedUserInfoAndroidV(user: UserHandle): CachedUserInfo? {
-        if (!ATLEAST_V) return null
         val launcherApps = context.getSystemService(LauncherApps::class.java) ?: return null
         return launcherApps.getLauncherUserInfo(user)?.let {
             val userType: String? = it.userType
@@ -136,19 +136,19 @@ constructor(@ApplicationContext private val context: Context, tracker: DaggerSin
                             },
                         userSerial = it.userSerialNumber.toLong(),
                     ),
-                isUnlocked = fetchSafe { isUserUnlocked(user) },
-                isQuietModeEnabled = fetchSafe { isQuietModeEnabled(user) },
+                isUnlocked = fetchSafe(false) { isUserUnlocked(user) },
+                isQuietModeEnabled = fetchSafe(false) { isQuietModeEnabled(user) },
                 preInstallApps = launcherApps.getPreInstalledSystemPackages(user).toSet(),
             )
         }
     }
 
-    private inline fun fetchSafe(block: UserManager.() -> Boolean) =
+    private inline fun <T> fetchSafe(defaultValue: T, block: UserManager.() -> T) =
         try {
             block.invoke(userManager)
         } catch (e: SecurityException) {
             Log.e(TAG, "Security exception while fetching user property", e)
-            false
+            defaultValue
         }
 
     /** Adds a listener for user additions and removals */

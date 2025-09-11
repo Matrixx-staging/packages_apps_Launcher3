@@ -117,7 +117,7 @@ class LoaderTaskTest {
         get() = testComponent.getDataModel()
 
     private val inMemoryDb: SQLiteDatabase by lazy {
-        ModelTestExtensions.createInMemoryDb(INSERTION_STATEMENT_FILE)
+        ModelTestExtensions.createInMemoryDb(context, INSERTION_STATEMENT_FILE)
     }
 
     @Before
