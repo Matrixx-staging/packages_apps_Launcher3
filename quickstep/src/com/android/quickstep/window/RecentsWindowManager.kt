@@ -201,27 +201,41 @@ constructor(
     private val eventCallbacks =
         listOf(RunnableList(), RunnableList(), RunnableList(), RunnableList())
 
-    private val onBackInvokedCallback = OnBackInvokedCallback {
-        stateManager.state.onBackInvoked(this@RecentsWindowManager)
-        TestLogging.recordEvent(SEQUENCE_MAIN, "onBackInvoked")
-    }
+    val onBackInvokedCallback =
+        if (enablePredictiveBackInOverview()) {
+            object : FlingOnBackAnimationCallback() {
+                override fun onBackInvokedCompat() {
+                    Log.d(TAG, "onBackInvokedCompat: displayId=$displayId")
+                    stateManager.state.onBackInvoked(this@RecentsWindowManager)
+                    TestLogging.recordEvent(SEQUENCE_MAIN, "onBackInvoked")
+                }
 
-    private val onBackAnimationCallback =
-        object : FlingOnBackAnimationCallback() {
-            override fun onBackInvokedCompat() {
+                override fun onBackStartedCompat(backEvent: BackEvent) {
+                    Log.d(TAG, "onBackStartedCompat: displayId=$displayId")
+                    stateManager.state.onBackStarted(this@RecentsWindowManager)
+                }
+
+                override fun onBackProgressedCompat(backEvent: BackEvent) {
+                    Log.d(
+                        TAG,
+                        "onBackProgressedCompat: displayId=$displayId, progress=${backEvent.progress}",
+                    )
+                    stateManager.state.onBackProgressed(
+                        this@RecentsWindowManager,
+                        backEvent.progress,
+                    )
+                }
+
+                override fun onBackCancelledCompat() {
+                    Log.d(TAG, "onBackCancelledCompat: displayId=$displayId")
+                }
+            }
+        } else {
+            OnBackInvokedCallback {
+                Log.d(TAG, "onBackInvokedCallback: displayId=$displayId")
                 stateManager.state.onBackInvoked(this@RecentsWindowManager)
                 TestLogging.recordEvent(SEQUENCE_MAIN, "onBackInvoked")
             }
-
-            override fun onBackStartedCompat(backEvent: BackEvent) {
-                stateManager.state.onBackStarted(this@RecentsWindowManager)
-            }
-
-            override fun onBackProgressedCompat(backEvent: BackEvent) {
-                stateManager.state.onBackProgressed(this@RecentsWindowManager, backEvent.progress)
-            }
-
-            override fun onBackCancelledCompat() {}
         }
 
     private val homeVisibilityState = systemUiProxy.homeVisibilityState
@@ -333,13 +347,7 @@ constructor(
             }
 
             it.findOnBackInvokedDispatcher()
-                ?.registerSystemOnBackInvokedCallback(
-                    if (enablePredictiveBackInOverview()) {
-                        onBackAnimationCallback
-                    } else {
-                        onBackInvokedCallback
-                    }
-                )
+                ?.registerSystemOnBackInvokedCallback(onBackInvokedCallback)
 
             recentsWindowTracker.handleCreate(this)
             onViewCreated()
@@ -362,13 +370,7 @@ constructor(
             }
             windowView
                 ?.findOnBackInvokedDispatcher()
-                ?.unregisterOnBackInvokedCallback(
-                    if (enablePredictiveBackInOverview()) {
-                        onBackAnimationCallback
-                    } else {
-                        onBackInvokedCallback
-                    }
-                )
+                ?.unregisterOnBackInvokedCallback(onBackInvokedCallback)
             callbacks?.removeListener(recentsAnimationListener)
             if (displayId == DEFAULT_DISPLAY) {
                 homeVisibilityState.removeListener(homeVisibilityListener)
