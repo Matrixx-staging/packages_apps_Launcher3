@@ -4535,8 +4535,12 @@ public abstract class RecentsView<
         if (!cycle && (newPageUnbound < 0 || newPageUnbound > pageCount)) {
             return false;
         }
-        snapToPage((newPageUnbound + pageCount) % pageCount);
-        getChildAt(getNextPage()).requestFocus();
+        final int newPage = (newPageUnbound + pageCount) % pageCount;
+        snapToPage(newPage);
+        View child = getChildAt(newPage);
+        if (child != null) {
+            child.requestFocus();
+        }
         return true;
     }
 
