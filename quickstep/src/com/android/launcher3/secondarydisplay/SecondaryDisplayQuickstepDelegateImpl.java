@@ -19,9 +19,11 @@ import static androidx.lifecycle.Lifecycle.State.RESUMED;
 
 import static com.android.launcher3.taskbar.TaskbarDesktopExperienceFlags.enableAutoStashConnectedDisplayTaskbar;
 import static com.android.launcher3.util.OnboardingPrefs.ALL_APPS_VISITED_COUNT;
+import static com.android.window.flags.Flags.useInputReportedFocusForAccessibility;
 
 import android.content.Context;
 import android.view.Display;
+import android.view.KeyEvent;
 import android.window.DesktopExperienceFlags;
 
 import com.android.launcher3.appprediction.AppsDividerView;
@@ -31,8 +33,12 @@ import com.android.launcher3.model.data.PredictedContainerInfo;
 import com.android.launcher3.taskbar.TaskbarActivityContext;
 import com.android.launcher3.taskbar.TaskbarManager;
 import com.android.launcher3.views.ActivityContext;
+import com.android.quickstep.BaseContainerInterface;
+import com.android.quickstep.OverviewComponentObserver;
 import com.android.quickstep.TouchInteractionService.TISBinder;
 import com.android.quickstep.util.TISBindHelper;
+import com.android.quickstep.views.RecentsViewContainer;
+import com.android.quickstep.window.RecentsWindowManager;
 
 import javax.inject.Inject;
 
@@ -45,12 +51,15 @@ public final class SecondaryDisplayQuickstepDelegateImpl extends SecondaryDispla
     private final ActivityContext mActivityContext;
     private final Context mContext;
     private final TISBindHelper mTISBindHelper;
+    private final OverviewComponentObserver mOverviewComponentObserver;
 
     @Inject
-    public SecondaryDisplayQuickstepDelegateImpl(ActivityContext activityContext) {
+    public SecondaryDisplayQuickstepDelegateImpl(ActivityContext activityContext,
+            OverviewComponentObserver overviewComponentObserver) {
         mContext = activityContext.asContext();
         mActivityContext = activityContext;
         mTISBindHelper = new TISBindHelper(mContext, this::onTISConnected);
+        mOverviewComponentObserver = overviewComponentObserver;
     }
 
     void onDestroy() {
@@ -107,6 +116,23 @@ public final class SecondaryDisplayQuickstepDelegateImpl extends SecondaryDispla
             return;
         }
         tac.updateStashControllerLauncherStateFlag(isVisible);
+    }
+
+    @Override
+    boolean dispatchKeyEvent(KeyEvent event) {
+        if (useInputReportedFocusForAccessibility()) {
+            return false;
+        }
+        BaseContainerInterface<?, ?> baseContainerInterface =
+                mOverviewComponentObserver.getContainerInterface(mContext.getDisplayId());
+        if (baseContainerInterface != null) {
+            RecentsViewContainer container = baseContainerInterface.getCreatedContainer();
+            if (container instanceof RecentsWindowManager recentsWindowManager
+                    && recentsWindowManager.isRecentsViewVisible()) {
+                return container.dispatchKeyEvent(event);
+            }
+        }
+        return false;
     }
 
     private void onTISConnected(TISBinder binder) {
