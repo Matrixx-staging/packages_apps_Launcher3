@@ -95,9 +95,9 @@ object PerDisplayRepositoriesModule {
         return if (enableOverviewOnConnectedDisplays()) {
             repositoryFactory.create("TaskAnimationManagerRepo", instanceFactory::create)
         } else {
-            SingleInstanceRepositoryImpl(
+            DefaultDisplayOnlyInstanceRepositoryImpl(
                 "TaskAnimationManager",
-                instanceFactory.create(DEFAULT_DISPLAY),
+                instanceFactory::create,
             )
         }
     }
