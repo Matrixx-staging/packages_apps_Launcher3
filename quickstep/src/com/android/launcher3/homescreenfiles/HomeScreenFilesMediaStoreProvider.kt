@@ -17,6 +17,7 @@
 package com.android.launcher3.homescreenfiles
 
 import android.content.ContentResolver
+import android.content.ContentUris
 import android.content.Context
 import android.database.ContentObserver
 import android.net.Uri
@@ -45,7 +46,7 @@ class HomeScreenFilesMediaStoreProvider(
         val observer =
             object : ContentObserver(null) {
                 override fun onChange(selfChange: Boolean, uri: Uri?, flags: Int) {
-                    if (!selfChange && uri != null) {
+                    if (!selfChange && uri != null && uri.hasIdSegment()) {
                         fileChanges.dispatchValue(
                             FileChange(uri, flags, query(uri), Process.myUserHandle())
                         )
@@ -143,5 +144,8 @@ class HomeScreenFilesMediaStoreProvider(
 
         private fun isMediaStoreUri(uri: Uri) =
             uri.scheme == ContentResolver.SCHEME_CONTENT && uri.authority == MediaStore.AUTHORITY
+
+        private fun Uri.hasIdSegment(): Boolean =
+            kotlin.runCatching { ContentUris.parseId(this) != -1L }.getOrDefault(false)
     }
 }
