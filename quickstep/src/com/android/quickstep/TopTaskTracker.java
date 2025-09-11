@@ -172,15 +172,17 @@ public class TopTaskTracker extends ISplitScreenListener.Stub implements TaskSta
             }
         }
 
-        // Keep the home display's top running task in the first while adding a non-home
-        // display's task to the list, to avoid showing non-home display's task upon going to
-        // Recents animation.
-        if (taskInfo.displayId != DEFAULT_DISPLAY) {
-            final TaskInfo topTaskOnHomeDisplay = mOrderedTaskList.stream()
-                    .filter(rto -> rto.displayId == DEFAULT_DISPLAY).findFirst().orElse(null);
-            if (topTaskOnHomeDisplay != null) {
-                mOrderedTaskList.removeIf(rto -> rto.taskId == topTaskOnHomeDisplay.taskId);
-                mOrderedTaskList.addFirst(topTaskOnHomeDisplay);
+        if (!enableOverviewOnConnectedDisplays()) {
+            // Keep the home display's top running task in the first while adding a non-home
+            // display's task to the list, to avoid showing non-home display's task upon going to
+            // Recents animation.
+            if (taskInfo.displayId != DEFAULT_DISPLAY) {
+                final TaskInfo topTaskOnHomeDisplay = mOrderedTaskList.stream()
+                        .filter(rto -> rto.displayId == DEFAULT_DISPLAY).findFirst().orElse(null);
+                if (topTaskOnHomeDisplay != null) {
+                    mOrderedTaskList.removeIf(rto -> rto.taskId == topTaskOnHomeDisplay.taskId);
+                    mOrderedTaskList.addFirst(topTaskOnHomeDisplay);
+                }
             }
         }
 
