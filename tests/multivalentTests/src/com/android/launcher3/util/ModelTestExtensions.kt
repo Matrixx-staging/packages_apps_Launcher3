@@ -1,6 +1,7 @@
 package com.android.launcher3.util
 
 import android.content.ContentValues
+import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.os.Process
 import android.util.SparseArray
@@ -22,11 +23,13 @@ import com.android.launcher3.LauncherSettings.Favorites.RESTORED
 import com.android.launcher3.LauncherSettings.Favorites.SCREEN
 import com.android.launcher3.LauncherSettings.Favorites.SPANX
 import com.android.launcher3.LauncherSettings.Favorites.SPANY
+import com.android.launcher3.LauncherSettings.Favorites.TABLE_NAME
 import com.android.launcher3.LauncherSettings.Favorites.TITLE
 import com.android.launcher3.LauncherSettings.Favorites._ID
 import com.android.launcher3.model.BgDataModel
 import com.android.launcher3.model.ModelDbController
 import com.android.launcher3.model.data.ItemInfo
+import com.android.launcher3.pm.UserCache
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
@@ -127,7 +130,7 @@ object ModelTestExtensions {
     }
 
     /** Creates an in-memory sqlite DB and initializes with the data in [insertFile] */
-    fun createInMemoryDb(insertFile: String): SQLiteDatabase =
+    fun createInMemoryDb(context: Context, insertFile: String): SQLiteDatabase =
         SQLiteDatabase.createInMemory(SQLiteDatabase.OpenParams.Builder().build()).also { db ->
             BufferedReader(
                     InputStreamReader(
@@ -136,6 +139,13 @@ object ModelTestExtensions {
                 )
                 .lines()
                 .forEach { sqlStatement -> db.execSQL(sqlStatement) }
+            val mainProfileId =
+                UserCache.INSTANCE.get(context).getSerialNumberForUser(Process.myUserHandle())
+            if (mainProfileId != 0L) {
+                db.execSQL(
+                    "UPDATE $TABLE_NAME SET $PROFILE_ID = $mainProfileId WHERE $PROFILE_ID = 0;"
+                )
+            }
         }
 
     /** Initializes [BgDataModel.itemsIdMap] with provided [items] */

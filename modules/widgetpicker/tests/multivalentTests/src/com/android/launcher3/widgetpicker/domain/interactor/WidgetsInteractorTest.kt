@@ -101,6 +101,25 @@ class WidgetsInteractorTest {
         }
 
     @Test
+    fun getWidgetsForApp_returnsWidgetsForGivenApp() =
+        testScope.runTest {
+            val app1Id = PERSONAL_TEST_APPS[0].id
+            widgetUsersRepository.seedUserProfiles(
+                profiles =
+                    WidgetUserProfiles(
+                        personal = widgetUserProfilePersonal,
+                        work = widgetUserProfileWork,
+                    ),
+                workProfileUser = workUser,
+            )
+            widgetsRepository.seedWidgets(PERSONAL_TEST_APPS + WORK_TEST_APPS)
+
+            val result = underTest.getWidgetApp(app1Id).first()
+
+            assertThat(result).isEqualTo(PERSONAL_TEST_APPS[0])
+        }
+
+    @Test
     fun getFeaturedWidgets_returnsAllFeaturedWidgets() =
         testScope.runTest {
             widgetUsersRepository.seedUserProfiles(

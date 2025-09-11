@@ -18,6 +18,7 @@ package com.android.quickstep.window
 
 import android.animation.AnimatorSet
 import android.app.ActivityOptions
+import android.app.ActivityTaskManager
 import android.content.ComponentCallbacks
 import android.content.ComponentName
 import android.content.Context
@@ -42,7 +43,9 @@ import android.window.BackEvent
 import android.window.DesktopExperienceFlags
 import android.window.OnBackInvokedCallback
 import android.window.RemoteTransition
+import android.window.SplashScreen
 import androidx.annotation.UiThread
+import androidx.core.animation.addListener
 import androidx.core.view.isVisible
 import com.android.app.displaylib.PerDisplayInstanceProviderWithTeardown
 import com.android.app.displaylib.PerDisplayRepository
@@ -52,11 +55,17 @@ import com.android.launcher3.Flags.enablePredictiveBackInOverview
 import com.android.launcher3.LauncherAnimationRunner
 import com.android.launcher3.LauncherAnimationRunner.RemoteAnimationFactory
 import com.android.launcher3.LauncherRootView
+import com.android.launcher3.QuickstepTransitionManager.RECENTS_LAUNCH_DURATION
+import com.android.launcher3.QuickstepTransitionManager.STATUS_BAR_TRANSITION_DURATION
+import com.android.launcher3.QuickstepTransitionManager.STATUS_BAR_TRANSITION_PRE_DELAY
 import com.android.launcher3.R
+import com.android.launcher3.anim.PendingAnimation
 import com.android.launcher3.compat.AccessibilityManagerCompat
+import com.android.launcher3.concurrent.annotations.Ui
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.dagger.WindowContext
 import com.android.launcher3.desktop.DesktopRecentsTransitionController
+import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.statemanager.StateManager
 import com.android.launcher3.statemanager.StateManager.AtomicAnimationFactory
 import com.android.launcher3.statemanager.StatefulContainer
@@ -64,9 +73,11 @@ import com.android.launcher3.taskbar.TaskbarInteractor
 import com.android.launcher3.testing.TestLogging
 import com.android.launcher3.testing.shared.TestProtocol.LAUNCHER_ACTIVITY_STOPPED_MESSAGE
 import com.android.launcher3.testing.shared.TestProtocol.SEQUENCE_MAIN
+import com.android.launcher3.util.ActivityOptionsWrapper
 import com.android.launcher3.util.DaggerSingletonObject
 import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.Executors
+import com.android.launcher3.util.LooperExecutor
 import com.android.launcher3.util.RunnableList
 import com.android.launcher3.util.ScreenOnTracker
 import com.android.launcher3.util.ScreenOnTracker.ScreenOnListener
@@ -85,6 +96,7 @@ import com.android.quickstep.RecentsAnimationController
 import com.android.quickstep.RecentsModel
 import com.android.quickstep.RemoteAnimationTargets
 import com.android.quickstep.SystemUiProxy
+import com.android.quickstep.TaskViewUtils
 import com.android.quickstep.dagger.QuickstepBaseAppComponent
 import com.android.quickstep.fallback.FallbackRecentsStateController
 import com.android.quickstep.fallback.FallbackRecentsView
@@ -103,6 +115,7 @@ import com.android.quickstep.util.TISBindHelper
 import com.android.quickstep.views.OverviewActionsView
 import com.android.quickstep.views.RecentsView
 import com.android.quickstep.views.RecentsViewContainer
+import com.android.quickstep.views.TaskView
 import com.android.systemui.animation.back.FlingOnBackAnimationCallback
 import com.android.systemui.shared.recents.model.ThumbnailData
 import com.android.wm.shell.shared.desktopmode.DesktopState
@@ -132,6 +145,7 @@ constructor(
     private val screenOnTracker: ScreenOnTracker,
     private val desktopState: DesktopState,
     private val displayController: DisplayController,
+    @Ui private val uiExecutor: LooperExecutor,
 ) :
     RecentsWindowContext(windowContext, wallpaperColorHints.hints),
     RecentsViewContainer,
@@ -140,6 +154,7 @@ constructor(
 
     companion object {
         private const val HOME_APPEAR_DURATION: Long = 250
+        private const val RECENTS_ANIMATION_TIMEOUT = 1000L
         private const val TAG = "RecentsWindowManager"
 
         @JvmField
@@ -238,6 +253,8 @@ constructor(
         }
     }
 
+    var activityLaunchAnimationRunner: RemoteAnimationFactory? = null
+
     init {
         fallbackWindowInterface.setRecentsWindowManager(this)
         if (displayId == DEFAULT_DISPLAY) {
@@ -246,8 +263,8 @@ constructor(
 
         if (
             DesktopExperienceFlags.ENABLE_NON_DEFAULT_DISPLAY_SPLIT_BUGFIX.isTrue &&
-            displayId != DEFAULT_DISPLAY &&
-            desktopState.canEnterDesktopModeOrShowAppHandle
+                displayId != DEFAULT_DISPLAY &&
+                desktopState.canEnterDesktopModeOrShowAppHandle
         ) {
             splitSelectStateController.initSplitFromDesktopController(this)
         }
@@ -453,6 +470,119 @@ constructor(
                 startHomeWithRemoteAnimationInternal(onHomeAnimationComplete)
             }
         }
+    }
+
+    override fun getActivityLaunchOptions(view: View?, item: ItemInfo?): ActivityOptionsWrapper {
+        val taskView =
+            view as? TaskView
+                ?: return super<RecentsWindowContext>.getActivityLaunchOptions(view, item)
+        val recentsView =
+            recentsView ?: return super<RecentsWindowContext>.getActivityLaunchOptions(view, item)
+        val onEndCallback = RunnableList()
+
+        activityLaunchAnimationRunner =
+            object : RemoteAnimationFactory {
+                override fun onAnimationStart(
+                    transit: Int,
+                    apps: Array<RemoteAnimationTarget>?,
+                    wallpapers: Array<RemoteAnimationTarget>?,
+                    nonApps: Array<RemoteAnimationTarget>?,
+                    callback: LauncherAnimationRunner.AnimationResult?,
+                ) {
+                    if (
+                        apps == null ||
+                            wallpapers == null ||
+                            nonApps == null ||
+                            callback == null ||
+                            recentsView == null
+                    ) {
+                        return
+                    }
+                    val anim =
+                        composeRecentsLaunchAnimator(
+                                recentsView,
+                                taskView,
+                                apps,
+                                wallpapers,
+                                nonApps,
+                            )
+                            .apply {
+                                addListener(
+                                    onEnd = {
+                                        recentsView.resetTaskVisuals()
+                                        stateManager.reapplyState()
+                                    }
+                                )
+                            }
+                    callback.setAnimation(
+                        anim,
+                        this@RecentsWindowManager,
+                        { onEndCallback.executeAllAndDestroy() },
+                        true, /* skipFirstFrame */
+                    )
+                }
+
+                override fun onAnimationCancelled() {
+                    onEndCallback.executeAllAndDestroy()
+                }
+            }
+
+        val wrapper =
+            LauncherAnimationRunner(
+                uiExecutor.handler,
+                activityLaunchAnimationRunner,
+                /* startAtFrontOfQueue=*/ true,
+            )
+        val options =
+            ActivityOptions.makeRemoteAnimation(
+                RemoteAnimationAdapter(
+                    wrapper,
+                    RECENTS_LAUNCH_DURATION.toLong(),
+                    (RECENTS_LAUNCH_DURATION -
+                            STATUS_BAR_TRANSITION_DURATION -
+                            STATUS_BAR_TRANSITION_PRE_DELAY)
+                        .toLong(),
+                ),
+                RemoteTransition(
+                    wrapper.toRemoteTransition(),
+                    iApplicationThread,
+                    "LaunchFromRecents",
+                ),
+            )
+        return ActivityOptionsWrapper(options, onEndCallback).apply {
+            options.apply {
+                splashScreenStyle = SplashScreen.SPLASH_SCREEN_STYLE_ICON
+                launchDisplayId = taskView.displayId
+                pendingIntentBackgroundActivityStartMode =
+                    ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
+            }
+        }
+    }
+
+    /** Composes the animations for a launch from the recents list if possible. */
+    private fun composeRecentsLaunchAnimator(
+        recentsView: RecentsView<*, *>,
+        taskView: TaskView,
+        appTargets: Array<RemoteAnimationTarget>,
+        wallpaperTargets: Array<RemoteAnimationTarget>,
+        nonAppTargets: Array<RemoteAnimationTarget>,
+    ): AnimatorSet {
+        val animatorSet = AnimatorSet()
+        val pendingAnimation = PendingAnimation(RECENTS_LAUNCH_DURATION.toLong())
+        TaskViewUtils.createRecentsWindowAnimator(
+            recentsView,
+            taskView,
+            /* skipViewChanges= */ true,
+            appTargets,
+            wallpaperTargets,
+            nonAppTargets,
+            /* depthController= */ null,
+            /* transitionInfo= */ null,
+            /* appearedTaskId= */ ActivityTaskManager.INVALID_TASK_ID,
+            pendingAnimation,
+        )
+        animatorSet.play(pendingAnimation.buildAnim())
+        return animatorSet
     }
 
     private fun startHomeWithRemoteAnimationInternal(onHomeAnimationComplete: Runnable?) {

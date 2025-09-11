@@ -15,6 +15,8 @@
  */
 package com.android.launcher3.secondarydisplay;
 
+import android.view.KeyEvent;
+
 import com.android.launcher3.dagger.ActivityContextSingleton;
 import com.android.launcher3.model.data.PredictedContainerInfo;
 
@@ -53,5 +55,9 @@ public class SecondaryDisplayDelegate {
     }
 
     void updateStashControllerStateFlags(int displayId, boolean isVisible) {
+    }
+
+    boolean dispatchKeyEvent(KeyEvent event) {
+        return false;
     }
 }

@@ -74,6 +74,7 @@ filegroup {
     name: "launcher-compose-unit-tests-src",
     srcs: [
         "compose/tests/com/android/launcher3/widget/AddWidgetConfigTest.kt",
+        "compose/tests/com/android/launcher3/widgetpicker/repository/WidgetsRepositoryImplTest.kt",
     ],
 }
 

@@ -40,7 +40,7 @@ class BubbleActivityStarter @Inject constructor(private val systemUiProxy: Syste
         entryPoint: EntryPoint,
         bubbleBarLocation: BubbleBarLocation? = null,
     ) {
-        systemUiProxy.showShortcutBubble(info, bubbleBarLocation)
+        systemUiProxy.showShortcutBubble(info, entryPoint, bubbleBarLocation)
         notifyListeners()
     }
 
@@ -52,7 +52,7 @@ class BubbleActivityStarter @Inject constructor(private val systemUiProxy: Syste
         entryPoint: EntryPoint,
         bubbleBarLocation: BubbleBarLocation? = null,
     ) {
-        systemUiProxy.showAppBubble(intent, user, bubbleBarLocation)
+        systemUiProxy.showAppBubble(intent, user, entryPoint, bubbleBarLocation)
         notifyListeners()
     }
 
