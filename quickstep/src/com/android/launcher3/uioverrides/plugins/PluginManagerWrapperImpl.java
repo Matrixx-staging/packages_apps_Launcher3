@@ -26,13 +26,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
 
-import com.android.launcher3.BuildConfig;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.util.PluginManagerWrapper;
 import com.android.systemui.plugins.Plugin;
 import com.android.systemui.plugins.PluginListener;
+import com.android.systemui.plugins.PluginManager;
 import com.android.systemui.shared.plugins.PluginActionManager;
 import com.android.systemui.shared.plugins.PluginInstance;
 import com.android.systemui.shared.plugins.PluginManagerImpl;
@@ -58,21 +58,20 @@ public class PluginManagerWrapperImpl extends PluginManagerWrapper {
     public PluginManagerWrapperImpl(@ApplicationContext Context c, LauncherPrefs launcherPrefs) {
         mContext = c;
         mPluginEnabler = new PluginEnablerImpl(launcherPrefs);
-        List<String> privilegedPlugins = Collections.emptyList();
+        PluginManager.Config pluginConfig = new PluginManager.Config(Collections.emptyList());
         PluginInstance.Factory instanceFactory = new PluginInstance.Factory(
                 new VersionCheckerImpl(), getClass().getClassLoader(),
-                privilegedPlugins);
+                pluginConfig);
         PluginActionManager.Factory instanceManagerFactory = new PluginActionManager.Factory(
                 c, c.getPackageManager(), c.getMainExecutor(), MODEL_EXECUTOR,
                 c.getSystemService(NotificationManager.class), mPluginEnabler,
-                privilegedPlugins, instanceFactory);
+                pluginConfig, instanceFactory);
 
         // Use null preHandlerManager, as the handler is never unregistered which can cause leaks
         // when using multiple dagger graphs.
         mPluginManager = new PluginManagerImpl(c, instanceManagerFactory,
-                BuildConfig.IS_DEBUG_DEVICE,
                 null /* preHandlerManager */, mPluginEnabler,
-                new PluginPrefs(c), privilegedPlugins);
+                new PluginPrefs(c), pluginConfig);
     }
 
     public PluginEnablerImpl getPluginEnabler() {
