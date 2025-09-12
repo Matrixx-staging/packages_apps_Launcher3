@@ -246,6 +246,13 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
                             .unstashBubbleBarIfStashed();
                 });
                 return response;
+            case TestProtocol.REQUEST_REMOVE_ALL_BUBBLES:
+                runOnTISBinder(tisBinder -> {
+                    // Allow null-pointer to catch illegal states.
+                    Context context = tisBinder.getTaskbarManager().getCurrentActivityContext();
+                    SystemUiProxy.INSTANCE.get(context).removeAllBubbles();
+                });
+                return response;
             case TestProtocol.REQUEST_INJECT_FAKE_TRACKPAD:
                 runOnTISBinder(tisBinder -> tisBinder.injectFakeTrackpadForTesting());
                 return response;
