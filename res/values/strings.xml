@@ -51,6 +51,8 @@
     <string name="new_window_option_taskbar">New Window</string>
     <!-- Title for an option to manage open windows for a given app   -->
     <string name="manage_windows_option_taskbar">Manage Windows</string>
+    <!-- Title for an option to close open windows for a given app   -->
+    <string name="close_app_taskbar">Close</string>
 
     <!-- App pairs -->
     <string name="save_app_pair">Save app pair</string>
