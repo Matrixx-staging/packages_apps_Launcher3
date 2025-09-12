@@ -555,7 +555,6 @@ constructor(
     private val viewModel =
         if (enableRefactorTaskThumbnail()) {
             TaskViewModel(
-                taskViewType = type,
                 recentsViewData = RecentsDependencies.get(context),
                 getTaskUseCase = RecentsDependencies.get(context),
                 getSysUiStatusNavFlagsUseCase = RecentsDependencies.get(context),
@@ -760,8 +759,7 @@ constructor(
         resetPersistentViewTransforms()
 
         groupTask = null
-        // Bind ViewModel to no taskIds
-        viewModel?.bind()
+        viewModel?.unbind()
         attachAlpha = 1f
         splitAlpha = 1f
         splitSplashAlpha = 0f
@@ -1138,7 +1136,7 @@ constructor(
             traceSection("TaskView.onBind.bindViewModel") {
                 if (enableRefactorTaskThumbnail()) {
                     Log.d(TAG, "onBind $context ${orientedState.containerInterface}")
-                    viewModel!!.bind(*taskIds)
+                    viewModel!!.bind(type, *taskIds)
                 }
             }
 
