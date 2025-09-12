@@ -52,7 +52,6 @@ import com.android.launcher3.util.IntSet;
 import com.android.launcher3.util.ItemInfoMatcher;
 import com.android.launcher3.util.PackageManagerHelper;
 import com.android.launcher3.util.PackageUserKey;
-import com.android.launcher3.util.SafeCloseable;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -101,7 +100,6 @@ public class PackageUpdatedTask implements ModelUpdateTask {
 
         final String[] packages = mPackages;
         final int packageCount = packages.length;
-        final FlagOp flagOp;
         final HashSet<String> packageSet = new HashSet<>(Arrays.asList(packages));
         final Predicate<ItemInfo> matcher = ItemInfoMatcher.ofPackages(packageSet, mUser);
         final HashSet<ComponentName> removedComponents = new HashSet<>();
@@ -111,37 +109,15 @@ public class PackageUpdatedTask implements ModelUpdateTask {
                     + " packages=" + Arrays.toString(packages)
                     + ", user=" + mUser);
         }
-        switch (mOp) {
-            case OP_ADD: {
-                for (String packageName : packages) {
-                    iconCache.updateIconsForPkg(packageName, mUser);
-                    activitiesLists.put(
-                            packageName, appsList.addPackage(context, packageName, mUser));
-                }
-                flagOp = FlagOp.NO_OP.removeFlag(WorkspaceItemInfo.FLAG_DISABLED_NOT_AVAILABLE);
-                break;
-            }
-            case OP_UPDATE:
-                try (SafeCloseable t = appsList.trackRemoves(a -> {
-                    Log.i(TAG, "OP_UPDATE - AllAppsList.trackRemoves callback:"
-                            + " removed component=" + a.componentName
-                            + " id=" + a.id
-                            + " Look for earlier AllAppsList logs to find more information.");
-                    removedComponents.add(a.componentName);
-                })) {
-                    for (int i = 0; i < packageCount; i++) {
-                        iconCache.updateIconsForPkg(packages[i], mUser);
-                        activitiesLists.put(packages[i],
-                                appsList.updatePackage(context, packages[i], mUser));
-                    }
-                }
-                // Since package was just updated, the target must be available now.
-                flagOp = FlagOp.NO_OP.removeFlag(WorkspaceItemInfo.FLAG_DISABLED_NOT_AVAILABLE);
-                break;
-            default:
-                flagOp = FlagOp.NO_OP;
-                break;
+
+        for (String packageName : packages) {
+            iconCache.updateIconsForPkg(packageName, mUser);
+            activitiesLists.put(
+                    packageName,
+                    appsList.updatePackage(context, packageName, mUser, removedComponents));
         }
+        final FlagOp flagOp =
+                FlagOp.NO_OP.removeFlag(WorkspaceItemInfo.FLAG_DISABLED_NOT_AVAILABLE);
 
         taskController.bindApplicationsIfNeeded();
 
