@@ -47,7 +47,7 @@ class PopupControllerForAppIcon<T> : PopupController<T> where T : Context, T : A
         val deepShortcutCount = popupDataProvider.getShortcutCountForItem(item)
         val systemShortcuts =
             launcher
-                .getSupportedShortcuts(item.container)
+                .getSupportedShortcuts(item)
                 .map<SystemShortcut<Launcher>> { s ->
                     s.getShortcut(launcher, item, icon) as SystemShortcut<Launcher>?
                 }
