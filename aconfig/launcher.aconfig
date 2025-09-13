@@ -643,3 +643,10 @@ flag {
     purpose: PURPOSE_BUGFIX
   }
 }
+
+flag {
+  name: "enable_cursor_driven_workflows"
+  namespace: "launcher"
+  description: "Enables mouse based workflows for interacting with launcher"
+  bug: "388897603"
+}

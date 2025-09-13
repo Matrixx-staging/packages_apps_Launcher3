@@ -152,6 +152,11 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
             maybeCloseMultiInstanceMenu();
             shortcuts.addAll(getMultiInstanceMenuOptions().toList());
         }
+
+        if (mControllers.taskbarDesktopModeController
+                .isInDesktopModeAndNotInOverview(mContext.getDisplayId())) {
+            shortcuts.add(createCloseAppTaskbarShortcutFactory());
+        }
         return shortcuts.stream();
     }
 
@@ -393,6 +398,16 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
             }
             return null;
         };
+    }
+
+    /**
+     * Creates a factory function representing a "Close" menu item only if the calling app
+     * is in Desktop Mode.
+     * @return A factory function to be used in populating the long-press menu.
+     */
+    private SystemShortcut.Factory<BaseTaskbarContext> createCloseAppTaskbarShortcutFactory() {
+        return (context, itemInfo, originalView) -> new CloseAppTaskbarShortcut<>(
+                context, itemInfo, originalView, mControllers);
     }
 
     /**

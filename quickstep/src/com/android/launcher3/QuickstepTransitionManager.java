@@ -787,7 +787,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         FloatingIconView floatingView = getFloatingIconView(mLauncher, v,
                 (mLauncher.getTaskbarInteractor() == null || !isTransientTaskbar())
                         ? null
-                        : mLauncher.getTaskbarInteractor().findMatchingView(v),
+                        : mLauncher.getTaskbarInteractor().findMatchingAsyncView(v),
                 null /* fadeOutView */, !appTargetsAreTranslucent, launcherIconBounds,
                 true /* isOpening */);
         Rect crop = new Rect();
@@ -1575,7 +1575,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
             floatingIconView = getFloatingIconView(mLauncher, launcherView, null,
                     mLauncher.getTaskbarInteractor() == null
                             ? null
-                            : mLauncher.getTaskbarInteractor().findMatchingView(launcherView),
+                            : mLauncher.getTaskbarInteractor().findMatchingAsyncView(launcherView),
                     true /* hideOriginal */, targetRect, false /* isOpening */);
         } else {
             targetRect.set(getDefaultWindowTargetRect());

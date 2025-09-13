@@ -666,18 +666,24 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     }
 
     private void updateTranslationY() {
-        mTaskbarView.setTranslationY(mTaskbarIconTranslationYForHome.value
+        final float oldTranslationY = mTaskbarView.getTranslationY();
+        final float newTranslationY = mTaskbarIconTranslationYForHome.value
                 + mTaskbarIconTranslationYForStash.value
                 + mTaskbarIconTranslationYForSwipe
                 + getTaskbarIconTranslationYForPinningValue()
-                + mTaskbarIconTranslationYForSpringOnStash);
-        // Updating mTaskbarView's translationY will not trigger layout pass but it will change
-        // taskbar icons' bounds on screen, thus we need to update taskbar icons bounds here.
-        updateTaskbarIconsActualBounds();
+                + mTaskbarIconTranslationYForSpringOnStash;
+        if (newTranslationY != oldTranslationY) {
+            mTaskbarView.setTranslationY(newTranslationY);
+            // Updating mTaskbarView's translationY will not trigger layout pass but it will change
+            // taskbar icons' bounds on screen, thus we need to update taskbar icons bounds here.
+            if (mTaskbarView.isShown()) {
+                updateTaskbarIconsActualBounds();
+            }
+        }
     }
 
     private void updateTaskbarIconsActualBounds() {
-        if (enableTaskbarPinning()) {
+        if (refactorTaskbarUiState()) {
             mTaskbarUiState.setTaskbarIconsActualBounds(
                     mTaskbarView.getTaskbarIconsActualBounds());
         }

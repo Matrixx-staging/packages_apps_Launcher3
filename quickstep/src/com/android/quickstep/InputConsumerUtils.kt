@@ -772,6 +772,7 @@ object InputConsumerUtils {
                 deviceState,
                 gestureState,
                 inputMonitorCompat,
+                taskAnimationManager,
                 disableHorizontalSwipe,
             )
         }

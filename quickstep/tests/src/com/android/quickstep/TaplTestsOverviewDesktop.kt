@@ -195,15 +195,7 @@ class TaplTestsOverviewDesktop : AbstractQuickStepTest() {
                 // Create an empty desk
                 .createDeskViaClickAddDesktopButton()
                 // Create one non-empty desk
-                .createDeskViaClickAddDesktopButton()
-                .apply { flingBackward() }
-                .currentTask
-                .open()
-                .taskbar
-                .openAllApps()
-                .getAppIcon(CALCULATOR_APP_NAME)
-                .launch(CALCULATOR_APP_PACKAGE)
-                .switchToOverview()
+                .createAnNonEmptyDesk()
                 // Create one more empty desk
                 .createDeskViaClickAddDesktopButton()
 
@@ -247,17 +239,7 @@ class TaplTestsOverviewDesktop : AbstractQuickStepTest() {
                 .switchToOverview()
         val desk2Id = overview.currentTask.deskId
 
-        overview =
-            overview
-                .createDeskViaClickAddDesktopButton()
-                .apply { flingBackward() }
-                .currentTask
-                .open()
-                .taskbar
-                .openAllApps()
-                .getAppIcon(CALCULATOR_APP_NAME)
-                .launch(CALCULATOR_APP_PACKAGE)
-                .switchToOverview()
+        overview = overview.createAnNonEmptyDesk()
         val desk3Id = overview.currentTask.deskId
 
         // Start from Desk 3
@@ -289,6 +271,49 @@ class TaplTestsOverviewDesktop : AbstractQuickStepTest() {
 
         // Cleanup: Go to overview and dismiss all tasks to prevent memory leak.
         mLauncher.launchedAppState.switchToOverview().dismissAllTasks()
+    }
+
+    @Test
+    @PortraitLandscape
+    @EnableFlags(FLAG_ENABLE_MULTIPLE_DESKTOPS_FRONTEND, FLAG_ENABLE_MULTIPLE_DESKTOPS_BACKEND)
+    fun testDismissMultipleDesksViaSwipeUpGesture() {
+        var overview =
+            mLauncher.workspace
+                .switchToOverview()
+                // Create one non-empty desk
+                .createAnNonEmptyDesk()
+                // Create an empty desk
+                .createDeskViaClickAddDesktopButton()
+
+        // Fling to the right-most desk to start dismissing via swipe-up gesture
+        overview = overview.apply { flingBackward() }
+        for (i in 0 until 2) {
+            val task = overview.currentTask
+            assertThat(task.isDesktop).isTrue()
+            task.dismiss()
+        }
+    }
+
+    @Test
+    @PortraitLandscape
+    @EnableFlags(FLAG_ENABLE_MULTIPLE_DESKTOPS_FRONTEND, FLAG_ENABLE_MULTIPLE_DESKTOPS_BACKEND)
+    fun testDismissDeskViaTaskMenuClearButton() {
+        var overview =
+            mLauncher.workspace
+                .switchToOverview()
+                // Create an empty desk
+                .createDeskViaClickAddDesktopButton()
+                // Create a non-empty desk
+                .createAnNonEmptyDesk()
+
+        // Fling to the right-most desk to start dismissing via task menu
+        overview = overview.apply { flingBackward() }
+        for (i in 0 until 2) {
+            val task = overview.currentTask
+            assertThat(task.isDesktop).isTrue()
+            task.dismissViaMenu()
+            overview = mLauncher.overview
+        }
     }
 
     @Test
@@ -400,6 +425,18 @@ class TaplTestsOverviewDesktop : AbstractQuickStepTest() {
             .tapMenu()
             .tapDesktopMenuItem()
             .also { assertTestAppLaunched(activityIndex) }
+    }
+
+    private fun BaseOverview.createAnNonEmptyDesk(): BaseOverview {
+        return this.createDeskViaClickAddDesktopButton()
+            .apply { flingBackward() }
+            .currentTask
+            .open()
+            .taskbar
+            .openAllApps()
+            .getAppIcon(CALCULATOR_APP_NAME)
+            .launch(CALCULATOR_APP_PACKAGE)
+            .switchToOverview()
     }
 
     companion object {

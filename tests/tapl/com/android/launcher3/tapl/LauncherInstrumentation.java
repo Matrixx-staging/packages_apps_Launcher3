@@ -2638,6 +2638,11 @@ public final class LauncherInstrumentation {
         getTestInfo(TestProtocol.REQUEST_UNSTASH_BUBBLE_BAR_IF_STASHED);
     }
 
+    /** Remove all bubbles. */
+    public void removeAllBubbles() {
+        getTestInfo(TestProtocol.REQUEST_REMOVE_ALL_BUBBLES);
+    }
+
     public void injectFakeTrackpad() {
         getTestInfo(TestProtocol.REQUEST_INJECT_FAKE_TRACKPAD);
     }

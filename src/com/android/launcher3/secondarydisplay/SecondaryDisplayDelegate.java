@@ -51,6 +51,9 @@ public class SecondaryDisplayDelegate {
     void openAllAppsForDisplay(int displayId) {
     }
 
+    void onCreate() {
+    }
+
     void onDestroy() {
     }
 

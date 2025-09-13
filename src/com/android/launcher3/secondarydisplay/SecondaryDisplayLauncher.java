@@ -136,6 +136,8 @@ public class SecondaryDisplayLauncher extends BaseActivity
         updateStatusBarIconColors(
                 mWallpaperManager.getWallpaperColors(WallpaperManager.FLAG_SYSTEM)
         );
+
+        mSecondaryDisplayDelegate.onCreate();
     }
 
     /** Set the status bar icon colours depending on wallpaper hint. */
