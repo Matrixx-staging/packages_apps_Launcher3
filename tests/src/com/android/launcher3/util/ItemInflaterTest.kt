@@ -37,8 +37,8 @@ import com.android.launcher3.model.data.LauncherAppWidgetInfo
 import com.android.launcher3.model.data.LauncherAppWidgetInfo.FLAG_ID_NOT_VALID
 import com.android.launcher3.model.data.LauncherAppWidgetInfo.FLAG_UI_NOT_READY
 import com.android.launcher3.model.data.LauncherAppWidgetInfo.RESTORE_COMPLETED
+import com.android.launcher3.util.AsyncObjectAllocator.allocationExecutor
 import com.android.launcher3.util.Executors.MAIN_EXECUTOR
-import com.android.launcher3.util.Executors.VIEW_PREINFLATION_EXECUTOR
 import com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE
 import com.android.launcher3.util.rule.ShellCommandRule
 import com.android.launcher3.util.ui.TestViewHelpers
@@ -117,8 +117,7 @@ class ItemInflaterTest {
     @Test
     fun test_workspace_item_inflated_on_BG() {
         val itemInfo = workspaceItemInfo()
-        val view =
-            VIEW_PREINFLATION_EXECUTOR.submit(Callable { underTest.inflateItem(itemInfo) }).get()
+        val view = allocationExecutor.submit(Callable { underTest.inflateItem(itemInfo) }).get()
 
         assertTrue(view is BubbleTextView)
         assertEquals(itemInfo, view!!.tag)
@@ -144,8 +143,7 @@ class ItemInflaterTest {
         itemInfo.add(workspaceItemInfo())
         itemInfo.add(workspaceItemInfo())
 
-        val view =
-            VIEW_PREINFLATION_EXECUTOR.submit(Callable { underTest.inflateItem(itemInfo) }).get()
+        val view = allocationExecutor.submit(Callable { underTest.inflateItem(itemInfo) }).get()
 
         assertTrue(view is FolderIcon)
         assertEquals(itemInfo, view!!.tag)
@@ -171,8 +169,7 @@ class ItemInflaterTest {
         itemInfo.add(workspaceItemInfo())
         itemInfo.add(workspaceItemInfo())
 
-        val view =
-            VIEW_PREINFLATION_EXECUTOR.submit(Callable { underTest.inflateItem(itemInfo) }).get()
+        val view = allocationExecutor.submit(Callable { underTest.inflateItem(itemInfo) }).get()
 
         assertTrue(view is AppPairIcon)
         assertEquals(itemInfo, view!!.tag)
@@ -191,8 +188,7 @@ class ItemInflaterTest {
     @Test
     fun test_pending_widget_inflated_on_BG() {
         val itemInfo = widgetItemInfo(true)
-        val view =
-            VIEW_PREINFLATION_EXECUTOR.submit(Callable { underTest.inflateItem(itemInfo) }).get()
+        val view = allocationExecutor.submit(Callable { underTest.inflateItem(itemInfo) }).get()
 
         assertTrue(view is PendingAppWidgetHostView)
         assertEquals(itemInfo, view!!.tag)
@@ -216,8 +212,7 @@ class ItemInflaterTest {
     fun test_widget_restored_and_inflated_on_BG() {
         val itemInfo = widgetItemInfo(false)
 
-        val view =
-            VIEW_PREINFLATION_EXECUTOR.submit(Callable { underTest.inflateItem(itemInfo) }).get()
+        val view = allocationExecutor.submit(Callable { underTest.inflateItem(itemInfo) }).get()
 
         // Verify that the widget is automatically restored and a final widget is returned
         assertTrue(view is LauncherAppWidgetHostView)

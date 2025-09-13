@@ -50,6 +50,7 @@ import static com.android.launcher3.compat.AccessibilityManagerCompat.sendCustom
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_APP_LAUNCH_TAP;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SPLIT_SELECTION_EXIT_HOME;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SPLIT_SELECTION_EXIT_INTERRUPTED;
+import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_NOT_PINNABLE;
 import static com.android.launcher3.popup.QuickstepSystemShortcut.getSplitSelectShortcutByPosition;
 import static com.android.launcher3.popup.SystemShortcut.ADD_TO_HOME_SCREEN;
 import static com.android.launcher3.popup.SystemShortcut.APP_INFO;
@@ -143,6 +144,7 @@ import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.logging.StatsLogManager.StatsLogger;
 import com.android.launcher3.model.WellbeingModel;
 import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.model.data.PredictedContainerInfo;
 import com.android.launcher3.popup.SystemShortcut;
 import com.android.launcher3.proxy.ProxyActivityStarter;
@@ -530,10 +532,11 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     }
 
     @Override
-    public Stream<SystemShortcut.Factory> getSupportedShortcuts(int container) {
+    public Stream<SystemShortcut.Factory> getSupportedShortcuts(ItemInfo itemInfo) {
         // Order matters as it affects order of appearance in popup container
         List<SystemShortcut.Factory> shortcuts = new ArrayList(Arrays.asList(
                 APP_INFO, WellbeingModel.SHORTCUT_FACTORY, mHotseatPredictionController));
+        int container = itemInfo.container;
         if (canPinAppWithContextMenu()
                 && DisplayController.showDesktopTaskbarForFreeformDisplay(this)
                 && (container == CONTAINER_ALL_APPS
@@ -544,10 +547,14 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         shortcuts.addAll(getSplitShortcuts());
         shortcuts.add(WIDGETS);
         shortcuts.add(INSTALL);
+        // TODO(b/444744861): Update private space apps to have its own container.
+        boolean isPinnable = itemInfo instanceof ItemInfoWithIcon info
+                && (info.runtimeStatusFlags & FLAG_NOT_PINNABLE) == 0;
         if (container == CONTAINER_HOTSEAT || container == CONTAINER_DESKTOP
                 || /* Folder */ container > 0) {
             shortcuts.add(REMOVE);
-        } else if (container == CONTAINER_ALL_APPS || container == CONTAINER_ALL_APPS_PREDICTION) {
+        } else if (isPinnable && (container == CONTAINER_ALL_APPS
+                || container == CONTAINER_ALL_APPS_PREDICTION)) {
             shortcuts.add(ADD_TO_HOME_SCREEN);
         }
         shortcuts.add(DONT_SUGGEST_APP);

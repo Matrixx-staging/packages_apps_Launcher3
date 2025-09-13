@@ -1319,13 +1319,9 @@ public abstract class RecentsView<
             if (enableOverviewDesktopTileWallpaperBackground()) {
                 reset();
             }
-            try {
-                mTaskViewPool.killOngoingInitializations();
-                mGroupedTaskViewPool.killOngoingInitializations();
-                mDesktopTaskViewPool.killOngoingInitializations();
-            } catch (InterruptedException e) {
-                Log.e(TAG, "Ongoing initializations could not be killed", e);
-            }
+            mTaskViewPool.cancelOngoingInitializations();
+            mGroupedTaskViewPool.cancelOngoingInitializations();
+            mDesktopTaskViewPool.cancelOngoingInitializations();
             mHelper.onDestroy();
             RecentsDependencies.destroy(getContext());
         }
@@ -2282,17 +2278,21 @@ public abstract class RecentsView<
         updateEmptyMessage();
     }
 
+    protected void resetTaskVisuals(TaskView taskView) {
+        taskView.resetViewTransforms();
+        taskView.setIconVisibleForGesture(mTaskIconVisible);
+        taskView.setStableAlpha(mContentAlpha);
+        taskView.setFullscreenProgress(mFullscreenProgress);
+        taskView.setModalness(mTaskModalness);
+        taskView.setTaskThumbnailSplashAlpha(mTaskThumbnailSplashAlpha);
+        taskView.setBorderEnabled(mBorderEnabled);
+    }
+
     public void resetTaskVisuals() {
         for (TaskView taskView : getTaskViews()) {
             if (Arrays.stream(taskView.getTaskIds()).noneMatch(
                     taskId -> taskId == mIgnoreResetTaskId)) {
-                taskView.resetViewTransforms();
-                taskView.setIconVisibleForGesture(mTaskIconVisible);
-                taskView.setStableAlpha(mContentAlpha);
-                taskView.setFullscreenProgress(mFullscreenProgress);
-                taskView.setModalness(mTaskModalness);
-                taskView.setTaskThumbnailSplashAlpha(mTaskThumbnailSplashAlpha);
-                taskView.setBorderEnabled(mBorderEnabled);
+                resetTaskVisuals(taskView);
             }
         }
         // resetTaskVisuals is called at the end of dismiss animation which could update
@@ -4550,8 +4550,12 @@ public abstract class RecentsView<
         if (!cycle && (newPageUnbound < 0 || newPageUnbound > pageCount)) {
             return false;
         }
-        snapToPage((newPageUnbound + pageCount) % pageCount);
-        getChildAt(getNextPage()).requestFocus();
+        final int newPage = (newPageUnbound + pageCount) % pageCount;
+        snapToPage(newPage);
+        View child = getChildAt(newPage);
+        if (child != null) {
+            child.requestFocus();
+        }
         return true;
     }
 

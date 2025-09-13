@@ -101,7 +101,7 @@ class HandoffSuggestionMetadataLoaderTest {
         suggestionMetadataLoader.loadMetadata(listOf(suggestion)) { wasCallbackCalled = true }
 
         // Verify no loads were queued.
-        assertThat(testLooperManager.poll()).isNull()
+        assertWithMessage("There are no pending loads!").that(testLooperManager.poll()).isNull()
         assertThat(wasCallbackCalled).isFalse()
     }
 
@@ -136,7 +136,7 @@ class HandoffSuggestionMetadataLoaderTest {
         suggestionMetadataLoader.cancelPendingLoads()
 
         // Verify no loads were queued.
-        assertThat(testLooperManager.poll()).isNull()
+        assertWithMessage("There are no pending loads!").that(testLooperManager.poll()).isNull()
         assertThat(wasCallbackCalled).isFalse()
     }
 

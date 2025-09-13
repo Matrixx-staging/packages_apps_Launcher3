@@ -44,6 +44,7 @@ import androidx.annotation.UiThread;
 
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
+import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.TestProtocol;
 import com.android.launcher3.util.Preconditions;
@@ -103,6 +104,7 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
     private final FinishImmediatelyHandler mCleanupHandler = new FinishImmediatelyHandler();
 
     private final boolean mIsDeferredDownTarget;
+    private final boolean mIsDeferredDownDevice;
     private final PointF mDownPos = new PointF();
     private final PointF mLastPos = new PointF();
     private int mActivePointerId = INVALID_POINTER_ID;
@@ -158,6 +160,11 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
 
         boolean continuingPreviousGesture = mTaskAnimationManager.isRecentsAnimationRunning();
         mIsDeferredDownTarget = !continuingPreviousGesture && isDeferredDownTarget;
+        // TODO: 432133436 - Remove mIsDeferredDownDevice when a proper fix is merged.
+        final DesktopVisibilityController desktopVisibilityController =
+                DesktopVisibilityController.INSTANCE.get(base);
+        mIsDeferredDownDevice = desktopVisibilityController.isInDesktopMode(
+                mDeviceState.getDisplayId());
 
         mTouchSlop = mDeviceState.getTouchSlop();
         mSquaredTouchSlop = mDeviceState.getSquaredTouchSlop();
@@ -251,7 +258,7 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
                 if (DEBUG) {
                     Log.d(TAG, "ACTION_DOWN: mIsDeferredDownTarget=" + mIsDeferredDownTarget);
                 }
-                if (!mIsDeferredDownTarget) {
+                if (!needDeferDown()) {
                     startTouchTrackingForWindowAnimation(ev.getEventTime());
                 }
 
@@ -292,7 +299,7 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
                 float displacementY = mLastPos.y - mDownPos.y;
 
                 if (!mPassedWindowMoveSlop) {
-                    if (!mIsDeferredDownTarget) {
+                    if (!needDeferDown()) {
                         // Normal gesture, ensure we pass the drag slop before we start tracking
                         // the gesture
                         if (mGestureState.isTrackpadGesture() || Math.abs(displacement)
@@ -370,7 +377,7 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
 
                         mPassedPilferInputSlop = true;
 
-                        if (mIsDeferredDownTarget) {
+                        if (needDeferDown()) {
                             // Deferred gesture, start the animation and gesture tracking once
                             // we pass the actual touch slop
                             startTouchTrackingForWindowAnimation(ev.getEventTime());
@@ -594,6 +601,10 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
     @Override
     public boolean allowInterceptByParent() {
         return !mPassedPilferInputSlop;
+    }
+
+    private boolean needDeferDown() {
+        return mIsDeferredDownTarget || mIsDeferredDownDevice;
     }
 
     /**
