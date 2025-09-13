@@ -389,6 +389,8 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
 
             // Set Current Page based on the stored View.
             currentPageChild?.let { setCurrentPage(indexOfChild(it)) }
+            // Reset visuals for the newly created desk.
+            resetTaskVisuals(desktopTaskView)
         }
     }
 
