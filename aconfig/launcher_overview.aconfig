@@ -92,16 +92,6 @@ flag {
 }
 
 flag {
-    name: "enable_desktop_menu_on_secondary_display_bugfix"
-    namespace: "launcher_overview"
-    description: "Enable the 'Desktop' menu entry on full screen tiles on secondary display."
-    bug:  "418822736"
-    metadata {
-        purpose: PURPOSE_BUGFIX
-    }
-}
-
-flag {
     name: "enable_simultaneous_overview_trigger_on_extended_desktop"
     namespace: "launcher_overview"
     description: "Enable Overview to launch and exit simultaneously on default and external displays wherever it was triggered or quit from"
