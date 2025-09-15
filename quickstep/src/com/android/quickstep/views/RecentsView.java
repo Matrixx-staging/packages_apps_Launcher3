@@ -254,6 +254,7 @@ import com.android.systemui.shared.system.PackageManagerWrapper;
 import com.android.systemui.shared.system.TaskStackChangeListener;
 import com.android.systemui.shared.system.TaskStackChangeListeners;
 import com.android.wm.shell.common.pip.IPipAnimationListener;
+import com.android.wm.shell.common.pip.IPipAnimationListener.PipResources;
 import com.android.wm.shell.shared.GroupedTaskInfo;
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
 import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource;
@@ -726,8 +727,7 @@ public abstract class RecentsView<
 
     private final PinnedStackAnimationListener mIPipAnimationListener =
             new PinnedStackAnimationListener();
-    private int mPipCornerRadius;
-    private int mPipShadowRadius;
+    private PipResources mPipResources = new PipResources();
 
     // Used to keep track of the last requested task list id, so that we do not request to load the
     // tasks again if we have already requested it and the task list has not changed
@@ -6843,19 +6843,11 @@ public abstract class RecentsView<
     }
 
     /**
-     * @return Corner radius in pixel value for PiP window, which is updated via
+     * @return PiP resources for PiP window, which is updated via
      * {@link #mIPipAnimationListener}
      */
-    public int getPipCornerRadius() {
-        return mPipCornerRadius;
-    }
-
-    /**
-     * @return Shadow radius in pixel value for PiP window, which is updated via
-     * {@link #mIPipAnimationListener}
-     */
-    public int getPipShadowRadius() {
-        return mPipShadowRadius;
+    public PipResources getPipResources() {
+        return mPipResources;
     }
 
     @Override
@@ -7004,10 +6996,9 @@ public abstract class RecentsView<
         }
 
         @Override
-        public void onPipResourceDimensionsChanged(int cornerRadius, int shadowRadius) {
+        public void onPipResourceDimensionsChanged(PipResources res) {
             if (mRecentsView != null) {
-                mRecentsView.mPipCornerRadius = cornerRadius;
-                mRecentsView.mPipShadowRadius = shadowRadius;
+                mRecentsView.mPipResources = res;
             }
         }
 
