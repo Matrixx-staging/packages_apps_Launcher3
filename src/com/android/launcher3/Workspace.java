@@ -44,6 +44,8 @@ import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_HOME;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SWIPELEFT;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SWIPERIGHT;
 
+import static java.util.Objects.requireNonNull;
+
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.LayoutTransition;
@@ -60,11 +62,13 @@ import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.DragAndDropPermissions;
 import android.view.Gravity;
 import android.view.InputDevice;
 import android.view.LayoutInflater;
@@ -106,6 +110,7 @@ import com.android.launcher3.folder.Folder;
 import com.android.launcher3.folder.FolderIcon;
 import com.android.launcher3.folder.PreviewBackground;
 import com.android.launcher3.graphics.DragPreviewProvider;
+import com.android.launcher3.homescreenfiles.HomeScreenFilesProvider;
 import com.android.launcher3.icons.BitmapRenderer;
 import com.android.launcher3.icons.FastBitmapDrawable;
 import com.android.launcher3.logger.LauncherAtom;
@@ -149,6 +154,8 @@ import com.google.android.msdl.data.model.MSDLToken;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -1874,7 +1881,9 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
 
             // Reject system-level drops if we cannot handle the payload.
             if (d.dragInfo instanceof SystemDragItemInfo dragInfo
-                    && !SystemDragController.INSTANCE.get(mLauncher).acceptDrop(dragInfo)) {
+                    && (!SystemDragController.INSTANCE.get(mLauncher).acceptDrop(dragInfo)
+                        || !HomeScreenFilesProvider.INSTANCE.get(mLauncher).canMoveToHomeScreen(
+                                dragInfo.getUriList()))) {
                 return false;
             }
 
@@ -2867,6 +2876,8 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         final int container = mLauncher.isHotseatLayout(cellLayout)
                 ? CONTAINER_HOTSEAT
                 : CONTAINER_DESKTOP;
+        Optional<SystemDragItemInfo> systemDragItemInfo = Optional.empty();
+
         if (d.dragInfo instanceof PendingAddShortcutInfo) {
             WorkspaceItemInfo si = ((PendingAddShortcutInfo) d.dragInfo)
                     .getActivityInfo(mLauncher).createWorkspaceItemInfo();
@@ -2874,13 +2885,13 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                 d.dragInfo = si;
                 si.container = container;
             }
-        } else if (d.dragInfo instanceof SystemDragItemInfo) {
+        } else if (d.dragInfo instanceof SystemDragItemInfo dragInfo) {
+            systemDragItemInfo = Optional.of(dragInfo);
+
             // TODO(b/440195101): Populate more fully and differentiate files from folders.
             final WorkspaceItemInfo info = new WorkspaceItemInfo();
             info.itemType = ITEM_TYPE_FILE_SYSTEM_FILE;
             d.dragInfo = info;
-
-            // TODO(b/440196175): Invoke media store API to move files on disk.
         }
 
         ItemInfo info = d.dragInfo;
@@ -3020,6 +3031,40 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                 mLauncher.getDragLayer().animateViewIntoPosition(d.dragView, view, this);
                 resetTransitionTransform();
             }
+
+            final View firstItemView = view;
+            final ItemInfo firstItemInfo = info;
+            systemDragItemInfo.ifPresent((dragInfo) -> {
+
+                // After having created the workspace item for the first URI dropped in a system-
+                // level drag-and-drop sequence, attempt to move all dropped URIs to the home screen
+                // folder in the local file system. This will result in:
+                // (1) an update to the created workspace item for the first dropped URI, and
+                // (2) the creation of new workspace items for any additionally dropped URIs.
+                List<Uri> uriList = requireNonNull(dragInfo.getUriList());
+                HomeScreenFilesProvider provider = HomeScreenFilesProvider.INSTANCE.get(mLauncher);
+                List<CompletableFuture<Boolean>> results = provider.moveToHomeScreen(uriList);
+
+                // NOTE: On failure to move the first dropped URI, we must explicitly remove its
+                // associated workspace item to keep launcher state in sync with file system state.
+                CompletableFuture<Void> unused =
+                        results.getFirst().handle((result, throwable) -> runOnUiThread(() -> {
+                            if (throwable != null || !result) {
+                                mLauncher.removeItem(firstItemView, firstItemInfo, true);
+                            }
+                        }));
+
+                // NOTE: On completion of all move attempts we can release any held URI permissions.
+                unused =
+                        CompletableFuture.allOf(results.toArray(new CompletableFuture[0])).handle(
+                                (result, throwable) -> runOnUiThread(() -> {
+                                    DragAndDropPermissions permissions = dragInfo.getPermissions();
+                                    if (permissions != null) {
+                                        permissions.release();
+                                    }
+                                }));
+            });
+
             mStatsLogManager.logger().withItemInfo(d.dragInfo).withInstanceId(d.logInstanceId)
                     .log(LauncherEvent.LAUNCHER_ITEM_DROP_COMPLETED);
         }
@@ -3621,5 +3666,10 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                 performAccessibilityActionOnViewTree(viewgroup.getChildAt(i));
             }
         }
+    }
+
+    private Void runOnUiThread(Runnable runnable) {
+        mLauncher.runOnUiThread(runnable);
+        return null;
     }
 }

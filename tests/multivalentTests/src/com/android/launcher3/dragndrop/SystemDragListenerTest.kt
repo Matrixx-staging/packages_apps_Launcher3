@@ -25,6 +25,7 @@ import android.net.Uri
 import android.os.Looper
 import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
+import android.view.DragAndDropPermissions
 import android.view.DragEvent
 import android.view.View
 import androidx.test.filters.SmallTest
@@ -38,6 +39,7 @@ import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.RoboApiWrapper
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -151,7 +153,16 @@ class SystemDragListenerTest {
     }
 
     @Test
-    fun testDrop() {
+    fun testDropWhenRequestingPermissionsSucceeds() {
+        testDrop(/* throwExceptionWhenRequestingPermissions= */ false)
+    }
+
+    @Test
+    fun testDropWhenRequestingPermissionsThrowsException() {
+        testDrop(/* throwExceptionWhenRequestingPermissions= */ true)
+    }
+
+    private fun testDrop(throwExceptionWhenRequestingPermissions: Boolean) {
         val dragInfoCaptor = ArgumentCaptor.forClass(SystemDragItemInfo::class.java)
 
         testDragLocation(dragInfoCaptor)
@@ -180,12 +191,25 @@ class SystemDragListenerTest {
 
         whenever(mockDragEvent.action).thenReturn(DragEvent.ACTION_DROP)
         whenever(mockDragEvent.clipData).thenReturn(mockClipData)
+        whenever(mockLauncher.requestDragAndDropPermissions(mockDragEvent)).thenAnswer {
+            if (throwExceptionWhenRequestingPermissions) throw RuntimeException()
+            mock<DragAndDropPermissions>()
+        }
 
         assertTrue(listener.onDrag(mockDragEvent))
+        verify(mockLauncher).requestDragAndDropPermissions(mockDragEvent)
         verify(mockLauncher.dragController).isDragging
         verifyNoMoreInteractions(mockLauncher.dragController)
 
-        assertEquals(listOf(mockUri1, mockUri2), dragInfoCaptor.value.uriList)
+        with(dragInfoCaptor.value) {
+            if (throwExceptionWhenRequestingPermissions) {
+                assertNull(permissions)
+                assertNull(uriList)
+            } else {
+                assertNotNull(permissions)
+                assertEquals(listOf(mockUri1, mockUri2), uriList)
+            }
+        }
     }
 
     private fun initMock(mockDragEvent: DragEvent) {

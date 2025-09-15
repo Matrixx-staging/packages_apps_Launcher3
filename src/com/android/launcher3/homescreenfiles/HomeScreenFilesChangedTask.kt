@@ -90,7 +90,7 @@ constructor(
             dataModel.updateAndCollectWorkspaceItemInfos(
                 user,
                 {
-                    if (it.intent.data == uri) {
+                    if (it.intent?.data == uri) {
                         it.title = file.displayName
                         true
                     } else {
