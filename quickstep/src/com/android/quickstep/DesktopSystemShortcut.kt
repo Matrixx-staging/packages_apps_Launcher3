@@ -16,7 +16,6 @@
 
 package com.android.quickstep
 
-import android.view.Display
 import android.view.View
 import com.android.internal.jank.Cuj
 import com.android.internal.policy.DesktopModeCompatPolicy
@@ -27,7 +26,6 @@ import com.android.launcher3.popup.SystemShortcut
 import com.android.quickstep.views.RecentsView
 import com.android.quickstep.views.RecentsViewContainer
 import com.android.quickstep.views.TaskContainer
-import com.android.quickstep.window.RecentsWindowFlags.enableDesktopMenuOnSecondaryDisplay
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus
 import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource
@@ -77,13 +75,8 @@ class DesktopSystemShortcut(
                     val context = container.asContext()
                     val taskKey = taskContainer.task.key
                     val desktopModeCompatPolicy = DesktopModeCompatPolicy(context)
-                    val isShortcutSupported =
-                        enableDesktopMenuOnSecondaryDisplay ||
-                            context.displayId == Display.DEFAULT_DISPLAY
 
                     return when {
-                        !isShortcutSupported -> null
-
                         !DesktopModeStatus.isDesktopModeSupportedOnDisplay(
                             context,
                             context.display,
