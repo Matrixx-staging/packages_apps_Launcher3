@@ -17,8 +17,8 @@
 package com.android.launcher3.dragndrop
 
 import android.view.DragEvent
-import androidx.annotation.VisibleForTesting
 import com.android.launcher3.Launcher
+import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.util.DaggerSingletonObject
 
 /** Controller for system-level drag-and-drop. */
@@ -41,12 +41,7 @@ sealed class SystemDragController {
 
     companion object {
         @JvmField
-        val INSTANCE = DaggerSingletonObject { launcherAppComponent ->
-            INSTANCE_FOR_TESTING ?: launcherAppComponent.getSystemDragController()
-        }
-
-        /** NOTE: This allows for replacement of the singleton {@link INSTANCE} in testing. */
-        @JvmField @VisibleForTesting var INSTANCE_FOR_TESTING: SystemDragController? = null
+        val INSTANCE = DaggerSingletonObject(LauncherAppComponent::getSystemDragController)
     }
 }
 
@@ -72,7 +67,6 @@ class SystemDragControllerImpl(private val systemDragListenerFactory: SystemDrag
     private var launcher: Launcher? = null
     private var systemDragListener: SystemDragListener? = null
 
-    // TODO(b/440196898): Only accept URIs that can be mapped to Media Store URIs.
     override fun acceptDrop(itemInfo: SystemDragItemInfo) = itemInfo.uriList?.isEmpty() == false
 
     override fun onDrag(event: DragEvent): Boolean =

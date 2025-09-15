@@ -17,6 +17,7 @@
 package com.android.launcher3.dragndrop
 
 import android.net.Uri
+import android.view.DragAndDropPermissions
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_SYSTEM_DRAG
 import com.android.launcher3.model.data.WorkspaceItemInfo
 
@@ -25,6 +26,9 @@ import com.android.launcher3.model.data.WorkspaceItemInfo
  * appropriate types during drop handling.
  */
 class SystemDragItemInfo : WorkspaceItemInfo() {
+
+    /** The permissions for the URIs that were dropped in a system-level drag-and-drop sequence. */
+    var permissions: DragAndDropPermissions? = null
 
     /** The list of URIs that were dropped in a system-level drag-and-drop sequence. */
     var uriList: List<Uri>? = null

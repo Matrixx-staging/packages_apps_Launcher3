@@ -18,124 +18,212 @@ package com.android.launcher3.integration.dragndrop
 
 import android.content.ClipData
 import android.content.ClipDescription
+import android.content.ClipDescription.MIMETYPE_TEXT_PLAIN
+import android.content.ContentResolver
+import android.content.ContentValues
+import android.content.Context
 import android.graphics.PointF
 import android.graphics.Rect
 import android.net.Uri
-import android.platform.test.flag.junit.FlagsParameterization
-import android.platform.test.flag.junit.SetFlagsRule
+import android.os.Environment
+import android.provider.MediaStore
+import android.provider.MediaStore.Files.FileColumns.DISPLAY_NAME
+import android.provider.MediaStore.Files.FileColumns.MIME_TYPE
+import android.provider.MediaStore.Files.FileColumns.RELATIVE_PATH
+import android.provider.MediaStore.Files.FileColumns._ID
+import android.util.Log
 import android.view.DragEvent
 import android.view.DragEvent.ACTION_DRAG_LOCATION
 import android.view.DragEvent.ACTION_DRAG_STARTED
 import android.view.DragEvent.ACTION_DROP
 import android.view.View
+import androidx.core.net.toUri
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
-import com.android.launcher3.Flags.FLAG_ENABLE_SYSTEM_DRAG
-import com.android.launcher3.Flags.enableSystemDrag
 import com.android.launcher3.Launcher
-import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_FILE_SYSTEM_FILE
 import com.android.launcher3.dragndrop.SystemDragController
 import com.android.launcher3.dragndrop.SystemDragControllerImpl
-import com.android.launcher3.dragndrop.SystemDragControllerStub
-import com.android.launcher3.dragndrop.SystemDragListener
+import com.android.launcher3.homescreenfiles.HomeScreenFilesNoOpProvider
+import com.android.launcher3.homescreenfiles.HomeScreenFilesProvider
+import com.android.launcher3.homescreenfiles.HomeScreenFilesProvider.Companion.HOME_SCREEN_FOLDER_RELATIVE_PATH
+import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.util.BaseLauncherActivityTest
-import com.android.launcher3.util.LauncherBindableItemsContainer.ItemOperator
 import com.android.launcher3.util.ReflectionHelpers
 import com.android.launcher3.util.Wait.atMost
 import com.android.launcher3.util.workspace.FavoriteItemsTransaction
-import java.util.concurrent.TimeUnit.SECONDS
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import platform.test.runner.parameterized.ParameterizedAndroidJunit4
-import platform.test.runner.parameterized.Parameters
 
 /** Integration tests for system-level drag-and-drop. */
 @LargeTest
-@RunWith(ParameterizedAndroidJunit4::class)
-class SystemDragIntegrationTest(flags: FlagsParameterization, private val item: ClipData.Item) :
-    BaseLauncherActivityTest<Launcher>() {
+@RunWith(AndroidJUnit4::class)
+class SystemDragIntegrationTest : BaseLauncherActivityTest<Launcher>() {
 
-    companion object {
-        @JvmStatic
-        @Parameters(name = "flags={0}, item={1}")
-        fun getParameters() = run {
-            val flags = FlagsParameterization.allCombinationsOf(FLAG_ENABLE_SYSTEM_DRAG)
-            val items = listOf(ClipData.Item("Text"), ClipData.Item(Uri.EMPTY))
-            flags.flatMap { f -> items.map { i -> arrayOf(f, i) } }
-        }
-    }
-
-    @get:Rule val flags = SetFlagsRule(flags)
-
-    private lateinit var systemDragController: SystemDragController
+    private val context: Context = targetContext()
 
     @Before
     fun setUp() {
-        val context = targetContext()
-        val iconCache = LauncherAppState.INSTANCE[context].iconCache
-
-        // NOTE: Because the system drag controller is application scoped and the application
-        // instance is reused across tests, we need to manually ensure that the system drag
-        // controller instance is synced with parameterized flag state.
-        SystemDragController.INSTANCE_FOR_TESTING =
-            if (enableSystemDrag())
-                SystemDragControllerImpl { launcher -> SystemDragListener(launcher) { iconCache } }
-            else SystemDragControllerStub()
-
+        deleteAllHomeScreenFiles()
         FavoriteItemsTransaction(context).commit()
         loadLauncherSync()
     }
 
     @After
     fun tearDown() {
-        SystemDragController.INSTANCE_FOR_TESTING = null
+        FavoriteItemsTransaction(context).commit()
+        deleteAllHomeScreenFiles()
     }
 
     @Test
-    fun testDragAndDropConditionallyCreatesWorkspaceItem() {
-        launcherActivity.executeOnLauncher { launcher ->
+    fun testDragAndDropWhenPayloadContainsImmovableUri() {
+        testDragAndDrop(
+            ClipDescription(/* label= */ "", /* mimeTypes= */ arrayOf(MIMETYPE_TEXT_PLAIN)),
+            listOf(ClipData.Item("content://test/path/id".toUri())),
+        )
+    }
 
-            // Simulate a system-level drag-and-drop sequence.
-            val start = PointF()
-            val end = launcher.workspace.getExactCenterPointOnScreen()
-            val description = ClipDescription(/* label= */ "", /* mimeTypes= */ arrayOf("*/*"))
-            launcher.dragLayer.dispatchDragAndDropSequence(start, end, description, listOf(item))
+    @Test
+    fun testDragAndDropWhenPayloadContainsMediaStoreUris() {
+        val uniqueDisplayName = "${System.currentTimeMillis()}"
 
-            // Expect a workspace item to be created if and only if:
-            // (a) the system-level drag controller is implemented, and
-            // (b) the dropped payload contained a URI.
-            val expectWorkspaceItemCreated =
-                SystemDragController.INSTANCE[launcher] is SystemDragControllerImpl &&
-                    item.uri != null
+        val mediaStoreUris =
+            listOf("$uniqueDisplayName (1).txt", "$uniqueDisplayName (2).txt").map { displayName ->
+                context.contentResolver
+                    .insert(
+                        MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL),
+                        ContentValues().apply {
+                            put(DISPLAY_NAME, displayName)
+                            put(MIME_TYPE, MIMETYPE_TEXT_PLAIN)
+                            put(RELATIVE_PATH, Environment.DIRECTORY_DOCUMENTS)
+                        },
+                    )
+                    ?.also { mediaStoreUri ->
+                        context.contentResolver.openOutputStream(mediaStoreUri)?.use { stream ->
+                            stream.write(displayName.toByteArray())
+                        }
+                    }
+            }
 
-            // Verify workspace item creation (or lack thereof).
-            val operator = ItemOperator { item, _ -> item?.itemType == ITEM_TYPE_FILE_SYSTEM_FILE }
-            val condition = { launcher.workspace.mapOverItems(operator) != null }
-            assertThrowsIf(
-                "Workspace item created",
-                { atMost("Workspace item not created", condition, timeout = SECONDS.toMillis(5)) },
-                !expectWorkspaceItemCreated,
-            )
+        assertTrue(mediaStoreUris.all(this::isMediaStoreUri))
+
+        testDragAndDrop(
+            ClipDescription(/* label= */ "", /* mimeTypes= */ arrayOf(MIMETYPE_TEXT_PLAIN)),
+            mediaStoreUris.map(ClipData::Item),
+        )
+    }
+
+    @Test
+    fun testDragAndDropWhenPayloadContainsText() {
+        testDragAndDrop(
+            ClipDescription(/* label= */ "", /* mimeTypes= */ arrayOf(MIMETYPE_TEXT_PLAIN)),
+            listOf(ClipData.Item("text")),
+        )
+    }
+
+    private fun testDragAndDrop(description: ClipDescription, itemList: List<ClipData.Item>) {
+        // Expect a workspace item to be created on system-level drag-and-drop if and only if:
+        // (a) the home screen files provider is implemented,
+        // (b) the system-level drag controller is implemented, and
+        // (c) the dropped payload solely contains media store URIs.
+        val expectWorkspaceItemCreated =
+            HomeScreenFilesProvider.INSTANCE[context] !is HomeScreenFilesNoOpProvider &&
+                SystemDragController.INSTANCE[context] is SystemDragControllerImpl &&
+                itemList.map(ClipData.Item::getUri).all(this::isMediaStoreUri)
+
+        val workspaceItemView =
+            launcherActivity.getFromLauncher { launcher ->
+                // Simulate a system-level drag-and-drop sequence.
+                val bounds = Rect().apply(launcher.dragLayer::getBoundsOnScreen)
+                val start = PointF(bounds.left.toFloat(), bounds.right.toFloat())
+                val end = PointF(bounds.exactCenterX(), bounds.exactCenterY())
+                launcher.dragLayer.dispatchDragAndDropSequence(start, end, description, itemList)
+
+                // Expect workspace item creation (or lack thereof).
+                assertThrowsIf(
+                    "Workspace item created",
+                    { findWorkspaceItem("Workspace item not created") },
+                    !expectWorkspaceItemCreated,
+                )
+            }
+
+        // Verify workspace item creation (or lack thereof).
+        val workspaceItemCreated = workspaceItemView != null
+        assertEquals(expectWorkspaceItemCreated, workspaceItemCreated)
+
+        // If a workspace item was not created, there's nothing left to verify.
+        if (!workspaceItemCreated) {
+            return
         }
+
+        // If external storage permissions are held, verify expected file system changes.
+        if (Environment.isExternalStorageManager()) {
+            return itemList.forEach { item ->
+                atMost(
+                    "'${item.uri}' not moved to '$HOME_SCREEN_FOLDER_RELATIVE_PATH'",
+                    {
+                        context.contentResolver
+                            .query(
+                                item.uri,
+                                /*projection=*/ arrayOf(_ID),
+                                /*selection=*/ "$RELATIVE_PATH = ?",
+                                /*selectionArgs=*/ arrayOf(HOME_SCREEN_FOLDER_RELATIVE_PATH),
+                                /*sortOrder=*/ null,
+                            )
+                            ?.use { cursor -> cursor.count } == 1
+                    },
+                )
+            }
+        }
+
+        // If external storage permissions are not held, verify workspace item removal.
+        atMost("Workspace item not removed", { isRemovedFromLayout(workspaceItemView) })
     }
 
     private fun assertThrows(message: String, block: () -> Unit) {
         assertThrows(message, AssertionError::class.java, block)
     }
 
-    private fun assertThrowsIf(message: String, block: () -> Unit, condition: Boolean) {
+    private fun <T> assertThrowsIf(message: String, block: () -> T, condition: Boolean): T? {
         if (condition) {
-            assertThrows(message, block)
-            return
+            assertThrows(message, { block() })
+            return null
         }
-        block()
+        return block()
     }
+
+    private fun deleteAllHomeScreenFiles() {
+        try {
+            context.contentResolver.delete(
+                MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL),
+                "$RELATIVE_PATH = ?",
+                arrayOf(HOME_SCREEN_FOLDER_RELATIVE_PATH),
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Unable to delete all home screen files", e)
+        }
+    }
+
+    private fun findWorkspaceItem(message: String) =
+        launcherActivity.getOnceNotNull(message) { launcher ->
+            launcher.workspace.mapOverItems { itemInfo, _ -> isFileSystemFile(itemInfo) }
+        }
+
+    private fun isFileSystemFile(itemInfo: ItemInfo?) =
+        itemInfo?.itemType == ITEM_TYPE_FILE_SYSTEM_FILE
+
+    private fun isMediaStoreUri(uri: Uri?) =
+        uri?.scheme == ContentResolver.SCHEME_CONTENT && uri.authority == MediaStore.AUTHORITY
+
+    private fun isRemovedFromLayout(view: View?) =
+        launcherActivity.getFromLauncher { view?.parent } == null
 
     private fun obtainDragEvent(
         action: Int,
@@ -177,6 +265,7 @@ class SystemDragIntegrationTest(flags: FlagsParameterization, private val item: 
         dispatchDragEvent(obtainDragEvent(ACTION_DROP, end, description, items))
     }
 
-    private fun View.getExactCenterPointOnScreen() =
-        Rect().apply(this::getBoundsOnScreen).let { PointF(it.exactCenterX(), it.exactCenterY()) }
+    companion object {
+        private const val TAG = "SystemDragIntegrationTest"
+    }
 }
