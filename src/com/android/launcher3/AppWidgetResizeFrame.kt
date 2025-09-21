@@ -18,7 +18,6 @@ package com.android.launcher3
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
-import android.animation.LayoutTransition
 import android.animation.ObjectAnimator
 import android.animation.PropertyValuesHolder
 import android.appwidget.AppWidgetProviderInfo
@@ -33,6 +32,7 @@ import android.view.View.OnLayoutChangeListener
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
+import androidx.annotation.VisibleForTesting
 import androidx.core.view.children
 import com.android.launcher3.AppWidgetResizeFrame.Companion.DragHandles.Companion.HANDLE_COUNT
 import com.android.launcher3.DropTarget.DragObject
@@ -41,7 +41,6 @@ import com.android.launcher3.LauncherConstants.ActivityCodes
 import com.android.launcher3.LauncherPrefs.Companion.get
 import com.android.launcher3.accessibility.DragViewStateAnnouncer
 import com.android.launcher3.celllayout.CellLayoutLayoutParams
-import com.android.launcher3.config.FeatureFlags
 import com.android.launcher3.dragndrop.DragController
 import com.android.launcher3.dragndrop.DragLayer
 import com.android.launcher3.dragndrop.DragOptions
@@ -56,7 +55,6 @@ import com.android.launcher3.util.PendingRequestArgs
 import com.android.launcher3.views.ArrowTipView
 import com.android.launcher3.views.BaseDragLayer
 import com.android.launcher3.widget.LauncherAppWidgetHostView
-import com.android.launcher3.widget.LauncherAppWidgetHostView.CellChildViewPreLayoutListener
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo
 import com.android.launcher3.widget.PendingAppWidgetHostView
 import com.android.launcher3.widget.util.WidgetSizeHandler.Companion.updateSizeRanges
@@ -136,11 +134,6 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     private var topTouchRegionAdjustment = 0
     private var bottomTouchRegionAdjustment = 0
 
-    private lateinit var widgetViewWindowPos: IntArray
-    private val widgetViewOldRect = Rect()
-    private val widgetViewNewRect = Rect()
-    private val cellChildViewPreLayoutListener: CellChildViewPreLayoutListener?
-
     private val widgetViewLayoutListener: OnLayoutChangeListener
 
     private var xDown = 0
@@ -149,23 +142,6 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     init {
         launcher.dragController.addDragListener(this)
         stateAnnouncer = DragViewStateAnnouncer.createFor(this)
-
-        cellChildViewPreLayoutListener =
-            when {
-                FeatureFlags.ENABLE_WIDGET_TRANSITION_FOR_RESIZING.get() ->
-                    CellChildViewPreLayoutListener {
-                        v: View,
-                        left: Int,
-                        top: Int,
-                        right: Int,
-                        bottom: Int ->
-                        v.getLocationInWindow(widgetViewWindowPos)
-                        widgetViewOldRect[v.left, v.top, v.right] = v.bottom
-                        widgetViewNewRect[left, top, right] = bottom
-                    }
-
-                else -> null
-            }
 
         backgroundPadding = resources.getDimensionPixelSize(R.dimen.resize_frame_background_padding)
         touchTargetWidth = 2 * backgroundPadding
@@ -329,19 +305,6 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 
         if (!Flags.homeScreenEditImprovements() && info.isReconfigurable) {
             initializeReconfigureButton()
-        }
-
-        if (FeatureFlags.ENABLE_WIDGET_TRANSITION_FOR_RESIZING.get()) {
-            checkNotNull(cellChildViewPreLayoutListener).let {
-                this.widgetView.setCellChildViewPreLayoutListener(it)
-            }
-            widgetViewOldRect.set(
-                /*left*/ this.widgetView.left,
-                /*top*/ this.widgetView.top,
-                /*right*/ this.widgetView.right,
-                /*bottom*/ this.widgetView.bottom,
-            )
-            widgetViewNewRect.set(widgetViewOldRect)
         }
 
         initializeWidgetViewLayoutParams(widgetInfoOnView)
@@ -631,11 +594,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
      */
     private fun getSnappedRectRelativeToDragLayer(out: Rect) {
         val scale = widgetView.scaleToFit
-        if (FeatureFlags.ENABLE_WIDGET_TRANSITION_FOR_RESIZING.get()) {
-            getViewRectRelativeToDragLayer(out)
-        } else {
-            dragLayer.getViewRectRelativeToSelf(widgetView, out)
-        }
+        dragLayer.getViewRectRelativeToSelf(widgetView, out)
 
         val width = 2 * backgroundPadding + Math.round(scale * out.width())
         val height = 2 * backgroundPadding + Math.round(scale * out.height())
@@ -648,45 +607,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         out.bottom = out.top + height
     }
 
-    private fun getViewRectRelativeToDragLayer(out: Rect) {
-        val afterPos = viewPosRelativeToDragLayer
-        out.set(
-            /*left*/ afterPos[0],
-            /*top*/ afterPos[1],
-            /*right*/ afterPos[0] + widgetViewNewRect.width(),
-            /*bottom*/ afterPos[1] + widgetViewNewRect.height(),
-        )
-    }
-
-    private val viewPosRelativeToDragLayer: IntArray
-        /** Returns the relative x and y values of the widget view after the layout transition */
-        get() {
-            dragLayer.getLocationInWindow(TempDragLayerLoc)
-            val x = TempDragLayerLoc[0]
-            val y = TempDragLayerLoc[1]
-
-            val leftOffset = widgetViewNewRect.left - widgetViewOldRect.left
-            val topOffset = widgetViewNewRect.top - widgetViewOldRect.top
-
-            return intArrayOf(
-                widgetViewWindowPos[0] - x + leftOffset,
-                widgetViewWindowPos[1] - y + topOffset,
-            )
-        }
-
     private fun snapToWidget(animate: Boolean) {
-        // The widget is guaranteed to be attached to the cell layout at this point, thus setting
-        // the transition here
-        if (
-            FeatureFlags.ENABLE_WIDGET_TRANSITION_FOR_RESIZING.get() &&
-                widgetView.layoutTransition == null
-        ) {
-            val transition = LayoutTransition()
-            transition.setDuration(RESIZE_TRANSITION_DURATION_MS.toLong())
-            transition.enableTransitionType(LayoutTransition.CHANGING)
-            widgetView.layoutTransition = transition
-        }
-
         getSnappedRectRelativeToDragLayer(TempRect)
         val newWidth = TempRect.width()
         val newHeight = TempRect.height()
@@ -863,10 +784,6 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     private fun shouldIgnoreTouch(): Boolean = launcher.dragController.isDragging
 
     override fun handleClose(animate: Boolean) {
-        if (FeatureFlags.ENABLE_WIDGET_TRANSITION_FOR_RESIZING.get()) {
-            widgetView.clearCellChildViewPreLayoutListener()
-            widgetView.layoutTransition = null
-        }
         dragLayer.removeView(this)
         widgetView.removeOnLayoutChangeListener(widgetViewLayoutListener)
         launcher.dragController.removeDragListener(this)
@@ -940,7 +857,8 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     }
 
     /** A mutable class for describing the range of two int values. */
-    private class IntRange {
+    @VisibleForTesting
+    class IntRange {
         var start: Int = 0
         var end: Int = 0
 
@@ -999,8 +917,8 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
             outputRange: IntRange,
         ): Int {
             applyDelta(moveStart, moveEnd, delta, outputRange)
-            outputRange.start.coerceAtLeast(0)
-            outputRange.end.coerceAtMost(maxEnd)
+            outputRange.start = outputRange.start.coerceAtLeast(0)
+            outputRange.end = outputRange.end.coerceAtMost(maxEnd)
 
             if (outputRange.size() < minSize) {
                 if (moveStart) {
@@ -1060,12 +978,10 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         private const val SPRING_LOADED_PROGRESS_MAX = 1f
 
         private const val RESIZE_THRESHOLD = 0.66f
-        private const val RESIZE_TRANSITION_DURATION_MS = 150
 
         // Reusable static objects pre-initialized for temporary usage.
         private val TempRect = Rect()
         private val TempRect2 = Rect()
-        private val TempDragLayerLoc = IntArray(2)
 
         private const val DIRECTION_HORIZONTAL_INDEX = 0
         private const val DIRECTION_VERTICAL_INDEX = 1
