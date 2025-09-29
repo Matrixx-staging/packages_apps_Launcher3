@@ -1640,7 +1640,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             return false;
         }
 
-        RunnableList runnableList = recents.launchRunningDesktopTaskView();
+        RunnableList runnableList = recents.launchDesktopTaskView();
         // Wrapping it in runnable so we post after DW is ready for the app
         // launch.
         if (runnableList == null) {
@@ -1900,10 +1900,10 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
      */
     private void launchFromTaskbar(@Nullable RecentsView recents, @Nullable View launchingIconView,
             List<? extends ItemInfo> itemInfos) {
-        if (isInApp()) {
-            launchFromInAppTaskbar(recents, launchingIconView, itemInfos);
-        } else {
+        if (mControllers.uiController.isInOverviewUi()) {
             launchFromOverviewTaskbar(recents, launchingIconView, itemInfos);
+        } else {
+            launchFromInAppTaskbar(recents, launchingIconView, itemInfos);
         }
     }
 
