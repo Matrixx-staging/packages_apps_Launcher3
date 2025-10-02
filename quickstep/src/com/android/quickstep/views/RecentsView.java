@@ -1983,10 +1983,11 @@ public abstract class RecentsView<
         }
 
         if (taskGroups == null) {
-            Log.d(TAG, "applyLoadPlan - taskGroups is null");
+            Log.d(TAG,
+                    "applyLoadPlan - taskGroups is null - taskListChangeId: " + taskListChangeId);
         } else {
             Log.d(TAG, "applyLoadPlan - taskGroups: " + taskGroups.stream().map(
-                    GroupTask::toString).toList());
+                    GroupTask::toString).toList() + ", taskListChangeId: " + taskListChangeId);
         }
         if (!mLoadPlanEverApplied) {
             mLoadPlanEverApplied = true;
@@ -2322,8 +2323,9 @@ public abstract class RecentsView<
     }
 
     private void updateTaskStackListenerState() {
-        boolean handleTaskStackChanges = mOverviewStateEnabled && isAttachedToWindow()
-                && getWindowVisibility() == VISIBLE;
+        boolean handleTaskStackChanges = isAttachedToWindow()
+                && ((mOverviewStateEnabled && getWindowVisibility() == VISIBLE)
+                || mActiveGestureGroupedTaskInfo != null);
         if (handleTaskStackChanges != mHandleTaskStackChanges) {
             Log.d(TAG, "updateTaskStackListenerState: " + handleTaskStackChanges);
             mHandleTaskStackChanges = handleTaskStackChanges;
@@ -2822,6 +2824,8 @@ public abstract class RecentsView<
             ? extends StatefulContainer<STATE_TYPE>> getStateManager();
 
     public void reset() {
+        Log.d(TAG, "reset - mEnableDrawingLiveTile: " + mEnableDrawingLiveTile
+                + ", mRecentsAnimationController: " + mRecentsAnimationController);
         setCurrentTask(-1);
         mCurrentPageScrollDiff = 0;
         mIgnoreResetTaskId = -1;
@@ -2829,7 +2833,7 @@ public abstract class RecentsView<
         setFocusedTaskViewId(INVALID_TASK_ID);
         mAnyTaskHasBeenDismissed = false;
         setTaskIconVisible(true);
-        mActiveGestureGroupedTaskInfo = null;
+        setActiveGestureGroupedTaskInfo(null);
         if (mAddDesktopButton != null) {
             mAddDesktopButton.setGestureAlpha(1f);
         }
@@ -2841,8 +2845,6 @@ public abstract class RecentsView<
             // RecentsDependencies.Companion.destroy();
         }
 
-        Log.d(TAG, "reset - mEnableDrawingLiveTile: " + mEnableDrawingLiveTile
-                + ", mRecentsAnimationController: " + mRecentsAnimationController);
         if (mEnableDrawingLiveTile && mRecentsAnimationController != null) {
             // We own mRecentsAnimationController, finish it now to clean up.
             finishRecentsAnimation(true /* toHome */, null);
@@ -2987,12 +2989,17 @@ public abstract class RecentsView<
         }
     }
 
+    private void setActiveGestureGroupedTaskInfo(GroupedTaskInfo groupedTaskInfo) {
+        mActiveGestureGroupedTaskInfo = groupedTaskInfo;
+        updateTaskStackListenerState();
+    }
+
     /**
      * Called when a gesture from an app is starting.
      */
     public void onGestureAnimationStart(GroupedTaskInfo groupedTaskInfo) {
         Log.d(TAG, "onGestureAnimationStart - groupedTaskInfo: " + groupedTaskInfo);
-        mActiveGestureGroupedTaskInfo = groupedTaskInfo;
+        setActiveGestureGroupedTaskInfo(groupedTaskInfo);
 
         // This needs to be called before the other states are set since it can create the task view
         if (mOrientationState.setGestureActive(true)) {
@@ -3082,7 +3089,7 @@ public abstract class RecentsView<
      * Called when a gesture from an app has finished, and the animation to the target has ended.
      */
     public void onGestureAnimationEnd() {
-        mActiveGestureGroupedTaskInfo = null;
+        setActiveGestureGroupedTaskInfo(null);
         if (mOrientationState.setGestureActive(false)) {
             updateOrientationHandler(/* forceRecreateDragLayerControllers = */ false);
         }
@@ -3205,9 +3212,6 @@ public abstract class RecentsView<
         // Update task size after setting current task.
         updateTaskSize();
         mUtils.updateChildTaskOrientations();
-
-        // Reload the task list
-        reloadIfNeeded();
     }
 
     /**
