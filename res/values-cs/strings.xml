@@ -103,7 +103,7 @@
     <string name="install_drop_target_label" msgid="2539096853673231757">"Nainstalovat"</string>
     <string name="dismiss_prediction_label" msgid="3357562989568808658">"Nenavrhovat aplikaci"</string>
     <string name="pin_prediction" msgid="4196423321649756498">"Připnout předpověď"</string>
-    <string name="bubble" msgid="3072951361014076670">"Bublat"</string>
+    <string name="bubble" msgid="3072951361014076670">"Bublina"</string>
     <string name="widget_settings" msgid="5280157748464495511">"Nastavení"</string>
     <string name="pin_to_taskbar" msgid="5914002252642242332">"Připnout na panel"</string>
     <string name="unpin_from_taskbar" msgid="1025883383457627426">"Odepnout z panelu"</string>
