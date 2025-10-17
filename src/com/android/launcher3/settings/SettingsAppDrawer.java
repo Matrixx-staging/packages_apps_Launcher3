@@ -116,6 +116,7 @@ public class SettingsAppDrawer extends CollapsingToolbarBaseActivity
 @Override
 public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
     if (LauncherPrefs.ALL_APPS_SEARCH_PLACEMENT.getSharedPrefKey().equals(key) ||
+        LauncherPrefs.ALL_APPS_DARK_TEXT.getSharedPrefKey().equals(key) ||
         LauncherPrefs.APP_DRAWER_STYLE.getSharedPrefKey().equals(key) ||
         LauncherPrefs.DRAWER_SCROLLBAR.getSharedPrefKey().equals(key)) {
         LauncherAppState.INSTANCE.executeIfCreated(app -> app.setNeedsRestart());
