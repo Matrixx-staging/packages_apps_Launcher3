@@ -37,10 +37,13 @@ import androidx.annotation.VisibleForTesting;
 import androidx.recyclerview.widget.DiffUtil;
 
 import com.android.launcher3.Flags;
+import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.R;
 import com.android.launcher3.allapps.BaseAllAppsAdapter.AdapterItem;
 import com.android.launcher3.model.data.AppInfo;
+import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.util.AppsListUtils;
 import com.android.launcher3.util.LabelComparator;
 import com.android.launcher3.views.ActivityContext;
 
@@ -101,7 +104,7 @@ public class AlphabeticalAppsList implements AllAppsStore.OnUpdateListener {
     // The number of results in current adapter
     private int mAccessibilityResultsCount = 0;
     // The current set of adapter items
-    private final ArrayList<AdapterItem> mAdapterItems = new ArrayList<>();
+    protected final ArrayList<AdapterItem> mAdapterItems = new ArrayList<>();
     // The set of sections that we allow fast-scrolling to (includes non-merged sections)
     private final List<FastScrollSectionInfo> mFastScrollerSections = new ArrayList<>();
 
@@ -239,6 +242,8 @@ public class AlphabeticalAppsList implements AllAppsStore.OnUpdateListener {
                 mPrivateProviderManager.getAnimationRunning())) {
             return;
         }
+        // Clear the package info cache to ensure fresh ApplicationInfo for new/updated apps
+        AppsListUtils.clearPackageInfoCache();
         // Sort the list of apps
         mApps.clear();
         mPrivateApps.clear();
@@ -318,7 +323,16 @@ public class AlphabeticalAppsList implements AllAppsStore.OnUpdateListener {
                                     R.string.work_profile_edu_section), 0));
                     Log.d(TAG, "Adding FastScrollSection for work edu card.");
                 }
+                // Check if default list view is enabled (DRAWER_LIST = true means list view, false means folders)
+                Context context = mActivityContext.asContext();
+                boolean useListViewModel = LauncherPrefs.INSTANCE.get(context).get(LauncherPrefs.DRAWER_LIST);
+                if (useListViewModel) {
+                    // Default list view - use regular alphabetical sections
                 position = addAppsWithSections(mApps, position);
+                } else {
+                    // Categorized folders mode - use hybrid categorization
+                    position = addAppsHybrid(mApps, position);
+                }
             }
             if (Flags.enablePrivateSpace()) {
                 position = addPrivateSpaceItems(position);
@@ -460,7 +474,7 @@ public class AlphabeticalAppsList implements AllAppsStore.OnUpdateListener {
         return position;
     }
 
-    private int addAppsWithSections(List<AppInfo> appList, int startPosition) {
+    protected int addAppsWithSections(List<AppInfo> appList, int startPosition) {
         String lastSectionName = null;
         boolean hasPrivateApps = false;
         int position = startPosition;
@@ -495,6 +509,47 @@ public class AlphabeticalAppsList implements AllAppsStore.OnUpdateListener {
             }
             position++;
         }
+        return position;
+    }
+
+    /**
+     * Adds apps in hybrid mode: folders for categories with 2+ apps at the top,
+     * individual apps below in regular list format.
+     *
+     * @param appList List of apps to add
+     * @param startPosition Starting position for adapter items
+     * @return Final position after adding all items
+     */
+    protected int addAppsHybrid(List<AppInfo> appList, int startPosition) {
+        if (appList == null || appList.isEmpty()) {
+            return startPosition;
+        }
+
+        Context context = mActivityContext.asContext();
+        AppsListUtils.HybridCategorizationResult result =
+                AppsListUtils.categorizeAppsHybrid(context, appList);
+
+        int position = startPosition;
+
+        // Add folders for categories with 2+ apps at the top
+        for (Map.Entry<String, List<AppInfo>> entry : result.folders.entrySet()) {
+            FolderInfo folderInfo = new FolderInfo();
+            folderInfo.title = entry.getKey();
+            folderInfo.container = ItemInfo.NO_ID; // Mark as app drawer folder
+            
+            for (AppInfo app : entry.getValue()) {
+                folderInfo.add(app);
+            }
+            
+            mAdapterItems.add(AdapterItem.asFolder(folderInfo));
+            position++;
+        }
+
+        // Add individual apps below in regular list format
+        if (!result.individualApps.isEmpty()) {
+            position = addAppsWithSections(result.individualApps, position);
+        }
+
         return position;
     }
 

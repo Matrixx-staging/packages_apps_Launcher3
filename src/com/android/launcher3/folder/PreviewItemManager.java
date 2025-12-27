@@ -53,6 +53,7 @@ import com.android.launcher3.model.data.AppPairInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
+import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.views.ActivityContext;
 
 import java.util.ArrayList;
@@ -463,6 +464,10 @@ public class PreviewItemManager {
             AppPairIconDrawingParams appPairParams =
                     new AppPairIconDrawingParams(mContext, DISPLAY_FOLDER);
             p.drawable = AppPairIconGraphic.composeDrawable(api, appPairParams);
+            p.drawable.setBounds(0, 0, mIconSize, mIconSize);
+        } else if (item instanceof ItemInfoWithIcon withIcon) {
+            p.drawable = withIcon.newIcon(mContext,
+                    ThemeManager.INSTANCE.get(mContext).isIconThemeEnabled() ? FLAG_THEMED : 0);
             p.drawable.setBounds(0, 0, mIconSize, mIconSize);
         }
 

@@ -350,4 +350,19 @@
     <string name="icon_pack_default_label">Default</string>
     <string name="icon_pack_add">Install more</string>
     <string name="icon_pack_no_market">There\'s no available app store</string>
+
+    <!-- App drawer categories -->
+    <string name="others_category_label">Others</string>
+    <string name="system_apps_category_label">System Apps</string>
+    <string name="google_apps_category_label">Google Apps</string>
+    <string name="productivity_category_label">Productivity</string>
+    <string name="news_category_label">News</string>
+    <string name="social_category_label">Social</string>
+    <string name="audio_category_label">Audio</string>
+    <string name="video_category_label">Video</string>
+    <string name="image_category_label">Image</string>
+
+    <!-- Drawer list preference -->
+    <string name="drawer_list_title">Default list view</string>
+    <string name="drawer_list_summary">Show apps in default list view instead of categorized folders</string>
 </resources>

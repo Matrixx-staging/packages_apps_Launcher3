@@ -134,6 +134,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     public static final int DISPLAY_SEARCH_RESULT_SMALL = 7;
     public static final int DISPLAY_PREDICTION_ROW = 8;
     public static final int DISPLAY_SEARCH_RESULT_APP_ROW = 9;
+    private static final int DISPLAY_DRAWER_FOLDER = 10;
 
     private static final float MIN_LETTER_SPACING = -0.05f;
     private static final int MAX_SEARCH_LOOP_COUNT = 20;
@@ -358,7 +359,8 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     private boolean displayIsAppDrawer() {
         return (mDisplay == DISPLAY_ALL_APPS 
                 || mDisplay == DISPLAY_PREDICTION_ROW
-                || mDisplay == DISPLAY_SEARCH_RESULT_APP_ROW);
+                || mDisplay == DISPLAY_SEARCH_RESULT_APP_ROW
+                || mDisplay == DISPLAY_DRAWER_FOLDER);
     }
 
     @Override
