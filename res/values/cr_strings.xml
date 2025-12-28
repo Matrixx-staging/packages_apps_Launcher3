@@ -363,6 +363,9 @@
     <string name="image_category_label">Image</string>
 
     <!-- Drawer list preference -->
-    <string name="drawer_list_title">Default list view</string>
-    <string name="drawer_list_summary">Show apps in default list view instead of categorized folders</string>
+    <string name="drawer_list_title">Layout</string>
+    <string name="drawer_list_summary">Choose between default list view or categorized folders (Caddy)</string>
+    <string name="feed_default">Default</string>
+    <string name="caddy_beta">Caddy (Beta)</string>
+
 </resources>

@@ -19,6 +19,18 @@
     xmlns:launcher="http://schemas.android.com/apk/res-auto"
     xmlns:settings="http://schemas.android.com/apk/res/com.android.launcher3">
 
+    <PreferenceCategory
+        android:title="@string/drawer_list_title">
+
+        <com.android.launcher3.settings.CaddyCardSelectorPreference
+            android:key="pref_drawer_list"
+            android:summary="@string/drawer_list_summary"
+            android:defaultValue="true"
+            android:persistent="true"
+            launcher:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
     <com.android.launcher3.settings.preferences.CustomSeekBarPreference
         android:key="pref_app_drawer_opacity"
         android:title="@string/background_opacity_title"
@@ -27,14 +39,6 @@
         android:min="0"
         settings:units="%"
         android:defaultValue="60" />
-
-    <SwitchPreferenceCompat
-        android:key="pref_drawer_list"
-        android:title="@string/drawer_list_title"
-        android:summary="@string/drawer_list_summary"
-        android:defaultValue="true"
-        android:persistent="true"
-        launcher:iconSpaceReserved="false" />
 
     <SwitchPreferenceCompat
         android:key="pref_allapps_themed_icons"
