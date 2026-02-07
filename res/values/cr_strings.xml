@@ -368,4 +368,9 @@
     <string name="feed_default">Default</string>
     <string name="caddy_beta">Caddy (Beta)</string>
 
+    <!-- Wallpaper carousel -->
+    <string name="wallpaper_carousel_title">Wallpaper carousel</string>
+    <string name="wallpaper_carousel_summary">Quickly switch wallpapers from the long-press menu</string>
+    <string name="wallpaper_carousel_lockscreen_title">Apply to lock screen</string>
+    <string name="wallpaper_carousel_lockscreen_summary">Set the same wallpaper on the lock screen</string>
 </resources>
